@@ -3,13 +3,27 @@
                     xmlns:controls="clr-namespace:DaisyUI.Avalonia.Controls;assembly=DaisyUI.Avalonia.NET">
 
     <Design.PreviewWith>
-        <Border Padding="20" Width="300">
-             <StackPanel>
-                 <TextBlock Text="Content" />
+        <Border Padding="20" Width="400">
+             <StackPanel Spacing="4">
+                 <TextBlock Text="Basic dividers:" FontWeight="Bold" />
                  <controls:DaisyDivider />
-                 <TextBlock Text="Content" />
                  <controls:DaisyDivider>OR</controls:DaisyDivider>
-                 <TextBlock Text="Content" />
+
+                 <TextBlock Text="Colors:" FontWeight="Bold" Margin="0,12,0,0" />
+                 <controls:DaisyDivider Color="Primary">Primary</controls:DaisyDivider>
+                 <controls:DaisyDivider Color="Secondary">Secondary</controls:DaisyDivider>
+                 <controls:DaisyDivider Color="Accent">Accent</controls:DaisyDivider>
+
+                 <TextBlock Text="Placements:" FontWeight="Bold" Margin="0,12,0,0" />
+                 <controls:DaisyDivider Placement="Start">Start</controls:DaisyDivider>
+                 <controls:DaisyDivider Placement="End">End</controls:DaisyDivider>
+
+                 <TextBlock Text="Horizontal:" FontWeight="Bold" Margin="0,12,0,0" />
+                 <StackPanel Orientation="Horizontal" Height="60" HorizontalAlignment="Center" Spacing="16">
+                     <TextBlock Text="Left" VerticalAlignment="Center" />
+                     <controls:DaisyDivider Horizontal="True">OR</controls:DaisyDivider>
+                     <TextBlock Text="Right" VerticalAlignment="Center" />
+                 </StackPanel>
              </StackPanel>
         </Border>
     </Design.PreviewWith>
@@ -23,60 +37,142 @@
 
         <Setter Property="Template">
             <ControlTemplate>
-                <Grid ColumnDefinitions="*, Auto, *">
-                    <!-- Left Line (10% opacity per official DaisyUI CSS) -->
-                    <Border Height="2" Background="{TemplateBinding Background}" Opacity="0.1" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <Panel>
+                    <!-- Vertical layout (default): horizontal line -->
+                    <Grid x:Name="PART_VerticalGrid" ColumnDefinitions="*, Auto, *">
+                        <Border x:Name="PART_StartLine" Height="2" Background="{TemplateBinding Background}" Opacity="0.1" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <ContentPresenter x:Name="PART_Content" Grid.Column="1"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                          VerticalAlignment="Center"
+                                          HorizontalAlignment="Center" />
+                        <Border x:Name="PART_EndLine" Grid.Column="2" Height="2" Background="{TemplateBinding Background}" Opacity="0.1" VerticalAlignment="Center" Margin="8,0,0,0" />
+                    </Grid>
 
-                    <!-- Content (full opacity) -->
-                    <ContentPresenter Grid.Column="1"
-                                      Content="{TemplateBinding Content}"
-                                      ContentTemplate="{TemplateBinding ContentTemplate}"
-                                      IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                      VerticalAlignment="Center"
-                                      HorizontalAlignment="Center" />
-
-                    <!-- Right Line (10% opacity per official DaisyUI CSS) -->
-                    <Border Grid.Column="2" Height="2" Background="{TemplateBinding Background}" Opacity="0.1" VerticalAlignment="Center" Margin="8,0,0,0" />
-                </Grid>
+                    <!-- Horizontal layout: vertical line -->
+                    <Grid x:Name="PART_HorizontalGrid" RowDefinitions="*, Auto, *" IsVisible="False">
+                        <Border x:Name="PART_StartLineH" Width="2" Background="{TemplateBinding Background}" Opacity="0.1" HorizontalAlignment="Center" Margin="0,0,0,8" />
+                        <ContentPresenter x:Name="PART_ContentH" Grid.Row="1"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                          VerticalAlignment="Center"
+                                          HorizontalAlignment="Center" />
+                        <Border x:Name="PART_EndLineH" Grid.Row="2" Width="2" Background="{TemplateBinding Background}" Opacity="0.1" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                    </Grid>
+                </Panel>
             </ControlTemplate>
         </Setter>
 
-        <!-- If no content, just one line?
-             We can use triggers to hide middle column and margins.
-             Avalonia doesn't support DataTriggers in styles easily without binding classes.
-             But we can use a Converter on ColumnSpan or Visibility.
+        <!-- Horizontal mode: show vertical line layout, hide horizontal line layout -->
+        <Style Selector="^[Horizontal=True]">
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="MinWidth" Value="20" />
+        </Style>
+        <Style Selector="^[Horizontal=True] /template/ Grid#PART_VerticalGrid">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[Horizontal=True] /template/ Grid#PART_HorizontalGrid">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
 
-             Actually, the simple Grid above always leaves a gap if content is null but margins exist.
-             If Content is null, ContentPresenter is collapsed (IsVisible converter above).
-             But the margins on Borders are hardcoded.
+        <!-- Color variants (full opacity per official DaisyUI CSS) -->
+        <!-- Neutral -->
+        <Style Selector="^[Color=Neutral] /template/ Border#PART_StartLine, ^[Color=Neutral] /template/ Border#PART_StartLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^[Color=Neutral] /template/ Border#PART_EndLine, ^[Color=Neutral] /template/ Border#PART_EndLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
 
-             Alternative: Use a Grid with one column if empty.
+        <!-- Primary -->
+        <Style Selector="^[Color=Primary] /template/ Border#PART_StartLine, ^[Color=Primary] /template/ Border#PART_StartLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^[Color=Primary] /template/ Border#PART_EndLine, ^[Color=Primary] /template/ Border#PART_EndLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
 
-             Let's use a simpler template: Two Borders and Content.
-             If Content is null, we want a single line.
+        <!-- Secondary -->
+        <Style Selector="^[Color=Secondary] /template/ Border#PART_StartLine, ^[Color=Secondary] /template/ Border#PART_StartLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^[Color=Secondary] /template/ Border#PART_EndLine, ^[Color=Secondary] /template/ Border#PART_EndLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
 
-             Better: Use a single DockPanel or Flex.
+        <!-- Accent -->
+        <Style Selector="^[Color=Accent] /template/ Border#PART_StartLine, ^[Color=Accent] /template/ Border#PART_StartLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^[Color=Accent] /template/ Border#PART_EndLine, ^[Color=Accent] /template/ Border#PART_EndLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
 
-             Let's stick to the grid. If content is empty, the middle column has width Auto (0).
-             The margins on the lines will meet (16px gap).
-             This mimics DaisyUI's empty divider often having a gap if used with `divider` class alone?
-             No, `divider` alone is a line.
+        <!-- Success -->
+        <Style Selector="^[Color=Success] /template/ Border#PART_StartLine, ^[Color=Success] /template/ Border#PART_StartLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^[Color=Success] /template/ Border#PART_EndLine, ^[Color=Success] /template/ Border#PART_EndLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
 
-             Let's change template slightly:
-             Use a class or property 'HasContent'.
-             Or:
-        -->
+        <!-- Warning -->
+        <Style Selector="^[Color=Warning] /template/ Border#PART_StartLine, ^[Color=Warning] /template/ Border#PART_StartLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^[Color=Warning] /template/ Border#PART_EndLine, ^[Color=Warning] /template/ Border#PART_EndLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+
+        <!-- Info -->
+        <Style Selector="^[Color=Info] /template/ Border#PART_StartLine, ^[Color=Info] /template/ Border#PART_StartLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^[Color=Info] /template/ Border#PART_EndLine, ^[Color=Info] /template/ Border#PART_EndLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+
+        <!-- Error -->
+        <Style Selector="^[Color=Error] /template/ Border#PART_StartLine, ^[Color=Error] /template/ Border#PART_StartLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^[Color=Error] /template/ Border#PART_EndLine, ^[Color=Error] /template/ Border#PART_EndLineH">
+            <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+
+        <!-- Placement variants (per official DaisyUI CSS: divider-start hides before, divider-end hides after) -->
+        <Style Selector="^[Placement=Start] /template/ Border#PART_StartLine, ^[Placement=Start] /template/ Border#PART_StartLineH">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[Placement=End] /template/ Border#PART_EndLine, ^[Placement=End] /template/ Border#PART_EndLineH">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+
+        <!-- Empty state: remove margins when no content for seamless line -->
         <Style Selector="^:empty /template/ Border">
              <Setter Property="Margin" Value="0" />
         </Style>
         <Style Selector="^:empty /template/ ContentPresenter">
              <Setter Property="IsVisible" Value="False" />
         </Style>
-        <!-- The above :empty pseudoclass applies if ContentControl Content is null/empty string?
-             Avalonia :empty selector works for ItemsControl usually.
-             For ContentControl, it might not work.
-
-             Let's rely on standard layout. A small gap in the middle of a line is acceptable or we can just fix it later. -->
 
     </ControlTheme>
 </ResourceDictionary>

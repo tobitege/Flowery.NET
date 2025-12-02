@@ -17,6 +17,7 @@ namespace DaisyUI.Avalonia.Controls
     {
         public string Name { get; set; } = string.Empty;
         public string IconKey { get; set; } = string.Empty;
+        public bool IsExpanded { get; set; } = true;
         public ObservableCollection<SidebarItem> Items { get; set; } = new();
     }
 
@@ -43,6 +44,8 @@ namespace DaisyUI.Avalonia.Controls
     public class DaisyComponentSidebar : TemplatedControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyComponentSidebar);
+
+        private ObservableCollection<SidebarCategory> _allCategories = new();
 
         public static readonly RoutedEvent<SidebarItemSelectedEventArgs> ItemSelectedEvent =
             RoutedEvent.Register<DaisyComponentSidebar, SidebarItemSelectedEventArgs>(
@@ -82,15 +85,87 @@ namespace DaisyUI.Avalonia.Controls
             set => SetValue(SidebarWidthProperty, value);
         }
 
+        public static readonly StyledProperty<string> SearchTextProperty =
+            AvaloniaProperty.Register<DaisyComponentSidebar, string>(nameof(SearchText), string.Empty);
+
+        public string SearchText
+        {
+            get => GetValue(SearchTextProperty);
+            set => SetValue(SearchTextProperty, value);
+        }
+
+        static DaisyComponentSidebar()
+        {
+            SearchTextProperty.Changed.AddClassHandler<DaisyComponentSidebar>((s, e) => s.OnSearchTextChanged());
+        }
+
         public DaisyComponentSidebar()
         {
-            Categories = CreateDefaultCategories();
+            _allCategories = CreateDefaultCategories();
+            Categories = _allCategories;
+        }
+
+        private void OnSearchTextChanged()
+        {
+            FilterCategories(SearchText);
+        }
+
+        private void FilterCategories(string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                // Restore all categories with original items
+                Categories = _allCategories;
+                return;
+            }
+
+            var search = searchText.ToLowerInvariant();
+            var filtered = new ObservableCollection<SidebarCategory>();
+
+            foreach (var category in _allCategories)
+            {
+                // Check if category name matches
+                var categoryMatches = category.Name.ToLowerInvariant().Contains(search);
+
+                // Filter items that match
+                var matchingItems = category.Items
+                    .Where(item => item.Name.ToLowerInvariant().Contains(search))
+                    .ToList();
+
+                // Include category if name matches or has matching items
+                if (categoryMatches || matchingItems.Count > 0)
+                {
+                    var filteredCategory = new SidebarCategory
+                    {
+                        Name = category.Name,
+                        IconKey = category.IconKey,
+                        IsExpanded = true, // Expand filtered categories
+                        Items = categoryMatches
+                            ? category.Items // Show all items if category name matches
+                            : new ObservableCollection<SidebarItem>(matchingItems)
+                    };
+                    filtered.Add(filteredCategory);
+                }
+            }
+
+            Categories = filtered;
         }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
             AddHandler(Button.ClickEvent, OnSidebarButtonClick);
+
+            // Wire up clear button
+            var clearButton = e.NameScope.Find<Button>("PART_ClearButton");
+            if (clearButton != null)
+            {
+                clearButton.Click += (s, args) =>
+                {
+                    SearchText = string.Empty;
+                    args.Handled = true;
+                };
+            }
         }
 
         private void OnSidebarButtonClick(object? sender, RoutedEventArgs e)
@@ -108,9 +183,10 @@ namespace DaisyUI.Avalonia.Controls
 
         private SidebarCategory? FindCategoryForItem(SidebarItem item)
         {
-            foreach (var category in Categories)
+            // Search in original categories, not filtered ones
+            foreach (var category in _allCategories)
             {
-                if (category.Items.Contains(item))
+                if (category.Items.Any(i => i.Name == item.Name && i.TabHeader == item.TabHeader))
                     return category;
             }
             return null;
@@ -240,11 +316,19 @@ namespace DaisyUI.Avalonia.Controls
                 },
                 new SidebarCategory
                 {
+                    Name = "Divider",
+                    IconKey = "DaisyIconDivider",
+                    Items = new ObservableCollection<SidebarItem>
+                    {
+                        new SidebarItem { Name = "Divider", TabHeader = "Divider" }
+                    }
+                },
+                new SidebarCategory
+                {
                     Name = "Layout",
                     IconKey = "DaisyIconLayout",
                     Items = new ObservableCollection<SidebarItem>
                     {
-                        new SidebarItem { Name = "Divider", TabHeader = "Layout" },
                         new SidebarItem { Name = "Drawer", TabHeader = "Layout" },
                         new SidebarItem { Name = "Hero", TabHeader = "Layout" },
                         new SidebarItem { Name = "Indicator", TabHeader = "Layout" },

@@ -1,0 +1,85 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:DaisyUI.Avalonia.Controls;assembly=DaisyUI.Avalonia.NET"
+             xmlns:local="clr-namespace:DaisyUI.Avalonia.Gallery.Examples"
+             x:Class="DaisyUI.Avalonia.Gallery.Examples.DividerExamples">
+
+    <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="24" Margin="24,0,24,32">
+
+            <!-- Divider -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader Title="Divider" />
+                <TextBlock Text="Divider separates content vertically or horizontally." Opacity="0.7" FontSize="13" Margin="0,0,0,8"/>
+
+                <!-- Basic divider with text -->
+                <TextBlock Text="Divider with text" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
+                    <StackPanel Width="300">
+                        <TextBlock Text="Content" HorizontalAlignment="Center"/>
+                        <controls:DaisyDivider>OR</controls:DaisyDivider>
+                        <TextBlock Text="Content" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Horizontal divider (vertical line) -->
+                <TextBlock Text="Horizontal divider (vertical line)" FontWeight="SemiBold" Margin="0,16,0,4"/>
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16">
+                        <TextBlock Text="Content" VerticalAlignment="Center"/>
+                        <controls:DaisyDivider Horizontal="True" Height="60">OR</controls:DaisyDivider>
+                        <TextBlock Text="Content" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Divider with no text -->
+                <TextBlock Text="Divider with no text" FontWeight="SemiBold" Margin="0,16,0,4"/>
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
+                    <StackPanel Width="300">
+                        <TextBlock Text="Content" HorizontalAlignment="Center"/>
+                        <controls:DaisyDivider />
+                        <TextBlock Text="Content" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Divider with colors -->
+                <TextBlock Text="Divider with colors" FontWeight="SemiBold" Margin="0,16,0,4"/>
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
+                    <StackPanel Width="400">
+                        <controls:DaisyDivider>Default</controls:DaisyDivider>
+                        <controls:DaisyDivider Color="Neutral">Neutral</controls:DaisyDivider>
+                        <controls:DaisyDivider Color="Primary">Primary</controls:DaisyDivider>
+                        <controls:DaisyDivider Color="Secondary">Secondary</controls:DaisyDivider>
+                        <controls:DaisyDivider Color="Accent">Accent</controls:DaisyDivider>
+                        <controls:DaisyDivider Color="Success">Success</controls:DaisyDivider>
+                        <controls:DaisyDivider Color="Warning">Warning</controls:DaisyDivider>
+                        <controls:DaisyDivider Color="Info">Info</controls:DaisyDivider>
+                        <controls:DaisyDivider Color="Error">Error</controls:DaisyDivider>
+                    </StackPanel>
+                </Border>
+
+                <!-- Divider in different positions -->
+                <TextBlock Text="Divider placements" FontWeight="SemiBold" Margin="0,16,0,4"/>
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
+                    <StackPanel Width="400">
+                        <controls:DaisyDivider Placement="Start">Start</controls:DaisyDivider>
+                        <controls:DaisyDivider>Default</controls:DaisyDivider>
+                        <controls:DaisyDivider Placement="End">End</controls:DaisyDivider>
+                    </StackPanel>
+                </Border>
+
+                <!-- Divider in different positions (horizontal) -->
+                <TextBlock Text="Divider placements (horizontal)" FontWeight="SemiBold" Margin="0,16,0,4"/>
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16" Height="150">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="24">
+                        <controls:DaisyDivider Horizontal="True" Placement="Start">Start</controls:DaisyDivider>
+                        <controls:DaisyDivider Horizontal="True">Default</controls:DaisyDivider>
+                        <controls:DaisyDivider Horizontal="True" Placement="End">End</controls:DaisyDivider>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

@@ -18,69 +18,138 @@
                             BorderBrush="{DynamicResource DaisyBase300Brush}"
                             BorderThickness="0,0,1,0"
                             Width="{TemplateBinding SidebarWidth}">
-                        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                            <ItemsControl Name="PART_CategoriesControl"
-                                          ItemsSource="{TemplateBinding Categories}"
-                                          Margin="0,8,0,8">
+                        <Grid RowDefinitions="Auto,*">
+                            <!-- Search Box -->
+                            <Border Grid.Row="0" Margin="12,12,12,8">
+                                <controls:DaisyInput x:Name="PART_SearchInput"
+                                                     Watermark="Search components..."
+                                                     Text="{TemplateBinding SearchText, Mode=TwoWay}"
+                                                     Variant="Bordered"
+                                                     Classes="sidebar-search">
+                                    <controls:DaisyInput.InnerRightContent>
+                                        <Button x:Name="PART_ClearButton"
+                                                Classes="sidebar-search-clear"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Padding="8,0,12,0"
+                                                Cursor="Hand"
+                                                IsVisible="{Binding Text, RelativeSource={RelativeSource AncestorType=controls:DaisyInput}, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                            <PathIcon Width="14" Height="14"
+                                                      Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                                      Opacity="0.5"
+                                                      Data="{StaticResource DaisyIconClose}" />
+                                        </Button>
+                                    </controls:DaisyInput.InnerRightContent>
+                                </controls:DaisyInput>
+                            </Border>
+
+                            <!-- Categories List -->
+                            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl Name="PART_CategoriesControl"
+                                              ItemsSource="{TemplateBinding Categories}"
+                                              Margin="0,0,20,8">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="controls:SidebarCategory">
                                         <StackPanel Margin="0,0,0,4">
                                             <!-- Category Divider -->
-                                            <Border Height="1" Background="{DynamicResource DaisyBase300Brush}" Margin="16,0,16,12" />
-                                            <!-- Category Header -->
-                                            <StackPanel Orientation="Horizontal"
-                                                        Margin="16,8,16,4"
-                                                        Spacing="10">
-                                                <PathIcon Width="18" Height="18"
-                                                          Foreground="{DynamicResource DaisyBaseContentBrush}"
-                                                          Data="{Binding IconKey, Converter={x:Static controls:IconKeyConverter.Instance}}" />
-                                                <TextBlock Text="{Binding Name}"
-                                                           FontWeight="SemiBold"
-                                                           FontSize="13"
-                                                           Opacity="0.7"
-                                                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                                            </StackPanel>
-                                            <!-- Category Items -->
-                                            <ItemsControl ItemsSource="{Binding Items}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate x:DataType="controls:SidebarItem">
-                                                        <Button Classes="sidebar-item"
-                                                                Tag="{Binding}"
-                                                                HorizontalAlignment="Stretch"
-                                                                HorizontalContentAlignment="Stretch"
-                                                                Margin="8,1"
-                                                                Padding="12,8"
-                                                                Background="Transparent"
-                                                                Foreground="{DynamicResource DaisyBaseContentBrush}"
-                                                                BorderThickness="0"
-                                                                CornerRadius="6"
-                                                                Cursor="Hand">
-                                                            <Grid ColumnDefinitions="*,Auto">
-                                                                <TextBlock Grid.Column="0"
-                                                                           Text="{Binding Name}"
-                                                                           VerticalAlignment="Center" />
-                                                                <controls:DaisyBadge Grid.Column="1"
-                                                                                     Variant="Neutral"
-                                                                                     Size="ExtraSmall"
-                                                                                     IsVisible="{Binding Badge, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                                                                     Content="{Binding Badge}"
-                                                                                     Margin="8,0,0,0"
-                                                                                     Opacity="0.7" />
-                                                            </Grid>
-                                                        </Button>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
+                                            <Border Height="1" Background="{DynamicResource DaisyBase300Brush}" Margin="16,0,4,8" />
+                                            <!-- Collapsible Category -->
+                                            <controls:DaisyCollapse Classes="sidebar-category"
+                                                                    IsExpanded="{Binding IsExpanded}"
+                                                                    Background="Transparent"
+                                                                    CornerRadius="0"
+                                                                    Padding="0">
+                                                <controls:DaisyCollapse.Header>
+                                                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                        <PathIcon Width="18" Height="18"
+                                                                  VerticalAlignment="Center"
+                                                                  Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                                                  Data="{Binding IconKey, Converter={x:Static controls:IconKeyConverter.Instance}}" />
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   FontWeight="SemiBold"
+                                                                   FontSize="14"
+                                                                   VerticalAlignment="Center"
+                                                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                                    </StackPanel>
+                                                </controls:DaisyCollapse.Header>
+                                                <!-- Category Items -->
+                                                <ItemsControl ItemsSource="{Binding Items}" Margin="0,4,0,0">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="controls:SidebarItem">
+                                                            <Button Classes="sidebar-item"
+                                                                    Tag="{Binding}"
+                                                                    HorizontalAlignment="Stretch"
+                                                                    HorizontalContentAlignment="Stretch"
+                                                                    Margin="8,1,0,1"
+                                                                    Padding="12,8"
+                                                                    Background="Transparent"
+                                                                    Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                                                    BorderThickness="0"
+                                                                    CornerRadius="6"
+                                                                    Cursor="Hand">
+                                                                <Grid ColumnDefinitions="*,Auto">
+                                                                    <TextBlock Grid.Column="0"
+                                                                               Text="{Binding Name}"
+                                                                               VerticalAlignment="Center" />
+                                                                    <controls:DaisyBadge Grid.Column="1"
+                                                                                         Variant="Neutral"
+                                                                                         Size="ExtraSmall"
+                                                                                         IsVisible="{Binding Badge, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                                                         Content="{Binding Badge}"
+                                                                                         Margin="8,0,0,0"
+                                                                                         Opacity="0.7" />
+                                                                </Grid>
+                                                            </Button>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </controls:DaisyCollapse>
                                         </StackPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
                     </Border>
                 </ControlTemplate>
             </Setter>
         </ControlTheme>
     </Styles.Resources>
+
+    <!-- Search input style -->
+    <Style Selector="controls|DaisyInput.sidebar-search">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Padding" Value="10,8" />
+        <Setter Property="MinHeight" Value="36" />
+    </Style>
+
+    <!-- Clear button style -->
+    <Style Selector="Button.sidebar-search-clear">
+        <Setter Property="Opacity" Value="0.6" />
+    </Style>
+    <Style Selector="Button.sidebar-search-clear:pointerover">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="Button.sidebar-search-clear:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- Sidebar category collapse styles -->
+    <Style Selector="controls|DaisyCollapse.sidebar-category">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="controls|DaisyCollapse.sidebar-category /template/ ToggleButton#PART_HeaderButton">
+        <Setter Property="Padding" Value="16,8,8,8" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="controls|DaisyCollapse.sidebar-category /template/ ToggleButton#PART_HeaderButton:pointerover">
+        <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
+    </Style>
+    <Style Selector="controls|DaisyCollapse.sidebar-category /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Padding" Value="0" />
+    </Style>
 
     <!-- Sidebar item button styles -->
     <Style Selector="Button.sidebar-item:pointerover">

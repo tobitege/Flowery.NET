@@ -7,20 +7,6 @@
     <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="24" Margin="24,0,24,32">
 
-            <!-- Divider -->
-            <StackPanel Spacing="12">
-                <local:SectionHeader Title="Divider" />
-                <WrapPanel Orientation="Horizontal">
-                    <StackPanel Spacing="10" Margin="0,0,40,20" Width="300">
-                        <TextBlock Text="Content above divider" HorizontalAlignment="Center"/>
-                        <controls:DaisyDivider>OR</controls:DaisyDivider>
-                        <TextBlock Text="Content below divider" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                </WrapPanel>
-            </StackPanel>
-
-            <controls:DaisyDivider />
-
             <!-- Drawer -->
             <StackPanel Spacing="12">
                 <local:SectionHeader Title="Drawer" />

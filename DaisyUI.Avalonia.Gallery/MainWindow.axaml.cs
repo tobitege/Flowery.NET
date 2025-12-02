@@ -26,6 +26,7 @@ public partial class MainWindow : Window
             ["Data Display"] = () => new DataDisplayExamples(),
             ["Feedback"] = () => new FeedbackExamples(),
             ["Cards"] = () => new CardsExamples(),
+            ["Divider"] = () => new DividerExamples(),
             ["Layout"] = () => new LayoutExamples(),
             ["Theming"] = () => new ThemingExamples()
         };
