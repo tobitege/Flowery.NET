@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.VisualTree;
 
 namespace DaisyUI.Avalonia.Controls
 {
@@ -29,6 +31,9 @@ namespace DaisyUI.Avalonia.Controls
 
         public static readonly StyledProperty<DaisySize> SizeProperty =
             AvaloniaProperty.Register<DaisyFab, DaisySize>(nameof(Size), DaisySize.Large);
+
+        public static readonly StyledProperty<bool> AutoCloseProperty =
+            AvaloniaProperty.Register<DaisyFab, bool>(nameof(AutoClose), true);
 
         public FabLayout Layout
         {
@@ -60,6 +65,15 @@ namespace DaisyUI.Avalonia.Controls
             set => SetValue(SizeProperty, value);
         }
 
+        /// <summary>
+        /// When true (default), clicking an action item automatically closes the FAB.
+        /// </summary>
+        public bool AutoClose
+        {
+            get => GetValue(AutoCloseProperty);
+            set => SetValue(AutoCloseProperty, value);
+        }
+
         private DaisyButton? _triggerButton;
 
         public DaisyFab()
@@ -71,7 +85,60 @@ namespace DaisyUI.Avalonia.Controls
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
+
+            // Hook existing action buttons
+            foreach (var child in Children)
+            {
+                if (child is DaisyButton btn && btn != _triggerButton)
+                {
+                    btn.Click -= OnActionButtonClick;
+                    btn.Click += OnActionButtonClick;
+                }
+            }
+
+            Children.CollectionChanged += OnChildrenChanged;
             EnsureTriggerButton();
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnDetachedFromVisualTree(e);
+            Children.CollectionChanged -= OnChildrenChanged;
+
+            // Unhook all action buttons
+            foreach (var child in Children)
+            {
+                if (child is DaisyButton btn && btn != _triggerButton)
+                {
+                    btn.Click -= OnActionButtonClick;
+                }
+            }
+        }
+
+        private void OnChildrenChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.OldItems != null)
+            {
+                foreach (var item in e.OldItems)
+                {
+                    if (item is DaisyButton btn && btn != _triggerButton)
+                    {
+                        btn.Click -= OnActionButtonClick;
+                    }
+                }
+            }
+
+            if (e.NewItems != null)
+            {
+                foreach (var item in e.NewItems)
+                {
+                    if (item is DaisyButton btn && btn != _triggerButton)
+                    {
+                        btn.Click -= OnActionButtonClick;
+                        btn.Click += OnActionButtonClick;
+                    }
+                }
+            }
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -116,6 +183,14 @@ namespace DaisyUI.Avalonia.Controls
         private void OnTriggerClick(object? sender, RoutedEventArgs e)
         {
             IsOpen = !IsOpen;
+        }
+
+        private void OnActionButtonClick(object? sender, RoutedEventArgs e)
+        {
+            if (AutoClose && IsOpen)
+            {
+                IsOpen = false;
+            }
         }
     }
 }

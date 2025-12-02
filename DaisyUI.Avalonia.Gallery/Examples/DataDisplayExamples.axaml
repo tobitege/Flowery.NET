@@ -173,13 +173,44 @@
             <StackPanel Spacing="12">
                 <local:SectionHeader Title="Countdown" />
                 <WrapPanel Orientation="Horizontal">
+                    <!-- Current time display -->
                     <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Current Time" Classes="text-sm opacity-70" Margin="0,0,0,4"/>
                         <StackPanel Orientation="Horizontal" Spacing="5">
-                            <controls:DaisyCountdown Content="10" />
-                            <TextBlock Text=":" VerticalAlignment="Center"/>
-                            <controls:DaisyCountdown Content="24" />
-                            <TextBlock Text=":" VerticalAlignment="Center"/>
-                            <controls:DaisyCountdown Content="59" />
+                            <controls:DaisyCountdown ClockUnit="Hours" Digits="2" />
+                            <TextBlock Text=":" VerticalAlignment="Center" FontSize="24" FontFamily="Cascadia Mono, Consolas, monospace"/>
+                            <controls:DaisyCountdown ClockUnit="Minutes" Digits="2" />
+                            <TextBlock Text=":" VerticalAlignment="Center" FontSize="24" FontFamily="Cascadia Mono, Consolas, monospace"/>
+                            <controls:DaisyCountdown ClockUnit="Seconds" Digits="2" />
+                        </StackPanel>
+                    </StackPanel>
+                    <!-- Live countdown -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Live Countdown (loops)" Classes="text-sm opacity-70" Margin="0,0,0,4"/>
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <controls:DaisyCountdown Value="59" Digits="2" IsCountingDown="True" Loop="True" LoopFrom="59" FontSize="48" />
+                        </StackPanel>
+                    </StackPanel>
+                    <!-- Large countdown with labels -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="With Labels" Classes="text-sm opacity-70" Margin="0,0,0,4"/>
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <StackPanel HorizontalAlignment="Center">
+                                <controls:DaisyCountdown Value="15" FontSize="32" />
+                                <TextBlock Text="days" HorizontalAlignment="Center" Classes="text-sm"/>
+                            </StackPanel>
+                            <StackPanel HorizontalAlignment="Center">
+                                <controls:DaisyCountdown Value="10" FontSize="32" />
+                                <TextBlock Text="hours" HorizontalAlignment="Center" Classes="text-sm"/>
+                            </StackPanel>
+                            <StackPanel HorizontalAlignment="Center">
+                                <controls:DaisyCountdown Value="24" FontSize="32" />
+                                <TextBlock Text="min" HorizontalAlignment="Center" Classes="text-sm"/>
+                            </StackPanel>
+                            <StackPanel HorizontalAlignment="Center">
+                                <controls:DaisyCountdown Value="30" FontSize="32" IsCountingDown="True" Loop="True" LoopFrom="59" />
+                                <TextBlock Text="sec" HorizontalAlignment="Center" Classes="text-sm"/>
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </WrapPanel>

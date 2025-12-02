@@ -4,18 +4,46 @@
 
     <Design.PreviewWith>
         <Border Padding="20">
-             <controls:DaisyCountdown Content="59" />
+            <StackPanel Spacing="10">
+                <controls:DaisyCountdown Value="59" />
+                <controls:DaisyCountdown Value="9" Digits="2" />
+                <controls:DaisyCountdown Value="123" Digits="3" />
+            </StackPanel>
         </Border>
     </Design.PreviewWith>
 
     <ControlTheme x:Key="{x:Type controls:DaisyCountdown}" TargetType="controls:DaisyCountdown">
-        <Setter Property="FontFamily" Value="Monospace" />
+        <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, Courier New, monospace" />
         <Setter Property="FontSize" Value="24" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Template">
-            <ControlTemplate>
-                <TextBlock Text="{TemplateBinding Content}" />
+            <ControlTemplate TargetType="controls:DaisyCountdown">
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        Padding="{TemplateBinding Padding}">
+                    <TextBlock x:Name="PART_Text"
+                               Text="{TemplateBinding DisplayValue}"
+                               FontFamily="{TemplateBinding FontFamily}"
+                               FontSize="{TemplateBinding FontSize}"
+                               FontWeight="{TemplateBinding FontWeight}"
+                               Foreground="{TemplateBinding Foreground}"
+                               HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                               VerticalAlignment="{TemplateBinding VerticalAlignment}">
+                        <TextBlock.Transitions>
+                            <Transitions>
+                                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut" />
+                            </Transitions>
+                        </TextBlock.Transitions>
+                    </TextBlock>
+                </Border>
             </ControlTemplate>
         </Setter>
+
+        <Style Selector="^:pointerover /template/ TextBlock#PART_Text">
+            <Setter Property="Opacity" Value="0.8" />
+        </Style>
     </ControlTheme>
 </ResourceDictionary>

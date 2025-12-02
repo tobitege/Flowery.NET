@@ -88,13 +88,10 @@
                 <local:SectionHeader Title="Toast" />
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Spacing="10" Margin="0,0,40,20">
-                        <Border Background="{DynamicResource DaisyBase200Brush}" Width="300" Height="150" ClipToBounds="True" CornerRadius="8">
+                        <Border Background="{DynamicResource DaisyBase200Brush}" Width="300" Height="250" ClipToBounds="True" CornerRadius="8">
                             <Grid>
-                                <TextBlock Text="Toast Container Preview" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.5"/>
-                                <controls:DaisyToast HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                                    <controls:DaisyAlert Variant="Info" Content="New message." />
-                                    <controls:DaisyAlert Variant="Success" Content="Saved." />
-                                </controls:DaisyToast>
+                                <TextBlock Text="Toast Demo (auto-cycling)" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.5"/>
+                                <controls:DaisyToast x:Name="DemoToast" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
                             </Grid>
                         </Border>
                     </StackPanel>
@@ -109,7 +106,21 @@
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Spacing="10" Margin="0,0,40,20">
                         <Button Content="Hover me (Default)" ToolTip.Tip="I am a tooltip" />
-                        <Button Content="Hover me (Primary)" ToolTip.Tip="Primary Tooltip" Classes="primary" />
+                        <Button Content="Hover me (Primary)">
+                            <ToolTip.Tip>
+                                <ToolTip Classes="primary" Content="Primary Tooltip" />
+                            </ToolTip.Tip>
+                        </Button>
+                        <Button Content="Hover me (Secondary)">
+                            <ToolTip.Tip>
+                                <ToolTip Classes="secondary" Content="Secondary Tooltip" />
+                            </ToolTip.Tip>
+                        </Button>
+                        <Button Content="Hover me (Accent)">
+                            <ToolTip.Tip>
+                                <ToolTip Classes="accent" Content="Accent Tooltip" />
+                            </ToolTip.Tip>
+                        </Button>
                     </StackPanel>
                 </WrapPanel>
             </StackPanel>
