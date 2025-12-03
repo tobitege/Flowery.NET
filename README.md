@@ -13,7 +13,7 @@
 
 ![Flowery.NET.Gallery Screenshot](Flowery.NET.Gallery.png)
 
-This library provides native Avalonia controls that mimic the utility-first, semantic class naming of DaisyUI, making it easy to build beautiful, themed UIs in Avalonia. A NuGet package will hopefully be available soon, too.
+This library provides native Avalonia controls that mimic the utility-first, semantic class naming of DaisyUI, making it easy to build beautiful, themed UIs in Avalonia. A NuGet package is also available.
 
 > [!NOTE]
 > **🚧 Active Development — Expect Breaking Changes 🚧**
