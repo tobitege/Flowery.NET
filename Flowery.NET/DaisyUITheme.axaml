@@ -50,6 +50,7 @@
                 <ResourceInclude Source="/Themes/DaisyTextRotate.axaml" />
                 <ResourceInclude Source="/Themes/DaisyDiff.axaml" />
                 <ResourceInclude Source="/Themes/DaisyTable.axaml" />
+                <ResourceInclude Source="/Themes/DaisyList.axaml" />
                 <ResourceInclude Source="/Themes/DaisySwap.axaml" />
                 <ResourceInclude Source="/Themes/DaisyThemeSwap.axaml" />
                 <ResourceInclude Source="/Themes/DaisyThemeController.axaml" />

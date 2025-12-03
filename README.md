@@ -80,6 +80,7 @@ The best way to explore the controls is to run the included **Gallery App**. It 
 - **Diff** (`DaisyDiff`): Image comparison slider (Before/After).
 - **Hover Gallery** (`DaisyHoverGallery`): Image/Content gallery driven by mouse hover position.
 - **Kbd** (`DaisyKbd`): Keyboard key visual style.
+- **List** (`DaisyList`, `DaisyListRow`, `DaisyListColumn`): Vertical list layout with flexible row structure. Supports grow columns and wrapped content.
 - **Stat** (`DaisyStat`): Statistics block with Title, Value, and Description.
 - **Table** (`DaisyTable`): Styled items control for tabular data.
 - **Timeline** (`DaisyTimeline`): Vertical list of events with connecting lines.

@@ -1,0 +1,116 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="{DynamicResource DaisyBase200Brush}" Width="450">
+            <controls:DaisyList Background="{DynamicResource DaisyBase100Brush}" CornerRadius="16">
+                <TextBlock Text="Most played songs" FontSize="11" Opacity="0.6" Margin="16,12,16,4" />
+                <controls:DaisyListRow>
+                    <controls:DaisyListColumn>
+                        <Border Width="40" Height="40" CornerRadius="8" Background="{DynamicResource DaisyPrimaryBrush}" />
+                    </controls:DaisyListColumn>
+                    <controls:DaisyListColumn Grow="True">
+                        <StackPanel>
+                            <TextBlock Text="Dio Lupa" FontWeight="Medium" />
+                            <TextBlock Text="Remaining Reason" FontSize="11" Opacity="0.6" />
+                        </StackPanel>
+                    </controls:DaisyListColumn>
+                    <controls:DaisyListColumn>
+                        <controls:DaisyButton Variant="Ghost" Shape="Square" Size="Small">
+                            <PathIcon Width="16" Height="16" Data="M6 3L20 12 6 21 6 3z" />
+                        </controls:DaisyButton>
+                    </controls:DaisyListColumn>
+                </controls:DaisyListRow>
+                <controls:DaisyListRow>
+                    <controls:DaisyListColumn>
+                        <Border Width="40" Height="40" CornerRadius="8" Background="{DynamicResource DaisySecondaryBrush}" />
+                    </controls:DaisyListColumn>
+                    <controls:DaisyListColumn Grow="True">
+                        <StackPanel>
+                            <TextBlock Text="Ellie Beilish" FontWeight="Medium" />
+                            <TextBlock Text="Bears of a fever" FontSize="11" Opacity="0.6" />
+                        </StackPanel>
+                    </controls:DaisyListColumn>
+                    <controls:DaisyListColumn>
+                        <controls:DaisyButton Variant="Ghost" Shape="Square" Size="Small">
+                            <PathIcon Width="16" Height="16" Data="M6 3L20 12 6 21 6 3z" />
+                        </controls:DaisyButton>
+                    </controls:DaisyListColumn>
+                </controls:DaisyListRow>
+            </controls:DaisyList>
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- DaisyListColumn theme -->
+    <ControlTheme x:Key="{x:Type controls:DaisyListColumn}" TargetType="controls:DaisyListColumn">
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ContentPresenter Content="{TemplateBinding Content}"
+                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                  Margin="{TemplateBinding Padding}" />
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+
+    <!-- DaisyListRow theme -->
+    <ControlTheme x:Key="{x:Type controls:DaisyListRow}" TargetType="controls:DaisyListRow">
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase200Brush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="Spacing" Value="12" />
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <controls:DaisyListRowPanel />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        Padding="{TemplateBinding Padding}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                    <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <!-- Hover state -->
+        <Style Selector="^:pointerover">
+            <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+        </Style>
+    </ControlTheme>
+
+    <!-- DaisyList theme -->
+    <ControlTheme x:Key="{x:Type controls:DaisyList}" TargetType="controls:DaisyList">
+        <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="ClipToBounds" Value="True" />
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <StackPanel />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        ClipToBounds="True">
+                    <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+
+</ResourceDictionary>

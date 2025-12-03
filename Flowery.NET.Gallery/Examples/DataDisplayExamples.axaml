@@ -3,7 +3,8 @@
              xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
              xmlns:custom="clr-namespace:Flowery.Controls.Custom;assembly=Flowery.NET"
              xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
-             x:Class="Flowery.NET.Gallery.Examples.DataDisplayExamples">
+             x:Class="Flowery.NET.Gallery.Examples.DataDisplayExamples"
+             x:DataType="local:DataDisplayExamples">
 
     <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="24" Margin="24,0,24,32">
@@ -469,6 +470,218 @@
                                 <TextBlock Text="Tax Accountant" Grid.Column="2"/>
                             </Grid>
                         </controls:DaisyTable>
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
+            <!-- List -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="list" Title="List" />
+                <WrapPanel Orientation="Horizontal">
+                    <!-- Data-driven scrollable list (10 items from code-behind) -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Data-driven (ItemsSource binding, 10 items)" FontSize="12" Opacity="0.7"/>
+                        <Border CornerRadius="16" ClipToBounds="True" MaxHeight="280">
+                            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                <controls:DaisyList CornerRadius="0" ItemsSource="{Binding Songs}">
+                                    <controls:DaisyList.ItemTemplate>
+                                        <DataTemplate x:DataType="local:SongItem">
+                                            <controls:DaisyListRow>
+                                                <controls:DaisyListColumn>
+                                                    <Border Width="40" Height="40" CornerRadius="8" Background="{Binding AvatarColor}" />
+                                                </controls:DaisyListColumn>
+                                                <controls:DaisyListColumn Grow="True">
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Artist}" FontWeight="Medium" />
+                                                        <TextBlock Text="{Binding Song}" FontSize="10" Opacity="0.6" FontWeight="SemiBold" />
+                                                    </StackPanel>
+                                                </controls:DaisyListColumn>
+                                                <controls:DaisyListColumn>
+                                                    <controls:DaisyButton Variant="Ghost" Shape="Square" Size="Small">
+                                                        <PathIcon Width="14" Height="14" Data="M6 3L20 12 6 21 6 3z" />
+                                                    </controls:DaisyButton>
+                                                </controls:DaisyListColumn>
+                                                <controls:DaisyListColumn>
+                                                    <controls:DaisyButton Variant="Ghost" Shape="Square" Size="Small">
+                                                        <PathIcon Width="14" Height="14" Data="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                                                    </controls:DaisyButton>
+                                                </controls:DaisyListColumn>
+                                            </controls:DaisyListRow>
+                                        </DataTemplate>
+                                    </controls:DaisyList.ItemTemplate>
+                                </controls:DaisyList>
+                            </ScrollViewer>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- List with numbered rows (third column grows) -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Numbered list (third column grows)" FontSize="12" Opacity="0.7"/>
+                        <controls:DaisyList Width="380">
+                            <TextBlock Text="Top Artists" FontSize="11" Opacity="0.6" Margin="16,12,16,4" />
+                            <controls:DaisyListRow>
+                                <controls:DaisyListColumn MinWidth="36">
+                                    <TextBlock Text="01" FontSize="28" FontWeight="Thin" Opacity="0.3" VerticalAlignment="Center" />
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn>
+                                    <Border Width="40" Height="40" CornerRadius="8" Background="{DynamicResource DaisyPrimaryBrush}" />
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn Grow="True">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Dio Lupa" FontWeight="Medium" />
+                                        <TextBlock Text="2.4M monthly listeners" FontSize="10" Opacity="0.6" />
+                                    </StackPanel>
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn>
+                                    <controls:DaisyButton Variant="Ghost" Shape="Square" Size="Small">
+                                        <PathIcon Width="14" Height="14" Data="M6 3L20 12 6 21 6 3z" />
+                                    </controls:DaisyButton>
+                                </controls:DaisyListColumn>
+                            </controls:DaisyListRow>
+                            <controls:DaisyListRow>
+                                <controls:DaisyListColumn MinWidth="36">
+                                    <TextBlock Text="02" FontSize="28" FontWeight="Thin" Opacity="0.3" VerticalAlignment="Center" />
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn>
+                                    <Border Width="40" Height="40" CornerRadius="8" Background="{DynamicResource DaisySecondaryBrush}" />
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn Grow="True">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Ellie Beilish" FontWeight="Medium" />
+                                        <TextBlock Text="1.8M monthly listeners" FontSize="10" Opacity="0.6" />
+                                    </StackPanel>
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn>
+                                    <controls:DaisyButton Variant="Ghost" Shape="Square" Size="Small">
+                                        <PathIcon Width="14" Height="14" Data="M6 3L20 12 6 21 6 3z" />
+                                    </controls:DaisyButton>
+                                </controls:DaisyListColumn>
+                            </controls:DaisyListRow>
+                            <controls:DaisyListRow>
+                                <controls:DaisyListColumn MinWidth="36">
+                                    <TextBlock Text="03" FontSize="28" FontWeight="Thin" Opacity="0.3" VerticalAlignment="Center" />
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn>
+                                    <Border Width="40" Height="40" CornerRadius="8" Background="{DynamicResource DaisyAccentBrush}" />
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn Grow="True">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Sabrino Gardener" FontWeight="Medium" />
+                                        <TextBlock Text="1.2M monthly listeners" FontSize="10" Opacity="0.6" />
+                                    </StackPanel>
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn>
+                                    <controls:DaisyButton Variant="Ghost" Shape="Square" Size="Small">
+                                        <PathIcon Width="14" Height="14" Data="M6 3L20 12 6 21 6 3z" />
+                                    </controls:DaisyButton>
+                                </controls:DaisyListColumn>
+                            </controls:DaisyListRow>
+                            <controls:DaisyListRow>
+                                <controls:DaisyListColumn MinWidth="36">
+                                    <TextBlock Text="04" FontSize="28" FontWeight="Thin" Opacity="0.3" VerticalAlignment="Center" />
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn>
+                                    <Border Width="40" Height="40" CornerRadius="8" Background="{DynamicResource DaisyInfoBrush}" />
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn Grow="True">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Luna Starr" FontWeight="Medium" />
+                                        <TextBlock Text="980K monthly listeners" FontSize="10" Opacity="0.6" />
+                                    </StackPanel>
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn>
+                                    <controls:DaisyButton Variant="Ghost" Shape="Square" Size="Small">
+                                        <PathIcon Width="14" Height="14" Data="M6 3L20 12 6 21 6 3z" />
+                                    </controls:DaisyButton>
+                                </controls:DaisyListColumn>
+                            </controls:DaisyListRow>
+                            <controls:DaisyListRow>
+                                <controls:DaisyListColumn MinWidth="36">
+                                    <TextBlock Text="05" FontSize="28" FontWeight="Thin" Opacity="0.3" VerticalAlignment="Center" />
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn>
+                                    <Border Width="40" Height="40" CornerRadius="8" Background="{DynamicResource DaisySuccessBrush}" />
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn Grow="True">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Max Thunder" FontWeight="Medium" />
+                                        <TextBlock Text="750K monthly listeners" FontSize="10" Opacity="0.6" />
+                                    </StackPanel>
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn>
+                                    <controls:DaisyButton Variant="Ghost" Shape="Square" Size="Small">
+                                        <PathIcon Width="14" Height="14" Data="M6 3L20 12 6 21 6 3z" />
+                                    </controls:DaisyButton>
+                                </controls:DaisyListColumn>
+                            </controls:DaisyListRow>
+                        </controls:DaisyList>
+                    </StackPanel>
+
+                    <!-- List with wrapped content -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="With wrapped description (Wrap=True)" FontSize="12" Opacity="0.7"/>
+                        <controls:DaisyList Width="380">
+                            <TextBlock Text="Featured albums" FontSize="11" Opacity="0.6" Margin="16,12,16,4" />
+                            <controls:DaisyListRow>
+                                <controls:DaisyListColumn>
+                                    <Border Width="40" Height="40" CornerRadius="8" Background="{DynamicResource DaisyPrimaryBrush}" />
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn Grow="True">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Dio Lupa" FontWeight="Medium" />
+                                        <TextBlock Text="REMAINING REASON" FontSize="10" Opacity="0.6" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn>
+                                    <controls:DaisyButton Variant="Ghost" Shape="Square" Size="Small">
+                                        <PathIcon Width="14" Height="14" Data="M6 3L20 12 6 21 6 3z" />
+                                    </controls:DaisyButton>
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn Wrap="True">
+                                    <TextBlock Text="&quot;Remaining Reason&quot; became an instant hit, praised for its haunting sound and emotional depth. A viral performance brought it widespread recognition." FontSize="11" TextWrapping="Wrap" Opacity="0.7" />
+                                </controls:DaisyListColumn>
+                            </controls:DaisyListRow>
+                            <controls:DaisyListRow>
+                                <controls:DaisyListColumn>
+                                    <Border Width="40" Height="40" CornerRadius="8" Background="{DynamicResource DaisySecondaryBrush}" />
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn Grow="True">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Ellie Beilish" FontWeight="Medium" />
+                                        <TextBlock Text="BEARS OF A FEVER" FontSize="10" Opacity="0.6" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn>
+                                    <controls:DaisyButton Variant="Ghost" Shape="Square" Size="Small">
+                                        <PathIcon Width="14" Height="14" Data="M6 3L20 12 6 21 6 3z" />
+                                    </controls:DaisyButton>
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn Wrap="True">
+                                    <TextBlock Text="&quot;Bears of a Fever&quot; captivated audiences with its intense energy and mysterious lyrics. Its popularity skyrocketed after fans shared it widely online." FontSize="11" TextWrapping="Wrap" Opacity="0.7" />
+                                </controls:DaisyListColumn>
+                            </controls:DaisyListRow>
+                            <controls:DaisyListRow>
+                                <controls:DaisyListColumn>
+                                    <Border Width="40" Height="40" CornerRadius="8" Background="{DynamicResource DaisyAccentBrush}" />
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn Grow="True">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Sabrino Gardener" FontWeight="Medium" />
+                                        <TextBlock Text="CAPPUCCINO" FontSize="10" Opacity="0.6" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn>
+                                    <controls:DaisyButton Variant="Ghost" Shape="Square" Size="Small">
+                                        <PathIcon Width="14" Height="14" Data="M6 3L20 12 6 21 6 3z" />
+                                    </controls:DaisyButton>
+                                </controls:DaisyListColumn>
+                                <controls:DaisyListColumn Wrap="True">
+                                    <TextBlock Text="&quot;Cappuccino&quot; quickly gained attention for its smooth melody and relatable themes. The song propelled Sabrino into the spotlight as a rising star." FontSize="11" TextWrapping="Wrap" Opacity="0.7" />
+                                </controls:DaisyListColumn>
+                            </controls:DaisyListRow>
+                        </controls:DaisyList>
                     </StackPanel>
                 </WrapPanel>
             </StackPanel>
