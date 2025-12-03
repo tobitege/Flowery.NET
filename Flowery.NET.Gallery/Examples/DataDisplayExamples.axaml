@@ -48,18 +48,116 @@
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="avatar" Title="Avatar" />
                 <WrapPanel Orientation="Horizontal">
+                    <!-- Sizes -->
                     <StackPanel Spacing="10" Margin="0,0,40,20">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <controls:DaisyAvatar Status="Online">
-                                <Border Background="Gray" />
+                        <TextBlock Text="Sizes" FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Bottom">
+                            <controls:DaisyAvatar Size="ExtraSmall" Background="#E8D5B7">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#5D4037" Width="16" Height="16" />
                             </controls:DaisyAvatar>
-                            <controls:DaisyAvatar IsRounded="False" Status="Offline">
-                                <Border Background="Gray" />
+                            <controls:DaisyAvatar Size="Small" Background="#E8D5B7">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#5D4037" Width="22" Height="22" />
                             </controls:DaisyAvatar>
-                            <controls:DaisyAvatar Size="ExtraSmall">
-                                <Border Background="Gray" />
+                            <controls:DaisyAvatar Size="Medium" Background="#E8D5B7">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#5D4037" Width="32" Height="32" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar Size="Large" Background="#E8D5B7">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#5D4037" Width="64" Height="64" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar Size="ExtraLarge" Background="#E8D5B7">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#5D4037" Width="86" Height="86" />
                             </controls:DaisyAvatar>
                         </StackPanel>
+                    </StackPanel>
+
+                    <!-- Shapes -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Shapes" FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <controls:DaisyAvatar Shape="Circle" Background="#FFCC80">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#E65100" Width="32" Height="32" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar Shape="Rounded" Background="#FFCC80">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#E65100" Width="32" Height="32" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar Shape="Square" Background="#FFCC80">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#E65100" Width="32" Height="32" />
+                            </controls:DaisyAvatar>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Status -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Status (Online/Offline)" FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <controls:DaisyAvatar Status="Online" Background="#BBDEFB">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#1565C0" Width="32" Height="32" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar Status="Offline" Background="#BBDEFB">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#1565C0" Width="32" Height="32" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar Status="None" Background="#BBDEFB">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#1565C0" Width="32" Height="32" />
+                            </controls:DaisyAvatar>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Ring -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="With Ring" FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <controls:DaisyAvatar HasRing="True" RingColor="Primary" Background="#E1BEE7">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#7B1FA2" Width="32" Height="32" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar HasRing="True" RingColor="Secondary" Background="#E1BEE7">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#7B1FA2" Width="32" Height="32" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar HasRing="True" RingColor="Success" Background="#E1BEE7">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#7B1FA2" Width="32" Height="32" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar HasRing="True" RingColor="Error" Background="#E1BEE7">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#7B1FA2" Width="32" Height="32" />
+                            </controls:DaisyAvatar>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Placeholder -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Placeholder" FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <controls:DaisyAvatar IsPlaceholder="True" Size="Large">
+                                <TextBlock Text="D" FontSize="24" FontWeight="Bold"
+                                           VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar IsPlaceholder="True">
+                                <TextBlock Text="AI" FontSize="14" FontWeight="Bold"
+                                           VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar IsPlaceholder="True" Size="Small">
+                                <TextBlock Text="UI" FontSize="10" FontWeight="Bold"
+                                           VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </controls:DaisyAvatar>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Avatar Group -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Avatar Group" FontWeight="Bold" />
+                        <controls:DaisyAvatarGroup Overlap="16">
+                            <controls:DaisyAvatar Size="Small" Background="#FFCDD2">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#C62828" Width="22" Height="22" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar Size="Small" Background="#C8E6C9">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#2E7D32" Width="22" Height="22" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar Size="Small" Background="#BBDEFB">
+                                <PathIcon Data="{DynamicResource DaisyIconDog}" Foreground="#1565C0" Width="22" Height="22" />
+                            </controls:DaisyAvatar>
+                            <controls:DaisyAvatar Size="Small" IsPlaceholder="True">
+                                <TextBlock Text="+5" FontWeight="Bold"
+                                           VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            </controls:DaisyAvatar>
+                        </controls:DaisyAvatarGroup>
                     </StackPanel>
                 </WrapPanel>
             </StackPanel>

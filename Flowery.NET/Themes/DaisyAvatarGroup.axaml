@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <controls:DaisyAvatarGroup Overlap="20">
+                <controls:DaisyAvatar Size="Small">
+                    <Border Background="Red" CornerRadius="16" />
+                </controls:DaisyAvatar>
+                <controls:DaisyAvatar Size="Small">
+                    <Border Background="Green" CornerRadius="16" />
+                </controls:DaisyAvatar>
+                <controls:DaisyAvatar Size="Small">
+                    <Border Background="Blue" CornerRadius="16" />
+                </controls:DaisyAvatar>
+                <controls:DaisyAvatar Size="Small" IsPlaceholder="True">
+                    <TextBlock Text="+5" FontWeight="Bold"
+                               VerticalAlignment="Center" HorizontalAlignment="Center" />
+                </controls:DaisyAvatar>
+            </controls:DaisyAvatarGroup>
+        </Border>
+    </Design.PreviewWith>
+
+    <ControlTheme x:Key="{x:Type controls:DaisyAvatarGroup}" TargetType="controls:DaisyAvatarGroup">
+        <Setter Property="ItemsPanel">
+            <ItemsPanelTemplate>
+                <controls:DaisyAvatarGroupPanel Overlap="{Binding $parent[controls:DaisyAvatarGroup].Overlap}" />
+            </ItemsPanelTemplate>
+        </Setter>
+
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ItemsPresenter Name="PART_ItemsPresenter" />
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

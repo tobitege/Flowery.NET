@@ -38,6 +38,7 @@
                 <ResourceInclude Source="/Themes/DaisyGlass.axaml" />
                 <ResourceInclude Source="/Themes/DaisyToast.axaml" />
                 <ResourceInclude Source="/Themes/DaisyAvatar.axaml" />
+                <ResourceInclude Source="/Themes/DaisyAvatarGroup.axaml" />
                 <ResourceInclude Source="/Themes/DaisyKbd.axaml" />
                 <ResourceInclude Source="/Themes/DaisyStat.axaml" />
                 <ResourceInclude Source="/Themes/DaisyCountdown.axaml" />
