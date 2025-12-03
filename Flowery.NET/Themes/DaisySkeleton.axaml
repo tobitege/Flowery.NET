@@ -3,38 +3,91 @@
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
     <Design.PreviewWith>
-        <Border Padding="20">
-             <StackPanel Spacing="10" Width="200">
-                 <controls:DaisySkeleton Height="32" Width="32" CornerRadius="16" />
-                 <controls:DaisySkeleton Height="20" />
-                 <controls:DaisySkeleton Height="20" Width="150" />
-             </StackPanel>
+        <Border Padding="20" Background="{DynamicResource DaisyBase100Brush}">
+            <StackPanel Spacing="16" Width="250">
+                <!-- Basic skeleton -->
+                <controls:DaisySkeleton Height="32" Width="32" CornerRadius="16" />
+
+                <!-- Text-like skeletons -->
+                <controls:DaisySkeleton Height="20" />
+                <controls:DaisySkeleton Height="20" Width="150" />
+
+                <!-- Circle with content layout -->
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:DaisySkeleton Width="48" Height="48" CornerRadius="24" />
+                        <StackPanel Spacing="8" VerticalAlignment="Center">
+                            <controls:DaisySkeleton Height="16" Width="80" />
+                            <controls:DaisySkeleton Height="16" Width="120" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Text mode skeleton -->
+                <controls:DaisySkeleton IsTextMode="True" Content="AI is thinking harder..." />
+            </StackPanel>
         </Border>
     </Design.PreviewWith>
 
     <ControlTheme x:Key="{x:Type controls:DaisySkeleton}" TargetType="controls:DaisySkeleton">
         <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="ClipToBounds" Value="True" />
 
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Background="{TemplateBinding Background}"
-                        CornerRadius="{TemplateBinding CornerRadius}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}">
-                    <Border.Styles>
-                        <Style Selector="Border">
-                            <Style.Animations>
-                                <Animation Duration="0:0:1.5" IterationCount="Infinite">
-                                    <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
-                                    <KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="0.5"/></KeyFrame>
-                                    <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
-                                </Animation>
-                            </Style.Animations>
-                        </Style>
-                    </Border.Styles>
-                </Border>
+                <Panel>
+                    <!-- Background skeleton (non-text mode) -->
+                    <Border x:Name="PART_BackgroundBorder"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <Border.Styles>
+                            <Style Selector="Border#PART_BackgroundBorder">
+                                <Style.Animations>
+                                    <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                        <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                        <KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="0.5"/></KeyFrame>
+                                        <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                    </Animation>
+                                </Style.Animations>
+                            </Style>
+                        </Border.Styles>
+                    </Border>
+
+                    <!-- Text content skeleton (text mode) -->
+                    <ContentPresenter x:Name="PART_ContentPresenter"
+                                      IsVisible="False"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Padding="{TemplateBinding Padding}" />
+                </Panel>
             </ControlTemplate>
         </Setter>
+
+        <!-- Text mode: hide background, show content with animated opacity -->
+        <Style Selector="^[IsTextMode=True]">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <Style Selector="^[IsTextMode=True] /template/ Border#PART_BackgroundBorder">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+
+        <Style Selector="^[IsTextMode=True] /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="IsVisible" Value="True" />
+            <Style.Animations>
+                <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                    <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                    <KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0.4"/></KeyFrame>
+                    <KeyFrame KeyTime="0:0:1"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                    <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.4"/></KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
     </ControlTheme>
 </ResourceDictionary>

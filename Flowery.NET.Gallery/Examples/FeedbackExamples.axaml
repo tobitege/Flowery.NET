@@ -73,10 +73,40 @@
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="skeleton" Title="Skeleton" />
                 <WrapPanel Orientation="Horizontal">
+                    <!-- Basic Skeleton -->
                     <StackPanel Spacing="10" Margin="0,0,40,20">
-                        <controls:DaisySkeleton Width="200" Height="20" />
-                        <controls:DaisySkeleton Width="150" Height="20" />
-                        <controls:DaisySkeleton Width="50" Height="50" CornerRadius="25" />
+                        <TextBlock Text="Basic Skeleton" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                        <controls:DaisySkeleton Width="128" Height="128" />
+                    </StackPanel>
+
+                    <!-- Circle with content -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20" Width="208">
+                        <TextBlock Text="Circle with Content" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <controls:DaisySkeleton Width="64" Height="64" CornerRadius="32" />
+                            <StackPanel Spacing="10" VerticalAlignment="Center">
+                                <controls:DaisySkeleton Height="16" Width="80" />
+                                <controls:DaisySkeleton Height="16" Width="112" />
+                            </StackPanel>
+                        </StackPanel>
+                        <controls:DaisySkeleton Height="128" />
+                    </StackPanel>
+
+                    <!-- Rectangle with content -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20" Width="208">
+                        <TextBlock Text="Rectangle with Content" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                        <controls:DaisySkeleton Height="128" />
+                        <controls:DaisySkeleton Height="16" Width="112" />
+                        <controls:DaisySkeleton Height="16" />
+                        <controls:DaisySkeleton Height="16" />
+                    </StackPanel>
+
+                    <!-- Text mode skeleton -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Animated Text (skeleton-text)" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                        <controls:DaisySkeleton IsTextMode="True" Content="AI is thinking harder..." FontSize="16"/>
+                        <controls:DaisySkeleton IsTextMode="True" Content="Loading data..." FontSize="14" Opacity="0.8"/>
+                        <controls:DaisySkeleton IsTextMode="True" Content="Please wait..." FontSize="12" Opacity="0.6"/>
                     </StackPanel>
                 </WrapPanel>
             </StackPanel>
