@@ -11,6 +11,7 @@ namespace Flowery.Controls
         Primary,
         Secondary,
         Accent,
+        Neutral,
         Success,
         Warning,
         Info,

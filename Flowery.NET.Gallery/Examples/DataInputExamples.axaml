@@ -12,11 +12,33 @@
                 <local:SectionHeader SectionId="checkbox" Title="Checkbox" />
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
+                        <TextBlock Text="Color Variants" FontSize="12" Opacity="0.7"/>
                         <controls:DaisyCheckBox Content="Default" />
                         <controls:DaisyCheckBox Content="Primary" Variant="Primary" IsChecked="True"/>
                         <controls:DaisyCheckBox Content="Secondary" Variant="Secondary" IsChecked="True"/>
                         <controls:DaisyCheckBox Content="Accent" Variant="Accent" IsChecked="True"/>
+                        <controls:DaisyCheckBox Content="Neutral" Variant="Neutral" IsChecked="True"/>
+                    </StackPanel>
+                    <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
+                        <TextBlock Text="Status Variants" FontSize="12" Opacity="0.7"/>
                         <controls:DaisyCheckBox Content="Success" Variant="Success" IsChecked="True"/>
+                        <controls:DaisyCheckBox Content="Warning" Variant="Warning" IsChecked="True"/>
+                        <controls:DaisyCheckBox Content="Info" Variant="Info" IsChecked="True"/>
+                        <controls:DaisyCheckBox Content="Error" Variant="Error" IsChecked="True"/>
+                    </StackPanel>
+                    <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
+                        <TextBlock Text="Sizes" FontSize="12" Opacity="0.7"/>
+                        <controls:DaisyCheckBox Content="Extra Small" Size="ExtraSmall" IsChecked="True"/>
+                        <controls:DaisyCheckBox Content="Small" Size="Small" IsChecked="True"/>
+                        <controls:DaisyCheckBox Content="Medium (default)" Size="Medium" IsChecked="True"/>
+                        <controls:DaisyCheckBox Content="Large" Size="Large" IsChecked="True"/>
+                        <controls:DaisyCheckBox Content="Extra Large" Size="ExtraLarge" IsChecked="True"/>
+                    </StackPanel>
+                    <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
+                        <TextBlock Text="Disabled States" FontSize="12" Opacity="0.7"/>
+                        <controls:DaisyCheckBox Content="Disabled unchecked" IsEnabled="False"/>
+                        <controls:DaisyCheckBox Content="Disabled checked" IsEnabled="False" IsChecked="True"/>
+                        <controls:DaisyCheckBox Content="Disabled Primary" Variant="Primary" IsEnabled="False" IsChecked="True"/>
                     </StackPanel>
                 </WrapPanel>
             </StackPanel>

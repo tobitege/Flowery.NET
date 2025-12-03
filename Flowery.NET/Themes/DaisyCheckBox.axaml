@@ -69,30 +69,64 @@
             <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
         </Style>
+        <Style Selector="^[Variant=Primary]:checked /template/ Path#CheckMark">
+            <Setter Property="Fill" Value="{DynamicResource DaisyPrimaryContentBrush}" />
+        </Style>
 
         <Style Selector="^[Variant=Secondary]:checked /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource DaisySecondaryBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Secondary]:checked /template/ Path#CheckMark">
+            <Setter Property="Fill" Value="{DynamicResource DaisySecondaryContentBrush}" />
         </Style>
 
         <Style Selector="^[Variant=Accent]:checked /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource DaisyAccentBrush}" />
         </Style>
+        <Style Selector="^[Variant=Accent]:checked /template/ Path#CheckMark">
+            <Setter Property="Fill" Value="{DynamicResource DaisyAccentContentBrush}" />
+        </Style>
 
         <Style Selector="^[Variant=Success]:checked /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource DaisySuccessBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Success]:checked /template/ Path#CheckMark">
+            <Setter Property="Fill" Value="{DynamicResource DaisySuccessContentBrush}" />
         </Style>
 
         <Style Selector="^[Variant=Warning]:checked /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource DaisyWarningBrush}" />
         </Style>
+        <Style Selector="^[Variant=Warning]:checked /template/ Path#CheckMark">
+            <Setter Property="Fill" Value="{DynamicResource DaisyWarningContentBrush}" />
+        </Style>
 
         <Style Selector="^[Variant=Error]:checked /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource DaisyErrorBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Error]:checked /template/ Path#CheckMark">
+            <Setter Property="Fill" Value="{DynamicResource DaisyErrorContentBrush}" />
+        </Style>
+
+        <Style Selector="^[Variant=Info]:checked /template/ Border#PART_Border">
+            <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyInfoBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Info]:checked /template/ Path#CheckMark">
+            <Setter Property="Fill" Value="{DynamicResource DaisyInfoContentBrush}" />
+        </Style>
+
+        <Style Selector="^[Variant=Neutral]:checked /template/ Border#PART_Border">
+            <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyNeutralBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Neutral]:checked /template/ Path#CheckMark">
+            <Setter Property="Fill" Value="{DynamicResource DaisyNeutralContentBrush}" />
         </Style>
 
         <!-- Sizes -->
@@ -107,6 +141,34 @@
         <Style Selector="^[Size=ExtraSmall] /template/ Border#PART_Border">
             <Setter Property="Width" Value="16" />
             <Setter Property="Height" Value="16" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge] /template/ Border#PART_Border">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge] /template/ Path#CheckMark">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+        </Style>
+        <Style Selector="^[Size=Large] /template/ Path#CheckMark">
+            <Setter Property="Width" Value="20" />
+            <Setter Property="Height" Value="20" />
+        </Style>
+        <Style Selector="^[Size=Small] /template/ Path#CheckMark">
+            <Setter Property="Width" Value="12" />
+            <Setter Property="Height" Value="12" />
+        </Style>
+        <Style Selector="^[Size=ExtraSmall] /template/ Path#CheckMark">
+            <Setter Property="Width" Value="10" />
+            <Setter Property="Height" Value="10" />
+        </Style>
+
+        <!-- Disabled State -->
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+        <Style Selector="^:disabled /template/ Border#PART_Border">
+            <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
         </Style>
 
     </ControlTheme>
