@@ -36,7 +36,7 @@ This library provides native Avalonia controls that mimic the utility-first, sem
 
 📖 **[View the full documentation](https://tobitege.github.io/Flowery.NET/)** - Browse all controls with properties, enum values, and XAML usage examples.
 
-The documentation is auto-generated from source code and kept up-to-date via CI.
+The documentation is generated from curated markdown (with optional auto-parsed metadata) and kept up-to-date via CI.
 
 ## Installation
 
@@ -124,7 +124,7 @@ The best way to explore the controls is to run the included **Gallery App**. It 
 ### Feedback & Utils
 
 - **Indicator** (`DaisyIndicator`): Utility to place a badge on the corner of another element.
-- **Loading** (`DaisyLoading`): Animated loading indicators (Spinner, Dots, Ring).
+- **Loading** (`DaisyLoading`): Animated loading indicators with 11 variants (Spinner, Dots, Ring, Ball, Bars, Infinity, plus terminal-inspired Orbit, Snake, Pulse, Wave, Bounce).
 - **Mask** (`DaisyMask`): Applies shapes (Squircle, Heart, Hexagon, etc.) to content.
 - **Mockup** (`DaisyMockup`): Frames for Code, Window, or Browser.
 - **Progress** (`DaisyProgress`): Linear progress bar.

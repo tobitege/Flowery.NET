@@ -2,10 +2,12 @@
 """
 Flowery.NET Documentation Generator
 
-Parses C# control files and AXAML examples to generate LLM-optimized markdown documentation.
+Generates markdown documentation from curated llms-static/ files.
+Optionally parses C# control files and AXAML examples to supplement.
 
 Usage:
-    python Utils/generate_docs.py
+    python Utils/generate_docs.py              # Use curated docs only (default)
+    python Utils/generate_docs.py --auto-parse # Include auto-parsed Properties/Examples
 
 ================================================================================
 CODE REQUIREMENTS FOR PARSING
@@ -84,9 +86,30 @@ OUTPUT:
     llms/controls/*.md       - Per-control documentation
     llms/categories/*.md     - Category overviews
 
+SUPPLEMENTARY DOCUMENTATION:
+----------------------------
+To add rich descriptions, usage guides, or variant explanations that won't be
+overwritten by the generator, create markdown files in llms-static/:
+
+    llms-static/DaisyLoading.md   - Extra docs for DaisyLoading control
+    llms-static/DaisyButton.md    - Extra docs for DaisyButton control
+
+The supplementary content is inserted AFTER the header/description and BEFORE the
+auto-generated Properties section. HTML comments (<!-- -->) are stripped.
+
+Example supplementary file:
+    ## Overview
+    DaisyLoading provides 11 animation variants...
+
+    ## Animation Variants
+    | Variant | Description |
+    |---------|-------------|
+    | Spinner | Classic rotating arc... |
+
 ================================================================================
 """
 
+import argparse
 import os
 import re
 from dataclasses import dataclass, field
@@ -557,6 +580,23 @@ class AxamlParser:
 class MarkdownGenerator:
     """Generates markdown documentation files."""
 
+    def __init__(self, extras_dir: Path | None = None, auto_parse: bool = False):
+        """Initialize with optional supplementary docs directory."""
+        self.extras_dir = extras_dir
+        self.auto_parse = auto_parse
+
+    def _load_extra(self, control_name: str) -> str:
+        """Load supplementary documentation for a control if it exists."""
+        if not self.extras_dir:
+            return ""
+        extra_file = self.extras_dir / f"{control_name}.md"
+        if extra_file.exists():
+            content = extra_file.read_text(encoding='utf-8')
+            # Remove HTML comments (metadata comments)
+            content = re.sub(r'<!--.*?-->', '', content, flags=re.DOTALL)
+            return content.strip()
+        return ""
+
     def generate_control_doc(self, control: ControlInfo, examples: list[ExampleSnippet]) -> str:
         """Generate markdown documentation for a control."""
         lines = []
@@ -577,60 +617,68 @@ class MarkdownGenerator:
         lines.append(f"**Inherits from:** `{control.base_class}`")
         lines.append("")
 
-        # Properties table
-        if control.properties:
-            lines.append("## Properties")
-            lines.append("")
-            lines.append("| Property | Type | Default | Description |")
-            lines.append("|----------|------|---------|-------------|")
-            for prop in control.properties:
-                desc = prop.description if prop.description else "-"
-                # Truncate long descriptions
-                if len(desc) > 80:
-                    desc = desc[:77] + "..."
-                lines.append(f"| {prop.name} | `{prop.prop_type}` | {prop.default} | {desc} |")
+        # Load and insert supplementary documentation from llms-static/
+        extra_content = self._load_extra(control.name)
+        if extra_content:
+            lines.append(extra_content)
             lines.append("")
 
-        # Enums
-        if control.enums:
-            lines.append("## Enum Values")
-            lines.append("")
-            for enum in control.enums:
-                lines.append(f"### {enum.name}")
+        # Only include auto-parsed sections if flag is set
+        if self.auto_parse:
+            # Properties table
+            if control.properties:
+                lines.append("## Properties")
                 lines.append("")
-                lines.append(f"`{', '.join(enum.values)}`")
+                lines.append("| Property | Type | Default | Description |")
+                lines.append("|----------|------|---------|-------------|")
+                for prop in control.properties:
+                    desc = prop.description if prop.description else "-"
+                    # Truncate long descriptions
+                    if len(desc) > 80:
+                        desc = desc[:77] + "..."
+                    lines.append(f"| {prop.name} | `{prop.prop_type}` | {prop.default} | {desc} |")
                 lines.append("")
 
-        # Examples
-        if examples:
-            lines.append("## Usage Examples")
-            lines.append("")
-            seen_xaml = set()
-            example_count = 0
-            for example in examples:
-                for label, xaml in example.sub_examples:
-                    # Normalize XAML for comparison (remove variable text content)
-                    normalized = self._normalize_xaml_for_comparison(xaml)
-                    if normalized in seen_xaml:
-                        continue
-                    seen_xaml.add(normalized)
-
-                    # Skip labels that look like data-bound values
-                    if self._is_data_label(label):
-                        label = "Example"
-
-                    lines.append(f"### {label}")
+            # Enums
+            if control.enums:
+                lines.append("## Enum Values")
+                lines.append("")
+                for enum in control.enums:
+                    lines.append(f"### {enum.name}")
                     lines.append("")
-                    lines.append("```xml")
-                    lines.append(xaml)
-                    lines.append("```")
+                    lines.append(f"`{', '.join(enum.values)}`")
                     lines.append("")
 
-                    example_count += 1
+            # Examples
+            if examples:
+                lines.append("## Usage Examples")
+                lines.append("")
+                seen_xaml = set()
+                example_count = 0
+                for example in examples:
+                    for label, xaml in example.sub_examples:
+                        # Normalize XAML for comparison (remove variable text content)
+                        normalized = self._normalize_xaml_for_comparison(xaml)
+                        if normalized in seen_xaml:
+                            continue
+                        seen_xaml.add(normalized)
+
+                        # Skip labels that look like data-bound values
+                        if self._is_data_label(label):
+                            label = "Example"
+
+                        lines.append(f"### {label}")
+                        lines.append("")
+                        lines.append("```xml")
+                        lines.append(xaml)
+                        lines.append("```")
+                        lines.append("")
+
+                        example_count += 1
+                        if example_count >= 5:
+                            break
                     if example_count >= 5:
                         break
-                if example_count >= 5:
-                    break
 
         return '\n'.join(lines)
 
@@ -779,15 +827,17 @@ class MarkdownGenerator:
 class DocumentationGenerator:
     """Main documentation generator that orchestrates parsing and output."""
 
-    def __init__(self, root_dir: Path):
+    def __init__(self, root_dir: Path, auto_parse: bool = False):
         self.root_dir = root_dir
         self.controls_dir = root_dir / "Flowery.NET" / "Controls"
         self.examples_dir = root_dir / "Flowery.NET.Gallery" / "Examples"
         self.output_dir = root_dir / "llms"
+        self.supplementary_dir = root_dir / "llms-static"
+        self.auto_parse = auto_parse
 
         self.csharp_parser = CSharpParser()
         self.axaml_parser = AxamlParser()
-        self.md_generator = MarkdownGenerator()
+        self.md_generator = MarkdownGenerator(extras_dir=self.supplementary_dir, auto_parse=auto_parse)
 
         self.category_mapping = {
             "ActionsExamples": "Actions",
@@ -806,30 +856,47 @@ class DocumentationGenerator:
         """Generate all documentation."""
         print("Flowery.NET Documentation Generator")
         print("=" * 40)
+        if self.auto_parse:
+            print("Mode: FULL (curated + auto-parsed)")
+        else:
+            print("Mode: CURATED ONLY (llms-static/)")
 
         # Create output directories
         self.output_dir.mkdir(exist_ok=True)
         (self.output_dir / "controls").mkdir(exist_ok=True)
         (self.output_dir / "categories").mkdir(exist_ok=True)
 
-        # Parse all controls
+        # Parse all controls (needed for control list even in curated-only mode)
         print("\n[1/4] Parsing C# control files...")
         controls = self._parse_all_controls()
         print(f"      Found {len(controls)} controls")
 
-        # Parse all examples
-        print("\n[2/4] Parsing AXAML example files...")
-        examples_by_control = self._parse_all_examples()
-        print(f"      Found examples for {len(examples_by_control)} controls")
+        # Parse examples only if auto_parse is enabled
+        examples_by_control: dict[str, list[ExampleSnippet]] = {}
+        if self.auto_parse:
+            print("\n[2/4] Parsing AXAML example files...")
+            examples_by_control = self._parse_all_examples()
+            print(f"      Found examples for {len(examples_by_control)} controls")
+        else:
+            print("\n[2/4] Skipping AXAML parsing (curated-only mode)")
 
         # Generate per-control docs
         print("\n[3/4] Generating control documentation...")
+        extras_count = 0
         for control in controls:
             examples = examples_by_control.get(control.name, [])
             doc = self.md_generator.generate_control_doc(control, examples)
             output_path = self.output_dir / "controls" / f"{control.name}.md"
             output_path.write_text(doc, encoding='utf-8')
+            # Check if supplementary docs were merged
+            if self.supplementary_dir.exists():
+                extra_file = self.supplementary_dir / f"{control.name}.md"
+                if extra_file.exists():
+                    extras_count += 1
         print(f"      Generated {len(controls)} control docs")
+        print(f"      Used {extras_count} curated docs from llms-static/")
+        if self.auto_parse:
+            print(f"      Included auto-parsed Properties/Enums/Examples")
 
         # Generate category docs
         print("\n[4/4] Generating category and index documentation...")
@@ -962,10 +1029,27 @@ class DocumentationGenerator:
 
 def main():
     """Main entry point."""
+    parser = argparse.ArgumentParser(
+        description="Generate Flowery.NET documentation from curated llms-static/ files.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python Utils/generate_docs.py              # Use curated docs only (default)
+  python Utils/generate_docs.py --auto-parse # Include auto-parsed Properties/Examples
+        """
+    )
+    parser.add_argument(
+        '--auto-parse',
+        action='store_true',
+        default=False,
+        help='Include auto-parsed Properties, Enums, and Examples from source files'
+    )
+    args = parser.parse_args()
+
     script_dir = Path(__file__).parent
     root_dir = script_dir.parent
 
-    generator = DocumentationGenerator(root_dir)
+    generator = DocumentationGenerator(root_dir, auto_parse=args.auto_parse)
     generator.generate()
 
 

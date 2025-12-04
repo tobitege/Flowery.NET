@@ -2,22 +2,28 @@
 """
 Flowery.NET Static Site Generator
 
-Converts the generated markdown documentation into a static HTML website
-suitable for GitHub Pages.
+Converts markdown documentation into a static HTML website for GitHub Pages.
 
 Usage:
-    python Utils/generate_site.py
+    python Utils/generate_site.py                # Use curated llms-static/ only (default)
+    python Utils/generate_site.py --use-generated # Use llms/ (auto-generated) docs
 
 Input (markdown):
-    llms/llms.txt            - Main overview
-    llms/controls/*.md       - Per-control docs
-    llms/categories/*.md     - Category docs
+    Default mode (curated):
+        llms-static/*.md         - Curated per-control docs
+        llms/categories/*.md     - Category docs
+
+    With --use-generated:
+        llms/llms.txt            - Main overview
+        llms/controls/*.md       - Per-control docs (auto-generated)
+        llms/categories/*.md     - Category docs
 
 Output (HTML):
     docs/index.html          - Main landing page
     docs/controls/*.html     - Per-control pages
     docs/categories/*.html   - Category pages
     docs/style.css           - Stylesheet
+    docs/llms.txt            - Machine-readable docs for AI assistants
 
 GitHub Pages Setup:
     1. Push the docs/ folder to your repo
@@ -27,6 +33,7 @@ GitHub Pages Setup:
     5. Save - site will be live in ~1 minute
 """
 
+import argparse
 import re
 from pathlib import Path
 from typing import Optional
@@ -175,17 +182,23 @@ class MarkdownToHtml:
 class SiteGenerator:
     """Generates static HTML site from markdown docs."""
 
-    def __init__(self, docs_dir: Path, output_dir: Path):
+    def __init__(self, docs_dir: Path, output_dir: Path, curated_dir: Path | None = None):
         self.docs_dir = docs_dir
         self.output_dir = output_dir
+        self.curated_dir = curated_dir  # llms-static/ for curated-only mode
         self.converter = MarkdownToHtml()
         self.controls: list[dict] = []
         self.categories: list[dict] = []
+        self.use_curated_only = curated_dir is not None
 
     def generate(self):
         """Generate the complete static site."""
         print("Flowery.NET Site Generator")
         print("=" * 40)
+        if self.use_curated_only:
+            print("Mode: CURATED ONLY (llms-static/)")
+        else:
+            print("Mode: GENERATED (llms/)")
 
         # Create output directories
         self.output_dir.mkdir(exist_ok=True)
@@ -194,27 +207,41 @@ class SiteGenerator:
 
         # Collect all controls
         print("\n[1/4] Scanning control docs...")
-        controls_dir = self.docs_dir / "controls"
-        for md_file in sorted(controls_dir.glob("*.md")):
-            name = md_file.stem
-            if name.startswith("Daisy"):
+        if self.use_curated_only:
+            # Read directly from llms-static/
+            for md_file in sorted(self.curated_dir.glob("Daisy*.md")):
+                name = md_file.stem
                 self.controls.append({
                     'name': name,
                     'file': md_file,
                     'html_name': f"{name}.html"
                 })
+        else:
+            # Read from llms/controls/
+            controls_dir = self.docs_dir / "controls"
+            for md_file in sorted(controls_dir.glob("*.md")):
+                name = md_file.stem
+                if name.startswith("Daisy"):
+                    self.controls.append({
+                        'name': name,
+                        'file': md_file,
+                        'html_name': f"{name}.html"
+                    })
         print(f"      Found {len(self.controls)} controls")
 
-        # Collect categories
+        # Collect categories (always from llms/categories/)
         print("\n[2/4] Scanning category docs...")
         categories_dir = self.docs_dir / "categories"
-        for md_file in sorted(categories_dir.glob("*.md")):
-            self.categories.append({
-                'name': md_file.stem.replace('-', ' ').title(),
-                'file': md_file,
-                'html_name': f"{md_file.stem}.html"
-            })
-        print(f"      Found {len(self.categories)} categories")
+        if categories_dir.exists():
+            for md_file in sorted(categories_dir.glob("*.md")):
+                self.categories.append({
+                    'name': md_file.stem.replace('-', ' ').title(),
+                    'file': md_file,
+                    'html_name': f"{md_file.stem}.html"
+                })
+            print(f"      Found {len(self.categories)} categories")
+        else:
+            print("      No categories folder found (run generate_docs.py first)")
 
         # Generate CSS
         print("\n[3/4] Generating stylesheet...")
@@ -617,13 +644,14 @@ li {
         home_class = ' class="active"' if active == "index" else ""
         lines.append(f'<a href="{prefix}index.html"{home_class}>← Home</a>')
 
-        # Categories
-        lines.append('<h2>Categories</h2>')
-        lines.append('<ul>')
-        for cat in self.categories:
-            cls = ' class="active"' if active == f"categories/{cat['html_name']}" else ""
-            lines.append(f'<li><a href="{prefix}categories/{cat["html_name"]}"{cls}>{cat["name"]}</a></li>')
-        lines.append('</ul>')
+        # Categories (only if available)
+        if self.categories:
+            lines.append('<h2>Categories</h2>')
+            lines.append('<ul>')
+            for cat in self.categories:
+                cls = ' class="active"' if active == f"categories/{cat['html_name']}" else ""
+                lines.append(f'<li><a href="{prefix}categories/{cat["html_name"]}"{cls}>{cat["name"]}</a></li>')
+            lines.append('</ul>')
 
         # Controls
         lines.append('<h2>Controls</h2>')
@@ -638,8 +666,11 @@ li {
 
     def _generate_index(self):
         """Generate the main index page."""
-        # Copy llms.txt to output folder for AI assistants
-        llms_content = (self.docs_dir / "llms.txt").read_text(encoding='utf-8')
+        # Generate llms.txt for AI assistants (combine all curated docs)
+        if self.use_curated_only:
+            llms_content = self._generate_llms_txt_from_curated()
+        else:
+            llms_content = (self.docs_dir / "llms.txt").read_text(encoding='utf-8')
         (self.output_dir / "llms.txt").write_text(llms_content, encoding='utf-8')
 
         # Convert to HTML
@@ -697,10 +728,61 @@ li {
         page = self._page_template("Documentation", full_content, "index")
         (self.output_dir / "index.html").write_text(page, encoding='utf-8')
 
+    def _generate_llms_txt_from_curated(self) -> str:
+        """Generate a master llms.txt from curated docs."""
+        lines = []
+        lines.append("# Flowery.NET Component Library")
+        lines.append("")
+        lines.append("Flowery.NET is an Avalonia UI component library inspired by DaisyUI.")
+        lines.append("It provides styled controls for building modern desktop applications.")
+        lines.append("")
+        lines.append("## Quick Start")
+        lines.append("")
+        lines.append("Add the namespace to your AXAML:")
+        lines.append("```xml")
+        lines.append('xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"')
+        lines.append("```")
+        lines.append("")
+        lines.append("## Controls")
+        lines.append("")
+        for ctrl in self.controls:
+            display_name = ctrl['name'].replace('Daisy', '')
+            lines.append(f"- **{ctrl['name']}** - {display_name} control")
+        lines.append("")
+        lines.append("## Common Patterns")
+        lines.append("")
+        lines.append("### Variants")
+        lines.append("Most controls support a `Variant` property:")
+        lines.append("- `Primary`, `Secondary`, `Accent` - Brand colors")
+        lines.append("- `Info`, `Success`, `Warning`, `Error` - Status colors")
+        lines.append("- `Neutral`, `Ghost`, `Link` - Subtle styles")
+        lines.append("")
+        lines.append("### Sizes")
+        lines.append("Controls support a `Size` property:")
+        lines.append("`ExtraSmall`, `Small`, `Medium` (default), `Large`, `ExtraLarge`")
+        lines.append("")
+        lines.append("### Theming")
+        lines.append("Use `DaisyThemeManager` to switch themes:")
+        lines.append("```csharp")
+        lines.append('DaisyThemeManager.ApplyTheme("dracula");')
+        lines.append("```")
+        lines.append("")
+        lines.append("Available themes: light, dark, cupcake, bumblebee, emerald, corporate,")
+        lines.append("synthwave, retro, cyberpunk, valentine, halloween, garden, forest,")
+        lines.append("aqua, lofi, pastel, fantasy, wireframe, black, luxury, dracula, cmyk,")
+        lines.append("autumn, business, acid, lemonade, night, coffee, winter, dim, nord, sunset")
+        lines.append("")
+        return '\n'.join(lines)
+
     def _generate_control_pages(self):
         """Generate HTML pages for each control."""
         for ctrl in self.controls:
             md_content = ctrl['file'].read_text(encoding='utf-8')
+            # Strip HTML comments from curated docs
+            md_content = re.sub(r'<!--.*?-->', '', md_content, flags=re.DOTALL)
+            # Add title header if not present (curated docs don't have titles)
+            if not md_content.strip().startswith('# '):
+                md_content = f"# {ctrl['name']}\n\n{md_content}"
             html_content = self.converter.convert(md_content)
             page = self._page_template(ctrl['name'], html_content, f"controls/{ctrl['html_name']}")
             (self.output_dir / "controls" / ctrl['html_name']).write_text(page, encoding='utf-8')
@@ -715,16 +797,42 @@ li {
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Generate Flowery.NET static documentation site.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python Utils/generate_site.py                # Use curated llms-static/ only (default)
+  python Utils/generate_site.py --use-generated # Use llms/ (auto-generated) docs
+        """
+    )
+    parser.add_argument(
+        '--use-generated',
+        action='store_true',
+        default=False,
+        help='Use llms/ (auto-generated) docs instead of curated llms-static/'
+    )
+    args = parser.parse_args()
+
     script_dir = Path(__file__).parent
     root_dir = script_dir.parent
     llms_dir = root_dir / "llms"
+    curated_dir = root_dir / "llms-static"
     docs_dir = root_dir / "docs"
 
-    if not llms_dir.exists():
-        print("Error: llms/ folder not found. Run generate_docs.py first.")
-        return
+    if args.use_generated:
+        # Use auto-generated llms/ folder
+        if not llms_dir.exists():
+            print("Error: llms/ folder not found. Run generate_docs.py --auto-parse first.")
+            return
+        generator = SiteGenerator(llms_dir, docs_dir, curated_dir=None)
+    else:
+        # Use curated llms-static/ folder (default)
+        if not curated_dir.exists():
+            print("Error: llms-static/ folder not found.")
+            return
+        generator = SiteGenerator(llms_dir, docs_dir, curated_dir=curated_dir)
 
-    generator = SiteGenerator(llms_dir, docs_dir)
     generator.generate()
 
 
