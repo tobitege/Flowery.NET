@@ -1,0 +1,200 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <!-- Dots Variant -->
+    <Style Selector="controls|DaisyLoading[Variant=Dots]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="24" Height="24">
+                        <Ellipse Classes="dot1" Width="6" Height="6" Fill="{TemplateBinding Foreground}"
+                                 Canvas.Left="0" Canvas.Top="9" />
+                        <Ellipse Classes="dot2" Width="6" Height="6" Fill="{TemplateBinding Foreground}"
+                                 Canvas.Left="9" Canvas.Top="9" />
+                        <Ellipse Classes="dot3" Width="6" Height="6" Fill="{TemplateBinding Foreground}"
+                                 Canvas.Left="18" Canvas.Top="9" />
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Dot Bounce Animations -->
+    <Style Selector="controls|DaisyLoading[Variant=Dots] /template/ Ellipse.dot1">
+        <Style.Animations>
+            <Animation Duration="0:0:0.6" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.15"><Setter Property="TranslateTransform.Y" Value="-6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Dots] /template/ Ellipse.dot2">
+        <Style.Animations>
+            <Animation Duration="0:0:0.6" IterationCount="Infinite" Delay="0:0:0.1">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.15"><Setter Property="TranslateTransform.Y" Value="-6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Dots] /template/ Ellipse.dot3">
+        <Style.Animations>
+            <Animation Duration="0:0:0.6" IterationCount="Infinite" Delay="0:0:0.2">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.15"><Setter Property="TranslateTransform.Y" Value="-6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Ring Variant -->
+    <Style Selector="controls|DaisyLoading[Variant=Ring]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid Width="{TemplateBinding Width}" Height="{TemplateBinding Height}">
+                    <!-- Background ring -->
+                    <Arc StartAngle="0" SweepAngle="360"
+                         Stroke="{TemplateBinding Foreground}" StrokeThickness="3" Opacity="0.2"/>
+                    <!-- Animated ring -->
+                    <Arc Classes="spinning" StartAngle="0" SweepAngle="90"
+                         Stroke="{TemplateBinding Foreground}" StrokeThickness="3" StrokeLineCap="Round"/>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Ring Spinning Animation (reuses the base spinning class) -->
+    <Style Selector="controls|DaisyLoading[Variant=Ring] /template/ Arc.spinning">
+        <Style.Animations>
+            <Animation Duration="0:0:0.75" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0.75">
+                    <Setter Property="RotateTransform.Angle" Value="360" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Ball Variant -->
+    <Style Selector="controls|DaisyLoading[Variant=Ball]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="24" Height="24" ClipToBounds="False">
+                        <Ellipse Classes="ball" Width="10" Height="10" Fill="{TemplateBinding Foreground}"
+                                 Canvas.Left="7" Canvas.Top="7" />
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Ball Bounce Animation -->
+    <Style Selector="controls|DaisyLoading[Variant=Ball] /template/ Ellipse.ball">
+        <Style.Animations>
+            <Animation Duration="0:0:0.6" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.25">
+                    <Setter Property="TranslateTransform.Y" Value="-10"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.9"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.2"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.8"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6">
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Bars Variant -->
+    <Style Selector="controls|DaisyLoading[Variant=Bars]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="24" Height="24">
+                        <Border Classes="bar1" Width="4" Height="12" Background="{TemplateBinding Foreground}"
+                                Canvas.Left="2" Canvas.Top="6" CornerRadius="2" />
+                        <Border Classes="bar2" Width="4" Height="12" Background="{TemplateBinding Foreground}"
+                                Canvas.Left="10" Canvas.Top="6" CornerRadius="2" />
+                        <Border Classes="bar3" Width="4" Height="12" Background="{TemplateBinding Foreground}"
+                                Canvas.Left="18" Canvas.Top="6" CornerRadius="2" />
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Bar Animations -->
+    <Style Selector="controls|DaisyLoading[Variant=Bars] /template/ Border.bar1">
+        <Style.Animations>
+            <Animation Duration="0:0:0.8" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.4"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2"><Setter Property="ScaleTransform.ScaleY" Value="1.0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4"><Setter Property="ScaleTransform.ScaleY" Value="0.4"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="ScaleTransform.ScaleY" Value="0.4"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Bars] /template/ Border.bar2">
+        <Style.Animations>
+            <Animation Duration="0:0:0.8" IterationCount="Infinite" Delay="0:0:0.15">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.4"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2"><Setter Property="ScaleTransform.ScaleY" Value="1.0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4"><Setter Property="ScaleTransform.ScaleY" Value="0.4"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="ScaleTransform.ScaleY" Value="0.4"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Bars] /template/ Border.bar3">
+        <Style.Animations>
+            <Animation Duration="0:0:0.8" IterationCount="Infinite" Delay="0:0:0.3">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.4"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2"><Setter Property="ScaleTransform.ScaleY" Value="1.0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4"><Setter Property="ScaleTransform.ScaleY" Value="0.4"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="ScaleTransform.ScaleY" Value="0.4"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Infinity Variant -->
+    <Style Selector="controls|DaisyLoading[Variant=Infinity]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="24" Height="24">
+                        <!-- Infinity symbol path -->
+                        <Path Classes="infinity" Stroke="{TemplateBinding Foreground}" StrokeThickness="2.5"
+                              StrokeLineCap="Round" StrokeDashArray="12,20" Canvas.Left="2" Canvas.Top="7"
+                              Data="M0,5 C0,0 5,0 10,5 C15,10 20,10 20,5 C20,0 15,0 10,5 C5,10 0,10 0,5" />
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Infinity Animation (dash offset cycling) -->
+    <Style Selector="controls|DaisyLoading[Variant=Infinity] /template/ Path.infinity">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="StrokeDashOffset" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5"><Setter Property="StrokeDashOffset" Value="32"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+</Styles>

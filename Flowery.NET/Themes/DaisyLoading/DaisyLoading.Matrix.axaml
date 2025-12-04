@@ -1,0 +1,302 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <!-- Matrix Variant - Colon-dotted pattern with wave animation (::: ::: :::) -->
+    <Style Selector="controls|DaisyLoading[Variant=Matrix]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="24" Height="24">
+                        <!-- Group 1: 3 colons at x=0,3,6 -->
+                        <!-- Colon 1 -->
+                        <Ellipse Classes="colon1" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="0" Canvas.Top="7"/>
+                        <Ellipse Classes="colon1" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="0" Canvas.Top="14.5"/>
+                        <!-- Colon 2 -->
+                        <Ellipse Classes="colon2" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="3.5" Canvas.Top="7"/>
+                        <Ellipse Classes="colon2" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="3.5" Canvas.Top="14.5"/>
+                        <!-- Colon 3 -->
+                        <Ellipse Classes="colon3" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="7" Canvas.Top="7"/>
+                        <Ellipse Classes="colon3" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="7" Canvas.Top="14.5"/>
+
+                        <!-- Group 2: 3 colons at x=13,16,19 (gap of ~4px) -->
+                        <!-- Colon 4 -->
+                        <Ellipse Classes="colon4" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="12.5" Canvas.Top="7"/>
+                        <Ellipse Classes="colon4" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="12.5" Canvas.Top="14.5"/>
+                        <!-- Colon 5 -->
+                        <Ellipse Classes="colon5" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="16" Canvas.Top="7"/>
+                        <Ellipse Classes="colon5" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="16" Canvas.Top="14.5"/>
+                        <!-- Colon 6 -->
+                        <Ellipse Classes="colon6" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="19.5" Canvas.Top="7"/>
+                        <Ellipse Classes="colon6" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="19.5" Canvas.Top="14.5"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Matrix Animation - Smooth wave of brightness traveling left to right with overlap -->
+    <!-- Duration 1.8s, each colon peaks 0.25s apart, with smooth fade-in/out overlap -->
+    <Style Selector="controls|DaisyLoading[Variant=Matrix] /template/ Ellipse.colon1">
+        <Style.Animations>
+            <Animation Duration="0:0:1.8" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.15"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.3"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.55"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Matrix] /template/ Ellipse.colon2">
+        <Style.Animations>
+            <Animation Duration="0:0:1.8" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.1"><Setter Property="Opacity" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.55"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.55"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Matrix] /template/ Ellipse.colon3">
+        <Style.Animations>
+            <Animation Duration="0:0:1.8" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.35"><Setter Property="Opacity" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.65"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Matrix] /template/ Ellipse.colon4">
+        <Style.Animations>
+            <Animation Duration="0:0:1.8" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.05"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Matrix] /template/ Ellipse.colon5">
+        <Style.Animations>
+            <Animation Duration="0:0:1.8" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.85"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.15"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.3"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Matrix] /template/ Ellipse.colon6">
+        <Style.Animations>
+            <Animation Duration="0:0:1.8" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.25"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.55"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- MatrixInward Variant - Both groups fade from inner to outer (colon3,4 → colon2,5 → colon1,6) -->
+    <Style Selector="controls|DaisyLoading[Variant=MatrixInward]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="24" Height="24">
+                        <!-- Group 1: colons 1,2,3 -->
+                        <Ellipse Classes="inward1" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="0" Canvas.Top="7"/>
+                        <Ellipse Classes="inward1" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="0" Canvas.Top="14.5"/>
+                        <Ellipse Classes="inward2" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="3.5" Canvas.Top="7"/>
+                        <Ellipse Classes="inward2" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="3.5" Canvas.Top="14.5"/>
+                        <Ellipse Classes="inward3" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="7" Canvas.Top="7"/>
+                        <Ellipse Classes="inward3" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="7" Canvas.Top="14.5"/>
+                        <!-- Group 2: colons 4,5,6 -->
+                        <Ellipse Classes="inward4" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="12.5" Canvas.Top="7"/>
+                        <Ellipse Classes="inward4" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="12.5" Canvas.Top="14.5"/>
+                        <Ellipse Classes="inward5" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="16" Canvas.Top="7"/>
+                        <Ellipse Classes="inward5" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="16" Canvas.Top="14.5"/>
+                        <Ellipse Classes="inward6" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="19.5" Canvas.Top="7"/>
+                        <Ellipse Classes="inward6" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="19.5" Canvas.Top="14.5"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- MatrixInward Animation - Inner dots (3,4) light first, then middle (2,5), then outer (1,6) -->
+    <Style Selector="controls|DaisyLoading[Variant=MatrixInward] /template/ Ellipse.inward3, controls|DaisyLoading[Variant=MatrixInward] /template/ Ellipse.inward4">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.15"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.05"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=MatrixInward] /template/ Ellipse.inward2, controls|DaisyLoading[Variant=MatrixInward] /template/ Ellipse.inward5">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.1"><Setter Property="Opacity" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.35"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=MatrixInward] /template/ Ellipse.inward1, controls|DaisyLoading[Variant=MatrixInward] /template/ Ellipse.inward6">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3"><Setter Property="Opacity" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.55"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.7"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- MatrixOutward Variant - Both groups fade from outer to inner (colon1,6 → colon2,5 → colon3,4) -->
+    <Style Selector="controls|DaisyLoading[Variant=MatrixOutward]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="24" Height="24">
+                        <!-- Group 1: colons 1,2,3 -->
+                        <Ellipse Classes="outward1" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="0" Canvas.Top="7"/>
+                        <Ellipse Classes="outward1" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="0" Canvas.Top="14.5"/>
+                        <Ellipse Classes="outward2" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="3.5" Canvas.Top="7"/>
+                        <Ellipse Classes="outward2" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="3.5" Canvas.Top="14.5"/>
+                        <Ellipse Classes="outward3" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="7" Canvas.Top="7"/>
+                        <Ellipse Classes="outward3" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="7" Canvas.Top="14.5"/>
+                        <!-- Group 2: colons 4,5,6 -->
+                        <Ellipse Classes="outward4" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="12.5" Canvas.Top="7"/>
+                        <Ellipse Classes="outward4" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="12.5" Canvas.Top="14.5"/>
+                        <Ellipse Classes="outward5" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="16" Canvas.Top="7"/>
+                        <Ellipse Classes="outward5" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="16" Canvas.Top="14.5"/>
+                        <Ellipse Classes="outward6" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="19.5" Canvas.Top="7"/>
+                        <Ellipse Classes="outward6" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="19.5" Canvas.Top="14.5"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- MatrixOutward Animation - Outer dots (1,6) light first, then middle (2,5), then inner (3,4) -->
+    <Style Selector="controls|DaisyLoading[Variant=MatrixOutward] /template/ Ellipse.outward1, controls|DaisyLoading[Variant=MatrixOutward] /template/ Ellipse.outward6">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.15"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.05"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=MatrixOutward] /template/ Ellipse.outward2, controls|DaisyLoading[Variant=MatrixOutward] /template/ Ellipse.outward5">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.1"><Setter Property="Opacity" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.35"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=MatrixOutward] /template/ Ellipse.outward3, controls|DaisyLoading[Variant=MatrixOutward] /template/ Ellipse.outward4">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3"><Setter Property="Opacity" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.55"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.7"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- MatrixVertical Variant - Wave from top to bottom across all dots -->
+    <Style Selector="controls|DaisyLoading[Variant=MatrixVertical]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="24" Height="24">
+                        <!-- Top row dots -->
+                        <Ellipse Classes="vtop" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="0" Canvas.Top="7"/>
+                        <Ellipse Classes="vtop" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="3.5" Canvas.Top="7"/>
+                        <Ellipse Classes="vtop" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="7" Canvas.Top="7"/>
+                        <Ellipse Classes="vtop" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="12.5" Canvas.Top="7"/>
+                        <Ellipse Classes="vtop" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="16" Canvas.Top="7"/>
+                        <Ellipse Classes="vtop" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="19.5" Canvas.Top="7"/>
+                        <!-- Bottom row dots -->
+                        <Ellipse Classes="vbot" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="0" Canvas.Top="14.5"/>
+                        <Ellipse Classes="vbot" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="3.5" Canvas.Top="14.5"/>
+                        <Ellipse Classes="vbot" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="7" Canvas.Top="14.5"/>
+                        <Ellipse Classes="vbot" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="12.5" Canvas.Top="14.5"/>
+                        <Ellipse Classes="vbot" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="16" Canvas.Top="14.5"/>
+                        <Ellipse Classes="vbot" Width="2.5" Height="2.5" Fill="{TemplateBinding Foreground}" Canvas.Left="19.5" Canvas.Top="14.5"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- MatrixVertical Animation - Top row lights up, then bottom row -->
+    <Style Selector="controls|DaisyLoading[Variant=MatrixVertical] /template/ Ellipse.vtop">
+        <Style.Animations>
+            <Animation Duration="0:0:1" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=MatrixVertical] /template/ Ellipse.vbot">
+        <Style.Animations>
+            <Animation Duration="0:0:1" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.7"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+</Styles>

@@ -132,6 +132,29 @@ This ensures that:
 - The accessible name is always available and customizable
 - The control participates in the accessibility tree properly
 
+## Theme File Organization
+
+The DaisyLoading theme styles are organized into multiple files for maintainability:
+
+| File | Contents |
+|------|----------|
+| `Themes/DaisyLoading.axaml` | Main aggregator with design preview; includes all sub-files |
+| `Themes/DaisyLoading/DaisyLoading.Base.axaml` | `ControlTheme` with default Spinner template, shared spinning animation, size styles, and color styles |
+| `Themes/DaisyLoading/DaisyLoading.Classic.axaml` | Dots, Ring, Ball, Bars, Infinity variants |
+| `Themes/DaisyLoading/DaisyLoading.Terminal.axaml` | Orbit, Snake, Pulse, Wave, Bounce variants |
+| `Themes/DaisyLoading/DaisyLoading.Matrix.axaml` | Matrix, MatrixInward, MatrixOutward, MatrixVertical variants |
+| `Themes/DaisyLoading/DaisyLoading.Special.axaml` | MatrixRain, Hourglass variants |
+
+### Adding New Variants
+
+To add a new loading variant:
+
+1. Choose the appropriate category file (or create a new one if it doesn't fit existing categories)
+2. Add a `Style Selector="controls|DaisyLoading[Variant=YourVariant]"` with a `ControlTemplate`
+3. Add animation styles targeting template elements using the pattern `controls|DaisyLoading[Variant=YourVariant] /template/ ElementType.ClassName`
+4. Add the new enum value to `DaisyLoadingVariant` in `Controls/DaisyLoading.cs`
+5. Update the design preview in `DaisyLoading.axaml` to include the new variant
+
 ## Size Options
 
 All variants scale proportionally across sizes. Canvas-based animations use Viewbox wrapping for smooth scaling.

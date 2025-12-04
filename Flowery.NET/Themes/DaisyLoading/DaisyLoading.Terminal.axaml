@@ -1,0 +1,337 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <!-- Orbit Variant (Terminal-style dots moving around square border) -->
+    <Style Selector="controls|DaisyLoading[Variant=Orbit]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Grid Width="24" Height="24">
+                        <!-- Square border outline -->
+                        <Border BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Opacity="0.15" CornerRadius="2"/>
+                        <!-- Orbiting dots -->
+                        <Canvas>
+                            <Ellipse Classes="orbit1" Width="4" Height="4" Fill="{TemplateBinding Foreground}" Canvas.Left="0" Canvas.Top="0"/>
+                            <Ellipse Classes="orbit2" Width="4" Height="4" Fill="{TemplateBinding Foreground}" Canvas.Left="0" Canvas.Top="0" Opacity="0.7"/>
+                            <Ellipse Classes="orbit3" Width="4" Height="4" Fill="{TemplateBinding Foreground}" Canvas.Left="0" Canvas.Top="0" Opacity="0.4"/>
+                        </Canvas>
+                    </Grid>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Orbit Animation - moves dots around the square perimeter -->
+    <Style Selector="controls|DaisyLoading[Variant=Orbit] /template/ Ellipse.orbit1">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                <!-- Top edge: left to right -->
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/><Setter Property="Canvas.Top" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3"><Setter Property="Canvas.Left" Value="20"/><Setter Property="Canvas.Top" Value="0"/></KeyFrame>
+                <!-- Right edge: top to bottom -->
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="Canvas.Left" Value="20"/><Setter Property="Canvas.Top" Value="20"/></KeyFrame>
+                <!-- Bottom edge: right to left -->
+                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Canvas.Left" Value="0"/><Setter Property="Canvas.Top" Value="20"/></KeyFrame>
+                <!-- Left edge: bottom to top -->
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="Canvas.Left" Value="0"/><Setter Property="Canvas.Top" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Orbit] /template/ Ellipse.orbit2">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.15">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/><Setter Property="Canvas.Top" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3"><Setter Property="Canvas.Left" Value="20"/><Setter Property="Canvas.Top" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="Canvas.Left" Value="20"/><Setter Property="Canvas.Top" Value="20"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Canvas.Left" Value="0"/><Setter Property="Canvas.Top" Value="20"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="Canvas.Left" Value="0"/><Setter Property="Canvas.Top" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Orbit] /template/ Ellipse.orbit3">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.3">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/><Setter Property="Canvas.Top" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3"><Setter Property="Canvas.Left" Value="20"/><Setter Property="Canvas.Top" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="Canvas.Left" Value="20"/><Setter Property="Canvas.Top" Value="20"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Canvas.Left" Value="0"/><Setter Property="Canvas.Top" Value="20"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="Canvas.Left" Value="0"/><Setter Property="Canvas.Top" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Snake Variant (Centipede-like segments moving back and forth) -->
+    <Style Selector="controls|DaisyLoading[Variant=Snake]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="24" Height="24">
+                        <!-- Snake segments -->
+                        <Border Classes="seg1" Width="4" Height="4" Background="{TemplateBinding Foreground}" CornerRadius="1" Canvas.Left="0" Canvas.Top="10"/>
+                        <Border Classes="seg2" Width="4" Height="4" Background="{TemplateBinding Foreground}" CornerRadius="1" Canvas.Left="0" Canvas.Top="10" Opacity="0.85"/>
+                        <Border Classes="seg3" Width="4" Height="4" Background="{TemplateBinding Foreground}" CornerRadius="1" Canvas.Left="0" Canvas.Top="10" Opacity="0.7"/>
+                        <Border Classes="seg4" Width="4" Height="4" Background="{TemplateBinding Foreground}" CornerRadius="1" Canvas.Left="0" Canvas.Top="10" Opacity="0.55"/>
+                        <Border Classes="seg5" Width="4" Height="4" Background="{TemplateBinding Foreground}" CornerRadius="1" Canvas.Left="0" Canvas.Top="10" Opacity="0.4"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Snake Animation - segments follow each other back and forth -->
+    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg1">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="Canvas.Left" Value="20"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg2">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.08">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="Canvas.Left" Value="20"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg3">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.16">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="Canvas.Left" Value="20"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg4">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.24">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="Canvas.Left" Value="20"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg5">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.32">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="Canvas.Left" Value="20"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Pulse Variant (Breathing/pulsing effect) -->
+    <Style Selector="controls|DaisyLoading[Variant=Pulse]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid Width="{TemplateBinding Width}" Height="{TemplateBinding Height}">
+                    <!-- Pulsing rings -->
+                    <Ellipse Classes="pulse-ring" Stroke="{TemplateBinding Foreground}" StrokeThickness="2" Opacity="0"/>
+                    <Ellipse Classes="pulse-ring2" Stroke="{TemplateBinding Foreground}" StrokeThickness="2" Opacity="0"/>
+                    <!-- Center dot -->
+                    <Ellipse Classes="pulse-center" Width="8" Height="8" Fill="{TemplateBinding Foreground}"
+                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Pulse Animation -->
+    <Style Selector="controls|DaisyLoading[Variant=Pulse] /template/ Ellipse.pulse-ring">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0.8"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.3"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.3"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="Opacity" Value="0"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Pulse] /template/ Ellipse.pulse-ring2">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:0.5">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0.8"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.3"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.3"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="Opacity" Value="0"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Pulse] /template/ Ellipse.pulse-center">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.75">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.3"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.3"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Wave Variant (Wave of elements) -->
+    <Style Selector="controls|DaisyLoading[Variant=Wave]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <StackPanel Orientation="Horizontal" Spacing="3" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Ellipse Classes="wave1" Width="4" Height="4" Fill="{TemplateBinding Foreground}"/>
+                    <Ellipse Classes="wave2" Width="4" Height="4" Fill="{TemplateBinding Foreground}"/>
+                    <Ellipse Classes="wave3" Width="4" Height="4" Fill="{TemplateBinding Foreground}"/>
+                    <Ellipse Classes="wave4" Width="4" Height="4" Fill="{TemplateBinding Foreground}"/>
+                    <Ellipse Classes="wave5" Width="4" Height="4" Fill="{TemplateBinding Foreground}"/>
+                </StackPanel>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Wave Animation - smooth sine wave motion -->
+    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave1">
+        <Style.Animations>
+            <Animation Duration="0:0:1" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.25"><Setter Property="TranslateTransform.Y" Value="-6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.75"><Setter Property="TranslateTransform.Y" Value="6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave2">
+        <Style.Animations>
+            <Animation Duration="0:0:1" IterationCount="Infinite" Delay="0:0:0.1">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.25"><Setter Property="TranslateTransform.Y" Value="-6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.75"><Setter Property="TranslateTransform.Y" Value="6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave3">
+        <Style.Animations>
+            <Animation Duration="0:0:1" IterationCount="Infinite" Delay="0:0:0.2">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.25"><Setter Property="TranslateTransform.Y" Value="-6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.75"><Setter Property="TranslateTransform.Y" Value="6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave4">
+        <Style.Animations>
+            <Animation Duration="0:0:1" IterationCount="Infinite" Delay="0:0:0.3">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.25"><Setter Property="TranslateTransform.Y" Value="-6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.75"><Setter Property="TranslateTransform.Y" Value="6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave5">
+        <Style.Animations>
+            <Animation Duration="0:0:1" IterationCount="Infinite" Delay="0:0:0.4">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.25"><Setter Property="TranslateTransform.Y" Value="-6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.75"><Setter Property="TranslateTransform.Y" Value="6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Bounce Variant (Bouncing squares) -->
+    <Style Selector="controls|DaisyLoading[Variant=Bounce]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid Width="{TemplateBinding Width}" Height="{TemplateBinding Height}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Classes="bounce1" Grid.Row="0" Grid.Column="0" Background="{TemplateBinding Foreground}"
+                            CornerRadius="2" Margin="1" Opacity="0.25"/>
+                    <Border Classes="bounce2" Grid.Row="0" Grid.Column="1" Background="{TemplateBinding Foreground}"
+                            CornerRadius="2" Margin="1" Opacity="0.25"/>
+                    <Border Classes="bounce3" Grid.Row="1" Grid.Column="1" Background="{TemplateBinding Foreground}"
+                            CornerRadius="2" Margin="1" Opacity="0.25"/>
+                    <Border Classes="bounce4" Grid.Row="1" Grid.Column="0" Background="{TemplateBinding Foreground}"
+                            CornerRadius="2" Margin="1" Opacity="0.25"/>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Bounce Animation - squares gently highlight in sequence (dimmed → soft highlight → dimmed) -->
+    <Style Selector="controls|DaisyLoading[Variant=Bounce] /template/ Border.bounce1">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.1"><Setter Property="Opacity" Value="0.7"/><Setter Property="ScaleTransform.ScaleX" Value="1"/><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Bounce] /template/ Border.bounce2">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0.7"/><Setter Property="ScaleTransform.ScaleX" Value="1"/><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.7"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Bounce] /template/ Border.bounce3">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.7"/><Setter Property="ScaleTransform.ScaleX" Value="1"/><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Bounce] /template/ Border.bounce4">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.3"><Setter Property="Opacity" Value="0.7"/><Setter Property="ScaleTransform.ScaleX" Value="1"/><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+</Styles>

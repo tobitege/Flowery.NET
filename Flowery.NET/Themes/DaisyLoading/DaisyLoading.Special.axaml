@@ -1,0 +1,172 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <!-- MatrixRain Variant - Digital rain of dots falling down -->
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="24" Height="24" ClipToBounds="True">
+                        <!-- Column 1 -->
+                        <Ellipse Classes="drop1a" Width="3" Height="3" Fill="{TemplateBinding Foreground}" Canvas.Left="1" Canvas.Top="-3"/>
+                        <Ellipse Classes="drop1b" Width="3" Height="3" Fill="{TemplateBinding Foreground}" Canvas.Left="1" Canvas.Top="-3" Opacity="0.5"/>
+                        <!-- Column 2 -->
+                        <Ellipse Classes="drop2a" Width="3" Height="3" Fill="{TemplateBinding Foreground}" Canvas.Left="7" Canvas.Top="-3"/>
+                        <Ellipse Classes="drop2b" Width="3" Height="3" Fill="{TemplateBinding Foreground}" Canvas.Left="7" Canvas.Top="-3" Opacity="0.5"/>
+                        <!-- Column 3 -->
+                        <Ellipse Classes="drop3a" Width="3" Height="3" Fill="{TemplateBinding Foreground}" Canvas.Left="13" Canvas.Top="-3"/>
+                        <Ellipse Classes="drop3b" Width="3" Height="3" Fill="{TemplateBinding Foreground}" Canvas.Left="13" Canvas.Top="-3" Opacity="0.5"/>
+                        <!-- Column 4 -->
+                        <Ellipse Classes="drop4a" Width="3" Height="3" Fill="{TemplateBinding Foreground}" Canvas.Left="19" Canvas.Top="-3"/>
+                        <Ellipse Classes="drop4b" Width="3" Height="3" Fill="{TemplateBinding Foreground}" Canvas.Left="19" Canvas.Top="-3" Opacity="0.5"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- MatrixRain Animations - drops fall at different rates with trails -->
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop1a">
+        <Style.Animations>
+            <Animation Duration="0:0:0.8" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.7"><Setter Property="Canvas.Top" Value="24"/><Setter Property="Opacity" Value="0.3"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop1b">
+        <Style.Animations>
+            <Animation Duration="0:0:0.8" IterationCount="Infinite" Delay="0:0:0.1">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="0.5"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.7"><Setter Property="Canvas.Top" Value="24"/><Setter Property="Opacity" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="0.5"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop2a">
+        <Style.Animations>
+            <Animation Duration="0:0:1.1" IterationCount="Infinite" Delay="0:0:0.2">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="Canvas.Top" Value="24"/><Setter Property="Opacity" Value="0.3"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.1"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop2b">
+        <Style.Animations>
+            <Animation Duration="0:0:1.1" IterationCount="Infinite" Delay="0:0:0.3">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="0.5"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="Canvas.Top" Value="24"/><Setter Property="Opacity" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.1"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="0.5"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop3a">
+        <Style.Animations>
+            <Animation Duration="0:0:0.9" IterationCount="Infinite" Delay="0:0:0.4">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="Canvas.Top" Value="24"/><Setter Property="Opacity" Value="0.3"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop3b">
+        <Style.Animations>
+            <Animation Duration="0:0:0.9" IterationCount="Infinite" Delay="0:0:0.5">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="0.5"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="Canvas.Top" Value="24"/><Setter Property="Opacity" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="0.5"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop4a">
+        <Style.Animations>
+            <Animation Duration="0:0:0.7" IterationCount="Infinite" Delay="0:0:0.15">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="Canvas.Top" Value="24"/><Setter Property="Opacity" Value="0.3"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.7"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="1"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop4b">
+        <Style.Animations>
+            <Animation Duration="0:0:0.7" IterationCount="Infinite" Delay="0:0:0.25">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="0.5"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="Canvas.Top" Value="24"/><Setter Property="Opacity" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.7"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="0.5"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Hourglass Variant - Classic hourglass with flowing sand -->
+    <Style Selector="controls|DaisyLoading[Variant=Hourglass]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Grid Width="24" Height="24">
+                        <!-- Hourglass outline (frame) -->
+                        <Path Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5" Opacity="0.4"
+                              Data="M4,2 L20,2 L20,4 L14,10 L14,14 L20,20 L20,22 L4,22 L4,20 L10,14 L10,10 L4,4 Z"/>
+                        <!-- Top sand chamber with clip -->
+                        <Canvas ClipToBounds="True">
+                            <Canvas.Clip>
+                                <PathGeometry Figures="M5,3 L19,3 L19,4 L13,10 L11,10 L5,4 Z"/>
+                            </Canvas.Clip>
+                            <Path Classes="sand-top" Fill="{TemplateBinding Foreground}"
+                                  Data="M5,3 L19,3 L19,10 L5,10 Z"/>
+                        </Canvas>
+                        <!-- Falling sand stream -->
+                        <Border Classes="sand-stream" Width="2" Height="4"
+                                Background="{TemplateBinding Foreground}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <!-- Bottom sand chamber with clip -->
+                        <Canvas ClipToBounds="True">
+                            <Canvas.Clip>
+                                <PathGeometry Figures="M11,14 L13,14 L19,20 L19,21 L5,21 L5,20 Z"/>
+                            </Canvas.Clip>
+                            <Path Classes="sand-bottom" Fill="{TemplateBinding Foreground}"
+                                  Data="M5,14 L19,14 L19,21 L5,21 Z" RenderTransformOrigin="0.5,1"/>
+                        </Canvas>
+                    </Grid>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Hourglass Animations -->
+    <!-- Top sand depletes by translating down (revealing clip) -->
+    <Style Selector="controls|DaisyLoading[Variant=Hourglass] /template/ Path.sand-top">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.8"><Setter Property="TranslateTransform.Y" Value="7"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.9"><Setter Property="TranslateTransform.Y" Value="7"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:2"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Hourglass] /template/ Border.sand-stream">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.7"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.9"><Setter Property="Opacity" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:2"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <!-- Bottom sand accumulates by translating up (filling from bottom) -->
+    <Style Selector="controls|DaisyLoading[Variant=Hourglass] /template/ Path.sand-bottom">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="7"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.8"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.9"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:2"><Setter Property="TranslateTransform.Y" Value="7"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+</Styles>

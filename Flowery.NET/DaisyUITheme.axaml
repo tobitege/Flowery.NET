@@ -29,7 +29,6 @@
                 <ResourceInclude Source="/Themes/DaisyMockup.axaml" />
                 <ResourceInclude Source="/Themes/DaisyProgress.axaml" />
                 <ResourceInclude Source="/Themes/DaisyRadialProgress.axaml" />
-                <ResourceInclude Source="/Themes/DaisyLoading.axaml" />
                 <ResourceInclude Source="/Themes/DaisyModal.axaml" />
                 <ResourceInclude Source="/Themes/DaisySkeleton.axaml" />
                 <ResourceInclude Source="/Themes/DaisyGlass.axaml" />
@@ -67,6 +66,7 @@
     </Styles.Resources>
 
     <!-- Styles (Not ResourceDictionaries) -->
+    <StyleInclude Source="/Themes/DaisyLoading.axaml" />
     <StyleInclude Source="/Themes/DaisySteps.axaml" />
     <StyleInclude Source="/Themes/DaisyPagination.axaml" />
     <StyleInclude Source="/Themes/DaisyMenu.axaml" />
