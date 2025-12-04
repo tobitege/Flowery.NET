@@ -325,3 +325,5 @@ This project is built upon and inspired by the following amazing projects:
 - [**Avalonia UI**](https://avaloniaui.net/) - The cross-platform UI framework.
 - [**DaisyUI**](https://daisyui.com/) - The original Tailwind CSS component library that inspired this port.
 - [**Avalonia.Fonts.Inter**](https://www.nuget.org/packages/Avalonia.Fonts.Inter) - The font used in the gallery.
+
+> **Disclaimer:** This project is not affiliated with, endorsed by, or sponsored by DaisyUI or Avalonia UI.

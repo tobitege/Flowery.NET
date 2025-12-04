@@ -483,6 +483,78 @@ li {
     color: var(--primary);
 }
 
+/* GitHub icon in title */
+.sidebar h1 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.github-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+    display: inline-flex;
+    line-height: 1;
+}
+
+.github-link:hover {
+    color: var(--primary);
+}
+
+.github-icon {
+    display: block;
+}
+
+/* Index page footer */
+.footer-separator {
+    margin: 3rem 0 1.5rem;
+    border: none;
+    border-top: 1px solid var(--border);
+}
+
+.index-footer {
+    text-align: center;
+    padding: 1rem 0 2rem;
+    color: var(--text-muted);
+}
+
+.index-footer p {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+}
+
+.index-footer .disclaimer {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-bottom: 0.5rem;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.footer-links a {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+}
+
+.footer-links a:hover {
+    color: var(--primary);
+}
+
+.footer-icon {
+    flex-shrink: 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .layout {
@@ -521,7 +593,7 @@ li {
 <body>
     <div class="layout">
         <nav class="sidebar">
-            <h1>Flowery.NET</h1>
+            <h1><a href="https://github.com/tobitege/Flowery.NET" target="_blank" rel="noopener" class="github-link" title="View on GitHub"><svg class="github-icon" viewBox="0 0 16 16" width="20" height="20"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a> Flowery.NET</h1>
             <p class="subtitle">Avalonia UI Components</p>
             {sidebar_html}
         </nav>
@@ -594,7 +666,34 @@ li {
 </a>''')
         cards_html.append('</div>')
 
-        full_content = html_content + '\n' + '\n'.join(cards_html)
+        # Add footer with project links
+        footer_html = '''
+<hr class="footer-separator">
+<footer class="index-footer">
+    <p class="disclaimer">This project is not affiliated with, endorsed by, or sponsored by DaisyUI or Avalonia UI.</p>
+    <p>Built with inspiration from:</p>
+    <div class="footer-links">
+        <a href="https://daisyui.com" target="_blank" rel="noopener" title="DaisyUI">
+            <svg class="footer-icon" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+            <span>DaisyUI</span>
+        </a>
+        <a href="https://avaloniaui.net" target="_blank" rel="noopener" title="Avalonia UI">
+            <svg class="footer-icon" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M12 2L2 19h20L12 2zm0 4l7 11H5l7-11z"/></svg>
+            <span>Avalonia UI</span>
+        </a>
+        <a href="https://github.com/saadeghi/daisyui" target="_blank" rel="noopener" title="DaisyUI GitHub">
+            <svg class="footer-icon" viewBox="0 0 16 16" width="20" height="20"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            <span>daisyui</span>
+        </a>
+        <a href="https://github.com/AvaloniaUI/Avalonia" target="_blank" rel="noopener" title="Avalonia GitHub">
+            <svg class="footer-icon" viewBox="0 0 16 16" width="20" height="20"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            <span>Avalonia</span>
+        </a>
+    </div>
+</footer>
+'''
+
+        full_content = html_content + '\n' + '\n'.join(cards_html) + footer_html
         page = self._page_template("Documentation", full_content, "index")
         (self.output_dir / "index.html").write_text(page, encoding='utf-8')
 
