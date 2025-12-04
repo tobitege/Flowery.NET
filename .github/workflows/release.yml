@@ -80,7 +80,6 @@ jobs:
           tag_name: ${{ github.event.workflow_run.head_branch }}
           files: |
             ./artifacts/*.nupkg
-            ./artifacts/Flowery.NET-lib.zip
             ./artifacts/*.zip
             ./artifacts/*.tar.gz
           generate_release_notes: true
