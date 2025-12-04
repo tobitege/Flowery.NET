@@ -7,6 +7,7 @@
 [![NuGet](https://img.shields.io/nuget/v/Flowery.NET?style=flat-square)](https://www.nuget.org/packages/Flowery.NET)
 [![License](https://img.shields.io/github/license/tobitege/Flowery.NET?style=flat-square)](LICENSE)
 [![Avalonia](https://img.shields.io/badge/Avalonia-11.0+-purple?style=flat-square)](https://avaloniaui.net/)
+[![Docs](https://img.shields.io/badge/Docs-GitHub%20Pages-blue?style=flat-square)](https://tobitege.github.io/Flowery.NET/)
 [![X](https://img.shields.io/badge/X-@tobitege45259-000000?style=flat-square&logo=x)](https://x.com/tobitege45259)
 
 </div>
@@ -30,6 +31,12 @@ This library provides native Avalonia controls that mimic the utility-first, sem
 - **Variants**: Supports `Primary`, `Secondary`, `Accent`, `Ghost`, etc.
 - **Framework Support**: Library targets `netstandard2.0` for maximum compatibility.
 - **Gallery App**: Includes a full demo application (`Flowery.NET.Gallery`) showcasing all controls and features.
+
+## Documentation
+
+📖 **[View the full documentation](https://tobitege.github.io/Flowery.NET/)** - Browse all controls with properties, enum values, and XAML usage examples.
+
+The documentation is auto-generated from source code and kept up-to-date via CI.
 
 ## Installation
 
