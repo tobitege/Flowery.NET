@@ -1,22 +1,27 @@
 name: Create Release with Artifacts
 
-# This workflow runs when you push a version tag like v1.0.1
+# This workflow runs AFTER nuget.yml completes successfully
 # It creates a GitHub Release with downloadable artifacts
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: ["Build and Publish NuGet"]
+    types:
+      - completed
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    # Only run if the NuGet workflow succeeded and was triggered by a tag
+    if: ${{ github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v') }}
     permissions:
       contents: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -43,14 +48,11 @@ jobs:
           zip ../Flowery.NET-lib.zip *
           cd ../..
 
-      # Push to NuGet.org
-      - name: Push to NuGet.org
-        run: dotnet nuget push ./artifacts/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
-
-      # Create GitHub Release with all artifacts
+      # Create GitHub Release with all artifacts (NuGet already published by nuget.yml)
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ github.event.workflow_run.head_branch }}
           files: |
             ./artifacts/*.nupkg
             ./artifacts/Flowery.NET-lib.zip
