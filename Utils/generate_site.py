@@ -70,6 +70,9 @@ class MarkdownToHtml:
             return f'<img src="{src}" alt="{alt}" style="max-width:100%;height:auto;">'
         html = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', convert_image, html)
 
+        # Links - convert [text](url) to <a>
+        html = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2">\1</a>', html)
+
         # Headers
         html = re.sub(r'^### (.+)$', r'<h3>\1</h3>', html, flags=re.MULTILINE)
         html = re.sub(r'^## (.+)$', r'<h2>\1</h2>', html, flags=re.MULTILINE)
@@ -264,7 +267,8 @@ class SiteGenerator:
 
         # Generate HTML pages
         print("\n[5/5] Generating HTML pages...")
-        self._generate_index()
+        self._generate_shell()
+        self._generate_home()
         self._generate_control_pages()
         self._generate_category_pages()
 
@@ -313,10 +317,12 @@ body {
     min-height: 100vh;
 }
 
-.layout {
+/* Shell Layout (index.html) */
+.shell {
     display: grid;
     grid-template-columns: 260px 1fr;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
 }
 
 /* Sidebar */
@@ -324,16 +330,17 @@ body {
     background: var(--bg-card);
     border-right: 1px solid var(--border);
     padding: 1.5rem;
-    position: sticky;
-    top: 0;
-    height: 100vh;
     overflow-y: auto;
+    height: 100%;
 }
 
 .sidebar h1 {
     font-size: 1.25rem;
     color: var(--primary);
     margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .sidebar .subtitle {
@@ -352,6 +359,12 @@ body {
 
 .sidebar ul {
     list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar li {
+    margin-bottom: 0.2rem;
 }
 
 .sidebar a {
@@ -374,13 +387,22 @@ body {
     background: rgba(56, 189, 248, 0.1);
 }
 
-/* Main content */
-.main {
-    padding: 2rem 3rem;
-    max-width: 900px;
+/* Viewer (Iframe) */
+.viewer {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: var(--bg);
 }
 
-.main h1 {
+/* Content Pages (inside iframe) */
+.content-body {
+    padding: 2rem 3rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.content-body h1 {
     font-size: 2rem;
     color: var(--text);
     margin-bottom: 0.5rem;
@@ -388,24 +410,24 @@ body {
     padding-bottom: 0.5rem;
 }
 
-.main h2 {
+.content-body h2 {
     font-size: 1.35rem;
     color: var(--accent);
     margin: 2rem 0 1rem;
 }
 
-.main h3 {
+.content-body h3 {
     font-size: 1.1rem;
     color: var(--text);
     margin: 1.5rem 0 0.75rem;
 }
 
-.main p {
+.content-body p {
     margin-bottom: 1rem;
     color: var(--text-muted);
 }
 
-.main strong {
+.content-body strong {
     color: var(--text);
 }
 
@@ -468,18 +490,18 @@ tr:hover td {
     background: rgba(255,255,255,0.02);
 }
 
-/* Lists */
-ul {
+/* Lists in content */
+.content-body ul {
     margin: 1rem 0;
     padding-left: 1.5rem;
 }
 
-li {
+.content-body li {
     margin-bottom: 0.5rem;
     color: var(--text-muted);
 }
 
-/* Cards grid for index */
+/* Cards grid for home */
 .cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -536,13 +558,6 @@ li {
 
 .llm-link a {
     color: var(--primary);
-}
-
-/* GitHub icon in title */
-.sidebar h1 {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
 }
 
 .github-link {
@@ -610,96 +625,248 @@ li {
     flex-shrink: 0;
 }
 
+/* Breadcrumbs & Navigation */
+.breadcrumbs {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+.breadcrumbs a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.breadcrumbs a:hover {
+    color: var(--primary);
+}
+
+.doc-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+}
+
+.doc-nav a {
+    display: inline-block;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.doc-nav a:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.nav-prev {
+    margin-right: auto;
+}
+
+.nav-next {
+    margin-left: auto;
+}
+
 /* Responsive */
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2000;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 900;
+    backdrop-filter: blur(2px);
+}
+
 @media (max-width: 768px) {
-    .layout {
+    .shell {
         grid-template-columns: 1fr;
     }
+
     .sidebar {
-        position: relative;
-        height: auto;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
+        /* Mobile sidebar hidden by default (off-canvas) */
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 260px;
+        z-index: 1000;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.5);
     }
-    .main {
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .overlay.open {
+        display: block;
+    }
+
+    .content-body {
         padding: 1.5rem;
+        padding-top: 4rem; /* Space for toggle button */
     }
 }
 '''
         (self.output_dir / "style.css").write_text(css, encoding='utf-8')
 
-    def _page_template(self, title: str, content: str, active: str = "") -> str:
-        """Generate full HTML page with sidebar."""
-        sidebar_html = self._build_sidebar(active)
-        css_path = "" if "/" not in active else "../"
+    def _page_template(self, title: str, content: str, depth: int = 0) -> str:
+        """Generate HTML page for content (loaded in iframe)."""
+        css_prefix = "../" * depth
         return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{title} - Flowery.NET</title>
-    <link rel="stylesheet" href="{css_path}style.css">
-    <!-- Highlight.js for syntax highlighting -->
+    <title>{title}</title>
+    <link rel="stylesheet" href="{css_prefix}style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
 </head>
-<body>
-    <div class="layout">
-        <nav class="sidebar">
-            <h1><a href="https://github.com/tobitege/Flowery.NET" target="_blank" rel="noopener" class="github-link" title="View on GitHub"><svg class="github-icon" viewBox="0 0 16 16" width="20" height="20"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a> Flowery.NET</h1>
-            <p class="subtitle">Avalonia UI Components</p>
-            {sidebar_html}
-        </nav>
-        <main class="main">
-            {content}
-        </main>
-    </div>
+<body class="content-body">
+    {content}
     <script>hljs.highlightAll();</script>
 </body>
 </html>'''
 
-    def _build_sidebar(self, active: str) -> str:
-        """Build sidebar navigation HTML."""
-        lines = []
-
-        # Determine if we're in a subdirectory
-        is_subdir = "/" in active
-        prefix = "../" if is_subdir else ""
-
+    def _generate_shell(self):
+        """Generate the main app shell (index.html) with sidebar and iframe."""
+        
+        sidebar_items = []
+        
         # Home link
-        home_class = ' class="active"' if active == "index" else ""
-        lines.append(f'<a href="{prefix}index.html"{home_class}>← Home</a>')
+        sidebar_items.append('<li><a href="home.html" target="viewer" class="active">← Home</a></li>')
 
-        # Categories (only if available)
+        # Categories
         if self.categories:
-            lines.append('<h2>Categories</h2>')
-            lines.append('<ul>')
+            sidebar_items.append('<li><h2>Categories</h2></li>')
             for cat in self.categories:
-                cls = ' class="active"' if active == f"categories/{cat['html_name']}" else ""
-                lines.append(f'<li><a href="{prefix}categories/{cat["html_name"]}"{cls}>{cat["name"]}</a></li>')
-            lines.append('</ul>')
+                sidebar_items.append(f'<li><a href="categories/{cat["html_name"]}" target="viewer">{cat["name"]}</a></li>')
 
         # Controls
-        lines.append('<h2>Controls</h2>')
-        lines.append('<ul>')
+        sidebar_items.append('<li><h2>Controls</h2></li>')
         for ctrl in self.controls:
-            cls = ' class="active"' if active == f"controls/{ctrl['html_name']}" else ""
             display_name = ctrl['name'].replace('Daisy', '')
-            lines.append(f'<li><a href="{prefix}controls/{ctrl["html_name"]}"{cls}>{display_name}</a></li>')
-        lines.append('</ul>')
+            sidebar_items.append(f'<li><a href="controls/{ctrl["html_name"]}" target="viewer">{display_name}</a></li>')
 
-        return '\n'.join(lines)
+        sidebar_html = '\n'.join(sidebar_items)
 
-    def _generate_index(self):
-        """Generate the main index page."""
+        html = f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowery.NET Documentation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="shell">
+        <div class="overlay"></div>
+        <button class="menu-toggle" aria-label="Toggle Menu">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
+        <nav class="sidebar">
+            <h1>
+                <a href="https://github.com/tobitege/Flowery.NET" target="_blank" rel="noopener" class="github-link" title="View on GitHub">
+                    <svg class="github-icon" viewBox="0 0 16 16" width="20" height="20">
+                        <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                </a> 
+                Flowery.NET
+            </h1>
+            <p class="subtitle">Avalonia UI Components</p>
+            <ul>
+                {sidebar_html}
+            </ul>
+        </nav>
+        <iframe name="viewer" class="viewer" src="home.html"></iframe>
+    </div>
+
+    <script>
+        // Sidebar Toggle Logic
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.overlay');
+        const toggleBtn = document.querySelector('.menu-toggle');
+        const links = document.querySelectorAll('.sidebar a');
+
+        function toggleMenu() {{
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }}
+
+        function closeMenu() {{
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        }}
+
+        toggleBtn.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', closeMenu);
+
+        // Handle active state & mobile close
+        links.forEach(link => {{
+            link.addEventListener('click', (e) => {{
+                // Don't mess with external links
+                if (link.target === '_blank') return;
+                
+                links.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+
+                // Close menu on mobile when link is clicked
+                if (window.innerWidth <= 768) {{
+                    closeMenu();
+                }}
+            }});
+        }});
+    </script>
+</body>
+</html>'''
+        (self.output_dir / "index.html").write_text(html, encoding='utf-8')
+
+    def _generate_home(self):
+        """Generate the home content page (home.html)."""
         # Generate llms.txt for AI assistants (combine all curated docs)
         if self.use_curated_only:
             llms_content = self._generate_llms_txt_from_curated()
         else:
             llms_content = (self.docs_dir / "llms.txt").read_text(encoding='utf-8')
-        (self.output_dir / "llms.txt").write_text(llms_content, encoding='utf-8')
 
         # Convert to HTML
         html_content = self.converter.convert(llms_content)
@@ -753,8 +920,8 @@ li {
 '''
 
         full_content = html_content + '\n' + '\n'.join(cards_html) + footer_html
-        page = self._page_template("Documentation", full_content, "index")
-        (self.output_dir / "index.html").write_text(page, encoding='utf-8')
+        page = self._page_template("Documentation", full_content, depth=0)
+        (self.output_dir / "home.html").write_text(page, encoding='utf-8')
 
     def _generate_llms_txt_from_curated(self) -> str:
         """Generate a master llms.txt from curated docs."""
@@ -771,11 +938,6 @@ li {
         lines.append('xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"')
         lines.append("```")
         lines.append("")
-        lines.append("## Controls")
-        lines.append("")
-        for ctrl in self.controls:
-            display_name = ctrl['name'].replace('Daisy', '')
-            lines.append(f"- **{ctrl['name']}** - {display_name} control")
         lines.append("")
         lines.append("## Common Patterns")
         lines.append("")
@@ -804,15 +966,99 @@ li {
 
     def _generate_control_pages(self):
         """Generate HTML pages for each control."""
+        # 1. Build map of control -> category
+        control_category_map = {}
+        category_controls_map = {} # cat_name -> list of controls
+        
+        # Parse categories to find which controls belong where
+        for cat in self.categories:
+            cat_content = cat['file'].read_text(encoding='utf-8')
+            # Extract control names from list items
+            # - **[DaisyButton](../controls/DaisyButton.html)**
+            found_controls = re.findall(r'\*\*\[?(Daisy\w+)', cat_content)
+            category_controls_map[cat['name']] = found_controls
+            for ctrl_name in found_controls:
+                control_category_map[ctrl_name] = cat
+
         for ctrl in self.controls:
             md_content = ctrl['file'].read_text(encoding='utf-8')
             # Strip HTML comments from curated docs
             md_content = re.sub(r'<!--.*?-->', '', md_content, flags=re.DOTALL)
-            # Add title header if not present (curated docs don't have titles)
-            if not md_content.strip().startswith('# '):
+            
+            # Fix Headings: If it starts with "# Overview", demote it and add proper title
+            stripped_content = md_content.strip()
+            if stripped_content.startswith('# Overview'):
+                # Replace the first occurrence
+                md_content = md_content.replace('# Overview', f'# {ctrl["name"]}\n\n## Overview', 1)
+            elif not stripped_content.startswith('# '):
+                # If no H1 at all, add one
                 md_content = f"# {ctrl['name']}\n\n{md_content}"
+
             html_content = self.converter.convert(md_content)
-            page = self._page_template(ctrl['name'], html_content, f"controls/{ctrl['html_name']}")
+
+            # --- Navigation & Breadcrumbs ---
+            nav_html = ""
+            category = control_category_map.get(ctrl['name'])
+            
+            if category:
+                # Breadcrumbs
+                nav_html += f'''<div class="breadcrumbs">
+    <a href="../home.html">Home</a> &gt; 
+    <a href="../categories/{category["html_name"]}">{category["name"]}</a>
+</div>'''
+                
+                # Prev/Next
+                siblings = category_controls_map.get(category['name'], [])
+                try:
+                    idx = siblings.index(ctrl['name'])
+                    links = []
+                    
+                    if idx > 0:
+                        prev_name = siblings[idx-1]
+                        links.append(f'<a href="{prev_name}.html" class="nav-prev">← {prev_name.replace("Daisy", "")}</a>')
+                    else:
+                         links.append('<span></span>') # Spacer
+
+                    if idx < len(siblings) - 1:
+                        next_name = siblings[idx+1]
+                        links.append(f'<a href="{next_name}.html" class="nav-next">{next_name.replace("Daisy", "")} →</a>')
+                    else:
+                        links.append('<span></span>') # Spacer
+
+                    if any(l != '<span></span>' for l in links):
+                        nav_html += f'<div class="doc-nav">{"".join(links)}</div>'
+                except ValueError:
+                    pass # Control not found in its category list (shouldn't happen if map is built correct)
+
+            # Inject nav at top (breadcrumbs) and bottom (prev/next)
+            # Find the end of content to append bottom nav
+            full_page_content = nav_html.split('<div class="doc-nav">')[0] + html_content # Breadcrumbs + Content
+            if '<div class="doc-nav">' in nav_html:
+                 full_page_content += nav_html.split('</div>')[-2] + '</div>' # Append doc-nav
+
+            # Actually, let's keep it simple: Breadcrumbs top, Nav bottom
+            breadcrumbs = f'''<div class="breadcrumbs">
+    <a href="../home.html">Home</a> &gt; 
+    <a href="../categories/{category["html_name"]}">{category["name"]}</a>
+</div>''' if category else f'<div class="breadcrumbs"><a href="../home.html">Home</a></div>'
+
+            prev_next = ""
+            if category:
+                 siblings = category_controls_map.get(category['name'], [])
+                 if ctrl['name'] in siblings:
+                    idx = siblings.index(ctrl['name'])
+                    prev_link = f'<a href="{siblings[idx-1]}.html">← {siblings[idx-1].replace("Daisy", "")}</a>' if idx > 0 else ""
+                    next_link = f'<a href="{siblings[idx+1]}.html">{siblings[idx+1].replace("Daisy", "")} →</a>' if idx < len(siblings) - 1 else ""
+                    
+                    if prev_link or next_link:
+                        prev_next = f'''<div class="doc-nav">
+    <div class="nav-left">{prev_link}</div>
+    <div class="nav-right">{next_link}</div>
+</div>'''
+
+            final_content = breadcrumbs + html_content + prev_next
+            
+            page = self._page_template(ctrl['name'], final_content, depth=1)
             (self.output_dir / "controls" / ctrl['html_name']).write_text(page, encoding='utf-8')
 
     def _generate_category_pages(self):
@@ -820,7 +1066,7 @@ li {
         for cat in self.categories:
             md_content = cat['file'].read_text(encoding='utf-8')
             html_content = self.converter.convert(md_content)
-            page = self._page_template(cat['name'], html_content, f"categories/{cat['html_name']}")
+            page = self._page_template(cat['name'], html_content, depth=1)
             (self.output_dir / "categories" / cat['html_name']).write_text(page, encoding='utf-8')
 
 

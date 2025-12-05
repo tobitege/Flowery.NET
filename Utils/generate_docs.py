@@ -714,7 +714,7 @@ class MarkdownGenerator:
             desc = control.description if control.description else f"A {control.name.replace('Daisy', '')} control."
             if len(desc) > 100:
                 desc = desc[:97] + "..."
-            lines.append(f"- **{control.name}**: {desc}")
+            lines.append(f"- **[{control.name}](../controls/{control.name}.html)**: {desc}")
 
         lines.append("")
         lines.append("See individual control documentation for detailed usage.")
@@ -761,7 +761,7 @@ class MarkdownGenerator:
             props = ", ".join(p.name for p in control.properties[:3])
             if len(control.properties) > 3:
                 props += ", ..."
-            lines.append(f"| {control.name} | {desc} | {props} |")
+            lines.append(f"| [{control.name}](controls/{control.name}.html) | {desc} | {props} |")
 
         lines.append("")
 
