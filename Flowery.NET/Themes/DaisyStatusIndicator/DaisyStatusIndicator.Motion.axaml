@@ -1,0 +1,275 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <!-- ===================== SPIN VARIANT ===================== -->
+    <!-- Rotating dot indicator -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Spin] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:1" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:1">
+                    <Setter Property="RotateTransform.Angle" Value="360" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Spin] /template/ Ellipse#PART_AnimationEllipse">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Opacity" Value="0.3" />
+        <Setter Property="ScaleTransform.ScaleX" Value="0.5" />
+        <Setter Property="ScaleTransform.ScaleY" Value="0.5" />
+        <Setter Property="TranslateTransform.X" Value="-6" />
+        <Style.Animations>
+            <Animation Duration="0:0:1" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:1">
+                    <Setter Property="RotateTransform.Angle" Value="360" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== WAVE VARIANT ===================== -->
+    <!-- Wave-like scale effect -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Wave] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.375">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.4" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.6" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.75">
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.6" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.4" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.125">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.2" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.8" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== GLOW VARIANT ===================== -->
+    <!-- Glowing halo effect -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Glow] /template/ Ellipse#PART_AnimationEllipse">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Opacity" Value="0.4" />
+        <Setter Property="ScaleTransform.ScaleX" Value="1.5" />
+        <Setter Property="ScaleTransform.ScaleY" Value="1.5" />
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0.4" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.5" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1">
+                    <Setter Property="Opacity" Value="0.15" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="2" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="2" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="Opacity" Value="0.4" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.5" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== MORPH VARIANT ===================== -->
+    <!-- Shape morphing effect (circle to squished) -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Morph] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.5" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.5" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== ORBIT VARIANT ===================== -->
+    <!-- Small dot orbiting around -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Orbit] /template/ Ellipse#PART_MainEllipse">
+        <Setter Property="Opacity" Value="0.4" />
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Orbit] /template/ Ellipse#PART_AnimationEllipse">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="ScaleTransform.ScaleX" Value="0.4" />
+        <Setter Property="ScaleTransform.ScaleY" Value="0.4" />
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="8" />
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.375">
+                    <Setter Property="TranslateTransform.X" Value="0" />
+                    <Setter Property="TranslateTransform.Y" Value="8" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.75">
+                    <Setter Property="TranslateTransform.X" Value="-8" />
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.125">
+                    <Setter Property="TranslateTransform.X" Value="0" />
+                    <Setter Property="TranslateTransform.Y" Value="-8" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="TranslateTransform.X" Value="8" />
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== SHAKE VARIANT ===================== -->
+    <!-- Horizontal shake effect -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Shake] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:0.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="0" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.1">
+                    <Setter Property="TranslateTransform.X" Value="-3" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2">
+                    <Setter Property="TranslateTransform.X" Value="3" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3">
+                    <Setter Property="TranslateTransform.X" Value="-2" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4">
+                    <Setter Property="TranslateTransform.X" Value="2" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="TranslateTransform.X" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== WOBBLE VARIANT ===================== -->
+    <!-- Wobbling rotation effect -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Wobble] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:1" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="RotateTransform.Angle" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.25">
+                    <Setter Property="RotateTransform.Angle" Value="15" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.9" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="RotateTransform.Angle" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.75">
+                    <Setter Property="RotateTransform.Angle" Value="-15" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.9" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1">
+                    <Setter Property="RotateTransform.Angle" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== SWING VARIANT ===================== -->
+    <!-- Pendulum swing effect -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Swing] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="RotateTransform.Angle" Value="0" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.375">
+                    <Setter Property="RotateTransform.Angle" Value="30" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.75">
+                    <Setter Property="RotateTransform.Angle" Value="0" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.125">
+                    <Setter Property="RotateTransform.Angle" Value="-30" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="RotateTransform.Angle" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== JIGGLE VARIANT ===================== -->
+    <!-- Jiggling effect -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Jiggle] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:0.3" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="0" />
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.075">
+                    <Setter Property="TranslateTransform.X" Value="1" />
+                    <Setter Property="TranslateTransform.Y" Value="-1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.15">
+                    <Setter Property="TranslateTransform.X" Value="-1" />
+                    <Setter Property="TranslateTransform.Y" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.225">
+                    <Setter Property="TranslateTransform.X" Value="1" />
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3">
+                    <Setter Property="TranslateTransform.X" Value="0" />
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+</Styles>

@@ -3,7 +3,8 @@
 
 # Overview
 
-DaisyRating is a star rating control built on `RangeBase`. It supports **precision modes** (full/half/0.1), **3 size presets**, and respects `Minimum/Maximum/Value` (default 0–5). Filled stars are clipped based on `Value` to show partial ratings; clicking updates the value unless `IsReadOnly` is set.
+DaisyRating is a star rating control built on `RangeBase`. It supports **precision modes** (full/half/0.1), **3 size presets**, and respects `Minimum/Maximum/Value` (default 0–5).
+Filled stars are clipped based on `Value` to show partial ratings; clicking updates the value unless `IsReadOnly` is set.
 
 ## Precision Modes
 
@@ -47,6 +48,7 @@ DaisyRating includes built-in accessibility for screen readers via the `Accessib
 ### How It Works
 
 The automation peer formats the announcement based on the current value and precision:
+
 - **Full precision**: "Rating: 3 of 5 stars"
 - **Half precision**: "Rating: 3.5 of 5 stars"
 - **Precise mode**: "Rating: 3.7 of 5 stars"

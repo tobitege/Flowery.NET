@@ -37,7 +37,6 @@
                 <ResourceInclude Source="/Themes/DaisyAvatarGroup.axaml" />
                 <ResourceInclude Source="/Themes/DaisyKbd.axaml" />
                 <ResourceInclude Source="/Themes/DaisyStat.axaml" />
-                <ResourceInclude Source="/Themes/DaisyStatusIndicator.axaml" />
                 <ResourceInclude Source="/Themes/DaisyCountdown.axaml" />
                 <ResourceInclude Source="/Themes/DaisyChatBubble.axaml" />
                 <ResourceInclude Source="/Themes/DaisyCollapse.axaml" />
@@ -67,6 +66,7 @@
 
     <!-- Styles (Not ResourceDictionaries) -->
     <StyleInclude Source="/Themes/DaisyLoading.axaml" />
+    <StyleInclude Source="/Themes/DaisyStatusIndicator.axaml" />
     <StyleInclude Source="/Themes/DaisySteps.axaml" />
     <StyleInclude Source="/Themes/DaisyPagination.axaml" />
     <StyleInclude Source="/Themes/DaisyMenu.axaml" />

@@ -5,16 +5,65 @@ using Avalonia.Controls.Primitives;
 
 namespace Flowery.Controls
 {
-    public enum DaisyStatusIndicatorColor
+    /// <summary>
+    /// Animation variant styles for the status indicator.
+    /// </summary>
+    public enum DaisyStatusIndicatorVariant
     {
-        Neutral,
-        Primary,
-        Secondary,
-        Accent,
-        Info,
-        Success,
-        Warning,
-        Error
+        /// <summary>Static dot with no animation (default)</summary>
+        Default,
+        /// <summary>Ping animation - expanding ring that fades out</summary>
+        Ping,
+        /// <summary>Bounce animation - dot bounces up and down</summary>
+        Bounce,
+        /// <summary>Pulse animation - breathing/pulsing opacity effect</summary>
+        Pulse,
+        /// <summary>Blink animation - simple on/off blinking</summary>
+        Blink,
+        /// <summary>Ripple animation - multiple expanding rings</summary>
+        Ripple,
+        /// <summary>Heartbeat animation - double-pulse like a heartbeat</summary>
+        Heartbeat,
+        /// <summary>Spin animation - rotating dot indicator</summary>
+        Spin,
+        /// <summary>Wave animation - wave-like scale effect</summary>
+        Wave,
+        /// <summary>Glow animation - glowing halo effect</summary>
+        Glow,
+        /// <summary>Morph animation - shape morphing effect</summary>
+        Morph,
+        /// <summary>Orbit animation - small dot orbiting around</summary>
+        Orbit,
+        /// <summary>Radar animation - radar sweep effect</summary>
+        Radar,
+        /// <summary>Sonar animation - sonar ping effect</summary>
+        Sonar,
+        /// <summary>Beacon animation - lighthouse beacon sweep</summary>
+        Beacon,
+        /// <summary>Shake animation - horizontal shake effect</summary>
+        Shake,
+        /// <summary>Wobble animation - wobbling rotation effect</summary>
+        Wobble,
+        /// <summary>Pop animation - pop in/out scale effect</summary>
+        Pop,
+        /// <summary>Flicker animation - random flickering effect</summary>
+        Flicker,
+        /// <summary>Breathe animation - slow breathing scale</summary>
+        Breathe,
+        /// <summary>Ring animation - expanding ring outline</summary>
+        Ring,
+        /// <summary>Flash animation - quick flash effect</summary>
+        Flash,
+        /// <summary>Swing animation - pendulum swing effect</summary>
+        Swing,
+        /// <summary>Jiggle animation - jiggling effect</summary>
+        Jiggle,
+        /// <summary>Throb animation - throbbing intensity effect</summary>
+        Throb,
+        /// <summary>Twinkle animation - star-like twinkling</summary>
+        Twinkle,
+        /// <summary>Splash animation - splash ripple effect</summary>
+        Splash
     }
 
     /// <summary>
@@ -37,40 +86,49 @@ namespace Flowery.Controls
             });
         }
 
-        public static readonly StyledProperty<DaisyStatusIndicatorColor> ColorProperty =
-            AvaloniaProperty.Register<DaisyStatusIndicator, DaisyStatusIndicatorColor>(nameof(Color), DaisyStatusIndicatorColor.Neutral);
+        /// <summary>
+        /// Defines the <see cref="Variant"/> property.
+        /// </summary>
+        public static readonly StyledProperty<DaisyStatusIndicatorVariant> VariantProperty =
+            AvaloniaProperty.Register<DaisyStatusIndicator, DaisyStatusIndicatorVariant>(nameof(Variant), DaisyStatusIndicatorVariant.Default);
 
-        public DaisyStatusIndicatorColor Color
+        /// <summary>
+        /// Gets or sets the animation variant (Default, Ping, Bounce, Pulse, Blink, etc.).
+        /// </summary>
+        public DaisyStatusIndicatorVariant Variant
+        {
+            get => GetValue(VariantProperty);
+            set => SetValue(VariantProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="Color"/> property.
+        /// </summary>
+        public static readonly StyledProperty<DaisyColor> ColorProperty =
+            AvaloniaProperty.Register<DaisyStatusIndicator, DaisyColor>(nameof(Color), DaisyColor.Neutral);
+
+        /// <summary>
+        /// Gets or sets the color variant (Default, Primary, Secondary, Accent, etc.).
+        /// </summary>
+        public DaisyColor Color
         {
             get => GetValue(ColorProperty);
             set => SetValue(ColorProperty, value);
         }
 
+        /// <summary>
+        /// Defines the <see cref="Size"/> property.
+        /// </summary>
         public static readonly StyledProperty<DaisySize> SizeProperty =
             AvaloniaProperty.Register<DaisyStatusIndicator, DaisySize>(nameof(Size), DaisySize.Medium);
 
+        /// <summary>
+        /// Gets or sets the size of the status indicator (ExtraSmall, Small, Medium, Large, ExtraLarge).
+        /// </summary>
         public DaisySize Size
         {
             get => GetValue(SizeProperty);
             set => SetValue(SizeProperty, value);
-        }
-
-        public static readonly StyledProperty<bool> IsPingProperty =
-            AvaloniaProperty.Register<DaisyStatusIndicator, bool>(nameof(IsPing), false);
-
-        public bool IsPing
-        {
-            get => GetValue(IsPingProperty);
-            set => SetValue(IsPingProperty, value);
-        }
-
-        public static readonly StyledProperty<bool> IsBounceProperty =
-            AvaloniaProperty.Register<DaisyStatusIndicator, bool>(nameof(IsBounce), false);
-
-        public bool IsBounce
-        {
-            get => GetValue(IsBounceProperty);
-            set => SetValue(IsBounceProperty, value);
         }
 
         /// <summary>
@@ -95,14 +153,15 @@ namespace Flowery.Controls
         {
             return Color switch
             {
-                DaisyStatusIndicatorColor.Success => "Online",
-                DaisyStatusIndicatorColor.Error => "Error",
-                DaisyStatusIndicatorColor.Warning => "Warning",
-                DaisyStatusIndicatorColor.Info => "Information",
-                DaisyStatusIndicatorColor.Primary => "Active",
-                DaisyStatusIndicatorColor.Secondary => "Secondary",
-                DaisyStatusIndicatorColor.Accent => "Highlighted",
-                DaisyStatusIndicatorColor.Neutral => DefaultAccessibleText,
+                DaisyColor.Success => "Online",
+                DaisyColor.Error => "Error",
+                DaisyColor.Warning => "Warning",
+                DaisyColor.Info => "Information",
+                DaisyColor.Primary => "Active",
+                DaisyColor.Secondary => "Secondary",
+                DaisyColor.Accent => "Highlighted",
+                DaisyColor.Neutral => DefaultAccessibleText,
+                DaisyColor.Default => DefaultAccessibleText,
                 _ => DefaultAccessibleText
             };
         }

@@ -1,147 +1,86 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
     <Design.PreviewWith>
-        <Border Padding="20" Background="#333">
-            <StackPanel Spacing="20">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <controls:DaisyStatusIndicator Size="ExtraSmall" />
-                    <controls:DaisyStatusIndicator Size="Small" />
-                    <controls:DaisyStatusIndicator Size="Medium" />
-                    <controls:DaisyStatusIndicator Size="Large" />
-                    <controls:DaisyStatusIndicator Size="ExtraLarge" />
+        <Border Padding="20" Background="#1e1e2e">
+            <StackPanel Spacing="16">
+                <TextBlock Text="Classic Variants" FontWeight="SemiBold" Foreground="White"/>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyStatusIndicator Variant="Default" Color="Success" />
+                    <controls:DaisyStatusIndicator Variant="Ping" Color="Success" />
+                    <controls:DaisyStatusIndicator Variant="Bounce" Color="Info" />
+                    <controls:DaisyStatusIndicator Variant="Pulse" Color="Warning" />
+                    <controls:DaisyStatusIndicator Variant="Blink" Color="Error" />
+                    <controls:DaisyStatusIndicator Variant="Ripple" Color="Primary" />
+                    <controls:DaisyStatusIndicator Variant="Heartbeat" Color="Error" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <controls:DaisyStatusIndicator Color="Primary" />
-                    <controls:DaisyStatusIndicator Color="Secondary" />
-                    <controls:DaisyStatusIndicator Color="Accent" />
-                    <controls:DaisyStatusIndicator Color="Neutral" />
+                <TextBlock Text="Motion Variants" FontWeight="SemiBold" Foreground="White"/>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyStatusIndicator Variant="Spin" Color="Primary" />
+                    <controls:DaisyStatusIndicator Variant="Wave" Color="Secondary" />
+                    <controls:DaisyStatusIndicator Variant="Glow" Color="Accent" />
+                    <controls:DaisyStatusIndicator Variant="Morph" Color="Info" />
+                    <controls:DaisyStatusIndicator Variant="Orbit" Color="Success" />
+                    <controls:DaisyStatusIndicator Variant="Shake" Color="Error" />
+                    <controls:DaisyStatusIndicator Variant="Wobble" Color="Warning" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <controls:DaisyStatusIndicator Color="Info" />
-                    <controls:DaisyStatusIndicator Color="Success" />
-                    <controls:DaisyStatusIndicator Color="Warning" />
-                    <controls:DaisyStatusIndicator Color="Error" />
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyStatusIndicator Variant="Swing" Color="Primary" />
+                    <controls:DaisyStatusIndicator Variant="Jiggle" Color="Secondary" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <controls:DaisyStatusIndicator Color="Error" IsPing="True" />
-                    <controls:DaisyStatusIndicator Color="Info" IsBounce="True" />
+                <TextBlock Text="Effect Variants" FontWeight="SemiBold" Foreground="White"/>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyStatusIndicator Variant="Radar" Color="Info" />
+                    <controls:DaisyStatusIndicator Variant="Sonar" Color="Success" />
+                    <controls:DaisyStatusIndicator Variant="Beacon" Color="Warning" />
+                    <controls:DaisyStatusIndicator Variant="Pop" Color="Accent" />
+                    <controls:DaisyStatusIndicator Variant="Flicker" Color="Error" />
+                    <controls:DaisyStatusIndicator Variant="Breathe" Color="Primary" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyStatusIndicator Variant="Ring" Color="Secondary" />
+                    <controls:DaisyStatusIndicator Variant="Flash" Color="Warning" />
+                    <controls:DaisyStatusIndicator Variant="Throb" Color="Error" />
+                    <controls:DaisyStatusIndicator Variant="Twinkle" Color="Accent" />
+                    <controls:DaisyStatusIndicator Variant="Splash" Color="Info" />
+                </StackPanel>
+                <TextBlock Text="Sizes" FontWeight="SemiBold" Foreground="White"/>
+                <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
+                    <controls:DaisyStatusIndicator Variant="Ping" Size="ExtraSmall" Color="Success" />
+                    <controls:DaisyStatusIndicator Variant="Ping" Size="Small" Color="Success" />
+                    <controls:DaisyStatusIndicator Variant="Ping" Size="Medium" Color="Success" />
+                    <controls:DaisyStatusIndicator Variant="Ping" Size="Large" Color="Success" />
+                    <controls:DaisyStatusIndicator Variant="Ping" Size="ExtraLarge" Color="Success" />
+                </StackPanel>
+                <TextBlock Text="Colors" FontWeight="SemiBold" Foreground="White"/>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyStatusIndicator Variant="Pulse" Color="Default" />
+                    <controls:DaisyStatusIndicator Variant="Pulse" Color="Primary" />
+                    <controls:DaisyStatusIndicator Variant="Pulse" Color="Secondary" />
+                    <controls:DaisyStatusIndicator Variant="Pulse" Color="Accent" />
+                    <controls:DaisyStatusIndicator Variant="Pulse" Color="Neutral" />
+                    <controls:DaisyStatusIndicator Variant="Pulse" Color="Info" />
+                    <controls:DaisyStatusIndicator Variant="Pulse" Color="Success" />
+                    <controls:DaisyStatusIndicator Variant="Pulse" Color="Warning" />
+                    <controls:DaisyStatusIndicator Variant="Pulse" Color="Error" />
                 </StackPanel>
             </StackPanel>
         </Border>
     </Design.PreviewWith>
 
-    <ControlTheme x:Key="{x:Type controls:DaisyStatusIndicator}" TargetType="controls:DaisyStatusIndicator">
-        <!-- Default size: Medium (12px) -->
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Height" Value="12" />
-        <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
+    <!-- Base ControlTheme with default template, sizes, and colors -->
+    <Styles.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Themes/DaisyStatusIndicator/DaisyStatusIndicator.Base.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Styles.Resources>
 
-        <Setter Property="Template">
-            <ControlTemplate>
-                <Grid>
-                    <!-- Ping animation ellipse (behind main dot) -->
-                    <Ellipse Name="PART_PingEllipse"
-                             Width="{TemplateBinding Width}"
-                             Height="{TemplateBinding Height}"
-                             Fill="{TemplateBinding Background}"
-                             IsVisible="False" />
-                    <!-- Main status dot -->
-                    <Ellipse Name="PART_MainEllipse"
-                             Width="{TemplateBinding Width}"
-                             Height="{TemplateBinding Height}"
-                             Fill="{TemplateBinding Background}" />
-                </Grid>
-            </ControlTemplate>
-        </Setter>
+    <!-- Variant styles (split into separate files for maintainability) -->
+    <StyleInclude Source="/Themes/DaisyStatusIndicator/DaisyStatusIndicator.Classic.axaml" />
+    <StyleInclude Source="/Themes/DaisyStatusIndicator/DaisyStatusIndicator.Motion.axaml" />
+    <StyleInclude Source="/Themes/DaisyStatusIndicator/DaisyStatusIndicator.Effects.axaml" />
 
-        <!-- Sizes -->
-        <Style Selector="^[Size=ExtraSmall]">
-            <Setter Property="Width" Value="6" />
-            <Setter Property="Height" Value="6" />
-        </Style>
-        <Style Selector="^[Size=Small]">
-            <Setter Property="Width" Value="8" />
-            <Setter Property="Height" Value="8" />
-        </Style>
-        <Style Selector="^[Size=Medium]">
-            <Setter Property="Width" Value="12" />
-            <Setter Property="Height" Value="12" />
-        </Style>
-        <Style Selector="^[Size=Large]">
-            <Setter Property="Width" Value="16" />
-            <Setter Property="Height" Value="16" />
-        </Style>
-        <Style Selector="^[Size=ExtraLarge]">
-            <Setter Property="Width" Value="20" />
-            <Setter Property="Height" Value="20" />
-        </Style>
-
-        <!-- Colors -->
-        <Style Selector="^[Color=Neutral]">
-            <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
-        </Style>
-        <Style Selector="^[Color=Primary]">
-            <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
-        </Style>
-        <Style Selector="^[Color=Secondary]">
-            <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}" />
-        </Style>
-        <Style Selector="^[Color=Accent]">
-            <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}" />
-        </Style>
-        <Style Selector="^[Color=Info]">
-            <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}" />
-        </Style>
-        <Style Selector="^[Color=Success]">
-            <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}" />
-        </Style>
-        <Style Selector="^[Color=Warning]">
-            <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}" />
-        </Style>
-        <Style Selector="^[Color=Error]">
-            <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}" />
-        </Style>
-
-        <!-- Ping Animation -->
-        <Style Selector="^[IsPing=True] /template/ Ellipse#PART_PingEllipse">
-            <Setter Property="IsVisible" Value="True" />
-            <Style.Animations>
-                <Animation Duration="0:0:1" IterationCount="Infinite">
-                    <KeyFrame KeyTime="0:0:0">
-                        <Setter Property="Opacity" Value="0.75" />
-                        <Setter Property="ScaleTransform.ScaleX" Value="1" />
-                        <Setter Property="ScaleTransform.ScaleY" Value="1" />
-                    </KeyFrame>
-                    <KeyFrame KeyTime="0:0:1">
-                        <Setter Property="Opacity" Value="0" />
-                        <Setter Property="ScaleTransform.ScaleX" Value="2" />
-                        <Setter Property="ScaleTransform.ScaleY" Value="2" />
-                    </KeyFrame>
-                </Animation>
-            </Style.Animations>
-        </Style>
-
-        <!-- Bounce Animation -->
-        <Style Selector="^[IsBounce=True]">
-            <Setter Property="ClipToBounds" Value="False" />
-            <Setter Property="Margin" Value="0,6,0,0" />
-        </Style>
-        <Style Selector="^[IsBounce=True] /template/ Ellipse#PART_MainEllipse">
-            <Style.Animations>
-                <Animation Duration="0:0:0.5" IterationCount="Infinite">
-                    <KeyFrame KeyTime="0:0:0">
-                        <Setter Property="TranslateTransform.Y" Value="0" />
-                    </KeyFrame>
-                    <KeyFrame KeyTime="0:0:0.25">
-                        <Setter Property="TranslateTransform.Y" Value="-6" />
-                    </KeyFrame>
-                    <KeyFrame KeyTime="0:0:0.5">
-                        <Setter Property="TranslateTransform.Y" Value="0" />
-                    </KeyFrame>
-                </Animation>
-            </Style.Animations>
-        </Style>
-    </ControlTheme>
-</ResourceDictionary>
+</Styles>

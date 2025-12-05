@@ -125,6 +125,10 @@ The best way to explore the controls is to run the included **Gallery App**. It 
 ### Feedback & Utils
 
 - **Indicator** (`DaisyIndicator`): Utility to place a badge on the corner of another element.
+- **Status Indicator** (`DaisyStatusIndicator`): Status dot with **27 animation variants** (Ping, Pulse, Ripple, Heartbeat, Orbit, Sonar, and more). Supports all theme colors and 5 sizes.
+
+  ![Status Indicator Animations](llms-static/status_animations.gif)
+
 - **Loading** (`DaisyLoading`): Animated loading indicators with **27 variants** across 4 categories:
   - *Classic*: Spinner, Dots, Ring, Ball, Bars, Infinity
   - *Terminal-inspired*: Orbit, Snake, Pulse, Wave, Bounce

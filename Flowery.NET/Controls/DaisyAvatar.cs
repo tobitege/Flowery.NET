@@ -88,16 +88,4 @@ namespace Flowery.Controls
         Rounded,
         Circle
     }
-
-    public enum DaisyColor
-    {
-        Primary,
-        Secondary,
-        Accent,
-        Neutral,
-        Info,
-        Success,
-        Warning,
-        Error
-    }
 }

@@ -1,0 +1,455 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <!-- ===================== RADAR VARIANT ===================== -->
+    <!-- Radar sweep effect -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar] /template/ Ellipse#PART_MainEllipse">
+        <Setter Property="Opacity" Value="0.3" />
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar] /template/ Ellipse#PART_AnimationEllipse">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Opacity" Value="0.8" />
+        <Setter Property="ScaleTransform.ScaleX" Value="0.3" />
+        <Setter Property="ScaleTransform.ScaleY" Value="1" />
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="RotateTransform.Angle" Value="0" />
+                    <Setter Property="Opacity" Value="0.8" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="RotateTransform.Angle" Value="360" />
+                    <Setter Property="Opacity" Value="0.8" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== SONAR VARIANT ===================== -->
+    <!-- Sonar ping effect (expanding rings with fade) -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar] /template/ Ellipse#PART_MainEllipse">
+        <Setter Property="Opacity" Value="0.6" />
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar] /template/ Ellipse#PART_AnimationEllipse">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Fill" Value="Transparent" />
+        <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0.8" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="3" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="3" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar] /template/ Ellipse#PART_AnimationEllipse2">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Fill" Value="Transparent" />
+        <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite" Delay="0:0:0.66">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0.8" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="3" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="3" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar] /template/ Ellipse#PART_AnimationEllipse3">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Fill" Value="Transparent" />
+        <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite" Delay="0:0:1.33">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0.8" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="3" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="3" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== BEACON VARIANT ===================== -->
+    <!-- Lighthouse beacon sweep -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Beacon] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0.3" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.1">
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3">
+                    <Setter Property="Opacity" Value="0.3" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="Opacity" Value="0.3" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Beacon] /template/ Ellipse#PART_AnimationEllipse">
+        <Setter Property="IsVisible" Value="True" />
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.1">
+                    <Setter Property="Opacity" Value="0.6" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.2" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.2" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="2" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="2" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="2" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="2" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== POP VARIANT ===================== -->
+    <!-- Pop in/out scale effect -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Pop] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:0.8" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.1">
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.5" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.3" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.3" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== FLICKER VARIANT ===================== -->
+    <!-- Random flickering effect -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Flicker] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:0.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.05">
+                    <Setter Property="Opacity" Value="0.4" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.1">
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.15">
+                    <Setter Property="Opacity" Value="0.7" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2">
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3">
+                    <Setter Property="Opacity" Value="0.5" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.35">
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== BREATHE VARIANT ===================== -->
+    <!-- Slow breathing scale -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Breathe] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:3" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.15" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.15" />
+                    <Setter Property="Opacity" Value="0.7" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:3">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== RING VARIANT ===================== -->
+    <!-- Expanding ring outline -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Ring] /template/ Ellipse#PART_MainEllipse">
+        <Setter Property="Fill" Value="Transparent" />
+        <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+        <Setter Property="StrokeThickness" Value="2" />
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.5" />
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.5" />
+                    <Setter Property="Opacity" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Ring] /template/ Ellipse#PART_AnimationEllipse">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Fill" Value="Transparent" />
+        <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+        <Setter Property="StrokeThickness" Value="2" />
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:0.5">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.5" />
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.5" />
+                    <Setter Property="Opacity" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Ring] /template/ Ellipse#PART_AnimationEllipse2">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Fill" Value="Transparent" />
+        <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+        <Setter Property="StrokeThickness" Value="2" />
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:1">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.5" />
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.5" />
+                    <Setter Property="Opacity" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== FLASH VARIANT ===================== -->
+    <!-- Quick flash effect -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Flash] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0.3" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.05">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.2" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.2" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.15">
+                    <Setter Property="Opacity" Value="0.3" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="Opacity" Value="0.3" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== THROB VARIANT ===================== -->
+    <!-- Throbbing intensity effect -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Throb] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:0.6" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.15">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.25" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.25" />
+                    <Setter Property="Opacity" Value="0.8" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== TWINKLE VARIANT ===================== -->
+    <!-- Star-like twinkling -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Twinkle] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3">
+                    <Setter Property="Opacity" Value="0.4" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.8" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.8" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2">
+                    <Setter Property="Opacity" Value="0.6" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.9" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.9" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ===================== SPLASH VARIANT ===================== -->
+    <!-- Splash ripple effect -->
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Splash] /template/ Ellipse#PART_MainEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0" />
+                    <Setter Property="Opacity" Value="0" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.1">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Splash] /template/ Ellipse#PART_AnimationEllipse">
+        <Setter Property="IsVisible" Value="True" />
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    <Setter Property="Opacity" Value="0" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.1">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    <Setter Property="Opacity" Value="0.5" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8">
+                    <Setter Property="ScaleTransform.ScaleX" Value="2.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="2.5" />
+                    <Setter Property="Opacity" Value="0" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="ScaleTransform.ScaleX" Value="2.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="2.5" />
+                    <Setter Property="Opacity" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+</Styles>

@@ -3,17 +3,90 @@
 
 # Overview
 
-DaisyStatusIndicator shows a status dot with optional animations: ping (expanding ripple) or bounce. It supports **8 colors** and **5 sizes**, making it suitable for online/offline markers, alerts, or activity indicators.
+DaisyStatusIndicator shows a status dot with **27 animation variants**. It supports **9 colors** and **5 sizes**, making it suitable for online/offline markers, alerts, or activity indicators.
+
+![Status Indicator Animations](status_animations.gif)
 
 ## Options
 
 | Property | Description |
 |----------|-------------|
-| `Color` | Neutral, Primary, Secondary, Accent, Info, Success, Warning, Error (sets dot fill). |
-| `Size` | ExtraSmall, Small, Medium (default), Large, ExtraLarge (adjusts diameter). |
-| `IsPing` | Shows an expanding fade-out ripple behind the dot. |
-| `IsBounce` | Bounces the main dot vertically. |
+| `Variant` | Animation style: Default (static), Ping, Bounce, Pulse, Blink, Ripple, Heartbeat, Spin, Wave, Glow, Morph, Orbit, Radar, Sonar, Beacon, Shake, Wobble, Pop, Flicker, Breathe, Ring, Flash, Swing, Jiggle, Throb, Twinkle, Splash. |
+| `Color` | Default, Neutral, Primary, Secondary, Accent, Info, Success, Warning, Error (sets dot fill). Uses shared `DaisyColor` enum. |
+| `Size` | ExtraSmall, Small, Medium (default), Large, ExtraLarge (adjusts diameter). Uses shared `DaisySize` enum. |
 | `AccessibleText` | Custom text for screen readers. When null, auto-derived from Color (see below). |
+
+## Color Selection Guide
+
+### Brand Colors vs State Colors
+
+| Category | Colors | Purpose |
+|----------|--------|---------|
+| **Brand Colors** | Primary, Secondary, Accent, Neutral | Your app's identity/branding. Customizable per theme. |
+| **State Colors** | Info, Success, Warning, Error | Universal semantic meanings for user feedback. |
+
+### Brand Colors
+
+- **Primary** - Main brand color, used for primary actions or active states
+- **Secondary** - Supporting brand color for secondary elements
+- **Accent** - Highlight color for drawing attention
+- **Neutral** - Muted color for less prominent indicators
+
+### State Colors
+
+- **Info** - Informational messages (typically blue)
+- **Success** - Positive feedback, online status (typically green)
+- **Warning** - Caution/attention needed (typically yellow/orange)
+- **Error** - Problems/failures, offline status (typically red)
+
+### Recommendation
+
+- Use **State Colors** (Success, Error, Warning, Info) for actual status meanings (online/offline, errors, alerts)
+- Use **Brand Colors** (Primary, Secondary, Accent) for decorative purposes or to indicate selection/activity without semantic meaning
+
+## Animation Variants
+
+### Classic Variants
+
+| Variant | Description |
+|---------|-------------|
+| `Default` | Static dot with no animation |
+| `Ping` | Expanding ring that fades out (classic online indicator) |
+| `Bounce` | Dot bounces up and down |
+| `Pulse` | Breathing/pulsing opacity effect |
+| `Blink` | Simple on/off blinking |
+| `Ripple` | Multiple expanding rings |
+| `Heartbeat` | Double-pulse like a heartbeat |
+
+### Motion Variants
+
+| Variant | Description |
+|---------|-------------|
+| `Spin` | Rotating dot indicator |
+| `Wave` | Wave-like scale effect |
+| `Glow` | Glowing halo effect |
+| `Morph` | Shape morphing effect |
+| `Orbit` | Small dot orbiting around |
+| `Shake` | Horizontal shake effect |
+| `Wobble` | Wobbling rotation effect |
+| `Swing` | Pendulum swing effect |
+| `Jiggle` | Jiggling effect |
+
+### Effect Variants
+
+| Variant | Description |
+|---------|-------------|
+| `Radar` | Radar sweep effect |
+| `Sonar` | Sonar ping effect |
+| `Beacon` | Lighthouse beacon sweep |
+| `Pop` | Pop in/out scale effect |
+| `Flicker` | Random flickering effect |
+| `Breathe` | Slow breathing scale |
+| `Ring` | Expanding ring outline |
+| `Flash` | Quick flash effect |
+| `Throb` | Throbbing intensity effect |
+| `Twinkle` | Star-like twinkling |
+| `Splash` | Splash ripple effect |
 
 ## Accessibility Support
 
@@ -31,6 +104,7 @@ DaisyStatusIndicator includes built-in accessibility for screen readers. Since s
 | Secondary | "Secondary" | Secondary state |
 | Accent | "Highlighted" | Highlighted items |
 | Neutral | "Status" | Generic status |
+| Default | "Status" | Generic status |
 
 ### Custom Accessible Text
 
@@ -61,18 +135,33 @@ Override the automatic text with the `AccessibleText` property:
     <controls:DaisyStatusIndicator Color="Error" />
 </StackPanel>
 
-<!-- Ping and bounce -->
-<controls:DaisyStatusIndicator Color="Error" IsPing="True" />
-<controls:DaisyStatusIndicator Color="Info" IsBounce="True" />
+<!-- Classic animations -->
+<controls:DaisyStatusIndicator Color="Error" Variant="Ping" />
+<controls:DaisyStatusIndicator Color="Info" Variant="Bounce" />
+<controls:DaisyStatusIndicator Color="Warning" Variant="Pulse" />
+<controls:DaisyStatusIndicator Color="Success" Variant="Heartbeat" />
+
+<!-- Motion animations -->
+<controls:DaisyStatusIndicator Color="Primary" Variant="Orbit" />
+<controls:DaisyStatusIndicator Color="Accent" Variant="Wave" />
+<controls:DaisyStatusIndicator Color="Info" Variant="Glow" />
+
+<!-- Effect animations -->
+<controls:DaisyStatusIndicator Color="Success" Variant="Sonar" />
+<controls:DaisyStatusIndicator Color="Warning" Variant="Beacon" />
+<controls:DaisyStatusIndicator Color="Error" Variant="Flash" />
 
 <!-- Compact sizing -->
-<controls:DaisyStatusIndicator Size="ExtraSmall" Color="Success" />
-<controls:DaisyStatusIndicator Size="Large" Color="Primary" />
+<controls:DaisyStatusIndicator Size="ExtraSmall" Color="Success" Variant="Ping" />
+<controls:DaisyStatusIndicator Size="Large" Color="Primary" Variant="Ripple" />
 ```
 
 ## Tips & Best Practices
 
-- Use **Ping** for attention-grabbing alerts; use **Bounce** for subtle activity cues.
+- Use **Ping** or **Ripple** for attention-grabbing alerts.
+- Use **Pulse** or **Breathe** for subtle activity cues.
+- Use **Heartbeat** for health/vital status indicators.
+- Use **Sonar** or **Radar** for scanning/searching states.
+- Use **Flash** or **Beacon** for urgent notifications.
 - Keep indicators small near text/icons (ExtraSmall/Small) and larger for standalone badges.
 - Place inside `DaisyIndicator` when overlaying on other controls (avatars/cards).
-- Avoid combining Ping and Bounce simultaneously for clarity.

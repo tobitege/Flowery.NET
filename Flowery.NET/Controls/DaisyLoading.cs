@@ -67,31 +67,6 @@ namespace Flowery.Controls
     }
 
     /// <summary>
-    /// Loading color variants matching DaisyUI theme colors.
-    /// </summary>
-    public enum DaisyLoadingColor
-    {
-        /// <summary>Default color (base content)</summary>
-        Default,
-        /// <summary>Primary theme color</summary>
-        Primary,
-        /// <summary>Secondary theme color</summary>
-        Secondary,
-        /// <summary>Accent theme color</summary>
-        Accent,
-        /// <summary>Neutral theme color</summary>
-        Neutral,
-        /// <summary>Info theme color</summary>
-        Info,
-        /// <summary>Success theme color</summary>
-        Success,
-        /// <summary>Warning theme color</summary>
-        Warning,
-        /// <summary>Error theme color</summary>
-        Error
-    }
-
-    /// <summary>
     /// A Loading control styled after DaisyUI's Loading component.
     /// Shows an animation to indicate that something is loading.
     /// Includes accessibility support for screen readers via the AccessibleText attached property.
@@ -140,13 +115,13 @@ namespace Flowery.Controls
         /// <summary>
         /// Defines the <see cref="Color"/> property.
         /// </summary>
-        public static readonly StyledProperty<DaisyLoadingColor> ColorProperty =
-            AvaloniaProperty.Register<DaisyLoading, DaisyLoadingColor>(nameof(Color), DaisyLoadingColor.Default);
+        public static readonly StyledProperty<DaisyColor> ColorProperty =
+            AvaloniaProperty.Register<DaisyLoading, DaisyColor>(nameof(Color), DaisyColor.Default);
 
         /// <summary>
         /// Gets or sets the color variant (Default, Primary, Secondary, Accent, etc.).
         /// </summary>
-        public DaisyLoadingColor Color
+        public DaisyColor Color
         {
             get => GetValue(ColorProperty);
             set => SetValue(ColorProperty, value);

@@ -54,7 +54,7 @@ namespace Flowery.NET.Tests
         [AvaloniaFact]
         public void DaisyStatusIndicator_Should_Have_Color_Based_Default_Text()
         {
-            var indicator = new DaisyStatusIndicator { Color = DaisyStatusIndicatorColor.Success };
+            var indicator = new DaisyStatusIndicator { Color = DaisyColor.Success };
             var window = new Window { Content = indicator };
             window.Show();
 
@@ -69,12 +69,12 @@ namespace Flowery.NET.Tests
 
             var testCases = new[]
             {
-                (DaisyStatusIndicatorColor.Success, "Online"),
-                (DaisyStatusIndicatorColor.Error, "Error"),
-                (DaisyStatusIndicatorColor.Warning, "Warning"),
-                (DaisyStatusIndicatorColor.Info, "Information"),
-                (DaisyStatusIndicatorColor.Primary, "Active"),
-                (DaisyStatusIndicatorColor.Neutral, "Status"),
+                (DaisyColor.Success, "Online"),
+                (DaisyColor.Error, "Error"),
+                (DaisyColor.Warning, "Warning"),
+                (DaisyColor.Info, "Information"),
+                (DaisyColor.Primary, "Active"),
+                (DaisyColor.Neutral, "Status"),
             };
 
             foreach (var (color, expectedText) in testCases)
@@ -91,7 +91,7 @@ namespace Flowery.NET.Tests
         {
             var indicator = new DaisyStatusIndicator
             {
-                Color = DaisyStatusIndicatorColor.Success,
+                Color = DaisyColor.Success,
                 AccessibleText = "User is available"
             };
             var window = new Window { Content = indicator };
@@ -381,7 +381,7 @@ namespace Flowery.NET.Tests
             PrintPeerInfo("DaisyLoading", loading);
 
             // DaisyStatusIndicator - various colors
-            foreach (var color in new[] { DaisyStatusIndicatorColor.Success, DaisyStatusIndicatorColor.Error, DaisyStatusIndicatorColor.Warning })
+            foreach (var color in new[] { DaisyColor.Success, DaisyColor.Error, DaisyColor.Warning })
             {
                 var indicator = new DaisyStatusIndicator { Color = color };
                 window.Content = indicator;
@@ -389,7 +389,7 @@ namespace Flowery.NET.Tests
             }
 
             // DaisyStatusIndicator with custom text
-            var customIndicator = new DaisyStatusIndicator { Color = DaisyStatusIndicatorColor.Success, AccessibleText = "User is online" };
+            var customIndicator = new DaisyStatusIndicator { Color = DaisyColor.Success, AccessibleText = "User is online" };
             window.Content = customIndicator;
             PrintPeerInfo("DaisyStatusIndicator (custom)", customIndicator);
 

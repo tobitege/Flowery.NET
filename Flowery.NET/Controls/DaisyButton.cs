@@ -40,15 +40,6 @@ namespace Flowery.Controls
         Circle
     }
 
-    public enum DaisySize
-    {
-        ExtraSmall,
-        Small,
-        Medium,
-        Large,
-        ExtraLarge
-    }
-
     /// <summary>
     /// A Button control styled after DaisyUI's Button component.
     /// </summary>

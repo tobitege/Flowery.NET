@@ -1,0 +1,106 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <ControlTheme x:Key="{x:Type controls:DaisyStatusIndicator}" TargetType="controls:DaisyStatusIndicator">
+        <!-- Default size: Medium (12px) -->
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
+        <Setter Property="ClipToBounds" Value="False" />
+
+        <!-- Default Template (static dot) -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid ClipToBounds="False">
+                    <!-- Animation layer (behind main dot) -->
+                    <Ellipse Name="PART_AnimationEllipse"
+                             Width="{TemplateBinding Width}"
+                             Height="{TemplateBinding Height}"
+                             Fill="{TemplateBinding Background}"
+                             IsVisible="False" />
+                    <!-- Secondary animation layer -->
+                    <Ellipse Name="PART_AnimationEllipse2"
+                             Width="{TemplateBinding Width}"
+                             Height="{TemplateBinding Height}"
+                             Fill="{TemplateBinding Background}"
+                             IsVisible="False" />
+                    <!-- Tertiary animation layer -->
+                    <Ellipse Name="PART_AnimationEllipse3"
+                             Width="{TemplateBinding Width}"
+                             Height="{TemplateBinding Height}"
+                             Fill="{TemplateBinding Background}"
+                             IsVisible="False" />
+                    <!-- Main status dot -->
+                    <Ellipse Name="PART_MainEllipse"
+                             Width="{TemplateBinding Width}"
+                             Height="{TemplateBinding Height}"
+                             Fill="{TemplateBinding Background}" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+
+        <!-- ===================== SIZES ===================== -->
+
+        <Style Selector="^[Size=ExtraSmall]">
+            <Setter Property="Width" Value="6" />
+            <Setter Property="Height" Value="6" />
+        </Style>
+
+        <Style Selector="^[Size=Small]">
+            <Setter Property="Width" Value="8" />
+            <Setter Property="Height" Value="8" />
+        </Style>
+
+        <!-- Medium is default (12x12) -->
+
+        <Style Selector="^[Size=Large]">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+        </Style>
+
+        <Style Selector="^[Size=ExtraLarge]">
+            <Setter Property="Width" Value="20" />
+            <Setter Property="Height" Value="20" />
+        </Style>
+
+        <!-- ===================== COLORS ===================== -->
+
+        <Style Selector="^[Color=Default]">
+            <Setter Property="Background" Value="{DynamicResource DaisyBaseContentBrush}" />
+        </Style>
+
+        <Style Selector="^[Color=Neutral]">
+            <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
+        </Style>
+
+        <Style Selector="^[Color=Primary]">
+            <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+        </Style>
+
+        <Style Selector="^[Color=Secondary]">
+            <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}" />
+        </Style>
+
+        <Style Selector="^[Color=Accent]">
+            <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}" />
+        </Style>
+
+        <Style Selector="^[Color=Info]">
+            <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}" />
+        </Style>
+
+        <Style Selector="^[Color=Success]">
+            <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}" />
+        </Style>
+
+        <Style Selector="^[Color=Warning]">
+            <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}" />
+        </Style>
+
+        <Style Selector="^[Color=Error]">
+            <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}" />
+        </Style>
+
+    </ControlTheme>
+</ResourceDictionary>

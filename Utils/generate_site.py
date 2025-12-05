@@ -35,6 +35,7 @@ GitHub Pages Setup:
 
 import argparse
 import re
+import shutil
 from pathlib import Path
 from typing import Optional
 
@@ -58,6 +59,16 @@ class MarkdownToHtml:
 
         # Inline code
         html = re.sub(r'`([^`]+)`', r'<code>\1</code>', html)
+
+        # Images - convert ![alt](src) to <img> and fix paths for controls/ subfolder
+        def convert_image(m):
+            alt = m.group(1)
+            src = m.group(2)
+            # If src is a local file (not http), prepend ../ for controls/ pages
+            if not src.startswith(('http://', 'https://', '/')):
+                src = '../' + src
+            return f'<img src="{src}" alt="{alt}" style="max-width:100%;height:auto;">'
+        html = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', convert_image, html)
 
         # Headers
         html = re.sub(r'^### (.+)$', r'<h3>\1</h3>', html, flags=re.MULTILINE)
@@ -243,12 +254,16 @@ class SiteGenerator:
         else:
             print("      No categories folder found (run generate_docs.py first)")
 
+        # Copy images from llms-static/ to docs/
+        print("\n[3/5] Copying images...")
+        self._copy_images()
+
         # Generate CSS
-        print("\n[3/4] Generating stylesheet...")
+        print("\n[4/5] Generating stylesheet...")
         self._write_css()
 
         # Generate HTML pages
-        print("\n[4/4] Generating HTML pages...")
+        print("\n[5/5] Generating HTML pages...")
         self._generate_index()
         self._generate_control_pages()
         self._generate_category_pages()
@@ -257,6 +272,19 @@ class SiteGenerator:
         print("Site generated successfully!")
         print(f"Output: {self.output_dir}")
         print(f"Open:   {self.output_dir / 'index.html'}")
+
+    def _copy_images(self):
+        """Copy image files from llms-static/ to docs/ for HTML pages."""
+        if not self.curated_dir:
+            return
+        image_extensions = ['*.gif', '*.png', '*.jpg', '*.jpeg', '*.webp', '*.svg']
+        copied = 0
+        for ext in image_extensions:
+            for img_file in self.curated_dir.glob(ext):
+                dest = self.output_dir / img_file.name
+                shutil.copy2(img_file, dest)
+                copied += 1
+        print(f"      Copied {copied} image(s)")
 
     def _write_css(self):
         """Write the stylesheet."""

@@ -686,7 +686,7 @@
                     <StackPanel Spacing="10" Margin="0,0,40,20">
                         <TextBlock Text="Ping Animation" FontWeight="SemiBold" Opacity="0.7" />
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <controls:DaisyStatusIndicator Color="Error" IsPing="True" />
+                            <controls:DaisyStatusIndicator Color="Error" Variant="Ping" />
                             <TextBlock Text="Server is down" Opacity="0.8" VerticalAlignment="Center" />
                         </StackPanel>
                     </StackPanel>
@@ -695,7 +695,7 @@
                     <StackPanel Spacing="10" Margin="0,0,40,20">
                         <TextBlock Text="Bounce Animation" FontWeight="SemiBold" Opacity="0.7" />
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <controls:DaisyStatusIndicator Color="Info" IsBounce="True" />
+                            <controls:DaisyStatusIndicator Color="Info" Variant="Bounce" />
                             <TextBlock Text="Unread messages" Opacity="0.8" VerticalAlignment="Center" />
                         </StackPanel>
                     </StackPanel>
@@ -713,8 +713,143 @@
                                 <TextBlock Text="Offline" Opacity="0.8" VerticalAlignment="Center" />
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <controls:DaisyStatusIndicator Color="Warning" Size="Small" IsPing="True" />
+                                <controls:DaisyStatusIndicator Color="Warning" Size="Small" Variant="Ping" />
                                 <TextBlock Text="Connecting..." Opacity="0.8" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </WrapPanel>
+
+                <!-- Animation Variants -->
+                <TextBlock Text="Animation Variants (27 total)" FontWeight="Bold" Opacity="0.8" Margin="0,8,0,8" />
+                <WrapPanel Orientation="Horizontal">
+                    <!-- Classic Variants -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Classic Variants" FontWeight="SemiBold" Opacity="0.7" />
+                        <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Success" Variant="Default" />
+                                <TextBlock Text="Default" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Success" Variant="Ping" />
+                                <TextBlock Text="Ping" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Info" Variant="Bounce" />
+                                <TextBlock Text="Bounce" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Warning" Variant="Pulse" />
+                                <TextBlock Text="Pulse" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Error" Variant="Blink" />
+                                <TextBlock Text="Blink" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Primary" Variant="Ripple" />
+                                <TextBlock Text="Ripple" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Error" Variant="Heartbeat" />
+                                <TextBlock Text="Heartbeat" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Motion Variants -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Motion Variants" FontWeight="SemiBold" Opacity="0.7" />
+                        <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Primary" Variant="Spin" />
+                                <TextBlock Text="Spin" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Secondary" Variant="Wave" />
+                                <TextBlock Text="Wave" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Accent" Variant="Glow" />
+                                <TextBlock Text="Glow" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Info" Variant="Morph" />
+                                <TextBlock Text="Morph" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Success" Variant="Orbit" />
+                                <TextBlock Text="Orbit" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Error" Variant="Shake" />
+                                <TextBlock Text="Shake" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Warning" Variant="Wobble" />
+                                <TextBlock Text="Wobble" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Primary" Variant="Swing" />
+                                <TextBlock Text="Swing" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Secondary" Variant="Jiggle" />
+                                <TextBlock Text="Jiggle" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Effect Variants Row 1 -->
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Effect Variants" FontWeight="SemiBold" Opacity="0.7" />
+                        <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Info" Variant="Radar" />
+                                <TextBlock Text="Radar" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Success" Variant="Sonar" />
+                                <TextBlock Text="Sonar" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Warning" Variant="Beacon" />
+                                <TextBlock Text="Beacon" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Accent" Variant="Pop" />
+                                <TextBlock Text="Pop" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Error" Variant="Flicker" />
+                                <TextBlock Text="Flicker" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Primary" Variant="Breathe" />
+                                <TextBlock Text="Breathe" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center" Margin="0,8,0,0">
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Secondary" Variant="Ring" />
+                                <TextBlock Text="Ring" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Warning" Variant="Flash" />
+                                <TextBlock Text="Flash" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Error" Variant="Throb" />
+                                <TextBlock Text="Throb" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Accent" Variant="Twinkle" />
+                                <TextBlock Text="Twinkle" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                <controls:DaisyStatusIndicator Color="Info" Variant="Splash" />
+                                <TextBlock Text="Splash" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
