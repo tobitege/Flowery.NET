@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD033 -->
 <div align="center">
 
 # 🌼 Flowery.NET
@@ -304,6 +305,17 @@ To build and run the source code/gallery:
 - **Visual Studio 2022**, JetBrains Rider, or VS Code.
 - Supports Windows, macOS, and Linux.
 
+## Windows SmartScreen Warning
+
+When running the Gallery app for the first time on Windows, you may see a "Windows protected your PC" SmartScreen warning. This appears because the app is not code-signed (certificates are expensive 💸).
+
+**To run anyway:**
+
+1. Click **"More info"**
+2. Click **"Run anyway"**
+
+Alternatively: Right-click the `.exe` → **Properties** → Check **"Unblock"** → **OK**
+
 ## License
 
 MIT
@@ -316,7 +328,7 @@ If you find this library useful, consider supporting its development:
 
 ## Changelog
 
-2025-12 - Initial release
+2025-12 - Initial release, incl. NuGet package
 
 ## Credits & References
 
