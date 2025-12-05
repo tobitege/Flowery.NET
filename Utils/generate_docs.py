@@ -167,7 +167,8 @@ class CSharpParser:
         enums = self._extract_enums(content)
 
         # Extract class info
-        class_info = self._extract_class(content)
+        target_name = filepath.stem
+        class_info = self._extract_class(content, target_name)
         if not class_info:
             return None
 
@@ -205,21 +206,44 @@ class CSharpParser:
             enums.append(EnumInfo(name=enum_name, values=values))
         return enums
 
-    def _extract_class(self, content: str) -> Optional[tuple[str, str, str]]:
-        """Extract class name, base class, and description."""
-        # Find class definition
-        class_match = re.search(
-            r'public\s+class\s+(\w+)\s*:\s*(\w+)',
-            content
+    def _extract_class(self, content: str, target_name: str) -> Optional[tuple[str, str, str]]:
+        """
+        Extract class info for the target class name.
+        Returns (class_name, base_class, description).
+        """
+        # Regex to match class definition:
+        # public [static] [sealed|partial] class Name [: Base]
+        class_pattern = re.compile(
+            r'public\s+(?:static\s+|sealed\s+|partial\s+)*class\s+(\w+)(?:\s*:\s*([\w\.]+))?',
+            re.MULTILINE
         )
-        if not class_match:
+
+        # Find all classes
+        matches = list(class_pattern.finditer(content))
+        
+        selected_match = None
+        
+        # 1. Try to find exact match with filename
+        for m in matches:
+            if m.group(1) == target_name:
+                selected_match = m
+                break
+                
+        # 2. Fallback: Find first class starting with "Daisy"
+        if not selected_match:
+            for m in matches:
+                if m.group(1).startswith("Daisy"):
+                    selected_match = m
+                    break
+        
+        if not selected_match:
             return None
 
-        class_name = class_match.group(1)
-        base_class = class_match.group(2)
+        class_name = selected_match.group(1)
+        base_class = selected_match.group(2) or "Object" # Handle no base class (static)
 
         # Find the summary comment immediately before the class
-        class_start = class_match.start()
+        class_start = selected_match.start()
         before_class = content[:class_start]
 
         # Look for the last summary comment before class definition
@@ -232,8 +256,8 @@ class CSharpParser:
         description = ""
         if summaries:
             last_summary = summaries[-1]
-            # Check if summary is close to class definition (within 200 chars)
-            if class_start - last_summary.end() < 200:
+            # Check if summary is close to class definition (within 300 chars to be safe)
+            if class_start - last_summary.end() < 300:
                 raw_desc = last_summary.group(1)
                 # Clean the description
                 description = self._clean_summary(raw_desc)

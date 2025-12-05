@@ -292,19 +292,35 @@ class SiteGenerator:
 
     def _write_css(self):
         """Write the stylesheet."""
-        css = '''/* Flowery.NET Documentation - Generated Stylesheet */
-:root {
-    --bg: #0f172a;
-    --bg-card: #1e293b;
-    --bg-code: #0d1117;
-    --text: #e2e8f0;
-    --text-muted: #94a3b8;
+        css = ''':root {
+    /* Dark Theme (Default) - Neutral/Zinc Palette */
+    --bg: #0a0a0a;
+    --bg-card: #171717;
+    --bg-code: #262626;
+    --text: #e5e5e5;
+    --text-muted: #a3a3a3;
     --primary: #38bdf8;
     --primary-dim: #0ea5e9;
     --accent: #2dd4bf;
-    --border: #334155;
+    --border: #404040;
+    --link: #38bdf8;
+    --link-visited: #7dd3fc;
     --font-sans: system-ui, -apple-system, sans-serif;
     --font-mono: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+}
+
+[data-theme="light"] {
+    --bg: #ffffff;
+    --bg-card: #f9fafb;
+    --bg-code: #f3f4f6;
+    --text: #1f2937;
+    --text-muted: #6b7280;
+    --primary: #0284c7;
+    --primary-dim: #0369a1;
+    --accent: #0d9488;
+    --border: #e5e7eb;
+    --link: #0284c7;
+    --link-visited: #0369a1;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -315,6 +331,23 @@ body {
     color: var(--text);
     line-height: 1.6;
     min-height: 100vh;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Links */
+a {
+    color: var(--link);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+a:visited {
+    color: var(--link-visited);
+}
+
+a:hover {
+    color: var(--primary-dim);
+    text-decoration: underline;
 }
 
 /* Shell Layout (index.html) */
@@ -338,9 +371,38 @@ body {
     font-size: 1.25rem;
     color: var(--primary);
     margin-bottom: 0.25rem;
-    display: flex;
     align-items: center;
     gap: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.theme-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle:hover {
+    color: var(--primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] .theme-toggle:hover {
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .sidebar .subtitle {
@@ -758,7 +820,25 @@ tr:hover td {
 </head>
 <body class="content-body">
     {content}
-    <script>hljs.highlightAll();</script>
+    <script>
+        hljs.highlightAll();
+
+        // Theme Sync Logic for Iframe Content
+        function applyTheme(theme) {{
+            document.documentElement.setAttribute('data-theme', theme);
+        }}
+
+        // 1. Initial Load: Try to get theme from localStorage
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        applyTheme(savedTheme);
+
+        // 2. Listen for messages from parent (shell)
+        window.addEventListener('message', (event) => {{
+            if (event.data && event.data.type === 'setTheme') {{
+                applyTheme(event.data.theme);
+            }}
+        }});
+    </script>
 </body>
 </html>'''
 
@@ -805,12 +885,32 @@ tr:hover td {
 
         <nav class="sidebar">
             <h1>
-                <a href="https://github.com/tobitege/Flowery.NET" target="_blank" rel="noopener" class="github-link" title="View on GitHub">
-                    <svg class="github-icon" viewBox="0 0 16 16" width="20" height="20">
-                        <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                <div class="brand">
+                    <a href="https://github.com/tobitege/Flowery.NET" target="_blank" rel="noopener" class="github-link" title="View on GitHub">
+                        <svg class="github-icon" viewBox="0 0 16 16" width="20" height="20">
+                            <path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                        </svg>
+                    </a> 
+                    <span>Flowery.NET</span>
+                </div>
+                <button class="theme-toggle" aria-label="Toggle Theme" title="Toggle Theme">
+                    <!-- Sun Icon (for Dark mode) -->
+                    <svg class="sun-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
-                </a> 
-                Flowery.NET
+                    <!-- Moon Icon (for Light mode) -->
+                    <svg class="moon-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
             </h1>
             <p class="subtitle">Avalonia UI Components</p>
             <ul>
@@ -821,7 +921,61 @@ tr:hover td {
     </div>
 
     <script>
-        // Sidebar Toggle Logic
+        // --- Theme Logic ---
+        const themeToggle = document.querySelector('.theme-toggle');
+        const sunIcon = document.querySelector('.sun-icon');
+        const moonIcon = document.querySelector('.moon-icon');
+        const iframe = document.querySelector('iframe');
+
+        // Check local storage or default to dark
+        const currentTheme = localStorage.getItem('theme') || 'dark';
+        applyTheme(currentTheme);
+
+        function applyTheme(theme) {{
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            // Update icons
+            if (theme === 'dark') {{
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            }} else {{
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            }}
+
+            // Sync iframe (Direct access + PostMessage fallback for local files)
+            try {{
+                // 1. Try direct access (works for same origin)
+                if (iframe.contentDocument && iframe.contentDocument.documentElement) {{
+                    iframe.contentDocument.documentElement.setAttribute('data-theme', theme);
+                }}
+            }} catch(e) {{
+                // console.log('Direct access restricted');
+            }}
+            
+            // 2. PostMessage (works for cross-origin/local files)
+            try {{
+                if (iframe.contentWindow) {{
+                    iframe.contentWindow.postMessage({{ type: 'setTheme', theme: theme }}, '*');
+                }}
+            }} catch(e) {{}}
+        }}
+
+        themeToggle.addEventListener('click', () => {{
+            const current = document.documentElement.getAttribute('data-theme');
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        }});
+
+        // When iframe loads, ensure it gets the theme
+        iframe.addEventListener('load', () => {{
+            const theme = localStorage.getItem('theme') || 'dark';
+            applyTheme(theme);
+        }});
+
+        // --- Sidebar Logic ---
         const sidebar = document.querySelector('.sidebar');
         const overlay = document.querySelector('.overlay');
         const toggleBtn = document.querySelector('.menu-toggle');
