@@ -172,12 +172,119 @@
             <!-- Stack -->
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="stack" Title="Stack" />
+
+                <TextBlock Text="Static Stack (deck-of-cards effect)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                 <WrapPanel Orientation="Horizontal">
-                    <StackPanel Spacing="10" Margin="0,0,40,20">
-                        <controls:DaisyStack Width="100" Height="100">
-                            <Border Width="80" Height="80" Background="Red" CornerRadius="8"/>
-                            <Border Width="80" Height="80" Background="Green" CornerRadius="8"/>
-                            <Border Width="80" Height="80" Background="Blue" CornerRadius="8"/>
+                    <Border Padding="20" Margin="0,0,30,20">
+                        <controls:DaisyStack>
+                            <Border Width="100" Height="70" Background="#F87171" CornerRadius="8">
+                                <TextBlock Text="Card 1" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
+                            </Border>
+                            <Border Width="100" Height="70" Background="#34D399" CornerRadius="8">
+                                <TextBlock Text="Card 2" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
+                            </Border>
+                            <Border Width="100" Height="70" Background="#60A5FA" CornerRadius="8">
+                                <TextBlock Text="Card 3" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
+                            </Border>
+                        </controls:DaisyStack>
+                    </Border>
+                    <Border Padding="20" Margin="0,0,30,20">
+                        <controls:DaisyStack>
+                            <Image Source="avares://Flowery.NET.Gallery/Assets/placeholder1.png" Width="120" Height="80" Stretch="UniformToFill"/>
+                            <Image Source="avares://Flowery.NET.Gallery/Assets/placeholder1.png" Width="120" Height="80" Stretch="UniformToFill"/>
+                            <Image Source="avares://Flowery.NET.Gallery/Assets/placeholder1.png" Width="120" Height="80" Stretch="UniformToFill"/>
+                        </controls:DaisyStack>
+                    </Border>
+                </WrapPanel>
+
+                <TextBlock Text="With Navigation" FontWeight="SemiBold" FontSize="14" Opacity="0.8" Margin="0,12,0,0"/>
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel Margin="0,0,30,20">
+                        <TextBlock Text="Horizontal" FontSize="12" Opacity="0.6" Margin="0,0,0,8"/>
+                        <controls:DaisyStack Width="200" Height="120" ShowNavigation="True" ShowCounter="True">
+                            <Border Background="#F87171" CornerRadius="8">
+                                <TextBlock Text="Slide 1" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontSize="18"/>
+                            </Border>
+                            <Border Background="#34D399" CornerRadius="8">
+                                <TextBlock Text="Slide 2" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontSize="18"/>
+                            </Border>
+                            <Border Background="#60A5FA" CornerRadius="8">
+                                <TextBlock Text="Slide 3" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontSize="18"/>
+                            </Border>
+                        </controls:DaisyStack>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,30,20">
+                        <TextBlock Text="Vertical" FontSize="12" Opacity="0.6" Margin="0,0,0,8"/>
+                        <controls:DaisyStack Width="200" Height="140" ShowNavigation="True" ShowCounter="True"
+                                             NavigationPlacement="Vertical" CounterPlacement="End">
+                            <Border Background="#A78BFA" CornerRadius="8">
+                                <TextBlock Text="Card A" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontSize="18"/>
+                            </Border>
+                            <Border Background="#F472B6" CornerRadius="8">
+                                <TextBlock Text="Card B" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontSize="18"/>
+                            </Border>
+                            <Border Background="#FBBF24" CornerRadius="8">
+                                <TextBlock Text="Card C" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black" FontSize="18"/>
+                            </Border>
+                        </controls:DaisyStack>
+                    </StackPanel>
+                </WrapPanel>
+
+                <TextBlock Text="Navigation Colors" FontWeight="SemiBold" FontSize="14" Opacity="0.8" Margin="0,12,0,0"/>
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel Margin="0,0,20,20">
+                        <controls:DaisyStack Width="160" Height="90" ShowNavigation="True" NavigationColor="Primary">
+                            <Border Background="{DynamicResource DaisyBase300Brush}" CornerRadius="8">
+                                <TextBlock Text="Primary" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8">
+                                <TextBlock Text="Buttons" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </controls:DaisyStack>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,20,20">
+                        <controls:DaisyStack Width="160" Height="90" ShowNavigation="True" NavigationColor="Secondary">
+                            <Border Background="{DynamicResource DaisyBase300Brush}" CornerRadius="8">
+                                <TextBlock Text="Secondary" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8">
+                                <TextBlock Text="Buttons" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </controls:DaisyStack>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,20,20">
+                        <controls:DaisyStack Width="160" Height="90" ShowNavigation="True" NavigationColor="Accent">
+                            <Border Background="{DynamicResource DaisyBase300Brush}" CornerRadius="8">
+                                <TextBlock Text="Accent" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8">
+                                <TextBlock Text="Buttons" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </controls:DaisyStack>
+                    </StackPanel>
+                </WrapPanel>
+
+                <TextBlock Text="Counter Placements" FontWeight="SemiBold" FontSize="14" Opacity="0.8" Margin="0,12,0,0"/>
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel Margin="0,0,20,20">
+                        <TextBlock Text="Bottom" FontSize="12" Opacity="0.6" Margin="0,0,0,4"/>
+                        <controls:DaisyStack Width="130" Height="70" ShowNavigation="True" ShowCounter="True" CounterPlacement="Bottom">
+                            <Border Background="#818CF8" CornerRadius="4"/>
+                            <Border Background="#6366F1" CornerRadius="4"/>
+                        </controls:DaisyStack>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,20,20">
+                        <TextBlock Text="Top" FontSize="12" Opacity="0.6" Margin="0,0,0,4"/>
+                        <controls:DaisyStack Width="130" Height="70" ShowNavigation="True" ShowCounter="True" CounterPlacement="Top">
+                            <Border Background="#2DD4BF" CornerRadius="4"/>
+                            <Border Background="#14B8A6" CornerRadius="4"/>
+                        </controls:DaisyStack>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,20,20">
+                        <TextBlock Text="End" FontSize="12" Opacity="0.6" Margin="0,0,0,4"/>
+                        <controls:DaisyStack Width="130" Height="70" ShowNavigation="True" ShowCounter="True" CounterPlacement="End">
+                            <Border Background="#FB923C" CornerRadius="4"/>
+                            <Border Background="#F97316" CornerRadius="4"/>
                         </controls:DaisyStack>
                     </StackPanel>
                 </WrapPanel>

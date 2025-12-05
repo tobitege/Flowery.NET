@@ -42,4 +42,34 @@ namespace Flowery.Controls
         /// <summary>Extra large size</summary>
         ExtraLarge
     }
+
+    /// <summary>
+    /// Navigation arrow placement for DaisyStack.
+    /// </summary>
+    public enum DaisyStackNavigation
+    {
+        /// <summary>Left/Right arrows for horizontal navigation</summary>
+        Horizontal,
+
+        /// <summary>Up/Down arrows for vertical navigation</summary>
+        Vertical
+    }
+
+    /// <summary>
+    /// Placement options for UI elements like counters and labels.
+    /// </summary>
+    public enum DaisyPlacement
+    {
+        /// <summary>Place at the top</summary>
+        Top,
+
+        /// <summary>Place at the bottom</summary>
+        Bottom,
+
+        /// <summary>Place at the start (left in LTR)</summary>
+        Start,
+
+        /// <summary>Place at the end (right in LTR)</summary>
+        End
+    }
 }

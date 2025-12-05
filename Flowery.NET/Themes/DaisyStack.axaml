@@ -3,34 +3,327 @@
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
     <Design.PreviewWith>
-        <Border Padding="50">
-             <controls:DaisyStack>
-                 <Border Background="Red" Width="100" Height="100" />
-                 <Border Background="Green" Width="100" Height="100" />
-                 <Border Background="Blue" Width="100" Height="100" />
-             </controls:DaisyStack>
-        </Border>
+        <StackPanel Spacing="20" Margin="20">
+            <!-- Static stack (default) -->
+            <Border Padding="20" Background="{DynamicResource DaisyBase200Brush}">
+                <controls:DaisyStack Width="120" Height="80">
+                    <Border Background="#F87171" CornerRadius="8" Width="100" Height="60" />
+                    <Border Background="#34D399" CornerRadius="8" Width="100" Height="60" />
+                    <Border Background="#60A5FA" CornerRadius="8" Width="100" Height="60" />
+                </controls:DaisyStack>
+            </Border>
+            <!-- With navigation -->
+            <Border Padding="20" Background="{DynamicResource DaisyBase200Brush}">
+                <controls:DaisyStack Width="200" Height="140" ShowNavigation="True" ShowCounter="True">
+                    <Border Background="#F87171" CornerRadius="8">
+                        <TextBlock Text="1" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"
+                                   FontSize="24" />
+                    </Border>
+                    <Border Background="#34D399" CornerRadius="8">
+                        <TextBlock Text="2" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"
+                                   FontSize="24" />
+                    </Border>
+                    <Border Background="#60A5FA" CornerRadius="8">
+                        <TextBlock Text="3" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"
+                                   FontSize="24" />
+                    </Border>
+                </controls:DaisyStack>
+            </Border>
+        </StackPanel>
     </Design.PreviewWith>
 
-    <!-- Styles for DaisyStack -->
-    <Style Selector="controls|DaisyStack > :is(Control)">
-        <Setter Property="ZIndex" Value="10" />
-        <Setter Property="RenderTransform" Value="none" />
+    <Styles.Resources>
+        <ControlTheme x:Key="{x:Type controls:DaisyStack}" TargetType="controls:DaisyStack">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="ClipToBounds" Value="False" />
+            <Setter Property="ItemsPanel">
+                <ItemsPanelTemplate>
+                    <controls:OverlayPanel Name="PART_ItemsPanel" ClipToBounds="False" />
+                </ItemsPanelTemplate>
+            </Setter>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="Auto,*,Auto">
+                        <!-- Counter at Top -->
+                        <TextBlock Name="PART_CounterTop"
+                                   Grid.Row="0" Grid.Column="1"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,8"
+                                   FontSize="12"
+                                   Opacity="0.7"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                   IsVisible="False" />
+
+                        <!-- Counter at Start (Left) -->
+                        <TextBlock Name="PART_CounterStart"
+                                   Grid.Row="1" Grid.Column="0"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,0"
+                                   FontSize="12"
+                                   Opacity="0.7"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                   IsVisible="False" />
+
+                        <!-- Main Content Area -->
+                        <Grid Grid.Row="1" Grid.Column="1" ClipToBounds="False">
+                            <!-- Items Panel -->
+                            <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+
+                            <!-- Previous Button - Left (Horizontal) -->
+                            <Button Name="PART_PreviousButton"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource DaisyNeutralBrush}"
+                                    Foreground="{DynamicResource DaisyNeutralContentBrush}"
+                                    Padding="8,6"
+                                    Margin="4"
+                                    CornerRadius="16"
+                                    Opacity="0.9"
+                                    IsVisible="False"
+                                    ZIndex="100">
+                                <Path Name="PART_PrevIcon"
+                                      Data="M15,19 L8,12 L15,5"
+                                      Stroke="{DynamicResource DaisyNeutralContentBrush}"
+                                      StrokeThickness="2"
+                                      StrokeLineCap="Round"
+                                      Width="8" Height="12"
+                                      Stretch="Uniform" />
+                            </Button>
+
+                            <!-- Next Button - Right (Horizontal) -->
+                            <Button Name="PART_NextButton"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource DaisyNeutralBrush}"
+                                    Foreground="{DynamicResource DaisyNeutralContentBrush}"
+                                    Padding="8,6"
+                                    Margin="4"
+                                    CornerRadius="16"
+                                    Opacity="0.9"
+                                    IsVisible="False"
+                                    ZIndex="100">
+                                <Path Name="PART_NextIcon"
+                                      Data="M9,5 L16,12 L9,19"
+                                      Stroke="{DynamicResource DaisyNeutralContentBrush}"
+                                      StrokeThickness="2"
+                                      StrokeLineCap="Round"
+                                      Width="8" Height="12"
+                                      Stretch="Uniform" />
+                            </Button>
+                        </Grid>
+
+                        <!-- Counter at End (Right) -->
+                        <TextBlock Name="PART_CounterEnd"
+                                   Grid.Row="1" Grid.Column="2"
+                                   VerticalAlignment="Center"
+                                   Margin="8,0,0,0"
+                                   FontSize="12"
+                                   Opacity="0.7"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                   IsVisible="False" />
+
+                        <!-- Counter at Bottom (default) -->
+                        <TextBlock Name="PART_Counter"
+                                   Grid.Row="2" Grid.Column="1"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,8,0,0"
+                                   FontSize="12"
+                                   Opacity="0.7"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                   IsVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+    </Styles.Resources>
+
+    <!-- Show navigation buttons when ShowNavigation is true -->
+    <Style Selector="controls|DaisyStack[ShowNavigation=True] /template/ Button#PART_PreviousButton">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="controls|DaisyStack[ShowNavigation=True] /template/ Button#PART_NextButton">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <!-- Show counter when ShowCounter is true -->
+    <Style Selector="controls|DaisyStack[ShowCounter=True] /template/ TextBlock#PART_Counter">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <!-- Counter placement variants -->
+    <Style Selector="controls|DaisyStack[CounterPlacement=Top][ShowCounter=True] /template/ TextBlock#PART_Counter">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="controls|DaisyStack[CounterPlacement=Top][ShowCounter=True] /template/ TextBlock#PART_CounterTop">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="controls|DaisyStack[CounterPlacement=Start][ShowCounter=True] /template/ TextBlock#PART_Counter">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style
+        Selector="controls|DaisyStack[CounterPlacement=Start][ShowCounter=True] /template/ TextBlock#PART_CounterStart">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="controls|DaisyStack[CounterPlacement=End][ShowCounter=True] /template/ TextBlock#PART_Counter">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="controls|DaisyStack[CounterPlacement=End][ShowCounter=True] /template/ TextBlock#PART_CounterEnd">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <!-- Vertical navigation: reposition buttons -->
+    <Style Selector="controls|DaisyStack[NavigationPlacement=Vertical] /template/ Button#PART_PreviousButton">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Padding" Value="6,8" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationPlacement=Vertical] /template/ Button#PART_NextButton">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
+        <Setter Property="Padding" Value="6,8" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationPlacement=Vertical] /template/ Path#PART_PrevIcon">
+        <Setter Property="Data" Value="M5,15 L12,8 L19,15" />
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="8" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationPlacement=Vertical] /template/ Path#PART_NextIcon">
+        <Setter Property="Data" Value="M5,9 L12,16 L19,9" />
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="8" />
+    </Style>
+
+    <!-- Navigation color variants: Primary -->
+    <Style Selector="controls|DaisyStack[NavigationColor=Primary] /template/ Button#PART_PreviousButton">
+        <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Primary] /template/ Button#PART_NextButton">
+        <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Primary] /template/ Path#PART_PrevIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisyPrimaryContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Primary] /template/ Path#PART_NextIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisyPrimaryContentBrush}" />
+    </Style>
+
+    <!-- Navigation color variants: Secondary -->
+    <Style Selector="controls|DaisyStack[NavigationColor=Secondary] /template/ Button#PART_PreviousButton">
+        <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisySecondaryContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Secondary] /template/ Button#PART_NextButton">
+        <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisySecondaryContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Secondary] /template/ Path#PART_PrevIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisySecondaryContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Secondary] /template/ Path#PART_NextIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisySecondaryContentBrush}" />
+    </Style>
+
+    <!-- Navigation color variants: Accent -->
+    <Style Selector="controls|DaisyStack[NavigationColor=Accent] /template/ Button#PART_PreviousButton">
+        <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyAccentContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Accent] /template/ Button#PART_NextButton">
+        <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyAccentContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Accent] /template/ Path#PART_PrevIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisyAccentContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Accent] /template/ Path#PART_NextIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisyAccentContentBrush}" />
+    </Style>
+
+    <!-- Navigation color variants: Neutral -->
+    <Style Selector="controls|DaisyStack[NavigationColor=Neutral] /template/ Button#PART_PreviousButton">
+        <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Neutral] /template/ Button#PART_NextButton">
+        <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Neutral] /template/ Path#PART_PrevIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisyNeutralContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Neutral] /template/ Path#PART_NextIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisyNeutralContentBrush}" />
+    </Style>
+
+    <!-- Navigation color variants: Info -->
+    <Style Selector="controls|DaisyStack[NavigationColor=Info] /template/ Button#PART_PreviousButton">
+        <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyInfoContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Info] /template/ Button#PART_NextButton">
+        <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyInfoContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Info] /template/ Path#PART_PrevIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisyInfoContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Info] /template/ Path#PART_NextIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisyInfoContentBrush}" />
+    </Style>
+
+    <!-- Navigation color variants: Success -->
+    <Style Selector="controls|DaisyStack[NavigationColor=Success] /template/ Button#PART_PreviousButton">
+        <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisySuccessContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Success] /template/ Button#PART_NextButton">
+        <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisySuccessContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Success] /template/ Path#PART_PrevIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisySuccessContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Success] /template/ Path#PART_NextIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisySuccessContentBrush}" />
+    </Style>
+
+    <!-- Navigation color variants: Warning -->
+    <Style Selector="controls|DaisyStack[NavigationColor=Warning] /template/ Button#PART_PreviousButton">
+        <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyWarningContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Warning] /template/ Button#PART_NextButton">
+        <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyWarningContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Warning] /template/ Path#PART_PrevIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisyWarningContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Warning] /template/ Path#PART_NextIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisyWarningContentBrush}" />
+    </Style>
+
+    <!-- Navigation color variants: Error -->
+    <Style Selector="controls|DaisyStack[NavigationColor=Error] /template/ Button#PART_PreviousButton">
+        <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyErrorContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Error] /template/ Button#PART_NextButton">
+        <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyErrorContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Error] /template/ Path#PART_PrevIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisyErrorContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyStack[NavigationColor=Error] /template/ Path#PART_NextIcon">
+        <Setter Property="Stroke" Value="{DynamicResource DaisyErrorContentBrush}" />
+    </Style>
+
+    <!-- Button hover effects -->
+    <Style Selector="controls|DaisyStack /template/ Button:pointerover">
         <Setter Property="Opacity" Value="1" />
-    </Style>
-
-    <!-- 2nd item -->
-    <Style Selector="controls|DaisyStack > :is(Control):nth-child(2)">
-        <Setter Property="ZIndex" Value="5" />
-        <Setter Property="RenderTransform" Value="translate(4px, 4px) scale(0.95)" />
-        <Setter Property="Opacity" Value="0.8" />
-    </Style>
-
-    <!-- 3rd item -->
-    <Style Selector="controls|DaisyStack > :is(Control):nth-child(3)">
-        <Setter Property="ZIndex" Value="1" />
-        <Setter Property="RenderTransform" Value="translate(8px, 8px) scale(0.9)" />
-        <Setter Property="Opacity" Value="0.6" />
     </Style>
 
 </Styles>

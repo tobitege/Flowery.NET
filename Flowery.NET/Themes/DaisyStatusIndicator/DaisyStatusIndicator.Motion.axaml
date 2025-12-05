@@ -218,25 +218,25 @@
     </Style>
 
     <!-- ===================== SWING VARIANT ===================== -->
-    <!-- Pendulum swing effect -->
+    <!-- Pendulum swing effect (side to side with easing) -->
 
     <Style Selector="controls|DaisyStatusIndicator[Variant=Swing] /template/ Ellipse#PART_MainEllipse">
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="RotateTransform.Angle" Value="0" />
+                    <Setter Property="TranslateTransform.X" Value="0" />
                 </KeyFrame>
                 <KeyFrame KeyTime="0:0:0.375">
-                    <Setter Property="RotateTransform.Angle" Value="30" />
+                    <Setter Property="TranslateTransform.X" Value="6" />
                 </KeyFrame>
                 <KeyFrame KeyTime="0:0:0.75">
-                    <Setter Property="RotateTransform.Angle" Value="0" />
+                    <Setter Property="TranslateTransform.X" Value="0" />
                 </KeyFrame>
                 <KeyFrame KeyTime="0:0:1.125">
-                    <Setter Property="RotateTransform.Angle" Value="-30" />
+                    <Setter Property="TranslateTransform.X" Value="-6" />
                 </KeyFrame>
                 <KeyFrame KeyTime="0:0:1.5">
-                    <Setter Property="RotateTransform.Angle" Value="0" />
+                    <Setter Property="TranslateTransform.X" Value="0" />
                 </KeyFrame>
             </Animation>
         </Style.Animations>
