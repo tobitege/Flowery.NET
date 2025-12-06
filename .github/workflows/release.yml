@@ -1,34 +1,59 @@
-name: Create Release with Artifacts
+name: Release
 
-# This workflow runs AFTER Gallery build completes (Gallery is the slowest)
-# By the time Gallery finishes, NuGet is already published
-# This creates the GitHub Release with ALL artifacts
+# MANUAL TRIGGER ONLY - Creates a new release with NuGet package and Gallery apps
+# Go to Actions → Release → Run workflow → Enter version (e.g., 1.0.6)
 
 on:
-  workflow_run:
-    workflows: ["Build Gallery App"]
-    types:
-      - completed
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.6) - without "v" prefix'
+        required: true
+        type: string
+      skip_nuget:
+        description: 'Skip NuGet publish (useful for re-running failed releases)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
-  release:
+  validate:
     runs-on: ubuntu-latest
-    # Only run if Gallery workflow succeeded and was triggered by a tag
-    if: ${{ github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'v') }}
-    permissions:
-      contents: write
-      actions: read
-
+    outputs:
+      version: ${{ steps.validate.outputs.version }}
+      tag: ${{ steps.validate.outputs.tag }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_branch }}
+      - name: Validate version format
+        id: validate
+        run: |
+          VERSION="${{ inputs.version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid version format. Use semantic versioning (e.g., 1.0.6)"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "✅ Version: $VERSION, Tag: v$VERSION"
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+  build-library:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+
+      - name: Verify version in csproj
+        run: |
+          CSPROJ_VERSION=$(grep -oP '(?<=<Version>)[^<]+' Flowery.NET/Flowery.NET.csproj)
+          if [ "$CSPROJ_VERSION" != "${{ needs.validate.outputs.version }}" ]; then
+            echo "::error::Version mismatch! csproj has $CSPROJ_VERSION but you specified ${{ needs.validate.outputs.version }}"
+            echo "::error::Please update Flowery.NET/Flowery.NET.csproj first!"
+            exit 1
+          fi
+          echo "✅ Version matches: $CSPROJ_VERSION"
 
       - name: Build library
         run: dotnet build Flowery.NET/Flowery.NET.csproj -c Release -o ./build-output
@@ -36,71 +61,199 @@ jobs:
       - name: Create NuGet package
         run: dotnet pack Flowery.NET/Flowery.NET.csproj -c Release -o ./artifacts
 
-      # Copy the compiled DLL to artifacts folder
-      - name: Copy DLL to artifacts
+      - name: Create library zip
         run: |
           mkdir -p ./artifacts/lib
           cp ./build-output/Flowery.NET.dll ./artifacts/lib/
           cp ./build-output/Flowery.NET.pdb ./artifacts/lib/
-
-      # Create a zip of the DLL for easy download
-      - name: Zip library files
-        run: |
           cd ./artifacts/lib
           zip ../Flowery.NET-lib.zip *
-          cd ../..
 
-      # Download Gallery artifacts from the Gallery workflow run
-      - name: Download Gallery artifacts
-        uses: dawidd6/action-download-artifact@v6
+      - name: Upload library artifacts
+        uses: actions/upload-artifact@v4
         with:
-          run_id: ${{ github.event.workflow_run.id }}
-          path: ./gallery-artifacts
-          skip_unpack: false
+          name: library-artifacts
+          path: |
+            ./artifacts/*.nupkg
+            ./artifacts/Flowery.NET-lib.zip
 
-      - name: List all artifacts
+  build-gallery:
+    needs: validate
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            artifact_name: Flowery.Gallery-Windows-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+            artifact_name: Flowery.Gallery-Linux-x64
+          - os: macos-latest
+            rid: osx-x64
+            artifact_name: Flowery.Gallery-macOS-x64
+          - os: macos-latest
+            rid: osx-arm64
+            artifact_name: Flowery.Gallery-macOS-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish Gallery App
+        shell: bash
         run: |
-          echo "=== Library artifacts ==="
-          ls -la ./artifacts/
-          echo "=== Gallery artifacts ==="
-          find ./gallery-artifacts -type f
+          dotnet publish Flowery.NET.Gallery/Flowery.NET.Gallery.csproj \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:EnableCompressionInSingleFile=true \
+            -o ./publish
 
-      # Move Gallery artifacts to main artifacts folder
-      - name: Collect Gallery artifacts
+      - name: Zip Windows artifact
+        if: matrix.os == 'windows-latest'
+        run: Compress-Archive -Path ./publish/* -DestinationPath ./${{ matrix.artifact_name }}.zip
+        shell: pwsh
+
+      - name: Tar Linux/macOS artifact
+        if: matrix.os != 'windows-latest'
         run: |
-          find ./gallery-artifacts -name "*.zip" -exec cp {} ./artifacts/ \;
-          find ./gallery-artifacts -name "*.tar.gz" -exec cp {} ./artifacts/ \;
-          echo "=== Final artifacts ==="
-          ls -la ./artifacts/
+          chmod +x ./publish/Flowery.NET.Gallery
+          tar -czvf ./${{ matrix.artifact_name }}.tar.gz -C ./publish .
 
-      # Create GitHub Release with ALL artifacts
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            ./${{ matrix.artifact_name }}.zip
+            ./${{ matrix.artifact_name }}.tar.gz
+          if-no-files-found: ignore
+
+  publish:
+    needs: [validate, build-library, build-gallery]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./release-artifacts
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p ./final
+          find ./release-artifacts -name "*.nupkg" -exec cp {} ./final/ \;
+          find ./release-artifacts -name "*.zip" -exec cp {} ./final/ \;
+          find ./release-artifacts -name "*.tar.gz" -exec cp {} ./final/ \;
+          echo "=== Release artifacts ==="
+          ls -la ./final/
+
+      - name: Extract changelog
+        id: changelog
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          # Extract the section for this version from CHANGELOG.md
+          # Matches from "## [X.Y.Z]" until the next "## [" or end of file
+          CHANGELOG=$(awk -v ver="$VERSION" '
+            /^## \[/ {
+              if (found) exit
+              if ($0 ~ "\\[" ver "\\]") found=1
+            }
+            found && !/^## \[/ { print }
+          ' CHANGELOG.md)
+
+          if [ -z "$CHANGELOG" ]; then
+            echo "⚠️ No changelog entry found for version $VERSION"
+            CHANGELOG="No changelog entry for this version."
+          fi
+
+          # Write to file for multiline support
+          echo "$CHANGELOG" > changelog_section.md
+          echo "✅ Extracted changelog for v$VERSION"
+
+      - name: Publish to NuGet
+        if: ${{ inputs.skip_nuget != true }}
+        run: |
+          dotnet nuget push ./final/*.nupkg \
+            -k ${{ secrets.NUGET_API_KEY }} \
+            -s https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+          echo "✅ Published to NuGet.org"
+
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ needs.validate.outputs.tag }}
+          git push origin ${{ needs.validate.outputs.tag }}
+          echo "✅ Created tag: ${{ needs.validate.outputs.tag }}"
+
+      - name: Build release notes
+        run: |
+          cat > release_notes.md << 'HEADER'
+          ## 📋 What's Changed
+          HEADER
+          cat changelog_section.md >> release_notes.md
+          cat >> release_notes.md << 'FOOTER'
+
+          ---
+
+          ## 📦 Library
+
+          | Asset | Description |
+          |-------|-------------|
+          FOOTER
+
+          echo "| \`Flowery.NET.${{ needs.validate.outputs.version }}.nupkg\` | NuGet package (also on [nuget.org](https://www.nuget.org/packages/Flowery.NET)) |" >> release_notes.md
+          echo "| \`Flowery.NET-lib.zip\` | Compiled DLL and PDB |" >> release_notes.md
+
+          cat >> release_notes.md << 'GALLERY'
+
+          ## 🌸 Gallery Demo App
+
+          Self-contained executables - no .NET installation required!
+
+          | Platform | Download |
+          |----------|----------|
+          | Windows x64 | `Flowery.Gallery-Windows-x64.zip` |
+          | Linux x64 | `Flowery.Gallery-Linux-x64.tar.gz` |
+          | macOS Intel | `Flowery.Gallery-macOS-x64.tar.gz` |
+          | macOS Apple Silicon | `Flowery.Gallery-macOS-arm64.tar.gz` |
+          GALLERY
+
+          echo "=== Release Notes ==="
+          cat release_notes.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.event.workflow_run.head_branch }}
-          files: |
-            ./artifacts/*.nupkg
-            ./artifacts/*.zip
-            ./artifacts/*.tar.gz
-          generate_release_notes: true
-          draft: false
-          body: |
-            ## 📦 Library
-
-            | Asset | Description |
-            |-------|-------------|
-            | `Flowery.NET.*.nupkg` | NuGet package (also on [nuget.org](https://www.nuget.org/packages/Flowery.NET)) |
-            | `Flowery.NET-lib.zip` | Compiled DLL and PDB |
-
-            ## 🌸 Gallery Demo App
-
-            Self-contained executables - no .NET installation required!
-
-            | Platform | Download |
-            |----------|----------|
-            | Windows x64 | `Flowery.Gallery-Windows-x64.zip` |
-            | Linux x64 | `Flowery.Gallery-Linux-x64.tar.gz` |
-            | macOS Intel | `Flowery.Gallery-macOS-x64.tar.gz` |
-            | macOS Apple Silicon | `Flowery.Gallery-macOS-arm64.tar.gz` |
+          tag_name: ${{ needs.validate.outputs.tag }}
+          name: "v${{ needs.validate.outputs.version }}"
+          files: ./final/*
+          body_path: release_notes.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## 🎉 Release Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** ${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag:** ${{ needs.validate.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **NuGet:** https://www.nuget.org/packages/Flowery.NET/${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release:** ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ needs.validate.outputs.tag }}" >> $GITHUB_STEP_SUMMARY

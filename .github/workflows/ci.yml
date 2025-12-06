@@ -1,0 +1,63 @@
+name: CI Build
+
+# Builds on every commit to verify everything compiles
+# Does NOT publish anything - just verification
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-library:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build Library
+        run: dotnet build Flowery.NET/Flowery.NET.csproj -c Release
+
+      - name: Build Tests
+        run: dotnet build Flowery.NET.Tests/Flowery.NET.Tests.csproj -c Release
+
+  build-gallery:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: macos-latest
+            rid: osx-x64
+          - os: macos-latest
+            rid: osx-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build Gallery
+        shell: bash
+        run: |
+          dotnet publish Flowery.NET.Gallery/Flowery.NET.Gallery.csproj \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:EnableCompressionInSingleFile=true \
+            -o ./publish
+
