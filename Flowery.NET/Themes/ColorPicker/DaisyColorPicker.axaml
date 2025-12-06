@@ -1,0 +1,13 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Main Color Picker theme that includes all sub-themes -->
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://Flowery.NET/Themes/ColorPicker/DaisyColorWheel.axaml" />
+        <ResourceInclude Source="avares://Flowery.NET/Themes/ColorPicker/DaisyColorGrid.axaml" />
+        <ResourceInclude Source="avares://Flowery.NET/Themes/ColorPicker/DaisyColorSlider.axaml" />
+        <ResourceInclude Source="avares://Flowery.NET/Themes/ColorPicker/DaisyColorEditor.axaml" />
+        <ResourceInclude Source="avares://Flowery.NET/Themes/ColorPicker/DaisyScreenColorPicker.axaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+</ResourceDictionary>

@@ -441,6 +441,20 @@ namespace Flowery.Controls
                         new SidebarItem { Id = "weather-conditions", Name = "Weather Conditions", TabHeader = "Custom Controls" },
                         new SidebarItem { Id = "service-integration", Name = "Service Integration", TabHeader = "Custom Controls" }
                     }
+                },
+                new SidebarCategory
+                {
+                    Name = "Color Picker",
+                    IconKey = "DaisyIconPalette",
+                    Items = new ObservableCollection<SidebarItem>
+                    {
+                        new SidebarItem { Id = "colorwheel", Name = "Color Wheel", TabHeader = "Color Picker" },
+                        new SidebarItem { Id = "colorgrid", Name = "Color Grid", TabHeader = "Color Picker" },
+                        new SidebarItem { Id = "colorslider", Name = "Color Sliders", TabHeader = "Color Picker" },
+                        new SidebarItem { Id = "coloreditor", Name = "Color Editor", TabHeader = "Color Picker" },
+                        new SidebarItem { Id = "screenpicker", Name = "Screen Picker", TabHeader = "Color Picker" },
+                        new SidebarItem { Id = "colorpickerdialog", Name = "Color Picker Dialog", TabHeader = "Color Picker" }
+                    }
                 }
             };
         }

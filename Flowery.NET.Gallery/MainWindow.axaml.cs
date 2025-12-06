@@ -30,7 +30,8 @@ public partial class MainWindow : Window
             ["Divider"] = () => new DividerExamples(),
             ["Layout"] = () => new LayoutExamples(),
             ["Theming"] = () => new ThemingExamples(),
-            ["Custom Controls"] = () => new CustomControls()
+            ["Custom Controls"] = () => new CustomControls(),
+            ["Color Picker"] = () => new ColorPickerExamples()
         };
 
         // Restore last viewed page or show home

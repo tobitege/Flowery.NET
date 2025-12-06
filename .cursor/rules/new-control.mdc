@@ -1,0 +1,349 @@
+---
+alwaysApply: false
+---
+# Creating a New Flowery.NET Control
+
+This rule outlines the complete workflow for creating a new control in Flowery.NET, whether it's a brand new control or a port from another library.
+
+## Overview
+
+Creating a new control involves these major phases:
+1. **Control Implementation** - C# class with properties and logic
+2. **Theme/Styling** - AXAML theme file for visual appearance
+3. **Gallery Examples** - Demo page in the gallery application
+4. **Sidebar Integration** - Add to the component sidebar
+5. **Documentation** - Markdown file for supplementary docs
+
+---
+
+## Phase 1: Control Implementation
+
+### 1.1 Create the C# Control File
+
+**Location:** `Flowery.NET/Controls/Daisy[ControlName].cs`
+
+**Required elements:**
+
+```csharp
+using System;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+// Add other required usings at the TOP
+
+namespace Flowery.Controls
+{
+    // Define enums at namespace level
+    public enum Daisy[ControlName]Variant
+    {
+        Default,
+        Primary,
+        // ... other values
+    }
+
+    /// <summary>
+    /// Brief description of what the control does.
+    /// </summary>
+    public class Daisy[ControlName] : TemplatedControl // or appropriate base class
+    {
+        // StyleKey override for theming
+        protected override Type StyleKeyOverride => typeof(Daisy[ControlName]);
+
+        /// <summary>
+        /// Gets or sets the property description.
+        /// </summary>
+        public static readonly StyledProperty<Type> PropertyNameProperty =
+            AvaloniaProperty.Register<Daisy[ControlName], Type>(nameof(PropertyName), defaultValue);
+
+        public Type PropertyName
+        {
+            get => GetValue(PropertyNameProperty);
+            set => SetValue(PropertyNameProperty, value);
+        }
+    }
+}
+```
+
+### 1.2 Key Requirements
+
+- **XML Documentation**: Every class and property MUST have `/// <summary>` comments
+- **StyledProperty Pattern**: Use the exact pattern shown above for documentation generator
+- **Enums at Namespace Level**: Define enums outside the class, with `public` access
+- **Using Directives**: Add ALL required usings at the file TOP (avoid inline fully-qualified names)
+
+---
+
+## Phase 2: Theme/Styling
+
+### 2.1 Create the Theme File
+
+**Location:** `Flowery.NET/Themes/Daisy[ControlName].axaml`
+
+```xml
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <ControlTheme x:Key="{x:Type controls:Daisy[ControlName]}" TargetType="controls:Daisy[ControlName]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <!-- Control template here -->
+            </ControlTemplate>
+        </Setter>
+        <!-- Style setters for variants, states, etc. -->
+    </ControlTheme>
+
+</ResourceDictionary>
+```
+
+### 2.2 Register the Theme
+
+Add the theme to `Flowery.NET/DaisyUITheme.axaml`:
+
+```xml
+<ResourceInclude Source="avares://Flowery.NET/Themes/Daisy[ControlName].axaml" />
+```
+
+---
+
+## Phase 3: Gallery Examples
+
+### 3.1 Create or Update Examples File
+
+**Location:** `Flowery.NET.Gallery/Examples/[Category]Examples.axaml`
+
+Add a section for the new control:
+
+```xml
+<!-- Control Name -->
+<StackPanel Spacing="12">
+    <local:SectionHeader SectionId="controlname" Title="Control Name" />
+    <TextBlock Text="Description of the control." Opacity="0.7" />
+    <WrapPanel Orientation="Horizontal">
+        <StackPanel Spacing="10" Margin="0,0,40,20">
+            <TextBlock Text="Basic Usage" FontSize="12" Opacity="0.7"/>
+            <controls:Daisy[ControlName] />
+        </StackPanel>
+        <!-- More examples -->
+    </WrapPanel>
+</StackPanel>
+
+<controls:DaisyDivider />
+```
+
+### 3.2 Code-Behind (if needed)
+
+If the examples need event handlers or dynamic behavior, add them to the `.axaml.cs` file.
+
+### 3.3 Implement IScrollableExample
+
+Ensure the examples class implements `IScrollableExample`:
+
+```csharp
+public partial class [Category]Examples : UserControl, IScrollableExample
+{
+    public void ScrollToSection(string sectionName)
+    {
+        // Standard implementation - copy from existing examples
+    }
+}
+```
+
+---
+
+## Phase 4: Sidebar Integration
+
+### 4.1 Add to DaisyComponentSidebar
+
+**Location:** `Flowery.NET/Controls/DaisyComponentSidebar.cs`
+
+Add a new `SidebarItem` in the appropriate category, or create a new category:
+
+```csharp
+new SidebarItem { Id = "controlname", Name = "Control Name", TabHeader = "Category" }
+```
+
+### 4.2 Add Category Mapping (if new category)
+
+**Location:** `Flowery.NET.Gallery/MainWindow.axaml.cs`
+
+```csharp
+_categoryControls = new Dictionary<string, Func<Control>>
+{
+    // ...existing entries...
+    ["New Category"] = () => new NewCategoryExamples()
+};
+```
+
+### 4.3 Add Icon (if new category)
+
+**Location:** `Flowery.NET/Themes/DaisyIcons.axaml`
+
+```xml
+<StreamGeometry x:Key="DaisyIconNewCategory">M...</StreamGeometry>
+```
+
+---
+
+## Phase 5: Documentation
+
+### 5.1 Create Supplementary Documentation
+
+**Location:** `llms-static/Daisy[ControlName].md`
+
+This is a REQUIRED step for all new controls. Follow the workflow in `llms-static/WORKFLOW.md`:
+
+```markdown
+<!-- Supplementary documentation for Daisy[ControlName] -->
+<!-- This content is merged into auto-generated docs by generate_docs.py -->
+
+## Overview
+
+Brief description of the control, its key features, and when to use it.
+
+## Variant Options (if applicable)
+
+| Variant | Description |
+|---------|-------------|
+| **Default** | Standard appearance |
+| **Primary** | High emphasis style |
+
+## Size Options (if applicable)
+
+| Size | Use Case |
+|------|----------|
+| Small | Compact UIs |
+| Medium | General purpose |
+
+## Quick Examples
+
+\`\`\`xml
+<!-- Basic usage -->
+<controls:Daisy[ControlName] />
+
+<!-- With variant -->
+<controls:Daisy[ControlName] Variant="Primary" />
+\`\`\`
+
+## Tips & Best Practices
+
+- Tip 1
+- Tip 2
+
+---
+```
+
+### 5.2 Documentation Requirements
+
+The markdown file MUST:
+- Be named exactly `Daisy[ControlName].md` (matching the C# class name)
+- Be placed in the `llms-static/` folder
+- Have the HTML comment header
+- Have an `## Overview` section
+- End with `---`
+
+Refer to `llms-static/WORKFLOW.md` for complete documentation guidelines.
+
+---
+
+## Phase 6: Verification
+
+### 6.1 Build Check
+
+```bash
+dotnet build Flowery.NET/Flowery.NET.csproj
+dotnet build Flowery.NET.Gallery/Flowery.NET.Gallery.csproj
+```
+
+### 6.2 Run Gallery
+
+Test the control in the gallery application to verify:
+- Control renders correctly
+- All variants/sizes work
+- Sidebar navigation works
+- Section scrolling works
+
+### 6.3 Generate Documentation
+
+```bash
+python Utils/generate_docs.py
+```
+
+---
+
+## Checklist
+
+- [ ] C# control file created with proper XML documentation
+- [ ] Enums defined at namespace level (if any)
+- [ ] Theme AXAML file created
+- [ ] Theme registered in DaisyUITheme.axaml
+- [ ] Gallery examples added with SectionHeader
+- [ ] Examples class implements IScrollableExample
+- [ ] Sidebar item added to DaisyComponentSidebar.cs
+- [ ] Category mapping added to MainWindow.axaml.cs (if new category)
+- [ ] Icon added (if new category)
+- [ ] **Supplementary documentation created in `llms-static/Daisy[ControlName].md`**
+- [ ] Build succeeds without errors
+- [ ] Gallery tested and working
+- [ ] Documentation generated
+
+---
+
+## Common Pitfalls
+
+| Issue | Solution |
+|-------|----------|
+| Control not rendering | Check theme registration in DaisyUITheme.axaml |
+| Sidebar item not navigating | Verify TabHeader matches dictionary key in MainWindow.axaml.cs |
+| ScrollToSection not working | Ensure SectionId matches the sidebar item Id |
+| Documentation not merging | Ensure filename matches class name exactly |
+| .NET Standard 2.0 errors | Avoid `HashCode.Combine`, `Math.Clamp`, `unsafe` code, `Brushes.White` |
+| **TemplateBinding crash** | `TemplateBinding` does NOT support `Mode=TwoWay`. Use code-behind to sync values instead |
+
+### TemplateBinding Two-Way Binding Issue
+
+**CRITICAL**: In Avalonia, `TemplateBinding` is always one-way (from source to target). Using `{TemplateBinding PropertyName, Mode=TwoWay}` will cause a runtime crash:
+
+```csharp
+Avalonia.DirectPropertyBase`1.RouteSetValue ... WriteValueToSource ...
+```
+
+**Wrong (causes crash):**
+
+```xml
+<TextBox Text="{TemplateBinding HexValue, Mode=TwoWay}" />
+<NumericUpDown Value="{TemplateBinding Red, Mode=TwoWay}" />
+```
+
+**Correct approach:**
+
+1. Remove the binding from AXAML - just define the template part with a name:
+
+```xml
+<TextBox Name="PART_HexInput" />
+<NumericUpDown Name="PART_RedInput" Minimum="0" Maximum="255" />
+```
+
+2. In code-behind, find template parts in `OnApplyTemplate` and sync values manually:
+
+```csharp
+protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+{
+    base.OnApplyTemplate(e);
+    _hexInput = e.NameScope.Find<TextBox>("PART_HexInput");
+    _redInput = e.NameScope.Find<NumericUpDown>("PART_RedInput");
+    
+    // Subscribe to change events
+    if (_hexInput != null) _hexInput.LostFocus += OnHexInputLostFocus;
+    if (_redInput != null) _redInput.ValueChanged += OnRedValueChanged;
+    
+    // Initialize with current values
+    UpdateTemplateControls();
+}
+
+private void UpdateTemplateControls()
+{
+    if (_hexInput != null) _hexInput.Text = HexValue;
+    if (_redInput != null) _redInput.Value = Red;
+}
+```

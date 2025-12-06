@@ -1,0 +1,168 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:colorpicker="clr-namespace:Flowery.Controls.ColorPicker;assembly=Flowery.NET"
+             xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
+             x:Class="Flowery.NET.Gallery.Examples.ColorPickerExamples">
+
+    <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="24" Margin="24,0,24,32">
+
+            <!-- Color Wheel -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="colorwheel" Title="Color Wheel" />
+                <TextBlock Text="A circular color wheel for selecting hue and saturation values." Opacity="0.7" />
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Basic Color Wheel" FontSize="12" Opacity="0.7"/>
+                        <colorpicker:DaisyColorWheel x:Name="ColorWheel1" Width="200" Height="200" Color="Red" />
+                        <TextBlock x:Name="ColorWheelValue1" Text="Color: #FF0000" FontSize="11" Opacity="0.6" />
+                    </StackPanel>
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="With Center Lines" FontSize="12" Opacity="0.7"/>
+                        <colorpicker:DaisyColorWheel Width="200" Height="200" Color="Blue" ShowCenterLines="True" />
+                    </StackPanel>
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Different Lightness (0.7)" FontSize="12" Opacity="0.7"/>
+                        <colorpicker:DaisyColorWheel Width="200" Height="200" Color="Green" Lightness="0.7" />
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
+            <!-- Color Grid -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="colorgrid" Title="Color Grid" />
+                <TextBlock Text="A grid control for selecting colors from predefined palettes." Opacity="0.7" />
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Paint Palette" FontSize="12" Opacity="0.7"/>
+                        <colorpicker:DaisyColorGrid x:Name="ColorGrid1" />
+                        <TextBlock x:Name="ColorGridValue1" Text="Selected: #000000" FontSize="11" Opacity="0.6" />
+                    </StackPanel>
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Larger Cells (20x20)" FontSize="12" Opacity="0.7"/>
+                        <colorpicker:DaisyColorGrid CellSize="20,20" Columns="8" />
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
+            <!-- Color Sliders -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="colorslider" Title="Color Sliders" />
+                <TextBlock Text="Sliders for individual color channel selection (RGB, HSL, Alpha)." Opacity="0.7" />
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel Spacing="10" Margin="0,0,40,20" Width="300">
+                        <TextBlock Text="RGB Channels" FontSize="12" Opacity="0.7"/>
+                        <Grid ColumnDefinitions="40,*">
+                            <TextBlock Text="R:" VerticalAlignment="Center" />
+                            <colorpicker:DaisyColorSlider x:Name="RedSlider" Grid.Column="1" Channel="Red" Color="Red" />
+                        </Grid>
+                        <Grid ColumnDefinitions="40,*">
+                            <TextBlock Text="G:" VerticalAlignment="Center" />
+                            <colorpicker:DaisyColorSlider x:Name="GreenSlider" Grid.Column="1" Channel="Green" Color="Lime" />
+                        </Grid>
+                        <Grid ColumnDefinitions="40,*">
+                            <TextBlock Text="B:" VerticalAlignment="Center" />
+                            <colorpicker:DaisyColorSlider x:Name="BlueSlider" Grid.Column="1" Channel="Blue" Color="Blue" />
+                        </Grid>
+                    </StackPanel>
+                    <StackPanel Spacing="10" Margin="0,0,40,20" Width="300">
+                        <TextBlock Text="HSL Channels" FontSize="12" Opacity="0.7"/>
+                        <Grid ColumnDefinitions="40,*">
+                            <TextBlock Text="H:" VerticalAlignment="Center" />
+                            <colorpicker:DaisyColorSlider Grid.Column="1" Channel="Hue" Color="Red" />
+                        </Grid>
+                        <Grid ColumnDefinitions="40,*">
+                            <TextBlock Text="S:" VerticalAlignment="Center" />
+                            <colorpicker:DaisyColorSlider Grid.Column="1" Channel="Saturation" Color="Red" />
+                        </Grid>
+                        <Grid ColumnDefinitions="40,*">
+                            <TextBlock Text="L:" VerticalAlignment="Center" />
+                            <colorpicker:DaisyColorSlider Grid.Column="1" Channel="Lightness" Color="Red" />
+                        </Grid>
+                    </StackPanel>
+                    <StackPanel Spacing="10" Margin="0,0,40,20" Width="300">
+                        <TextBlock Text="Alpha Channel" FontSize="12" Opacity="0.7"/>
+                        <Grid ColumnDefinitions="40,*">
+                            <TextBlock Text="A:" VerticalAlignment="Center" />
+                            <colorpicker:DaisyColorSlider Grid.Column="1" Channel="Alpha" Color="#80FF0000" />
+                        </Grid>
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
+            <!-- Color Editor -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="coloreditor" Title="Color Editor" />
+                <TextBlock Text="A comprehensive color editor with RGB/HSL sliders and numeric inputs." Opacity="0.7" />
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel Spacing="10" Margin="0,0,40,20" Width="500">
+                        <TextBlock Text="Full Color Editor" FontSize="12" Opacity="0.7"/>
+                        <colorpicker:DaisyColorEditor x:Name="ColorEditor1" Color="Purple" />
+                    </StackPanel>
+                    <StackPanel Spacing="10" Margin="0,0,40,20" Width="500">
+                        <TextBlock Text="RGB Only (No Alpha)" FontSize="12" Opacity="0.7"/>
+                        <colorpicker:DaisyColorEditor Color="Orange" ShowAlphaChannel="False" ShowHslSliders="False" />
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
+            <!-- Screen Color Picker -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="screenpicker" Title="Screen Color Picker" />
+                <TextBlock TextWrapping="Wrap" Opacity="0.7">
+                    <Run Text="An eyedropper tool for picking colors from anywhere on screen using a " />
+                    <Run Text="click-and-drag" FontWeight="SemiBold" />
+                    <Run Text=" gesture. Works on Windows only." />
+                </TextBlock>
+
+                <!-- Instructions -->
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="6" Padding="12" Margin="0,4,0,8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="How to use:" FontWeight="SemiBold" FontSize="12" />
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="1. Click and HOLD the left mouse button on the control" FontSize="11" Opacity="0.8" />
+                            <TextBlock Text="2. DRAG anywhere on screen (even outside this window)" FontSize="11" Opacity="0.8" />
+                            <TextBlock Text="3. Watch the live color preview update as you move" FontSize="11" Opacity="0.8" />
+                            <TextBlock Text="4. RELEASE to capture the color at the cursor position" FontSize="11" Opacity="0.8" />
+                        </StackPanel>
+                        <TextBlock Text="Press Escape while dragging to cancel." FontSize="10" Opacity="0.6" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="Eyedropper Tool" FontSize="12" Opacity="0.7"/>
+                        <colorpicker:DaisyScreenColorPicker x:Name="ScreenPicker1" />
+                        <TextBlock x:Name="ScreenPickerValue1" Text="Click and drag to pick a color" FontSize="11" Opacity="0.6" />
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
+            <!-- Color Picker Dialog -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="colorpickerdialog" Title="Color Picker Dialog" />
+                <TextBlock Text="A complete color picker dialog combining all components." Opacity="0.7" />
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <controls:DaisyButton x:Name="OpenDialogButton" Content="Open Color Picker Dialog" Variant="Primary" />
+                        <Border x:Name="SelectedColorPreview" Width="100" Height="30" Background="Red" CornerRadius="4" BorderBrush="{DynamicResource DaisyBase300Brush}" BorderThickness="1" />
+                        <TextBlock x:Name="SelectedColorText" Text="Selected: #FF0000" FontSize="11" Opacity="0.6" />
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

@@ -1,0 +1,81 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls.ColorPicker;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="{DynamicResource DaisyBase200Brush}" Width="350">
+            <controls:DaisyColorEditor Color="Red" />
+        </Border>
+    </Design.PreviewWith>
+
+    <ControlTheme x:Key="{x:Type controls:DaisyColorEditor}" TargetType="controls:DaisyColorEditor">
+        <Setter Property="ShowAlphaChannel" Value="True" />
+        <Setter Property="ShowHexInput" Value="True" />
+        <Setter Property="ShowRgbSliders" Value="True" />
+        <Setter Property="ShowHslSliders" Value="True" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <StackPanel Spacing="6" Margin="0,0,0,10">
+                    <!-- Hex Input -->
+                    <Grid ColumnDefinitions="50,100" IsVisible="{TemplateBinding ShowHexInput}">
+                        <TextBlock Text="Hex:" VerticalAlignment="Center" FontSize="12" />
+                        <TextBox Name="PART_HexInput" Grid.Column="1" FontSize="12" Padding="6,3" />
+                    </Grid>
+
+                    <!-- RGB Sliders -->
+                    <StackPanel Spacing="3" IsVisible="{TemplateBinding ShowRgbSliders}">
+                        <TextBlock Text="RGB" FontWeight="SemiBold" FontSize="11" Opacity="0.8" />
+
+                        <Grid ColumnDefinitions="24,*,130" Height="26">
+                            <TextBlock Text="R:" VerticalAlignment="Center" FontSize="11" />
+                            <controls:DaisyColorSlider Name="PART_RedSlider" Grid.Column="1" Channel="Red" Height="18" />
+                            <NumericUpDown Name="PART_RedInput" Grid.Column="2" Minimum="0" Maximum="255" FormatString="0" Margin="6,0,0,0" FontSize="12" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="24,*,130" Height="26">
+                            <TextBlock Text="G:" VerticalAlignment="Center" FontSize="11" />
+                            <controls:DaisyColorSlider Name="PART_GreenSlider" Grid.Column="1" Channel="Green" Height="18" />
+                            <NumericUpDown Name="PART_GreenInput" Grid.Column="2" Minimum="0" Maximum="255" FormatString="0" Margin="6,0,0,0" FontSize="12" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="24,*,130" Height="26">
+                            <TextBlock Text="B:" VerticalAlignment="Center" FontSize="11" />
+                            <controls:DaisyColorSlider Name="PART_BlueSlider" Grid.Column="1" Channel="Blue" Height="18" />
+                            <NumericUpDown Name="PART_BlueInput" Grid.Column="2" Minimum="0" Maximum="255" FormatString="0" Margin="6,0,0,0" FontSize="12" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="24,*,130" Height="26" IsVisible="{TemplateBinding ShowAlphaChannel}">
+                            <TextBlock Text="A:" VerticalAlignment="Center" FontSize="11" />
+                            <controls:DaisyColorSlider Name="PART_AlphaSlider" Grid.Column="1" Channel="Alpha" Height="18" />
+                            <NumericUpDown Name="PART_AlphaInput" Grid.Column="2" Minimum="0" Maximum="255" FormatString="0" Margin="6,0,0,0" FontSize="12" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- HSL Sliders -->
+                    <StackPanel Spacing="3" IsVisible="{TemplateBinding ShowHslSliders}">
+                        <TextBlock Text="HSL" FontWeight="SemiBold" FontSize="11" Opacity="0.8" />
+
+                        <Grid ColumnDefinitions="24,*,130" Height="26">
+                            <TextBlock Text="H:" VerticalAlignment="Center" FontSize="11" />
+                            <controls:DaisyColorSlider Name="PART_HueSlider" Grid.Column="1" Channel="Hue" Height="18" />
+                            <NumericUpDown Name="PART_HueInput" Grid.Column="2" Minimum="0" Maximum="359" FormatString="0" Margin="6,0,0,0" FontSize="12" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="24,*,130" Height="26">
+                            <TextBlock Text="S:" VerticalAlignment="Center" FontSize="11" />
+                            <controls:DaisyColorSlider Name="PART_SaturationSlider" Grid.Column="1" Channel="Saturation" Height="18" />
+                            <NumericUpDown Name="PART_SaturationInput" Grid.Column="2" Minimum="0" Maximum="100" FormatString="0" Margin="6,0,0,0" FontSize="12" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="24,*,130" Height="26">
+                            <TextBlock Text="L:" VerticalAlignment="Center" FontSize="11" />
+                            <controls:DaisyColorSlider Name="PART_LightnessSlider" Grid.Column="1" Channel="Lightness" Height="18" />
+                            <NumericUpDown Name="PART_LightnessInput" Grid.Column="2" Minimum="0" Maximum="100" FormatString="0" Margin="6,0,0,0" FontSize="12" />
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+
+</ResourceDictionary>

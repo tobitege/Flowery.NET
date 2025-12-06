@@ -1,0 +1,25 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls.ColorPicker;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="{DynamicResource DaisyBase200Brush}">
+            <StackPanel Spacing="20">
+                <controls:DaisyColorWheel Width="200" Height="200" Color="Red" />
+                <controls:DaisyColorWheel Width="150" Height="150" Color="Blue" Lightness="0.7" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <ControlTheme x:Key="{x:Type controls:DaisyColorWheel}" TargetType="controls:DaisyColorWheel">
+        <Setter Property="MinWidth" Value="100" />
+        <Setter Property="MinHeight" Value="100" />
+        <Setter Property="Cursor" Value="Cross" />
+        <Setter Property="SelectionSize" Value="10" />
+        <Setter Property="SelectionOutlineColor" Value="White" />
+        <Setter Property="Lightness" Value="0.5" />
+        <Setter Property="ColorStep" Value="4" />
+        <Setter Property="ClipToBounds" Value="True" />
+    </ControlTheme>
+
+</ResourceDictionary>

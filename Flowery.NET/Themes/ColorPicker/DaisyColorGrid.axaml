@@ -1,0 +1,25 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls.ColorPicker;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="{DynamicResource DaisyBase200Brush}">
+            <StackPanel Spacing="20">
+                <controls:DaisyColorGrid />
+                <controls:DaisyColorGrid CellSize="20,20" Columns="8" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <ControlTheme x:Key="{x:Type controls:DaisyColorGrid}" TargetType="controls:DaisyColorGrid">
+        <Setter Property="CellSize" Value="16,16" />
+        <Setter Property="Spacing" Value="3,3" />
+        <Setter Property="Columns" Value="16" />
+        <Setter Property="CellBorderColor" Value="#A0A0A0" />
+        <Setter Property="SelectionBorderColor" Value="#0078D7" />
+        <Setter Property="ShowCustomColors" Value="True" />
+        <Setter Property="AutoAddColors" Value="True" />
+        <Setter Property="Cursor" Value="Hand" />
+    </ControlTheme>
+
+</ResourceDictionary>

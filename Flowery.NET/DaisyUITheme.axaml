@@ -60,6 +60,8 @@
                 <ResourceInclude Source="/Themes/Custom/Weather/DaisyWeatherForecast.axaml" />
                 <ResourceInclude Source="/Themes/Custom/Weather/DaisyWeatherMetrics.axaml" />
                 <ResourceInclude Source="/Themes/Custom/Weather/DaisyWeatherCard.axaml" />
+                <!-- Color Picker controls -->
+                <ResourceInclude Source="/Themes/ColorPicker/DaisyColorPicker.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Styles.Resources>

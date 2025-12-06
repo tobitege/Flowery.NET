@@ -221,8 +221,10 @@ class SiteGenerator:
 
         # Collect all controls
         print("\n[1/4] Scanning control docs...")
+        seen_controls = set()
+        
         if self.use_curated_only:
-            # Read directly from llms-static/
+            # First, read curated docs from llms-static/
             for md_file in sorted(self.curated_dir.glob("Daisy*.md")):
                 name = md_file.stem
                 self.controls.append({
@@ -230,6 +232,21 @@ class SiteGenerator:
                     'file': md_file,
                     'html_name': f"{name}.html"
                 })
+                seen_controls.add(name)
+            
+            # Then, also include auto-generated docs from llms/controls/ for controls
+            # that don't have curated docs (e.g., weather controls, custom controls)
+            controls_dir = self.docs_dir / "controls"
+            if controls_dir.exists():
+                for md_file in sorted(controls_dir.glob("*.md")):
+                    name = md_file.stem
+                    if name.startswith("Daisy") and name not in seen_controls:
+                        self.controls.append({
+                            'name': name,
+                            'file': md_file,
+                            'html_name': f"{name}.html"
+                        })
+                        seen_controls.add(name)
         else:
             # Read from llms/controls/
             controls_dir = self.docs_dir / "controls"
@@ -844,9 +861,9 @@ tr:hover td {
 
     def _generate_shell(self):
         """Generate the main app shell (index.html) with sidebar and iframe."""
-        
+
         sidebar_items = []
-        
+
         # Home link
         sidebar_items.append('<li><a href="home.html" target="viewer" class="active">← Home</a></li>')
 
@@ -933,7 +950,7 @@ tr:hover td {
 
         function applyTheme(theme) {{
             document.documentElement.setAttribute('data-theme', theme);
-            
+
             // Update icons
             if (theme === 'dark') {{
                 sunIcon.style.display = 'block';
@@ -952,7 +969,7 @@ tr:hover td {
             }} catch(e) {{
                 // console.log('Direct access restricted');
             }}
-            
+
             // 2. PostMessage (works for cross-origin/local files)
             try {{
                 if (iframe.contentWindow) {{
@@ -964,7 +981,6 @@ tr:hover td {
         themeToggle.addEventListener('click', () => {{
             const current = document.documentElement.getAttribute('data-theme');
             const newTheme = current === 'dark' ? 'light' : 'dark';
-            
             localStorage.setItem('theme', newTheme);
             applyTheme(newTheme);
         }});
@@ -999,7 +1015,7 @@ tr:hover td {
             link.addEventListener('click', (e) => {{
                 // Don't mess with external links
                 if (link.target === '_blank') return;
-                
+
                 links.forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
 
@@ -1021,6 +1037,9 @@ tr:hover td {
             llms_content = self._generate_llms_txt_from_curated()
         else:
             llms_content = (self.docs_dir / "llms.txt").read_text(encoding='utf-8')
+
+        # Write llms.txt to output directory for AI assistants
+        (self.output_dir / "llms.txt").write_text(llms_content, encoding='utf-8')
 
         # Convert to HTML
         html_content = self.converter.convert(llms_content)
@@ -1092,6 +1111,32 @@ tr:hover td {
         lines.append('xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"')
         lines.append("```")
         lines.append("")
+
+        # Controls Overview
+        lines.append("## Controls Overview")
+        lines.append("")
+        lines.append("| Control | Description |")
+        lines.append("|---------|-------------|")
+
+        for ctrl in sorted(self.controls, key=lambda c: c['name']):
+            name = ctrl['name']
+            display_name = name.replace('Daisy', '')
+            # Try to extract description from the markdown file
+            desc = f"{display_name} control"
+            try:
+                content = ctrl['file'].read_text(encoding='utf-8')
+                # Look for first paragraph after "# Overview" or first non-header line
+                content_clean = re.sub(r'<!--.*?-->', '', content, flags=re.DOTALL)
+                # Find first meaningful paragraph
+                for line in content_clean.split('\n'):
+                    line = line.strip()
+                    if line and not line.startswith('#') and not line.startswith('|') and not line.startswith('-'):
+                        desc = line[:80] + "..." if len(line) > 80 else line
+                        break
+            except Exception:
+                pass
+            lines.append(f"| [{name}](controls/{name}.html) | {desc} |")
+
         lines.append("")
         lines.append("## Common Patterns")
         lines.append("")
@@ -1123,7 +1168,7 @@ tr:hover td {
         # 1. Build map of control -> category
         control_category_map = {}
         category_controls_map = {} # cat_name -> list of controls
-        
+
         # Parse categories to find which controls belong where
         for cat in self.categories:
             cat_content = cat['file'].read_text(encoding='utf-8')
@@ -1138,7 +1183,7 @@ tr:hover td {
             md_content = ctrl['file'].read_text(encoding='utf-8')
             # Strip HTML comments from curated docs
             md_content = re.sub(r'<!--.*?-->', '', md_content, flags=re.DOTALL)
-            
+
             # Fix Headings: If it starts with "# Overview", demote it and add proper title
             stripped_content = md_content.strip()
             if stripped_content.startswith('# Overview'):
@@ -1153,20 +1198,20 @@ tr:hover td {
             # --- Navigation & Breadcrumbs ---
             nav_html = ""
             category = control_category_map.get(ctrl['name'])
-            
+
             if category:
                 # Breadcrumbs
                 nav_html += f'''<div class="breadcrumbs">
     <a href="../home.html">Home</a> &gt; 
     <a href="../categories/{category["html_name"]}">{category["name"]}</a>
 </div>'''
-                
+
                 # Prev/Next
                 siblings = category_controls_map.get(category['name'], [])
                 try:
                     idx = siblings.index(ctrl['name'])
                     links = []
-                    
+
                     if idx > 0:
                         prev_name = siblings[idx-1]
                         links.append(f'<a href="{prev_name}.html" class="nav-prev">← {prev_name.replace("Daisy", "")}</a>')
@@ -1203,7 +1248,7 @@ tr:hover td {
                     idx = siblings.index(ctrl['name'])
                     prev_link = f'<a href="{siblings[idx-1]}.html">← {siblings[idx-1].replace("Daisy", "")}</a>' if idx > 0 else ""
                     next_link = f'<a href="{siblings[idx+1]}.html">{siblings[idx+1].replace("Daisy", "")} →</a>' if idx < len(siblings) - 1 else ""
-                    
+
                     if prev_link or next_link:
                         prev_next = f'''<div class="doc-nav">
     <div class="nav-left">{prev_link}</div>
@@ -1211,7 +1256,7 @@ tr:hover td {
 </div>'''
 
             final_content = breadcrumbs + html_content + prev_next
-            
+
             page = self._page_template(ctrl['name'], final_content, depth=1)
             (self.output_dir / "controls" / ctrl['html_name']).write_text(page, encoding='utf-8')
 

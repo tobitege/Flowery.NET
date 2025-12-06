@@ -354,7 +354,7 @@ If you find this library useful, consider supporting its development:
 
 ## Changelog
 
-2025-12 - Initial release, incl. NuGet package
+2025-12 - Initial release, incl. docs and NuGet package
 
 ## Credits & References
 
@@ -363,5 +363,6 @@ This project is built upon and inspired by the following amazing projects:
 - [**Avalonia UI**](https://avaloniaui.net/) - The cross-platform UI framework.
 - [**DaisyUI**](https://daisyui.com/) - The original Tailwind CSS component library that inspired this port.
 - [**Avalonia.Fonts.Inter**](https://www.nuget.org/packages/Avalonia.Fonts.Inter) - The font used in the gallery.
+- [**Cyotek ColorPicker**](https://github.com/cyotek/Cyotek.Windows.Forms.ColorPicker) - The color picker controls are inspired by Cyotek's excellent Windows Forms ColorPicker library (MIT License).
 
-> **Disclaimer:** This project is not affiliated with, endorsed by, or sponsored by DaisyUI or Avalonia UI.
+> **Disclaimer:** This project is not affiliated with, endorsed by, or sponsored by any of the above.

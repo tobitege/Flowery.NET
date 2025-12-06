@@ -1,0 +1,29 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls.ColorPicker;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="{DynamicResource DaisyBase200Brush}">
+            <StackPanel Spacing="10" Width="250">
+                <controls:DaisyColorSlider Channel="Hue" Color="Red" />
+                <controls:DaisyColorSlider Channel="Saturation" Color="Red" />
+                <controls:DaisyColorSlider Channel="Lightness" Color="Red" />
+                <controls:DaisyColorSlider Channel="Red" Color="Red" />
+                <controls:DaisyColorSlider Channel="Green" Color="Green" />
+                <controls:DaisyColorSlider Channel="Blue" Color="Blue" />
+                <controls:DaisyColorSlider Channel="Alpha" Color="#80FF0000" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <ControlTheme x:Key="{x:Type controls:DaisyColorSlider}" TargetType="controls:DaisyColorSlider">
+        <Setter Property="MinHeight" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="NubSize" Value="8" />
+        <Setter Property="ShowCheckerboard" Value="True" />
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Focusable" Value="True" />
+    </ControlTheme>
+
+</ResourceDictionary>

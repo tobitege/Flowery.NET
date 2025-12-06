@@ -220,22 +220,22 @@ class CSharpParser:
 
         # Find all classes
         matches = list(class_pattern.finditer(content))
-        
+
         selected_match = None
-        
+
         # 1. Try to find exact match with filename
         for m in matches:
             if m.group(1) == target_name:
                 selected_match = m
                 break
-                
+
         # 2. Fallback: Find first class starting with "Daisy"
         if not selected_match:
             for m in matches:
                 if m.group(1).startswith("Daisy"):
                     selected_match = m
                     break
-        
+
         if not selected_match:
             return None
 
@@ -486,16 +486,18 @@ class AxamlParser:
         """Extract and format control elements."""
         controls = []
 
-        # Match self-closing or paired control elements
-        self_closing = re.compile(r'<controls:(Daisy\w+)([^>]*)/>')
-        paired_pattern = re.compile(r'<controls:(Daisy\w+)([^>]*)>')
+        # Match self-closing or paired control elements with any namespace prefix
+        # Matches: controls:DaisyButton, colorpicker:DaisyColorWheel, weather:DaisyWeatherCard, etc.
+        self_closing = re.compile(r'<(\w+):(Daisy\w+)([^>]*)/>')
+        paired_pattern = re.compile(r'<(\w+):(Daisy\w+)([^>]*)>')
 
         for match in self_closing.finditer(content):
-            control_name = match.group(1)
+            ns_prefix = match.group(1)
+            control_name = match.group(2)
             # Skip dividers and unrelated controls if we have a target
             if control_name == 'DaisyDivider':
                 continue
-            attrs = match.group(2)
+            attrs = match.group(3)
             xaml = self._format_control(control_name, attrs, None)
             if xaml and xaml not in controls:
                 controls.append(xaml)
@@ -504,12 +506,14 @@ class AxamlParser:
 
         if len(controls) < 3:
             for match in paired_pattern.finditer(content):
-                control_name = match.group(1)
+                ns_prefix = match.group(1)
+                control_name = match.group(2)
                 if control_name == 'DaisyDivider':
                     continue
-                attrs = match.group(2)
+                attrs = match.group(3)
                 start = match.end()
-                end_tag = f'</controls:{control_name}>'
+                # Try to find end tag with same namespace prefix
+                end_tag = f'</{ns_prefix}:{control_name}>'
                 end_pos = content.find(end_tag, start)
                 if end_pos != -1:
                     inner = content[start:end_pos].strip()
@@ -736,8 +740,7 @@ class MarkdownGenerator:
 
         for control in controls:
             desc = control.description if control.description else f"A {control.name.replace('Daisy', '')} control."
-            if len(desc) > 100:
-                desc = desc[:97] + "..."
+            # Don't truncate - show full description in category pages
             lines.append(f"- **[{control.name}](../controls/{control.name}.html)**: {desc}")
 
         lines.append("")
@@ -873,7 +876,8 @@ class DocumentationGenerator:
             "LayoutExamples": "Layout",
             "NavigationExamples": "Navigation",
             "ThemingExamples": "Theming",
-            "CustomControls": "Custom"
+            "CustomControls": "Custom",
+            "ColorPickerExamples": "Color Picker"
         }
 
     def generate(self):
@@ -941,9 +945,10 @@ class DocumentationGenerator:
         print(f"Output directory: {self.output_dir}")
 
     def _parse_all_controls(self) -> list[ControlInfo]:
-        """Parse all C# control files."""
+        """Parse all C# control files, including those in subfolders."""
         controls = []
-        for filepath in self.controls_dir.glob("Daisy*.cs"):
+        # Search recursively in Controls folder and all subfolders
+        for filepath in self.controls_dir.glob("**/Daisy*.cs"):
             if "Converter" in filepath.name:
                 continue
             control = self.csharp_parser.parse_file(filepath)
@@ -1025,6 +1030,21 @@ class DocumentationGenerator:
             'hovergallery': 'DaisyHoverGallery',
             'glass': 'DaisyGlass',
             'textrotate': 'DaisyTextRotate',
+            # Color Picker controls
+            'colorslider': 'DaisyColorSlider',
+            'colorwheel': 'DaisyColorWheel',
+            'colorgrid': 'DaisyColorGrid',
+            'coloreditor': 'DaisyColorEditor',
+            'screenpicker': 'DaisyScreenColorPicker',  # matches SectionId in ColorPickerExamples.axaml
+            'screencolorpicker': 'DaisyScreenColorPicker',
+            'colorpickerdialog': 'DaisyColorPickerDialog',
+            'colorpicker': 'DaisyColorPickerDialog',
+            # Custom controls (from CustomControls.axaml)
+            'modifierkeys': 'DaisyModifierKeys',
+            'weathercard': 'DaisyWeatherCard',
+            'currentweather': 'DaisyWeatherCurrent',
+            'weatherforecast': 'DaisyWeatherForecast',
+            'weathermetrics': 'DaisyWeatherMetrics',
         }
 
         return mappings.get(normalized)
@@ -1034,19 +1054,21 @@ class DocumentationGenerator:
         """Categorize controls based on example files."""
         categories: dict[str, list[str]] = {}
 
-        for filepath in self.examples_dir.glob("*Examples.axaml"):
-            stem = filepath.stem
-            if stem in self.category_mapping:
-                cat_name = self.category_mapping[stem]
-                snippets = self.axaml_parser.parse_file(filepath)
+        # Look for all AXAML files that are in the category mapping
+        for stem, cat_name in self.category_mapping.items():
+            filepath = self.examples_dir / f"{stem}.axaml"
+            if not filepath.exists():
+                continue
+                
+            snippets = self.axaml_parser.parse_file(filepath)
 
-                for snippet in snippets:
-                    control_name = self._section_to_control(snippet.section_id)
-                    if control_name:
-                        if cat_name not in categories:
-                            categories[cat_name] = []
-                        if control_name not in categories[cat_name]:
-                            categories[cat_name].append(control_name)
+            for snippet in snippets:
+                control_name = self._section_to_control(snippet.section_id)
+                if control_name:
+                    if cat_name not in categories:
+                        categories[cat_name] = []
+                    if control_name not in categories[cat_name]:
+                        categories[cat_name].append(control_name)
 
         return categories
 

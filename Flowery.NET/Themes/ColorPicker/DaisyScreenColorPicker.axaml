@@ -1,0 +1,15 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls.ColorPicker;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="{DynamicResource DaisyBase200Brush}">
+            <controls:DaisyScreenColorPicker />
+        </Border>
+    </Design.PreviewWith>
+
+    <ControlTheme x:Key="{x:Type controls:DaisyScreenColorPicker}" TargetType="controls:DaisyScreenColorPicker">
+        <Setter Property="Focusable" Value="True" />
+    </ControlTheme>
+
+</ResourceDictionary>
