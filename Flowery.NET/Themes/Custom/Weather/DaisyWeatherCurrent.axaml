@@ -22,11 +22,11 @@
                 <Border Background="{TemplateBinding Background}"
                         Padding="{TemplateBinding Padding}">
                     <Grid ColumnDefinitions="Auto,*,Auto">
-                        <!-- Weather Icon -->
-                        <PathIcon Grid.Column="0"
-                                  Width="64" Height="64"
-                                  Foreground="{DynamicResource DaisyPrimaryBrush}"
-                                  Data="{Binding Condition, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static weather:WeatherConditionToIconConverter.Instance}}" />
+                        <!-- Animated Weather Icon -->
+                        <weather:DaisyWeatherIcon Grid.Column="0"
+                                                  IconSize="64"
+                                                  Foreground="{DynamicResource DaisyPrimaryBrush}"
+                                                  Condition="{TemplateBinding Condition}" />
 
                         <!-- Date and Sun Times -->
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0">

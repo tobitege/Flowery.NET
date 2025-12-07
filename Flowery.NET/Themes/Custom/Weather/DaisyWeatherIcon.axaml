@@ -1,0 +1,273 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:weather="clr-namespace:Flowery.Controls.Custom.Weather;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <StackPanel Orientation="Horizontal" Spacing="16" Background="{DynamicResource DaisyBase200Brush}">
+            <weather:DaisyWeatherIcon Condition="Sunny" IconSize="48" />
+            <weather:DaisyWeatherIcon Condition="PartlyCloudy" IconSize="48" />
+            <weather:DaisyWeatherIcon Condition="Rain" IconSize="48" />
+            <weather:DaisyWeatherIcon Condition="Snow" IconSize="48" />
+            <weather:DaisyWeatherIcon Condition="Thunderstorm" IconSize="48" />
+            <weather:DaisyWeatherIcon Condition="Windy" IconSize="48" />
+            <weather:DaisyWeatherIcon Condition="Fog" IconSize="48" />
+        </StackPanel>
+    </Design.PreviewWith>
+
+    <Styles.Resources>
+        <ControlTheme x:Key="{x:Type weather:DaisyWeatherIcon}" TargetType="weather:DaisyWeatherIcon">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryBrush}" />
+            <Setter Property="ClipToBounds" Value="False" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Panel Width="{TemplateBinding IconSize}" Height="{TemplateBinding IconSize}" ClipToBounds="False">
+
+                        <!-- 1. Snowflakes (Behind) -->
+                        <Canvas x:Name="PART_Snowflakes" IsVisible="False" IsHitTestVisible="False" ClipToBounds="False">
+                            <Ellipse Classes="snow1" Width="4" Height="4" Fill="{TemplateBinding Foreground}" Opacity="0" Canvas.Left="12" Canvas.Top="32" />
+                            <Ellipse Classes="snow2" Width="3" Height="3" Fill="{TemplateBinding Foreground}" Opacity="0" Canvas.Left="28" Canvas.Top="30" />
+                            <Ellipse Classes="snow3" Width="3.5" Height="3.5" Fill="{TemplateBinding Foreground}" Opacity="0" Canvas.Left="42" Canvas.Top="34" />
+                            <Ellipse Classes="snow4" Width="3" Height="3" Fill="{TemplateBinding Foreground}" Opacity="0" Canvas.Left="22" Canvas.Top="28" />
+                        </Canvas>
+
+                        <!-- 2. Main Icon (No Viewbox - Direct PathIcon for correct rotation in percent, e.g. "50%,50%"!!!) -->
+                        <PathIcon x:Name="PART_Icon"
+                                  Width="{TemplateBinding IconSize}"
+                                  Height="{TemplateBinding IconSize}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  RenderTransformOrigin="50%,50%"
+                                  Foreground="{TemplateBinding Foreground}"
+                                  Data="{Binding Condition, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static weather:WeatherConditionToIconConverter.Instance}}" />
+
+                        <!-- 3. Flash Overlay -->
+                        <Border x:Name="PART_Flash"
+                                Background="White"
+                                Opacity="0"
+                                CornerRadius="4"
+                                IsHitTestVisible="False" />
+                    </Panel>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+    </Styles.Resources>
+
+    <!-- ================= ICON DATA STRATEGY ================= -->
+
+    <!-- Default: Bind Data to Condition -->
+    <Style Selector="weather|DaisyWeatherIcon /template/ PathIcon#PART_Icon">
+        <Setter Property="Data" Value="{Binding Condition, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static weather:WeatherConditionToIconConverter.Instance}}" />
+    </Style>
+
+    <!-- Snow Override: Solid Cloud -->
+    <Style Selector="weather|DaisyWeatherIcon:snowy /template/ PathIcon#PART_Icon">
+        <Setter Property="Data" Value="{StaticResource WeatherIconCloudy}" />
+    </Style>
+
+    <!-- Rain Override: Solid Cloud (requested fix) -->
+    <Style Selector="weather|DaisyWeatherIcon:rainy /template/ PathIcon#PART_Icon">
+        <Setter Property="Data" Value="{StaticResource WeatherIconCloudy}" />
+    </Style>
+
+    <!-- ================= ANIMATIONS ================= -->
+
+    <!-- Show snowflakes for snowy condition -->
+    <Style Selector="weather|DaisyWeatherIcon:snowy /template/ Canvas#PART_Snowflakes">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <!-- Sunny: Rotation (Targeting PathIcon directly) -->
+    <Style Selector="weather|DaisyWeatherIcon:animated:sunny /template/ PathIcon#PART_Icon">
+        <Setter Property="RenderTransform">
+            <RotateTransform />
+        </Setter>
+        <Style.Animations>
+            <Animation Duration="0:0:20" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="RotateTransform.Angle" Value="0" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:20">
+                    <Setter Property="RotateTransform.Angle" Value="360" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Cloudy: Horizontal Drift -->
+    <Style Selector="weather|DaisyWeatherIcon:animated:cloudy /template/ PathIcon#PART_Icon">
+        <Setter Property="RenderTransform">
+            <TranslateTransform />
+        </Setter>
+        <Style.Animations>
+            <Animation Duration="0:0:4" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="-2" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="TranslateTransform.X" Value="2" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:4">
+                    <Setter Property="TranslateTransform.X" Value="-2" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Rainy: Vertical Bob -->
+    <Style Selector="weather|DaisyWeatherIcon:animated:rainy /template/ PathIcon#PART_Icon">
+        <Setter Property="RenderTransform">
+            <TranslateTransform />
+        </Setter>
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.75">
+                    <Setter Property="TranslateTransform.Y" Value="2" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Snowy: Icon Sway -->
+    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ PathIcon#PART_Icon">
+        <Setter Property="RenderTransform">
+            <TranslateTransform />
+        </Setter>
+        <Style.Animations>
+            <Animation Duration="0:0:3" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="-1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="TranslateTransform.X" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:3">
+                    <Setter Property="TranslateTransform.X" Value="-1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Windy: Horizontal Sway -->
+    <Style Selector="weather|DaisyWeatherIcon:animated:windy /template/ PathIcon#PART_Icon">
+        <Setter Property="RenderTransform">
+            <TranslateTransform />
+        </Setter>
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="-3" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1">
+                    <Setter Property="TranslateTransform.X" Value="3" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="TranslateTransform.X" Value="-3" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Foggy: Opacity Fade -->
+    <Style Selector="weather|DaisyWeatherIcon:animated:foggy /template/ PathIcon#PART_Icon">
+        <Style.Animations>
+            <Animation Duration="0:0:4" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0.7" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:4">
+                    <Setter Property="Opacity" Value="0.7" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Stormy: Lightning Flash -->
+    <Style Selector="weather|DaisyWeatherIcon:animated:stormy /template/ PathIcon#PART_Icon">
+        <Style.Animations>
+            <Animation Duration="0:0:3" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="1" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.96"><Setter Property="Opacity" Value="0.5" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.02"><Setter Property="Opacity" Value="1" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.08"><Setter Property="Opacity" Value="0.6" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.14"><Setter Property="Opacity" Value="1" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:3"><Setter Property="Opacity" Value="1" /></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Stormy: Flash Overlay -->
+    <Style Selector="weather|DaisyWeatherIcon:animated:stormy /template/ Border#PART_Flash">
+        <Style.Animations>
+            <Animation Duration="0:0:3" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.93"><Setter Property="Opacity" Value="0" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.96"><Setter Property="Opacity" Value="0.3" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.02"><Setter Property="Opacity" Value="0" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.05"><Setter Property="Opacity" Value="0.2" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.11"><Setter Property="Opacity" Value="0" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:3"><Setter Property="Opacity" Value="0" /></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ========= Snowflake Falling Animations ========= -->
+    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ Ellipse.snow1">
+        <Setter Property="RenderTransform"><TranslateTransform /></Setter>
+        <Style.Animations>
+            <Animation Duration="0:0:1.8" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0" /><Setter Property="TranslateTransform.Y" Value="0" /><Setter Property="Opacity" Value="0" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2"><Setter Property="TranslateTransform.X" Value="1" /><Setter Property="TranslateTransform.Y" Value="5" /><Setter Property="Opacity" Value="0.7" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="TranslateTransform.X" Value="4" /><Setter Property="TranslateTransform.Y" Value="30" /><Setter Property="Opacity" Value="0.5" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.8"><Setter Property="TranslateTransform.X" Value="2" /><Setter Property="TranslateTransform.Y" Value="45" /><Setter Property="Opacity" Value="0" /></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ Ellipse.snow2">
+        <Setter Property="RenderTransform"><TranslateTransform /></Setter>
+        <Style.Animations>
+            <Animation Duration="0:0:2.2" IterationCount="Infinite" Delay="0:0:0.4">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0" /><Setter Property="TranslateTransform.Y" Value="0" /><Setter Property="Opacity" Value="0" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.25"><Setter Property="TranslateTransform.X" Value="-1" /><Setter Property="TranslateTransform.Y" Value="6" /><Setter Property="Opacity" Value="0.6" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5"><Setter Property="TranslateTransform.X" Value="-3" /><Setter Property="TranslateTransform.Y" Value="35" /><Setter Property="Opacity" Value="0.4" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:2.2"><Setter Property="TranslateTransform.X" Value="-1" /><Setter Property="TranslateTransform.Y" Value="50" /><Setter Property="Opacity" Value="0" /></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ Ellipse.snow3">
+        <Setter Property="RenderTransform"><TranslateTransform /></Setter>
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite" Delay="0:0:0.8">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0" /><Setter Property="TranslateTransform.Y" Value="0" /><Setter Property="Opacity" Value="0" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2"><Setter Property="TranslateTransform.X" Value="2" /><Setter Property="TranslateTransform.Y" Value="5" /><Setter Property="Opacity" Value="0.6" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.3"><Setter Property="TranslateTransform.X" Value="5" /><Setter Property="TranslateTransform.Y" Value="32" /><Setter Property="Opacity" Value="0.4" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:2"><Setter Property="TranslateTransform.X" Value="3" /><Setter Property="TranslateTransform.Y" Value="48" /><Setter Property="Opacity" Value="0" /></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ Ellipse.snow4">
+        <Setter Property="RenderTransform"><TranslateTransform /></Setter>
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:1.2">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0" /><Setter Property="TranslateTransform.Y" Value="0" /><Setter Property="Opacity" Value="0" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.15"><Setter Property="TranslateTransform.X" Value="-2" /><Setter Property="TranslateTransform.Y" Value="4" /><Setter Property="Opacity" Value="0.5" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="TranslateTransform.X" Value="-4" /><Setter Property="TranslateTransform.Y" Value="28" /><Setter Property="Opacity" Value="0.35" /></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6"><Setter Property="TranslateTransform.X" Value="-2" /><Setter Property="TranslateTransform.Y" Value="42" /><Setter Property="Opacity" Value="0" /></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+</Styles>

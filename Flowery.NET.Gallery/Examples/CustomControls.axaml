@@ -137,51 +137,110 @@
 
             <controls:DaisyDivider />
 
-            <!-- Weather Conditions Gallery -->
+            <!-- Animated Weather Icons -->
             <StackPanel Spacing="12">
-                <local:SectionHeader SectionId="weather-conditions" Title="Weather Conditions" />
-                <TextBlock Text="All available weather condition icons."
+                <local:SectionHeader SectionId="weather-icon" Title="Weather Icon (Animated)" />
+                <TextBlock Text="Animated weather condition icons with unique animations per weather type."
                            FontSize="12" Opacity="0.7" Margin="0,0,0,8"/>
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Margin="8" HorizontalAlignment="Center">
-                        <PathIcon Width="32" Height="32" Data="{StaticResource WeatherIconSunny}" Foreground="{DynamicResource DaisyWarningBrush}" />
+                        <weather:DaisyWeatherIcon Condition="Unknown" IconSize="40" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <TextBlock Text="Unknown" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="Sunny" IconSize="40" Foreground="{DynamicResource DaisyWarningBrush}" />
                         <TextBlock Text="Sunny" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                     <StackPanel Margin="8" HorizontalAlignment="Center">
-                        <PathIcon Width="32" Height="32" Data="{StaticResource WeatherIconPartlyCloudy}" Foreground="{DynamicResource DaisyInfoBrush}" />
-                        <TextBlock Text="Partly Cloudy" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                        <weather:DaisyWeatherIcon Condition="Clear" IconSize="40" Foreground="{DynamicResource DaisyWarningBrush}" />
+                        <TextBlock Text="Clear" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                     <StackPanel Margin="8" HorizontalAlignment="Center">
-                        <PathIcon Width="32" Height="32" Data="{StaticResource WeatherIconCloudy}" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <weather:DaisyWeatherIcon Condition="PartlyCloudy" IconSize="40" Foreground="{DynamicResource DaisyInfoBrush}" />
+                        <TextBlock Text="PartlyCloudy" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="Cloudy" IconSize="40" Foreground="{DynamicResource DaisyBaseContentBrush}" />
                         <TextBlock Text="Cloudy" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                     <StackPanel Margin="8" HorizontalAlignment="Center">
-                        <PathIcon Width="32" Height="32" Data="{StaticResource WeatherIconOvercast}" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <weather:DaisyWeatherIcon Condition="Overcast" IconSize="40" Foreground="{DynamicResource DaisyBaseContentBrush}" />
                         <TextBlock Text="Overcast" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                     <StackPanel Margin="8" HorizontalAlignment="Center">
-                        <PathIcon Width="32" Height="32" Data="{StaticResource WeatherIconRain}" Foreground="{DynamicResource DaisyInfoBrush}" />
+                        <weather:DaisyWeatherIcon Condition="Mist" IconSize="40" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <TextBlock Text="Mist" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="Fog" IconSize="40" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <TextBlock Text="Fog" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="LightRain" IconSize="40" Foreground="{DynamicResource DaisyInfoBrush}" />
+                        <TextBlock Text="LightRain" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="Rain" IconSize="40" Foreground="{DynamicResource DaisyInfoBrush}" />
                         <TextBlock Text="Rain" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                     <StackPanel Margin="8" HorizontalAlignment="Center">
-                        <PathIcon Width="32" Height="32" Data="{StaticResource WeatherIconHeavyRain}" Foreground="{DynamicResource DaisyInfoBrush}" />
-                        <TextBlock Text="Heavy Rain" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                        <weather:DaisyWeatherIcon Condition="HeavyRain" IconSize="40" Foreground="{DynamicResource DaisyInfoBrush}" />
+                        <TextBlock Text="HeavyRain" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                     <StackPanel Margin="8" HorizontalAlignment="Center">
-                        <PathIcon Width="32" Height="32" Data="{StaticResource WeatherIconThunderstorm}" Foreground="{DynamicResource DaisyErrorBrush}" />
+                        <weather:DaisyWeatherIcon Condition="Drizzle" IconSize="40" Foreground="{DynamicResource DaisyInfoBrush}" />
+                        <TextBlock Text="Drizzle" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="Showers" IconSize="40" Foreground="{DynamicResource DaisyInfoBrush}" />
+                        <TextBlock Text="Showers" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="Thunderstorm" IconSize="40" Foreground="{DynamicResource DaisyErrorBrush}" />
                         <TextBlock Text="Thunderstorm" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                     <StackPanel Margin="8" HorizontalAlignment="Center">
-                        <PathIcon Width="32" Height="32" Data="{StaticResource WeatherIconSnow}" Foreground="{DynamicResource DaisySecondaryBrush}" />
+                        <weather:DaisyWeatherIcon Condition="LightSnow" IconSize="40" Foreground="{DynamicResource DaisySecondaryBrush}" />
+                        <TextBlock Text="LightSnow" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="Snow" IconSize="40" Foreground="{DynamicResource DaisySecondaryBrush}" />
                         <TextBlock Text="Snow" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                     <StackPanel Margin="8" HorizontalAlignment="Center">
-                        <PathIcon Width="32" Height="32" Data="{StaticResource WeatherIconMist}" Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                        <TextBlock Text="Mist/Fog" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                        <weather:DaisyWeatherIcon Condition="HeavySnow" IconSize="40" Foreground="{DynamicResource DaisySecondaryBrush}" />
+                        <TextBlock Text="HeavySnow" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                     <StackPanel Margin="8" HorizontalAlignment="Center">
-                        <PathIcon Width="32" Height="32" Data="{StaticResource WeatherIconWindy}" Foreground="{DynamicResource DaisyAccentBrush}" />
+                        <weather:DaisyWeatherIcon Condition="Sleet" IconSize="40" Foreground="{DynamicResource DaisySecondaryBrush}" />
+                        <TextBlock Text="Sleet" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="FreezingRain" IconSize="40" Foreground="{DynamicResource DaisySecondaryBrush}" />
+                        <TextBlock Text="FreezingRain" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="Hail" IconSize="40" Foreground="{DynamicResource DaisySecondaryBrush}" />
+                        <TextBlock Text="Hail" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="Windy" IconSize="40" Foreground="{DynamicResource DaisyAccentBrush}" />
                         <TextBlock Text="Windy" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                </WrapPanel>
+                <TextBlock Text="Static (animations disabled)" FontSize="11" Opacity="0.6" Margin="0,8,0,4"/>
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="Sunny" IconSize="32" IsAnimated="False" Foreground="{DynamicResource DaisyWarningBrush}" />
+                        <TextBlock Text="Static" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="Rain" IconSize="32" IsAnimated="False" Foreground="{DynamicResource DaisyInfoBrush}" />
+                        <TextBlock Text="Static" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <StackPanel Margin="8" HorizontalAlignment="Center">
+                        <weather:DaisyWeatherIcon Condition="Thunderstorm" IconSize="32" IsAnimated="False" Foreground="{DynamicResource DaisyErrorBrush}" />
+                        <TextBlock Text="Static" FontSize="10" HorizontalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                 </WrapPanel>
             </StackPanel>

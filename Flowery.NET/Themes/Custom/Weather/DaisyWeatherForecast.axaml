@@ -37,11 +37,11 @@
                                    HorizontalAlignment="Center"
                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
 
-                        <!-- Weather Icon -->
-                        <PathIcon Width="28" Height="28"
-                                  HorizontalAlignment="Center"
-                                  Foreground="{DynamicResource DaisyPrimaryBrush}"
-                                  Data="{Binding Condition, Converter={x:Static weather:WeatherConditionToIconConverter.Instance}}" />
+                        <!-- Animated Weather Icon -->
+                        <weather:DaisyWeatherIcon IconSize="28"
+                                                  HorizontalAlignment="Center"
+                                                  Foreground="{DynamicResource DaisyPrimaryBrush}"
+                                                  Condition="{Binding Condition}" />
 
                         <!-- High/Low Temperature -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="2">

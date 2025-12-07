@@ -200,6 +200,30 @@ These controls are not part of the original DaisyUI CSS specification but are pr
 - **Component Sidebar** (`DaisyComponentSidebar`): A pre-built documentation/admin sidebar with categories, search support, and navigation events.
 - **Modifier Keys** (`DaisyModifierKeys`): Visualizes the state of keyboard modifiers (Shift, Ctrl, Alt) and locks (Caps, Num, Scroll).
 
+### Weather Controls
+
+A set of weather display widgets with animated condition icons, support for both manual binding and automatic data fetching via `IWeatherService`.
+
+- **Weather Icon** (`DaisyWeatherIcon`): Animated weather condition icon with unique animations per condition type (sun rotation, cloud drift, rain drops, snow float, lightning flash, wind sway, fog fade). Toggle animations via `IsAnimated` property.
+- **Weather Card** (`DaisyWeatherCard`): Composite weather widget combining current conditions, forecast, and metrics. Supports auto-refresh and configurable sections (ShowCurrent, ShowForecast, ShowMetrics).
+- **Weather Current** (`DaisyWeatherCurrent`): Displays current temperature, feels-like, animated condition icon, and sunrise/sunset times.
+- **Weather Forecast** (`DaisyWeatherForecast`): Horizontal strip of daily forecasts with day name, animated condition icon, and high/low temperatures.
+- **Weather Metrics** (`DaisyWeatherMetrics`): Table display for UV index, wind speed, and humidity with progress bars.
+
+```xml
+<!-- Standalone animated icon -->
+<controls:DaisyWeatherIcon Condition="Sunny" IconSize="48" />
+<controls:DaisyWeatherIcon Condition="Thunderstorm" IconSize="64" IsAnimated="True" />
+
+<!-- Standalone current weather (uses animated icon internally) -->
+<controls:DaisyWeatherCurrent Temperature="22" FeelsLike="24"
+    Condition="Sunny" TemperatureUnit="C" />
+
+<!-- Composite card with all sections -->
+<controls:DaisyWeatherCard Temperature="18" Condition="PartlyCloudy"
+    ShowForecast="True" ShowMetrics="True" />
+```
+
 ### Theme Controls
 
 - **Theme Swap** (`DaisyThemeSwap`): Toggle button to switch between light and dark themes with animated sun/moon icons.
