@@ -355,7 +355,7 @@ If you find this library useful, consider supporting its development:
 
 ## Changelog
 
-2025-12 - Initial release, incl. docs and NuGet package
+See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
 
 ## Credits & References
 
