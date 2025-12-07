@@ -42,28 +42,60 @@ The documentation is generated from curated markdown (with optional auto-parsed 
 
 ## Installation
 
-1. Add the reference to `Flowery.NET` project/dll.
+1. Add the NuGet package or project reference to `Flowery.NET`.
 
-2. Add the theme to your `App.axaml`:
+2. Configure your **`App.axaml`** with DaisyUITheme (and a base theme like FluentTheme if you're not using another):
 
 ```xml
-<Application ...
-             xmlns:daisy="clr-namespace:Flowery;assembly=Flowery.NET">
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:daisy="clr-namespace:Flowery;assembly=Flowery.NET"
+             x:Class="YourApp.App"
+             RequestedThemeVariant="Dark">
+    <!-- RequestedThemeVariant can be "Default", "Light", or "Dark" -->
+
     <Application.Styles>
-        <FluentTheme />
-        <daisy:DaisyUITheme />
+        <FluentTheme />           <!-- Or another base theme (Semi, Material, etc.) -->
+        <daisy:DaisyUITheme />    <!-- Flowery.NET styles and themes -->
     </Application.Styles>
 </Application>
+```
+
+> **Note:** The `Flowery` namespace is only for `DaisyUITheme`. For actual controls, use `Flowery.Controls` (see Usage Example below).
+
+3. Your **`App.axaml.cs`** remains standard:
+
+```csharp
+public partial class App : Application
+{
+    public override void Initialize() => AvaloniaXamlLoader.Load(this);
+
+    public override void OnFrameworkInitializationCompleted()
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            desktop.MainWindow = new MainWindow();
+        base.OnFrameworkInitializationCompleted();
+    }
+}
 ```
 
 ## Usage Example
 
 The best way to explore the controls is to run the included **Gallery App**. It demonstrates every component, theme switching, and various configuration options.
 
+In your view files (e.g., `MainWindow.axaml`), add the controls namespace:
+
 ```xml
-<daisy:DaisyButton Content="Primary Button" Variant="Primary" />
-<daisy:DaisyInput Watermark="Type here" Variant="Bordered" />
-<daisy:DaisyRating Value="3.5" />
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+        ...>
+
+    <StackPanel Spacing="10">
+        <controls:DaisyButton Content="Primary Button" Variant="Primary" />
+        <controls:DaisyInput Watermark="Type here" Variant="Bordered" />
+        <controls:DaisyRating Value="3.5" />
+    </StackPanel>
+</Window>
 ```
 
 ## Components
@@ -207,9 +239,69 @@ The `DaisyThemeController` provides multiple ways to toggle between two themes, 
 
 When the app's theme changes (e.g., via `DaisyThemeDropdown`), the controller automatically updates its `CheckedTheme`and`CheckedLabel` to reflect the new theme.
 
+## How Theming Works
+
+Flowery.NET uses Avalonia's `ThemeDictionaries` to provide seamless theme switching. Understanding this architecture helps you choose the right API for your needs.
+
+### Theme Architecture
+
+1. **Colors.axaml** contains `ResourceDictionary.ThemeDictionaries` with `Light` and `Dark` variants
+2. Setting `Application.RequestedThemeVariant` triggers Avalonia's built-in resource refresh
+3. For the 35 built-in themes, each is mapped to either `Light` or `Dark` variant with its unique color palette
+
+### When to Use Which API
+
+| Scenario | Recommended API |
+|----------|-----------------|
+| Switch between built-in themes (Light, Dark, Dracula, etc.) | `DaisyThemeManager.ApplyTheme()` |
+| Toggle Light/Dark modes | `RequestedThemeVariant = ThemeVariant.Light/Dark` |
+| Load custom themes from CSS at runtime | `DaisyThemeLoader.ApplyThemeToApplication()` |
+| Parse DaisyUI CSS files | `DaisyUiCssParser.ParseFile()` |
+
+### Key Difference
+
+- **`DaisyThemeManager.ApplyTheme()`** - Adds palette resources to `MergedDictionaries` and sets the appropriate `RequestedThemeVariant`. Best for switching between the 35 built-in themes.
+- **`DaisyThemeLoader.ApplyThemeToApplication()`** - Updates resources in-place within ThemeDictionaries. Use this for custom themes loaded from CSS files at runtime.
+
+### Quick Start Examples
+
+**Switch between built-in themes** (in any code-behind or ViewModel):
+
+```csharp
+using Flowery.Controls;
+
+// One-liner to switch themes - call from button click, menu, etc.
+DaisyThemeManager.ApplyTheme("Synthwave");
+```
+
+**Or use XAML controls** (in your `.axaml` files like `MainWindow.axaml`):
+
+```xml
+<!-- Add namespace at top of file -->
+xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+
+<!-- Drop-in theme switcher - no code-behind needed -->
+<controls:DaisyThemeDropdown Width="220" />
+
+<!-- Or a simple toggle -->
+<controls:DaisyThemeController Mode="Swap" />
+```
+
+**Load custom CSS themes at runtime** (in code-behind):
+
+```csharp
+using Flowery.Theming;
+
+// Parse a DaisyUI CSS file and apply it immediately
+var theme = DaisyUiCssParser.ParseFile("path/to/mytheme.css");
+DaisyThemeLoader.ApplyThemeToApplication(theme);
+```
+
+This is the same pattern used in the Gallery app's "CSS Theme Converter" demo.
+
 ## Theme Manager
 
-`DaisyThemeManager` is the centralized theme management system:
+`DaisyThemeManager` provides simple theme switching for the 35 built-in DaisyUI themes. It works best when using the pre-bundled themes and handles the complexity of palette loading and variant selection automatically.
 
 ```csharp
 using Flowery.Controls;
@@ -318,6 +410,37 @@ var hex = ColorConverter.OklchToHex("65.69% 0.196 275.75");
 // Parse hex to RGB
 var (r, g, b) = ColorConverter.HexToRgb("#5B21B6");
 ```
+
+## Control Template Guidelines
+
+For contributors creating or modifying control templates, follow these architectural patterns to ensure consistent behavior:
+
+### Background Border Architecture
+
+Background borders should be **siblings** of content, not parents. This prevents opacity issues where styling the border would inadvertently affect text readability.
+
+```xml
+<!-- ✅ Correct: Border and content are siblings in a Panel -->
+<Panel>
+    <Border x:Name="PART_Background"
+            Background="{TemplateBinding Background}"
+            BorderBrush="{TemplateBinding BorderBrush}" />
+    <ContentPresenter Content="{TemplateBinding Content}" />
+</Panel>
+
+<!-- ❌ Avoid: Content nested inside the border -->
+<Border Background="{TemplateBinding Background}">
+    <ContentPresenter Content="{TemplateBinding Content}" />
+</Border>
+```
+
+### Opacity Guidelines
+
+- **Never** set `Opacity` on containers that hold text content
+- Use separate background layers for disabled/hover states that require transparency
+- For disabled states, reduce opacity on `PART_Background` only, keeping text at full opacity
+
+This pattern is used by `DaisyButton`, `DaisyInput`, and other controls to maintain text legibility across all states.
 
 ## Technical Requirements
 

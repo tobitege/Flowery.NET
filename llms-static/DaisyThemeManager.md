@@ -3,7 +3,35 @@
 
 # Overview
 
-DaisyThemeManager is the central theme loader/applicator for DaisyUI palettes. It tracks available themes, applies palette ResourceDictionaries, updates Avalonia `RequestedThemeVariant`, and notifies listeners via `ThemeChanged`. Helpers expose current/alternate theme names and light/dark metadata.
+DaisyThemeManager is the central theme loader/applicator for the **35 built-in DaisyUI themes**. It tracks available themes, applies palette ResourceDictionaries, updates Avalonia `RequestedThemeVariant`, and notifies listeners via `ThemeChanged`. Helpers expose current/alternate theme names and light/dark metadata.
+
+## When to Use
+
+| Scenario | Recommended API |
+|----------|-----------------|
+| Switch between built-in themes (Light, Dark, Dracula, etc.) | `DaisyThemeManager.ApplyTheme()` ✓ |
+| Load custom themes from CSS at runtime | `DaisyThemeLoader.ApplyThemeToApplication()` |
+
+**Key difference:**
+
+- `DaisyThemeManager.ApplyTheme()` adds palette resources to `MergedDictionaries` and sets the appropriate `RequestedThemeVariant`. Best for switching between the 35 built-in themes.
+- `DaisyThemeLoader.ApplyThemeToApplication()` updates resources in-place within `ThemeDictionaries`. Use this for custom themes loaded from CSS files at runtime.
+
+### Quick Comparison (in code-behind or ViewModel)
+
+```csharp
+using Flowery.Controls;
+using Flowery.Theming;
+
+// Built-in themes: use DaisyThemeManager
+DaisyThemeManager.ApplyTheme("Synthwave");
+
+// Custom CSS themes: use DaisyThemeLoader
+var theme = DaisyUiCssParser.ParseFile("mytheme.css");
+DaisyThemeLoader.ApplyThemeToApplication(theme);
+```
+
+**Prerequisite**: Your `App.axaml` must include `<daisy:DaisyUITheme />` in `Application.Styles`. If you're not using another base theme (like Semi or Material), add `<FluentTheme />` as the minimum required for core Avalonia controls to render properly.
 
 ## Key Members
 
