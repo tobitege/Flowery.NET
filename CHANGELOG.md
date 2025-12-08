@@ -6,6 +6,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2025-12-08
+
+### Added
+
+- DaisyNumericUpDown: Full-featured numeric input control with:
+  - Multiple number bases: Decimal, Hexadecimal (0xFF), Binary (0b1010), Octal (0o755), ColorHex (#FF5733), IPAddress (192.168.1.1)
+  - Prefix/Suffix support for currency and units
+  - Thousand separators with locale-aware formatting
+  - Optional clear button (appears on focus, resets to 0)
+  - Per-octet increment/decrement for IP addresses with wrapping behavior
+  - Real-time input filtering and paste validation
+  - Helper methods: ToHexString(), ToBinaryString(), ToOctalString(), ToColorHexString(), ToIPAddressString()
+
+![NumericUpDown Examples](https://tobitege.github.io/Flowery.NET/NumericUpDown_Examples.png)
+
 ## [1.0.7] - 2025-12-07
 
 ### Changed
@@ -95,6 +110,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom controls: ComponentSidebar, ModifierKeys
 - Gallery demo application
 
+[1.0.8]: https://github.com/tobitege/Flowery.NET/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/tobitege/Flowery.NET/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/tobitege/Flowery.NET/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/tobitege/Flowery.NET/compare/v1.0.3...v1.0.5
