@@ -160,9 +160,7 @@ In your view files (e.g., `MainWindow.axaml`), add the controls namespace:
 - **Indicator** (`DaisyIndicator`): Utility to place a badge on the corner of another element.
 - **Status Indicator** (`DaisyStatusIndicator`): Status dot with **27 animation variants** (Ping, Pulse, Ripple, Heartbeat, Orbit, Sonar, and more). Supports all theme colors and 5 sizes.
 
-  ![Status Indicator Animations](llms-static/status_animations.gif)
-
-- **Loading** (`DaisyLoading`): Animated loading indicators with **27 variants** across 4 categories:
+- **Loading** (`DaisyLoading`): Animated loading indicators with **27 variants** (extended from DaisyUI's original 6) across 4 categories:
   - *Classic*: Spinner, Dots, Ring, Ball, Bars, Infinity
   - *Terminal-inspired*: Orbit, Snake, Pulse, Wave, Bounce
   - *Matrix/Colon-dot*: Matrix, MatrixInward, MatrixOutward, MatrixVertical
@@ -174,6 +172,26 @@ In your view files (e.g., `MainWindow.axaml`), add the controls namespace:
 - **Skeleton** (`DaisySkeleton`): Animated placeholder for loading states.
 - **Toast** (`DaisyToast`): Container for stacking alerts (fixed positioning).
 - **Tooltip**: Themed standard Avalonia `ToolTip`.
+
+### Theme Controls
+
+- **Theme Swap** (`DaisyThemeSwap`): Toggle button to switch between light and dark themes with animated sun/moon icons.
+- **Theme Dropdown** (`DaisyThemeDropdown`): Dropdown to select from all 35 available DaisyUI themes at runtime.
+- **Theme Radio** (`DaisyThemeRadio`): Radio button to select a specific theme.
+- **Theme Controller** (`DaisyThemeController`): Flexible theme toggle with multiple presentation modes (Toggle, Checkbox, Swap, ToggleWithText, ToggleWithIcons). Automatically syncs with theme changes app-wide.
+- **Theme Manager** (`DaisyThemeManager`): Centralized static class for theme management. Provides `ApplyTheme()`, `CurrentThemeName`, `AvailableThemes`, and `ThemeChanged` event for app-wide synchronization.
+
+## Available Themes
+
+**Light Themes:** Light, Acid, Autumn, Bumblebee, Caramellatte, Cmyk, Corporate, Cupcake, Cyberpunk, Emerald, Fantasy, Garden, Lemonade, Lofi, Nord, Pastel, Retro, Silk, Valentine, Winter, Wireframe
+
+**Dark Themes:** Dark, Abyss, Aqua, Black, Business, Coffee, Dim, Dracula, Forest, Halloween, Luxury, Night, Sunset, Synthwave
+
+---
+
+## ✨ Flowery.NET Exclusives
+
+> **Beyond DaisyUI** — The following features and controls are **not part of the original DaisyUI CSS specification**. They are unique to Flowery.NET, built natively for Avalonia to provide production-ready components for real-world .NET applications.
 
 ### Accessibility
 
@@ -193,14 +211,27 @@ Controls that convey state visually (loading indicators, progress bars, status d
 
 Supported controls: `DaisyLoading`, `DaisyProgress`, `DaisyRadialProgress`, `DaisyStatusIndicator`, `DaisyCountdown`, `DaisySkeleton`, `DaisyRating`.
 
-### Custom Controls (Avalonia-specific)
-
-These controls are not part of the original DaisyUI CSS specification but are provided as high-level conveniences for building .NET apps.
+### Utility Controls
 
 - **Component Sidebar** (`DaisyComponentSidebar`): A pre-built documentation/admin sidebar with categories, search support, and navigation events.
 - **Modifier Keys** (`DaisyModifierKeys`): Visualizes the state of keyboard modifiers (Shift, Ctrl, Alt) and locks (Caps, Num, Scroll).
 
-### Weather Controls
+### Color Picker Suite
+
+A complete suite of color selection components inspired by [Cyotek's ColorPicker](https://github.com/cyotek/Cyotek.Windows.Forms.ColorPicker), rebuilt natively for Avalonia with DaisyUI styling.
+
+- **Color Wheel** (`DaisyColorWheel`): Circular HSL color wheel for intuitive hue/saturation selection. Supports configurable lightness and optional center crosshairs.
+- **Color Grid** (`DaisyColorGrid`): Grid-based palette selector with configurable cell sizes and column count. Ships with a default paint-style palette.
+- **Color Slider** (`DaisyColorSlider`): Channel-specific sliders for **Red**, **Green**, **Blue**, **Alpha**, **Hue**, **Saturation**, and **Lightness**. Each renders a gradient showing the channel's range.
+- **Color Editor** (`DaisyColorEditor`): Comprehensive editor combining RGB/HSL sliders with numeric inputs. Supports optional alpha channel and HSL slider visibility.
+- **Screen Color Picker** (`DaisyScreenColorPicker`): Eyedropper tool using click-and-drag to sample colors from anywhere on screen (Windows only). Shows live preview during drag.
+- **Color Picker Dialog** (`DaisyColorPickerDialog`): Full-featured modal dialog combining wheel, grid, editor, and screen picker with OK/Cancel actions.
+
+### Advanced Numeric Input
+
+- **Numeric Up/Down** (`DaisyNumericUpDown`): A numeric input control with spin buttons supporting **6 number bases** (Decimal, Hexadecimal, Binary, Octal, ColorHex, IPv4 Address). Features real-time input filtering, thousand separators, prefix/suffix display (e.g., `$`, `%`, `kg`), and visual error flash on invalid input. Includes helper methods like `ToHexString()`, `ToIPAddressString()`, and `ToColorHexString()` for runtime value conversion.
+
+### Weather Widgets
 
 A set of weather display widgets with animated condition icons, support for both manual binding and automatic data fetching via `IWeatherService`.
 
@@ -224,19 +255,8 @@ A set of weather display widgets with animated condition icons, support for both
     ShowForecast="True" ShowMetrics="True" />
 ```
 
-### Theme Controls
-
-- **Theme Swap** (`DaisyThemeSwap`): Toggle button to switch between light and dark themes with animated sun/moon icons.
-- **Theme Dropdown** (`DaisyThemeDropdown`): Dropdown to select from all 35 available DaisyUI themes at runtime.
-- **Theme Radio** (`DaisyThemeRadio`): Radio button to select a specific theme.
-- **Theme Controller** (`DaisyThemeController`): Flexible theme toggle with multiple presentation modes (Toggle, Checkbox, Swap, ToggleWithText, ToggleWithIcons). Automatically syncs with theme changes app-wide.
-- **Theme Manager** (`DaisyThemeManager`): Centralized static class for theme management. Provides `ApplyTheme()`, `CurrentThemeName`, `AvailableThemes`, and `ThemeChanged` event for app-wide synchronization.
-
-## Available Themes
-
-**Light Themes:** Light, Acid, Autumn, Bumblebee, Caramellatte, Cmyk, Corporate, Cupcake, Cyberpunk, Emerald, Fantasy, Garden, Lemonade, Lofi, Nord, Pastel, Retro, Silk, Valentine, Winter, Wireframe
-
-**Dark Themes:** Dark, Abyss, Aqua, Black, Business, Coffee, Dim, Dracula, Forest, Halloween, Luxury, Night, Sunset, Synthwave
+---
+---
 
 ## Theme Controller
 
