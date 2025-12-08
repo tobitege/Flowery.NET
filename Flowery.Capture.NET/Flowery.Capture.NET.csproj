@@ -4,6 +4,8 @@
     <TargetFrameworks>net8.0;net8.0-windows</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <!-- Allow building net8.0-windows target on non-Windows CI (e.g., GitHub Actions on Ubuntu) -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
 
     <!-- NuGet Package Properties -->
     <PackageId>Flowery.Capture.NET</PackageId>
