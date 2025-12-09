@@ -10,6 +10,7 @@ DaisyThemeManager is the central theme loader/applicator for the **35 built-in D
 | Scenario | Recommended API |
 |----------|-----------------|
 | Switch between built-in themes (Light, Dark, Dracula, etc.) | `DaisyThemeManager.ApplyTheme()` ✓ |
+| Custom theme application strategy (in-place updates, persistence) | Set `DaisyThemeManager.CustomThemeApplicator` |
 | Load custom themes from CSS at runtime | `DaisyThemeLoader.ApplyThemeToApplication()` |
 
 **Key difference:**
@@ -38,10 +39,12 @@ DaisyThemeLoader.ApplyThemeToApplication(theme);
 | Member | Description |
 |--------|-------------|
 | `AvailableThemes` | Read-only list of `DaisyThemeInfo` (Name, IsDark) for all bundled themes. |
-| `ApplyTheme(string name)` | Loads `Themes/Palettes/Daisy{name}.axaml`, swaps the palette, updates `RequestedThemeVariant`, and raises `ThemeChanged`. |
+| `ApplyTheme(string name)` | Loads `Themes/Palettes/Daisy{name}.axaml`, swaps the palette, updates `RequestedThemeVariant`, and raises `ThemeChanged`. Uses `CustomThemeApplicator` if set. |
+| `CustomThemeApplicator` | Optional `Func<string, bool>` delegate. When set, called instead of the default MergedDictionaries approach. |
+| `SetCurrentTheme(string name)` | Updates internal state and fires `ThemeChanged`. Used by custom applicators after applying a theme. |
 | `CurrentThemeName` | Name of the currently applied theme. |
-| `BaseThemeName` | Default/unchecked theme name (default “Light”). |
-| `AlternateThemeName` | Current theme if not the base; otherwise “Dark”. |
+| `BaseThemeName` | Default/unchecked theme name (default "Light"). |
+| `AlternateThemeName` | Current theme if not the base; otherwise "Dark". |
 | `ThemeChanged` | Event fired with the new theme name after successful application. |
 | `IsDarkTheme(string name)` | Returns whether the theme is marked as dark. |
 
@@ -64,3 +67,42 @@ var target = DaisyThemeManager.CurrentThemeName == DaisyThemeManager.BaseThemeNa
     : DaisyThemeManager.BaseThemeName;
 DaisyThemeManager.ApplyTheme(target);
 ```
+
+## Custom Theme Applicator
+
+> Available since v1.0.9
+
+For apps that need custom theme application logic (e.g., in-place ThemeDictionary updates, persisting settings), set the `CustomThemeApplicator` delegate at startup:
+
+```csharp
+// In App.axaml.cs OnFrameworkInitializationCompleted:
+DaisyThemeManager.CustomThemeApplicator = themeName =>
+{
+    var themeInfo = DaisyThemeManager.GetThemeInfo(themeName);
+    if (themeInfo == null) return false;
+    
+    // Custom in-place update logic
+    var paletteUri = new Uri($"avares://Flowery.NET/Themes/Palettes/Daisy{themeInfo.Name}.axaml");
+    var palette = (ResourceDictionary)AvaloniaXamlLoader.Load(paletteUri);
+    
+    var app = Application.Current;
+    var targetVariant = themeInfo.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
+    
+    if (app.Resources.ThemeDictionaries.TryGetValue(targetVariant, out var themeDict)
+        && themeDict is IResourceDictionary dict)
+    {
+        foreach (var kvp in palette)
+            dict[kvp.Key] = kvp.Value;
+    }
+    
+    app.RequestedThemeVariant = targetVariant;
+    
+    // Persist to settings
+    AppSettings.Current.DaisyUiTheme = themeName;
+    AppSettings.Save();
+    
+    return true;
+};
+```
+
+All built-in theme controls (`DaisyThemeDropdown`, `DaisyThemeController`, `DaisyThemeRadio`, `DaisyThemeSwap`) automatically use the custom applicator when set.

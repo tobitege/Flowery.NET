@@ -19,7 +19,7 @@
 This library provides native Avalonia controls that mimic the utility-first, semantic class naming of DaisyUI, making it easy to build beautiful, themed UIs in Avalonia. A NuGet package is also available.
 
 > [!NOTE]
-> **🚧 Active Development — Expect Breaking Changes 🚧**
+> **🚧 Active Development  -  Expect Breaking Changes 🚧**
 >
 > This will be under heavy development with a lot of changes across many files, while I'll keep
 > refining and adding missing features to existing controls or even add custom new ones, like the
@@ -191,7 +191,7 @@ In your view files (e.g., `MainWindow.axaml`), add the controls namespace:
 
 ## ✨ Flowery.NET Exclusives
 
-> **Beyond DaisyUI** — The following features and controls are **not part of the original DaisyUI CSS specification**. They are unique to Flowery.NET, built natively for Avalonia to provide production-ready components for real-world .NET applications.
+> **Beyond DaisyUI**  -  The following features and controls are **not part of the original DaisyUI CSS specification**. They are unique to Flowery.NET, built natively for Avalonia to provide production-ready components for real-world .NET applications.
 
 ### Accessibility
 
@@ -298,6 +298,7 @@ Flowery.NET uses Avalonia's `ThemeDictionaries` to provide seamless theme switch
 | Scenario | Recommended API |
 |----------|-----------------|
 | Switch between built-in themes (Light, Dark, Dracula, etc.) | `DaisyThemeManager.ApplyTheme()` |
+| **Custom theme application strategy** (in-place updates, persistence) | **Set `DaisyThemeManager.CustomThemeApplicator`** |
 | Toggle Light/Dark modes | `RequestedThemeVariant = ThemeVariant.Light/Dark` |
 | Load custom themes from CSS at runtime | `DaisyThemeLoader.ApplyThemeToApplication()` |
 | Parse DaisyUI CSS files | `DaisyUiCssParser.ParseFile()` |
@@ -371,6 +372,30 @@ DaisyThemeManager.ThemeChanged += (sender, themeName) =>
 // Check if a theme is dark
 bool isDark = DaisyThemeManager.IsDarkTheme("Dracula");
 ```
+
+### Custom Theme Applicator (v1.0.9+)
+
+If your app has a custom theming architecture (e.g., in-place `ThemeDictionary` updates, persisting theme settings, or chaining additional actions), you can override the default theme application behavior by setting `CustomThemeApplicator`:
+
+```csharp
+// In App.axaml.cs OnFrameworkInitializationCompleted:
+DaisyThemeManager.CustomThemeApplicator = themeName =>
+{
+    var themeInfo = DaisyThemeManager.GetThemeInfo(themeName);
+    if (themeInfo == null) return false;
+    
+    // Your custom theme application logic here
+    // e.g., in-place ThemeDictionary updates, settings persistence, etc.
+    
+    MyApp.ApplyThemeInPlace(themeInfo);
+    AppSettings.Current.Theme = themeName;
+    AppSettings.Save();
+    
+    return true;
+};
+```
+
+Once set, **all** built-in theme controls (`DaisyThemeDropdown`, `DaisyThemeController`, `DaisyThemeRadio`, `DaisyThemeSwap`) will automatically use your custom applicator instead of the default `MergedDictionaries` approach. This means you can drop in any Flowery.NET theme control without modification - they'll all respect your app's theming strategy.
 
 ## Optional Features
 

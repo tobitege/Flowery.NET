@@ -35,6 +35,34 @@ namespace Flowery.Controls
         private static readonly Dictionary<string, DaisyThemeInfo> _themesByName;
 
         /// <summary>
+        /// Optional custom theme applicator. When set, this delegate is called
+        /// instead of the default MergedDictionaries approach. The delegate receives
+        /// the theme name and should return true if the theme was applied successfully.
+        /// </summary>
+        /// <remarks>
+        /// Use this when your app requires a different theme application strategy,
+        /// such as in-place ThemeDictionary updates or persisting theme settings.
+        /// After calling, DaisyThemeManager automatically updates internal state
+        /// and fires ThemeChanged.
+        /// </remarks>
+        /// <example>
+        /// <code>
+        /// // In App.axaml.cs OnFrameworkInitializationCompleted:
+        /// DaisyThemeManager.CustomThemeApplicator = themeName =>
+        /// {
+        ///     // Custom in-place update logic
+        ///     var themeInfo = DaisyThemeManager.GetThemeInfo(themeName);
+        ///     if (themeInfo == null) return false;
+        ///
+        ///     // ... apply theme your way ...
+        ///     AppSettings.Current.DaisyUiTheme = themeName;
+        ///     return true;
+        /// };
+        /// </code>
+        /// </example>
+        public static Func<string, bool>? CustomThemeApplicator { get; set; }
+
+        /// <summary>
         /// All available DaisyUI themes.
         /// </summary>
         public static readonly ReadOnlyCollection<DaisyThemeInfo> AvailableThemes;
@@ -154,6 +182,18 @@ namespace Flowery.Controls
             if (string.Equals(_currentThemeName, themeInfo.Name, StringComparison.OrdinalIgnoreCase))
                 return true;
 
+            // Use custom applicator if set
+            if (CustomThemeApplicator != null)
+            {
+                var result = CustomThemeApplicator(themeName);
+                if (result)
+                {
+                    SetCurrentTheme(themeInfo.Name);
+                }
+                return result;
+            }
+
+            // Default: use MergedDictionaries approach
             var app = Application.Current;
             if (app == null) return false;
 
@@ -187,6 +227,20 @@ namespace Flowery.Controls
                 System.Diagnostics.Debug.WriteLine($"Failed to load theme {themeName}: {ex.Message}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Sets the current theme name and fires the ThemeChanged event.
+        /// Used by custom theme applicators to update internal state after applying a theme.
+        /// </summary>
+        /// <param name="themeName">The theme name that was applied.</param>
+        public static void SetCurrentTheme(string themeName)
+        {
+            if (string.Equals(_currentThemeName, themeName, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            _currentThemeName = themeName;
+            ThemeChanged?.Invoke(null, themeName);
         }
 
         /// <summary>

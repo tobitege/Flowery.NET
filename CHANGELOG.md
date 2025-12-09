@@ -6,6 +6,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.9] - 2025-12-09
+
+### Added
+
+- DaisyThemeManager: `CustomThemeApplicator` hook allows apps to override default theme application behavior (e.g., in-place ThemeDictionary updates, persistence)
+- DaisyThemeManager: `SetCurrentTheme()` helper method for custom applicators to update internal state
+- Flowery.Capture.NET: New screen capture library for automated documentation screenshots (no NuGet yet)
+
+### Changed
+
+- Gallery: Auto-screen-grabbing of sections for docs
+- Documentation: Enhanced generation with 90+ images
+- Sidebar: Sorting improvements and reduced gaps
+
+### Fixed
+
+- ColorPickerDialog image display
+
 ## [1.0.8] - 2025-12-08
 
 ### Added
@@ -110,6 +128,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom controls: ComponentSidebar, ModifierKeys
 - Gallery demo application
 
+[1.0.9]: https://github.com/tobitege/Flowery.NET/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/tobitege/Flowery.NET/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/tobitege/Flowery.NET/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/tobitege/Flowery.NET/compare/v1.0.5...v1.0.6
