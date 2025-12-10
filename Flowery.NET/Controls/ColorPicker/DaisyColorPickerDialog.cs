@@ -55,8 +55,8 @@ namespace Flowery.Controls.ColorPicker
         private Border? _colorPreview;
         private Border? _originalColorPreview;
         private TextBlock? _originalColorHexText;
-        private Button? _okButton;
-        private Button? _cancelButton;
+        private DaisyButton? _okButton;
+        private DaisyButton? _cancelButton;
 
         #region Styled Properties
 
@@ -342,11 +342,23 @@ namespace Flowery.Controls.ColorPicker
                 Margin = new Thickness(0, SmallSpacing, 0, 0)
             };
 
-            _okButton = new Button { Content = "OK", Width = ButtonWidth };
+            _okButton = new DaisyButton
+            {
+                Content = "OK",
+                Variant = DaisyButtonVariant.Primary,
+                Size = DaisySize.Small,
+                MinWidth = ButtonWidth
+            };
             _okButton.Click += OnOkButtonClick;
             buttonPanel.Children.Add(_okButton);
 
-            _cancelButton = new Button { Content = "Cancel", Width = ButtonWidth };
+            _cancelButton = new DaisyButton
+            {
+                Content = "Cancel",
+                Variant = DaisyButtonVariant.Primary,
+                Size = DaisySize.Small,
+                MinWidth = ButtonWidth
+            };
             _cancelButton.Click += OnCancelButtonClick;
             buttonPanel.Children.Add(_cancelButton);
 
@@ -526,4 +538,3 @@ namespace Flowery.Controls.ColorPicker
         }
     }
 }
-
