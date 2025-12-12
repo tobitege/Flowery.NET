@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <!--If you are willing to use platform-specific APIs, use conditional compilation.
+        See https://docs.avaloniaui.net/docs/guides/platforms/platform-specific-code/dotnet for more details.-->
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Flowery.NET.Gallery\Flowery.NET.Gallery.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />
+    </ItemGroup>
+</Project>

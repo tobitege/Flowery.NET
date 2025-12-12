@@ -3,7 +3,8 @@ using System;
 
 namespace Flowery.NET.Gallery;
 
-class Program
+class 
+    Program
 {
     [STAThread]
     public static void Main(string[] args)

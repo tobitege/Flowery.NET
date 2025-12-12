@@ -1,20 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <!-- Windows: net8.0-windows for WinForms clipboard; Others: net8.0 -->
-    <TargetFramework Condition="$([MSBuild]::IsOSPlatform('Windows'))">net8.0-windows</TargetFramework>
-    <TargetFramework Condition="!$([MSBuild]::IsOSPlatform('Windows'))">net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <TargetFramework>net9.0</TargetFramework>
+  <LangVersion>latest</LangVersion>
+  <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <!-- Windows-specific: Enable WinForms for clipboard image support -->
-  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-    <UseWindowsForms>true</UseWindowsForms>
-    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.9" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />

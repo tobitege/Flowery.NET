@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+    <PropertyGroup>
+        <TargetFramework>net10.0-browser</TargetFramework>
+        <OutputType>Exe</OutputType>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Flowery.NET.Gallery\Flowery.NET.Gallery.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Avalonia.Browser" Version="11.3.9" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="obj\project.packagespec.json" />
+    </ItemGroup>
+</Project>

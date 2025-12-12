@@ -32,7 +32,15 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            //DisableAvaloniaDataAnnotationValidation();
             desktop.MainWindow = new MainWindow();
+        }
+        else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewLifetime)
+        {
+            //DisableAvaloniaDataAnnotationValidation();
+            var mainView = new MainView();
+            singleViewLifetime.MainView = mainView;
+            // HookThemeVariant(mainView.ViewModel);
         }
 
         base.OnFrameworkInitializationCompleted();

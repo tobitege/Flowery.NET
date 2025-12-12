@@ -2,129 +2,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
-        xmlns:custom="clr-namespace:Flowery.Controls.Custom;assembly=Flowery.NET"
-        xmlns:examples="clr-namespace:Flowery.NET.Gallery.Examples"
-        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="800"
+        xmlns:gallery="clr-namespace:Flowery.NET.Gallery"
+        mc:Ignorable="d"
+        d:DesignWidth="1100"
+        d:DesignHeight="800"
         x:Class="Flowery.NET.Gallery.MainWindow"
         Title="Flowery.NET.Gallery"
-        Width="1200" Height="800"
+        Width="1200"
+        Height="800"
         Background="{DynamicResource DaisyBase100Brush}">
 
-    <Grid ColumnDefinitions="Auto,*">
-        <!-- Left Sidebar -->
-        <controls:DaisyComponentSidebar x:Name="ComponentSidebar"
-                                        Grid.Column="0"
-                                        SidebarWidth="220"
-                                        ItemSelected="ComponentSidebar_ItemSelected" />
-
-        <!-- Main Content -->
-        <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
-            <!-- Futuristic Header -->
-            <Border Grid.Row="0" ClipToBounds="True">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                        <GradientStop Offset="0" Color="#0f172a"/>
-                        <GradientStop Offset="0.5" Color="#1e293b"/>
-                        <GradientStop Offset="1" Color="#0f172a"/>
-                    </LinearGradientBrush>
-                </Border.Background>
-                <Grid>
-                    <!-- Decorative gradient orbs -->
-                    <Ellipse Width="150" Height="150" Opacity="0.1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-40,-20,0">
-                        <Ellipse.Fill>
-                            <RadialGradientBrush>
-                                <GradientStop Offset="0" Color="#0ea5e9"/>
-                                <GradientStop Offset="1" Color="Transparent"/>
-                            </RadialGradientBrush>
-                        </Ellipse.Fill>
-                    </Ellipse>
-                    <Ellipse Width="100" Height="100" Opacity="0.05" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-20,0,0,-20">
-                        <Ellipse.Fill>
-                            <RadialGradientBrush>
-                                <GradientStop Offset="0" Color="#2dd4bf"/>
-                                <GradientStop Offset="1" Color="Transparent"/>
-                            </RadialGradientBrush>
-                        </Ellipse.Fill>
-                    </Ellipse>
-
-                    <StackPanel>
-                        <!-- Header content -->
-                        <Grid Margin="24,24,24,8" ColumnDefinitions="*,Auto">
-                            <StackPanel Spacing="6">
-                                <TextBlock FontSize="28" FontWeight="Bold">
-                                    <TextBlock.Foreground>
-                                        <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
-                                            <GradientStop Offset="0" Color="#f8fafc"/>
-                                            <GradientStop Offset="1" Color="#94a3b8"/>
-                                        </LinearGradientBrush>
-                                    </TextBlock.Foreground>
-                                    <Run Text="Flowery.NET"/>
-                                    <Run Text=" Components Gallery" FontWeight="Normal" Foreground="#94a3b8"/>
-                                </TextBlock>
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <TextBlock Text="Created by" FontSize="13" Foreground="#64748b" VerticalAlignment="Center"/>
-                                    <Button Classes="link" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="OpenGitHub_Click">
-                                        <TextBlock Text="tobitege" FontSize="13" FontWeight="SemiBold" Foreground="#38bdf8"/>
-                                    </Button>
-                                    <TextBlock Text="· 2025 · MIT licensed" FontSize="13" Foreground="#64748b" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="16">
-                                <controls:DaisyButton Content="📸" Variant="Ghost" Size="Small"
-                                                      ToolTip.Tip="Capture All Screenshots"
-                                                      Click="CaptureAllScreenshots_Click"/>
-                                <controls:DaisyThemeSwap />
-                                <controls:DaisyThemeDropdown Width="130"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <!-- Bottom accent gradient bar -->
-                        <Border Height="3">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
-                                    <GradientStop Offset="0" Color="#0ea5e9"/>
-                                    <GradientStop Offset="0.3" Color="#2dd4bf"/>
-                                    <GradientStop Offset="0.6" Color="#38bdf8"/>
-                                    <GradientStop Offset="1" Color="#14b8a6"/>
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <!-- Category Title Bar (hidden on Home) -->
-            <Border x:Name="CategoryTitleBar" Grid.Row="1" Background="{DynamicResource DaisyBase200Brush}"
-                    BorderBrush="{DynamicResource DaisyBase300Brush}" BorderThickness="0,0,0,1"
-                    Padding="24,4,24,20" IsVisible="False">
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                    <!-- Futuristic painted chevrons -->
-                    <Viewbox Width="24" Height="14" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="-6">
-                            <Path Data="M0,0 L6,0 L12,7 L6,14 L0,14 L6,7 Z" Fill="{DynamicResource DaisyPrimaryBrush}" Opacity="0.4"/>
-                            <Path Data="M0,0 L6,0 L12,7 L6,14 L0,14 L6,7 Z" Fill="{DynamicResource DaisyPrimaryBrush}" Opacity="0.7"/>
-                            <Path Data="M0,0 L6,0 L12,7 L6,14 L0,14 L6,7 Z" Fill="{DynamicResource DaisyPrimaryBrush}" Opacity="1.0"/>
-                        </StackPanel>
-                    </Viewbox>
-
-                    <TextBlock x:Name="CategoryTitle" Text="" FontSize="22" FontWeight="SemiBold"
-                               VerticalAlignment="Center" Foreground="{DynamicResource DaisyBaseContentBrush}"/>
-                </StackPanel>
-            </Border>
-
-            <!-- Content fills remaining space -->
-            <ContentControl x:Name="MainContent" Grid.Row="2" />
-        </Grid>
-
-        <!-- Modal overlay at window level -->
-        <controls:DaisyModal x:Name="DemoModal" Grid.ColumnSpan="2" IsOpen="False">
-            <StackPanel Spacing="12" MaxWidth="400">
-                <TextBlock x:Name="ModalTitle" Text="Hello!" FontSize="20" FontWeight="Bold"/>
-                <TextBlock Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." TextWrapping="Wrap" Opacity="0.8"/>
-                <TextBlock Text="Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." TextWrapping="Wrap" Opacity="0.7" FontSize="13"/>
-                <controls:DaisyButton Content="Close" Variant="Primary" Click="CloseModalBtn_Click" HorizontalAlignment="Right" Margin="0,8,0,0"/>
-            </StackPanel>
-        </controls:DaisyModal>
-    </Grid>
+    <gallery:MainView />
 </Window>
