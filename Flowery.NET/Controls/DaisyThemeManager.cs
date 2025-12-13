@@ -122,6 +122,7 @@ namespace Flowery.Controls
                 new DaisyThemeInfo("Pastel", false),
                 new DaisyThemeInfo("Retro", false),
                 new DaisyThemeInfo("Silk", false),
+                new DaisyThemeInfo("Smooth", true),
                 new DaisyThemeInfo("Sunset", true),
                 new DaisyThemeInfo("Synthwave", true),
                 new DaisyThemeInfo("Valentine", false),
