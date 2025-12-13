@@ -74,6 +74,7 @@ namespace Flowery.Controls
         private ObservableCollection<SidebarLanguage> _availableLanguages = new();
         private SidebarLanguage? _selectedLanguage;
         private bool _updatingLanguage;
+        private Button? _selectedItemButton;
 
         public static readonly DirectProperty<DaisyComponentSidebar, ObservableCollection<SidebarLanguage>> AvailableLanguagesProperty =
             AvaloniaProperty.RegisterDirect<DaisyComponentSidebar, ObservableCollection<SidebarLanguage>>(
@@ -328,14 +329,12 @@ namespace Flowery.Controls
 
         private void UpdateSelectedButtonVisuals(Button selectedButton)
         {
-            foreach (var button in this.GetVisualDescendants().OfType<Button>())
-            {
-                if (button.Classes.Contains("sidebar-item"))
-                {
-                    button.Classes.Remove("selected");
-                }
-            }
-            selectedButton.Classes.Add("selected");
+            if (_selectedItemButton != null && _selectedItemButton.Classes.Contains("sidebar-item"))
+                _selectedItemButton.Classes.Remove("selected");
+
+            _selectedItemButton = selectedButton;
+            if (!_selectedItemButton.Classes.Contains("selected"))
+                _selectedItemButton.Classes.Add("selected");
         }
 
         internal void SelectItem(SidebarItem item, SidebarCategory category)

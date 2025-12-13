@@ -17,6 +17,8 @@ namespace Flowery.NET.Gallery;
 public partial class MainView : UserControl
 {
     private readonly Dictionary<string, Func<Control>> _categoryControls;
+    private readonly Dictionary<string, Control> _categoryControlCache;
+    private Control? _activeCategoryContent;
     private ActionsExamples? _actionsExamples;
 
     /// <summary>
@@ -55,6 +57,7 @@ public partial class MainView : UserControl
             ["Custom Controls"] = () => new CustomControls(),
             ["Color Picker"] = () => new ColorPickerExamples(),
         };
+        _categoryControlCache = new Dictionary<string, Control>(StringComparer.OrdinalIgnoreCase);
 
         if (ComponentSidebar != null)
         {
@@ -70,8 +73,7 @@ public partial class MainView : UserControl
             }
         }
 
-        if (MainContent != null)
-            MainContent.Content = CreateHomePage();
+        NavigateToCategory("Home");
     }
 
     private Control CreateHomePage()
@@ -88,7 +90,7 @@ public partial class MainView : UserControl
 
     private void NavigateToCategory(string tabHeader, string? sectionId = null)
     {
-        if (MainContent == null)
+        if (MainContentHost == null)
             return;
 
         if (CategoryTitle != null)
@@ -98,15 +100,38 @@ public partial class MainView : UserControl
 
         if (_categoryControls.TryGetValue(tabHeader, out var factory))
         {
-            var newContent = factory();
-            MainContent.Content = newContent;
+            if (!_categoryControlCache.TryGetValue(tabHeader, out var newContent))
+            {
+                newContent = factory();
+                _categoryControlCache[tabHeader] = newContent;
+            }
+
+            var contentChanged = !ReferenceEquals(_activeCategoryContent, newContent);
+            if (contentChanged)
+            {
+                if (_activeCategoryContent != null)
+                    _activeCategoryContent.IsVisible = false;
+
+                if (!MainContentHost.Children.Contains(newContent))
+                    MainContentHost.Children.Add(newContent);
+
+                newContent.IsVisible = true;
+                _activeCategoryContent = newContent;
+            }
 
             if (sectionId != null && newContent is IScrollableExample scrollable)
             {
-                global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                if (contentChanged)
+                {
+                    global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        scrollable.ScrollToSection(sectionId);
+                    }, global::Avalonia.Threading.DispatcherPriority.Loaded);
+                }
+                else
                 {
                     scrollable.ScrollToSection(sectionId);
-                }, global::Avalonia.Threading.DispatcherPriority.Loaded);
+                }
             }
         }
     }
@@ -241,7 +266,7 @@ public partial class MainView : UserControl
 
                 await Task.Delay(1000);
 
-                if (MainContent?.Content is Control view)
+                if (_activeCategoryContent is Control view)
                 {
                     var headers = view.GetVisualDescendants().OfType<SectionHeader>().ToList();
 

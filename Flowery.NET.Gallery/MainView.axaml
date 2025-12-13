@@ -114,7 +114,7 @@
             </Border>
 
             <!-- Content fills remaining space -->
-            <ContentControl x:Name="MainContent" Grid.Row="2" />
+            <Grid x:Name="MainContentHost" Grid.Row="2" />
         </Grid>
 
         <!-- Modal overlay at window level -->

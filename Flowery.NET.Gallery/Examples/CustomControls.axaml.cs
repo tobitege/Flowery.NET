@@ -16,6 +16,7 @@ namespace Flowery.NET.Gallery.Examples;
 public partial class CustomControls : UserControl, IScrollableExample
 {
     private OpenWeatherMapService? _weatherService;
+    private Dictionary<string, Visual>? _sectionTargetsById;
 
     public CustomControls()
     {
@@ -69,20 +70,31 @@ public partial class CustomControls : UserControl, IScrollableExample
         var scrollViewer = this.FindControl<ScrollViewer>("MainScrollViewer");
         if (scrollViewer == null) return;
 
-        var sectionHeader = this.GetVisualDescendants()
-            .OfType<SectionHeader>()
-            .FirstOrDefault(h => h.SectionId == sectionName);
+        var target = GetSectionTarget(sectionName);
+        if (target == null) return;
 
-        if (sectionHeader?.Parent is Visual parent)
+        var transform = target.TransformToVisual(scrollViewer);
+        if (transform.HasValue)
         {
-            var transform = parent.TransformToVisual(scrollViewer);
-            if (transform.HasValue)
+            var point = transform.Value.Transform(new Point(0, 0));
+            // Add current scroll offset to get absolute position in content
+            scrollViewer.Offset = new Vector(0, point.Y + scrollViewer.Offset.Y);
+        }
+    }
+
+    private Visual? GetSectionTarget(string sectionId)
+    {
+        if (_sectionTargetsById == null)
+        {
+            _sectionTargetsById = new Dictionary<string, Visual>(StringComparer.OrdinalIgnoreCase);
+            foreach (var header in this.GetVisualDescendants().OfType<SectionHeader>())
             {
-                var point = transform.Value.Transform(new Point(0, 0));
-                // Add current scroll offset to get absolute position in content
-                scrollViewer.Offset = new Vector(0, point.Y + scrollViewer.Offset.Y);
+                if (!string.IsNullOrWhiteSpace(header.SectionId))
+                    _sectionTargetsById[header.SectionId] = header.Parent as Visual ?? header;
             }
         }
+
+        return _sectionTargetsById.TryGetValue(sectionId, out var target) ? target : null;
     }
 
     private async void FetchWeatherBtn_Click(object? sender, RoutedEventArgs e)
