@@ -6,6 +6,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2025-12-13
+
+### Added
+
+- **Multi-platform Gallery**: New cross-platform architecture for the demo app (thanks @frandelfo !)
+  - `Flowery.NET.Gallery` - Shared library with all UI and examples
+  - `Flowery.NET.Gallery.Desktop` - Desktop host (Windows, Linux, macOS)
+  - `Flowery.NET.Gallery.Browser` - WebAssembly host for browsers
+  - `Flowery.NET.Gallery.Android` - Android mobile app
+  - `Flowery.NET.Gallery.iOS` - iOS mobile app
+- Build scripts: `scripts/build_all.ps1` with per-project build and timing summary
+- Build scripts: `scripts/run_browser.ps1` for WASM development
+- Documentation: Gallery App Architecture section in README
+
+### Fixed
+
+- Browser: Add `WasmBuildNative=true` (required for SkiaSharp in WASM)
+- Browser: Add MutationObserver splash screen hide and error handling to `main.js`
+- Android: Add `AcceptAndroidSDKLicenses=true` (avoids interactive license prompts)
+- Shared library: Remove `Avalonia.Desktop` package (now in Desktop project only)
+- Shared library: Delete `Program.cs` (entry point now in platform-specific hosts)
+
 ## [1.4.0] - 2025-12-12
 
 ### Added

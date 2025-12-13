@@ -34,7 +34,7 @@ This library provides native Avalonia controls that mimic the utility-first, sem
 - **Localization Support**: Built-in i18n with **11 languages** (🇺🇸 🇩🇪 🇫🇷 🇪🇸 🇮🇹 🇨🇳 🇰🇷 🇯🇵 🇸🇦 🇹🇷 🇺🇦), localizable theme names, and runtime language switching. [📖 Guide](LOCALIZATION.md)
 - **Variants**: Supports `Primary`, `Secondary`, `Accent`, `Ghost`, etc.
 - **Framework Support**: Library targets `netstandard2.0` for maximum compatibility.
-- **Gallery App**: Includes a full demo application (`Flowery.NET.Gallery`) showcasing all controls and features.
+- **Gallery App**: Multi-platform demo application showcasing all controls and features (Desktop, Browser/WASM, Android, iOS).
 
 ## Documentation
 
@@ -250,6 +250,35 @@ Background borders should be **siblings** of content, not parents:
 
 ---
 
+## Gallery App Architecture
+
+The Gallery demo application uses a **multi-platform architecture** to showcase Flowery.NET controls across different platforms:
+
+| Project | Description |
+|---------|-------------|
+| `Flowery.NET.Gallery` | Shared library containing all UI, views, and examples |
+| `Flowery.NET.Gallery.Desktop` | Desktop host for Windows, Linux, and macOS |
+| `Flowery.NET.Gallery.Browser` | WebAssembly host for running in browsers |
+| `Flowery.NET.Gallery.Android` | Android mobile app |
+| `Flowery.NET.Gallery.iOS` | iOS mobile app (requires macOS to build) |
+
+The shared library contains the `MainView` UserControl with all the demo content, while each platform host provides the entry point and platform-specific configuration. This architecture ensures the same UI runs consistently across all supported platforms.
+
+**Running the Gallery:**
+
+```bash
+# Desktop (Windows/Linux/macOS)
+dotnet run --project Flowery.NET.Gallery.Desktop
+
+# Browser (WebAssembly)
+dotnet run --project Flowery.NET.Gallery.Browser
+
+# Android (requires Android SDK)
+dotnet build Flowery.NET.Gallery.Android -f net9.0-android
+```
+
+---
+
 ## Technical Requirements
 
 **To use the library:**
@@ -292,5 +321,6 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
 - [**Avalonia.Fonts.Inter**](https://www.nuget.org/packages/Avalonia.Fonts.Inter) - The font used in the gallery.
 - [**Cyotek ColorPicker**](https://github.com/cyotek/Cyotek.Windows.Forms.ColorPicker) - Inspiration for color picker controls.
 - [**Easy Date Timeline**](https://github.com/FadyFayezYounan/easy_date_timeline) - Inspiration for date timeline controls.
+- [**@frandelfo**](https://github.com/frandelfo) - Multi-platform Gallery architecture (Desktop, Browser, Android, iOS).
 
 > **Disclaimer:** This project is not affiliated with, endorsed by, or sponsored by any of the above.
