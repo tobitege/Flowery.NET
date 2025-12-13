@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Build scripts: `scripts/run_browser.ps1` for WASM development
 - Documentation: Gallery App Architecture section in README
 - Gallery: Enhanced Carousel example with descriptive text and emoji icons per slide
+- **Cross-platform state storage**: Sidebar state (last viewed item, collapsed categories) now persists in Browser/WASM
+  - `IStateStorage` abstraction with platform-specific implementations
+  - `FileStateStorage` for Desktop (uses `%LocalAppData%`)
+  - `BrowserStateStorage` for WASM (uses browser `localStorage` via JS interop)
+  - `StateStorageProvider` for runtime configuration
 
 ### Fixed
 

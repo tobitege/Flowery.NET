@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -13,6 +12,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Flowery.Localization;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -67,9 +67,7 @@ namespace Flowery.Controls
     {
         protected override Type StyleKeyOverride => typeof(DaisyComponentSidebar);
 
-        private static readonly string StateFile = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "FloweryGallery", "sidebar.state");
+        private const string StateKey = "sidebar";
 
         private ObservableCollection<SidebarCategory> _allCategories = new();
 
@@ -361,8 +359,10 @@ namespace Flowery.Controls
         {
             try
             {
-                if (!File.Exists(StateFile)) return;
-                var lines = File.ReadAllLines(StateFile);
+                var lines = StateStorageProvider.Instance.LoadLines(StateKey);
+                if (lines.Count == 0)
+                    return;
+
                 string? lastItemId = null;
                 var collapsed = new HashSet<string>();
                 foreach (var line in lines)
@@ -394,13 +394,12 @@ namespace Flowery.Controls
         {
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(StateFile)!);
                 var lines = new List<string>();
                 if (!string.IsNullOrEmpty(currentItemId))
                     lines.Add("last:" + currentItemId);
                 foreach (var cat in _allCategories.Where(c => !c.IsExpanded))
                     lines.Add("collapsed:" + cat.Name);
-                File.WriteAllLines(StateFile, lines);
+                StateStorageProvider.Instance.SaveLines(StateKey, lines);
             }
             catch { }
         }
