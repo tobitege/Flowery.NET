@@ -560,6 +560,19 @@ namespace Flowery.Controls
                         new SidebarItem { Id = "theme-radio", Name = "Theme Radio", TabHeader = "Theming" }
                     }
                 },
+                new SidebarCategory
+                {
+                    Name = "Effects",
+                    IconKey = "DaisyIconEffects",
+                    Items = new ObservableCollection<SidebarItem>
+                    {
+                        new SidebarItem { Id = "reveal", Name = "Reveal", TabHeader = "Effects" },
+                        new SidebarItem { Id = "scramble", Name = "Scramble Hover", TabHeader = "Effects" },
+                        new SidebarItem { Id = "wave", Name = "Wave Text", TabHeader = "Effects" },
+                        new SidebarItem { Id = "cursor-follow", Name = "Cursor Follow", TabHeader = "Effects" },
+                        new SidebarItem { Id = "showcase", Name = "Showcase", TabHeader = "Effects" }
+                    }
+                },
                 // Custom Controls and Color Picker stay at bottom
                 new SidebarCategory
                 {

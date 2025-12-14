@@ -78,6 +78,17 @@ namespace Flowery.Effects
             IsEnabledProperty.Changed.AddClassHandler<TextBlock>(OnIsEnabledChanged);
         }
 
+        /// <summary>
+        /// Programmatically triggers the scramble animation.
+        /// Useful for demos and automated showcases.
+        /// </summary>
+        public static void TriggerScramble(TextBlock textBlock)
+        {
+            if (textBlock == null) return;
+            StopScramble(textBlock); // Stop any existing animation
+            StartScramble(textBlock);
+        }
+
         private static void OnIsEnabledChanged(TextBlock element, AvaloniaPropertyChangedEventArgs e)
         {
             if (e.NewValue is true)
@@ -102,18 +113,27 @@ namespace Flowery.Effects
         private static void OnPointerExited(object? sender, PointerEventArgs e)
         {
             if (sender is not TextBlock textBlock) return;
-            // Continue resolving but faster on exit
+            // On exit, restore original text immediately and stop animation
+            var stored = textBlock.GetValue(OriginalTextProperty);
+            if (!string.IsNullOrEmpty(stored))
+            {
+                textBlock.Text = stored;
+            }
+            StopScramble(textBlock);
         }
 
         private static void StartScramble(TextBlock textBlock)
         {
-            // Store original text
+            // If already running, don't restart
+            var existingTimer = textBlock.GetValue(TimerProperty);
+            if (existingTimer != null) return;
+
+            // Store original text BEFORE anything else
             var originalText = textBlock.Text ?? string.Empty;
+            if (string.IsNullOrEmpty(originalText)) return;
+
             textBlock.SetValue(OriginalTextProperty, originalText);
             textBlock.SetValue(FrameCountProperty, 0);
-
-            // Stop any existing timer
-            StopScramble(textBlock);
 
             var duration = GetDuration(textBlock);
             var frameRate = GetFrameRate(textBlock);
@@ -176,6 +196,20 @@ namespace Flowery.Effects
             {
                 timer.Stop();
                 textBlock.SetValue(TimerProperty, null);
+            }
+        }
+
+        /// <summary>
+        /// Stops any running scramble animation and restores the original text.
+        /// </summary>
+        public static void ResetScramble(TextBlock textBlock)
+        {
+            if (textBlock == null) return;
+            StopScramble(textBlock);
+            var originalText = textBlock.GetValue(OriginalTextProperty);
+            if (!string.IsNullOrEmpty(originalText))
+            {
+                textBlock.Text = originalText;
             }
         }
     }

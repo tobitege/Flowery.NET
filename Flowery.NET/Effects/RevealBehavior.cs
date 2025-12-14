@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 
 namespace Flowery.Effects
 {
@@ -26,6 +27,10 @@ namespace Flowery.Effects
             AvaloniaProperty.RegisterAttached<Visual, bool>(
                 "IsEnabled", typeof(RevealBehavior), false);
 
+        public static readonly AttachedProperty<RevealMode> ModeProperty =
+            AvaloniaProperty.RegisterAttached<Visual, RevealMode>(
+                "Mode", typeof(RevealBehavior), RevealMode.FadeReveal);
+
         public static readonly AttachedProperty<TimeSpan> DurationProperty =
             AvaloniaProperty.RegisterAttached<Visual, TimeSpan>(
                 "Duration", typeof(RevealBehavior), TimeSpan.FromMilliseconds(500));
@@ -40,7 +45,7 @@ namespace Flowery.Effects
 
         public static readonly AttachedProperty<Easing> EasingProperty =
             AvaloniaProperty.RegisterAttached<Visual, Easing>(
-                "Easing", typeof(RevealBehavior), new CubicEaseOut());
+                "Easing", typeof(RevealBehavior), new QuadraticEaseOut());
 
         #endregion
 
@@ -48,6 +53,9 @@ namespace Flowery.Effects
 
         public static bool GetIsEnabled(Visual element) => element.GetValue(IsEnabledProperty);
         public static void SetIsEnabled(Visual element, bool value) => element.SetValue(IsEnabledProperty, value);
+
+        public static RevealMode GetMode(Visual element) => element.GetValue(ModeProperty);
+        public static void SetMode(Visual element, RevealMode value) => element.SetValue(ModeProperty, value);
 
         public static TimeSpan GetDuration(Visual element) => element.GetValue(DurationProperty);
         public static void SetDuration(Visual element, TimeSpan value) => element.SetValue(DurationProperty, value);
@@ -73,6 +81,12 @@ namespace Flowery.Effects
             if (e.NewValue is true)
             {
                 element.AttachedToVisualTree += OnAttachedToVisualTree;
+
+                // If already attached to visual tree, start animation immediately
+                if (element.GetVisualRoot() != null)
+                {
+                    StartRevealAnimation(element);
+                }
             }
             else
             {
@@ -80,52 +94,147 @@ namespace Flowery.Effects
             }
         }
 
-        private static async void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+        private static void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
         {
             if (sender is not Visual element) return;
+            StartRevealAnimation(element);
+        }
 
+        private static async void StartRevealAnimation(Visual element)
+        {
+            var mode = GetMode(element);
             var duration = GetDuration(element);
             var direction = GetDirection(element);
             var distance = GetDistance(element);
             var easing = GetEasing(element);
 
-            // Calculate start offset based on direction
-            var (startX, startY) = direction switch
+            // Determine animation behavior based on mode
+            var hasTranslate = mode is RevealMode.FadeReveal or RevealMode.SlideIn or RevealMode.ScaleSlide;
+            var hasScale = mode is RevealMode.Scale or RevealMode.ScaleSlide;
+            var hasFade = mode is RevealMode.FadeReveal or RevealMode.FadeOnly or RevealMode.Scale or RevealMode.ScaleSlide;
+
+            // Calculate start offset based on direction (for translate modes)
+            var (startX, startY) = hasTranslate ? direction switch
             {
                 RevealDirection.Top => (0.0, -distance),
                 RevealDirection.Bottom => (0.0, distance),
                 RevealDirection.Left => (-distance, 0.0),
                 RevealDirection.Right => (distance, 0.0),
                 _ => (0.0, distance)
-            };
+            } : (0.0, 0.0);
 
-            // Set initial state
-            var transform = new TranslateTransform { X = startX, Y = startY };
-            element.RenderTransform = transform;
-            element.Opacity = 0;
+            // Set up transforms
+            TranslateTransform? translateTransform = null;
+            ScaleTransform? scaleTransform = null;
 
-            // Small delay to ensure layout is complete
-            await Task.Delay(16);
-
-            // Animate using WASM-compatible helper
-            using var cts = new CancellationTokenSource();
-
-            await AnimationHelper.AnimateAsync(
-                t =>
+            if (hasTranslate && hasScale)
+            {
+                // Use TransformGroup for combined transforms
+                translateTransform = new TranslateTransform { X = startX, Y = startY };
+                scaleTransform = new ScaleTransform { ScaleX = 0.8, ScaleY = 0.8 };
+                element.RenderTransform = new TransformGroup
                 {
-                    element.Opacity = t;
-                    transform.X = AnimationHelper.Lerp(startX, 0, t);
-                    transform.Y = AnimationHelper.Lerp(startY, 0, t);
-                },
-                duration,
-                easing,
-                ct: cts.Token);
+                    Children = { scaleTransform, translateTransform }
+                };
+                element.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            }
+            else if (hasTranslate)
+            {
+                translateTransform = new TranslateTransform { X = startX, Y = startY };
+                element.RenderTransform = translateTransform;
+            }
+            else if (hasScale)
+            {
+                scaleTransform = new ScaleTransform { ScaleX = 0.8, ScaleY = 0.8 };
+                element.RenderTransform = scaleTransform;
+                element.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            }
+
+            // Set initial opacity
+            if (hasFade)
+            {
+                element.Opacity = 0;
+            }
+
+            // Wait for layout to complete - use 2 frames to ensure rendering
+            await Task.Delay(32);
+
+            // Time-based animation for accurate timing
+            var startTime = DateTime.UtcNow;
+            var endTime = startTime + duration;
+
+            while (DateTime.UtcNow < endTime)
+            {
+                var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
+                var rawT = Math.Min(1.0, elapsed / duration.TotalMilliseconds);
+                var easedT = easing.Ease(rawT);
+
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    if (hasFade)
+                    {
+                        element.Opacity = easedT;
+                    }
+                    if (translateTransform != null)
+                    {
+                        translateTransform.X = AnimationHelper.Lerp(startX, 0, easedT);
+                        translateTransform.Y = AnimationHelper.Lerp(startY, 0, easedT);
+                    }
+                    if (scaleTransform != null)
+                    {
+                        var scale = AnimationHelper.Lerp(0.8, 1.0, easedT);
+                        scaleTransform.ScaleX = scale;
+                        scaleTransform.ScaleY = scale;
+                    }
+                });
+
+                await Task.Delay(16); // ~60fps
+            }
 
             // Ensure final state
             element.Opacity = 1;
-            transform.X = 0;
-            transform.Y = 0;
+            if (translateTransform != null)
+            {
+                translateTransform.X = 0;
+                translateTransform.Y = 0;
+            }
+            if (scaleTransform != null)
+            {
+                scaleTransform.ScaleX = 1;
+                scaleTransform.ScaleY = 1;
+            }
         }
+    }
+
+    /// <summary>
+    /// Animation mode for reveal effect.
+    /// </summary>
+    public enum RevealMode
+    {
+        /// <summary>
+        /// Fades in opacity while sliding into position (default).
+        /// </summary>
+        FadeReveal,
+
+        /// <summary>
+        /// Slides in from off-screen while staying fully visible (no fade).
+        /// </summary>
+        SlideIn,
+
+        /// <summary>
+        /// Pure fade-in with no movement.
+        /// </summary>
+        FadeOnly,
+
+        /// <summary>
+        /// Scales up from center while fading in.
+        /// </summary>
+        Scale,
+
+        /// <summary>
+        /// Scales up while sliding into position with fade.
+        /// </summary>
+        ScaleSlide
     }
 
     /// <summary>

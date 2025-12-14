@@ -209,6 +209,22 @@ A horizontal scrollable date picker inspired by FadyFayezYounan's `easy_date_tim
 
 - **Numeric Up/Down** (`DaisyNumericUpDown`): Advanced numeric input with **6 number bases** (Decimal, Hex, Binary, Octal, ColorHex, IPv4). Features real-time filtering, thousand separators, prefix/suffix display.
 
+### Visual Effects
+
+Cross-platform visual effects library (WASM-compatible). See [Effects.md](Flowery.NET/docs/index.html#Effects) for full documentation.
+
+- **RevealBehavior**: Fade-in + slide animation on element attach.
+- **ScrambleHoverBehavior**: Random character scramble on hover, resolves left-to-right.
+- **WaveTextBehavior**: Infinite sine wave animation on text.
+- **CursorFollowBehavior**: Spring-physics cursor follower element.
+
+```xml
+xmlns:fx="clr-namespace:Flowery.Effects;assembly=Flowery.NET"
+
+<Border fx:RevealBehavior.IsEnabled="True" fx:RevealBehavior.Direction="Bottom"/>
+<TextBlock fx:ScrambleHoverBehavior.IsEnabled="True" Text="Hover Me!"/>
+```
+
 ### Weather Widgets
 
 Weather display widgets with animated condition icons:
@@ -321,6 +337,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
 - [**Avalonia.Fonts.Inter**](https://www.nuget.org/packages/Avalonia.Fonts.Inter) - The font used in the gallery.
 - [**Cyotek ColorPicker**](https://github.com/cyotek/Cyotek.Windows.Forms.ColorPicker) - Inspiration for color picker controls.
 - [**Easy Date Timeline**](https://github.com/FadyFayezYounan/easy_date_timeline) - Inspiration for date timeline controls.
+- [**smoothui**](https://github.com/educlopez/smoothui) - Inspiration for visual effects (React/Tailwind/Framer Motion).
 - [**@frandelfo**](https://github.com/frandelfo) - Multi-platform Gallery architecture (Desktop, Browser, Android, iOS).
 
 > **Disclaimer:** This project is not affiliated with, endorsed by, or sponsored by any of the above.

@@ -72,9 +72,15 @@ def strip_html_comments_outside_code(content: str) -> str:
 class MarkdownToHtml:
     """Simple markdown to HTML converter."""
 
-    def convert(self, markdown: str) -> str:
-        """Convert markdown to HTML."""
+    def convert(self, markdown: str, depth: int = 1) -> str:
+        """Convert markdown to HTML.
+        
+        Args:
+            markdown: Markdown content to convert
+            depth: Page depth (0 = root/docs/, 1 = docs/controls/ or docs/categories/)
+        """
         html = markdown
+        path_prefix = '../' * depth  # '' for depth=0, '../' for depth=1
 
         # Code blocks - extract and replace with placeholders
         code_blocks = []
@@ -89,13 +95,13 @@ class MarkdownToHtml:
         # Inline code
         html = re.sub(r'`([^`]+)`', r'<code>\1</code>', html)
 
-        # Images - convert ![alt](src) to <img> and fix paths for controls/ subfolder
+        # Images - convert ![alt](src) to <img> and fix paths based on depth
         def convert_image(m):
             alt = m.group(1)
             src = m.group(2)
-            # If src is a local file (not http), prepend ../ for controls/ pages
+            # If src is a local file (not http), prepend path prefix based on depth
             if not src.startswith(('http://', 'https://', '/')):
-                src = '../' + src
+                src = path_prefix + src
             return f'<img src="{src}" alt="{alt}" style="max-width:800px;width:100%;height:auto;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);">'
         html = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', convert_image, html)
 
@@ -240,7 +246,7 @@ class SiteGenerator:
     CUSTOM_CONTROL_PREFIXES = ('Color', 'DateTimeline', 'ModifierKeys', 'NumericUpDown', 'Weather', 'ComponentSidebar')
     
     # Standalone guide files (not control docs) to include in the sidebar
-    GUIDE_FILES = ['MigrationExample.md', 'DesignTokens.md']
+    GUIDE_FILES = ['MigrationExample.md', 'DesignTokens.md', 'Effects.md']
     
     # Helper/internal classes shown in a separate 'Helpers' section
     HELPER_CONTROL_NAMES = {
@@ -374,21 +380,21 @@ class SiteGenerator:
         print(f"Open:   {self.output_dir / 'index.html'}")
 
     def _copy_images(self):
-        """Copy image files from llms-static/ and llms-static/images/ to docs/."""
+        """Copy image files from llms-static/ and llms-static/images/ to docs/images/."""
         if not self.curated_dir:
             return
 
         image_extensions = ['*.gif', '*.png', '*.jpg', '*.jpeg', '*.webp', '*.svg']
         copied = 0
 
-        # Copy images from llms-static/ root to docs/ (legacy location)
+        # Copy ALL images from llms-static/ root to docs/images/
         for ext in image_extensions:
             for img_file in self.curated_dir.glob(ext):
-                dest = self.output_dir / img_file.name
+                dest = self.output_dir / "images" / img_file.name
                 shutil.copy2(img_file, dest)
                 copied += 1
 
-        # Copy images from llms-static/images/ to docs/images/ (new location for screenshots)
+        # Copy images from llms-static/images/ to docs/images/
         images_subdir = self.curated_dir / "images"
         if images_subdir.exists():
             for ext in image_extensions:
@@ -413,7 +419,7 @@ class SiteGenerator:
                 # Read and convert to HTML
                 md_content = guide_file.read_text(encoding='utf-8')
                 md_content = strip_html_comments_outside_code(md_content)
-                html_content = self.converter.convert(md_content)
+                html_content = self.converter.convert(md_content, depth=0)
 
                 # Add breadcrumb navigation
                 breadcrumbs = '<div class="breadcrumbs"><a href="home.html">Home</a></div>'
@@ -475,7 +481,9 @@ class SiteGenerator:
                 guide_name = guide.replace('.md', '')
                 # Convert camelCase to spaced title (MigrationExample -> Migration Example)
                 display_name = ''.join(' ' + c if c.isupper() else c for c in guide_name).strip()
-                sidebar_items.append(f'<li><a href="{guide_name}.html" target="viewer">{display_name}</a></li>')
+                # Add custom badge for Effects (exclusive content)
+                badge = '<sup class="custom-badge">✦</sup>' if guide_name == 'Effects' else ''
+                sidebar_items.append(f'<li><a href="{guide_name}.html" target="viewer">{display_name}{badge}</a></li>')
 
         # Categories
         if self.categories:
@@ -663,7 +671,7 @@ class SiteGenerator:
                 # Find first meaningful paragraph
                 for line in content_clean.split('\n'):
                     line = line.strip()
-                    if line and not line.startswith('#') and not line.startswith('|') and not line.startswith('-'):
+                    if line and not line.startswith('#') and not line.startswith('|') and not line.startswith('-') and not line.startswith('<'):
                         desc = line
                         break
             except Exception:
@@ -685,7 +693,7 @@ class SiteGenerator:
                     content_clean = strip_html_comments_outside_code(content)
                     for line in content_clean.split('\n'):
                         line = line.strip()
-                        if line and not line.startswith('#') and not line.startswith('|') and not line.startswith('-'):
+                        if line and not line.startswith('#') and not line.startswith('|') and not line.startswith('-') and not line.startswith('<'):
                             desc = line
                             break
                 except Exception:

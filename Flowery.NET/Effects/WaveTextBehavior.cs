@@ -7,6 +7,7 @@ using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 
 namespace Flowery.Effects
 {
@@ -83,7 +84,7 @@ namespace Flowery.Effects
                 element.DetachedFromVisualTree += OnDetachedFromVisualTree;
 
                 // If already attached, start now
-                if (element.IsAttachedToVisualTree)
+                if (element.GetVisualRoot() != null)
                 {
                     StartWaveAnimation(element);
                 }
@@ -138,7 +139,7 @@ namespace Flowery.Effects
             var transform = textBlock.RenderTransform as TranslateTransform ?? new TranslateTransform();
             textBlock.RenderTransform = transform;
 
-            var easing = new SineEasing();
+            var easing = new SineEaseInOut();
             var ct = cts.Token;
 
             try
@@ -149,7 +150,7 @@ namespace Flowery.Effects
                     // Animate up
                     await AnimationHelper.AnimateAsync(
                         t => transform.Y = -amplitude * Math.Sin(t * Math.PI),
-                        duration / 2,
+                        TimeSpan.FromTicks(duration.Ticks / 2),
                         easing,
                         ct: ct);
 
@@ -158,7 +159,7 @@ namespace Flowery.Effects
                     // Animate down  
                     await AnimationHelper.AnimateAsync(
                         t => transform.Y = -amplitude * Math.Sin((1 - t) * Math.PI),
-                        duration / 2,
+                        TimeSpan.FromTicks(duration.Ticks / 2),
                         easing,
                         ct: ct);
                 }

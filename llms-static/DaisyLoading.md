@@ -5,7 +5,7 @@
 
 DaisyLoading provides animated loading indicators with **27 different animation styles**, **5 size options**, and **9 color variants**. The control includes standard DaisyUI animations, creative terminal-inspired variants, Matrix/retro variants, and unique special effect variants. All animations scale properly across all sizes using Viewbox-based rendering.
 
-![Loading Animations](loading_animations.gif)
+![Loading Animations](images/loading_animations.gif)
 
 **Key Feature:** DaisyLoading includes built-in accessibility support for screen readers via the `AccessibleText` property and proper automation peers.
 

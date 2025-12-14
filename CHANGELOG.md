@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.x] - 2025-12-xx - unreleased
 
+### New
+
+- **Effects Library** ([Effects](llms-static/Effects.md)): WASM-compatible UI animation behaviors inspired by [smoothui](https://github.com/pqoqubbw/smoothui)
+  - **RevealBehavior**: 5 reveal modes (FadeReveal, SlideIn, FadeOnly, Scale, ScaleSlide) with configurable direction and distance
+  - **ScrambleHoverBehavior**: Character scramble effect on hover with progressive reveal
+  - **WaveTextBehavior**: Continuous sine wave animation for text
+  - **CursorFollowBehavior**: Spring-physics cursor follower with 3 shapes (Circle, Square, Ring) and adjustable opacity
+  - Programmatic API for demos: `TriggerScramble()`, `ResetScramble()`, `SetTargetPosition()`, `ShowFollower()`, `HideFollower()`
+  - Gallery: Interactive showcase with auto-looping infinity path demo for GIF recording
+
+<img src="llms-static/effects_showcase.webp" alt="Effects Showcase" width="600">
+
 ### Fixed
 
 - **DaisySelect**: Fixed dropdown popup positioning in Browser/WebAssembly when `SelectedIndex` is set during initialization

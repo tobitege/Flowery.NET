@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -46,9 +47,17 @@ namespace Flowery.Effects
             AvaloniaProperty.RegisterAttached<Control, double>(
                 "Damping", typeof(CursorFollowBehavior), 0.85);
 
+        public static readonly AttachedProperty<FollowerShape> FollowerShapeProperty =
+            AvaloniaProperty.RegisterAttached<Control, FollowerShape>(
+                "FollowerShape", typeof(CursorFollowBehavior), FollowerShape.Circle);
+
+        public static readonly AttachedProperty<double> FollowerOpacityProperty =
+            AvaloniaProperty.RegisterAttached<Control, double>(
+                "FollowerOpacity", typeof(CursorFollowBehavior), 1.0);
+
         // Internal: store follower element
-        private static readonly AttachedProperty<Ellipse?> FollowerProperty =
-            AvaloniaProperty.RegisterAttached<Control, Ellipse?>(
+        private static readonly AttachedProperty<Control?> FollowerProperty =
+            AvaloniaProperty.RegisterAttached<Control, Control?>(
                 "Follower", typeof(CursorFollowBehavior), null);
 
         // Internal: store timer
@@ -90,6 +99,54 @@ namespace Flowery.Effects
         public static double GetDamping(Control element) => element.GetValue(DampingProperty);
         public static void SetDamping(Control element, double value) => element.SetValue(DampingProperty, value);
 
+        public static FollowerShape GetFollowerShape(Control element) => element.GetValue(FollowerShapeProperty);
+        public static void SetFollowerShape(Control element, FollowerShape value) => element.SetValue(FollowerShapeProperty, value);
+
+        public static double GetFollowerOpacity(Control element) => element.GetValue(FollowerOpacityProperty);
+        public static void SetFollowerOpacity(Control element, double value) => element.SetValue(FollowerOpacityProperty, value);
+
+        #endregion
+
+        #region Public Methods for Programmatic Control
+
+        /// <summary>
+        /// Programmatically sets the target position for the follower.
+        /// Useful for demos and automated animations.
+        /// </summary>
+        /// <param name="panel">The panel with CursorFollowBehavior enabled.</param>
+        /// <param name="x">Target X position relative to the panel.</param>
+        /// <param name="y">Target Y position relative to the panel.</param>
+        public static void SetTargetPosition(Control panel, double x, double y)
+        {
+            var size = GetFollowerSize(panel);
+            var targetPos = new Point(x - size / 2, y - size / 2);
+            panel.SetValue(TargetPosProperty, targetPos);
+        }
+
+        /// <summary>
+        /// Shows the follower element (makes it visible).
+        /// </summary>
+        public static void ShowFollower(Control panel)
+        {
+            var follower = panel.GetValue(FollowerProperty);
+            if (follower != null)
+            {
+                follower.Opacity = GetFollowerOpacity(panel);
+            }
+        }
+
+        /// <summary>
+        /// Hides the follower element.
+        /// </summary>
+        public static void HideFollower(Control panel)
+        {
+            var follower = panel.GetValue(FollowerProperty);
+            if (follower != null)
+            {
+                follower.Opacity = 0;
+            }
+        }
+
         #endregion
 
         static CursorFollowBehavior()
@@ -104,7 +161,7 @@ namespace Flowery.Effects
                 element.AttachedToVisualTree += OnAttachedToVisualTree;
                 element.DetachedFromVisualTree += OnDetachedFromVisualTree;
 
-                if (element.IsAttachedToVisualTree)
+                if (element.GetVisualRoot() != null)
                 {
                     SetupFollower(element);
                 }
@@ -145,20 +202,52 @@ namespace Flowery.Effects
             }
 
             var size = GetFollowerSize(control);
-            var brush = GetFollowerBrush(control) ?? new SolidColorBrush(Colors.DodgerBlue) { Opacity = 0.5 };
+            var brush = GetFollowerBrush(control) ?? new SolidColorBrush(Colors.DodgerBlue);
+            var shape = GetFollowerShape(control);
+            var followerOpacity = GetFollowerOpacity(control);
 
-            // Create follower ellipse
-            var follower = new Ellipse
+            // Create follower element based on shape
+            Control follower = shape switch
             {
-                Width = size,
-                Height = size,
-                Fill = brush,
-                IsHitTestVisible = false,
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
-                RenderTransform = new TranslateTransform(),
-                Opacity = 0 // Hidden until mouse enters
+                FollowerShape.Square => new Rectangle
+                {
+                    Width = size,
+                    Height = size,
+                    Fill = brush,
+                    IsHitTestVisible = false,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
+                    RenderTransform = new TranslateTransform(),
+                    Opacity = 0 // Hidden until mouse enters
+                },
+                FollowerShape.Ring => new Ellipse
+                {
+                    Width = size,
+                    Height = size,
+                    Stroke = brush,
+                    StrokeThickness = Math.Max(2, size / 8),
+                    Fill = null,
+                    IsHitTestVisible = false,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
+                    RenderTransform = new TranslateTransform(),
+                    Opacity = 0 // Hidden until mouse enters
+                },
+                _ => new Ellipse // Circle (default)
+                {
+                    Width = size,
+                    Height = size,
+                    Fill = brush,
+                    IsHitTestVisible = false,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
+                    RenderTransform = new TranslateTransform(),
+                    Opacity = 0 // Hidden until mouse enters
+                }
             };
+
+            // Store configured opacity for later use
+            control.SetValue(FollowerOpacityProperty, followerOpacity);
 
             panel.Children.Add(follower);
             control.SetValue(FollowerProperty, follower);
@@ -203,7 +292,22 @@ namespace Flowery.Effects
                 var follower = control.GetValue(FollowerProperty);
                 if (follower != null)
                 {
-                    follower.Opacity = 1;
+                    // Initialize current position to pointer position to avoid initial jump
+                    var pos = e.GetPosition(control);
+                    var size = GetFollowerSize(control);
+                    var initialPos = new Point(pos.X - size / 2, pos.Y - size / 2);
+                    control.SetValue(CurrentPosProperty, initialPos);
+                    control.SetValue(TargetPosProperty, initialPos);
+                    control.SetValue(VelocityProperty, default);
+
+                    // Update transform immediately
+                    if (follower.RenderTransform is TranslateTransform transform)
+                    {
+                        transform.X = initialPos.X;
+                        transform.Y = initialPos.Y;
+                    }
+
+                    follower.Opacity = GetFollowerOpacity(control);
                 }
             }
         }
@@ -273,5 +377,26 @@ namespace Flowery.Effects
                 transform.Y = newY;
             }
         }
+    }
+
+    /// <summary>
+    /// Shape options for the cursor follower element.
+    /// </summary>
+    public enum FollowerShape
+    {
+        /// <summary>
+        /// Filled circle (default).
+        /// </summary>
+        Circle,
+
+        /// <summary>
+        /// Filled square.
+        /// </summary>
+        Square,
+
+        /// <summary>
+        /// Circle outline (ring).
+        /// </summary>
+        Ring
     }
 }

@@ -5,7 +5,7 @@
 
 DaisyStatusIndicator shows a status dot with **27 animation variants**. It supports **9 colors** and **5 sizes**, making it suitable for online/offline markers, alerts, or activity indicators.
 
-![Status Indicator Animations](status_animations.gif)
+![Status Indicator Animations](images/status_animations.gif)
 
 ## Options
 

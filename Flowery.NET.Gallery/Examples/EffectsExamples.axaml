@@ -1,0 +1,303 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:fx="clr-namespace:Flowery.Effects;assembly=Flowery.NET"
+             xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
+             x:Class="Flowery.NET.Gallery.Examples.EffectsExamples">
+
+    <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="24" Margin="24,0,24,32">
+
+            <!-- Reveal Effect -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="reveal" Title="Reveal Effect" />
+                <TextBlock Text="Entrance animations when element enters the visual tree." Opacity="0.7" FontSize="13" Margin="0,0,0,4"/>
+
+                <controls:DaisyButton Content="Replay All Animations" Click="ReplayReveal_Click" Variant="Ghost" Size="Small" Margin="0,0,0,8"/>
+
+                <!-- Mode Examples Grid -->
+                <WrapPanel Orientation="Horizontal">
+                    <!-- FadeReveal -->
+                    <Border Width="300" MinWidth="280" Margin="0,0,8,8" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="12">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="FadeReveal (default)" FontWeight="SemiBold" FontSize="12"/>
+                            <TextBlock Text="Fades in while sliding" Opacity="0.6" FontSize="11"/>
+                            <Border x:Name="RevealDemo"
+                                    Background="{DynamicResource DaisyPrimaryBrush}"
+                                    CornerRadius="6" Padding="12"
+                                    fx:RevealBehavior.IsEnabled="True"
+                                    fx:RevealBehavior.Duration="0:0:0.6"
+                                    fx:RevealBehavior.Direction="Bottom"
+                                    fx:RevealBehavior.Distance="30">
+                                <TextBlock Text="Fade + Slide" Foreground="{DynamicResource DaisyPrimaryContentBrush}" FontSize="12" HorizontalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- SlideIn -->
+                    <Border Width="300" MinWidth="280" Margin="0,0,8,8" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="12" ClipToBounds="True">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="SlideIn" FontWeight="SemiBold" FontSize="12"/>
+                            <TextBlock Text="Slides in fully visible" Opacity="0.6" FontSize="11"/>
+                            <Border x:Name="SlideInDemo"
+                                    Background="{DynamicResource DaisySecondaryBrush}"
+                                    CornerRadius="6" Padding="12"
+                                    fx:RevealBehavior.IsEnabled="True"
+                                    fx:RevealBehavior.Mode="SlideIn"
+                                    fx:RevealBehavior.Duration="0:0:0.8"
+                                    fx:RevealBehavior.Direction="Left"
+                                    fx:RevealBehavior.Distance="80">
+                                <TextBlock Text="Slide Only" Foreground="{DynamicResource DaisySecondaryContentBrush}" FontSize="12" HorizontalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- FadeOnly -->
+                    <Border Width="300" MinWidth="280" Margin="0,0,8,8" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="12">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="FadeOnly" FontWeight="SemiBold" FontSize="12"/>
+                            <TextBlock Text="Pure fade, no movement" Opacity="0.6" FontSize="11"/>
+                            <Border x:Name="FadeOnlyDemo"
+                                    Background="{DynamicResource DaisyAccentBrush}"
+                                    CornerRadius="6" Padding="12"
+                                    fx:RevealBehavior.IsEnabled="True"
+                                    fx:RevealBehavior.Mode="FadeOnly"
+                                    fx:RevealBehavior.Duration="0:0:0.8">
+                                <TextBlock Text="Fade In" Foreground="{DynamicResource DaisyAccentContentBrush}" FontSize="12" HorizontalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Scale -->
+                    <Border Width="300" MinWidth="280" Margin="0,0,8,8" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="12">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Scale" FontWeight="SemiBold" FontSize="12"/>
+                            <TextBlock Text="Scales up from center" Opacity="0.6" FontSize="11"/>
+                            <Border x:Name="ScaleDemo"
+                                    Background="{DynamicResource DaisyInfoBrush}"
+                                    CornerRadius="6" Padding="12"
+                                    fx:RevealBehavior.IsEnabled="True"
+                                    fx:RevealBehavior.Mode="Scale"
+                                    fx:RevealBehavior.Duration="0:0:0.5">
+                                <TextBlock Text="Scale Up" Foreground="{DynamicResource DaisyInfoContentBrush}" FontSize="12" HorizontalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ScaleSlide -->
+                    <Border Width="300" MinWidth="280" Margin="0,0,8,8" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="12" ClipToBounds="True">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="ScaleSlide" FontWeight="SemiBold" FontSize="12"/>
+                            <TextBlock Text="Scale + slide + fade" Opacity="0.6" FontSize="11"/>
+                            <Border x:Name="ScaleSlideDemo"
+                                    Background="{DynamicResource DaisySuccessBrush}"
+                                    CornerRadius="6" Padding="12"
+                                    fx:RevealBehavior.IsEnabled="True"
+                                    fx:RevealBehavior.Mode="ScaleSlide"
+                                    fx:RevealBehavior.Duration="0:0:0.6"
+                                    fx:RevealBehavior.Direction="Bottom"
+                                    fx:RevealBehavior.Distance="40">
+                                <TextBlock Text="Scale + Slide" Foreground="{DynamicResource DaisySuccessContentBrush}" FontSize="12" HorizontalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </WrapPanel>
+
+                <!-- Directions -->
+                <TextBlock Text="Reveal Directions" FontWeight="SemiBold" Margin="0,8,0,4"/>
+                <WrapPanel x:Name="RevealDirections" Orientation="Horizontal">
+                    <Border Background="{DynamicResource DaisyInfoBrush}" CornerRadius="6" Padding="12" Margin="0,0,8,8"
+                            fx:RevealBehavior.IsEnabled="True" fx:RevealBehavior.Direction="Top" fx:RevealBehavior.Distance="30">
+                        <TextBlock Text="Top" Foreground="{DynamicResource DaisyInfoContentBrush}" FontSize="12"/>
+                    </Border>
+                    <Border Background="{DynamicResource DaisySuccessBrush}" CornerRadius="6" Padding="12" Margin="0,0,8,8"
+                            fx:RevealBehavior.IsEnabled="True" fx:RevealBehavior.Direction="Left" fx:RevealBehavior.Distance="30">
+                        <TextBlock Text="Left" Foreground="{DynamicResource DaisySuccessContentBrush}" FontSize="12"/>
+                    </Border>
+                    <Border Background="{DynamicResource DaisyWarningBrush}" CornerRadius="6" Padding="12" Margin="0,0,8,8"
+                            fx:RevealBehavior.IsEnabled="True" fx:RevealBehavior.Direction="Right" fx:RevealBehavior.Distance="30">
+                        <TextBlock Text="Right" Foreground="{DynamicResource DaisyWarningContentBrush}" FontSize="12"/>
+                    </Border>
+                    <Border Background="{DynamicResource DaisyErrorBrush}" CornerRadius="6" Padding="12" Margin="0,0,8,8"
+                            fx:RevealBehavior.IsEnabled="True" fx:RevealBehavior.Direction="Bottom" fx:RevealBehavior.Distance="30">
+                        <TextBlock Text="Bottom" Foreground="{DynamicResource DaisyErrorContentBrush}" FontSize="12"/>
+                    </Border>
+                </WrapPanel>
+            </StackPanel>
+
+            <!-- Scramble Hover Effect -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="scramble" Title="Scramble Hover" />
+                <TextBlock Text="Randomly scrambles text characters on hover, then resolves left-to-right." Opacity="0.7" FontSize="13" Margin="0,0,0,8"/>
+
+                <TextBlock Text="Hover over the text below" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="24">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="Hover Me!"
+                                   FontSize="24" FontWeight="Bold"
+                                   HorizontalAlignment="Stretch"
+                                   TextAlignment="Center"
+                                   Foreground="{DynamicResource DaisyPrimaryBrush}"
+                                   fx:ScrambleHoverBehavior.IsEnabled="True"
+                                   fx:ScrambleHoverBehavior.Duration="0:0:0.5"/>
+                        <TextBlock Text="Scramble Effect"
+                                   FontSize="18"
+                                   HorizontalAlignment="Stretch"
+                                   TextAlignment="Center"
+                                   Foreground="{DynamicResource DaisySecondaryBrush}"
+                                   fx:ScrambleHoverBehavior.IsEnabled="True"
+                                   fx:ScrambleHoverBehavior.ScrambleChars="▓▒░█▌▐"
+                                   fx:ScrambleHoverBehavior.Duration="0:0:0.8"/>
+                        <TextBlock Text="Custom Characters"
+                                   FontSize="18"
+                                   HorizontalAlignment="Stretch"
+                                   TextAlignment="Center"
+                                   Foreground="{DynamicResource DaisyAccentBrush}"
+                                   fx:ScrambleHoverBehavior.IsEnabled="True"
+                                   fx:ScrambleHoverBehavior.ScrambleChars="0123456789"
+                                   fx:ScrambleHoverBehavior.Duration="0:0:0.6"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Wave Text Effect -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="wave" Title="Wave Text" />
+                <TextBlock Text="Infinite sine wave animation on the Y axis." Opacity="0.7" FontSize="13" Margin="0,0,0,8"/>
+
+                <TextBlock Text="Animated wave motion" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="24">
+                    <StackPanel Spacing="16" HorizontalAlignment="Center">
+                        <TextBlock Text="Wave Effect!"
+                                   FontSize="24" FontWeight="Bold"
+                                   Foreground="{DynamicResource DaisyPrimaryBrush}"
+                                   fx:WaveTextBehavior.IsEnabled="True"
+                                   fx:WaveTextBehavior.Amplitude="8"
+                                   fx:WaveTextBehavior.Duration="0:0:1"/>
+                        <TextBlock Text="Subtle Wave"
+                                   FontSize="18"
+                                   Foreground="{DynamicResource DaisySecondaryBrush}"
+                                   fx:WaveTextBehavior.IsEnabled="True"
+                                   fx:WaveTextBehavior.Amplitude="3"
+                                   fx:WaveTextBehavior.Duration="0:0:2"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Cursor Follow Effect -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="cursor-follow" Title="Cursor Follow" />
+                <TextBlock Text="Creates a follower element that tracks mouse position with spring physics." Opacity="0.7" FontSize="13" Margin="0,0,0,8"/>
+
+                <TextBlock Text="Shapes and Transparency - both can be used separately or in combination" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                <WrapPanel Orientation="Horizontal">
+                    <!-- Circle (default) -->
+                    <Border Width="200" MinWidth="180" Margin="0,0,8,8" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" ClipToBounds="True" Padding="8">
+                        <Panel MinHeight="80" Background="Transparent"
+                               fx:CursorFollowBehavior.IsEnabled="True"
+                               fx:CursorFollowBehavior.FollowerSize="20"
+                               fx:CursorFollowBehavior.FollowerBrush="{DynamicResource DaisyPrimaryBrush}"
+                               fx:CursorFollowBehavior.FollowerShape="Circle"
+                               fx:CursorFollowBehavior.FollowerOpacity="1.0">
+                            <TextBlock Text="Circle 100%" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.5" FontSize="11"/>
+                        </Panel>
+                    </Border>
+                    <!-- Square 75% -->
+                    <Border Width="200" MinWidth="180" Margin="0,0,8,8" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" ClipToBounds="True" Padding="8">
+                        <Panel MinHeight="80" Background="Transparent"
+                               fx:CursorFollowBehavior.IsEnabled="True"
+                               fx:CursorFollowBehavior.FollowerSize="24"
+                               fx:CursorFollowBehavior.FollowerBrush="{DynamicResource DaisySecondaryBrush}"
+                               fx:CursorFollowBehavior.FollowerShape="Square"
+                               fx:CursorFollowBehavior.FollowerOpacity="0.75">
+                            <TextBlock Text="Square 75%" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.5" FontSize="11"/>
+                        </Panel>
+                    </Border>
+                    <!-- Ring 50% -->
+                    <Border Width="200" MinWidth="180" Margin="0,0,8,8" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" ClipToBounds="True" Padding="8">
+                        <Panel MinHeight="80" Background="Transparent"
+                               fx:CursorFollowBehavior.IsEnabled="True"
+                               fx:CursorFollowBehavior.FollowerSize="28"
+                               fx:CursorFollowBehavior.FollowerBrush="{DynamicResource DaisyAccentBrush}"
+                               fx:CursorFollowBehavior.FollowerShape="Ring"
+                               fx:CursorFollowBehavior.FollowerOpacity="0.5">
+                            <TextBlock Text="Ring 50%" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.5" FontSize="11"/>
+                        </Panel>
+                    </Border>
+                </WrapPanel>
+            </StackPanel>
+
+            <!-- Effects Showcase (for GIF recording) -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="showcase" Title="Showcase" />
+
+                <controls:DaisyCard Width="700" Padding="24">
+                    <StackPanel Spacing="20">
+                        <!-- Reveal Effect -->
+                        <StackPanel Spacing="8">
+                            <TextBlock x:Name="RevealShowcaseLabel" Text="Reveal: Click Start" 
+                                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource DaisyPrimaryBrush}"/>
+                            <Border x:Name="RevealShowcaseDemo"
+                                    Background="{DynamicResource DaisyPrimaryBrush}"
+                                    CornerRadius="8" Padding="16" ClipToBounds="True"
+                                    fx:RevealBehavior.IsEnabled="False">
+                                <TextBlock Text="Reveal Effect" Foreground="{DynamicResource DaisyPrimaryContentBrush}" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Scramble Hover Effect -->
+                        <StackPanel Spacing="8">
+                            <TextBlock x:Name="ScrambleShowcaseLabel" Text="Scramble: Hover ↓" 
+                                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource DaisySecondaryBrush}"/>
+                            <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
+                                <TextBlock x:Name="ScrambleShowcaseDemo"
+                                           Text="Hover to scramble this text"
+                                           FontSize="16" FontWeight="SemiBold"
+                                           HorizontalAlignment="Center"
+                                           fx:ScrambleHoverBehavior.IsEnabled="True"
+                                           fx:ScrambleHoverBehavior.ScrambleChars="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                           fx:ScrambleHoverBehavior.Duration="0:0:0.8"/>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Wave Text Effect -->
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Wave: Always running" 
+                                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource DaisyAccentBrush}"/>
+                            <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
+                                <TextBlock Text="Wave Animation"
+                                           FontSize="20" FontWeight="Bold"
+                                           Foreground="{DynamicResource DaisyAccentBrush}"
+                                           HorizontalAlignment="Center"
+                                           fx:WaveTextBehavior.IsEnabled="True"
+                                           fx:WaveTextBehavior.Amplitude="6"
+                                           fx:WaveTextBehavior.Duration="0:0:1.5"/>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Cursor Follow Effect -->
+                        <StackPanel Spacing="8">
+                            <TextBlock x:Name="CursorFollowShowcaseLabel" Text="Cursor Follow: Move mouse ↓" 
+                                       FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource DaisyInfoBrush}"/>
+                            <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" ClipToBounds="True" Padding="8">
+                                <Panel x:Name="CursorFollowShowcasePanel" MinHeight="60" Background="Transparent"
+                                       fx:CursorFollowBehavior.IsEnabled="True"
+                                       fx:CursorFollowBehavior.FollowerSize="16"
+                                       fx:CursorFollowBehavior.FollowerBrush="{DynamicResource DaisyInfoBrush}"
+                                       fx:CursorFollowBehavior.FollowerShape="Ring"
+                                       fx:CursorFollowBehavior.FollowerOpacity="0.8">
+                                    <TextBlock Text="∞ Infinity Path" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.5" FontSize="12"/>
+                                </Panel>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </controls:DaisyCard>
+
+                <TextBlock Text="Looping demo for recording - effects cycle automatically." Opacity="0.7" FontSize="13" Margin="0,8,0,0"/>
+                <controls:DaisyButton x:Name="StartShowcaseBtn" Content="▶ Start Showcase Loop" Click="StartShowcase_Click" Variant="Primary" Size="Small" HorizontalAlignment="Left"/>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>
