@@ -4,6 +4,8 @@
     <TargetFramework>net9.0</TargetFramework>
   <LangVersion>latest</LangVersion>
   <Nullable>enable</Nullable>
+    <!-- Ensure satellite assemblies are generated for all supported languages -->
+    <SatelliteResourceLanguages>en;de;fr;es;it;zh-CN;ko;ja;ar;tr;uk</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.9" />
@@ -23,5 +25,20 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embed JSON localization files as resources -->
+    <EmbeddedResource Include="Localization\en.json" />
+    <EmbeddedResource Include="Localization\de.json" />
+    <EmbeddedResource Include="Localization\ja.json" />
+    <EmbeddedResource Include="Localization\fr.json" />
+    <EmbeddedResource Include="Localization\es.json" />
+    <EmbeddedResource Include="Localization\it.json" />
+    <EmbeddedResource Include="Localization\ko.json" />
+    <EmbeddedResource Include="Localization\zh-CN.json" />
+    <EmbeddedResource Include="Localization\ar.json" />
+    <EmbeddedResource Include="Localization\tr.json" />
+    <EmbeddedResource Include="Localization\uk.json" />
   </ItemGroup>
 </Project>

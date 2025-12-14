@@ -3,7 +3,6 @@
         <TargetFramework>net10.0-browser</TargetFramework>
         <OutputType>Exe</OutputType>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <WasmBuildNative>true</WasmBuildNative>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
@@ -12,10 +11,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Avalonia.Browser" Version="11.3.9" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="obj\project.packagespec.json" />
+        <PackageReference Include="Avalonia.Browser" Version="11.3.9" />
     </ItemGroup>
 </Project>

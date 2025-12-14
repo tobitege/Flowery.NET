@@ -214,3 +214,5 @@ coc-settings.json
 docs/
 llms/
 /!**/**/
+
+wwwroot/

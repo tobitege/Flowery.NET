@@ -23,10 +23,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Localization\FloweryStrings.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>FloweryStrings.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <!-- Embed JSON localization files for WASM compatibility -->
+    <EmbeddedResource Include="Localization\en.json" />
+    <EmbeddedResource Include="Localization\de.json" />
+    <EmbeddedResource Include="Localization\fr.json" />
+    <EmbeddedResource Include="Localization\es.json" />
+    <EmbeddedResource Include="Localization\it.json" />
+    <EmbeddedResource Include="Localization\ja.json" />
+    <EmbeddedResource Include="Localization\ko.json" />
+    <EmbeddedResource Include="Localization\zh-CN.json" />
+    <EmbeddedResource Include="Localization\ar.json" />
+    <EmbeddedResource Include="Localization\tr.json" />
+    <EmbeddedResource Include="Localization\uk.json" />
   </ItemGroup>
 
   <ItemGroup>

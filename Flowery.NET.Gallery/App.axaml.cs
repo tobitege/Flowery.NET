@@ -16,6 +16,7 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         // Restore saved app language (if any)
+        // GalleryLocalization syncs automatically via FloweryLocalization.CultureChanged
         var savedLanguage = ThemeSettings.LoadLanguage();
         if (!string.IsNullOrWhiteSpace(savedLanguage))
             FloweryLocalization.SetCulture(savedLanguage);

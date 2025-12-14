@@ -1,12 +1,51 @@
 <Application xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:daisy="clr-namespace:Flowery;assembly=Flowery.NET"
-             x:Class="Flowery.NET.Gallery.App"
-             RequestedThemeVariant="Dark">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:daisy="clr-namespace:Flowery;assembly=Flowery.NET"
+    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+    x:Class="Flowery.NET.Gallery.App"
+    RequestedThemeVariant="Dark">
+
+    <Application.Resources>
+        <FontFamily x:Key="NotoSansFamily">
+            fonts:Flowery.NET.Gallery#Noto Sans,
+            fonts:Flowery.NET.Gallery#Noto Sans CJK SC,
+            fonts:Flowery.NET.Gallery#Noto Sans CJK JP,
+            fonts:Flowery.NET.Gallery#Noto Sans CJK KR,
+            fonts:Flowery.NET.Gallery#Noto Sans Arabic
+        </FontFamily>
+    </Application.Resources>
 
     <Application.Styles>
         <FluentTheme />
         <daisy:DaisyUITheme />
+
+        <!-- Apply CJK font to all text-displaying controls -->
+        <Style Selector="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource NotoSansFamily}" />
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="FontFamily" Value="{StaticResource NotoSansFamily}" />
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="FontFamily" Value="{StaticResource NotoSansFamily}" />
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="FontFamily" Value="{StaticResource NotoSansFamily}" />
+        </Style>
+        <Style Selector="ComboBoxItem">
+            <Setter Property="FontFamily" Value="{StaticResource NotoSansFamily}" />
+        </Style>
+        <Style Selector="Label">
+            <Setter Property="FontFamily" Value="{StaticResource NotoSansFamily}" />
+        </Style>
+        <Style Selector="ContentControl">
+            <Setter Property="FontFamily" Value="{StaticResource NotoSansFamily}" />
+        </Style>
+        <Style Selector="controls|DaisyButton">
+            <Setter Property="FontFamily" Value="{StaticResource NotoSansFamily}" />
+        </Style>
+        <Style Selector="controls|DaisySelect">
+            <Setter Property="FontFamily" Value="{StaticResource NotoSansFamily}" />
+        </Style>
     </Application.Styles>
 </Application>

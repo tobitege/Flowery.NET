@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Flowery.Effects;
+using Flowery.Localization;
 
 namespace Flowery.NET.Gallery.Examples;
 
@@ -87,10 +89,10 @@ public partial class EffectsExamples : UserControl, IScrollableExample
         {
             _showcaseCts?.Cancel();
             _showcaseRunning = false;
-            button.Content = "▶ Start Showcase Loop";
-            label.Text = "Reveal: Stopped";
+            button.Content = FloweryLocalization.GetString("Effects_Showcase_StartButton");
+            label.Text = FloweryLocalization.GetString("Effects_Showcase_RevealLabel");
             if (cursorPanel != null) CursorFollowBehavior.HideFollower(cursorPanel);
-            if (cursorLabel != null) cursorLabel.Text = "Cursor Follow: Stopped";
+            if (cursorLabel != null) cursorLabel.Text = FloweryLocalization.GetString("Effects_Showcase_CursorLabel");
             
             // Reset scramble to original text
             var scrambleDemo = this.FindControl<TextBlock>("ScrambleShowcaseDemo");
@@ -172,10 +174,10 @@ public partial class EffectsExamples : UserControl, IScrollableExample
         }
 
         _showcaseRunning = false;
-        button.Content = "▶ Start Showcase Loop";
-        label.Text = "Reveal: Click Start";
+        button.Content = FloweryLocalization.GetString("Effects_Showcase_StartButton");
+        label.Text = FloweryLocalization.GetString("Effects_Showcase_RevealLabel");
         if (cursorPanel != null) CursorFollowBehavior.HideFollower(cursorPanel);
-        if (cursorLabel != null) cursorLabel.Text = "Cursor Follow: Move mouse ↓";
+        if (cursorLabel != null) cursorLabel.Text = FloweryLocalization.GetString("Effects_Showcase_CursorLabel");
     }
     private bool _mouseOverCursorPanel;
 

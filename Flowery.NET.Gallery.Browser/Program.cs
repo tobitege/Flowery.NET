@@ -10,12 +10,13 @@ using Flowery.Services;
 
 internal sealed partial class Program
 {
-    private static Task Main(string[] args)
+    private static async Task Main(string[] args)
     {
         StateStorageProvider.Configure(new BrowserStateStorage());
 
-        return BuildAvaloniaApp()
+        await BuildAvaloniaApp()
             .WithInterFont()
+            .WithNotoFonts()
             .StartBrowserAppAsync("out");
     }
 

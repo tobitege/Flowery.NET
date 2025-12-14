@@ -3,7 +3,7 @@
     Starts the Flowery.NET.Gallery.Browser WASM application.
 
 .DESCRIPTION
-    Runs the pre-compiled Browser project and opens it in the default browser.
+    Runs the Browser project using dotnet run and opens it in the default browser.
 
 .PARAMETER NoBrowser
     If specified, does not automatically open the browser.
@@ -50,7 +50,8 @@ if (-not $NoBrowser) {
 
 Push-Location $browserProject
 try {
-    dotnet run --configuration "$Configuration" --no-build --urls "$url"
+    # Use dotnet run to serve the WASM app
+    dotnet run -c $Configuration --urls $url
 } finally {
     Pop-Location
 }
