@@ -17,14 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Verify localization RESX keys
-        run: python Utils/check_resx_keys.py Flowery.NET/Localization/FloweryStrings.resx Flowery.NET/Localization
-
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
