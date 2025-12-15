@@ -32,10 +32,10 @@
                     <StackPanel HorizontalAlignment="Center" Spacing="4">
                         <!-- Day Name -->
                         <TextBlock Text="{Binding DayName}"
-                                   FontSize="12"
-                                   FontWeight="SemiBold"
-                                   HorizontalAlignment="Center"
-                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                            FontWeight="SemiBold"
+                            HorizontalAlignment="Center"
+                            Foreground="{DynamicResource DaisyBaseContentBrush}" />
 
                         <!-- Animated Weather Icon -->
                         <weather:DaisyWeatherIcon IconSize="28"
@@ -46,17 +46,17 @@
                         <!-- High/Low Temperature -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="2">
                             <TextBlock Text="{Binding HighTemperature, StringFormat={}{0:0}°}"
-                                       FontSize="11"
-                                       FontWeight="SemiBold"
-                                       Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
                             <TextBlock Text="|"
-                                       FontSize="11"
-                                       Opacity="0.4"
-                                       Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
+                                Opacity="0.4"
+                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
                             <TextBlock Text="{Binding LowTemperature, StringFormat={}{0:0}°}"
-                                       FontSize="11"
-                                       Opacity="0.6"
-                                       Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
+                                Opacity="0.6"
+                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>

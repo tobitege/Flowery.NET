@@ -1,4 +1,9 @@
 {
+  "Size_ExtraSmall": "아주 작은",
+  "Size_Small": "작은",
+  "Size_Medium": "중간",
+  "Size_Large": "큰",
+  "Size_ExtraLarge": "아주 큰",
   "Select_Placeholder": "선택",
   "MaskInput_Watermark_AlphaNumericCode": "AB12 CDE",
   "MaskInput_Watermark_Timer": "00:00:00",

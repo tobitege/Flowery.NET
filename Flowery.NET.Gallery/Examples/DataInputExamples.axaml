@@ -37,7 +37,8 @@
                             <controls:DaisyCheckBox Content="Info" Variant="Info" IsChecked="True" />
                             <controls:DaisyCheckBox Content="Error" Variant="Error" IsChecked="True" />
                         </StackPanel>
-                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
+                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="200"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <TextBlock Text="Sizes" FontSize="12" Opacity="0.7" />
                             <controls:DaisyCheckBox Content="Extra Small" Size="ExtraSmall"
                                 IsChecked="True" />
@@ -106,7 +107,8 @@
                                 EndIcon="{StaticResource DaisyIconCheck}"
                                 Watermark="Username" Variant="Success" Margin="0,4" />
                         </StackPanel>
-                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="250">
+                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="250"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <TextBlock Text="Sizes" FontSize="12" />
                             <controls:DaisyInput Size="ExtraSmall" Watermark="Extra Small"
                                 Margin="0,4" />
@@ -220,7 +222,8 @@
                                 ToolTip.Tip="Error: Red border for validation errors" />
                         </StackPanel>
                         <!-- Sizes -->
-                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
+                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="200"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <TextBlock Text="Sizes" FontSize="12" Opacity="0.7" />
                             <controls:DaisyNumericUpDown Size="ExtraSmall" Watermark="Extra Small"
                                 Value="1" ShowClearButton="True"
@@ -485,7 +488,8 @@
                             <controls:DaisyToggle Content="Large" Size="Large" Variant="Accent"
                                 IsChecked="True" />
                         </StackPanel>
-                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
+                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="200"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <TextBlock Text="Sizes" FontSize="12" Opacity="0.7" />
                             <controls:DaisyToggle Content="Extra Small" Size="ExtraSmall"
                                 IsChecked="True" />

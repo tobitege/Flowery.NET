@@ -3,31 +3,32 @@
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
     <Design.PreviewWith>
-        <Border Padding="20" Background="{DynamicResource DaisyBase200Brush}" Height="400">
-            <StackPanel Spacing="10" Width="220">
-                <controls:DaisyThemeDropdown />
+        <Border Padding="20" Background="{DynamicResource DaisyBase200Brush}" Height="200">
+            <StackPanel Spacing="10" Width="150">
+                <controls:DaisySizeDropdown />
             </StackPanel>
         </Border>
     </Design.PreviewWith>
 
     <Styles.Resources>
-        <!-- Item template for theme preview (matches DaisyUI 2x2 dot grid) -->
-        <DataTemplate x:Key="ThemeItemTemplate" DataType="controls:ThemePreviewInfo">
+        <!-- Item template for size preview with abbreviation badge -->
+        <DataTemplate x:Key="SizeItemTemplate" DataType="controls:SizePreviewInfo">
             <Grid ColumnDefinitions="Auto,*" MinHeight="24">
-                <!-- 2x2 color dot grid with theme's base background -->
+                <!-- Size abbreviation badge -->
                 <Border Grid.Column="0"
-                        Background="{Binding Base100}"
-                        CornerRadius="6"
-                        Padding="4"
-                        VerticalAlignment="Center">
-                    <Grid ColumnDefinitions="8,2,8" RowDefinitions="8,2,8">
-                        <Ellipse Grid.Row="0" Grid.Column="0" Width="8" Height="8" Fill="{Binding BaseContent}" />
-                        <Ellipse Grid.Row="0" Grid.Column="2" Width="8" Height="8" Fill="{Binding Primary}" />
-                        <Ellipse Grid.Row="2" Grid.Column="0" Width="8" Height="8" Fill="{Binding Secondary}" />
-                        <Ellipse Grid.Row="2" Grid.Column="2" Width="8" Height="8" Fill="{Binding Accent}" />
-                    </Grid>
+                        Background="{DynamicResource DaisyBase300Brush}"
+                        CornerRadius="4"
+                        Padding="6,2"
+                        MinWidth="28"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding Abbreviation}"
+                               Foreground="{DynamicResource DaisyBaseContentBrush}"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
                 </Border>
-                <!-- Theme name (localized) - inherits FontSize from parent -->
+                <!-- Size name (localized) - inherits FontSize from parent -->
                 <TextBlock Grid.Column="1"
                     Text="{Binding DisplayName}"
                     Foreground="{DynamicResource DaisyBaseContentBrush}"
@@ -36,19 +37,19 @@
             </Grid>
         </DataTemplate>
 
-        <ControlTheme x:Key="{x:Type controls:DaisyThemeDropdown}" TargetType="controls:DaisyThemeDropdown">
+        <ControlTheme x:Key="{x:Type controls:DaisySizeDropdown}" TargetType="controls:DaisySizeDropdown">
             <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
             <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeMediumCornerRadius}" />
             <Setter Property="Padding" Value="12,0,30,0" />
-            <Setter Property="MinHeight" Value="{DynamicResource DaisySizeMediumHeight}" />
-            <Setter Property="MinWidth" Value="180" />
+            <Setter Property="Height" Value="{DynamicResource DaisySizeMediumHeight}" />
+            <Setter Property="MinWidth" Value="140" />
             <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="ItemTemplate" Value="{StaticResource ThemeItemTemplate}" />
+            <Setter Property="ItemTemplate" Value="{StaticResource SizeItemTemplate}" />
             <Setter Property="Template">
                 <ControlTemplate>
                     <Grid ColumnDefinitions="*,Auto">
@@ -59,16 +60,16 @@
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="{TemplateBinding CornerRadius}"
-                                MinHeight="{TemplateBinding MinHeight}"/>
+                                Height="{TemplateBinding Height}"/>
 
                         <ContentPresenter x:Name="ContentPresenter"
-                            Grid.Column="0"
-                            Content="{TemplateBinding SelectionBoxItem}"
-                            ContentTemplate="{TemplateBinding ItemTemplate}"
-                            Margin="{TemplateBinding Padding}"
-                            TextElement.FontSize="{TemplateBinding FontSize}"
-                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                                          Grid.Column="0"
+                                          Content="{TemplateBinding SelectionBoxItem}"
+                                          ContentTemplate="{TemplateBinding ItemTemplate}"
+                                          Margin="{TemplateBinding Padding}"
+                                          TextElement.FontSize="{TemplateBinding FontSize}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
 
                         <!-- Chevron -->
                         <Path x:Name="Chevron"
@@ -96,8 +97,8 @@
                                     CornerRadius="8"
                                     Padding="4"
                                     Margin="0,4,0,0"
-                                    MinWidth="200">
-                                <ScrollViewer MaxHeight="400">
+                                    MinWidth="160">
+                                <ScrollViewer MaxHeight="300">
                                     <ItemsPresenter Name="PART_ItemsPresenter"
                                                     ItemsPanel="{TemplateBinding ItemsPanel}" />
                                 </ScrollViewer>
@@ -120,43 +121,41 @@
 
             <!-- Size Variants -->
             <Style Selector="^[Size=ExtraLarge]">
-                <Setter Property="MinHeight" Value="{DynamicResource DaisySizeExtraLargeHeight}" />
+                <Setter Property="Height" Value="{DynamicResource DaisySizeExtraLargeHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
-                <Setter Property="CornerRadius"
-                    Value="{DynamicResource DaisySizeExtraLargeCornerRadius}" />
+                <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraLargeCornerRadius}" />
             </Style>
             <Style Selector="^[Size=Large]">
-                <Setter Property="MinHeight" Value="{DynamicResource DaisySizeLargeHeight}" />
+                <Setter Property="Height" Value="{DynamicResource DaisySizeLargeHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
                 <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeLargeCornerRadius}" />
             </Style>
             <Style Selector="^[Size=Small]">
-                <Setter Property="MinHeight" Value="{DynamicResource DaisySizeSmallHeight}" />
+                <Setter Property="Height" Value="{DynamicResource DaisySizeSmallHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
                 <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
             </Style>
             <Style Selector="^[Size=ExtraSmall]">
-                <Setter Property="MinHeight" Value="{DynamicResource DaisySizeExtraSmallHeight}" />
+                <Setter Property="Height" Value="{DynamicResource DaisySizeExtraSmallHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
-                <Setter Property="CornerRadius"
-                    Value="{DynamicResource DaisySizeExtraSmallCornerRadius}" />
+                <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraSmallCornerRadius}" />
             </Style>
 
         </ControlTheme>
     </Styles.Resources>
 
-    <!-- Style for ComboBoxItem inside DaisyThemeDropdown -->
-    <Style Selector="controls|DaisyThemeDropdown ComboBoxItem">
+    <!-- Style for ComboBoxItem inside DaisySizeDropdown -->
+    <Style Selector="controls|DaisySizeDropdown ComboBoxItem">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="Padding" Value="8,4" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     </Style>
-    <Style Selector="controls|DaisyThemeDropdown ComboBoxItem:pointerover">
-        <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+    <Style Selector="controls|DaisySizeDropdown ComboBoxItem:pointerover">
+        <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
     </Style>
-    <Style Selector="controls|DaisyThemeDropdown ComboBoxItem:selected">
+    <Style Selector="controls|DaisySizeDropdown ComboBoxItem:selected">
         <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryContentBrush}" />
     </Style>

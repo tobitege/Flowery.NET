@@ -62,11 +62,11 @@
                                     HorizontalAlignment="{Binding IsCentered, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static controls:StatConverters.CenteredToAlignment}}">
                             <!-- Title -->
                             <TextBlock Text="{TemplateBinding Title}"
-                                       FontSize="12"
-                                       Opacity="0.6"
-                                       Margin="0,0,0,4"
-                                       IsVisible="{TemplateBinding Title, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                       HorizontalAlignment="{Binding IsCentered, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static controls:StatConverters.CenteredToAlignment}}" />
+                                FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                                Opacity="0.6"
+                                Margin="0,0,0,4"
+                                IsVisible="{TemplateBinding Title, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                HorizontalAlignment="{Binding IsCentered, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static controls:StatConverters.CenteredToAlignment}}" />
 
                             <!-- Value -->
                             <TextBlock x:Name="ValueText"
@@ -78,12 +78,12 @@
 
                             <!-- Description -->
                             <TextBlock x:Name="DescriptionText"
-                                       Text="{TemplateBinding Description}"
-                                       FontSize="12"
-                                       Opacity="0.6"
-                                       Margin="0,4,0,0"
-                                       IsVisible="{TemplateBinding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                       HorizontalAlignment="{Binding IsCentered, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static controls:StatConverters.CenteredToAlignment}}" />
+                                Text="{TemplateBinding Description}"
+                                FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                                Opacity="0.6"
+                                Margin="0,4,0,0"
+                                IsVisible="{TemplateBinding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                HorizontalAlignment="{Binding IsCentered, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static controls:StatConverters.CenteredToAlignment}}" />
 
                             <!-- Actions -->
                             <ContentPresenter Content="{TemplateBinding Actions}"

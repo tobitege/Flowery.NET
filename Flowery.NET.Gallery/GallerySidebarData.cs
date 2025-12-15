@@ -25,7 +25,8 @@ public static class GallerySidebarData
                 {
                     new SidebarItem { Id = "welcome", Name = "Welcome", TabHeader = "Home" },
                     new GalleryThemeSelectorItem { Id = "theme", Name = "Theme", TabHeader = "Home" },
-                    new GalleryLanguageSelectorItem { Id = "language", Name = "Language", TabHeader = "Home" }
+                    new GalleryLanguageSelectorItem { Id = "language", Name = "Language", TabHeader = "Home" },
+                    new GallerySizeSelectorItem { Id = "size", Name = "Size", TabHeader = "Home" }
                 }
             },
             // Alphabetically sorted categories
@@ -252,5 +253,14 @@ public class GalleryThemeSelectorItem : SidebarThemeSelectorItem
 /// Extends the library's SidebarLanguageSelectorItem so the existing template works.
 /// </summary>
 public class GalleryLanguageSelectorItem : SidebarLanguageSelectorItem
+{
+}
+
+/// <summary>
+/// Gallery-specific sidebar item for global size selection.
+/// This item type triggers a special template in the sidebar that shows a size dropdown.
+/// Extends the library's SidebarSizeSelectorItem so the existing template works.
+/// </summary>
+public class GallerySizeSelectorItem : SidebarSizeSelectorItem
 {
 }

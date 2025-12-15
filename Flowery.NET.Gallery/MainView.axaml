@@ -1,15 +1,15 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
-             xmlns:custom="clr-namespace:Flowery.Controls.Custom;assembly=Flowery.NET"
-             xmlns:examples="clr-namespace:Flowery.NET.Gallery.Examples"
-             mc:Ignorable="d"
-             d:DesignWidth="1100"
-             d:DesignHeight="800"
-             x:Class="Flowery.NET.Gallery.MainView"
-             Background="{DynamicResource DaisyBase100Brush}">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+    xmlns:custom="clr-namespace:Flowery.Controls.Custom;assembly=Flowery.NET"
+    xmlns:examples="clr-namespace:Flowery.NET.Gallery.Examples"
+    mc:Ignorable="d"
+    d:DesignWidth="1100"
+    d:DesignHeight="800"
+    x:Class="Flowery.NET.Gallery.MainView"
+    Background="{DynamicResource DaisyBase100Brush}">
 
     <Grid ColumnDefinitions="*">
         <SplitView x:Name="MainSplitView"

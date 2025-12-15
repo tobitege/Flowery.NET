@@ -42,7 +42,7 @@
                                         Foreground="{DynamicResource DaisyErrorBrush}"
                                         IsVisible="{TemplateBinding IsRequired}" />
                                    <TextBlock Text="Optional field"
-                                        FontSize="11"
+                                        FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
                                         Opacity="0.7"
                                         Foreground="{DynamicResource DaisyBaseContentBrush}"
                                         IsVisible="{TemplateBinding IsOptional}" />
@@ -51,7 +51,7 @@
                               <!-- Row 1: Hint text (below label, above input) -->
                               <TextBlock Grid.Row="1"
                                    Text="{TemplateBinding HintText}"
-                                   FontSize="12"
+                                   FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
                                    Opacity="0.7"
                                    Margin="0,0,0,4"
                                    Foreground="{DynamicResource DaisyBaseContentBrush}"
@@ -134,7 +134,7 @@
                               <TextBlock Grid.Row="3"
                                    Text="{TemplateBinding HelperText}"
                                    HorizontalAlignment="Right"
-                                   FontSize="11"
+                                   FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
                                    Opacity="0.7"
                                    Margin="0,4,0,0"
                                    Foreground="{DynamicResource DaisyBaseContentBrush}"

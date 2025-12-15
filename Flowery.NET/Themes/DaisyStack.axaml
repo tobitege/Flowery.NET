@@ -46,23 +46,23 @@
                     <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="Auto,*,Auto">
                         <!-- Counter at Top -->
                         <TextBlock Name="PART_CounterTop"
-                                   Grid.Row="0" Grid.Column="1"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,0,0,8"
-                                   FontSize="12"
-                                   Opacity="0.7"
-                                   Foreground="{DynamicResource DaisyBaseContentBrush}"
-                                   IsVisible="False" />
+                            Grid.Row="0" Grid.Column="1"
+                            HorizontalAlignment="Center"
+                            Margin="0,0,0,8"
+                            FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                            Opacity="0.7"
+                            Foreground="{DynamicResource DaisyBaseContentBrush}"
+                            IsVisible="False" />
 
                         <!-- Counter at Start (Left) -->
                         <TextBlock Name="PART_CounterStart"
-                                   Grid.Row="1" Grid.Column="0"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,8,0"
-                                   FontSize="12"
-                                   Opacity="0.7"
-                                   Foreground="{DynamicResource DaisyBaseContentBrush}"
-                                   IsVisible="False" />
+                            Grid.Row="1" Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Margin="0,0,8,0"
+                            FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                            Opacity="0.7"
+                            Foreground="{DynamicResource DaisyBaseContentBrush}"
+                            IsVisible="False" />
 
                         <!-- Main Content Area -->
                         <Grid Grid.Row="1" Grid.Column="1" ClipToBounds="False">
@@ -114,23 +114,23 @@
 
                         <!-- Counter at End (Right) -->
                         <TextBlock Name="PART_CounterEnd"
-                                   Grid.Row="1" Grid.Column="2"
-                                   VerticalAlignment="Center"
-                                   Margin="8,0,0,0"
-                                   FontSize="12"
-                                   Opacity="0.7"
-                                   Foreground="{DynamicResource DaisyBaseContentBrush}"
-                                   IsVisible="False" />
+                            Grid.Row="1" Grid.Column="2"
+                            VerticalAlignment="Center"
+                            Margin="8,0,0,0"
+                            FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                            Opacity="0.7"
+                            Foreground="{DynamicResource DaisyBaseContentBrush}"
+                            IsVisible="False" />
 
                         <!-- Counter at Bottom (default) -->
                         <TextBlock Name="PART_Counter"
-                                   Grid.Row="2" Grid.Column="1"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,8,0,0"
-                                   FontSize="12"
-                                   Opacity="0.7"
-                                   Foreground="{DynamicResource DaisyBaseContentBrush}"
-                                   IsVisible="False" />
+                            Grid.Row="2" Grid.Column="1"
+                            HorizontalAlignment="Center"
+                            Margin="0,8,0,0"
+                            FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                            Opacity="0.7"
+                            Foreground="{DynamicResource DaisyBaseContentBrush}"
+                            IsVisible="False" />
                     </Grid>
                 </ControlTemplate>
             </Setter>

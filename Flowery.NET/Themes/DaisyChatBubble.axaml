@@ -37,15 +37,15 @@
 
                     <!-- Header -->
                     <TextBlock x:Name="PART_Header"
-                               Grid.Row="0" Grid.Column="1"
-                               Text="{TemplateBinding Header}"
-                               FontSize="11"
-                               Opacity="0.7"
-                               Margin="0,0,0,4"
-                               HorizontalAlignment="Left"
-                               IsVisible="{TemplateBinding Header, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                              Grid.Row="0" Grid.Column="1"
+                              Text="{TemplateBinding Header}"
+                              FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
+                              Opacity="0.7"
+                              Margin="0,0,0,4"
+                              HorizontalAlignment="Left"
+                              IsVisible="{TemplateBinding Header, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
-                    <!-- Bubble -->
+                         <!-- Bubble -->
                     <Border x:Name="PART_Bubble"
                             Grid.Row="1" Grid.Column="1"
                             Background="{TemplateBinding Background}"
@@ -58,15 +58,15 @@
                                           TextElement.Foreground="{TemplateBinding Foreground}" />
                     </Border>
 
-                    <!-- Footer -->
+                         <!-- Footer -->
                     <TextBlock x:Name="PART_Footer"
-                               Grid.Row="2" Grid.Column="1"
-                               Text="{TemplateBinding Footer}"
-                               FontSize="11"
-                               Opacity="0.5"
-                               Margin="0,4,0,0"
-                               HorizontalAlignment="Left"
-                               IsVisible="{TemplateBinding Footer, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                              Grid.Row="2" Grid.Column="1"
+                              Text="{TemplateBinding Footer}"
+                              FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
+                              Opacity="0.5"
+                              Margin="0,4,0,0"
+                              HorizontalAlignment="Left"
+                              IsVisible="{TemplateBinding Footer, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                 </Grid>
             </ControlTemplate>
         </Setter>

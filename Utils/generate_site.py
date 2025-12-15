@@ -249,7 +249,7 @@ class SiteGenerator:
     CUSTOM_CONTROL_PREFIXES = ('Color', 'DateTimeline', 'ModifierKeys', 'NumericUpDown', 'Weather', 'ComponentSidebar')
     
     # Standalone guide files (not control docs) to include in the sidebar
-    GUIDE_FILES = ['MigrationExample.md', 'DesignTokens.md', 'Effects.md']
+    GUIDE_FILES = ['MigrationExample.md', 'DesignTokens.md', 'Effects.md', 'GlobalSizing.md']
     
     # Helper/internal classes shown in a separate 'Helpers' section
     HELPER_CONTROL_NAMES = {

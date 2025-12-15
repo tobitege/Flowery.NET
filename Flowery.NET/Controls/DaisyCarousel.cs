@@ -43,6 +43,36 @@ namespace Flowery.Controls
                 _nextButton.Click += OnNextClick;
 
             UpdateTransition();
+            UpdateButtonVisibility();
+        }
+
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            base.OnPropertyChanged(change);
+
+            // Update button visibility when selected index or item count changes
+            if (change.Property == SelectedIndexProperty || change.Property == ItemCountProperty)
+            {
+                UpdateButtonVisibility();
+            }
+        }
+
+        private void UpdateButtonVisibility()
+        {
+            var itemCount = ItemCount;
+            var selectedIndex = SelectedIndex;
+
+            // Hide Previous button on first slide (or when there are no items)
+            if (_previousButton != null)
+            {
+                _previousButton.IsVisible = selectedIndex > 0 && itemCount > 1;
+            }
+
+            // Hide Next button on last slide (or when there are no items)
+            if (_nextButton != null)
+            {
+                _nextButton.IsVisible = selectedIndex < itemCount - 1 && itemCount > 1;
+            }
         }
 
         private void UpdateTransition()

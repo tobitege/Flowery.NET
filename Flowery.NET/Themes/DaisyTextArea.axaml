@@ -54,7 +54,7 @@
                                 Foreground="{DynamicResource DaisyErrorBrush}"
                                 IsVisible="{TemplateBinding IsRequired}" />
                             <TextBlock Text="Optional field"
-                                FontSize="11"
+                                FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
                                 Opacity="0.7"
                                 Foreground="{DynamicResource DaisyBaseContentBrush}"
                                 IsVisible="{TemplateBinding IsOptional}" />
@@ -63,7 +63,7 @@
                         <!-- Row 1: Hint text -->
                         <TextBlock Grid.Row="1"
                             Text="{TemplateBinding HintText}"
-                            FontSize="12"
+                            FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
                             Opacity="0.7"
                             Margin="0,0,0,4"
                             Foreground="{DynamicResource DaisyBaseContentBrush}"
@@ -140,7 +140,7 @@
                             <TextBlock Grid.Column="0"
                                 Text="{TemplateBinding HelperText}"
                                 HorizontalAlignment="Left"
-                                FontSize="11"
+                                FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
                                 Opacity="0.7"
                                 Foreground="{DynamicResource DaisyBaseContentBrush}"
                                 IsVisible="{TemplateBinding HelperText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -149,14 +149,20 @@
                             <StackPanel Grid.Column="1" Orientation="Horizontal"
                                 HorizontalAlignment="Right"
                                 IsVisible="{TemplateBinding ShowCharacterCount}">
-                                <TextBlock FontSize="11" Opacity="0.7"
+                                <TextBlock
+                                    FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
+                                    Opacity="0.7"
                                     Foreground="{DynamicResource DaisyBaseContentBrush}"
                                     Text="{Binding CharacterCount, RelativeSource={RelativeSource TemplatedParent}}" />
-                                <TextBlock FontSize="11" Opacity="0.7"
+                                <TextBlock
+                                    FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
+                                    Opacity="0.7"
                                     Foreground="{DynamicResource DaisyBaseContentBrush}"
                                     Text=" characters"
                                     IsVisible="{TemplateBinding MaxLength, Converter={x:Static ObjectConverters.IsNull}}" />
-                                <TextBlock FontSize="11" Opacity="0.7"
+                                <TextBlock
+                                    FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
+                                    Opacity="0.7"
                                     Foreground="{DynamicResource DaisyBaseContentBrush}"
                                     IsVisible="{TemplateBinding MaxLength, Converter={x:Static ObjectConverters.IsNotNull}}">
                                     <Run Text=" / " />

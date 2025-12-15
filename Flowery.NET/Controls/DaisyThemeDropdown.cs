@@ -50,6 +50,21 @@ namespace Flowery.Controls
             set => SetValue(SelectedThemeProperty, value);
         }
 
+        /// <summary>
+        /// Defines the <see cref="Size"/> property for the dropdown's appearance.
+        /// </summary>
+        public static readonly StyledProperty<DaisySize> SizeProperty =
+            AvaloniaProperty.Register<DaisyThemeDropdown, DaisySize>(nameof(Size), DaisySize.Medium);
+
+        /// <summary>
+        /// Gets or sets the size of this dropdown control.
+        /// </summary>
+        public DaisySize Size
+        {
+            get => GetValue(SizeProperty);
+            set => SetValue(SizeProperty, value);
+        }
+
         private static List<ThemePreviewInfo>? _cachedThemes;
         private bool _isSyncing;
 

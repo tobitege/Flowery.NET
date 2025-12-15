@@ -36,7 +36,8 @@
                     <StackPanel Spacing="12">
                         <TextBlock Text="🎨 Classic DaisyUI Variants" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
                         <TextBlock Text="Original loading animations from DaisyUI component library" FontSize="12" Opacity="0.6" Margin="0,0,0,8"/>
-                        <WrapPanel Orientation="Horizontal">
+                        <WrapPanel Orientation="Horizontal"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <StackPanel Spacing="10" Margin="0,0,40,12">
                                 <TextBlock Text="Spinner" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                                 <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
@@ -120,7 +121,8 @@
                     <StackPanel Spacing="12">
                         <TextBlock Text="💻 Terminal-Style Variants" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
                         <TextBlock Text="CLI-inspired animations reminiscent of npm, yarn, and terminal progress indicators" FontSize="12" Opacity="0.6" Margin="0,0,0,8"/>
-                        <WrapPanel Orientation="Horizontal">
+                        <WrapPanel Orientation="Horizontal"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <StackPanel Spacing="10" Margin="0,0,40,12">
                                 <TextBlock Text="Orbit (npm-style)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                                 <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">

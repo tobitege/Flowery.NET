@@ -125,6 +125,9 @@ public partial class SectionHeader : UserControl
     public static readonly StyledProperty<string> SectionIdProperty =
         AvaloniaProperty.Register<SectionHeader, string>(nameof(SectionId), string.Empty);
 
+    public static readonly StyledProperty<Flowery.Controls.DaisySize> SizeProperty =
+        AvaloniaProperty.Register<SectionHeader, Flowery.Controls.DaisySize>(nameof(Size), Flowery.Controls.DaisySize.Medium);
+
     public string Title
     {
         get => GetValue(TitleProperty);
@@ -135,6 +138,15 @@ public partial class SectionHeader : UserControl
     {
         get => GetValue(SectionIdProperty);
         set => SetValue(SectionIdProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the size of the header. Affects font size and padding.
+    /// </summary>
+    public Flowery.Controls.DaisySize Size
+    {
+        get => GetValue(SizeProperty);
+        set => SetValue(SizeProperty, value);
     }
 
     /// <summary>
@@ -160,6 +172,41 @@ public partial class SectionHeader : UserControl
     public SectionHeader()
     {
         InitializeComponent();
+
+        // Subscribe to global size changes
+        Flowery.Controls.FlowerySizeManager.SizeChanged += OnGlobalSizeChanged;
+
+        // Apply initial size
+        ApplySizeToHeader(Flowery.Controls.FlowerySizeManager.CurrentSize);
+    }
+
+    private void OnGlobalSizeChanged(object? sender, Flowery.Controls.DaisySize newSize)
+    {
+        Size = newSize;
+        ApplySizeToHeader(newSize);
+    }
+
+    private void ApplySizeToHeader(Flowery.Controls.DaisySize size)
+    {
+        var textBlock = this.FindControl<TextBlock>("TitleText");
+        if (textBlock == null) return;
+
+        // Map DaisySize to font sizes
+        textBlock.FontSize = size switch
+        {
+            Flowery.Controls.DaisySize.ExtraSmall => 14,
+            Flowery.Controls.DaisySize.Small => 16,
+            Flowery.Controls.DaisySize.Medium => 20,
+            Flowery.Controls.DaisySize.Large => 24,
+            Flowery.Controls.DaisySize.ExtraLarge => 28,
+            _ => 20
+        };
+    }
+
+    protected override void OnUnloaded(RoutedEventArgs e)
+    {
+        base.OnUnloaded(e);
+        Flowery.Controls.FlowerySizeManager.SizeChanged -= OnGlobalSizeChanged;
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)

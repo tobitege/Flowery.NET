@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
@@ -88,6 +89,9 @@ public partial class MainView : UserControl
         };
         _categoryControlCache = new Dictionary<string, Control>(StringComparer.OrdinalIgnoreCase);
 
+        // Subscribe to global size changes for Gallery demo
+        FlowerySizeManager.SizeChanged += OnGlobalSizeChanged;
+
         if (ComponentSidebar != null)
         {
             // Initialize sidebar with Gallery-specific data
@@ -107,6 +111,102 @@ public partial class MainView : UserControl
         }
 
         NavigateToCategory("Home");
+    }
+
+    private void OnGlobalSizeChanged(object? sender, DaisySize newSize)
+    {
+        // Apply the new size to all Daisy controls in the visual tree
+        ApplyGlobalSizeToControls(this, newSize);
+
+        // Apply size to Gallery-specific elements (CategoryTitle, etc.)
+        ApplySizeToGalleryElements(newSize);
+    }
+
+    private void ApplySizeToGalleryElements(DaisySize size)
+    {
+        // Update CategoryTitle font size
+        if (CategoryTitle != null)
+        {
+            CategoryTitle.FontSize = size switch
+            {
+                DaisySize.ExtraSmall => 16,
+                DaisySize.Small => 18,
+                DaisySize.Medium => 22,
+                DaisySize.Large => 26,
+                DaisySize.ExtraLarge => 30,
+                _ => 22
+            };
+        }
+
+        // Update CategoryTitleBar padding
+        if (CategoryTitleBar != null)
+        {
+            var padding = size switch
+            {
+                DaisySize.ExtraSmall => new Thickness(16, 2, 16, 8),
+                DaisySize.Small => new Thickness(20, 3, 20, 14),
+                DaisySize.Medium => new Thickness(24, 4, 24, 20),
+                DaisySize.Large => new Thickness(28, 6, 28, 24),
+                DaisySize.ExtraLarge => new Thickness(32, 8, 32, 28),
+                _ => new Thickness(24, 4, 24, 20)
+            };
+            CategoryTitleBar.Padding = padding;
+        }
+
+        // Update CategoryChevrons size
+        if (CategoryChevrons != null)
+        {
+            var chevronSize = size switch
+            {
+                DaisySize.ExtraSmall => (Width: 16.0, Height: 10.0),
+                DaisySize.Small => (Width: 20.0, Height: 12.0),
+                DaisySize.Medium => (Width: 24.0, Height: 14.0),
+                DaisySize.Large => (Width: 28.0, Height: 16.0),
+                DaisySize.ExtraLarge => (Width: 32.0, Height: 18.0),
+                _ => (Width: 24.0, Height: 14.0)
+            };
+            CategoryChevrons.Width = chevronSize.Width;
+            CategoryChevrons.Height = chevronSize.Height;
+        }
+    }
+
+    private static void ApplyGlobalSizeToControls(Control root, DaisySize size)
+    {
+        foreach (var control in root.GetVisualDescendants().OfType<Control>())
+        {
+            // Skip controls marked as ignoring global size (check self and ancestors)
+            if (ShouldIgnoreGlobalSize(control))
+                continue;
+
+            // Check if control has a Size property of type DaisySize
+            var sizeProperty = control.GetType().GetProperty("Size");
+            if (sizeProperty != null && sizeProperty.PropertyType == typeof(DaisySize) && sizeProperty.CanWrite)
+            {
+                try
+                {
+                    sizeProperty.SetValue(control, size);
+                }
+                catch
+                {
+                    // Ignore controls that can't be sized
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Checks if a control or any of its ancestors has IgnoreGlobalSize set to true.
+    /// </summary>
+    private static bool ShouldIgnoreGlobalSize(Control control)
+    {
+        Visual? current = control;
+        while (current != null)
+        {
+            if (current is Control c && FlowerySizeManager.GetIgnoreGlobalSize(c))
+                return true;
+            current = current.GetVisualParent();
+        }
+        return false;
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
@@ -130,6 +230,9 @@ public partial class MainView : UserControl
             if (_activeCategoryContent != null && _currentScrollViewer == null)
                 AttachScrollHandler(_activeCategoryContent);
         }
+
+        // Apply the current global size on startup (controls default to Medium otherwise)
+        ApplyGlobalSizeToControls(this, FlowerySizeManager.CurrentSize);
     }
 
     private bool _isLandscape;
@@ -249,6 +352,15 @@ public partial class MainView : UserControl
                 global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
                     AttachScrollHandler(newContent);
+                }, global::Avalonia.Threading.DispatcherPriority.Loaded);
+            }
+
+            // Apply global size to newly shown content (controls default to Medium otherwise)
+            if (contentChanged)
+            {
+                global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    ApplyGlobalSizeToControls(newContent, FlowerySizeManager.CurrentSize);
                 }, global::Avalonia.Threading.DispatcherPriority.Loaded);
             }
         }

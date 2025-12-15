@@ -791,7 +791,8 @@
 
                     <!-- Sizes -->
                     <TextBlock Text="Sizes" FontSize="12" Opacity="0.7" Margin="0,12,0,0"/>
-                    <StackPanel Spacing="12">
+                    <StackPanel Spacing="12"
+                        controls:FlowerySizeManager.IgnoreGlobalSize="True">
                         <controls:DaisyPagination Size="ExtraSmall" CurrentPage="2">
                             <controls:DaisyPaginationItem Content="1" PageNumber="1" />
                             <controls:DaisyPaginationItem Content="2" PageNumber="2" />
@@ -926,7 +927,8 @@
 
                     <!-- Sizes -->
                     <TextBlock Text="Sizes" FontWeight="SemiBold" Margin="0,8,0,0"/>
-                    <StackPanel Spacing="16">
+                    <StackPanel Spacing="16"
+                        controls:FlowerySizeManager.IgnoreGlobalSize="True">
                         <StackPanel Spacing="6">
                             <TextBlock Text="Extra Small" FontSize="12" Opacity="0.7"/>
                             <controls:DaisySteps Size="ExtraSmall" SelectedIndex="1" Width="350">
@@ -1080,7 +1082,8 @@
 
                     <!-- Tab Sizes -->
                     <TextBlock Text="Sizes" FontWeight="SemiBold" Margin="0,16,0,0" />
-                    <WrapPanel Orientation="Horizontal">
+                    <WrapPanel Orientation="Horizontal"
+                        controls:FlowerySizeManager.IgnoreGlobalSize="True">
                         <StackPanel Spacing="10" Margin="0,0,20,10">
                             <TextBlock Text="Extra Small" FontSize="12" Opacity="0.7" />
                             <controls:DaisyTabs Variant="Boxed" Size="ExtraSmall">

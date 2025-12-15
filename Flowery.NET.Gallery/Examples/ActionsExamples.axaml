@@ -76,7 +76,8 @@
                             </WrapPanel>
                         </StackPanel>
 
-                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <StackPanel Spacing="10" Margin="0,0,40,20"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <TextBlock Text="Sizes" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                             <WrapPanel VerticalAlignment="Center">
                                 <controls:DaisyButton Size="ExtraSmall" Content="Extra Small" Margin="4"/>

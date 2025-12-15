@@ -60,7 +60,8 @@
                     <local:SectionHeader SectionId="avatar" Title="Avatar" />
                     <WrapPanel Orientation="Horizontal">
                         <!-- Sizes -->
-                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <StackPanel Spacing="10" Margin="0,0,40,20"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <TextBlock Text="Sizes" FontWeight="Bold" />
                             <StackPanel Orientation="Horizontal" Spacing="10"
                                 VerticalAlignment="Bottom">
@@ -576,7 +577,8 @@
                                 <controls:DaisyKbd Content="Del" />
                             </StackPanel>
                         </StackPanel>
-                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <StackPanel Spacing="10" Margin="0,0,40,20"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <TextBlock Text="Sizes" FontSize="12" Opacity="0.7" />
                             <StackPanel Orientation="Horizontal" Spacing="5"
                                 VerticalAlignment="Center">
@@ -785,7 +787,8 @@
                         Opacity="0.7" Margin="0,0,0,8" />
                     <WrapPanel Orientation="Horizontal">
                         <!-- Sizes -->
-                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <StackPanel Spacing="10" Margin="0,0,40,20"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <TextBlock Text="Sizes" FontWeight="SemiBold" Opacity="0.7" />
                             <StackPanel Orientation="Horizontal" Spacing="12"
                                 VerticalAlignment="Center">

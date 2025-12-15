@@ -336,8 +336,11 @@
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
                     <Canvas Width="24" Height="24">
                         <!-- Prompt symbol > -->
-                        <TextBlock Text=">" FontFamily="Consolas,monospace" FontSize="12" FontWeight="Bold"
-                                   Foreground="{TemplateBinding Foreground}" Canvas.Left="2" Canvas.Top="5" Opacity="0.6"/>
+                        <TextBlock Text=">" FontFamily="Consolas,monospace"
+                            FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                            FontWeight="Bold"
+                            Foreground="{TemplateBinding Foreground}" Canvas.Left="2" Canvas.Top="5"
+                            Opacity="0.6" />
                         <!-- Blinking cursor block -->
                         <Border Classes="cursor-block" Width="6" Height="12" Canvas.Left="10" Canvas.Top="6"
                                 Background="{TemplateBinding Foreground}"/>

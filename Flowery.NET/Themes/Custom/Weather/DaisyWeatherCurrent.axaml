@@ -43,20 +43,24 @@
                                     <PathIcon Width="16" Height="16"
                                               Foreground="{DynamicResource DaisyWarningBrush}"
                                               Data="{StaticResource WeatherIconSunrise}" />
-                                    <TextBlock FontSize="12" VerticalAlignment="Center"
-                                               Foreground="{DynamicResource DaisyBaseContentBrush}"
-                                               Opacity="0.7"
-                                               Text="{Binding Sunrise, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static weather:TimeSpanToStringConverter.Instance}}" />
+                                    <TextBlock
+                                        FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                                        VerticalAlignment="Center"
+                                        Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                        Opacity="0.7"
+                                        Text="{Binding Sunrise, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static weather:TimeSpanToStringConverter.Instance}}" />
                                 </StackPanel>
                                 <!-- Sunset -->
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <PathIcon Width="16" Height="16"
                                               Foreground="{DynamicResource DaisyErrorBrush}"
                                               Data="{StaticResource WeatherIconSunset}" />
-                                    <TextBlock FontSize="12" VerticalAlignment="Center"
-                                               Foreground="{DynamicResource DaisyBaseContentBrush}"
-                                               Opacity="0.7"
-                                               Text="{Binding Sunset, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static weather:TimeSpanToStringConverter.Instance}}" />
+                                    <TextBlock
+                                        FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                                        VerticalAlignment="Center"
+                                        Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                        Opacity="0.7"
+                                        Text="{Binding Sunset, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static weather:TimeSpanToStringConverter.Instance}}" />
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>

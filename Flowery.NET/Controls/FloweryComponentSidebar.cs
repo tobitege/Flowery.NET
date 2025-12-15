@@ -46,6 +46,10 @@ namespace Flowery.Controls
     {
     }
 
+    public class SidebarSizeSelectorItem : SidebarItem
+    {
+    }
+
     public class SidebarLanguage
     {
         public string Code { get; set; } = string.Empty;
@@ -168,6 +172,21 @@ namespace Flowery.Controls
         {
             get => GetValue(SidebarWidthProperty);
             set => SetValue(SidebarWidthProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="Size"/> property for the sidebar's text and control sizing.
+        /// </summary>
+        public static readonly StyledProperty<DaisySize> SizeProperty =
+            AvaloniaProperty.Register<FloweryComponentSidebar, DaisySize>(nameof(Size), DaisySize.Medium);
+
+        /// <summary>
+        /// Gets or sets the size of sidebar elements. Affects font sizes, icon sizes, and control sizing.
+        /// </summary>
+        public DaisySize Size
+        {
+            get => GetValue(SizeProperty);
+            set => SetValue(SizeProperty, value);
         }
 
         public static readonly StyledProperty<string> SearchTextProperty =

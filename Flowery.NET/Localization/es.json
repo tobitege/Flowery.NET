@@ -1,4 +1,9 @@
 {
+  "Size_ExtraSmall": "Extra pequeño",
+  "Size_Small": "Pequeño",
+  "Size_Medium": "Mediano",
+  "Size_Large": "Grande",
+  "Size_ExtraLarge": "Extra grande",
   "Select_Placeholder": "Seleccionar",
   "MaskInput_Watermark_AlphaNumericCode": "AB12 CDE",
   "MaskInput_Watermark_Timer": "00:00:00",

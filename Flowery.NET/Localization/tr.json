@@ -1,4 +1,9 @@
 {
+  "Size_ExtraSmall": "Çok küçük",
+  "Size_Small": "Küçük",
+  "Size_Medium": "Orta",
+  "Size_Large": "Büyük",
+  "Size_ExtraLarge": "Çok büyük",
   "Select_Placeholder": "Seçiniz",
   "MaskInput_Watermark_AlphaNumericCode": "AB12 CDE",
   "MaskInput_Watermark_Timer": "00:00:00",

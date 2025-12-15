@@ -24,11 +24,28 @@
     <sys:Double x:Key="DaisySizeExtraSmallHeight">24</sys:Double>
 
     <!-- ==================== FONT SIZES ==================== -->
+    <!-- Primary font sizes for main control text -->
     <sys:Double x:Key="DaisySizeExtraLargeFontSize">20</sys:Double>
     <sys:Double x:Key="DaisySizeLargeFontSize">18</sys:Double>
     <sys:Double x:Key="DaisySizeMediumFontSize">14</sys:Double>
     <sys:Double x:Key="DaisySizeSmallFontSize">12</sys:Double>
     <sys:Double x:Key="DaisySizeExtraSmallFontSize">10</sys:Double>
+
+    <!-- Secondary font sizes for hint text, helper text, captions, labels -->
+    <!-- These are ~0.8x of primary sizes, used for auxiliary information -->
+    <sys:Double x:Key="DaisySizeExtraLargeSecondaryFontSize">16</sys:Double>
+    <sys:Double x:Key="DaisySizeLargeSecondaryFontSize">14</sys:Double>
+    <sys:Double x:Key="DaisySizeMediumSecondaryFontSize">12</sys:Double>
+    <sys:Double x:Key="DaisySizeSmallSecondaryFontSize">10</sys:Double>
+    <sys:Double x:Key="DaisySizeExtraSmallSecondaryFontSize">9</sys:Double>
+
+    <!-- Tertiary font sizes for very small captions, counters -->
+    <!-- These are ~0.7x of primary sizes -->
+    <sys:Double x:Key="DaisySizeExtraLargeTertiaryFontSize">14</sys:Double>
+    <sys:Double x:Key="DaisySizeLargeTertiaryFontSize">12</sys:Double>
+    <sys:Double x:Key="DaisySizeMediumTertiaryFontSize">11</sys:Double>
+    <sys:Double x:Key="DaisySizeSmallTertiaryFontSize">9</sys:Double>
+    <sys:Double x:Key="DaisySizeExtraSmallTertiaryFontSize">8</sys:Double>
 
     <!-- ==================== CORNER RADIUS ==================== -->
     <CornerRadius x:Key="DaisySizeExtraLargeCornerRadius">12</CornerRadius>

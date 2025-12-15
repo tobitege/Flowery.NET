@@ -1,4 +1,9 @@
 {
+  "Size_ExtraSmall": "極小",
+  "Size_Small": "小",
+  "Size_Medium": "中",
+  "Size_Large": "大",
+  "Size_ExtraLarge": "極大",
   "Select_Placeholder": "選択してください",
   "MaskInput_Watermark_AlphaNumericCode": "AB12 CDE",
   "MaskInput_Watermark_Timer": "00:00:00",

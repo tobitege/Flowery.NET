@@ -1,4 +1,9 @@
 {
+  "Size_ExtraSmall": "Дуже малий",
+  "Size_Small": "Малий",
+  "Size_Medium": "Середній",
+  "Size_Large": "Великий",
+  "Size_ExtraLarge": "Дуже великий",
   "Select_Placeholder": "Вибрати",
   "MaskInput_Watermark_AlphaNumericCode": "AB12 CDE",
   "MaskInput_Watermark_Timer": "00:00:00",

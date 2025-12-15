@@ -41,7 +41,8 @@
 
                     <!-- Sizes -->
                     <TextBlock Text="Sizes" FontWeight="Bold" Margin="0,8,0,4" />
-                    <WrapPanel Orientation="Horizontal">
+                    <WrapPanel Orientation="Horizontal"
+                        controls:FlowerySizeManager.IgnoreGlobalSize="True">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
                             <TextBlock Text="Extra Small" FontSize="12" />
                             <controls:DaisyDateTimeline AutoWidth="True" VisibleDaysCount="7"

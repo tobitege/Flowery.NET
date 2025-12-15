@@ -64,10 +64,9 @@
                                                                         Foreground="{DynamicResource DaisyBaseContentBrush}"
                                                                         Data="{Binding IconKey, Converter={x:Static controls:IconKeyConverter.Instance}}" />
                                                             <TextBlock Text="{Binding Name}"
-                                                                    FontWeight="SemiBold"
-                                                                    FontSize="12"
-                                                                    VerticalAlignment="Center"
-                                                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                                                FontWeight="SemiBold"
+                                                                VerticalAlignment="Center"
+                                                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
                                                         </StackPanel>
                                                     </controls:DaisyCollapse.Header>
                                                     <!-- Category Items -->
@@ -77,27 +76,37 @@
                                                                     x:DataType="controls:SidebarThemeSelectorItem">
                                                                     <StackPanel Margin="8,6,16,8"
                                                                         Spacing="6">
-                                                                        <TextBlock Text="Theme"
-                                                                            FontSize="12"
-                                                                            Opacity="0.7"
-                                                                            Margin="10,0,0,0" />
-                                                                        <controls:DaisyThemeDropdown
-                                                                            FontSize="12"
-                                                                            Margin="8,0,10,0" />
+                                                                    <TextBlock Text="Theme"
+                                                                        Opacity="0.7"
+                                                                        Margin="10,0,0,0" />
+                                                                    <controls:DaisyThemeDropdown
+                                                                        Margin="8,0,10,0" />
                                                                     </StackPanel>
                                                                 </DataTemplate>
                                                             <DataTemplate x:DataType="controls:SidebarLanguageSelectorItem">
                                                                 <StackPanel Margin="8,6,0,8" Spacing="6">
-                                                                    <TextBlock Text="Controls' Language"
-                                                                                FontSize="12"
-                                                                                Opacity="0.7"
-                                                                                Margin="10,0,0,0" />
-                                                                    <controls:DaisySelect Margin="8,0,32,0"
-                                                                                            Size="Small"
-                                                                                            PlaceholderText="Select language"
-                                                                                            ItemsSource="{Binding AvailableLanguages, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}}"
-                                                                                            SelectedItem="{Binding SelectedLanguage, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}, Mode=TwoWay}"
-                                                                                            DisplayMemberBinding="{Binding DisplayName}" />
+                                                                    <TextBlock
+                                                                        Text="Controls' Language"
+                                                                        Opacity="0.7"
+                                                                        Margin="10,0,0,0" />
+                                                                    <controls:DaisySelect
+                                                                        Margin="8,0,16,0"
+                                                                        PlaceholderText="Select language"
+                                                                        ItemsSource="{Binding AvailableLanguages, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}}"
+                                                                        SelectedItem="{Binding SelectedLanguage, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}, Mode=TwoWay}"
+                                                                        DisplayMemberBinding="{Binding DisplayName}" />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+
+                                                            <DataTemplate
+                                                                x:DataType="controls:SidebarSizeSelectorItem">
+                                                                <StackPanel Margin="8,6,0,8"
+                                                                    Spacing="6">
+                                                                    <TextBlock Text="Global Size"
+                                                                        Opacity="0.7"
+                                                                        Margin="10,0,0,0" />
+                                                                    <controls:DaisySizeDropdown
+                                                                        Margin="8,0,16,0" />
                                                                 </StackPanel>
                                                             </DataTemplate>
 
@@ -139,12 +148,29 @@
                     </Border>
                 </ControlTemplate>
             </Setter>
+
+            <!-- Size Variants - set FontSize which cascades to child elements -->
+            <Style Selector="^[Size=ExtraSmall]">
+                <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+            </Style>
+            <Style Selector="^[Size=Small]">
+                <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
+            </Style>
+            <Style Selector="^[Size=Medium]">
+                <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
+            </Style>
+            <Style Selector="^[Size=Large]">
+                <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
+            </Style>
+            <Style Selector="^[Size=ExtraLarge]">
+                <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+            </Style>
+
         </ControlTheme>
     </Styles.Resources>
 
     <!-- Search input style -->
     <Style Selector="controls|DaisyInput.sidebar-search">
-        <Setter Property="FontSize" Value="12" />
         <Setter Property="Padding" Value="10,8" />
         <Setter Property="MinHeight" Value="36" />
     </Style>
