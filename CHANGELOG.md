@@ -10,7 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### New
 
-- **FlowerySizeManager**: New size manager for applying Size properties to controls
+- **FlowerySizeManager**: New FlowerySizeManager service for app-wide size control (ExtraSmall to ExtraLarge)
+- DaisySizeDropdown control with localized size names (9 languages)
+- IgnoreGlobalSize attached property for size demonstration exemptions
+- GlobalSizing.md documentation with usage examples
+- Gallery applies global size on startup and category navigation
+
+### Changed
+
+- Carousel hides left navigation button at 1st, right button on last slide
 
 ## [1.5.1] - 2025-12-15
 
