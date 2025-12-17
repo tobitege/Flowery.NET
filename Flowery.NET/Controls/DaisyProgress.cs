@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Flowery.Localization;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -21,12 +22,20 @@ namespace Flowery.Controls
     /// <summary>
     /// A Progress bar control styled after DaisyUI's Progress component.
     /// Includes accessibility support for screen readers via the AccessibleText attached property.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyProgress : ProgressBar
+    public class DaisyProgress : ProgressBar, IScalableControl
     {
         private const string DefaultAccessibleText = "Progress";
+        private const double BaseTextFontSize = 12.0;
 
         protected override Type StyleKeyOverride => typeof(DaisyProgress);
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         static DaisyProgress()
         {
@@ -91,7 +100,7 @@ namespace Flowery.Controls
         protected override string? GetNameCore()
         {
             var progress = (DaisyProgress)Owner;
-            var localizedDefault = FloweryLocalization.GetString("Accessibility_Progress");
+            var localizedDefault = FloweryLocalization.GetStringInternal("Accessibility_Progress");
             var text = DaisyAccessibility.GetEffectiveAccessibleText(progress, localizedDefault);
             var range = progress.Maximum - progress.Minimum;
             if (range > 0)

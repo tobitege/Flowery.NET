@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -12,9 +13,21 @@ namespace Flowery.Controls
         Flip
     }
 
-    public class DaisySwap : ToggleButton
+    /// <summary>
+    /// A swap toggle control styled after DaisyUI's Swap component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisySwap : ToggleButton, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisySwap);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<object?> OnContentProperty =
             AvaloniaProperty.Register<DaisySwap, object?>(nameof(OnContent));

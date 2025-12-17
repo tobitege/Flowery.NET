@@ -1,15 +1,25 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Flowery.Services;
 
 namespace Flowery.Controls.Custom.Weather
 {
     /// <summary>
     /// Displays a horizontal strip of daily weather forecasts.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyWeatherForecast : ItemsControl
+    public class DaisyWeatherForecast : ItemsControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyWeatherForecast);
+
+        private const double BaseTextFontSize = 12.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<string> TemperatureUnitProperty =
             AvaloniaProperty.Register<DaisyWeatherForecast, string>(nameof(TemperatureUnit), "C");

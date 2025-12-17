@@ -2,18 +2,29 @@ using System;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Media;
+using Flowery.Services;
 
 namespace Flowery.Controls.ColorPicker
 {
     /// <summary>
     /// A control that allows picking colors from anywhere on the screen using an eyedropper tool.
     /// Click and hold, drag anywhere on screen, release to pick the color.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyScreenColorPicker : Control
+    public class DaisyScreenColorPicker : Control, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyScreenColorPicker);
+
+        private const double BaseTextFontSize = 10.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            TextElement.SetFontSize(this, FloweryScaleManager.ApplyScale(BaseTextFontSize, 9.0, scaleFactor));
+        }
 
         private bool _isCapturing;
         private Color _previewColor = Colors.Black;

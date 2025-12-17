@@ -5,7 +5,7 @@
   <LangVersion>latest</LangVersion>
   <Nullable>enable</Nullable>
     <!-- Ensure satellite assemblies are generated for all supported languages -->
-    <SatelliteResourceLanguages>en;de;fr;es;it;zh-CN;ko;ja;ar;tr;uk</SatelliteResourceLanguages>
+    <SatelliteResourceLanguages>en;de;fr;es;it;zh-CN;ko;ja;ar;tr;uk;he</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.9" />
@@ -40,5 +40,6 @@
     <EmbeddedResource Include="Localization\ar.json" />
     <EmbeddedResource Include="Localization\tr.json" />
     <EmbeddedResource Include="Localization\uk.json" />
+    <EmbeddedResource Include="Localization\he.json" />
   </ItemGroup>
 </Project>

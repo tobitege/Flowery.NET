@@ -47,6 +47,6 @@ DaisyCollapse is an `Expander`-based container for revealing content under a cli
 ## Tips & Best Practices
 
 - Use **Plus** when you want a bold open/close affordance; use **Arrow** for subtle disclosures.
-- Keep headers concise; long text wraps but can push icons aside—use tooltips for extra context.
+- Keep headers concise; long text wraps but can push icons aside - use tooltips for extra context.
 - If you need multiple collapsibles with mutual exclusivity, use `DaisyAccordion` instead.
 - Add `Padding` to the body content for spacing; default padding is applied from the theme.

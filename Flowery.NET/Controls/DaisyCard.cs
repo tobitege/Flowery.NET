@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -14,10 +15,21 @@ namespace Flowery.Controls
 
     /// <summary>
     /// A Card control styled after DaisyUI's Card component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyCard : ContentControl
+    public class DaisyCard : ContentControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyCard);
+
+        private const double BaseTitleFontSize = 20.0;
+        private const double BaseBodyFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            TitleFontSize = FloweryScaleManager.ApplyScale(BaseTitleFontSize, 14.0, scaleFactor);
+            BodyFontSize = FloweryScaleManager.ApplyScale(BaseBodyFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<DaisyCardVariant> VariantProperty =
             AvaloniaProperty.Register<DaisyCard, DaisyCardVariant>(nameof(Variant), DaisyCardVariant.Normal);

@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Flowery.Controls;
 using Flowery.Localization;
+using Flowery.NET.Gallery.Localization;
 
 namespace Flowery.NET.Gallery;
 
@@ -11,6 +12,11 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        
+        // Force GalleryLocalization static constructor to run early,
+        // which registers the CustomResolver with FloweryLocalization
+        // so sidebar items display translated text instead of keys.
+        _ = GalleryLocalization.Instance;
     }
 
     public override void OnFrameworkInitializationCompleted()

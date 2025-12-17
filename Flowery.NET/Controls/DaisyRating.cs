@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Flowery.Localization;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -24,12 +25,20 @@ namespace Flowery.Controls
     /// <summary>
     /// A star rating control styled after DaisyUI's Rating component.
     /// Includes accessibility support for screen readers via the AccessibleText attached property.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyRating : RangeBase
+    public class DaisyRating : RangeBase, IScalableControl
     {
         private const string DefaultAccessibleText = "Rating";
+        private const double BaseTextFontSize = 14.0;
 
         protected override Type StyleKeyOverride => typeof(DaisyRating);
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         private Control? _foregroundPart;
         private Control? _backgroundPart;
@@ -249,7 +258,7 @@ namespace Flowery.Controls
         protected override string? GetNameCore()
         {
             var rating = (DaisyRating)Owner;
-            var localizedDefault = FloweryLocalization.GetString("Accessibility_Rating");
+            var localizedDefault = FloweryLocalization.GetStringInternal("Accessibility_Rating");
             var text = DaisyAccessibility.GetEffectiveAccessibleText(rating, localizedDefault);
             var valueText = FormatValue(rating.Value, rating.Precision);
             var maxText = FormatValue(rating.Maximum, RatingPrecision.Full);

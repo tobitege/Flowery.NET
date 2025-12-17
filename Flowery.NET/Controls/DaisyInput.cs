@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Media;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -40,12 +41,56 @@ namespace Flowery.Controls
 
     /// <summary>
     /// A TextBox control styled after DaisyUI's Input component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyInput : TextBox
+    public class DaisyInput : TextBox, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyInput);
 
-        #region Variant Property
+        // Base font sizes for scaling (before scale factor is applied)
+        private const double BaseLabelFontSize = 12.0;
+        private const double BaseTextFontSize = 14.0;
+
+        #region Scaling Properties
+
+        /// <summary>
+        /// Defines the <see cref="ScaledLabelFontSize"/> property.
+        /// </summary>
+        public static readonly StyledProperty<double> ScaledLabelFontSizeProperty =
+            AvaloniaProperty.Register<DaisyInput, double>(nameof(ScaledLabelFontSize), BaseLabelFontSize);
+
+        /// <summary>
+        /// Gets the scaled font size for the label. Automatically updated by FloweryScaleManager.
+        /// </summary>
+        public double ScaledLabelFontSize
+        {
+            get => GetValue(ScaledLabelFontSizeProperty);
+            private set => SetValue(ScaledLabelFontSizeProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="ScaledTextFontSize"/> property.
+        /// </summary>
+        public static readonly StyledProperty<double> ScaledTextFontSizeProperty =
+            AvaloniaProperty.Register<DaisyInput, double>(nameof(ScaledTextFontSize), BaseTextFontSize);
+
+        /// <summary>
+        /// Gets the scaled font size for the input text. Automatically updated by FloweryScaleManager.
+        /// </summary>
+        public double ScaledTextFontSize
+        {
+            get => GetValue(ScaledTextFontSizeProperty);
+            private set => SetValue(ScaledTextFontSizeProperty, value);
+        }
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            ScaledLabelFontSize = FloweryScaleManager.ApplyScale(BaseLabelFontSize, 10.0, scaleFactor);
+            ScaledTextFontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+            FontSize = ScaledTextFontSize;
+        }
+
         /// <summary>
         /// Defines the <see cref="Variant"/> property.
         /// </summary>

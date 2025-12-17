@@ -48,5 +48,5 @@ DaisyDiff is a before/after comparison control with a draggable grip. It overlay
 - Keep `Image1` and `Image2` the same aspect ratio to avoid jumpy reveals.
 - Set explicit `Width`/`Height` (or parent constraints) so the grip and clipping stay predictable.
 - Initialize `Offset` to highlight the more important state first (e.g., 70 to emphasize the “after”).
-- You can host any content (charts, text, borders), not just images—use it for code diffs, design comps, or map overlays.
+- You can host any content (charts, text, borders), not just images - use it for code diffs, design comps, or map overlays.
 - The grip uses a transparent drag area with a 32px handle; ensure background contrast so the handle remains visible.

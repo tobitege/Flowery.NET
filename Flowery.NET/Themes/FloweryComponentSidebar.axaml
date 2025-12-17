@@ -63,7 +63,7 @@
                                                                         VerticalAlignment="Center"
                                                                         Foreground="{DynamicResource DaisyBaseContentBrush}"
                                                                         Data="{Binding IconKey, Converter={x:Static controls:IconKeyConverter.Instance}}" />
-                                                            <TextBlock Text="{Binding Name}"
+                                                            <TextBlock Text="{Binding DisplayName}"
                                                                 FontWeight="SemiBold"
                                                                 VerticalAlignment="Center"
                                                                 Foreground="{DynamicResource DaisyBaseContentBrush}" />
@@ -74,13 +74,13 @@
                                                         <ItemsControl.DataTemplates>
                                                                 <DataTemplate
                                                                     x:DataType="controls:SidebarThemeSelectorItem">
-                                                                    <StackPanel Margin="8,6,16,8"
-                                                                        Spacing="6">
+                                                                <StackPanel Margin="8,6,0,8"
+                                                                    Spacing="6">
                                                                     <TextBlock Text="Theme"
                                                                         Opacity="0.7"
                                                                         Margin="10,0,0,0" />
                                                                     <controls:DaisyThemeDropdown
-                                                                        Margin="8,0,10,0" />
+                                                                        Margin="0,0,8,0" />
                                                                     </StackPanel>
                                                                 </DataTemplate>
                                                             <DataTemplate x:DataType="controls:SidebarLanguageSelectorItem">
@@ -90,7 +90,7 @@
                                                                         Opacity="0.7"
                                                                         Margin="10,0,0,0" />
                                                                     <controls:DaisySelect
-                                                                        Margin="8,0,16,0"
+                                                                        Margin="0,0,8,0"
                                                                         PlaceholderText="Select language"
                                                                         ItemsSource="{Binding AvailableLanguages, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}}"
                                                                         SelectedItem="{Binding SelectedLanguage, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}, Mode=TwoWay}"
@@ -106,7 +106,19 @@
                                                                         Opacity="0.7"
                                                                         Margin="10,0,0,0" />
                                                                     <controls:DaisySizeDropdown
-                                                                        Margin="8,0,16,0" />
+                                                                        Margin="0,0,8,0" />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+
+                                                            <DataTemplate
+                                                                x:DataType="controls:SidebarScalingSelectorItem">
+                                                                <StackPanel Margin="8,6,0,8"
+                                                                    Spacing="6">
+                                                                    <controls:DaisyToggle
+                                                                        Content="Auto Scaling"
+                                                                        Margin="10,0,16,0"
+                                                                        Variant="Primary"
+                                                                        IsChecked="{Binding IsScalingEnabled, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}, Mode=TwoWay}" />
                                                                 </StackPanel>
                                                             </DataTemplate>
 
@@ -124,8 +136,8 @@
                                                                         Cursor="Hand">
                                                                     <Grid ColumnDefinitions="*,Auto">
                                                                         <TextBlock Grid.Column="0"
-                                                                                    Text="{Binding Name}"
-                                                                                    VerticalAlignment="Center" />
+                                                                            Text="{Binding DisplayName}"
+                                                                            VerticalAlignment="Center" />
                                                                         <controls:DaisyBadge Grid.Column="1"
                                                                                                 Variant="Neutral"
                                                                                                 Size="ExtraSmall"

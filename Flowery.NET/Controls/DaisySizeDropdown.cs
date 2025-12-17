@@ -5,6 +5,7 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Threading;
 using Flowery.Localization;
@@ -27,15 +28,30 @@ namespace Flowery.Controls
         public string Name { get; set; } = "";
 
         /// <summary>
-        /// Localized display name for the size.
-        /// Falls back to Name if no localization is available.
+        /// Optional custom display name that overrides the localized text.
+        /// When null or empty, the localized text is used.
         /// </summary>
-        public string DisplayName => FloweryLocalization.GetString($"Size_{Name}") is string s && s != $"Size_{Name}" ? s : Name;
+        public string? DisplayNameOverride { get; set; }
+
+        /// <summary>
+        /// Localized display name for the size.
+        /// Priority: DisplayNameOverride → Localized text → Name fallback.
+        /// </summary>
+        public string DisplayName => 
+            !string.IsNullOrEmpty(DisplayNameOverride) 
+                ? DisplayNameOverride! 
+                : (FloweryLocalization.GetStringInternal($"Size_{Name}") is string s && s != $"Size_{Name}" ? s : Name);
 
         /// <summary>
         /// Short abbreviation for compact display (e.g., "XS", "S", "M", "L", "XL").
         /// </summary>
         public string Abbreviation { get; set; } = "";
+
+        /// <summary>
+        /// Gets or sets whether this size option is visible in the dropdown.
+        /// Default is true. Set to false to hide this size from the user.
+        /// </summary>
+        public bool IsVisible { get; set; } = true;
     }
 
     /// <summary>
@@ -102,15 +118,60 @@ namespace Flowery.Controls
             set => SetValue(SizeProperty, value);
         }
 
-        private static List<SizePreviewInfo>? _cachedSizes;
+        /// <summary>
+        /// Defines the <see cref="SizeOptions"/> property.
+        /// </summary>
+        public static readonly StyledProperty<IList<SizePreviewInfo>?> SizeOptionsProperty =
+            AvaloniaProperty.Register<DaisySizeDropdown, IList<SizePreviewInfo>?>(nameof(SizeOptions));
+
+        /// <summary>
+        /// Gets or sets the custom size options to display in the dropdown.
+        /// When set, only sizes with <see cref="SizePreviewInfo.IsVisible"/> = true will be shown.
+        /// Use <see cref="SizePreviewInfo.DisplayNameOverride"/> to customize the displayed text.
+        /// When null, all sizes are shown with default localized names.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// &lt;controls:DaisySizeDropdown&gt;
+        ///     &lt;controls:DaisySizeDropdown.SizeOptions&gt;
+        ///         &lt;x:Array Type="{x:Type controls:SizePreviewInfo}"&gt;
+        ///             &lt;controls:SizePreviewInfo Size="Small" Name="Small" DisplayNameOverride="Compact" /&gt;
+        ///             &lt;controls:SizePreviewInfo Size="Medium" Name="Medium" DisplayNameOverride="Normal" /&gt;
+        ///             &lt;controls:SizePreviewInfo Size="Large" Name="Large" DisplayNameOverride="Large" /&gt;
+        ///         &lt;/x:Array&gt;
+        ///     &lt;/controls:DaisySizeDropdown.SizeOptions&gt;
+        /// &lt;/controls:DaisySizeDropdown&gt;
+        /// </code>
+        /// </example>
+        public IList<SizePreviewInfo>? SizeOptions
+        {
+            get => GetValue(SizeOptionsProperty);
+            set => SetValue(SizeOptionsProperty, value);
+        }
+
+        private List<SizePreviewInfo>? _instanceSizes;
         private bool _isSyncing;
 
         public DaisySizeDropdown()
         {
             // Enable keyboard navigation by DisplayName
             TextSearch.SetTextBinding(this, new Binding(nameof(SizePreviewInfo.DisplayName)));
+        }
 
-            var sizes = GetSizeInfos();
+        protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+        {
+            base.OnApplyTemplate(e);
+            
+            // Apply the correct item template based on ShowAbbreviations
+            ApplyItemTemplate();
+            
+            // Initialize with visible sizes after template is applied
+            RefreshVisibleSizes();
+        }
+
+        private void RefreshVisibleSizes()
+        {
+            var sizes = GetVisibleSizeInfos();
             ItemsSource = sizes;
 
             // Sync to current global size
@@ -120,7 +181,7 @@ namespace Flowery.Controls
 
         private void SyncToSize(DaisySize size, List<SizePreviewInfo>? sizes = null)
         {
-            sizes ??= GetSizeInfos();
+            sizes ??= GetVisibleSizeInfos();
             var match = sizes.FirstOrDefault(s => s.Size == size);
             if (match != null && SelectedItem != match)
             {
@@ -137,11 +198,22 @@ namespace Flowery.Controls
             }
         }
 
-        private static List<SizePreviewInfo> GetSizeInfos()
+        /// <summary>
+        /// Gets the visible size options, either from custom SizeOptions or default sizes.
+        /// Filters by IsVisible property.
+        /// </summary>
+        private List<SizePreviewInfo> GetVisibleSizeInfos()
         {
-            if (_cachedSizes != null) return _cachedSizes;
+            // If custom options are specified, use those (filtered by visibility)
+            if (SizeOptions is { Count: > 0 })
+            {
+                return SizeOptions.Where(s => s.IsVisible).ToList();
+            }
 
-            _cachedSizes = new List<SizePreviewInfo>
+            // Otherwise, return cached default sizes (all visible by default)
+            if (_instanceSizes != null) return _instanceSizes;
+
+            _instanceSizes = new List<SizePreviewInfo>
             {
                 new SizePreviewInfo { Size = DaisySize.ExtraSmall, Name = "ExtraSmall", Abbreviation = "XS" },
                 new SizePreviewInfo { Size = DaisySize.Small, Name = "Small", Abbreviation = "S" },
@@ -150,7 +222,7 @@ namespace Flowery.Controls
                 new SizePreviewInfo { Size = DaisySize.ExtraLarge, Name = "ExtraLarge", Abbreviation = "XL" },
             };
 
-            return _cachedSizes;
+            return _instanceSizes;
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -164,6 +236,26 @@ namespace Flowery.Controls
                 {
                     ApplySize(sizeInfo);
                 }
+            }
+            else if (change.Property == SizeOptionsProperty)
+            {
+                // Refresh the visible sizes when SizeOptions changes
+                RefreshVisibleSizes();
+            }
+            else if (change.Property == ShowAbbreviationsProperty)
+            {
+                // Switch to the appropriate template
+                ApplyItemTemplate();
+            }
+        }
+
+        private void ApplyItemTemplate()
+        {
+            // Look up the appropriate template from resources
+            var templateKey = ShowAbbreviations ? "SizeAbbreviationTemplate" : "SizeItemTemplate";
+            if (this.TryFindResource(templateKey, out var resource) && resource is IDataTemplate template)
+            {
+                ItemTemplate = template;
             }
         }
 
@@ -196,8 +288,8 @@ namespace Flowery.Controls
             }
 
             // Clear cache to force reload of localized display names
-            _cachedSizes = null;
-            var sizes = GetSizeInfos();
+            _instanceSizes = null;
+            var sizes = GetVisibleSizeInfos();
             var currentSize = SelectedSize;
             ItemsSource = sizes;
             SyncToSize(currentSize, sizes);

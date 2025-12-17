@@ -10,6 +10,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Flowery.Localization;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -37,9 +38,21 @@ namespace Flowery.Controls
         public IBrush Accent { get; set; } = Brushes.Gray;
     }
 
-    public class DaisyThemeDropdown : ComboBox
+    /// <summary>
+    /// A dropdown for selecting themes with visual theme previews.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyThemeDropdown : ComboBox, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyThemeDropdown);
+
+        private const double BaseTextFontSize = 13.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<string> SelectedThemeProperty =
             AvaloniaProperty.Register<DaisyThemeDropdown, string>(nameof(SelectedTheme), "Light");

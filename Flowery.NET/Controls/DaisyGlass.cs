@@ -10,6 +10,7 @@ using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Flowery.Services;
 using SkiaSharp;
 
 namespace Flowery.Controls
@@ -38,10 +39,19 @@ namespace Flowery.Controls
     /// <summary>
     /// A glass/frosted effect container control styled after DaisyUI's glass effect.
     /// Supports multiple blur modes: Simulated, BitmapCapture, and SkiaSharp.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyGlass : ContentControl
+    public class DaisyGlass : ContentControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyGlass);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         private bool _isCapturing;
         private RenderTargetBitmap? _capturedBitmap;

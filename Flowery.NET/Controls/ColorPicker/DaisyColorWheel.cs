@@ -1,20 +1,31 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Flowery.Services;
 
 namespace Flowery.Controls.ColorPicker
 {
     /// <summary>
     /// A circular color wheel control for selecting hue and saturation values.
     /// Displays colors in HSL color space with the selected color indicated by a marker.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyColorWheel : Control
+    public class DaisyColorWheel : Control, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyColorWheel);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            TextElement.SetFontSize(this, FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor));
+        }
 
         private WriteableBitmap? _wheelBitmap;
         private bool _isDragging;
@@ -431,4 +442,3 @@ namespace Flowery.Controls.ColorPicker
         public Color Color { get; }
     }
 }
-

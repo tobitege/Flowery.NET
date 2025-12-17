@@ -17,6 +17,7 @@ The library comes with built-in translations for the following languages:
 - 🇸🇦 **Arabic** (`ar`)
 - 🇹🇷 **Turkish** (`tr`)
 - 🇺🇦 **Ukrainian** (`uk`)
+- 🇮🇱 **Hebrew** (`he`)
 
 ## Quick Start
 
@@ -31,6 +32,21 @@ FloweryLocalization.SetCulture("de");
 // Switch to Mandarin
 FloweryLocalization.SetCulture("zh-CN");
 ```
+
+### Providing App-Specific Translations for Library Controls
+
+Some library controls (like `FloweryComponentSidebar`) use localization keys that are defined by your app, not the library. To support this, set the `CustomResolver` to your app's localization method:
+
+```csharp
+// In your app's localization static constructor or App startup:
+FloweryLocalization.CustomResolver = MyAppLocalization.GetString;
+```
+
+This allows:
+
+- Library controls to call `FloweryLocalization.GetString("Sidebar_Home")`
+- Your resolver provides the translation from your app's JSON/RESX files
+- Library's own keys (`Size_*`, `Theme_*`, etc.) still work from library resources
 
 ### Date Formatting
 
@@ -121,17 +137,17 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-public class GalleryLocalization : INotifyPropertyChanged
+public class MyAppLocalization : INotifyPropertyChanged
 {
     private static CultureInfo _currentCulture = CultureInfo.CurrentUICulture;
     private static readonly Dictionary<string, Dictionary<string, string>> _translations = new();
-    private static readonly Lazy<GalleryLocalization> _instance = new(() => new GalleryLocalization());
+    private static readonly Lazy<MyAppLocalization> _instance = new(() => new MyAppLocalization());
 
-    public static GalleryLocalization Instance => _instance.Value;
+    public static MyAppLocalization Instance => _instance.Value;
     public static event EventHandler<CultureInfo>? CultureChanged;
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    static GalleryLocalization()
+    static MyAppLocalization()
     {
         // Load all translations at startup
         LoadTranslation("en");
@@ -199,50 +215,38 @@ internal partial class LocalizationJsonContext : JsonSerializerContext { }
 
 #### 4. Create XAML Markup Extension
 
-Create a markup extension that updates when culture changes:
+Flowery.NET provides `LocalizeExtensionBase` - an abstract base class that handles all the localization infrastructure. Simply inherit from it and plug in your localization source:
 
 ```csharp
-using Avalonia;
-using Avalonia.Data;
-using Avalonia.Markup.Xaml;
+using Flowery.Localization;
+using System;
+using System.Globalization;
 
-public class LocalizeExtension : MarkupExtension
+namespace YourApp.Localization
 {
-    [ConstructorArgument("key")]
-    public string Key { get; set; } = string.Empty;
-
-    public LocalizeExtension() { }
-    public LocalizeExtension(string key) { Key = key; }
-
-    public override object ProvideValue(IServiceProvider serviceProvider)
+    public class LocalizeExtension : LocalizeExtensionBase
     {
-        if (string.IsNullOrEmpty(Key)) return "[Missing Key]";
+        public LocalizeExtension() { }
+        public LocalizeExtension(string key) : base(key) { }
 
-        var target = serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget;
-        
-        if (target?.TargetObject is AvaloniaObject obj && 
-            target.TargetProperty is AvaloniaProperty prop)
-        {
-            var value = GalleryLocalization.GetString(Key);
-            
-            // Subscribe to culture changes
-            GalleryLocalization.CultureChanged += (s, c) =>
-            {
-                obj.SetValue(prop, GalleryLocalization.GetString(Key));
-            };
-            
-            return value;
-        }
+        protected override string GetLocalizedString(string key)
+            => MyAppLocalization.GetString(key);
 
-        // Fallback to binding
-        return new Binding($"[{Key}]")
-        {
-            Source = GalleryLocalization.Instance,
-            Mode = BindingMode.OneWay
-        };
+        protected override void SubscribeToCultureChanged(EventHandler<CultureInfo> handler)
+            => MyAppLocalization.CultureChanged += handler;
+
+        protected override object? GetBindingSource()
+            => MyAppLocalization.Instance;
     }
 }
 ```
+
+The base class handles:
+
+- Target property detection via `IProvideValueTarget`
+- Automatic subscription to culture change events
+- Runtime UI updates when language changes
+- Binding fallback for complex scenarios
 
 #### 5. Use in XAML
 
@@ -420,7 +424,7 @@ public class MainViewModel : ViewModelBase
 ### Browser shows empty text after switching language
 
 **Cause:** Bindings to indexers don't refresh in WASM.
-**Fix:** Use the `LocalizeExtension` that directly sets property values via `IProvideValueTarget`.
+**Fix:** Use `LocalizeExtensionBase` (inherit from it) which directly sets property values via `IProvideValueTarget`.
 
 ### Japanese/Korean/Chinese shows as boxes (▢▢▢)
 

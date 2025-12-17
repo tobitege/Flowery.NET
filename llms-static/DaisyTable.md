@@ -27,7 +27,7 @@ DaisyTable provides a styled table layout with header, body, and footer sections
 | `DaisyTableRow` | `IsActive` | Highlights the row as selected/active. |
 | `DaisyTableRow` | `HighlightOnHover` | Enables hover highlighting. |
 | `DaisyTableHeaderCell` | `ColumnWidth` | GridLength for the column (Star/Absolute/Auto). |
-| `DaisyTableCell` | — | Standard content cell. |
+| `DaisyTableCell` | - | Standard content cell. |
 
 ## Quick Examples
 

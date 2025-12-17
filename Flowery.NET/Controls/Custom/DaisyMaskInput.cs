@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Localization;
+using Flowery.Services;
 
 namespace Flowery.Controls.Custom
 {
@@ -43,10 +44,19 @@ namespace Flowery.Controls.Custom
 
     /// <summary>
     /// A MaskedTextBox control styled after DaisyUI's Input component, with support for input masks.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyMaskInput : MaskedTextBox
+    public class DaisyMaskInput : MaskedTextBox, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyMaskInput);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         private bool _isAutoWatermark;
         private bool _isApplyingMode;
@@ -333,11 +343,11 @@ namespace Flowery.Controls.Custom
             {
                 Watermark = Mode switch
                 {
-                    DaisyMaskInputMode.AlphaNumericCode => GetLocalizedOrFallback("MaskInput_Watermark_AlphaNumericCode", "AB12 CDE"),
-                    DaisyMaskInputMode.Timer => GetLocalizedOrFallback("MaskInput_Watermark_Timer", "00:00:00"),
+                    DaisyMaskInputMode.AlphaNumericCode => FloweryLocalization.GetStringInternal("MaskInput_Watermark_AlphaNumericCode", "AB12 CDE"),
+                    DaisyMaskInputMode.Timer => FloweryLocalization.GetStringInternal("MaskInput_Watermark_Timer", "00:00:00"),
                     DaisyMaskInputMode.ExpiryDate => GetExpiryWatermark(ExpiryYearDigits),
-                    DaisyMaskInputMode.CreditCardNumber => GetLocalizedOrFallback("MaskInput_Watermark_CreditCardNumber", "Card number"),
-                    DaisyMaskInputMode.Cvc => GetLocalizedOrFallback("MaskInput_Watermark_Cvc", "CVC"),
+                    DaisyMaskInputMode.CreditCardNumber => FloweryLocalization.GetStringInternal("MaskInput_Watermark_CreditCardNumber", "Card number"),
+                    DaisyMaskInputMode.Cvc => FloweryLocalization.GetStringInternal("MaskInput_Watermark_Cvc", "CVC"),
                     _ => Watermark
                 };
                 _isAutoWatermark = true;
@@ -351,15 +361,9 @@ namespace Flowery.Controls.Custom
         private static string GetExpiryWatermark(int yearDigits)
         {
             if (yearDigits >= 4)
-                return GetLocalizedOrFallback("MaskInput_Watermark_ExpiryLong", "MM/YYYY");
+                return FloweryLocalization.GetStringInternal("MaskInput_Watermark_ExpiryLong", "MM/YYYY");
 
-            return GetLocalizedOrFallback("MaskInput_Watermark_ExpiryShort", "MM/YY");
-        }
-
-        private static string GetLocalizedOrFallback(string key, string fallback)
-        {
-            var value = FloweryLocalization.GetString(key);
-            return string.Equals(value, key, StringComparison.Ordinal) ? fallback : value;
+            return FloweryLocalization.GetStringInternal("MaskInput_Watermark_ExpiryShort", "MM/YY");
         }
     }
 }

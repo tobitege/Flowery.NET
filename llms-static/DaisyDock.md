@@ -53,6 +53,6 @@ DaisyDock arranges action buttons in a pill-shaped bar, similar to a bottom navi
 ## Tips & Best Practices
 
 - Use `Tag` or command bindings to route clicks; handle `ItemSelected` to update navigation state.
-- Keep button content minimal—icons plus short labels. ExtraSmall hides labels automatically.
+- Keep button content minimal - icons plus short labels. ExtraSmall hides labels automatically.
 - For manual selection control, set `AutoSelect="False"` and manage the `dock-active` class yourself.
 - Center the dock via parent layout; it ships with rounded corners, border, and neutral background by default.

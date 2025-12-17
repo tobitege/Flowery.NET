@@ -4,6 +4,7 @@ using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -18,12 +19,20 @@ namespace Flowery.Controls
     /// <summary>
     /// A countdown control that displays a numeric value with optional countdown animation.
     /// Includes accessibility support for screen readers via the AccessibleText attached property.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyCountdown : TemplatedControl
+    public class DaisyCountdown : TemplatedControl, IScalableControl
     {
         private const string DefaultAccessibleText = "Countdown";
+        private const double BaseTextFontSize = 32.0;
 
         protected override Type StyleKeyOverride => typeof(DaisyCountdown);
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 20.0, scaleFactor);
+        }
 
         private DispatcherTimer? _timer;
 

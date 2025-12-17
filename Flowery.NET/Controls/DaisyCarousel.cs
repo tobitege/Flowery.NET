@@ -10,12 +10,25 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
-    public class DaisyCarousel : Carousel
+    /// <summary>
+    /// A carousel/slider control styled after DaisyUI's Carousel component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyCarousel : Carousel, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyCarousel);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         private Button? _previousButton;
         private Button? _nextButton;

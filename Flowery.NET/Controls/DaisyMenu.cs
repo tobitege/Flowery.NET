@@ -3,12 +3,25 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
-    public class DaisyMenu : ListBox
+    /// <summary>
+    /// A Menu control styled after DaisyUI's Menu component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyMenu : ListBox, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyMenu);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<Orientation> OrientationProperty =
             AvaloniaProperty.Register<DaisyMenu, Orientation>(nameof(Orientation), Orientation.Vertical);

@@ -6,19 +6,79 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.x] - 2025-12-xx - unreleased
+## [1.6.0] - 2025-12-17
 
 ### New
 
+- **ScaleExtension**: New markup extension for responsive scaling with minimal XAML (`Flowery.Services`)
+  - Semantic presets: `FontTitle`, `FontBody`, `SpacingMedium`, `CardWidth`, etc. (24 built-in presets)
+  - Automatic window size detection - no more verbose `$parent[Window]` bindings
+  - Usage: `<TextBlock FontSize="{services:Scale FontTitle}"/>` instead of long converter bindings
+  - Supports custom values: `{services:Scale 24,12}` for base 24, min 12
+- **FloweryScaleConfig**: Configuration for scale presets
+  - Override preset values at app startup: `FloweryScaleConfig.SetPresetValues(FloweryScalePreset.CardWidth, 450)`
+  - Adjust reference dimensions (default: 1920×1080 HD)
+  - Adjust minimum scale factor (default: 0.5)
+- **FloweryScaleConverter**: Proportional scaling converter for advanced scenarios
+  - Real-time continuous scaling as window resizes (unlike discrete breakpoints)
+  - Configurable `ReferenceWidth`, `ReferenceHeight`, `MinScaleFactor` properties
+- **DaisyButton**: Added `IconLeft`, `IconRight`, and `IconSpacing` properties
+  - Place icons alongside button text without manual StackPanel wrappers
+  - Icons auto-hide when null, auto-show when set
+  - `IconSpacing` controls gap between icons and content (default: 6px)
+  - Usage: `<controls:DaisyButton Content="Add"><controls:DaisyButton.IconLeft><PathIcon .../></controls:DaisyButton.IconLeft></controls:DaisyButton>`
+- **LocalizeExtensionBase**: Abstract base class for localization markup extensions
+  - Apps inherit and plug in their localization source via `GetLocalizedString()` and `SubscribeToCultureChanged()`
+  - Eliminates boilerplate code duplication across projects
+  - Flowery.NET and Gallery now use this base class
+- **FloweryLocalization.CustomResolver**: New extensibility point for app-specific localization
+  - Apps can set `FloweryLocalization.CustomResolver = MyAppLocalization.GetString` to provide translations for library controls
+  - Enables `FloweryComponentSidebar` to display localized sidebar item names from the consuming app
+  - Library's internal keys (`Size_*`, `Theme_*`, `Accessibility_*`) remain unaffected
 - **FlowerySizeManager**: New FlowerySizeManager service for app-wide size control (ExtraSmall to ExtraLarge)
-- DaisySizeDropdown control with localized size names (9 languages)
+- **DaisySizeDropdown**: Standalone control with localized size names (12 languages)
+  - New `SizeOptions` property for full customization
+  - `SizePreviewInfo.IsVisible` to hide unwanted sizes
+  - `SizePreviewInfo.DisplayNameOverride` for custom labels (overrides localized text)
+  - Example: Show only "Compact", "Normal", "Large" instead of all 5 sizes
 - IgnoreGlobalSize attached property for size demonstration exemptions
 - GlobalSizing.md documentation with usage examples
 - Gallery applies global size on startup and category navigation
+- FloweryScaleConverter.md: Comprehensive documentation covering both ScaleExtension and FloweryScaleConverter
+- LocalizeExtensionBase.md: Documentation for creating app-specific LocalizeExtension classes
+- **FloweryScaleManager**: Opt-in automatic font scaling for Daisy controls (`Flowery.Services`)
+  - Set `services:FloweryScaleManager.EnableScaling="True"` on any container to enable
+  - All child Daisy controls (DaisyInput, DaisyButton, DaisySelect, DaisyBadge, etc.) auto-scale their fonts
+  - Non-breaking: controls behave normally unless EnableScaling is explicitly enabled
+  - `IScalableControl` interface for custom control scaling support
+  - `OverrideScaleFactor`: Optional manual zoom override (bypasses window-size calculation)
+- **Hebrew Localization**: Added Hebrew (he) as the 12th supported language across both library and Gallery
+
+### Gallery App
+
+- **Scaling Examples**: New showcase page demonstrating `ScaleExtension` with real-world customer details form
+  - Address, Contact, Payment, Customer Group, Activity, and Notes cards
+  - All elements scale proportionally as window resizes
+  - Auto Scaling panel includes Max Scale, optional manual Zoom slider (5% steps), and desktop-only Resolution presets
+  - Available Scale Presets reference section with live examples
+- **Sidebar Localization**: All sidebar category and item names now display localized text instead of keys
+  - Uses `CustomResolver` to provide Gallery-specific translations to `FloweryComponentSidebar`
 
 ### Changed
 
+- **LocalizeExtension** (Flowery.NET): Now inherits from `LocalizeExtensionBase`, reducing code duplication
+- **LOCALIZATION.md**: Updated to document `LocalizeExtensionBase` pattern and `CustomResolver` for app localization
 - Carousel hides left navigation button at 1st, right button on last slide
+- **Design Tokens**: Rebalanced Global Size scaling to be text-focused
+  - Heights now scale modestly (ExtraLarge: 80→48px, Large: 64→48px, Medium: 48→40px)
+  - Button/Input/Tab/Menu padding reduced proportionally to font size growth
+  - Result: larger sizes now feel like "bigger text" rather than "bloated boxes with excessive whitespace"
+
+### Fixed
+
+- **DaisyBadge**: Auto Scaling now also scales Height and Padding to prevent clipped text at high zoom
+- **DaisyStatusIndicator**: Added Auto Scaling support (scales dot size within EnableScaling regions)
+- **Gallery (Desktop)**: Switching away (alt-tab) and back no longer snaps the Scaling demo page scroll to the top
 
 ## [1.5.1] - 2025-12-15
 

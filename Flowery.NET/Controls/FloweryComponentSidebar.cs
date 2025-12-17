@@ -19,7 +19,30 @@ namespace Flowery.Controls
     public class SidebarCategory : INotifyPropertyChanged
     {
         private bool _isExpanded = true;
-        public string Name { get; set; } = string.Empty;
+        private string _name = string.Empty;
+
+        public SidebarCategory()
+        {
+            FloweryLocalization.CultureChanged += (_, _) => 
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
+        }
+
+        public string Name 
+        { 
+            get => _name;
+            set 
+            { 
+                if (_name != value) 
+                { 
+                    _name = value; 
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
+                } 
+            }
+        }
+
+        public string DisplayName => FloweryLocalization.GetString(Name);
+
         public string IconKey { get; set; } = string.Empty;
         public bool IsExpanded
         {
@@ -30,12 +53,37 @@ namespace Flowery.Controls
         public event PropertyChangedEventHandler? PropertyChanged;
     }
 
-    public class SidebarItem
+    public class SidebarItem : INotifyPropertyChanged
     {
+        private string _name = string.Empty;
+
+        public SidebarItem()
+        {
+            FloweryLocalization.CultureChanged += (_, _) => 
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
+        }
+
         public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
+        public string Name 
+        { 
+            get => _name;
+            set 
+            { 
+                if (_name != value) 
+                { 
+                    _name = value; 
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
+                } 
+            }
+        }
+        
+        public string DisplayName => FloweryLocalization.GetString(Name);
+
         public string TabHeader { get; set; } = string.Empty;
         public string? Badge { get; set; }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
     }
 
     public class SidebarLanguageSelectorItem : SidebarItem
@@ -47,6 +95,10 @@ namespace Flowery.Controls
     }
 
     public class SidebarSizeSelectorItem : SidebarItem
+    {
+    }
+
+    public class SidebarScalingSelectorItem : SidebarItem
     {
     }
 
@@ -198,6 +250,32 @@ namespace Flowery.Controls
             set => SetValue(SearchTextProperty, value);
         }
 
+        private bool _isScalingEnabled = Flowery.Services.FloweryScaleManager.IsEnabled;
+
+        /// <summary>
+        /// Defines the <see cref="IsScalingEnabled"/> property.
+        /// </summary>
+        public static readonly DirectProperty<FloweryComponentSidebar, bool> IsScalingEnabledProperty =
+            AvaloniaProperty.RegisterDirect<FloweryComponentSidebar, bool>(
+                nameof(IsScalingEnabled),
+                o => o.IsScalingEnabled,
+                (o, v) => o.IsScalingEnabled = v);
+
+        /// <summary>
+        /// Gets or sets whether automatic scaling is enabled. Bound to FloweryScaleManager.IsEnabled.
+        /// </summary>
+        public bool IsScalingEnabled
+        {
+            get => _isScalingEnabled;
+            set
+            {
+                if (SetAndRaise(IsScalingEnabledProperty, ref _isScalingEnabled, value))
+                {
+                    Flowery.Services.FloweryScaleManager.IsEnabled = value;
+                }
+            }
+        }
+
         static FloweryComponentSidebar()
         {
             SearchTextProperty.Changed.AddClassHandler<FloweryComponentSidebar>((s, e) => s.OnSearchTextChanged());
@@ -209,6 +287,15 @@ namespace Flowery.Controls
             // Initialize with empty collections - caller should set Categories and AvailableLanguages
             _allCategories = new ObservableCollection<SidebarCategory>();
             FloweryLocalization.CultureChanged += OnLocalizationCultureChanged;
+            Flowery.Services.FloweryScaleManager.IsEnabledChanged += OnScalingEnabledChanged;
+        }
+
+        private void OnScalingEnabledChanged(object? sender, bool isEnabled)
+        {
+            if (_isScalingEnabled != isEnabled)
+            {
+                SetAndRaise(IsScalingEnabledProperty, ref _isScalingEnabled, isEnabled);
+            }
         }
 
         private void OnCategoriesChanged()
@@ -304,11 +391,11 @@ namespace Flowery.Controls
             foreach (var category in _allCategories)
             {
                 // Check if category name matches
-                var categoryMatches = category.Name.ToLowerInvariant().Contains(search);
+                var categoryMatches = category.DisplayName.ToLowerInvariant().Contains(search);
 
                 // Filter items that match
                 var matchingItems = category.Items
-                    .Where(item => item.Name.ToLowerInvariant().Contains(search))
+                    .Where(item => item.DisplayName.ToLowerInvariant().Contains(search))
                     .ToList();
 
                 // Include category if name matches or has matching items

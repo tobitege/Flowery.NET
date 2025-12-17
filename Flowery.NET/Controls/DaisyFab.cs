@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -15,8 +16,20 @@ namespace Flowery.Controls
         Flower
     }
 
-    public class DaisyFab : Grid
+    /// <summary>
+    /// A floating action button control styled after material design FAB.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyFab : Grid, IScalableControl
     {
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            // Note: Grid doesn't have FontSize, but we set it for child inheritance
+            SetValue(TextBlock.FontSizeProperty, FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor));
+        }
         public static readonly StyledProperty<FabLayout> LayoutProperty =
             AvaloniaProperty.Register<DaisyFab, FabLayout>(nameof(Layout), FabLayout.Vertical);
 

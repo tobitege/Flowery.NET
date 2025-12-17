@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.Metadata;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -52,10 +53,19 @@ namespace Flowery.Controls
     /// <summary>
     /// A pagination control styled after DaisyUI's Pagination component.
     /// Uses the join pattern to group page buttons together.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyPagination : ItemsControl
+    public class DaisyPagination : ItemsControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyPagination);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         /// <summary>
         /// Defines the <see cref="Size"/> property.

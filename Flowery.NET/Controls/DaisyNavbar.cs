@@ -3,16 +3,26 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
     /// <summary>
     /// A top navigation bar styled after DaisyUI's Navbar component.
     /// Provides Start, Center, and End content areas for flexible layout.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyNavbar : ContentControl
+    public class DaisyNavbar : ContentControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyNavbar);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         /// <summary>
         /// Gets or sets the content for the start (left) section of the navbar.

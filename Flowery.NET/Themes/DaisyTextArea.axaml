@@ -38,6 +38,7 @@
             Value="{DynamicResource DaisyPrimaryContentBrush}" />
         <Setter Property="CaretBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="VerticalContentAlignment" Value="{DynamicResource DaisyTextAreaVerticalContentAlignment}" />
+        <Setter Property="TextAlignment" Value="Start" />
 
         <Setter Property="Template">
             <ControlTemplate>

@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -42,10 +43,20 @@ namespace Flowery.Controls
 
     /// <summary>
     /// A Button control styled after DaisyUI's Button component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyButton : Button
+    public class DaisyButton : Button, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyButton);
+
+        // Base font size for scaling
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         /// <summary>
         /// Defines the <see cref="Variant"/> property.
@@ -197,6 +208,53 @@ namespace Flowery.Controls
         {
             get => GetValue(ShadowColorProperty);
             set => SetValue(ShadowColorProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="IconLeft"/> property.
+        /// </summary>
+        public static readonly StyledProperty<object?> IconLeftProperty =
+            AvaloniaProperty.Register<DaisyButton, object?>(nameof(IconLeft));
+
+        /// <summary>
+        /// Gets or sets an optional icon displayed to the left of the button content.
+        /// Typically a PathIcon, but can be any object.
+        /// </summary>
+        public object? IconLeft
+        {
+            get => GetValue(IconLeftProperty);
+            set => SetValue(IconLeftProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="IconRight"/> property.
+        /// </summary>
+        public static readonly StyledProperty<object?> IconRightProperty =
+            AvaloniaProperty.Register<DaisyButton, object?>(nameof(IconRight));
+
+        /// <summary>
+        /// Gets or sets an optional icon displayed to the right of the button content.
+        /// Typically a PathIcon, but can be any object.
+        /// </summary>
+        public object? IconRight
+        {
+            get => GetValue(IconRightProperty);
+            set => SetValue(IconRightProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="IconSpacing"/> property.
+        /// </summary>
+        public static readonly StyledProperty<double> IconSpacingProperty =
+            AvaloniaProperty.Register<DaisyButton, double>(nameof(IconSpacing), 6.0);
+
+        /// <summary>
+        /// Gets or sets the spacing between icons and the button content.
+        /// </summary>
+        public double IconSpacing
+        {
+            get => GetValue(IconSpacingProperty);
+            set => SetValue(IconSpacingProperty, value);
         }
     }
 

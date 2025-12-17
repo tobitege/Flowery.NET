@@ -39,12 +39,11 @@
         <ControlTheme x:Key="{x:Type controls:DaisyThemeDropdown}" TargetType="controls:DaisyThemeDropdown">
             <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
             <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeMediumCornerRadius}" />
             <Setter Property="Padding" Value="12,0,30,0" />
             <Setter Property="MinHeight" Value="{DynamicResource DaisySizeMediumHeight}" />
-            <Setter Property="MinWidth" Value="180" />
             <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -134,12 +133,34 @@
                 <Setter Property="MinHeight" Value="{DynamicResource DaisySizeSmallHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
                 <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
+                <Setter Property="Padding" Value="8,0,26,0" />
+            </Style>
+            <!-- Smaller dots for Small -->
+            <Style Selector="^[Size=Small] /template/ ContentPresenter#ContentPresenter Border">
+                <Setter Property="Padding" Value="3" />
+                <Setter Property="CornerRadius" Value="5" />
+            </Style>
+            <Style
+                Selector="^[Size=Small] /template/ ContentPresenter#ContentPresenter Border Ellipse">
+                <Setter Property="Width" Value="6" />
+                <Setter Property="Height" Value="6" />
             </Style>
             <Style Selector="^[Size=ExtraSmall]">
                 <Setter Property="MinHeight" Value="{DynamicResource DaisySizeExtraSmallHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
                 <Setter Property="CornerRadius"
                     Value="{DynamicResource DaisySizeExtraSmallCornerRadius}" />
+                <Setter Property="Padding" Value="4,2,22,2" />
+            </Style>
+            <!-- Smaller dots for ExtraSmall -->
+            <Style Selector="^[Size=ExtraSmall] /template/ ContentPresenter#ContentPresenter Border">
+                <Setter Property="Padding" Value="2" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+            <Style
+                Selector="^[Size=ExtraSmall] /template/ ContentPresenter#ContentPresenter Border Ellipse">
+                <Setter Property="Width" Value="5" />
+                <Setter Property="Height" Value="5" />
             </Style>
 
         </ControlTheme>

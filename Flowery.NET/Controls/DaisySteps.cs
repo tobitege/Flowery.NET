@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -19,9 +20,21 @@ namespace Flowery.Controls
         Error
     }
 
-    public class DaisySteps : ItemsControl
+    /// <summary>
+    /// A Steps control styled after DaisyUI's Steps component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisySteps : ItemsControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisySteps);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<Orientation> OrientationProperty =
             AvaloniaProperty.Register<DaisySteps, Orientation>(nameof(Orientation), Orientation.Horizontal);

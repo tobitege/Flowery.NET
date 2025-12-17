@@ -34,6 +34,7 @@
           <Setter Property="SelectionForegroundBrush" Value="{DynamicResource DaisyPrimaryContentBrush}" />
           <Setter Property="CaretBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
           <Setter Property="VerticalContentAlignment" Value="{DynamicResource DaisyInputVerticalContentAlignment}" />
+          <Setter Property="TextAlignment" Value="Start" />
 
           <Setter Property="Template">
             <ControlTemplate>
@@ -45,12 +46,14 @@
                                    IsVisible="{TemplateBinding Label, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                                    <TextBlock Text="{TemplateBinding Label}"
                                         FontWeight="SemiBold"
+                                        FontSize="{TemplateBinding ScaledLabelFontSize}"
                                         Foreground="{DynamicResource DaisyBaseContentBrush}" />
                                    <TextBlock Text="*"
+                                        FontSize="{TemplateBinding ScaledLabelFontSize}"
                                         Foreground="{DynamicResource DaisyErrorBrush}"
                                         IsVisible="{TemplateBinding IsRequired}" />
                                    <TextBlock Text="Optional field"
-                                        FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
+                                        FontSize="{TemplateBinding ScaledLabelFontSize}"
                                         Opacity="0.7"
                                         Foreground="{DynamicResource DaisyBaseContentBrush}"
                                         IsVisible="{TemplateBinding IsOptional}" />
@@ -60,7 +63,7 @@
                               <TextBlock Grid.Row="1"
                                    x:Name="PART_HintText"
                                    Text="{TemplateBinding HintText}"
-                                   FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                                   FontSize="{TemplateBinding ScaledLabelFontSize}"
                                    Opacity="0.7"
                                    Margin="0,0,0,4"
                                    Foreground="{DynamicResource DaisyBaseContentBrush}"
@@ -101,6 +104,7 @@
                                                   <TextBlock Name="PART_Watermark"
                                                        Opacity="0.5"
                                                        Text="{TemplateBinding Watermark}"
+                                                       FontSize="{TemplateBinding ScaledTextFontSize}"
                                                        TextAlignment="{TemplateBinding TextAlignment}"
                                                        TextWrapping="{TemplateBinding TextWrapping}"
                                                        IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
@@ -144,7 +148,7 @@
                                    x:Name="PART_HelperText"
                                    Text="{TemplateBinding HelperText}"
                                    HorizontalAlignment="Right"
-                                   FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
+                                   FontSize="{TemplateBinding ScaledLabelFontSize}"
                                    Opacity="0.7"
                                    Margin="0,4,0,0"
                                    Foreground="{DynamicResource DaisyBaseContentBrush}"

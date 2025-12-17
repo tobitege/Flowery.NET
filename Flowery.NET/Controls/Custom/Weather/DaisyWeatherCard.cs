@@ -8,16 +8,26 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using Flowery.Controls.Custom.Weather.Models;
 using Flowery.Controls.Custom.Weather.Services;
+using Flowery.Services;
 
 namespace Flowery.Controls.Custom.Weather
 {
     /// <summary>
     /// A composite weather card that can display current weather, forecast, and metrics.
     /// Supports both manual property binding and automatic data fetching via IWeatherService.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyWeatherCard : ContentControl
+    public class DaisyWeatherCard : ContentControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyWeatherCard);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         private CancellationTokenSource? _loadingCts;
         private CancellationTokenSource? _autoRefreshCts;

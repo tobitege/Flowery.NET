@@ -2,12 +2,25 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
-    public class DaisyAvatar : ContentControl
+    /// <summary>
+    /// An avatar control styled after DaisyUI's Avatar component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyAvatar : ContentControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyAvatar);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<DaisySize> SizeProperty =
             AvaloniaProperty.Register<DaisyAvatar, DaisySize>(nameof(Size), DaisySize.Medium);

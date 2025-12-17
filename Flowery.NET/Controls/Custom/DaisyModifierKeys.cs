@@ -3,12 +3,25 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Flowery.Services;
 
 namespace Flowery.Controls.Custom
 {
-    public class DaisyModifierKeys : TemplatedControl
+    /// <summary>
+    /// Displays modifier key states (Shift, Ctrl, Alt, CapsLock, NumLock, ScrollLock).
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyModifierKeys : TemplatedControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyModifierKeys);
+
+        private const double BaseTextFontSize = 12.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<bool> IsShiftPressedProperty =
             AvaloniaProperty.Register<DaisyModifierKeys, bool>(nameof(IsShiftPressed));

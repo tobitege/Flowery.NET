@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -27,7 +28,11 @@ namespace Flowery.Controls
         }
     }
 
-    public class DaisyDock : ItemsControl
+    /// <summary>
+    /// A dock/taskbar control styled after macOS dock.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyDock : ItemsControl, IScalableControl
     {
         public static readonly StyledProperty<DockSize> SizeProperty =
             AvaloniaProperty.Register<DaisyDock, DockSize>(nameof(Size), DockSize.Medium);
@@ -61,6 +66,14 @@ namespace Flowery.Controls
         }
 
         protected override Type StyleKeyOverride => typeof(DaisyDock);
+
+        private const double BaseTextFontSize = 12.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         public DaisyDock()
         {

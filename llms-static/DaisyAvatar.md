@@ -30,7 +30,7 @@ DaisyAvatar renders user/profile images or initials with **5 sizes**, **3 shapes
 | `Status=Online` | Shows a green dot at the top-right with a thin base-colored outline. |
 | `Status=Offline` | Shows a neutral/grey dot in the same position. |
 | `HasRing=True` | Adds an outer ring; color set by `RingColor` (uses Daisy theme colors: Primary, Secondary, Accent, Neutral, Info, Success, Warning, Error). |
-| `IsPlaceholder=True` | Applies neutral background/content colors—use with initials or icons while images load. |
+| `IsPlaceholder=True` | Applies neutral background/content colors - use with initials or icons while images load. |
 
 ## Quick Examples
 
@@ -92,4 +92,4 @@ DaisyAvatar renders user/profile images or initials with **5 sizes**, **3 shapes
 - Prefer `IsPlaceholder=True` with initials while loading remote images to avoid empty states.
 - Choose **Rounded** when avatars sit next to cards/panels with similar rounding; use **Circle** for classic profile lists.
 - Rings help call out priority or presence; align ring color with meaning (e.g., `Success` for active, `Warning` for away).
-- `IsRounded` exists for backward compatibility—new layouts should use `Shape` instead.
+- `IsRounded` exists for backward compatibility - new layouts should use `Shape` instead.

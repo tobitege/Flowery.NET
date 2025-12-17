@@ -4,16 +4,26 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
     /// <summary>
     /// A vertical list layout to display information in rows.
     /// Similar to daisyUI's list component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyList : ItemsControl
+    public class DaisyList : ItemsControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyList);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
     }
 
     /// <summary>

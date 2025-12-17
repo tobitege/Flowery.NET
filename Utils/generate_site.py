@@ -249,16 +249,18 @@ class SiteGenerator:
     CUSTOM_CONTROL_PREFIXES = ('Color', 'DateTimeline', 'ModifierKeys', 'NumericUpDown', 'Weather', 'ComponentSidebar')
     
     # Standalone guide files (not control docs) to include in the sidebar
-    GUIDE_FILES = ['MigrationExample.md', 'DesignTokens.md', 'Effects.md', 'GlobalSizing.md']
+    GUIDE_FILES = ['MigrationExample.md', 'DesignTokens.md', 'Effects.md', 'SizingScaling.md']
     
     # Helper/internal classes shown in a separate 'Helpers' section
     HELPER_CONTROL_NAMES = {
         'DaisyAccessibility',   # Accessibility utilities
         'DaisyPaginationItem',  # Part of DaisyPagination
+        'DaisySizeDropdown',    # Global size selection dropdown
         'ColorCollection',      # Color collection class
         'HslColor',             # Color utility struct
         'FloweryResponsive',    # Responsive layout helper
         'FloweryComponentSidebar',  # Pre-built documentation/admin sidebar
+        'FloweryScaleManager',  # Opt-in automatic font scaling
     }
 
     def __init__(self, docs_dir: Path, output_dir: Path, curated_dir: Path | None = None):
@@ -598,7 +600,7 @@ class SiteGenerator:
         # Insert LLM documentation link after Quick Start section
         llm_link_html = '''<div class="llm-link">
     <h2>For AI Assistants</h2>
-    <p>📄 <a href="llms.txt"><strong>llms.txt</strong></a> — Machine-readable documentation in plain markdown format, optimized for LLMs and AI code assistants.</p>
+    <p>📄 <a href="llms.txt"><strong>llms.txt</strong></a> - Machine-readable documentation in plain markdown format, optimized for LLMs and AI code assistants.</p>
 </div>
 '''
         # Insert after Quick Start (after the first </pre> which closes the code block)

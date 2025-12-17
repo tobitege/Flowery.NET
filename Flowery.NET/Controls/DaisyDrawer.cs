@@ -1,12 +1,25 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
-    public class DaisyDrawer : SplitView
+    /// <summary>
+    /// A drawer/sidebar control styled after DaisyUI's Drawer component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyDrawer : SplitView, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyDrawer);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         // Defaults for DaisyUI Drawer
         public DaisyDrawer()

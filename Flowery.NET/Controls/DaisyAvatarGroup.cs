@@ -2,12 +2,25 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
-    public class DaisyAvatarGroup : ItemsControl
+    /// <summary>
+    /// A group container for avatars with overlapping display.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyAvatarGroup : ItemsControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyAvatarGroup);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<double> OverlapProperty =
             AvaloniaProperty.Register<DaisyAvatarGroup, double>(nameof(Overlap), 24.0);

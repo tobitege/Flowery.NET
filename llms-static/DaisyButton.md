@@ -95,5 +95,5 @@ DaisyButton delivers DaisyUI-styled actions with **11 color variants**, **4 visu
 - Prefer **Ghost** or **Link** for non-blocking, inline actions to reduce visual noise.
 - Outline and Dash styles shine on colored backgrounds where solid fills would clash.
 - Match size/shape to context: Square/Circle for icons, Wide for promotional CTAs, Block for full-width forms.
-- Keep shadow subtle; large blur/offset can look heavy—start with `ShowShadow=True` defaults before customizing.
+- Keep shadow subtle; large blur/offset can look heavy - start with `ShowShadow=True` defaults before customizing.
 - Buttons have **fixed heights** by design. For flexible-height buttons with wrapping text, set `Height="NaN"` to allow vertical growth.

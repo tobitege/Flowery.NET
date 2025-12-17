@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -22,10 +23,20 @@ namespace Flowery.Controls
 
     /// <summary>
     /// A ComboBox control styled after DaisyUI's Select component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisySelect : ComboBox
+    public class DaisySelect : ComboBox, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisySelect);
+
+        // Base font size for scaling
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<DaisySelectVariant> VariantProperty =
             AvaloniaProperty.Register<DaisySelect, DaisySelectVariant>(nameof(Variant), DaisySelectVariant.Bordered);

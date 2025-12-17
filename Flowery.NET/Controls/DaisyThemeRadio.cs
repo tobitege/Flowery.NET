@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -13,10 +14,19 @@ namespace Flowery.Controls
     /// <summary>
     /// A RadioButton that applies a DaisyUI theme when selected.
     /// Use within a group to allow multi-theme selection.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyThemeRadio : RadioButton
+    public class DaisyThemeRadio : RadioButton, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyThemeRadio);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         private bool _isSyncing;
 

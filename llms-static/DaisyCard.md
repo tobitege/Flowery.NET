@@ -79,7 +79,7 @@ Place any layout/content inside the card; common patterns:
 ## Tips & Best Practices
 
 - Use **Compact** when cards are nested in grids or lists to conserve space.
-- Glass mode removes the default shadow—place on contrasting backgrounds to maintain depth.
+- Glass mode removes the default shadow - place on contrasting backgrounds to maintain depth.
 - Adjust `BodyPadding` for edge-to-edge media (e.g., set to `0` and pad inner content manually).
 - Set explicit `Width` or use layout constraints for uniform card grids.
 - Pair with DaisyButton variants for clear primary/secondary actions inside the card.

@@ -4,12 +4,25 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
-    public class DaisyToast : ItemsControl
+    /// <summary>
+    /// A Toast container control styled after DaisyUI's Toast component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyToast : ItemsControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyToast);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         /// <summary>
         /// Gets or sets the horizontal offset of the toast (maps to --toast-x).

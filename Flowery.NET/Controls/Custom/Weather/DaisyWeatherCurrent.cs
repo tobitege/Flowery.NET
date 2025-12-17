@@ -2,15 +2,25 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Flowery.Controls.Custom.Weather.Models;
+using Flowery.Services;
 
 namespace Flowery.Controls.Custom.Weather
 {
     /// <summary>
     /// Displays current weather conditions including temperature, feels-like, condition icon, and date/time info.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyWeatherCurrent : ContentControl
+    public class DaisyWeatherCurrent : ContentControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyWeatherCurrent);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<double> TemperatureProperty =
             AvaloniaProperty.Register<DaisyWeatherCurrent, double>(nameof(Temperature));

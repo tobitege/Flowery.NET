@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Controls.Primitives;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -13,9 +14,21 @@ namespace Flowery.Controls
         ToggleWithIcons
     }
 
-    public class DaisyThemeController : ToggleButton
+    /// <summary>
+    /// A toggle control for switching between light/dark themes.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyThemeController : ToggleButton, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyThemeController);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         private bool _isSyncing;
 

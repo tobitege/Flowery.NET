@@ -13,7 +13,9 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
 using Flowery.Controls;
+using Flowery.Localization;
 using Flowery.NET.Gallery.Examples;
+using Avalonia.Media;
 
 namespace Flowery.NET.Gallery;
 
@@ -66,26 +68,39 @@ public partial class MainView : UserControl
 
         // Detect mobile platform early (before any navigation)
         _isMobilePlatform = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
+        
+        // Handle FlowDirection changes
+        UpdateFlowDirection();
+        FloweryLocalization.CultureChanged += (_, _) => 
+            global::Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => {
+                UpdateFlowDirection();
+                // Update localized title if we have an active category
+                if (_activeCategoryContent != null && CategoryTitle != null && CategoryTitle.Tag is string key)
+                {
+                    CategoryTitle.Text = FloweryLocalization.GetString(key);
+                }
+            });
 
         this.Loaded += OnLoaded;
         this.SizeChanged += OnSizeChanged;
 
         _categoryControls = new Dictionary<string, Func<Control>>(StringComparer.OrdinalIgnoreCase)
         {
-            ["Home"] = () => CreateHomePage(),
-            ["Actions"] = () => GetOrCreateActionsExamples(),
-            ["Data Input"] = () => new DataInputExamples(),
-            ["Navigation"] = () => new NavigationExamples(),
-            ["Data Display"] = () => new DataDisplayExamples(),
-            ["Date Display"] = () => new DateDisplayExamples(),
-            ["Feedback"] = () => new FeedbackExamples(),
-            ["Cards"] = () => new CardsExamples(),
-            ["Divider"] = () => new DividerExamples(),
-            ["Layout"] = () => new LayoutExamples(),
-            ["Theming"] = () => new ThemingExamples(),
-            ["Effects"] = () => new EffectsExamples(),
-            ["Custom Controls"] = () => new CustomControls(),
-            ["Color Picker"] = () => new ColorPickerExamples(),
+            ["Sidebar_Home"] = () => CreateHomePage(),
+            ["Sidebar_Actions"] = () => GetOrCreateActionsExamples(),
+            ["Sidebar_DataInput"] = () => new DataInputExamples(),
+            ["Sidebar_Navigation"] = () => new NavigationExamples(),
+            ["Sidebar_DataDisplay"] = () => new DataDisplayExamples(),
+            ["Sidebar_DateDisplay"] = () => new DateDisplayExamples(),
+            ["Sidebar_Feedback"] = () => new FeedbackExamples(),
+            ["Sidebar_Cards"] = () => new CardsExamples(),
+            ["Sidebar_Divider"] = () => new DividerExamples(),
+            ["Sidebar_Layout"] = () => new LayoutExamples(),
+            ["Sidebar_Theming"] = () => new ThemingExamples(),
+            ["Sidebar_Effects"] = () => new EffectsExamples(),
+            ["Sidebar_Scaling"] = () => new ScalingExamples(),
+            ["Sidebar_CustomControls"] = () => new CustomControls(),
+            ["Sidebar_ColorPicker"] = () => new ColorPickerExamples(),
         };
         _categoryControlCache = new Dictionary<string, Control>(StringComparer.OrdinalIgnoreCase);
 
@@ -110,7 +125,7 @@ public partial class MainView : UserControl
             }
         }
 
-        NavigateToCategory("Home");
+        NavigateToCategory("Sidebar_Home");
     }
 
     private void OnGlobalSizeChanged(object? sender, DaisySize newSize)
@@ -297,7 +312,7 @@ public partial class MainView : UserControl
 
     private void OnBrowseComponentsRequested(object? sender, EventArgs e)
     {
-        NavigateToCategory("Actions", "button");
+        NavigateToCategory("Sidebar_Actions", "button");
     }
 
     private void NavigateToCategory(string tabHeader, string? sectionId = null)
@@ -306,9 +321,12 @@ public partial class MainView : UserControl
             return;
 
         if (CategoryTitle != null)
-            CategoryTitle.Text = tabHeader;
+        {
+            CategoryTitle.Text = FloweryLocalization.GetString(tabHeader);
+            CategoryTitle.Tag = tabHeader; // Store key for updates
+        }
         if (CategoryTitleBar != null)
-            CategoryTitleBar.IsVisible = tabHeader != "Home";
+            CategoryTitleBar.IsVisible = tabHeader != "Sidebar_Home";
 
         if (_categoryControls.TryGetValue(tabHeader, out var factory))
         {
@@ -451,6 +469,11 @@ public partial class MainView : UserControl
             if (CategoryChevrons != null)
                 CategoryChevrons.IsVisible = true;
         }
+    }
+
+    private void UpdateFlowDirection()
+    {
+        FlowDirection = FloweryLocalization.Instance.IsRtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
     }
 
     private Control GetOrCreateActionsExamples()

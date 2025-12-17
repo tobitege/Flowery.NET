@@ -36,7 +36,7 @@ DaisyTextArea inherits all properties from DaisyInput. Key ones for textarea usa
 | `ActionButtonContent` | `object?` | `null` | Content for action button below textarea (e.g., "Submit Feedback"). |
 | `ActionButtonCommand` | `ICommand?` | `null` | Command executed when action button is clicked (MVVM). |
 | `ActionButtonCommandParameter` | `object?` | `null` | Parameter passed to the action button command. |
-| `ActionButtonClicked` | `event` | — | Event raised when action button is clicked (code-behind). |
+| `ActionButtonClicked` | `event` | - | Event raised when action button is clicked (code-behind). |
 
 ## Quick Examples
 

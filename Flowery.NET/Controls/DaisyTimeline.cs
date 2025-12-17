@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -13,9 +14,21 @@ namespace Flowery.Controls
         End
     }
 
-    public class DaisyTimeline : ItemsControl
+    /// <summary>
+    /// A timeline control styled after DaisyUI's Timeline component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyTimeline : ItemsControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyTimeline);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<Orientation> OrientationProperty =
             AvaloniaProperty.Register<DaisyTimeline, Orientation>(nameof(Orientation), Orientation.Horizontal);

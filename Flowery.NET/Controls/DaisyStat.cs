@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -20,9 +21,21 @@ namespace Flowery.Controls
         Error
     }
 
-    public class DaisyStat : ContentControl
+    /// <summary>
+    /// A Stat display control styled after DaisyUI's Stat component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyStat : ContentControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyStat);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<string> TitleProperty =
             AvaloniaProperty.Register<DaisyStat, string>(nameof(Title));

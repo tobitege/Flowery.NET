@@ -9,12 +9,25 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
-    public class DaisyHoverGallery : ItemsControl
+    /// <summary>
+    /// A hover-activated image gallery control.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyHoverGallery : ItemsControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyHoverGallery);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         private Panel? _dividersPanel;
 

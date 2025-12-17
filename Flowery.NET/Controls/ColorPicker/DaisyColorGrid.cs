@@ -2,17 +2,28 @@ using System;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Media;
+using Flowery.Services;
 
 namespace Flowery.Controls.ColorPicker
 {
     /// <summary>
     /// A grid control for displaying and selecting colors from a palette.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyColorGrid : Control
+    public class DaisyColorGrid : Control, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyColorGrid);
+
+        private const double BaseTextFontSize = 12.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            TextElement.SetFontSize(this, FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor));
+        }
 
         private readonly Dictionary<int, Rect> _colorRegions = new();
         private int _hotIndex = -1;
@@ -473,4 +484,3 @@ namespace Flowery.Controls.ColorPicker
         }
     }
 }
-

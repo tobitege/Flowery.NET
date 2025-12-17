@@ -7,6 +7,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -119,10 +120,19 @@ namespace Flowery.Controls
     /// <summary>
     /// A horizontal scrollable date timeline picker inspired by easy_date_timeline.
     /// Displays dates in a horizontal strip with customizable appearance.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyDateTimeline : TemplatedControl
+    public class DaisyDateTimeline : TemplatedControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyDateTimeline);
+
+        private const double BaseTextFontSize = 12.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         private ScrollViewer? _scrollViewer;
         private ItemsControl? _itemsControl;

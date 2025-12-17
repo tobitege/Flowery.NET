@@ -3,18 +3,27 @@ using Avalonia;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls.Primitives;
 using Flowery.Localization;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
     /// <summary>
     /// A radial (circular) progress indicator styled after DaisyUI's Radial Progress component.
     /// Includes accessibility support for screen readers via the AccessibleText attached property.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyRadialProgress : RangeBase
+    public class DaisyRadialProgress : RangeBase, IScalableControl
     {
         private const string DefaultAccessibleText = "Progress";
+        private const double BaseTextFontSize = 14.0;
 
         protected override Type StyleKeyOverride => typeof(DaisyRadialProgress);
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         static DaisyRadialProgress()
         {
@@ -95,7 +104,7 @@ namespace Flowery.Controls
         protected override string? GetNameCore()
         {
             var progress = (DaisyRadialProgress)Owner;
-            var localizedDefault = FloweryLocalization.GetString("Accessibility_Progress");
+            var localizedDefault = FloweryLocalization.GetStringInternal("Accessibility_Progress");
             var text = DaisyAccessibility.GetEffectiveAccessibleText(progress, localizedDefault);
             var range = progress.Maximum - progress.Minimum;
             if (range > 0)

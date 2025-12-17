@@ -15,7 +15,7 @@
 </div>
 
 ![Flowery.NET.Gallery Screenshot](Flowery.NET.Gallery.png)
-(English default language. Localized to 11 languages!)
+(English default language. Localized to 12 languages!)
 
 This library provides native Avalonia controls that mimic the utility-first, semantic class naming of DaisyUI, making it easy to build beautiful, themed UIs in Avalonia. A NuGet package is also available.
 
@@ -31,7 +31,7 @@ This library provides native Avalonia controls that mimic the utility-first, sem
 - **Native Controls**: C# classes inheriting from Avalonia primitives (e.g., `DaisyButton : Button`).
 - **35 DaisyUI Themes**: All official DaisyUI themes included (Light, Dark, Cupcake, Dracula, Nord, Synthwave, and more).
 - **Runtime Theme Switching**: Use `DaisyThemeDropdown` to switch themes at runtime.
-- **Localization Support**: Built-in i18n with **11 languages** (🇺🇸 🇩🇪 🇫🇷 🇪🇸 🇮🇹 🇨🇳 🇰🇷 🇯🇵 🇸🇦 🇹🇷 🇺🇦), localizable theme names, and runtime language switching. [📖 Guide](LOCALIZATION.md)
+- **Localization Support**: Built-in i18n with **12 languages** (🇺🇸 🇩🇪 🇫🇷 🇪🇸 🇮🇹 🇨🇳 🇰🇷 🇯🇵 🇸🇦 🇹🇷 🇺🇦 🇮🇱), localizable theme names, and runtime language switching. [📖 Guide](LOCALIZATION.md)
 - **Variants**: Supports `Primary`, `Secondary`, `Accent`, `Ghost`, etc.
 - **Framework Support**: Library targets `netstandard2.0` for maximum compatibility.
 - **Gallery App**: Multi-platform demo application showcasing all controls and features (Desktop, Browser/WASM, Android, iOS).
@@ -208,6 +208,27 @@ A horizontal scrollable date picker inspired by FadyFayezYounan's `easy_date_tim
 ### Numeric Input
 
 - **Numeric Up/Down** (`DaisyNumericUpDown`): Advanced numeric input with **6 number bases** (Decimal, Hex, Binary, Octal, ColorHex, IPv4). Features real-time filtering, thousand separators, prefix/suffix display.
+
+### Responsive Scaling
+
+Automatic font scaling system for responsive UIs that adapt to window size:
+
+- **FloweryScaleManager**: Opt-in automatic font scaling for all Daisy controls within a container.
+- **ScaleExtension**: XAML markup extension for manual scaling of individual properties.
+- **IScalableControl**: Interface for custom controls to support auto-scaling.
+
+```xml
+xmlns:services="clr-namespace:Flowery.Services;assembly=Flowery.NET"
+
+<!-- Opt-in: All child Daisy controls auto-scale their fonts -->
+<UserControl services:FloweryScaleManager.EnableScaling="True">
+    <controls:DaisyInput Label="Street" />  <!-- Scales automatically! -->
+    <controls:DaisyButton Content="Save" /> <!-- Scales automatically! -->
+</UserControl>
+
+<!-- Manual scaling for individual properties -->
+<TextBlock FontSize="{services:Scale FontTitle}" />
+```
 
 ### Visual Effects
 

@@ -50,8 +50,8 @@ You add `DaisyUITheme` and start using Daisy resources.
 
 > **Namespace Note:** Flowery.NET uses two namespaces:
 
-> - `Flowery` — For `DaisyUITheme` only (in `App.axaml`)
-> - `Flowery.Controls` — For all controls (in views like `MainWindow.axaml`)
+> - `Flowery` - For `DaisyUITheme` only (in `App.axaml`)
+> - `Flowery.Controls` - For all controls (in views like `MainWindow.axaml`)
 
 ```xml
 <!-- App.axaml (with Flowery.NET added) -->
@@ -86,7 +86,7 @@ Your views now use Daisy resources:
 </Border>
 ```
 
-### Step 2: Add Theme Dropdown — The Problem Appears
+### Step 2: Add Theme Dropdown - The Problem Appears
 
 You add `DaisyThemeDropdown` for runtime theme switching:
 

@@ -7,6 +7,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Flowery.Services;
 
 namespace Flowery.Controls.ColorPicker
 {
@@ -26,10 +27,19 @@ namespace Flowery.Controls.ColorPicker
 
     /// <summary>
     /// A slider control for selecting individual color channel values.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyColorSlider : RangeBase
+    public class DaisyColorSlider : RangeBase, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyColorSlider);
+
+        private const double BaseTextFontSize = 12.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         private WriteableBitmap? _gradientBitmap;
         private bool _isDragging;
@@ -452,4 +462,3 @@ namespace Flowery.Controls.ColorPicker
         }
     }
 }
-

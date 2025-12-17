@@ -11,41 +11,28 @@
     </Design.PreviewWith>
 
     <Styles.Resources>
-        <!-- Item template for size preview with abbreviation badge -->
+        <!-- Item template for size - full display name -->
         <DataTemplate x:Key="SizeItemTemplate" DataType="controls:SizePreviewInfo">
-            <Grid ColumnDefinitions="Auto,*" MinHeight="24">
-                <!-- Size abbreviation badge -->
-                <Border Grid.Column="0"
-                        Background="{DynamicResource DaisyBase300Brush}"
-                        CornerRadius="4"
-                        Padding="6,2"
-                        MinWidth="28"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Center">
-                    <TextBlock Text="{Binding Abbreviation}"
-                               Foreground="{DynamicResource DaisyBaseContentBrush}"
-                               FontWeight="SemiBold"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center" />
-                </Border>
-                <!-- Size name (localized) - inherits FontSize from parent -->
-                <TextBlock Grid.Column="1"
-                    Text="{Binding DisplayName}"
-                    Foreground="{DynamicResource DaisyBaseContentBrush}"
-                    VerticalAlignment="Center"
-                    Margin="10,0,0,0" />
-            </Grid>
+            <TextBlock Text="{Binding DisplayName}"
+                Foreground="{DynamicResource DaisyBaseContentBrush}"
+                VerticalAlignment="Center" />
+        </DataTemplate>
+
+        <!-- Item template for size - abbreviation only -->
+        <DataTemplate x:Key="SizeAbbreviationTemplate" DataType="controls:SizePreviewInfo">
+            <TextBlock Text="{Binding Abbreviation}"
+                Foreground="{DynamicResource DaisyBaseContentBrush}"
+                VerticalAlignment="Center" />
         </DataTemplate>
 
         <ControlTheme x:Key="{x:Type controls:DaisySizeDropdown}" TargetType="controls:DaisySizeDropdown">
             <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
             <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeMediumCornerRadius}" />
             <Setter Property="Padding" Value="12,0,30,0" />
             <Setter Property="Height" Value="{DynamicResource DaisySizeMediumHeight}" />
-            <Setter Property="MinWidth" Value="140" />
             <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />

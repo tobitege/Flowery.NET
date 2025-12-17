@@ -2,12 +2,25 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
-    public class DaisyIndicator : ContentControl
+    /// <summary>
+    /// An indicator control styled after DaisyUI's Indicator component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyIndicator : ContentControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyIndicator);
+
+        private const double BaseTextFontSize = 12.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<object?> BadgeProperty =
             AvaloniaProperty.Register<DaisyIndicator, object?>(nameof(Badge));

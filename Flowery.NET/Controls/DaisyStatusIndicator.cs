@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls.Primitives;
 using Flowery.Localization;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -71,7 +72,7 @@ namespace Flowery.Controls
     /// A status indicator control that displays a small colored dot to represent status.
     /// Includes accessibility support for screen readers via the AccessibleText attached property.
     /// </summary>
-    public class DaisyStatusIndicator : TemplatedControl
+    public class DaisyStatusIndicator : TemplatedControl, IScalableControl
     {
         private const string DefaultAccessibleText = "Status";
 
@@ -142,6 +143,28 @@ namespace Flowery.Controls
             set => DaisyAccessibility.SetAccessibleText(this, value);
         }
 
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            var baseSize = GetBaseSize(Size);
+            var scaled = FloweryScaleManager.ApplyScale(baseSize, scaleFactor);
+
+            Width = scaled;
+            Height = scaled;
+        }
+
+        private static double GetBaseSize(DaisySize size)
+        {
+            return size switch
+            {
+                DaisySize.ExtraSmall => 6.0,
+                DaisySize.Small => 8.0,
+                DaisySize.Large => 16.0,
+                DaisySize.ExtraLarge => 20.0,
+                _ => 12.0
+            };
+        }
+
         private void UpdateAccessibleNameFromColor()
         {
             if (DaisyAccessibility.GetAccessibleText(this) == null)
@@ -150,19 +173,29 @@ namespace Flowery.Controls
             }
         }
 
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            base.OnPropertyChanged(change);
+
+            if (change.Property == SizeProperty && FloweryScaleManager.GetEnableScaling(this))
+            {
+                ApplyScaleFactor(FloweryScaleManager.GetScaleFactor(this));
+            }
+        }
+
         internal string GetDefaultAccessibleText()
         {
             // Color-specific text is also localizable
             return Color switch
             {
-                DaisyColor.Success => FloweryLocalization.GetString("Accessibility_StatusOnline"),
-                DaisyColor.Error => FloweryLocalization.GetString("Accessibility_StatusError"),
-                DaisyColor.Warning => FloweryLocalization.GetString("Accessibility_StatusWarning"),
-                DaisyColor.Info => FloweryLocalization.GetString("Accessibility_StatusInfo"),
-                DaisyColor.Primary => FloweryLocalization.GetString("Accessibility_StatusActive"),
-                DaisyColor.Secondary => FloweryLocalization.GetString("Accessibility_StatusSecondary"),
-                DaisyColor.Accent => FloweryLocalization.GetString("Accessibility_StatusHighlighted"),
-                _ => FloweryLocalization.GetString("Accessibility_Status")
+                DaisyColor.Success => FloweryLocalization.GetStringInternal("Accessibility_StatusOnline"),
+                DaisyColor.Error => FloweryLocalization.GetStringInternal("Accessibility_StatusError"),
+                DaisyColor.Warning => FloweryLocalization.GetStringInternal("Accessibility_StatusWarning"),
+                DaisyColor.Info => FloweryLocalization.GetStringInternal("Accessibility_StatusInfo"),
+                DaisyColor.Primary => FloweryLocalization.GetStringInternal("Accessibility_StatusActive"),
+                DaisyColor.Secondary => FloweryLocalization.GetStringInternal("Accessibility_StatusSecondary"),
+                DaisyColor.Accent => FloweryLocalization.GetStringInternal("Accessibility_StatusHighlighted"),
+                _ => FloweryLocalization.GetStringInternal("Accessibility_Status")
             };
         }
 

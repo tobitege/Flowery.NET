@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -19,10 +20,19 @@ namespace Flowery.Controls
 
     /// <summary>
     /// A Slider control styled after DaisyUI's Range component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyRange : Slider
+    public class DaisyRange : Slider, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyRange);
+
+        private const double BaseTextFontSize = 12.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<DaisyRangeVariant> VariantProperty =
             AvaloniaProperty.Register<DaisyRange, DaisyRangeVariant>(nameof(Variant), DaisyRangeVariant.Default);

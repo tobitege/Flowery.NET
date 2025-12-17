@@ -5,12 +5,25 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
-    public class DaisyAccordion : ItemsControl
+    /// <summary>
+    /// An accordion control that displays multiple collapsible sections.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyAccordion : ItemsControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyAccordion);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<DaisyCollapseVariant> VariantProperty =
             AvaloniaProperty.Register<DaisyAccordion, DaisyCollapseVariant>(nameof(Variant), DaisyCollapseVariant.Arrow);

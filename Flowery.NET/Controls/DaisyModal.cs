@@ -4,12 +4,25 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
-    public class DaisyModal : ContentControl
+    /// <summary>
+    /// A modal dialog control styled after DaisyUI's Modal component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyModal : ContentControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyModal);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<bool> IsOpenProperty =
             AvaloniaProperty.Register<DaisyModal, bool>(nameof(IsOpen));

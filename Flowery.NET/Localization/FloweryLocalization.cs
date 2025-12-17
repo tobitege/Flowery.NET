@@ -52,6 +52,7 @@ namespace Flowery.Localization
             LoadTranslation("ar");
             LoadTranslation("tr");
             LoadTranslation("uk");
+            LoadTranslation("he");
         }
 
         private FloweryLocalization()
@@ -63,6 +64,11 @@ namespace Flowery.Localization
         /// Gets the current UI culture used for localization.
         /// </summary>
         public static CultureInfo CurrentCulture => _currentCulture;
+
+        /// <summary>
+        /// Gets whether the current culture is Right-To-Left.
+        /// </summary>
+        public bool IsRtl => _currentCulture.TextInfo.IsRightToLeft;
 
         /// <summary>
         /// Indexer to support XAML markup extension bindings.
@@ -94,6 +100,7 @@ namespace Flowery.Localization
             // Notify all bindings that use the indexer to update
             Instance.PropertyChanged?.Invoke(Instance, new PropertyChangedEventArgs("Item"));
             Instance.PropertyChanged?.Invoke(Instance, new PropertyChangedEventArgs("Item[]"));
+            Instance.PropertyChanged?.Invoke(Instance, new PropertyChangedEventArgs(nameof(IsRtl)));
         }
 
         /// <summary>
@@ -106,11 +113,20 @@ namespace Flowery.Localization
         }
 
         /// <summary>
-        /// Gets a localized string by key.
+        /// Optional custom resolver for app-specific localization keys.
+        /// When set, GetString will use this resolver for keys not found in the library's translations.
+        /// The resolver should return the localized string, or the key itself if not found.
+        /// </summary>
+        public static Func<string, string>? CustomResolver { get; set; }
+
+        /// <summary>
+        /// Gets a localized string by key from the library's internal translations.
+        /// This method is used by library controls for their own keys (Size_*, Theme_*, Accessibility_*, etc.)
+        /// and is not affected by the CustomResolver.
         /// </summary>
         /// <param name="key">The resource key.</param>
         /// <returns>The localized string, or the key if not found.</returns>
-        public static string GetString(string key)
+        internal static string GetStringInternal(string key)
         {
             try
             {
@@ -137,6 +153,34 @@ namespace Flowery.Localization
         }
 
         /// <summary>
+        /// Gets a localized string by key from the library's internal translations, with a fallback value.
+        /// </summary>
+        /// <param name="key">The resource key.</param>
+        /// <param name="fallback">The fallback value to return if the key is not found.</param>
+        /// <returns>The localized string, or the fallback if not found.</returns>
+        internal static string GetStringInternal(string key, string fallback)
+        {
+            var value = GetStringInternal(key);
+            return string.Equals(value, key, StringComparison.Ordinal) ? fallback : value;
+        }
+
+        /// <summary>
+        /// Gets a localized string by key. Uses the CustomResolver if set, otherwise falls back to library translations.
+        /// This is the public method for app-specific keys (like Sidebar_*) that may be provided by the consuming app.
+        /// </summary>
+        /// <param name="key">The resource key.</param>
+        /// <returns>The localized string, or the key if not found.</returns>
+        public static string GetString(string key)
+        {
+            // If a custom resolver is set, use it
+            if (CustomResolver != null)
+                return CustomResolver(key);
+
+            // Fall back to library's internal translations
+            return GetStringInternal(key);
+        }
+
+        /// <summary>
         /// Gets the localized display name for a theme.
         /// </summary>
         /// <param name="themeName">The internal theme name (e.g., "Synthwave").</param>
@@ -144,7 +188,7 @@ namespace Flowery.Localization
         public static string GetThemeDisplayName(string themeName)
         {
             var key = $"Theme_{themeName}";
-            var result = GetString(key);
+            var result = GetStringInternal(key);  // Use internal - theme keys are library keys
 
             // Final fallback: use the internal theme name if key not found
             return result == key ? themeName : result;

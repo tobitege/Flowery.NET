@@ -19,198 +19,200 @@ public static class GallerySidebarData
             // Home stays at top
             new SidebarCategory
             {
-                Name = "Home",
+                Name = "Sidebar_Home",
                 IconKey = "DaisyIconHome",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "welcome", Name = "Welcome", TabHeader = "Home" },
-                    new GalleryThemeSelectorItem { Id = "theme", Name = "Theme", TabHeader = "Home" },
-                    new GalleryLanguageSelectorItem { Id = "language", Name = "Language", TabHeader = "Home" },
-                    new GallerySizeSelectorItem { Id = "size", Name = "Size", TabHeader = "Home" }
+                    new SidebarItem { Id = "welcome", Name = "Sidebar_Welcome", TabHeader = "Sidebar_Home" },
+                    new GalleryThemeSelectorItem { Id = "theme", Name = "Sidebar_Theme", TabHeader = "Sidebar_Home" },
+                    new GalleryLanguageSelectorItem { Id = "language", Name = "Sidebar_Language", TabHeader = "Sidebar_Home" },
+                    new GallerySizeSelectorItem { Id = "size", Name = "Sidebar_Size", TabHeader = "Sidebar_Home" }
                 }
             },
             // Alphabetically sorted categories
             new SidebarCategory
             {
-                Name = "Actions",
+                Name = "Sidebar_Actions",
                 IconKey = "DaisyIconActions",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "button", Name = "Button", TabHeader = "Actions" },
-                    new SidebarItem { Id = "dropdown", Name = "Dropdown", TabHeader = "Actions" },
-                    new SidebarItem { Id = "fab", Name = "FAB / Speed Dial", TabHeader = "Actions" },
-                    new SidebarItem { Id = "modal", Name = "Modal", TabHeader = "Actions" },
-                    new SidebarItem { Id = "modal-radii", Name = "Modal Corner Radii", TabHeader = "Actions" },
-                    new SidebarItem { Id = "swap", Name = "Swap", TabHeader = "Actions" }
+                    new SidebarItem { Id = "button", Name = "Sidebar_Button", TabHeader = "Sidebar_Actions" },
+                    new SidebarItem { Id = "dropdown", Name = "Sidebar_Dropdown", TabHeader = "Sidebar_Actions" },
+                    new SidebarItem { Id = "fab", Name = "Sidebar_FAB", TabHeader = "Sidebar_Actions" },
+                    new SidebarItem { Id = "modal", Name = "Sidebar_Modal", TabHeader = "Sidebar_Actions" },
+                    new SidebarItem { Id = "modal-radii", Name = "Sidebar_ModalRadii", TabHeader = "Sidebar_Actions" },
+                    new SidebarItem { Id = "swap", Name = "Sidebar_Swap", TabHeader = "Sidebar_Actions" }
                 }
             },
             new SidebarCategory
             {
-                Name = "Cards",
+                Name = "Sidebar_Cards",
                 IconKey = "DaisyIconCard",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "card", Name = "Card", TabHeader = "Cards" }
+                    new SidebarItem { Id = "card", Name = "Sidebar_Card", TabHeader = "Sidebar_Cards" }
                 }
             },
             new SidebarCategory
             {
-                Name = "Data Display",
+                Name = "Sidebar_DataDisplay",
                 IconKey = "DaisyIconDataDisplay",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "accordion", Name = "Accordion", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "avatar", Name = "Avatar", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "badge", Name = "Badge", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "carousel", Name = "Carousel", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "chat-bubble", Name = "Chat Bubble", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "collapse", Name = "Collapse", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "countdown", Name = "Countdown", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "diff", Name = "Diff", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "hover-gallery", Name = "Hover Gallery", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "kbd", Name = "Kbd", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "list", Name = "List", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "stat", Name = "Stat", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "status", Name = "Status", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "table", Name = "Table", TabHeader = "Data Display" },
-                    new SidebarItem { Id = "text-rotate", Name = "Text Rotate", TabHeader = "Data Display" }
+                    new SidebarItem { Id = "accordion", Name = "Sidebar_Accordion", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "avatar", Name = "Sidebar_Avatar", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "badge", Name = "Sidebar_Badge", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "carousel", Name = "Sidebar_Carousel", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "chat-bubble", Name = "Sidebar_ChatBubble", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "collapse", Name = "Sidebar_Collapse", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "countdown", Name = "Sidebar_Countdown", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "diff", Name = "Sidebar_Diff", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "hover-gallery", Name = "Sidebar_HoverGallery", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "kbd", Name = "Sidebar_Kbd", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "list", Name = "Sidebar_List", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "stat", Name = "Sidebar_Stat", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "status", Name = "Sidebar_Status", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "table", Name = "Sidebar_Table", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "text-rotate", Name = "Sidebar_TextRotate", TabHeader = "Sidebar_DataDisplay" }
                 }
             },
             new SidebarCategory
             {
-                Name = "Date Display",
+                Name = "Sidebar_DateDisplay",
                 IconKey = "DaisyIconDateDisplay",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "date-timeline", Name = "Date Timeline", TabHeader = "Date Display" },
-                    new SidebarItem { Id = "timeline", Name = "Timeline", TabHeader = "Date Display" }
+                    new SidebarItem { Id = "date-timeline", Name = "Sidebar_DateTimeline", TabHeader = "Sidebar_DateDisplay" },
+                    new SidebarItem { Id = "timeline", Name = "Sidebar_Timeline", TabHeader = "Sidebar_DateDisplay" }
                 }
             },
             new SidebarCategory
             {
-                Name = "Data Input",
+                Name = "Sidebar_DataInput",
                 IconKey = "DaisyIconDataInput",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "checkbox", Name = "Checkbox", TabHeader = "Data Input" },
-                    new SidebarItem { Id = "file-input", Name = "File Input", TabHeader = "Data Input" },
-                    new SidebarItem { Id = "input", Name = "Input", TabHeader = "Data Input" },
-                    new SidebarItem { Id = "mask-input", Name = "Mask Input", TabHeader = "Data Input" },
-                    new SidebarItem { Id = "numericupdown", Name = "NumericUpDown", TabHeader = "Data Input" },
-                    new SidebarItem { Id = "radio", Name = "Radio", TabHeader = "Data Input" },
-                    new SidebarItem { Id = "range", Name = "Range", TabHeader = "Data Input" },
-                    new SidebarItem { Id = "rating", Name = "Rating", TabHeader = "Data Input" },
-                    new SidebarItem { Id = "select", Name = "Select", TabHeader = "Data Input" },
-                    new SidebarItem { Id = "textarea", Name = "TextArea", TabHeader = "Data Input" },
-                    new SidebarItem { Id = "toggle", Name = "Toggle", TabHeader = "Data Input" }
+                    new SidebarItem { Id = "checkbox", Name = "Sidebar_Checkbox", TabHeader = "Sidebar_DataInput" },
+                    new SidebarItem { Id = "file-input", Name = "Sidebar_FileInput", TabHeader = "Sidebar_DataInput" },
+                    new SidebarItem { Id = "input", Name = "Sidebar_Input", TabHeader = "Sidebar_DataInput" },
+                    new SidebarItem { Id = "mask-input", Name = "Sidebar_MaskInput", TabHeader = "Sidebar_DataInput" },
+                    new SidebarItem { Id = "numericupdown", Name = "Sidebar_NumericUpDown", TabHeader = "Sidebar_DataInput" },
+                    new SidebarItem { Id = "radio", Name = "Sidebar_Radio", TabHeader = "Sidebar_DataInput" },
+                    new SidebarItem { Id = "range", Name = "Sidebar_Range", TabHeader = "Sidebar_DataInput" },
+                    new SidebarItem { Id = "rating", Name = "Sidebar_Rating", TabHeader = "Sidebar_DataInput" },
+                    new SidebarItem { Id = "select", Name = "Sidebar_Select", TabHeader = "Sidebar_DataInput" },
+                    new SidebarItem { Id = "textarea", Name = "Sidebar_TextArea", TabHeader = "Sidebar_DataInput" },
+                    new SidebarItem { Id = "toggle", Name = "Sidebar_Toggle", TabHeader = "Sidebar_DataInput" }
                 }
             },
             new SidebarCategory
             {
-                Name = "Divider",
+                Name = "Sidebar_Divider",
                 IconKey = "DaisyIconDivider",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "divider", Name = "Divider", TabHeader = "Divider" }
+                    new SidebarItem { Id = "divider", Name = "Sidebar_DividerItem", TabHeader = "Sidebar_Divider" }
                 }
             },
             new SidebarCategory
             {
-                Name = "Feedback",
+                Name = "Sidebar_Feedback",
                 IconKey = "DaisyIconFeedback",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "alert", Name = "Alert", TabHeader = "Feedback" },
-                    new SidebarItem { Id = "loading", Name = "Loading", TabHeader = "Feedback" },
-                    new SidebarItem { Id = "progress", Name = "Progress", TabHeader = "Feedback" },
-                    new SidebarItem { Id = "radial-progress", Name = "Radial Progress", TabHeader = "Feedback" },
-                    new SidebarItem { Id = "skeleton", Name = "Skeleton", TabHeader = "Feedback" },
-                    new SidebarItem { Id = "toast", Name = "Toast", TabHeader = "Feedback" },
-                    new SidebarItem { Id = "tooltip", Name = "Tooltip", TabHeader = "Feedback" }
+                    new SidebarItem { Id = "alert", Name = "Sidebar_Alert", TabHeader = "Sidebar_Feedback" },
+                    new SidebarItem { Id = "loading", Name = "Sidebar_Loading", TabHeader = "Sidebar_Feedback" },
+                    new SidebarItem { Id = "progress", Name = "Sidebar_Progress", TabHeader = "Sidebar_Feedback" },
+                    new SidebarItem { Id = "radial-progress", Name = "Sidebar_RadialProgress", TabHeader = "Sidebar_Feedback" },
+                    new SidebarItem { Id = "skeleton", Name = "Sidebar_Skeleton", TabHeader = "Sidebar_Feedback" },
+                    new SidebarItem { Id = "toast", Name = "Sidebar_Toast", TabHeader = "Sidebar_Feedback" },
+                    new SidebarItem { Id = "tooltip", Name = "Sidebar_Tooltip", TabHeader = "Sidebar_Feedback" }
                 }
             },
             new SidebarCategory
             {
-                Name = "Layout",
+                Name = "Sidebar_Layout",
                 IconKey = "DaisyIconLayout",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "drawer", Name = "Drawer", TabHeader = "Layout" },
-                    new SidebarItem { Id = "hero", Name = "Hero", TabHeader = "Layout" },
-                    new SidebarItem { Id = "indicator", Name = "Indicator", TabHeader = "Layout" },
-                    new SidebarItem { Id = "join", Name = "Join", TabHeader = "Layout" },
-                    new SidebarItem { Id = "mask", Name = "Mask", TabHeader = "Layout" },
-                    new SidebarItem { Id = "mockup", Name = "Mockup", TabHeader = "Layout" },
-                    new SidebarItem { Id = "stack", Name = "Stack", TabHeader = "Layout" }
+                    new SidebarItem { Id = "drawer", Name = "Sidebar_Drawer", TabHeader = "Sidebar_Layout" },
+                    new SidebarItem { Id = "hero", Name = "Sidebar_Hero", TabHeader = "Sidebar_Layout" },
+                    new SidebarItem { Id = "indicator", Name = "Sidebar_Indicator", TabHeader = "Sidebar_Layout" },
+                    new SidebarItem { Id = "join", Name = "Sidebar_Join", TabHeader = "Sidebar_Layout" },
+                    new SidebarItem { Id = "mask", Name = "Sidebar_Mask", TabHeader = "Sidebar_Layout" },
+                    new SidebarItem { Id = "mockup", Name = "Sidebar_Mockup", TabHeader = "Sidebar_Layout" },
+                    new SidebarItem { Id = "stack", Name = "Sidebar_Stack", TabHeader = "Sidebar_Layout" }
                 }
             },
             new SidebarCategory
             {
-                Name = "Navigation",
+                Name = "Sidebar_Navigation",
                 IconKey = "DaisyIconNavigation",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "breadcrumbs", Name = "Breadcrumbs", TabHeader = "Navigation" },
-                    new SidebarItem { Id = "dock", Name = "Dock", TabHeader = "Navigation" },
-                    new SidebarItem { Id = "menu", Name = "Menu", TabHeader = "Navigation" },
-                    new SidebarItem { Id = "navbar", Name = "Navbar", TabHeader = "Navigation" },
-                    new SidebarItem { Id = "pagination", Name = "Pagination", TabHeader = "Navigation" },
-                    new SidebarItem { Id = "steps", Name = "Steps", TabHeader = "Navigation" },
-                    new SidebarItem { Id = "tabs", Name = "Tabs", TabHeader = "Navigation" }
+                    new SidebarItem { Id = "breadcrumbs", Name = "Sidebar_Breadcrumbs", TabHeader = "Sidebar_Navigation" },
+                    new SidebarItem { Id = "dock", Name = "Sidebar_Dock", TabHeader = "Sidebar_Navigation" },
+                    new SidebarItem { Id = "menu", Name = "Sidebar_Menu", TabHeader = "Sidebar_Navigation" },
+                    new SidebarItem { Id = "navbar", Name = "Sidebar_Navbar", TabHeader = "Sidebar_Navigation" },
+                    new SidebarItem { Id = "pagination", Name = "Sidebar_Pagination", TabHeader = "Sidebar_Navigation" },
+                    new SidebarItem { Id = "steps", Name = "Sidebar_Steps", TabHeader = "Sidebar_Navigation" },
+                    new SidebarItem { Id = "tabs", Name = "Sidebar_Tabs", TabHeader = "Sidebar_Navigation" }
                 }
             },
             new SidebarCategory
             {
-                Name = "Theming",
+                Name = "Sidebar_Theming",
                 IconKey = "DaisyIconTheme",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "css-theme-converter", Name = "CSS Theme Converter", TabHeader = "Theming" },
-                    new SidebarItem { Id = "theme-controller", Name = "Theme Controller", TabHeader = "Theming" },
-                    new SidebarItem { Id = "theme-radio", Name = "Theme Radio", TabHeader = "Theming" }
+                    new SidebarItem { Id = "css-theme-converter", Name = "Sidebar_CSSThemeConverter", TabHeader = "Sidebar_Theming" },
+                    new SidebarItem { Id = "theme-controller", Name = "Sidebar_ThemeController", TabHeader = "Sidebar_Theming" },
+                    new SidebarItem { Id = "theme-radio", Name = "Sidebar_ThemeRadio", TabHeader = "Sidebar_Theming" }
                 }
             },
             new SidebarCategory
             {
-                Name = "Effects",
+                Name = "Sidebar_Effects",
                 IconKey = "DaisyIconEffects",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "reveal", Name = "Reveal", TabHeader = "Effects" },
-                    new SidebarItem { Id = "scramble", Name = "Scramble Hover", TabHeader = "Effects" },
-                    new SidebarItem { Id = "wave", Name = "Wave Text", TabHeader = "Effects" },
-                    new SidebarItem { Id = "cursor-follow", Name = "Cursor Follow", TabHeader = "Effects" },
-                    new SidebarItem { Id = "showcase", Name = "Showcase", TabHeader = "Effects" }
+                    new SidebarItem { Id = "reveal", Name = "Sidebar_Reveal", TabHeader = "Sidebar_Effects" },
+                    new SidebarItem { Id = "scramble", Name = "Sidebar_Scramble", TabHeader = "Sidebar_Effects" },
+                    new SidebarItem { Id = "wave", Name = "Sidebar_Wave", TabHeader = "Sidebar_Effects" },
+                    new SidebarItem { Id = "cursor-follow", Name = "Sidebar_CursorFollow", TabHeader = "Sidebar_Effects" },
+                    new SidebarItem { Id = "showcase", Name = "Sidebar_Showcase", TabHeader = "Sidebar_Effects" }
                 }
             },
             // Custom Controls and Color Picker stay at bottom
             new SidebarCategory
             {
-                Name = "Custom Controls",
+                Name = "Sidebar_CustomControls",
                 IconKey = "DaisyIconSun",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "modifier-keys", Name = "Modifier Keys", TabHeader = "Custom Controls" },
-                    new SidebarItem { Id = "weather-card", Name = "Weather Card", TabHeader = "Custom Controls" },
-                    new SidebarItem { Id = "current-weather", Name = "Current Weather", TabHeader = "Custom Controls" },
-                    new SidebarItem { Id = "weather-forecast", Name = "Weather Forecast", TabHeader = "Custom Controls" },
-                    new SidebarItem { Id = "weather-metrics", Name = "Weather Metrics", TabHeader = "Custom Controls" },
-                    new SidebarItem { Id = "weather-conditions", Name = "Weather Conditions", TabHeader = "Custom Controls" },
-                    new SidebarItem { Id = "service-integration", Name = "Service Integration", TabHeader = "Custom Controls" }
+                    new SidebarItem { Id = "scaling", Name = "Sidebar_ScalingItem", TabHeader = "Sidebar_Scaling" },
+                    new SidebarItem { Id = "size-dropdown", Name = "Sidebar_SizeDropdown", TabHeader = "Sidebar_CustomControls" },
+                    new SidebarItem { Id = "modifier-keys", Name = "Sidebar_ModifierKeys", TabHeader = "Sidebar_CustomControls" },
+                    new SidebarItem { Id = "weather-card", Name = "Sidebar_WeatherCard", TabHeader = "Sidebar_CustomControls" },
+                    new SidebarItem { Id = "current-weather", Name = "Sidebar_CurrentWeather", TabHeader = "Sidebar_CustomControls" },
+                    new SidebarItem { Id = "weather-forecast", Name = "Sidebar_WeatherForecast", TabHeader = "Sidebar_CustomControls" },
+                    new SidebarItem { Id = "weather-metrics", Name = "Sidebar_WeatherMetrics", TabHeader = "Sidebar_CustomControls" },
+                    new SidebarItem { Id = "weather-conditions", Name = "Sidebar_WeatherConditions", TabHeader = "Sidebar_CustomControls" },
+                    new SidebarItem { Id = "service-integration", Name = "Sidebar_ServiceIntegration", TabHeader = "Sidebar_CustomControls" }
                 }
             },
             new SidebarCategory
             {
-                Name = "Color Picker",
+                Name = "Sidebar_ColorPicker",
                 IconKey = "DaisyIconPalette",
                 Items = new ObservableCollection<SidebarItem>
                 {
-                    new SidebarItem { Id = "colorwheel", Name = "Color Wheel", TabHeader = "Color Picker" },
-                    new SidebarItem { Id = "colorgrid", Name = "Color Grid", TabHeader = "Color Picker" },
-                    new SidebarItem { Id = "colorslider", Name = "Color Sliders", TabHeader = "Color Picker" },
-                    new SidebarItem { Id = "coloreditor", Name = "Color Editor", TabHeader = "Color Picker" },
-                    new SidebarItem { Id = "screenpicker", Name = "Screen Picker", TabHeader = "Color Picker" },
-                    new SidebarItem { Id = "colorpickerdialog", Name = "Color Picker Dialog", TabHeader = "Color Picker" }
+                    new SidebarItem { Id = "colorwheel", Name = "Sidebar_ColorWheel", TabHeader = "Sidebar_ColorPicker" },
+                    new SidebarItem { Id = "colorgrid", Name = "Sidebar_ColorGrid", TabHeader = "Sidebar_ColorPicker" },
+                    new SidebarItem { Id = "colorslider", Name = "Sidebar_ColorSliders", TabHeader = "Sidebar_ColorPicker" },
+                    new SidebarItem { Id = "coloreditor", Name = "Sidebar_ColorEditor", TabHeader = "Sidebar_ColorPicker" },
+                    new SidebarItem { Id = "screenpicker", Name = "Sidebar_ScreenPicker", TabHeader = "Sidebar_ColorPicker" },
+                    new SidebarItem { Id = "colorpickerdialog", Name = "Sidebar_ColorPickerDialog", TabHeader = "Sidebar_ColorPicker" }
                 }
             }
         };

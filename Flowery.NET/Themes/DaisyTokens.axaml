@@ -17,9 +17,10 @@
 
     <!-- ==================== CONTROL HEIGHTS ==================== -->
     <!-- Used for buttons, inputs, and other fixed-height controls -->
-    <sys:Double x:Key="DaisySizeExtraLargeHeight">80</sys:Double>
-    <sys:Double x:Key="DaisySizeLargeHeight">64</sys:Double>
-    <sys:Double x:Key="DaisySizeMediumHeight">48</sys:Double>
+    <!-- Heights scale modestly to accommodate font size changes -->
+    <sys:Double x:Key="DaisySizeExtraLargeHeight">48</sys:Double>
+    <sys:Double x:Key="DaisySizeLargeHeight">48</sys:Double>
+    <sys:Double x:Key="DaisySizeMediumHeight">40</sys:Double>
     <sys:Double x:Key="DaisySizeSmallHeight">32</sys:Double>
     <sys:Double x:Key="DaisySizeExtraSmallHeight">24</sys:Double>
 
@@ -56,25 +57,28 @@
 
     <!-- ==================== BUTTON PADDING ==================== -->
     <!-- Buttons use horizontal-only padding (vertical controlled by Height) -->
-    <Thickness x:Key="DaisyButtonExtraLargePadding">32,0</Thickness>
-    <Thickness x:Key="DaisyButtonLargePadding">24,0</Thickness>
-    <Thickness x:Key="DaisyButtonMediumPadding">16,0</Thickness>
+    <!-- Padding scales ~proportionally to font size (roughly 1.1-1.2x font) -->
+    <Thickness x:Key="DaisyButtonExtraLargePadding">18,0</Thickness>
+    <Thickness x:Key="DaisyButtonLargePadding">18,0</Thickness>
+    <Thickness x:Key="DaisyButtonMediumPadding">14,0</Thickness>
     <Thickness x:Key="DaisyButtonSmallPadding">12,0</Thickness>
     <Thickness x:Key="DaisyButtonExtraSmallPadding">8,0</Thickness>
 
     <!-- ==================== INPUT PADDING ==================== -->
     <!-- Inputs use horizontal-only padding (vertical controlled by Height) -->
-    <Thickness x:Key="DaisyInputExtraLargePadding">20,0</Thickness>
-    <Thickness x:Key="DaisyInputLargePadding">18,0</Thickness>
-    <Thickness x:Key="DaisyInputMediumPadding">16,0</Thickness>
+    <!-- Padding scales ~proportionally to font size -->
+    <Thickness x:Key="DaisyInputExtraLargePadding">14,0</Thickness>
+    <Thickness x:Key="DaisyInputLargePadding">14,0</Thickness>
+    <Thickness x:Key="DaisyInputMediumPadding">12,0</Thickness>
     <Thickness x:Key="DaisyInputSmallPadding">12,0</Thickness>
     <Thickness x:Key="DaisyInputExtraSmallPadding">8,0</Thickness>
 
     <!-- ==================== TAB PADDING ==================== -->
     <!-- Tabs use both horizontal and vertical padding (no fixed height) -->
-    <Thickness x:Key="DaisyTabExtraLargePadding">18,10</Thickness>
-    <Thickness x:Key="DaisyTabLargePadding">16,8</Thickness>
-    <Thickness x:Key="DaisyTabMediumPadding">14,6</Thickness>
+    <!-- Padding scales modestly with font size -->
+    <Thickness x:Key="DaisyTabExtraLargePadding">14,6</Thickness>
+    <Thickness x:Key="DaisyTabLargePadding">14,6</Thickness>
+    <Thickness x:Key="DaisyTabMediumPadding">12,5</Thickness>
     <Thickness x:Key="DaisyTabSmallPadding">12,4</Thickness>
     <Thickness x:Key="DaisyTabExtraSmallPadding">10,2</Thickness>
 
@@ -148,15 +152,15 @@
     <sys:Double x:Key="DaisyToggleMediumHeight">24</sys:Double>
     <sys:Double x:Key="DaisyToggleSmallWidth">36</sys:Double>
     <sys:Double x:Key="DaisyToggleSmallHeight">20</sys:Double>
-    <sys:Double x:Key="DaisyToggleExtraSmallWidth">28</sys:Double>
-    <sys:Double x:Key="DaisyToggleExtraSmallHeight">16</sys:Double>
+    <sys:Double x:Key="DaisyToggleExtraSmallWidth">32</sys:Double>
+    <sys:Double x:Key="DaisyToggleExtraSmallHeight">18</sys:Double>
 
     <!-- Toggle knob sizes -->
     <sys:Double x:Key="DaisyToggleKnobExtraLargeSize">32</sys:Double>
     <sys:Double x:Key="DaisyToggleKnobLargeSize">26</sys:Double>
     <sys:Double x:Key="DaisyToggleKnobMediumSize">20</sys:Double>
     <sys:Double x:Key="DaisyToggleKnobSmallSize">16</sys:Double>
-    <sys:Double x:Key="DaisyToggleKnobExtraSmallSize">12</sys:Double>
+    <sys:Double x:Key="DaisyToggleKnobExtraSmallSize">14</sys:Double>
 
     <!-- ==================== PROGRESS BAR HEIGHTS ==================== -->
     <sys:Double x:Key="DaisyProgressLargeHeight">16</sys:Double>
@@ -178,9 +182,10 @@
     <sys:Double x:Key="DaisyAvatarExtraSmallSize">24</sys:Double>
 
     <!-- ==================== MENU ITEM SIZES ==================== -->
-    <Thickness x:Key="DaisyMenuExtraLargePadding">20,16</Thickness>
-    <Thickness x:Key="DaisyMenuLargePadding">16,12</Thickness>
-    <Thickness x:Key="DaisyMenuMediumPadding">12,8</Thickness>
+    <!-- Menu padding scales modestly with font size -->
+    <Thickness x:Key="DaisyMenuExtraLargePadding">12,8</Thickness>
+    <Thickness x:Key="DaisyMenuLargePadding">12,8</Thickness>
+    <Thickness x:Key="DaisyMenuMediumPadding">10,6</Thickness>
     <Thickness x:Key="DaisyMenuSmallPadding">10,6</Thickness>
     <Thickness x:Key="DaisyMenuExtraSmallPadding">8,4</Thickness>
 

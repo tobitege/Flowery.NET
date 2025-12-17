@@ -40,11 +40,14 @@ namespace Flowery.NET.Gallery.Localization
             LoadTranslation("ar");
             LoadTranslation("tr");
             LoadTranslation("uk");
-            
-
+            LoadTranslation("he");
             
             // Subscribe to FloweryLocalization culture changes
             Flowery.Localization.FloweryLocalization.CultureChanged += OnFloweryCultureChanged;
+            
+            // Register Gallery's localization as the custom resolver for FloweryComponentSidebar
+            // This allows sidebar items to use Gallery-specific keys (Sidebar_*, Effects_*, etc.)
+            Flowery.Localization.FloweryLocalization.CustomResolver = GetString;
         }
 
         private static void OnFloweryCultureChanged(object? sender, CultureInfo culture)

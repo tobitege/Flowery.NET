@@ -79,7 +79,7 @@ namespace Flowery.Controls
         protected override string? GetNameCore()
         {
             var skeleton = (DaisySkeleton)Owner;
-            var localizedDefault = FloweryLocalization.GetString("Accessibility_LoadingPlaceholder");
+            var localizedDefault = FloweryLocalization.GetStringInternal("Accessibility_LoadingPlaceholder");
             return DaisyAccessibility.GetEffectiveAccessibleText(skeleton, localizedDefault);
         }
 

@@ -10,6 +10,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Localization;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -127,13 +128,21 @@ namespace Flowery.Controls
 
     /// <summary>
     /// A styled TabControl with DaisyUI-inspired variants, sizes, and optional tab colors/context menu.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyTabs : TabControl
+    public class DaisyTabs : TabControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyTabs);
 
         private const string DefaultPaletteStrokeHex = "#9ca3af";
         private static readonly Avalonia.Media.IBrush DefaultPaletteStrokeBrush = Avalonia.Media.Brush.Parse(DefaultPaletteStrokeHex);
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = Services.FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         #region Attached Property: TabColor
 
@@ -456,13 +465,13 @@ namespace Flowery.Controls
         {
             var menu = new ContextMenu { Tag = "DaisyTabsContextMenu" };
 
-            var closeItem = new MenuItem { Header = GetLocalizedString("Tabs_CloseTab", "Close Tab") };
+            var closeItem = new MenuItem { Header = FloweryLocalization.GetStringInternal("Tabs_CloseTab", "Close Tab") };
             closeItem.Click += (_, _) => OnCloseTabRequested(tabItem);
 
-            var closeOthersItem = new MenuItem { Header = GetLocalizedString("Tabs_CloseOtherTabs", "Close Other Tabs") };
+            var closeOthersItem = new MenuItem { Header = FloweryLocalization.GetStringInternal("Tabs_CloseOtherTabs", "Close Other Tabs") };
             closeOthersItem.Click += (_, _) => OnCloseOtherTabsRequested(tabItem);
 
-            var closeRightItem = new MenuItem { Header = GetLocalizedString("Tabs_CloseTabsToRight", "Close Tabs to the Right") };
+            var closeRightItem = new MenuItem { Header = FloweryLocalization.GetStringInternal("Tabs_CloseTabsToRight", "Close Tabs to the Right") };
             closeRightItem.Click += (_, _) => OnCloseTabsToRightRequested(tabItem);
 
             menu.Items.Add(closeItem);
@@ -473,24 +482,24 @@ namespace Flowery.Controls
             // Tab Color grid (theme-independent palette) - no submenu
             menu.Items.Add(new MenuItem
             {
-                Header = GetLocalizedString("Tabs_TabColor", "Tab Color"),
+                Header = FloweryLocalization.GetStringInternal("Tabs_TabColor", "Tab Color"),
                 IsEnabled = false
             });
 
             var colors = new[]
             {
-                (DaisyTabPaletteColor.Default, GetLocalizedString("Tabs_Palette_Default", "Default"), (string?)null),
-                (DaisyTabPaletteColor.Purple, GetLocalizedString("Tabs_Palette_Purple", "Purple"), "#7c3aed"),
-                (DaisyTabPaletteColor.Indigo, GetLocalizedString("Tabs_Palette_Indigo", "Indigo"), "#6366f1"),
-                (DaisyTabPaletteColor.Pink, GetLocalizedString("Tabs_Palette_Pink", "Pink"), "#f472b6"),
-                (DaisyTabPaletteColor.SkyBlue, GetLocalizedString("Tabs_Palette_SkyBlue", "Sky Blue"), "#38bdf8"),
-                (DaisyTabPaletteColor.Blue, GetLocalizedString("Tabs_Palette_Blue", "Blue"), "#0ea5e9"),
-                (DaisyTabPaletteColor.Lime, GetLocalizedString("Tabs_Palette_Lime", "Lime"), "#84cc16"),
-                (DaisyTabPaletteColor.Green, GetLocalizedString("Tabs_Palette_Green", "Green"), "#22c55e"),
-                (DaisyTabPaletteColor.Yellow, GetLocalizedString("Tabs_Palette_Yellow", "Yellow"), "#eab308"),
-                (DaisyTabPaletteColor.Orange, GetLocalizedString("Tabs_Palette_Orange", "Orange"), "#f59e0b"),
-                (DaisyTabPaletteColor.Red, GetLocalizedString("Tabs_Palette_Red", "Red"), "#ef4444"),
-                (DaisyTabPaletteColor.Gray, GetLocalizedString("Tabs_Palette_Gray", "Gray"), "#64748b"),
+                (DaisyTabPaletteColor.Default, FloweryLocalization.GetStringInternal("Tabs_Palette_Default", "Default"), (string?)null),
+                (DaisyTabPaletteColor.Purple, FloweryLocalization.GetStringInternal("Tabs_Palette_Purple", "Purple"), "#7c3aed"),
+                (DaisyTabPaletteColor.Indigo, FloweryLocalization.GetStringInternal("Tabs_Palette_Indigo", "Indigo"), "#6366f1"),
+                (DaisyTabPaletteColor.Pink, FloweryLocalization.GetStringInternal("Tabs_Palette_Pink", "Pink"), "#f472b6"),
+                (DaisyTabPaletteColor.SkyBlue, FloweryLocalization.GetStringInternal("Tabs_Palette_SkyBlue", "Sky Blue"), "#38bdf8"),
+                (DaisyTabPaletteColor.Blue, FloweryLocalization.GetStringInternal("Tabs_Palette_Blue", "Blue"), "#0ea5e9"),
+                (DaisyTabPaletteColor.Lime, FloweryLocalization.GetStringInternal("Tabs_Palette_Lime", "Lime"), "#84cc16"),
+                (DaisyTabPaletteColor.Green, FloweryLocalization.GetStringInternal("Tabs_Palette_Green", "Green"), "#22c55e"),
+                (DaisyTabPaletteColor.Yellow, FloweryLocalization.GetStringInternal("Tabs_Palette_Yellow", "Yellow"), "#eab308"),
+                (DaisyTabPaletteColor.Orange, FloweryLocalization.GetStringInternal("Tabs_Palette_Orange", "Orange"), "#f59e0b"),
+                (DaisyTabPaletteColor.Red, FloweryLocalization.GetStringInternal("Tabs_Palette_Red", "Red"), "#ef4444"),
+                (DaisyTabPaletteColor.Gray, FloweryLocalization.GetStringInternal("Tabs_Palette_Gray", "Gray"), "#64748b"),
             };
 
             var grid = new UniformGrid
@@ -531,12 +540,6 @@ namespace Flowery.Controls
 
             menu.Items.Add(new MenuItem { Header = grid });
             return menu;
-        }
-
-        private static string GetLocalizedString(string key, string fallback)
-        {
-            var value = FloweryLocalization.GetString(key);
-            return string.Equals(value, key, StringComparison.Ordinal) ? fallback : value;
         }
 
         private void OnCloseTabRequested(TabItem tabItem)

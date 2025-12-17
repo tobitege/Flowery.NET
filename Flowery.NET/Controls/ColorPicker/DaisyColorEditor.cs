@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Media;
+using Flowery.Services;
 
 namespace Flowery.Controls.ColorPicker
 {
@@ -21,10 +22,19 @@ namespace Flowery.Controls.ColorPicker
 
     /// <summary>
     /// A comprehensive color editor control with RGB/HSL sliders and numeric inputs.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyColorEditor : TemplatedControl
+    public class DaisyColorEditor : TemplatedControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyColorEditor);
+
+        private const double BaseTextFontSize = 12.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         private bool _lockUpdates;
 
@@ -636,4 +646,3 @@ namespace Flowery.Controls.ColorPicker
         }
     }
 }
-

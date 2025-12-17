@@ -47,9 +47,11 @@
                               CornerRadius="{TemplateBinding Width, Converter={x:Static controls:IndicatorConverters.HalfToCornerRadiusConverter}}"
                               ClipToBounds="True">
                          <ContentPresenter Content="{TemplateBinding Content}"
-                                             ContentTemplate="{TemplateBinding ContentTemplate}"
-                                             HorizontalAlignment="Stretch"
-                                             VerticalAlignment="Stretch"/>
+                                   ContentTemplate="{TemplateBinding ContentTemplate}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   HorizontalContentAlignment="Center"
+                                   VerticalContentAlignment="Center" />
                     </Border>
 
                     <!-- Status Indicator -->

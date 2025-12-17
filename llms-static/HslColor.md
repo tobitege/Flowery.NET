@@ -12,7 +12,7 @@ HSL is more intuitive than RGB for color selection:
 | Color Space | Best For |
 |-------------|----------|
 | **RGB** | Precise color values, web colors, digital displays |
-| **HSL** | Intuitive color adjustment—change brightness without affecting hue |
+| **HSL** | Intuitive color adjustment - change brightness without affecting hue |
 
 ## Properties
 
@@ -142,4 +142,3 @@ bool equal = (a == b);  // true
 - The `IsEmpty` property is useful for nullable color scenarios.
 
 ---
-

@@ -29,7 +29,7 @@ DaisyInput is a styled TextBox with **10 variants** and **4 size presets**. It s
 
 ## Properties
 
-DaisyInput extends `TextBox` — all standard TextBox properties (`Text`, `Watermark`, `Padding`, `TextAlignment`, `TextWrapping`, `VerticalContentAlignment`, etc.) are supported.
+DaisyInput extends `TextBox` - all standard TextBox properties (`Text`, `Watermark`, `Padding`, `TextAlignment`, `TextWrapping`, `VerticalContentAlignment`, etc.) are supported.
 
 **DaisyInput-specific properties:**
 
@@ -53,8 +53,8 @@ DaisyInput extends `TextBox` — all standard TextBox properties (`Text`, `Water
 
 The `VerticalContentAlignment` property controls vertical positioning of both the watermark and text content:
 
-- **Center** (default): Text vertically centered — standard for single-line inputs.
-- **Top**: Text aligned to top — used by `DaisyTextArea` for multi-line editing.
+- **Center** (default): Text vertically centered - standard for single-line inputs.
+- **Top**: Text aligned to top - used by `DaisyTextArea` for multi-line editing.
 
 ## Quick Examples
 

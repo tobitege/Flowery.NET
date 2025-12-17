@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -42,10 +43,19 @@ namespace Flowery.Controls
 
     /// <summary>
     /// A NumericUpDown control styled after DaisyUI's Input component with spin buttons.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyNumericUpDown : NumericUpDown
+    public class DaisyNumericUpDown : NumericUpDown, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyNumericUpDown);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         private RepeatButton? _increaseButton;
         private RepeatButton? _decreaseButton;
@@ -1155,8 +1165,3 @@ namespace Flowery.Controls
         }
     }
 }
-
-
-
-
-

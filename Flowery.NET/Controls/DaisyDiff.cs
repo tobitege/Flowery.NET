@@ -3,12 +3,25 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
-    public class DaisyDiff : TemplatedControl
+    /// <summary>
+    /// An image diff/comparison control styled after DaisyUI's Diff component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyDiff : TemplatedControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyDiff);
+
+        private const double BaseTextFontSize = 12.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 10.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<object?> Image1Property =
             AvaloniaProperty.Register<DaisyDiff, object?>(nameof(Image1));

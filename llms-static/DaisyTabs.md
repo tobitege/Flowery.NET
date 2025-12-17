@@ -168,7 +168,7 @@ If you want tab colors to follow the active theme, use `DaisyTabs.TabColor` with
 
 ## Context Menu
 
-Enable a right-click context menu on tabs with close actions and color selection. The menu is **off by default** and only raises events/callbacks—your app handles the actual tab manipulation.
+Enable a right-click context menu on tabs with close actions and color selection. The menu is **off by default** and only raises events/callbacks - your app handles the actual tab manipulation.
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|

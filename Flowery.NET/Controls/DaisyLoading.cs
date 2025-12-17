@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls.Primitives;
 using Flowery.Localization;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -71,13 +72,21 @@ namespace Flowery.Controls
     /// A Loading control styled after DaisyUI's Loading component.
     /// Shows an animation to indicate that something is loading.
     /// Includes accessibility support for screen readers via the AccessibleText attached property.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyLoading : TemplatedControl
+    public class DaisyLoading : TemplatedControl, IScalableControl
     {
         private const string DefaultAccessibleTextKey = "Accessibility_Loading";
         private const string DefaultAccessibleTextFallback = "Loading";
+        private const double BaseTextFontSize = 14.0;
 
         protected override Type StyleKeyOverride => typeof(DaisyLoading);
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = Services.FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         static DaisyLoading()
         {
@@ -170,7 +179,7 @@ namespace Flowery.Controls
         protected override string? GetNameCore()
         {
             var loading = (DaisyLoading)Owner;
-            var localizedDefault = FloweryLocalization.GetString("Accessibility_Loading");
+            var localizedDefault = FloweryLocalization.GetStringInternal("Accessibility_Loading");
             return DaisyAccessibility.GetEffectiveAccessibleText(loading, localizedDefault);
         }
 

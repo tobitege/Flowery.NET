@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -18,10 +19,19 @@ namespace Flowery.Controls
 
     /// <summary>
     /// A ToggleSwitch control styled after DaisyUI's Toggle component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyToggle : ToggleSwitch
+    public class DaisyToggle : ToggleSwitch, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyToggle);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<DaisyToggleVariant> VariantProperty =
             AvaloniaProperty.Register<DaisyToggle, DaisyToggleVariant>(nameof(Variant), DaisyToggleVariant.Default);

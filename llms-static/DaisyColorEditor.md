@@ -144,7 +144,7 @@ The control uses named template parts for its UI elements:
 - Use **HSL mode** for intuitive color adjustment (change brightness without affecting hue).
 - Hide `ShowAlphaChannel` when transparency is not needed.
 - The hex input accepts formats: `#RGB`, `#RRGGBB`, `#AARRGGBB`.
-- All sliders and inputs are synchronized—changing one updates all others.
+- All sliders and inputs are synchronized - changing one updates all others.
 - Use `OnColorChangedCallback` for simple handlers; use `ColorChanged` event for multiple subscribers.
 - Combine with `DaisyColorWheel` for a complete color picker interface.
 

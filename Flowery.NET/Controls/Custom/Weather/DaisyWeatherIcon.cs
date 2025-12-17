@@ -2,15 +2,25 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Flowery.Controls.Custom.Weather.Models;
+using Flowery.Services;
 
 namespace Flowery.Controls.Custom.Weather
 {
     /// <summary>
     /// Animated weather condition icon with subtle animations for each weather type.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
     /// </summary>
-    public class DaisyWeatherIcon : ContentControl
+    public class DaisyWeatherIcon : ContentControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyWeatherIcon);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<WeatherCondition> ConditionProperty =
             AvaloniaProperty.Register<DaisyWeatherIcon, WeatherCondition>(nameof(Condition), WeatherCondition.Unknown);
@@ -118,4 +128,3 @@ namespace Flowery.Controls.Custom.Weather
         }
     }
 }
-

@@ -1,8 +1,17 @@
-# Global Sizing
+# Sizing / Scaling
 
-Flowery.NET provides a centralized sizing system that allows you to dynamically resize all controls in your application at once. This is useful for accessibility, user preferences, or adapting to different screen sizes.
+Flowery.NET provides **two distinct sizing systems**. Understanding when to use each is essential:
 
-## Overview
+| System | Purpose | Scope |
+|--------|---------|-------|
+| **Global Size** (`FlowerySizeManager`) | User preference / accessibility | Entire app – all controls respond |
+| **Auto Scaling** (`FloweryScaleManager`) | Responsive window-based sizing | Per-container opt-in only |
+
+> 💡 **Most apps should just use Global Size.** Auto Scaling is an advanced feature for specific responsive-layout scenarios like data forms.
+
+---
+
+## Global Size (FlowerySizeManager)
 
 The `FlowerySizeManager` is a static service that:
 
@@ -87,6 +96,8 @@ The dropdown:
 - Shows the current size with an abbreviation (XS, S, M, L, XL)
 - Displays localized size names (e.g., "Klein" in German, "小" in Japanese)
 - Automatically updates all controls when selection changes
+
+**Advanced customization**: You can control which sizes appear and customize their display names. See [DaisySizeDropdown](DaisySizeDropdown.md) for details on the `SizeOptions` property.
 
 ### Which Controls Respond?
 
@@ -213,7 +224,7 @@ private static void ApplyGlobalSizeToControls(Control root, DaisySize size)
 
 ## Opting Out of Global Sizing
 
-Sometimes you have controls that should **not** respond to global size changes—for example, demonstration controls showing all five size variants. Use the `IgnoreGlobalSize` attached property:
+Sometimes you have controls that should **not** respond to global size changes - for example, demonstration controls showing all five size variants. Use the `IgnoreGlobalSize` attached property:
 
 ### On Individual Controls
 
@@ -298,3 +309,150 @@ A complete example of a settings panel with size selection:
 ```
 
 All controls in the panel will automatically resize when the dropdown selection changes.
+
+---
+
+## Continuous Font Scaling (FloweryScaleManager)
+
+While `FlowerySizeManager` provides **discrete size tiers** (Small, Medium, Large), Flowery.NET also offers **continuous font scaling** based on window size through `FloweryScaleManager`.
+
+> **⚠️ Important:** These are **two separate, independent systems**. Auto Scaling ONLY affects controls within a container marked with `EnableScaling="True"`. It does NOT affect the rest of your app (sidebar, navigation, etc.).
+
+### Quick Comparison
+
+| Feature | Global Size | Auto Scaling |
+|---------|-------------|--------------|
+| **Service** | `FlowerySizeManager` | `FloweryScaleManager` |
+| **Scope** | Entire app (global) | Only containers with `EnableScaling="True"` |
+| **Scaling Type** | Discrete tiers (xs, s, m, l, xl) | Continuous (0.5× to 1.0×) |
+| **Trigger** | User selection via dropdown | Automatic based on window size |
+| **What Changes** | Height, padding, font size | Font size and scaled properties only |
+| **Best For** | User preference, accessibility | Responsive data forms, dashboards |
+
+### Scoped Usage
+
+Auto Scaling is **opt-in and scoped**. Only controls inside a container with `EnableScaling="True"` are affected:
+
+```xml
+xmlns:services="clr-namespace:Flowery.Services;assembly=Flowery.NET"
+
+<Window>
+    <!-- Sidebar: NOT affected by Auto Scaling (uses Global Size) -->
+    <controls:FloweryComponentSidebar />
+    
+    <!-- Content area: ONLY this panel uses Auto Scaling -->
+    <UserControl services:FloweryScaleManager.EnableScaling="True">
+        <!-- These controls scale with window size -->
+        <controls:DaisyInput Label="Name" />
+        <controls:DaisyButton Content="Submit" />
+    </UserControl>
+</Window>
+```
+
+### How It Works
+
+1. Set `EnableScaling="True"` on a container (UserControl, Window, Panel, etc.)
+2. The manager tracks the parent **TopLevel** size (desktop `Window` or browser root)
+3. Calculates a scale factor:
+   - Downscaling: `min(width/1920, height/1080)`
+   - If `MaxScaleFactor > 1.0`, scale-up is allowed based on the available dimension
+   - Clamped to `MinScaleFactor` … `MaxScaleFactor`
+4. **ONLY** child controls inside that container adjust their font sizes
+5. Controls outside the `EnableScaling` region are NOT affected
+
+### Scaling Up (4K / High-DPI Desktops)
+
+By default, Auto Scaling only scales *down* (max is `1.0`). On large 4K windows (especially at 100% Windows scaling) you may want the UI to scale *up* as well.
+
+To allow scaling above 1.0, set `FloweryScaleManager.MaxScaleFactor` to your desired **physical** maximum (for example `1.5` to match 150% Windows scaling):
+
+```csharp
+FloweryScaleManager.MaxScaleFactor = 1.5;
+```
+
+When `MaxScaleFactor > 1.0`, Flowery compensates for OS DPI scaling using `TopLevel.RenderScaling`, so you **don’t double-scale** on systems already set to 125% / 150% Windows scaling.
+
+**Safety**: `MaxScaleFactor` (and internal scale factors) are sanity-capped at **5.0 (500%)** to prevent extreme values.
+
+### Toggling at Runtime
+
+You can enable/disable Auto Scaling programmatically:
+
+```csharp
+// Disable Auto Scaling globally (scale factor becomes 1.0)
+FloweryScaleManager.IsEnabled = false;
+
+// Re-enable
+FloweryScaleManager.IsEnabled = true;
+```
+
+When `IsEnabled = false`, all scale factors reset to 1.0 (no scaling).
+
+### Supported Controls
+
+Controls implementing `IScalableControl` auto-scale when inside an enabled container:
+
+- `DaisyInput` / `DaisyTextArea` (label + text font)
+- `DaisyButton` (content font)
+- `DaisySelect` (font)
+- `DaisyBadge` (content font)
+- And many more...
+
+### Common Patterns
+
+#### Pattern 1: Global Size Only (Most Apps)
+
+Most desktop apps should just use **Global Size**:
+
+```xml
+<!-- In sidebar or settings -->
+<controls:DaisySizeDropdown />
+
+<!-- All controls across the app respond to the user's size preference -->
+```
+
+#### Pattern 2: Auto Scaling for a Specific Page
+
+Use Auto Scaling for a data-dense page that benefits from window-responsive sizing:
+
+```xml
+<UserControl services:FloweryScaleManager.EnableScaling="True">
+    <!-- Customer details form that scales with window -->
+    <controls:DaisyCard Padding="{services:Scale SpacingMedium}">
+        <TextBlock FontSize="{services:Scale FontTitle}" Text="Customer" />
+        <controls:DaisyInput Label="Name" />
+        <controls:DaisyInput Label="Email" />
+    </controls:DaisyCard>
+</UserControl>
+```
+
+#### Pattern 3: Override Auto Scaling with Global Size
+
+If Auto Scaling is on, but you want specific controls to use the fixed Global Size instead, mark them to opt out:
+
+```xml
+<UserControl services:FloweryScaleManager.EnableScaling="True">
+    <!-- These scale with window -->
+    <controls:DaisyInput Label="Name" />
+    
+    <!-- These buttons stay at Global Size -->
+    <StackPanel controls:FlowerySizeManager.IgnoreGlobalSize="True">
+        <controls:DaisyButton Size="Small" Content="Cancel" />
+        <controls:DaisyButton Size="Small" Content="Save" />
+    </StackPanel>
+</UserControl>
+```
+
+### When to Use Which?
+
+| Scenario | Recommended Approach |
+|----------|---------------------|
+| Standard desktop app | **Global Size only** – simple, user-controlled |
+| Accessibility needs | **Global Size** – discrete tiers are clearer |
+| Data-dense responsive form | **Auto Scaling** on that specific page |
+| Dashboard with charts/data | **Auto Scaling** for continuous responsiveness |
+| Navigation/sidebar/toolbar | **Global Size only** – never use Auto Scaling |
+
+### Learn More
+
+For comprehensive documentation on `FloweryScaleManager`, including configuration, custom control support, and helper methods, see [FloweryScaleManager](FloweryScaleManager.md).

@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -16,9 +17,21 @@ namespace Flowery.Controls
         Triangle
     }
 
-    public class DaisyMask : ContentControl
+    /// <summary>
+    /// A mask shape container that clips content to various shapes.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyMask : ContentControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyMask);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<DaisyMaskVariant> VariantProperty =
             AvaloniaProperty.Register<DaisyMask, DaisyMaskVariant>(nameof(Variant), DaisyMaskVariant.Squircle);

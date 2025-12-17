@@ -1,11 +1,12 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
-             xmlns:custom="clr-namespace:Flowery.Controls.Custom;assembly=Flowery.NET"
-             xmlns:weather="clr-namespace:Flowery.Controls.Custom.Weather;assembly=Flowery.NET"
-             xmlns:models="clr-namespace:Flowery.Controls.Custom.Weather.Models;assembly=Flowery.NET"
-             xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
-             x:Class="Flowery.NET.Gallery.Examples.CustomControls">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+    xmlns:custom="clr-namespace:Flowery.Controls.Custom;assembly=Flowery.NET"
+    xmlns:weather="clr-namespace:Flowery.Controls.Custom.Weather;assembly=Flowery.NET"
+    xmlns:models="clr-namespace:Flowery.Controls.Custom.Weather.Models;assembly=Flowery.NET"
+    xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
+    xmlns:collections="clr-namespace:System.Collections.Generic;assembly=System.Collections"
+    x:Class="Flowery.NET.Gallery.Examples.CustomControls">
 
     <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Spacing="24" Margin="24,10,24,32">
@@ -24,7 +25,89 @@
 
             <controls:DaisyDivider />
 
-            <!-- Weather Card (Full Composite) -->
+            <!-- Size Dropdown -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="size-dropdown" Title="Size Dropdown" />
+                <TextBlock
+                    Text="Global UI size selector - affects all Daisy controls with a Size property"
+                    FontSize="12" Opacity="0.7" />
+
+                <WrapPanel Orientation="Horizontal">
+                    <!-- Default (All Sizes) -->
+                    <StackPanel Spacing="8" Margin="0,0,40,20" Width="180">
+                        <TextBlock Text="Default (All Sizes)" FontWeight="SemiBold" FontSize="12"
+                            Opacity="0.8" />
+                        <controls:DaisySizeDropdown />
+                    </StackPanel>
+
+                    <!-- Abbreviations Mode -->
+                    <StackPanel Spacing="8" Margin="0,0,40,20" Width="100">
+                        <TextBlock Text="Abbreviations" FontWeight="SemiBold" FontSize="12"
+                            Opacity="0.8" />
+                        <controls:DaisySizeDropdown ShowAbbreviations="True" />
+                    </StackPanel>
+                </WrapPanel>
+
+                <controls:DaisyDivider />
+
+                <!-- Custom Size Options -->
+                <TextBlock Text="Customized Size Options" FontWeight="SemiBold" FontSize="13"
+                    Margin="0,8,0,4" />
+                <TextBlock
+                    Text="Use SizeOptions property to show only the sizes you want with custom display names"
+                    FontSize="12" Opacity="0.7" />
+
+                <WrapPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <!-- Only 3 Sizes with Custom Names -->
+                    <StackPanel Spacing="8" Margin="0,0,40,20" Width="200">
+                        <TextBlock Text="3 Custom Sizes" FontSize="12" Opacity="0.8" />
+                        <controls:DaisySizeDropdown>
+                            <controls:DaisySizeDropdown.SizeOptions>
+                                <collections:List x:TypeArguments="controls:SizePreviewInfo">
+                                    <controls:SizePreviewInfo Size="Small" Name="Small"
+                                        DisplayNameOverride="Compact" Abbreviation="C" />
+                                    <controls:SizePreviewInfo Size="Medium" Name="Medium"
+                                        DisplayNameOverride="Normal" Abbreviation="N" />
+                                    <controls:SizePreviewInfo Size="Large" Name="Large"
+                                        DisplayNameOverride="Large" Abbreviation="L" />
+                                </collections:List>
+                            </controls:DaisySizeDropdown.SizeOptions>
+                        </controls:DaisySizeDropdown>
+                    </StackPanel>
+
+                    <!-- Hidden Extreme Sizes -->
+                    <StackPanel Spacing="8" Margin="0,0,40,20" Width="200">
+                        <TextBlock Text="Hidden Extremes" FontSize="12" Opacity="0.8" />
+                        <controls:DaisySizeDropdown>
+                            <controls:DaisySizeDropdown.SizeOptions>
+                                <collections:List x:TypeArguments="controls:SizePreviewInfo">
+                                    <controls:SizePreviewInfo Size="ExtraSmall" Name="ExtraSmall"
+                                        IsVisible="False" />
+                                    <controls:SizePreviewInfo Size="Small" Name="Small" />
+                                    <controls:SizePreviewInfo Size="Medium" Name="Medium" />
+                                    <controls:SizePreviewInfo Size="Large" Name="Large" />
+                                    <controls:SizePreviewInfo Size="ExtraLarge" Name="ExtraLarge"
+                                        IsVisible="False" />
+                                </collections:List>
+                            </controls:DaisySizeDropdown.SizeOptions>
+                        </controls:DaisySizeDropdown>
+                    </StackPanel>
+                </WrapPanel>
+
+                <controls:DaisyAlert Variant="Info" Padding="12" Width="500"
+                    HorizontalAlignment="Left" Margin="0,8,0,0">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Tip: Custom SizeOptions" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="12">
+                            Use DisplayNameOverride for custom labels (e.g., "Dense", "Compact",
+                            "Comfortable").
+                            Set IsVisible="False" to hide sizes that don't apply to your app.
+                        </TextBlock>
+                    </StackPanel>
+                </controls:DaisyAlert>
+            </StackPanel>
+
+            <controls:DaisyDivider />
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="weather-card" Title="Weather Card" />
                 <TextBlock Text="Complete weather widget with current conditions, forecast, and metrics."

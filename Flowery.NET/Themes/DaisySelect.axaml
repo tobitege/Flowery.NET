@@ -54,7 +54,7 @@
         </ControlTheme>
 
         <ControlTheme x:Key="{x:Type controls:DaisySelect}" TargetType="controls:DaisySelect">
-            <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />
+            <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
             <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
             <Setter Property="BorderThickness" Value="1" />
@@ -62,7 +62,7 @@
             <Setter Property="Padding" Value="12,0,30,0" />
             <Setter Property="Height" Value="{DynamicResource DaisySizeMediumHeight}" />
             <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
             <Setter Property="PlaceholderForeground" Value="{DynamicResource DaisyBaseContentBrush}" /> <!-- Opacity usually handled -->
             <Setter Property="ItemContainerTheme" Value="{StaticResource DaisySelectItemTheme}" />

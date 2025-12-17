@@ -22,6 +22,16 @@
                 <controls:DaisyButton Shape="Wide" Content="Wide" />
                 <controls:DaisyButton Shape="Square" Content="■" />
                 <controls:DaisyButton Shape="Circle" Content="●" />
+                <controls:DaisyButton Variant="Primary" Content="With Icon">
+                    <controls:DaisyButton.IconLeft>
+                        <PathIcon Width="14" Height="14" Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                    </controls:DaisyButton.IconLeft>
+                </controls:DaisyButton>
+                <controls:DaisyButton Variant="Secondary" Content="Icon Right">
+                    <controls:DaisyButton.IconRight>
+                        <PathIcon Width="14" Height="14" Data="M10 17l5-5-5-5v10z" />
+                    </controls:DaisyButton.IconRight>
+                </controls:DaisyButton>
             </StackPanel>
         </Border>
     </Design.PreviewWith>
@@ -71,14 +81,27 @@
                                StrokeThickness="1"
                                StrokeDashArray="4,2"
                                RadiusX="8" RadiusY="8" />
-                    <ContentPresenter x:Name="PART_ContentPresenter"
-                        Content="{TemplateBinding Content}"
-                        ContentTemplate="{TemplateBinding ContentTemplate}"
-                        Padding="{TemplateBinding Padding}"
-                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                        VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                        TextElement.Foreground="{TemplateBinding Foreground}"
-                        RecognizesAccessKey="True" />
+                    <StackPanel x:Name="PART_ContentPanel"
+                        Orientation="Horizontal"
+                        Spacing="{TemplateBinding IconSpacing}"
+                        Margin="{TemplateBinding Padding}"
+                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                        <ContentPresenter x:Name="PART_IconLeft"
+                            Content="{TemplateBinding IconLeft}"
+                            IsVisible="{TemplateBinding IconLeft, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            VerticalAlignment="Center" />
+                        <ContentPresenter x:Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            TextElement.Foreground="{TemplateBinding Foreground}"
+                            RecognizesAccessKey="True"
+                            VerticalAlignment="Center" />
+                        <ContentPresenter x:Name="PART_IconRight"
+                            Content="{TemplateBinding IconRight}"
+                            IsVisible="{TemplateBinding IconRight, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            VerticalAlignment="Center" />
+                    </StackPanel>
                 </Panel>
             </ControlTemplate>
         </Setter>

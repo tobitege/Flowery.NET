@@ -11,7 +11,7 @@ DaisyFileInput is a button-styled file selector that displays a “Choose File�
 |----------|-------------|
 | `FileName` | Text shown on the right side; default “No file chosen”. Update this after a file dialog completes. |
 | `Variant` | DaisyButton variant for the choose-file segment (Default, Primary, Secondary, Accent). |
-| `Size` | Height/font scaling (ExtraSmall, Small, Medium, Large, ExtraLarge—theme styles defined for XS/Small/Medium/Large). |
+| `Size` | Height/font scaling (ExtraSmall, Small, Medium, Large, ExtraLarge - theme styles defined for XS/Small/Medium/Large). |
 
 ## Quick Examples
 

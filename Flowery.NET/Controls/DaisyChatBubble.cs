@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Media;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -19,9 +20,21 @@ namespace Flowery.Controls
         Error
     }
 
-    public class DaisyChatBubble : ContentControl
+    /// <summary>
+    /// A chat bubble control styled after DaisyUI's Chat component.
+    /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// </summary>
+    public class DaisyChatBubble : ContentControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyChatBubble);
+
+        private const double BaseTextFontSize = 14.0;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
 
         public static readonly StyledProperty<bool> IsEndProperty =
             AvaloniaProperty.Register<DaisyChatBubble, bool>(nameof(IsEnd), false);

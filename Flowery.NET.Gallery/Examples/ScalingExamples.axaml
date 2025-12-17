@@ -1,0 +1,502 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:services="clr-namespace:Flowery.Services;assembly=Flowery.NET"
+             xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
+             xmlns:galloc="clr-namespace:Flowery.NET.Gallery.Localization"
+             x:Class="Flowery.NET.Gallery.Examples.ScalingExamples"
+             x:Name="ScalingExamplesRoot"
+             controls:FlowerySizeManager.IgnoreGlobalSize="True"
+             services:FloweryScaleManager.EnableScaling="{Binding IsScalingEnabled, ElementName=ScalingExamplesRoot}">
+
+    <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="24" Margin="24,10,24,32">
+
+            <!-- Info Box with Toggle -->
+            <controls:DaisyCard Variant="Compact" Padding="16" Background="{DynamicResource DaisyInfoBrush}">
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+                    <TextBlock Grid.Column="0" Grid.RowSpan="4"
+                               Text="{galloc:Localize Scaling_Info_Text}"
+                               TextWrapping="Wrap"
+                               Foreground="White"
+                               VerticalAlignment="Center" />
+                    <controls:DaisyToggle Grid.Column="1" Grid.Row="0"
+                                          x:Name="ScalingToggle"
+                                          Content="{galloc:Localize Scaling_Toggle_Label}"
+                                          IsChecked="{Binding IsScalingEnabled, ElementName=ScalingExamplesRoot, Mode=TwoWay}"
+                                          Variant="Accent"
+                                          Margin="16,0,0,0"
+                                          VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1" Grid.Row="1"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                HorizontalAlignment="Right"
+                                Margin="16,8,0,0">
+                        <TextBlock Text="{galloc:Localize Scaling_MaxScale_Label}"
+                                   Foreground="White"
+                                   VerticalAlignment="Center"
+                                   Opacity="0.9" />
+                        <controls:DaisySelect Variant="Ghost" Size="Small"
+                                              Width="120"
+                                              SelectedIndex="{Binding MaxScalePresetIndex, ElementName=ScalingExamplesRoot, Mode=TwoWay}">
+                            <ComboBoxItem Content="100%" />
+                            <ComboBoxItem Content="125%" />
+                            <ComboBoxItem Content="150%" />
+                            <ComboBoxItem Content="200%" />
+                            <ComboBoxItem Content="300%" />
+                        </controls:DaisySelect>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Grid.Row="2"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                HorizontalAlignment="Right"
+                                Margin="16,8,0,0">
+                        <controls:DaisyToggle Variant="Accent" Size="Small"
+                                              Content="Zoom"
+                                              IsChecked="{Binding IsManualZoomEnabled, ElementName=ScalingExamplesRoot, Mode=TwoWay}"
+                                              Margin="0"
+                                              VerticalAlignment="Center"
+                                              IsEnabled="{Binding IsScalingEnabled, ElementName=ScalingExamplesRoot}" />
+                        <controls:DaisyRange Variant="Accent" Size="Small"
+                                             Width="160"
+                                             Minimum="50"
+                                             Maximum="{Binding ManualZoomMaxPercent, ElementName=ScalingExamplesRoot}"
+                                             Value="{Binding ManualZoomPercent, ElementName=ScalingExamplesRoot, Mode=TwoWay}"
+                                             TickFrequency="5"
+                                             IsSnapToTickEnabled="True"
+                                             SmallChange="5"
+                                             LargeChange="5"
+                                             VerticalAlignment="Center"
+                                             IsEnabled="{Binding IsManualZoomEnabled, ElementName=ScalingExamplesRoot}" />
+                        <TextBlock Text="{Binding ManualZoomPercent, ElementName=ScalingExamplesRoot, StringFormat={}{0:0}%}"
+                                   Foreground="White"
+                                   VerticalAlignment="Center"
+                                   Opacity="0.9" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Grid.Row="3"
+                                IsVisible="{Binding IsDesktopApp, ElementName=ScalingExamplesRoot}"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                HorizontalAlignment="Right"
+                                Margin="16,8,0,0">
+                        <TextBlock Text="{galloc:Localize Scaling_Resolution_Label}"
+                                   Foreground="White"
+                                   VerticalAlignment="Center"
+                                   Opacity="0.9" />
+                        <controls:DaisySelect Variant="Ghost" Size="Small"
+                                              Width="200"
+                                              SelectedIndex="{Binding ResolutionPresetIndex, ElementName=ScalingExamplesRoot, Mode=TwoWay}">
+                            <ComboBoxItem Content="Half HD (960×540)" />
+                            <ComboBoxItem Content="HD (1280×720)" />
+                            <ComboBoxItem Content="Laptop (1366×768)" />
+                            <ComboBoxItem Content="HD+ (1600×900)" />
+                            <ComboBoxItem Content="Full HD (1920×1080)" />
+                            <ComboBoxItem Content="QHD (2560×1440)" />
+                            <ComboBoxItem Content="Ultrawide (3440×1440)" />
+                            <ComboBoxItem Content="4K (3840×2160)" />
+                        </controls:DaisySelect>
+                    </StackPanel>
+                </Grid>
+            </controls:DaisyCard>
+
+            <!-- Customer Details Hero Card -->
+            <StackPanel Spacing="4">
+                <local:SectionHeader SectionId="customer-details" Title="{galloc:Localize Scaling_Title}" />
+                <TextBlock Text="{galloc:Localize Scaling_Subtitle}"
+                           FontSize="{services:Scale FontCaption}" Opacity="0.7"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+
+                <!-- Main Customer Card -->
+                <controls:DaisyCard Padding="{services:Scale SpacingMedium}" Margin="0,8,0,0">
+                    <Grid RowDefinitions="Auto,Auto,*">
+                        <!-- Customer Header -->
+                        <Border Grid.Row="0" Padding="{services:Scale SpacingSmall}" CornerRadius="8" Margin="0,0,0,16">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                    <GradientStop Offset="0" Color="{DynamicResource DaisyPrimary}" />
+                                    <GradientStop Offset="1" Color="{DynamicResource DaisySecondary}" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <controls:DaisyAvatar Grid.Column="0" Size="Medium"
+                                    Background="{DynamicResource DaisyErrorBrush}"
+                                    VerticalAlignment="Center">
+                                    <TextBlock Text="FK"
+                                               FontSize="18"
+                                               FontWeight="Black"
+                                               Foreground="White"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Center"/>
+                                </controls:DaisyAvatar>
+
+                                <!-- Name & Status -->
+                                <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center" Spacing="4">
+                                    <TextBlock Text="{galloc:Localize Scaling_CompanyName}"
+                                        FontSize="{services:Scale FontTitle}" FontWeight="Bold" Foreground="White" />
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <controls:DaisyBadge Content="{galloc:Localize Scaling_Badge_Specialist}" Variant="Error" Size="Small" />
+                                        <controls:DaisyBadge Content="{galloc:Localize Scaling_Badge_Status}" Variant="Warning" Size="Small" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Customer ID -->
+                                <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                    <TextBlock Text="{galloc:Localize Scaling_CustomerNumber}" FontSize="{services:Scale FontSmall}" Foreground="White" Opacity="0.7" />
+                                    <TextBlock Text="{galloc:Localize Scaling_CustomerId}" FontSize="{services:Scale FontBody}" FontWeight="SemiBold" Foreground="White" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Cards Grid -->
+                        <WrapPanel Grid.Row="2" Orientation="Horizontal">
+
+                            <!-- Address Card -->
+                            <controls:DaisyCard Width="{services:Scale CardWidth}" Margin="0,0,16,16"
+                                Padding="{services:Scale SpacingSmall}">
+                                <StackPanel Spacing="{services:Scale SpacingSmall}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Width="{services:Scale IconSmall}" Height="{services:Scale IconSmall}"
+                                            Foreground="{DynamicResource DaisyPrimaryBrush}"
+                                            Data="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                                        <TextBlock Text="{galloc:Localize Scaling_Address_Title}" FontSize="{services:Scale FontHeading}" FontWeight="SemiBold"
+                                            Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                    </StackPanel>
+                                    <controls:DaisyDivider />
+                                    <StackPanel Spacing="{services:Scale SpacingXS}">
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Address_Street_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Address_Street}" LabelPosition="Inset" />
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Address_Suite_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Address_Suite}" LabelPosition="Inset" />
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Address_City_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Address_City}" LabelPosition="Inset" />
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Address_StateZip_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Address_StateZip}" LabelPosition="Inset" />
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="{galloc:Localize Scaling_Address_Country}"
+                                                FontSize="{services:Scale FontSmall}" Opacity="0.7"
+                                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                            <controls:DaisySelect SelectedIndex="0">
+                                                <ComboBoxItem>🇺🇸 United States</ComboBoxItem>
+                                                <ComboBoxItem>🇬🇧 United Kingdom</ComboBoxItem>
+                                                <ComboBoxItem>🇩🇪 Germany</ComboBoxItem>
+                                                <ComboBoxItem>🇫🇷 France</ComboBoxItem>
+                                                <ComboBoxItem>🇪🇸 Spain</ComboBoxItem>
+                                                <ComboBoxItem>🇮🇹 Italy</ComboBoxItem>
+                                                <ComboBoxItem>🇨🇳 China</ComboBoxItem>
+                                                <ComboBoxItem>🇯🇵 Japan</ComboBoxItem>
+                                                <ComboBoxItem>🇰🇷 South Korea</ComboBoxItem>
+                                                <ComboBoxItem>🇹🇷 Turkey</ComboBoxItem>
+                                                <ComboBoxItem>🇺🇦 Ukraine</ComboBoxItem>
+                                                <ComboBoxItem>🇮🇱 Israel</ComboBoxItem>
+                                                <ComboBoxItem>🇸🇦 Saudi Arabia</ComboBoxItem>
+                                            </controls:DaisySelect>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </controls:DaisyCard>
+
+                            <!-- Contact Card -->
+                            <controls:DaisyCard Width="{services:Scale CardWidth}" Margin="0,0,16,16"
+                                Padding="{services:Scale SpacingSmall}">
+                                <StackPanel Spacing="{services:Scale SpacingSmall}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Width="{services:Scale IconSmall}" Height="{services:Scale IconSmall}"
+                                            Foreground="{DynamicResource DaisyInfoBrush}"
+                                            Data="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                                        <TextBlock Text="{galloc:Localize Scaling_Contact_Title}" FontSize="{services:Scale FontHeading}" FontWeight="SemiBold"
+                                            Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                    </StackPanel>
+                                    <controls:DaisyDivider />
+                                    <StackPanel Spacing="{services:Scale SpacingXS}">
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Contact_Email_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Contact_Email}" LabelPosition="Inset" />
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Contact_Phone_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Contact_Phone}" LabelPosition="Inset" />
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Contact_Website_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Contact_Website}" LabelPosition="Inset" />
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Contact_Fax_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Contact_Fax}" LabelPosition="Inset" />
+                                    </StackPanel>
+
+                                    <!-- Social Links -->
+                                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                                        <controls:DaisyButton Shape="Circle" Variant="Ghost" Size="Small"
+                                            Width="{services:Scale IconContainerMedium}" Height="{services:Scale IconContainerMedium}">
+                                            <PathIcon Width="{services:Scale IconSmall}" Height="{services:Scale IconSmall}"
+                                                Data="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z" />
+                                        </controls:DaisyButton>
+                                        <controls:DaisyButton Shape="Circle" Variant="Ghost" Size="Small"
+                                            Width="{services:Scale IconContainerMedium}" Height="{services:Scale IconContainerMedium}">
+                                            <PathIcon Width="{services:Scale IconSmall}" Height="{services:Scale IconSmall}"
+                                                Data="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+                                        </controls:DaisyButton>
+                                        <controls:DaisyButton Shape="Circle" Variant="Ghost" Size="Small"
+                                            Width="{services:Scale IconContainerMedium}" Height="{services:Scale IconContainerMedium}">
+                                            <PathIcon Width="{services:Scale IconSmall}" Height="{services:Scale IconSmall}"
+                                                Data="M12 2.04c-5.5 0-10 4.49-10 10.02 0 5 3.66 9.15 8.44 9.9v-7H7.9v-2.9h2.54V9.85c0-2.51 1.49-3.89 3.78-3.89 1.09 0 2.23.19 2.23.19v2.47h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.45 2.9h-2.33v7a10 10 0 0 0 8.44-9.9c0-5.53-4.5-10.02-10-10.02z" />
+                                        </controls:DaisyButton>
+                                    </StackPanel>
+                                </StackPanel>
+                            </controls:DaisyCard>
+
+                            <!-- Payment & Billing Card -->
+                            <controls:DaisyCard Width="{services:Scale CardWidth}" Margin="0,0,16,16"
+                                Padding="{services:Scale SpacingSmall}">
+                                <StackPanel Spacing="{services:Scale SpacingSmall}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Width="{services:Scale IconSmall}" Height="{services:Scale IconSmall}"
+                                            Foreground="{DynamicResource DaisySuccessBrush}"
+                                            Data="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" />
+                                        <TextBlock Text="{galloc:Localize Scaling_Payment_Title}" FontSize="{services:Scale FontHeading}" FontWeight="SemiBold"
+                                            Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                    </StackPanel>
+                                    <controls:DaisyDivider />
+                                    <StackPanel Spacing="{services:Scale SpacingXS}">
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Payment_Terms_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Payment_Terms}" LabelPosition="Inset" Variant="Error" />
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Payment_CreditLimit_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Payment_CreditLimit}" LabelPosition="Inset" />
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Payment_Currency_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Payment_Currency}" LabelPosition="Inset" />
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Payment_TaxId_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Payment_TaxId}" LabelPosition="Inset" />
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Payment_Discount_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Payment_Discount}" LabelPosition="Inset" Variant="Error" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </controls:DaisyCard>
+
+                            <!-- Customer Group Card -->
+                            <controls:DaisyCard Width="{services:Scale CardWidth}" Margin="0,0,16,16"
+                                Padding="{services:Scale SpacingSmall}">
+                                <StackPanel Spacing="{services:Scale SpacingSmall}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Width="{services:Scale IconSmall}" Height="{services:Scale IconSmall}"
+                                            Foreground="{DynamicResource DaisySecondaryBrush}"
+                                            Data="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+                                        <TextBlock Text="{galloc:Localize Scaling_Group_Title}" FontSize="{services:Scale FontHeading}" FontWeight="SemiBold"
+                                            Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                    </StackPanel>
+                                    <controls:DaisyDivider />
+                                    <StackPanel Spacing="{services:Scale SpacingXS}">
+                                        <Grid ColumnDefinitions="Auto,*">
+                                            <TextBlock Grid.Column="0" Text="{galloc:Localize Scaling_Group_Group}" FontSize="{services:Scale FontBody}" Opacity="0.7"
+                                                VerticalAlignment="Center" Margin="0,0,12,0"
+                                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                            <controls:DaisyBadge Grid.Column="1" Content="Enterprise" Variant="Secondary" Size="Small" HorizontalAlignment="Left" />
+                                        </Grid>
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Group_Industry_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Group_Industry}" LabelPosition="Inset" />
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Group_Region_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Group_Region}" LabelPosition="Inset" />
+                                        <controls:DaisyInput Text="{galloc:Localize Scaling_Group_AccountManager_Value}" IsReadOnly="True" Label="{galloc:Localize Scaling_Group_AccountManager}" LabelPosition="Inset" Variant="Primary" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </controls:DaisyCard>
+
+                            <!-- Recent Activity Card -->
+                            <controls:DaisyCard Width="{services:Scale CardWidth}" Margin="0,0,16,16"
+                                Padding="{services:Scale SpacingSmall}">
+                                <StackPanel Spacing="{services:Scale SpacingSmall}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Width="{services:Scale IconSmall}" Height="{services:Scale IconSmall}"
+                                            Foreground="{DynamicResource DaisyAccentBrush}"
+                                            Data="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z" />
+                                        <TextBlock Text="{galloc:Localize Scaling_Activity_Title}" FontSize="{services:Scale FontHeading}" FontWeight="SemiBold"
+                                            Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                    </StackPanel>
+                                    <controls:DaisyDivider />
+                                    <StackPanel Spacing="{services:Scale SpacingXS}">
+                                        <Border Padding="{services:Scale SpacingXS}" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="4">
+                                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                                <controls:DaisyStatusIndicator Grid.Column="0" Color="Success" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="1" Text="{galloc:Localize Scaling_Activity_Item1}"
+                                                    FontSize="{services:Scale FontCaption}" Margin="8,0"
+                                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                                <TextBlock Grid.Column="2" Text="{galloc:Localize Scaling_Activity_Time1}" FontSize="{services:Scale FontSmall}" Opacity="0.6"
+                                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                            </Grid>
+                                        </Border>
+                                        <Border Padding="{services:Scale SpacingXS}" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="4">
+                                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                                <controls:DaisyStatusIndicator Grid.Column="0" Color="Warning" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="1" Text="{galloc:Localize Scaling_Activity_Item2}"
+                                                    FontSize="{services:Scale FontCaption}" Margin="8,0"
+                                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                                <TextBlock Grid.Column="2" Text="{galloc:Localize Scaling_Activity_Time2}" FontSize="{services:Scale FontSmall}" Opacity="0.6"
+                                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                            </Grid>
+                                        </Border>
+                                        <Border Padding="{services:Scale SpacingXS}" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="4">
+                                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                                <controls:DaisyStatusIndicator Grid.Column="0" Color="Info" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="1" Text="{galloc:Localize Scaling_Activity_Item3}"
+                                                    FontSize="{services:Scale FontCaption}" Margin="8,0"
+                                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                                <TextBlock Grid.Column="2" Text="{galloc:Localize Scaling_Activity_Time3}" FontSize="{services:Scale FontSmall}" Opacity="0.6"
+                                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                            </Grid>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+                            </controls:DaisyCard>
+
+                            <!-- Notes Card -->
+                            <controls:DaisyCard Width="{services:Scale CardWidth}" Margin="0,0,16,16"
+                                Padding="{services:Scale SpacingSmall}">
+                                <StackPanel Spacing="{services:Scale SpacingSmall}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <PathIcon Width="{services:Scale IconSmall}" Height="{services:Scale IconSmall}"
+                                            Foreground="{DynamicResource DaisyWarningBrush}"
+                                            Data="M19 3H4.99c-1.11 0-1.98.89-1.98 2L3 19c0 1.1.88 2 1.99 2H19c1.1 0 2-.9 2-2V5c0-1.11-.9-2-2-2zm0 12h-4c0 1.66-1.35 3-3 3s-3-1.34-3-3H4.99V5H19v10z" />
+                                        <TextBlock Text="{galloc:Localize Scaling_Notes_Title}" FontSize="{services:Scale FontHeading}" FontWeight="SemiBold"
+                                            Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                    </StackPanel>
+                                    <controls:DaisyDivider />
+                                    <controls:DaisyTextArea IsReadOnly="True" Height="80"
+                                        Text="{galloc:Localize Scaling_Notes_Content}" />
+                                    <controls:DaisyTextArea Watermark="{galloc:Localize Scaling_Notes_Placeholder}" Height="60" />
+                                    <controls:DaisyButton Content="{galloc:Localize Scaling_Notes_SaveButton}" Variant="Primary" Size="Small" HorizontalAlignment="Right" />
+                                </StackPanel>
+                            </controls:DaisyCard>
+
+                        </WrapPanel>
+
+                        <!-- Action Bar -->
+                        <Border Grid.Row="1" Padding="{services:Scale SpacingSmall}" Margin="0,0,0,16"
+                            Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8">
+                            <StackPanel Orientation="Horizontal" Spacing="{services:Scale SpacingSmall}" HorizontalAlignment="Right">
+                                <controls:DaisyButton Content="{galloc:Localize Scaling_Action_Edit}" Variant="Primary">
+                                    <controls:DaisyButton.IconLeft>
+                                        <PathIcon Width="14" Height="14"
+                                            Data="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                                    </controls:DaisyButton.IconLeft>
+                                </controls:DaisyButton>
+                                <controls:DaisyButton Content="{galloc:Localize Scaling_Action_NewOrder}" Variant="Success">
+                                    <controls:DaisyButton.IconLeft>
+                                        <PathIcon Width="14" Height="14"
+                                            Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                                    </controls:DaisyButton.IconLeft>
+                                </controls:DaisyButton>
+                                <controls:DaisyButton Content="{galloc:Localize Scaling_Action_SendEmail}" Variant="Info">
+                                    <controls:DaisyButton.IconLeft>
+                                        <PathIcon Width="14" Height="14"
+                                            Data="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                                    </controls:DaisyButton.IconLeft>
+                                </controls:DaisyButton>
+                                <controls:DaisyButton Content="{galloc:Localize Scaling_Action_Print}" ButtonStyle="Outline">
+                                    <controls:DaisyButton.IconLeft>
+                                        <PathIcon Width="14" Height="14"
+                                            Data="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z" />
+                                    </controls:DaisyButton.IconLeft>
+                                </controls:DaisyButton>
+                            </StackPanel>
+                        </Border>
+
+                    </Grid>
+                </controls:DaisyCard>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
+            <!-- Scale Presets Reference -->
+            <StackPanel Spacing="4">
+                <local:SectionHeader SectionId="scale-presets" Title="{galloc:Localize Scaling_Presets_Title}" />
+                <TextBlock Text="{galloc:Localize Scaling_Presets_Subtitle}"
+                           FontSize="{services:Scale FontCaption}" Opacity="0.7"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+
+                <WrapPanel Orientation="Horizontal">
+                    <!-- Font Presets -->
+                    <controls:DaisyCard Width="{services:Scale CardWidth}" Margin="0,0,16,16" Padding="16">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="{galloc:Localize Scaling_Presets_Fonts}" FontSize="{services:Scale FontHeading}" FontWeight="SemiBold"
+                                Foreground="{DynamicResource DaisyPrimaryBrush}" />
+                            <controls:DaisyDivider />
+                            <TextBlock Text="FontDisplay (32→20)" FontSize="{services:Scale FontDisplay}"
+                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            <TextBlock Text="FontTitle (28→18)" FontSize="{services:Scale FontTitle}"
+                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            <TextBlock Text="FontHeading (20→14)" FontSize="{services:Scale FontHeading}"
+                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            <TextBlock Text="FontSubheading (16→11)" FontSize="{services:Scale FontSubheading}"
+                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            <TextBlock Text="FontBody (14→10)" FontSize="{services:Scale FontBody}"
+                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            <TextBlock Text="FontCaption (12→9)" FontSize="{services:Scale FontCaption}"
+                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            <TextBlock Text="FontSmall (11→8)" FontSize="{services:Scale FontSmall}"
+                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        </StackPanel>
+                    </controls:DaisyCard>
+
+                    <!-- Spacing Presets -->
+                    <controls:DaisyCard Width="{services:Scale CardWidth}" Margin="0,0,16,16" Padding="16">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="{galloc:Localize Scaling_Presets_Spacing}" FontSize="{services:Scale FontHeading}" FontWeight="SemiBold"
+                                Foreground="{DynamicResource DaisySecondaryBrush}" />
+                            <controls:DaisyDivider />
+                            <Border Background="{DynamicResource DaisyBase300Brush}" CornerRadius="4"
+                                MinHeight="{services:Scale SpacingXL}"
+                                Padding="16,0">
+                                <TextBlock Text="SpacingXL (40px)" FontSize="{services:Scale FontCaption}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            </Border>
+                            <Border Background="{DynamicResource DaisyBase300Brush}" CornerRadius="4"
+                                MinHeight="{services:Scale SpacingLarge}"
+                                Padding="16,0">
+                                <TextBlock Text="SpacingLarge (28px)" FontSize="{services:Scale FontCaption}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            </Border>
+                            <Border Background="{DynamicResource DaisyBase300Brush}" CornerRadius="4"
+                                MinHeight="{services:Scale SpacingMedium}"
+                                Padding="16,0">
+                                <TextBlock Text="SpacingMedium (20px)" FontSize="{services:Scale FontCaption}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            </Border>
+                            <Border Background="{DynamicResource DaisyBase300Brush}" CornerRadius="4"
+                                MinHeight="{services:Scale SpacingSmall}"
+                                Padding="16,0">
+                                <TextBlock Text="SpacingSmall (12px)" FontSize="{services:Scale FontCaption}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            </Border>
+                            <Border Background="{DynamicResource DaisyBase300Brush}" CornerRadius="4"
+                                MinHeight="{services:Scale SpacingXS}"
+                                Padding="16,0">
+                                <TextBlock Text="SpacingXS (8px)" FontSize="{services:Scale FontCaption}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            </Border>
+                        </StackPanel>
+                    </controls:DaisyCard>
+
+                    <!-- Usage Example -->
+                    <controls:DaisyCard Width="400" Margin="0,0,16,16" Padding="16">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="{galloc:Localize Scaling_Presets_Usage}" FontSize="{services:Scale FontHeading}" FontWeight="SemiBold"
+                                Foreground="{DynamicResource DaisyAccentBrush}" />
+                            <controls:DaisyDivider />
+                            <controls:DaisyCard Variant="Compact" Background="{DynamicResource DaisyBase200Brush}">
+                                <TextBlock FontFamily="Consolas" FontSize="11" TextWrapping="Wrap" xml:space="preserve"
+                                    Foreground="{DynamicResource DaisyBaseContentBrush}"><![CDATA[<!-- Add namespace -->
+xmlns:services="..."
+
+<!-- Using presets -->
+<TextBlock FontSize="{services:Scale FontTitle}"/>
+<Border Padding="{services:Scale SpacingMedium}"/>
+<Grid Width="{services:Scale CardWidth}"/>
+
+<!-- Custom values -->
+<TextBlock FontSize="{services:Scale 24,12}"/>]]></TextBlock>
+                            </controls:DaisyCard>
+                        </StackPanel>
+                    </controls:DaisyCard>
+                </WrapPanel>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
+            <!-- About This Demo (moved to bottom) -->
+            <StackPanel Spacing="4">
+                <local:SectionHeader SectionId="scaling-intro" Title="{galloc:Localize Scaling_About_Title}" />
+                <controls:DaisyCard Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{galloc:Localize Scaling_About_Heading}" FontWeight="SemiBold" FontSize="{services:Scale FontHeading}"
+                            Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <TextBlock TextWrapping="Wrap" FontSize="{services:Scale FontBody}"
+                            Foreground="{DynamicResource DaisyBaseContentBrush}"
+                            Text="{galloc:Localize Scaling_About_Description}" />
+                        <TextBlock TextWrapping="Wrap" Opacity="0.7" FontSize="{services:Scale FontCaption}"
+                            Foreground="{DynamicResource DaisyBaseContentBrush}"
+                            Text="{galloc:Localize Scaling_About_Tip}" />
+                    </StackPanel>
+                </controls:DaisyCard>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
