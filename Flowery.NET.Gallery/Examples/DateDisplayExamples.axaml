@@ -168,7 +168,7 @@
                     <local:SectionHeader SectionId="timeline" Title="Timeline" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="8" Margin="0,0,40,20">
-                            <TextBlock Text="Horizontal" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Horizontal" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTimeline Orientation="Horizontal">
                                 <controls:DaisyTimelineItem StartContent="1984"
                                     EndContent="First Mac" HasEndLine="True" IsActive="True">
@@ -204,7 +204,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="8" Margin="0,0,40,20">
-                            <TextBlock Text="Vertical with Boxes" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Vertical with Boxes" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTimeline Orientation="Vertical">
                                 <controls:DaisyTimelineItem StartContent="1984"
                                     EndContent="First Macintosh" IsBoxed="True" HasEndLine="True"
@@ -242,7 +242,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="8" Margin="0,0,40,20">
-                            <TextBlock Text="Compact (end only)" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Compact (end only)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTimeline Orientation="Vertical" IsCompact="True">
                                 <controls:DaisyTimelineItem EndContent="First Macintosh"
                                     IsBoxed="True" HasEndLine="True">

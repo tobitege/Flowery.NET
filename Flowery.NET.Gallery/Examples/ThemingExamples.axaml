@@ -16,7 +16,7 @@
                 <WrapPanel Orientation="Horizontal">
                     <controls:DaisyCard Width="660" Margin="0,0,20,20">
                         <StackPanel Spacing="15">
-                            <TextBlock Text="Load a DaisyUI CSS theme file, convert to AXAML, and apply at runtime." Opacity="0.7" TextWrapping="Wrap"/>
+                            <TextBlock Text="Load a DaisyUI CSS theme file, convert to AXAML, and apply at runtime." Opacity="0.7" TextWrapping="Wrap" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <Grid ColumnDefinitions="*, Auto">
                                 <controls:DaisyInput x:Name="CssFilePathInput" Watermark="Path to .css file (e.g., synthwave.css)" />
                                 <controls:DaisyButton Grid.Column="1" Content="Browse..." Margin="8,0,0,0" Click="BrowseCssFile_Click" />
@@ -45,23 +45,23 @@
                     <StackPanel Spacing="10" Margin="0,0,40,20" Width="350">
                         <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto" RowSpacing="10" ColumnSpacing="10">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="Toggle" FontSize="12" Opacity="0.7"/>
+                                <TextBlock Text="Toggle" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                                 <controls:DaisyThemeController Mode="Toggle" />
                             </StackPanel>
                             <StackPanel Spacing="4" Grid.Column="1">
-                                <TextBlock Text="Checkbox" FontSize="12" Opacity="0.7"/>
+                                <TextBlock Text="Checkbox" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                                 <controls:DaisyThemeController Mode="Checkbox" />
                             </StackPanel>
                             <StackPanel Spacing="4" Grid.Row="1">
-                                <TextBlock Text="Swap" FontSize="12" Opacity="0.7"/>
+                                <TextBlock Text="Swap" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                                 <controls:DaisyThemeController Mode="Swap" />
                             </StackPanel>
                             <StackPanel Spacing="4" Grid.Row="1" Grid.Column="1">
-                                <TextBlock Text="Toggle with Icons" FontSize="12" Opacity="0.7"/>
+                                <TextBlock Text="Toggle with Icons" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                                 <controls:DaisyThemeController Mode="ToggleWithIcons" />
                             </StackPanel>
                             <StackPanel Spacing="4" Grid.Row="2" Grid.ColumnSpan="2">
-                                <TextBlock Text="Toggle with Text" FontSize="12" Opacity="0.7"/>
+                                <TextBlock Text="Toggle with Text" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                                 <controls:DaisyThemeController Mode="ToggleWithText"
                                     UncheckedTheme="Light" CheckedTheme="Synthwave"
                                     UncheckedLabel="Light" CheckedLabel="Synthwave" />
@@ -79,7 +79,7 @@
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
                         <TextBlock Text="Radio Input Mode" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
-                        <TextBlock Text="Select a theme using radio buttons" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="Select a theme using radio buttons" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                         <StackPanel Spacing="8">
                             <controls:DaisyThemeRadio Content="Light" ThemeName="Light" GroupName="ThemeRadios" Size="Small" />
                             <controls:DaisyThemeRadio Content="Dark" ThemeName="Dark" GroupName="ThemeRadios" Size="Small" />
@@ -92,7 +92,7 @@
 
                     <StackPanel Spacing="10" Margin="0,0,40,20" Width="180">
                         <TextBlock Text="Button Mode" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
-                        <TextBlock Text="Joined button style" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="Joined button style" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                         <controls:DaisyJoin Orientation="Vertical">
                             <controls:DaisyThemeRadio Content="Light" ThemeName="Light" Mode="Button" GroupName="ThemeButtons" />
                             <controls:DaisyThemeRadio Content="Dark" ThemeName="Dark" Mode="Button" GroupName="ThemeButtons" />

@@ -33,6 +33,23 @@ FloweryLocalization.SetCulture("de");
 FloweryLocalization.SetCulture("zh-CN");
 ```
 
+### Accessing Supported Languages
+
+The library exposes its supported language list for apps to consume:
+
+```csharp
+// Get all supported language codes
+IReadOnlyList<string> codes = FloweryLocalization.SupportedLanguages;
+// → ["en", "de", "fr", "es", "it", "ja", "ko", "zh-CN", "ar", "tr", "uk", "he"]
+
+// Get native display names for each language
+IReadOnlyDictionary<string, string> names = FloweryLocalization.LanguageDisplayNames;
+// → {"en": "English", "de": "Deutsch", "fr": "Français", ...}
+
+// Create UI-ready language list for dropdowns
+ObservableCollection<SidebarLanguage> languages = SidebarLanguage.CreateAll();
+```
+
 ### Providing App-Specific Translations for Library Controls
 
 Some library controls (like `FloweryComponentSidebar`) use localization keys that are defined by your app, not the library. To support this, set the `CustomResolver` to your app's localization method:
@@ -149,11 +166,9 @@ public class MyAppLocalization : INotifyPropertyChanged
 
     static MyAppLocalization()
     {
-        // Load all translations at startup
-        LoadTranslation("en");
-        LoadTranslation("de");
-        LoadTranslation("ja");
-        // Add all other languages...
+        // Load all translations at startup - use library's centralized list
+        foreach (var lang in Flowery.Localization.FloweryLocalization.SupportedLanguages)
+            LoadTranslation(lang);
         
         // Sync with Flowery library culture changes
         Flowery.Localization.FloweryLocalization.CultureChanged += (s, c) => SetCulture(c);

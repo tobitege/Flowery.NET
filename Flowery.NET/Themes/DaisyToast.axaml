@@ -12,7 +12,7 @@
     </Design.PreviewWith>
 
     <ControlTheme x:Key="{x:Type controls:DaisyToast}" TargetType="controls:DaisyToast">
-        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />
         <Setter Property="ToastHorizontalOffset" Value="16" />
         <Setter Property="ToastVerticalOffset" Value="16" />
         <Setter Property="ZIndex" Value="1000" />

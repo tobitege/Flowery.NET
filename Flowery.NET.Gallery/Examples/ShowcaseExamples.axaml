@@ -16,7 +16,7 @@
             <!-- Expandable Cards -->
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="expandable-cards" Title="{galloc:Localize Showcase_ExpandableCards_Title}" />
-                <TextBlock Text="{galloc:Localize Showcase_ExpandableCards_Desc}" Opacity="0.7" FontSize="13" />
+                <TextBlock Text="{galloc:Localize Showcase_ExpandableCards_Desc}" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
 
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Padding="0,0,0,10">
                     <StackPanel Orientation="Horizontal">
@@ -257,7 +257,7 @@
             <!-- Power-Off Slide -->
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="power-off-slide" Title="{galloc:Localize Showcase_PowerOff_Title}" />
-                <TextBlock Text="{galloc:Localize Showcase_PowerOff_Desc}" Opacity="0.7" FontSize="13" />
+                <TextBlock Text="{galloc:Localize Showcase_PowerOff_Desc}" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
 
                 <Border x:Name="SlideTrack" Background="{DynamicResource DaisyBase300Brush}" CornerRadius="24" Padding="4" HorizontalAlignment="Left" Width="240" Height="48">
                     <Grid>

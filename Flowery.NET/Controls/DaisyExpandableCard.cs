@@ -186,23 +186,5 @@ namespace Flowery.Controls
                 }
             });
         }
-
-        private class SimpleCommand : ICommand
-        {
-            private readonly Action<object?> _action;
-
-            public SimpleCommand(Action<object?> action)
-            {
-                _action = action;
-            }
-
-#pragma warning disable CS0067
-            public event EventHandler? CanExecuteChanged;
-#pragma warning restore CS0067
-
-            public bool CanExecute(object? parameter) => true;
-
-            public void Execute(object? parameter) => _action(parameter);
-        }
     }
 }

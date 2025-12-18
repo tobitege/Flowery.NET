@@ -13,7 +13,7 @@
             <!-- Card Stack -->
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="card-stack" Title="Card Stack" />
-                <TextBlock Text="Stacked cards with navigation, showing depth effect." Opacity="0.7" FontSize="13" />
+                <TextBlock Text="Stacked cards with navigation, showing depth effect." Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
 
                 <Border Height="450" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16">
                     <Grid>
@@ -85,7 +85,7 @@
             <!-- Glass Card -->
             <StackPanel Spacing="12">
                 <local:SectionHeader Title="Glass Card (IsGlass mode)" />
-                <TextBlock Text="Cards can use glass/frosted effect with IsGlass property" Opacity="0.7" FontSize="13"/>
+                <TextBlock Text="Cards can use glass/frosted effect with IsGlass property" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                 <Border CornerRadius="16" Padding="32" Height="280">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
@@ -118,7 +118,7 @@
             <!-- DaisyGlass Control - Simulated -->
             <StackPanel Spacing="12">
                 <local:SectionHeader Title="DaisyGlass (Simulated Glass)" />
-                <TextBlock Text="Default mode. Uses gradient overlays to simulate frosted glass. No real blur." Opacity="0.7" FontSize="13"/>
+                <TextBlock Text="Default mode. Uses gradient overlays to simulate frosted glass. No real blur." Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                 <TextBlock Text="✅ Fastest performance (no rendering overhead)" FontSize="12" Foreground="Green" Opacity="0.8" Margin="0,-8,0,0"/>
                 <TextBlock Text="❌ No actual blur of background content" FontSize="12" Foreground="Red" Opacity="0.8" Margin="0,-8,0,0"/>
                 <Border CornerRadius="16" Height="320" ClipToBounds="True">
@@ -168,7 +168,7 @@
             <!-- DaisyGlass Control - Bitmap Capture Mode -->
             <StackPanel Spacing="12">
                 <local:SectionHeader Title="DaisyGlass (Bitmap Capture Mode)" />
-                <TextBlock Text="BlurMode=BitmapCapture. Captures background once and blurs it." Opacity="0.7" FontSize="13"/>
+                <TextBlock Text="BlurMode=BitmapCapture. Captures background once and blurs it." Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                 <TextBlock Text="✅ Good quality blur, works without SkiaSharp GPU shaders" FontSize="12" Foreground="Green" Opacity="0.8" Margin="0,-8,0,0"/>
                 <TextBlock Text="❌ Static snapshot (doesn't update if content moves), slower initial render" FontSize="12" Foreground="Red" Opacity="0.8" Margin="0,-8,0,0"/>
                 <Border CornerRadius="16" Height="280" ClipToBounds="True">
@@ -216,7 +216,7 @@
             <!-- DaisyGlass Control - SkiaSharp Mode (Experimental) -->
             <StackPanel Spacing="12">
                 <local:SectionHeader Title="DaisyGlass (SkiaSharp Mode Matrix)" />
-                <TextBlock Text="BlurMode=SkiaSharp. Real-time GPU-accelerated blur with Saturation control." Opacity="0.7" FontSize="13"/>
+                <TextBlock Text="BlurMode=SkiaSharp. Real-time GPU-accelerated blur with Saturation control." Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                 <TextBlock Text="✅ Best quality, real-time updates, saturation support" FontSize="12" Foreground="Green" Opacity="0.8" Margin="0,-8,0,0"/>
                 <TextBlock Text="⚠️ Experimental, higher GPU usage" FontSize="12" Foreground="Orange" Opacity="0.8" Margin="0,-8,0,0"/>
 
@@ -251,7 +251,7 @@
             <!-- Full Width Example -->
             <StackPanel Spacing="12">
                 <local:SectionHeader Title="DaisyGlass (Full Width Example)" />
-                <TextBlock Text="Blur=30, Saturation=0.5 (Milky Effect)" Opacity="0.7" FontSize="13"/>
+                <TextBlock Text="Blur=30, Saturation=0.5 (Milky Effect)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                 <Border CornerRadius="16" Height="280" ClipToBounds="True">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">

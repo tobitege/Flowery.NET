@@ -19,7 +19,7 @@
                 <TextBlock x:Name="RevealDescription"
                     Text="{galloc:Localize Effects_Reveal_Description}"
                     Opacity="0.7"
-                    FontSize="13" Margin="0,0,0,4" />
+                    Margin="0,0,0,4" controls:FlowerySizeManager.ResponsiveFont="Primary" />
 
                 <controls:DaisyButton x:Name="ReplayButton"
                     Content="{galloc:Localize Effects_Reveal_ReplayButton}"
@@ -35,7 +35,7 @@
                                 FontWeight="SemiBold" FontSize="12" />
                             <TextBlock x:Name="FadeRevealDesc"
                                 Text="{galloc:Localize Effects_Reveal_FadeReveal_Desc}"
-                                Opacity="0.6" FontSize="11" />
+                                Opacity="0.6" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                             <Border x:Name="RevealDemo"
                                     Background="{DynamicResource DaisyPrimaryBrush}"
                                     CornerRadius="6" Padding="12"
@@ -59,7 +59,7 @@
                                 FontSize="12" />
                             <TextBlock x:Name="SlideInDesc"
                                 Text="{galloc:Localize Effects_Reveal_SlideIn_Desc}"
-                                Opacity="0.6" FontSize="11" />
+                                Opacity="0.6" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                             <Border x:Name="SlideInDemo"
                                     Background="{DynamicResource DaisySecondaryBrush}"
                                     CornerRadius="6" Padding="12"
@@ -84,7 +84,7 @@
                                 FontSize="12" />
                             <TextBlock x:Name="FadeOnlyDesc"
                                 Text="{galloc:Localize Effects_Reveal_FadeOnly_Desc}"
-                                Opacity="0.6" FontSize="11" />
+                                Opacity="0.6" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                             <Border x:Name="FadeOnlyDemo"
                                     Background="{DynamicResource DaisyAccentBrush}"
                                     CornerRadius="6" Padding="12"
@@ -107,7 +107,7 @@
                                 FontSize="12" />
                             <TextBlock x:Name="ScaleDesc" Opacity="0.6"
                                 Text="{galloc:Localize Effects_Reveal_Scale_Desc}"
-                                FontSize="11" />
+                                controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                             <Border x:Name="ScaleDemo"
                                     Background="{DynamicResource DaisyInfoBrush}"
                                     CornerRadius="6" Padding="12"
@@ -130,7 +130,7 @@
                                 FontWeight="SemiBold" FontSize="12" />
                             <TextBlock x:Name="ScaleSlideDesc"
                                 Text="{galloc:Localize Effects_Reveal_ScaleSlide_Desc}"
-                                Opacity="0.6" FontSize="11" />
+                                Opacity="0.6" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                             <Border x:Name="ScaleSlideDemo"
                                     Background="{DynamicResource DaisySuccessBrush}"
                                     CornerRadius="6" Padding="12"
@@ -178,7 +178,7 @@
                     Title="{galloc:Localize Effects_Scramble_Title}" />
                 <TextBlock x:Name="ScrambleDescription"
                     Text="{galloc:Localize Effects_Scramble_Description}"
-                    Opacity="0.7" FontSize="13" Margin="0,0,0,8" />
+                    Opacity="0.7" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Primary" />
 
                 <TextBlock x:Name="ScrambleInstruction"
                     Text="{galloc:Localize Effects_Scramble_Instruction}"
@@ -231,8 +231,8 @@
                     Title="{galloc:Localize Effects_Wave_Title}" />
                 <TextBlock x:Name="WaveDescription"
                     Text="{galloc:Localize Effects_Wave_Description}"
-                    Opacity="0.7" FontSize="13"
-                    Margin="0,0,0,8" />
+                    Opacity="0.7"
+                    Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Primary" />
 
                 <TextBlock x:Name="WaveInstruction"
                     Text="{galloc:Localize Effects_Wave_Instruction}"
@@ -265,7 +265,7 @@
                     Title="{galloc:Localize Effects_Typewriter_Title}" />
                 <TextBlock x:Name="TypewriterDescription"
                     Text="{galloc:Localize Effects_Typewriter_Description}"
-                    Opacity="0.7" FontSize="13" Margin="0,0,0,8" />
+                    Opacity="0.7" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Primary" />
 
                 <controls:DaisyButton x:Name="ReplayTypewriterButton"
                     Content="{galloc:Localize Effects_Typewriter_ReplayButton}"
@@ -289,7 +289,7 @@
                     Title="{galloc:Localize Effects_CursorFollow_Title}" />
                 <TextBlock x:Name="CursorFollowDescription"
                     Text="{galloc:Localize Effects_CursorFollow_Description}"
-                    Opacity="0.7" FontSize="13" Margin="0,0,0,8" />
+                    Opacity="0.7" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Primary" />
 
                 <TextBlock x:Name="CursorFollowInstruction"
                     Text="{galloc:Localize Effects_CursorFollow_Instruction}"
@@ -427,7 +427,7 @@
                 <TextBlock x:Name="ShowcaseFooterNote"
                     Text="{galloc:Localize Effects_Showcase_FooterNote}"
                     Opacity="0.7"
-                    FontSize="13" Margin="0,8,0,0" />
+                    Margin="0,8,0,0" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                 <controls:DaisyButton x:Name="StartShowcaseBtn" Click="StartShowcase_Click"
                     Content="{galloc:Localize Effects_Showcase_StartButton}"
                     Variant="Primary" Size="Small" HorizontalAlignment="Left" />

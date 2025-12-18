@@ -5,6 +5,7 @@ Flowery.NET uses centralized design tokens to ensure consistent sizing across al
 ## Overview
 
 Design tokens provide a single source of truth for:
+
 - **Control Heights** - Standard heights for buttons, inputs, selects
 - **Font Sizes** - Typography scale across controls
 - **Corner Radius** - Rounded corners for controls
@@ -63,7 +64,9 @@ Specific heights for `DaisyInput` with `LabelPosition="Floating"`. These add hea
 
 ### Font Sizes
 
-Typography scale used across controls.
+#### Primary Font Sizes
+
+Typography scale used across controls for main content.
 
 | Token | Default |
 |-------|---------|
@@ -72,6 +75,63 @@ Typography scale used across controls.
 | `DaisySizeMediumFontSize` | 14 |
 | `DaisySizeSmallFontSize` | 12 |
 | `DaisySizeExtraSmallFontSize` | 10 |
+
+#### Secondary Font Sizes
+
+For hint text, helper text, captions, labels (~0.8x of primary).
+
+| Token | Default |
+|-------|---------|
+| `DaisySizeExtraLargeSecondaryFontSize` | 16 |
+| `DaisySizeLargeSecondaryFontSize` | 14 |
+| `DaisySizeMediumSecondaryFontSize` | 12 |
+| `DaisySizeSmallSecondaryFontSize` | 10 |
+| `DaisySizeExtraSmallSecondaryFontSize` | 9 |
+
+#### Tertiary Font Sizes
+
+For very small captions, counters (~0.7x of primary).
+
+| Token | Default |
+|-------|---------|
+| `DaisySizeExtraLargeTertiaryFontSize` | 14 |
+| `DaisySizeLargeTertiaryFontSize` | 12 |
+| `DaisySizeMediumTertiaryFontSize` | 11 |
+| `DaisySizeSmallTertiaryFontSize` | 9 |
+| `DaisySizeExtraSmallTertiaryFontSize` | 8 |
+
+#### Header Font Sizes
+
+For section titles and headings (~1.4x of primary).
+
+| Token | Default |
+|-------|---------|
+| `DaisySizeExtraLargeHeaderFontSize` | 28 |
+| `DaisySizeLargeHeaderFontSize` | 24 |
+| `DaisySizeMediumHeaderFontSize` | 20 |
+| `DaisySizeSmallHeaderFontSize` | 16 |
+| `DaisySizeExtraSmallHeaderFontSize` | 14 |
+
+#### Responsive Font Attached Property
+
+Use `FlowerySizeManager.ResponsiveFont` attached property to make TextBlocks respond to global size changes. This subscribes to the `SizeChanged` event and updates font sizes programmatically.
+
+| Tier | Description | XS/S/M/L/XL Sizes |
+|------|-------------|-------------------|
+| `Primary` | Body text | 10/12/14/18/20 |
+| `Secondary` | Hints, captions | 9/10/12/14/16 |
+| `Tertiary` | Very small text | 8/9/11/12/14 |
+| `Header` | Section titles | 14/16/20/24/28 |
+
+**Usage:**
+
+```xml
+<TextBlock Text="Description text" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+<TextBlock Text="Secondary hint" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+<TextBlock Text="Section Title" controls:FlowerySizeManager.ResponsiveFont="Header" FontWeight="Bold" />
+```
+
+> **Note:** `DynamicResource` bindings to font size tokens don't update reliably due to Avalonia's nested resource scoping. Use the `ResponsiveFont` attached property instead for text that should scale with global size.
 
 ### Corner Radius
 
@@ -190,6 +250,7 @@ The following controls use design tokens for consistent sizing:
 - **DaisyKbd** - Heights, padding, font sizes, corner radius
 - **DaisyTextArea** - MinHeight, padding (multiline-specific)
 - **DaisyDateTimeline** - Item heights, padding, corner radius, font sizes
+- **DaisyNumberFlow** - LargeDisplay tokens (element sizes, buttons, container)
 
 ---
 
@@ -456,3 +517,39 @@ Outer border size for checkboxes and radio buttons.
 | `DaisyDateTimelineMediumHeaderFontSize` | 16 |
 | `DaisyDateTimelineSmallHeaderFontSize` | 14 |
 | `DaisyDateTimelineExtraSmallHeaderFontSize` | 12 |
+
+---
+
+## Large Display Tokens
+
+Tokens for dashboard-style display controls like `DaisyNumberFlow`, counters, and statistics displays. These are "bigger than normal" controls meant for prominent numeric displays.
+
+### Display Element (Digit Box) Sizing
+
+| Token | Default | Description |
+|-------|---------|-------------|
+| `LargeDisplayFontSize` | 36 | Font size for display digits |
+| `LargeDisplayElementHeight` | 86 | Height of each digit box |
+| `LargeDisplayElementWidth` | 58 | Width of each digit box |
+| `LargeDisplayElementCornerRadius` | 12 | Corner radius for digit boxes |
+| `LargeDisplayElementSpacing` | 4 | Gap between digit boxes |
+
+### Display Control Buttons
+
+| Token | Default | Description |
+|-------|---------|-------------|
+| `LargeDisplayButtonSize` | 42 | Width/height of +/- buttons |
+| `LargeDisplayButtonFontSize` | 20 | Font size for +/- symbols |
+| `LargeDisplayButtonCornerRadius` | 8 | Corner radius for buttons |
+| `LargeDisplayButtonSpacing` | 2 | Gap between stacked buttons |
+
+### Display Container (Outer Wrapper)
+
+| Token | Default | Description |
+|-------|---------|-------------|
+| `LargeDisplayContainerPadding` | 16 | Inner padding of container |
+| `LargeDisplayContainerCornerRadius` | 16 | Corner radius of container |
+
+### Controls Using LargeDisplay Tokens
+
+- **DaisyNumberFlow** - Animated number display control

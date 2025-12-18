@@ -71,6 +71,7 @@ public partial class SectionHeader : UserControl
         ["table"] = "DaisyTable",
         ["contributiongraph"] = "DaisyContributionGraph",
         ["animatednumber"] = "DaisyAnimatedNumber",
+        ["numberflow"] = "DaisyNumberFlow",
 
         // Date Display
         ["date-timeline"] = "DaisyDateTimeline",

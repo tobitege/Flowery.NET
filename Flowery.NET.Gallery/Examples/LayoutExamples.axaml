@@ -21,7 +21,7 @@
                         </StackPanel>
                     </controls:DaisyButton>
                 </StackPanel>
-                <TextBlock Text="A responsive sidebar that can show/hide. Click the hamburger button to toggle." Opacity="0.7" FontSize="12"/>
+                <TextBlock Text="A responsive sidebar that can show/hide. Click the hamburger button to toggle." Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Spacing="10" Margin="0,0,40,20">
                         <Border BorderBrush="{DynamicResource DaisyBase300Brush}" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
@@ -209,7 +209,7 @@
                 <TextBlock Text="With Navigation" FontWeight="SemiBold" FontSize="14" Opacity="0.8" Margin="0,12,0,0"/>
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Margin="0,0,30,20">
-                        <TextBlock Text="Horizontal" FontSize="12" Opacity="0.6" Margin="0,0,0,8"/>
+                        <TextBlock Text="Horizontal" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <controls:DaisyStack Width="200" Height="120" ShowNavigation="True" ShowCounter="True">
                             <Image
                                 Source="avares://Flowery.NET.Gallery/Assets/wallpaper_blue.jpg"
@@ -223,7 +223,7 @@
                         </controls:DaisyStack>
                     </StackPanel>
                     <StackPanel Margin="0,0,30,20">
-                        <TextBlock Text="Vertical" FontSize="12" Opacity="0.6" Margin="0,0,0,8"/>
+                        <TextBlock Text="Vertical" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <controls:DaisyStack Width="200" Height="140" ShowNavigation="True" ShowCounter="True"
                                              NavigationPlacement="Vertical" CounterPlacement="End">
                             <Border Background="#A78BFA" CornerRadius="8">
@@ -276,21 +276,21 @@
                 <TextBlock Text="Counter Placements" FontWeight="SemiBold" FontSize="14" Opacity="0.8" Margin="0,12,0,0"/>
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Margin="0,0,20,20">
-                        <TextBlock Text="Bottom" FontSize="12" Opacity="0.6" Margin="0,0,0,4"/>
+                        <TextBlock Text="Bottom" Opacity="0.6" Margin="0,0,0,4" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <controls:DaisyStack Width="130" Height="70" ShowNavigation="True" ShowCounter="True" CounterPlacement="Bottom">
                             <Border Background="#818CF8" CornerRadius="4"/>
                             <Border Background="#6366F1" CornerRadius="4"/>
                         </controls:DaisyStack>
                     </StackPanel>
                     <StackPanel Margin="0,0,20,20">
-                        <TextBlock Text="Top" FontSize="12" Opacity="0.6" Margin="0,0,0,4"/>
+                        <TextBlock Text="Top" Opacity="0.6" Margin="0,0,0,4" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <controls:DaisyStack Width="130" Height="70" ShowNavigation="True" ShowCounter="True" CounterPlacement="Top">
                             <Border Background="#2DD4BF" CornerRadius="4"/>
                             <Border Background="#14B8A6" CornerRadius="4"/>
                         </controls:DaisyStack>
                     </StackPanel>
                     <StackPanel Margin="0,0,20,20">
-                        <TextBlock Text="End" FontSize="12" Opacity="0.6" Margin="0,0,0,4"/>
+                        <TextBlock Text="End" Opacity="0.6" Margin="0,0,0,4" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <controls:DaisyStack Width="130" Height="70" ShowNavigation="True" ShowCounter="True" CounterPlacement="End">
                             <Border Background="#FB923C" CornerRadius="4"/>
                             <Border Background="#F97316" CornerRadius="4"/>

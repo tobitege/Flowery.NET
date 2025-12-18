@@ -293,6 +293,8 @@ class SiteGenerator:
         'FloweryResponsive',    # Responsive layout helper
         'FloweryComponentSidebar',  # Pre-built documentation/admin sidebar
         'FloweryScaleManager',  # Opt-in automatic font scaling
+        'FloweryScaleConverter',  # Window-based proportional scaling converter
+        'FlowerySizeManager',  # Global discrete size tiers (XS-XL)
     }
 
     def __init__(self, docs_dir: Path, output_dir: Path, curated_dir: Path | None = None):

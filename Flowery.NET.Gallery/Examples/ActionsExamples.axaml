@@ -142,7 +142,7 @@
                 <!-- Figma Comment -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="figma-comment" Title="Figma Comment (Recipe)" />
-                    <TextBlock Text="Interactive comment bubble that expands on click." Opacity="0.7" FontSize="13" />
+                    <TextBlock Text="Interactive comment bubble that expands on click." Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
 
                     <Border Height="150" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="12">
                         <Panel x:Name="CommentContainer" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -186,7 +186,7 @@
                     <local:SectionHeader SectionId="copybutton" Title="Copy Button" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="260">
-                            <TextBlock Text="Text copy with success state" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Text copy with success state" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <controls:DaisyCopyButton CopyText="Hello from Flowery.NET"
                                     MinWidth="80"
@@ -237,14 +237,14 @@
                     <local:SectionHeader SectionId="dropdownmenu" Title="Dropdown Menu" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="240">
-                            <TextBlock Text="Menu-style dropdown for actions (select → handle → reset)" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Menu-style dropdown for actions (select → handle → reset)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyDropdown x:Name="MenuDropdown"
                                 PlaceholderText="Pick action"
                                 ItemsSource="{Binding DropdownMenuItems}"
                                 Width="220"
                                 CloseOnSelection="True"
                                 SelectedItemChanged="OnMenuDropdownSelectedItemChanged" />
-                            <TextBlock Text="Tip: use this for action menus. For a value picker, prefer DaisySelect." FontSize="12" Opacity="0.6" TextWrapping="Wrap" />
+                            <TextBlock Text="Tip: use this for action menus. For a value picker, prefer DaisySelect." Opacity="0.6" TextWrapping="Wrap" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         </StackPanel>
                     </WrapPanel>
                 </StackPanel>
@@ -254,11 +254,11 @@
                 <!-- FAB / Speed Dial -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="fab" Title="FAB / Speed Dial" />
-                    <TextBlock Text="Click the FAB buttons below to expand" FontSize="12" Opacity="0.7"/>
+                    <TextBlock Text="Click the FAB buttons below to expand" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                     <WrapPanel Orientation="Horizontal">
                         <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="8" Margin="0,0,8,8" Width="85" Height="220">
                             <Grid>
-                                <TextBlock Text="Vertical" FontSize="10" Opacity="0.6" VerticalAlignment="Top"/>
+                                <TextBlock Text="Vertical" Opacity="0.6" VerticalAlignment="Top" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 <controls:DaisyFab TriggerContent="+" TriggerVariant="Primary" Size="Medium">
                                     <controls:DaisyButton Shape="Circle" Size="Medium" Content="A" Click="OnFabItemClick" Tag="Vertical A"/>
                                     <controls:DaisyButton Shape="Circle" Size="Medium" Content="B" Click="OnFabItemClick" Tag="Vertical B"/>
@@ -269,7 +269,7 @@
 
                         <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="8" Margin="0,0,8,8" Width="85" Height="220">
                             <Grid>
-                                <TextBlock Text="Icons" FontSize="10" Opacity="0.6" VerticalAlignment="Top"/>
+                                <TextBlock Text="Icons" Opacity="0.6" VerticalAlignment="Top" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 <controls:DaisyFab TriggerVariant="Secondary" Size="Medium">
                                     <controls:DaisyFab.TriggerContent>
                                         <PathIcon Data="{StaticResource DaisyIconPlus}" Width="16" Height="16" />
@@ -289,7 +289,7 @@
 
                         <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="8" Margin="0,0,8,8" Width="85" Height="220">
                             <Grid>
-                                <TextBlock Text="Flower" FontSize="10" Opacity="0.6" VerticalAlignment="Top"/>
+                                <TextBlock Text="Flower" Opacity="0.6" VerticalAlignment="Top" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 <controls:DaisyFab TriggerContent="F" TriggerVariant="Success" Layout="Flower" Size="Medium">
                                     <controls:DaisyButton Shape="Circle" Size="Medium" Content="A" Click="OnFabItemClick" Tag="Flower A"/>
                                     <controls:DaisyButton Shape="Circle" Size="Medium" Content="B" Click="OnFabItemClick" Tag="Flower B"/>
@@ -299,7 +299,7 @@
 
                         <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="8" Margin="0,0,8,8" Width="85" Height="220">
                             <Grid>
-                                <TextBlock Text="Variants" FontSize="10" Opacity="0.6" VerticalAlignment="Top"/>
+                                <TextBlock Text="Variants" Opacity="0.6" VerticalAlignment="Top" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 <controls:DaisyFab TriggerContent="★" TriggerVariant="Warning" Size="Medium">
                                     <controls:DaisyButton Shape="Circle" Size="Medium" Content="1" Variant="Info" Click="OnFabItemClick" Tag="Variant 1"/>
                                     <controls:DaisyButton Shape="Circle" Size="Medium" Content="2" Variant="Success" Click="OnFabItemClick" Tag="Variant 2"/>
@@ -354,10 +354,10 @@
                 <!-- Modal Corner Radii -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="modal-radii" Title="Modal Corner Radii" />
-                    <TextBlock Text="Modals support individual corner radius via TopLeftRadius, TopRightRadius, BottomLeftRadius, BottomRightRadius. Click a preview to open!" Opacity="0.7" FontSize="13"/>
+                    <TextBlock Text="Modals support individual corner radius via TopLeftRadius, TopRightRadius, BottomLeftRadius, BottomRightRadius. Click a preview to open!" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="280">
-                            <TextBlock Text="Default Corners (uniform 16px)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Default Corners (uniform 16px)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <Button Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="OpenDefaultModal_Click">
                                 <Border Background="{DynamicResource DaisyBase200Brush}" Height="150" Width="280" CornerRadius="8" ClipToBounds="True">
                                     <controls:DaisyModal IsOpen="True">
@@ -367,7 +367,7 @@
                             </Button>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="280">
-                            <TextBlock Text="Custom Corners (pill top)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Custom Corners (pill top)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <Button Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="OpenPillTopModal_Click">
                                 <Border Background="{DynamicResource DaisyBase200Brush}" Height="150" Width="280" CornerRadius="8" ClipToBounds="True">
                                     <controls:DaisyModal IsOpen="True"
@@ -379,7 +379,7 @@
                             </Button>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="280">
-                            <TextBlock Text="Sharp Corners (0px)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Sharp Corners (0px)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <Button Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="OpenSharpModal_Click">
                                 <Border Background="{DynamicResource DaisyBase200Brush}" Height="150" Width="280" CornerRadius="8" ClipToBounds="True">
                                     <controls:DaisyModal IsOpen="True"
@@ -401,12 +401,12 @@
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="12" Margin="0,0,40,20" Width="300">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <TextBlock Text="Text swap" FontSize="12" Opacity="0.7" VerticalAlignment="Center" Width="140"/>
+                                <TextBlock Text="Text swap" Opacity="0.7" VerticalAlignment="Center" Width="140" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                                 <controls:DaisySwap OffContent="OFF" OnContent="ON" FontSize="18" FontWeight="Bold" />
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <TextBlock Text="Volume icons" FontSize="12" Opacity="0.7" VerticalAlignment="Center" Width="140"/>
+                                <TextBlock Text="Volume icons" Opacity="0.7" VerticalAlignment="Center" Width="140" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                                 <controls:DaisySwap>
                                     <controls:DaisySwap.OffContent>
                                         <PathIcon Width="32" Height="32" Foreground="{DynamicResource DaisyBaseContentBrush}"
@@ -420,7 +420,7 @@
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <TextBlock Text="Rotate effect (sun/moon)" FontSize="12" Opacity="0.7" VerticalAlignment="Center" Width="140"/>
+                                <TextBlock Text="Rotate effect (sun/moon)" Opacity="0.7" VerticalAlignment="Center" Width="140" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                                 <controls:DaisySwap TransitionEffect="Rotate">
                                     <controls:DaisySwap.OffContent>
                                         <PathIcon Width="28" Height="28" Foreground="{DynamicResource DaisyBaseContentBrush}"
@@ -434,7 +434,7 @@
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <TextBlock Text="Hamburger button" FontSize="12" Opacity="0.7" VerticalAlignment="Center" Width="140"/>
+                                <TextBlock Text="Hamburger button" Opacity="0.7" VerticalAlignment="Center" Width="140" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                                 <controls:DaisySwap TransitionEffect="Rotate">
                                     <controls:DaisySwap.OffContent>
                                         <PathIcon Width="24" Height="24" Foreground="{DynamicResource DaisyBaseContentBrush}"
@@ -448,7 +448,7 @@
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <TextBlock Text="Flip effect (emoji)" FontSize="12" Opacity="0.7" VerticalAlignment="Center" Width="140"/>
+                                <TextBlock Text="Flip effect (emoji)" Opacity="0.7" VerticalAlignment="Center" Width="140" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                                 <controls:DaisySwap TransitionEffect="Flip">
                                     <controls:DaisySwap.OffContent>
                                         <PathIcon Width="48" Height="48"

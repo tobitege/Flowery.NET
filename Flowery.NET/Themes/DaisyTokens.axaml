@@ -57,6 +57,14 @@
     <sys:Double x:Key="DaisySizeSmallTertiaryFontSize">9</sys:Double>
     <sys:Double x:Key="DaisySizeExtraSmallTertiaryFontSize">8</sys:Double>
 
+    <!-- Header font sizes for section titles, headings -->
+    <!-- These are ~1.4x of primary sizes -->
+    <sys:Double x:Key="DaisySizeExtraLargeHeaderFontSize">28</sys:Double>
+    <sys:Double x:Key="DaisySizeLargeHeaderFontSize">24</sys:Double>
+    <sys:Double x:Key="DaisySizeMediumHeaderFontSize">20</sys:Double>
+    <sys:Double x:Key="DaisySizeSmallHeaderFontSize">16</sys:Double>
+    <sys:Double x:Key="DaisySizeExtraSmallHeaderFontSize">14</sys:Double>
+
     <!-- ==================== CORNER RADIUS ==================== -->
     <CornerRadius x:Key="DaisySizeExtraLargeCornerRadius">12</CornerRadius>
     <CornerRadius x:Key="DaisySizeLargeCornerRadius">10</CornerRadius>
@@ -305,5 +313,26 @@
     <sys:Double x:Key="DaisyDateTimelineMediumHeaderFontSize">16</sys:Double>
     <sys:Double x:Key="DaisyDateTimelineSmallHeaderFontSize">14</sys:Double>
     <sys:Double x:Key="DaisyDateTimelineExtraSmallHeaderFontSize">12</sys:Double>
+
+    <!-- ==================== LARGE DISPLAY CONTROL SIZES ==================== -->
+    <!-- Used for dashboard-style display controls like NumberFlow, counters, stats -->
+    <!-- These are "bigger than normal" controls meant for prominent numeric displays -->
+
+    <!-- Display element (digit box) sizing -->
+    <sys:Double x:Key="LargeDisplayFontSize">36</sys:Double>
+    <sys:Double x:Key="LargeDisplayElementHeight">86</sys:Double>
+    <sys:Double x:Key="LargeDisplayElementWidth">58</sys:Double>
+    <CornerRadius x:Key="LargeDisplayElementCornerRadius">12</CornerRadius>
+    <sys:Double x:Key="LargeDisplayElementSpacing">4</sys:Double>
+
+    <!-- Display control buttons (+/- buttons) -->
+    <sys:Double x:Key="LargeDisplayButtonSize">42</sys:Double>
+    <sys:Double x:Key="LargeDisplayButtonFontSize">20</sys:Double>
+    <CornerRadius x:Key="LargeDisplayButtonCornerRadius">8</CornerRadius>
+    <sys:Double x:Key="LargeDisplayButtonSpacing">2</sys:Double>
+
+    <!-- Display container (outer wrapper) -->
+    <Thickness x:Key="LargeDisplayContainerPadding">16</Thickness>
+    <CornerRadius x:Key="LargeDisplayContainerCornerRadius">16</CornerRadius>
 
 </ResourceDictionary>

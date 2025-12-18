@@ -6,16 +6,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.7.x] - Unreleased
+## [1.7.1] - 2025-12-18
 
 ### Fixed
 
 - **Binding Errors**: Fixed runtime binding errors when using converters with structural types
   - `DaisyInput`/`DaisyMaskInput`: Fixed `Margin` binding to `StartIcon` that incorrectly used `ObjectConverters.IsNotNull` (returns `bool`) with a `ConverterParameter` expecting `Thickness` output
   - `ScaleExtension`: Fixed `Padding`/`Margin` bindings to `ScaledValue` failing because `double` cannot auto-convert to `Thickness`
+- **Gallery App**: Global Size selection is now remembered across restarts (persisted like Theme/Language); renamed `ThemeSettings.cs` to `GallerySettings.cs`
+- **DaisyToast**: Fixed default transparent toast container background which could make toast content unreadable depending on what's behind it
 
 ### New
 
+- **DaisyNumberFlow**: New high-quality numeric display with individual digit scrolling animations
+  - Smooth, granular animation: only changed digits are animated
+  - Fully locale-aware: supports all standard .NET format strings (C2, P0, N2, etc.)
+  - Configurable easing and duration
+  - WASM-compatible manual interpolation for consistent performance
 - **FloweryConverters**: Added new converter utilities in `Flowery.Services`
   - `NullToThicknessConverter`: Returns a `Thickness` from `ConverterParameter` when value is not null, zero otherwise
   - `DoubleToThicknessConverter`: Converts a `double` to a uniform `Thickness`
@@ -23,6 +30,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Enhanced
 
 - **ScaleExtension**: Now automatically detects when the target property type is `Thickness` (Padding, Margin, etc.) and applies `DoubleToThicknessConverter` internally
+
+### Design Tokens
+
+- **Font Size Tiers**: Added comprehensive typography scale to `DaisyTokens.axaml`
+  - `DaisySize{Size}SecondaryFontSize`: For hint text, helper text, captions (~0.8x of primary)
+  - `DaisySize{Size}TertiaryFontSize`: For very small captions, counters (~0.7x of primary)
+  - `DaisySize{Size}HeaderFontSize`: For section titles, headings (~1.4x of primary)
+- **FlowerySizeManager.ResponsiveFont**: New attached property for responsive font sizing
+  - Tiers: `Primary`, `Secondary`, `Tertiary`, `Header`
+  - Usage: `<TextBlock controls:FlowerySizeManager.ResponsiveFont="Primary" />`
+  - Automatically subscribes to `SizeChanged` event and updates font size programmatically
+
+### Gallery App
+
+- **Responsive Example Descriptions**: All example section descriptions now scale with the global size selector using `ResponsiveFont` attached property
+
+### Documentation
+
+- **FlowerySizeManager.md**: New dedicated documentation for global size management
+  - API reference, attached properties (`IgnoreGlobalSize`, `ResponsiveFont`)
+  - Custom control integration patterns
+  - Comparison with FloweryScaleManager
+- **SizingScaling.md**: Added "Responsive Font for TextBlocks" section
+  - Documents the `ResponsiveFont` attached property
+  - Explains why DynamicResource doesn't work for this use case
+- **DesignTokens.md**: Updated font size documentation with attached property usage
+
+### Refactored
+
+- **Localization**: Centralized supported languages list to eliminate code duplication
+  - `FloweryLocalization.SupportedLanguages`: Public static list of all language codes
+  - `FloweryLocalization.LanguageDisplayNames`: Public dictionary of native display names
+  - `SidebarLanguage.CreateAll()`: Factory method using centralized data
+  - Gallery app now consumes library's list instead of hardcoding languages
+  - Updated LOCALIZATION.md with new API documentation
 
 ## [1.7.0] - 2025-12-18
 

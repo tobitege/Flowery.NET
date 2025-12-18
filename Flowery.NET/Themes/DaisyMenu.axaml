@@ -22,7 +22,6 @@
     <Styles.Resources>
         <!-- ListBoxItem theme for DaisyMenu -->
         <ControlTheme x:Key="DaisyMenuItemTheme" TargetType="ListBoxItem">
-            <Setter Property="Padding" Value="{DynamicResource DaisyMenuMediumPadding}" />
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
@@ -131,6 +130,12 @@
         </ControlTheme>
     </Styles.Resources>
 
+    <!-- Default (Medium) item sizing -->
+    <Style Selector="controls|DaisyMenu ListBoxItem">
+        <Setter Property="Padding" Value="{DynamicResource DaisyMenuMediumPadding}" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisyMenuMediumFontSize}" />
+    </Style>
+
     <!-- Sizes (must be outside ControlTheme due to child selector restriction) -->
     <Style Selector="controls|DaisyMenu[Size=ExtraSmall] ListBoxItem">
         <Setter Property="Padding" Value="{DynamicResource DaisyMenuExtraSmallPadding}" />
@@ -139,6 +144,10 @@
     <Style Selector="controls|DaisyMenu[Size=Small] ListBoxItem">
         <Setter Property="Padding" Value="{DynamicResource DaisyMenuSmallPadding}" />
         <Setter Property="FontSize" Value="{DynamicResource DaisyMenuSmallFontSize}" />
+    </Style>
+    <Style Selector="controls|DaisyMenu[Size=Medium] ListBoxItem">
+        <Setter Property="Padding" Value="{DynamicResource DaisyMenuMediumPadding}" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisyMenuMediumFontSize}" />
     </Style>
     <Style Selector="controls|DaisyMenu[Size=Large] ListBoxItem">
         <Setter Property="Padding" Value="{DynamicResource DaisyMenuLargePadding}" />

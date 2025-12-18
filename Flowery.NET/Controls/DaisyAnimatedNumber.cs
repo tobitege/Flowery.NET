@@ -156,6 +156,10 @@ namespace Flowery.Controls
             _cts = new CancellationTokenSource();
             var ct = _cts.Token;
 
+            // Update _lastValue IMMEDIATELY so subsequent rapid changes use correct reference
+            // This fixes animation direction bugs when buttons are pressed rapidly
+            _lastValue = newValue;
+
             var isIncreasing = newValue > oldValue;
             var distance = SlideDistance;
 
@@ -187,6 +191,7 @@ namespace Flowery.Controls
             }
             catch (OperationCanceledException)
             {
+                // Animation cancelled by new value change - _lastValue already updated above
                 return;
             }
 
@@ -196,8 +201,6 @@ namespace Flowery.Controls
             _currentText.Opacity = 1;
             _prevTransform.Y = 0;
             _currentTransform.Y = 0;
-
-            _lastValue = newValue;
         }
 
         private string Format(int value)

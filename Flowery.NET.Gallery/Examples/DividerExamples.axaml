@@ -13,7 +13,7 @@
             <!-- Divider -->
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="divider" Title="Divider" />
-                <TextBlock Text="Divider separates content vertically or horizontally." Opacity="0.7" FontSize="13" Margin="0,0,0,8"/>
+                <TextBlock Text="Divider separates content vertically or horizontally." Opacity="0.7" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Primary" />
 
                 <!-- Basic divider with text -->
                 <TextBlock Text="Divider with text" FontWeight="SemiBold" Margin="0,0,0,4"/>
@@ -83,7 +83,7 @@
 
                 <!-- Divider with custom margin -->
                 <TextBlock Text="Custom DividerMargin" FontWeight="SemiBold" Margin="0,16,0,4"/>
-                <TextBlock Text="DividerMargin property controls the spacing around the divider line" Opacity="0.7" FontSize="13" Margin="0,0,0,8"/>
+                <TextBlock Text="DividerMargin property controls the spacing around the divider line" Opacity="0.7" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
                     <StackPanel Width="400">
                         <TextBlock Text="Content" HorizontalAlignment="Center"/>

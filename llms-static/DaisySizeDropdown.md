@@ -151,7 +151,7 @@ The dropdown automatically syncs with `FlowerySizeManager.CurrentSize`.
 - **On external size change**: Syncs to match the current global size
 - **On culture change**: Refreshes localized display names
 
-For comprehensive documentation on the sizing system, see [SizingScaling](SizingScaling.md).
+For comprehensive documentation on the sizing system, see [SizingScaling](https://tobitege.github.io/Flowery.NET/#SizingScaling).
 
 ---
 

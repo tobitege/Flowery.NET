@@ -19,6 +19,33 @@ namespace Flowery.Localization
     /// </summary>
     public class FloweryLocalization : INotifyPropertyChanged
     {
+        /// <summary>
+        /// List of supported language codes. Apps can use this to iterate and load their own translations.
+        /// </summary>
+        public static readonly IReadOnlyList<string> SupportedLanguages = new[]
+        {
+            "en", "de", "fr", "es", "it", "ja", "ko", "zh-CN", "ar", "tr", "uk", "he"
+        };
+
+        /// <summary>
+        /// Native display names for each supported language code.
+        /// </summary>
+        public static readonly IReadOnlyDictionary<string, string> LanguageDisplayNames = new Dictionary<string, string>
+        {
+            ["en"] = "English",
+            ["de"] = "Deutsch",
+            ["fr"] = "Français",
+            ["es"] = "Español",
+            ["it"] = "Italiano",
+            ["ja"] = "日本語",
+            ["ko"] = "한국어",
+            ["zh-CN"] = "简体中文",
+            ["ar"] = "العربية",
+            ["tr"] = "Türkçe",
+            ["uk"] = "Українська",
+            ["he"] = "עברית"
+        };
+
         private static CultureInfo _currentCulture = CultureInfo.CurrentUICulture;
         private static readonly Dictionary<string, Dictionary<string, string>> _translations = new();
         private static readonly Lazy<FloweryLocalization> _instance = new(() => new FloweryLocalization());
@@ -41,18 +68,8 @@ namespace Flowery.Localization
         static FloweryLocalization()
         {
             // Load all available translations from embedded JSON resources
-            LoadTranslation("en");
-            LoadTranslation("de");
-            LoadTranslation("fr");
-            LoadTranslation("es");
-            LoadTranslation("it");
-            LoadTranslation("ja");
-            LoadTranslation("ko");
-            LoadTranslation("zh-CN");
-            LoadTranslation("ar");
-            LoadTranslation("tr");
-            LoadTranslation("uk");
-            LoadTranslation("he");
+            foreach (var lang in SupportedLanguages)
+                LoadTranslation(lang);
         }
 
         private FloweryLocalization()

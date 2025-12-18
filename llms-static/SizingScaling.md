@@ -119,6 +119,50 @@ All DaisyUI controls with a `Size` property respond to global size changes:
 - `DaisyDateTimeline`
 - And more...
 
+## Responsive Font for TextBlocks
+
+For regular `TextBlock` elements that should scale with the global size, use the `ResponsiveFont` attached property:
+
+```xml
+<TextBlock Text="Description text" 
+           controls:FlowerySizeManager.ResponsiveFont="Primary" />
+```
+
+### Available Tiers
+
+| Tier | Description | XS/S/M/L/XL Font Sizes |
+|------|-------------|------------------------|
+| `Primary` | Body text, descriptions | 10/12/14/18/20 |
+| `Secondary` | Hints, captions, labels | 9/10/12/14/16 |
+| `Tertiary` | Very small text, counters | 8/9/11/12/14 |
+| `Header` | Section titles, headings | 14/16/20/24/28 |
+
+### Examples
+
+```xml
+<!-- Body text -->
+<TextBlock Text="This is a description that scales with global size."
+           controls:FlowerySizeManager.ResponsiveFont="Primary" />
+
+<!-- Hint/caption text -->
+<TextBlock Text="Optional field" Opacity="0.7"
+           controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+
+<!-- Section header -->
+<TextBlock Text="Settings" FontWeight="Bold"
+           controls:FlowerySizeManager.ResponsiveFont="Header" />
+```
+
+### How It Works
+
+The attached property:
+1. Subscribes the TextBlock to `FlowerySizeManager.SizeChanged`
+2. Immediately applies the font size for the current global size
+3. Updates automatically when the global size changes
+4. Cleans up the subscription when the control is unloaded
+
+> **Note:** `DynamicResource` bindings to dynamically updated resources don't propagate reliably in Avalonia due to nested resource dictionary scoping. The `ResponsiveFont` attached property is the recommended approach for text that should scale with global size.
+
 ## Making Custom Controls Size-Aware
 
 To make your own controls respond to global size changes:
@@ -455,4 +499,4 @@ If Auto Scaling is on, but you want specific controls to use the fixed Global Si
 
 ### Learn More
 
-For comprehensive documentation on `FloweryScaleManager`, including configuration, custom control support, and helper methods, see [FloweryScaleManager](FloweryScaleManager.md).
+For comprehensive documentation on `FloweryScaleManager`, including configuration, custom control support, and helper methods, see [FloweryScaleManager](https://tobitege.github.io/Flowery.NET/#FloweryScaleManager).

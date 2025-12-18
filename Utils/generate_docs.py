@@ -1139,6 +1139,7 @@ class DocumentationGenerator:
             'table': 'DaisyTable',
             'contributiongraph': 'DaisyContributionGraph',
             'animatednumber': 'DaisyAnimatedNumber',
+            'numberflow': 'DaisyNumberFlow',
             'timeline': 'DaisyTimeline',
             'datetimeline': 'DaisyDateTimeline',
             'breadcrumbs': 'DaisyBreadcrumbs',

@@ -35,7 +35,7 @@
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16" Margin="0,8,0,0">
                     <StackPanel Spacing="12">
                         <TextBlock Text="🎨 Classic DaisyUI Variants" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
-                        <TextBlock Text="Original loading animations from DaisyUI component library" FontSize="12" Opacity="0.6" Margin="0,0,0,8"/>
+                        <TextBlock Text="Original loading animations from DaisyUI component library" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <WrapPanel Orientation="Horizontal"
                             controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <StackPanel Spacing="10" Margin="0,0,40,12">
@@ -120,7 +120,7 @@
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16" Margin="0,16,0,0">
                     <StackPanel Spacing="12">
                         <TextBlock Text="💻 Terminal-Style Variants" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
-                        <TextBlock Text="CLI-inspired animations reminiscent of npm, yarn, and terminal progress indicators" FontSize="12" Opacity="0.6" Margin="0,0,0,8"/>
+                        <TextBlock Text="CLI-inspired animations reminiscent of npm, yarn, and terminal progress indicators" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <WrapPanel Orientation="Horizontal"
                             controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <StackPanel Spacing="10" Margin="0,0,40,12">
@@ -193,7 +193,7 @@
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16" Margin="0,16,0,0">
                     <StackPanel Spacing="12">
                         <TextBlock Text="⬡ Matrix Colon Patterns" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
-                        <TextBlock Text="Colon-dot patterns ( ::: ::: ) with directional wave animations" FontSize="12" Opacity="0.6" Margin="0,0,0,8"/>
+                        <TextBlock Text="Colon-dot patterns ( ::: ::: ) with directional wave animations" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <WrapPanel Orientation="Horizontal">
                             <StackPanel Spacing="10" Margin="0,0,40,12">
                                 <TextBlock Text="Matrix (left→right)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
@@ -252,7 +252,7 @@
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                     <controls:DaisyLoading Variant="Matrix" Size="Medium" Color="Info" />
-                                    <TextBlock Text="Loading data..." VerticalAlignment="Center" FontSize="14" Opacity="0.7"/>
+                                    <TextBlock Text="Loading data..." VerticalAlignment="Center" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                                 </StackPanel>
                             </StackPanel>
                         </WrapPanel>
@@ -265,7 +265,7 @@
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16" Margin="0,16,0,0">
                     <StackPanel Spacing="12">
                         <TextBlock Text="● Dot-Based Effects" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
-                        <TextBlock Text="Animated dot patterns including rain, ripples, bursts, and orbital motions" FontSize="12" Opacity="0.6" Margin="0,0,0,8"/>
+                        <TextBlock Text="Animated dot patterns including rain, ripples, bursts, and orbital motions" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <WrapPanel Orientation="Horizontal">
                             <StackPanel Spacing="10" Margin="0,0,40,12">
                                 <TextBlock Text="MatrixRain (digital rain)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
@@ -326,7 +326,7 @@
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16" Margin="0,16,0,0">
                     <StackPanel Spacing="12">
                         <TextBlock Text="✨ Special Effects" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
-                        <TextBlock Text="Unique animations including hourglass, oscilloscope, EKG pulse, and glitch effects" FontSize="12" Opacity="0.6" Margin="0,0,0,8"/>
+                        <TextBlock Text="Unique animations including hourglass, oscilloscope, EKG pulse, and glitch effects" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <WrapPanel Orientation="Horizontal">
                             <StackPanel Spacing="10" Margin="0,0,40,12">
                                 <TextBlock Text="Hourglass (classic timer)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
@@ -397,7 +397,7 @@
                     <StackPanel Spacing="10" Margin="0,0,40,20" Width="260">
                         <TextBlock Text="Animated value updates" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                         <Slider x:Name="ProgressDemoSlider" Minimum="0" Maximum="100" Value="40" />
-                        <TextBlock Text="{Binding Value, ElementName=ProgressDemoSlider, StringFormat={}{0:0}%}" Opacity="0.7" FontSize="12" />
+                        <TextBlock Text="{Binding Value, ElementName=ProgressDemoSlider, StringFormat={}{0:0}%}" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <controls:DaisyProgress Value="{Binding Value, ElementName=ProgressDemoSlider}" />
                         <controls:DaisyProgress Value="{Binding Value, ElementName=ProgressDemoSlider}" Variant="Primary" />
                     </StackPanel>
@@ -469,10 +469,10 @@
             <!-- Toast -->
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="toast" Title="Toast" />
-                <TextBlock Text="Toast supports position customization via ToastHorizontalOffset and ToastVerticalOffset properties" Opacity="0.7" FontSize="13"/>
+                <TextBlock Text="Toast supports position customization via ToastHorizontalOffset and ToastVerticalOffset properties" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Spacing="10" Margin="0,0,40,20">
-                        <TextBlock Text="Default Position (16px offset)" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="Default Position (16px offset)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                         <Border Background="{DynamicResource DaisyBase200Brush}" Width="300" Height="200" ClipToBounds="True" CornerRadius="8">
                             <Grid>
                                 <TextBlock Text="Toast Demo" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.5"/>
@@ -483,7 +483,7 @@
                         </Border>
                     </StackPanel>
                     <StackPanel Spacing="10" Margin="0,0,40,20">
-                        <TextBlock Text="Custom Offset (32px)" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="Custom Offset (32px)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                         <Border Background="{DynamicResource DaisyBase200Brush}" Width="300" Height="200" ClipToBounds="True" CornerRadius="8">
                             <Grid>
                                 <controls:DaisyToast HorizontalAlignment="Right" VerticalAlignment="Bottom"
@@ -494,7 +494,7 @@
                         </Border>
                     </StackPanel>
                     <StackPanel Spacing="10" Margin="0,0,40,20">
-                        <TextBlock Text="Top-Left Position" FontSize="12" Opacity="0.7"/>
+                        <TextBlock Text="Top-Left Position" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                         <Border Background="{DynamicResource DaisyBase200Brush}" Width="300" Height="200" ClipToBounds="True" CornerRadius="8">
                             <Grid>
                                 <controls:DaisyToast HorizontalAlignment="Left" VerticalAlignment="Top"

@@ -77,6 +77,7 @@ public static class GallerySidebarData
                     new SidebarItem { Id = "hover-gallery", Name = "Sidebar_HoverGallery", TabHeader = "Sidebar_DataDisplay" },
                     new SidebarItem { Id = "kbd", Name = "Sidebar_Kbd", TabHeader = "Sidebar_DataDisplay" },
                     new SidebarItem { Id = "list", Name = "Sidebar_List", TabHeader = "Sidebar_DataDisplay" },
+                    new SidebarItem { Id = "numberflow", Name = "Sidebar_NumberFlow", TabHeader = "Sidebar_DataDisplay" },
                     new SidebarItem { Id = "stat", Name = "Sidebar_Stat", TabHeader = "Sidebar_DataDisplay" },
                     new SidebarItem { Id = "status", Name = "Sidebar_Status", TabHeader = "Sidebar_DataDisplay" },
                     new SidebarItem { Id = "table", Name = "Sidebar_Table", TabHeader = "Sidebar_DataDisplay" },
@@ -240,23 +241,11 @@ public static class GallerySidebarData
 
     /// <summary>
     /// Creates the default languages for the Gallery showcase app.
+    /// Uses the centralized language data from the library.
     /// </summary>
     public static ObservableCollection<SidebarLanguage> CreateLanguages()
     {
-        return new ObservableCollection<SidebarLanguage>
-        {
-            new SidebarLanguage { Code = "en", DisplayName = "English" },
-            new SidebarLanguage { Code = "de", DisplayName = "Deutsch" },
-            new SidebarLanguage { Code = "es", DisplayName = "Español" },
-            new SidebarLanguage { Code = "fr", DisplayName = "Français" },
-            new SidebarLanguage { Code = "it", DisplayName = "Italiano" },
-            new SidebarLanguage { Code = "ja", DisplayName = "日本語" },
-            new SidebarLanguage { Code = "ko", DisplayName = "한국어" },
-            new SidebarLanguage { Code = "ar", DisplayName = "العربية" },
-            new SidebarLanguage { Code = "tr", DisplayName = "Türkçe" },
-            new SidebarLanguage { Code = "uk", DisplayName = "Українська" },
-            new SidebarLanguage { Code = "zh-CN", DisplayName = "简体中文" },
-        };
+        return SidebarLanguage.CreateAll();
     }
 }
 

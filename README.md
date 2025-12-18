@@ -108,6 +108,7 @@ xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
 - **Hover Gallery** (`DaisyHoverGallery`): Image/Content gallery driven by mouse hover position.
 - **Kbd** (`DaisyKbd`): Keyboard key visual style.
 - **List** (`DaisyList`, `DaisyListRow`, `DaisyListColumn`): Vertical list layout with flexible row structure. Supports grow columns and wrapped content.
+- **Number Flow** (`DaisyNumberFlow`): High-quality numeric display with individual digit scrolling animations. Inspired by SmoothUI.
 - **Stat** (`DaisyStat`): Statistics block with Title, Value, and Description.
 - **Table** (`DaisyTable`): Styled items control for tabular data.
 - **Text Rotate** (`DaisyTextRotate`): Animated text that cycles through items with configurable duration and pause-on-hover.
@@ -197,6 +198,7 @@ Supported: `DaisyLoading`, `DaisyProgress`, `DaisyRadialProgress`, `DaisyStatusI
 - **Dropdown** (`DaisyDropdown`): Menu-style dropdown (Popup + DaisyMenu) for action menus.
 - **Expandable Card** (`DaisyExpandableCard`): Card that expands to reveal secondary content with smooth width animation.
 - **Modifier Keys** (`DaisyModifierKeys`): Visualizes keyboard modifiers (Shift, Ctrl, Alt) and locks.
+- **Number Flow** (`DaisyNumberFlow`): High-quality numeric display with individual digit scrolling animations. Inspired by SmoothUI.
 - **OTP Input** (`DaisyOtpInput`): Multi-slot verification-code/OTP input with animated focus transitions and auto-advance.
 - **Popover** (`DaisyPopover`): Popup-based popover control for rich hover/click content.
 - **Tag Picker** (`DaisyTagPicker`): Multi-select chip/tag picker with add/remove icons.

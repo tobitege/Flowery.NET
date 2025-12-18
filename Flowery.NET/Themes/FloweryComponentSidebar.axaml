@@ -134,17 +134,47 @@
                                                                         BorderThickness="0"
                                                                         CornerRadius="6"
                                                                         Cursor="Hand">
-                                                                    <Grid ColumnDefinitions="*,Auto">
+                                                                    <Grid
+                                                                        ColumnDefinitions="*,Auto,Auto">
                                                                         <TextBlock Grid.Column="0"
                                                                             Text="{Binding DisplayName}"
                                                                             VerticalAlignment="Center" />
-                                                                        <controls:DaisyBadge Grid.Column="1"
-                                                                                                Variant="Neutral"
-                                                                                                Size="ExtraSmall"
-                                                                                                IsVisible="{Binding Badge, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                                                                                Content="{Binding Badge}"
-                                                                                                Margin="8,0,0,0"
-                                                                                                Opacity="0.7" />
+                                                                        <!-- Favorite Star Button -->
+                                                                        <Button Grid.Column="1"
+                                                                            Classes="sidebar-favorite-btn"
+                                                                            Tag="{Binding}"
+                                                                            Background="Transparent"
+                                                                            BorderThickness="0"
+                                                                            Padding="4,2"
+                                                                            Margin="4,0,0,0"
+                                                                            Cursor="Hand"
+                                                                            IsVisible="{Binding ShowFavoriteIcon}">
+                                                                            <Panel>
+                                                                                <!-- Filled star
+                                                                                when favorite -->
+                                                                                <PathIcon Width="14"
+                                                                                    Height="14"
+                                                                                    Foreground="{DynamicResource DaisyWarningBrush}"
+                                                                                    IsVisible="{Binding IsFavorite}"
+                                                                                    Data="{StaticResource DaisyIconStarFilled}" />
+                                                                                <!-- Outline star
+                                                                                when not favorite -->
+                                                                                <PathIcon Width="14"
+                                                                                    Height="14"
+                                                                                    Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                                                                    Opacity="0.5"
+                                                                                    IsVisible="{Binding !IsFavorite}"
+                                                                                    Data="{StaticResource DaisyIconStarOutline}" />
+                                                                            </Panel>
+                                                                        </Button>
+                                                                        <controls:DaisyBadge
+                                                                            Grid.Column="2"
+                                                                            Variant="Neutral"
+                                                                            Size="ExtraSmall"
+                                                                            IsVisible="{Binding Badge, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                                            Content="{Binding Badge}"
+                                                                            Margin="8,0,0,0"
+                                                                            Opacity="0.7" />
                                                                     </Grid>
                                                                 </Button>
                                                             </DataTemplate>
@@ -226,6 +256,17 @@
     <Style Selector="Button.sidebar-item.selected">
         <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryContentBrush}" />
+    </Style>
+
+    <!-- Sidebar favorite button styles -->
+    <Style Selector="Button.sidebar-favorite-btn">
+        <Setter Property="Opacity" Value="0.6" />
+    </Style>
+    <Style Selector="Button.sidebar-favorite-btn:pointerover">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="Button.sidebar-favorite-btn:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
     </Style>
 
 </Styles>

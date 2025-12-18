@@ -17,7 +17,7 @@
                     <local:SectionHeader SectionId="checkbox" Title="Checkbox" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                            <TextBlock Text="Color Variants" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Color Variants" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyCheckBox Content="Default" />
                             <controls:DaisyCheckBox Content="Primary" Variant="Primary"
                                 IsChecked="True" />
@@ -29,7 +29,7 @@
                                 IsChecked="True" />
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                            <TextBlock Text="Status Variants" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Status Variants" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyCheckBox Content="Success" Variant="Success"
                                 IsChecked="True" />
                             <controls:DaisyCheckBox Content="Warning" Variant="Warning"
@@ -39,7 +39,7 @@
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200"
                             controls:FlowerySizeManager.IgnoreGlobalSize="True">
-                            <TextBlock Text="Sizes" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Sizes" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyCheckBox Content="Extra Small" Size="ExtraSmall"
                                 IsChecked="True" />
                             <controls:DaisyCheckBox Content="Small" Size="Small" IsChecked="True" />
@@ -50,7 +50,7 @@
                                 IsChecked="True" />
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                            <TextBlock Text="Disabled States" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Disabled States" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyCheckBox Content="Disabled unchecked" IsEnabled="False" />
                             <controls:DaisyCheckBox Content="Disabled checked" IsEnabled="False"
                                 IsChecked="True" />
@@ -137,36 +137,36 @@
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="mask-input" Title="Mask Input" />
                     <TextBlock Text="MaskedTextBox-based input styled like DaisyInput. Useful for structured formats like dates, times, and card numbers."
-                               Opacity="0.7" />
+                               Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="48"
                           RowDefinitions="Auto,Auto,Auto" RowSpacing="24"
                           MaxWidth="820">
                         <StackPanel Grid.Row="0" Grid.Column="0" Spacing="8">
                             <TextBlock Text="Input with mask" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                             <custom:DaisyMaskInput Mode="AlphaNumericCode" Width="360" />
-                            <TextBlock Text="Example mask: AA00 AAA" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Example mask: AA00 AAA" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         </StackPanel>
                         <StackPanel Grid.Row="0" Grid.Column="1" Spacing="8">
                             <TextBlock Text="Input time" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                             <custom:DaisyMaskInput Mode="Timer" Width="360" />
-                            <TextBlock Text="Example mask: 00:00:00" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Example mask: 00:00:00" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="1" Grid.Column="0" Spacing="8">
                             <TextBlock Text="Card number" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                             <custom:DaisyMaskInput Mode="CreditCardNumber" EndIcon="{StaticResource DaisyIconCard}" Width="360" />
-                            <TextBlock Text="Example mask: 0000 0000 0000 0000" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Example mask: 0000 0000 0000 0000" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         </StackPanel>
                         <StackPanel Grid.Row="1" Grid.Column="1" Spacing="8">
                             <TextBlock Text="Expiry date" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                             <custom:DaisyMaskInput Mode="ExpiryDate" Width="360" />
-                            <TextBlock Text="Example mask: 00/00" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Example mask: 00/00" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         </StackPanel>
 
                         <StackPanel Grid.Row="2" Grid.Column="0" Spacing="8">
                             <TextBlock Text="CVC code" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                             <custom:DaisyMaskInput Mode="Cvc" Width="360" />
-                            <TextBlock Text="Example mask: 000" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Example mask: 000" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         </StackPanel>
                         <StackPanel Grid.Row="2" Grid.Column="1" Spacing="8">
                             <TextBlock Text="Card details" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
@@ -190,7 +190,7 @@
                                                          Mode="Cvc" />
                                 </Grid>
                             </Border>
-                            <TextBlock Text="Composite layout using a shared border." FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Composite layout using a shared border." Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -203,7 +203,7 @@
                     <WrapPanel Orientation="Horizontal">
                         <!-- Color Variants -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                            <TextBlock Text="Color Variants" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Color Variants" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown Watermark="Bordered (Default)" Value="42"
                                 ShowClearButton="True"
                                 ToolTip.Tip="Bordered: Neutral border, highlights with primary color on focus" />
@@ -219,7 +219,7 @@
                         </StackPanel>
                         <!-- Status Variants -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                            <TextBlock Text="Status Variants" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Status Variants" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown Variant="Info" Watermark="Info" Value="123"
                                 ShowClearButton="True"
                                 ToolTip.Tip="Info: Blue border for informational inputs" />
@@ -235,7 +235,7 @@
                         <!-- Sizes -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200"
                             controls:FlowerySizeManager.IgnoreGlobalSize="True">
-                            <TextBlock Text="Sizes" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Sizes" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown Size="ExtraSmall" Watermark="Extra Small"
                                 Value="1" ShowClearButton="True"
                                 ToolTip.Tip="ExtraSmall: 24px height, compact for dense UIs" />
@@ -249,7 +249,7 @@
                         </StackPanel>
                         <!-- Constraints & Buttons -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                            <TextBlock Text="Constraints &amp; Buttons" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Constraints &amp; Buttons" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown ShowButtons="False"
                                 Watermark="No Spin Buttons" Value="25" ShowClearButton="True"
                                 ToolTip.Tip="ShowButtons=False: Hides the up/down spin buttons" />
@@ -265,7 +265,7 @@
                         </StackPanel>
                         <!-- Prefix & Suffix -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                            <TextBlock Text="Prefix &amp; Suffix" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Prefix &amp; Suffix" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown Prefix="$" FormatString="N2" Value="19.99"
                                 Watermark="Currency ($)" ShowClearButton="True"
                                 ToolTip.Tip="Prefix='$': Fixed symbol on left, doesn't interfere with editing" />
@@ -281,7 +281,7 @@
                         </StackPanel>
                         <!-- Thousand Separators -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                            <TextBlock Text="Thousand Separators" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Thousand Separators" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown ShowThousandSeparators="True"
                                 Value="1234567" Watermark="Millions" ShowClearButton="True"
                                 ToolTip.Tip="ShowThousandSeparators: Displays 1,234,567" />
@@ -294,7 +294,7 @@
                         </StackPanel>
                         <!-- Hexadecimal -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                            <TextBlock Text="Hexadecimal" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Hexadecimal" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown NumberBase="Hexadecimal" Value="255"
                                 Watermark="Hex (0xFF)" ShowClearButton="True"
                                 ToolTip.Tip="Hexadecimal: Displays 0xFF, input allows 0-9 and A-F" />
@@ -310,7 +310,7 @@
                         </StackPanel>
                         <!-- Binary & Octal -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                            <TextBlock Text="Binary &amp; Octal" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Binary &amp; Octal" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown NumberBase="Binary" Value="10"
                                 Watermark="Binary (0b1010)" ShowClearButton="True"
                                 ToolTip.Tip="Binary: Displays 0b1010, input allows only 0 and 1" />
@@ -326,7 +326,7 @@
                         </StackPanel>
                         <!-- Special Formats -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                            <TextBlock Text="Special Formats" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Special Formats" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown NumberBase="ColorHex" Value="16734003"
                                 Watermark="Color (#FF5733)" ShowClearButton="True"
                                 ToolTip.Tip="ColorHex: Displays #FF5733, 6-digit padded, max 7 chars" />
@@ -349,12 +349,12 @@
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="otpinput" Title="OTP Input" />
                     <TextBlock Text="Multi-slot verification code input with auto-advance and optional grouping."
-                        Opacity="0.7" FontSize="13" />
+                        Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
                             <TextBlock Text="6 digits (3-3)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                             <controls:DaisyOtpInput x:Name="OtpDemo1" Length="6" SeparatorInterval="3" />
-                            <TextBlock Text="{Binding Value, ElementName=OtpDemo1}" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="{Binding Value, ElementName=OtpDemo1}" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,40,20"
@@ -375,7 +375,7 @@
                             <StackPanel Spacing="24" HorizontalAlignment="Center">
                                 <StackPanel Spacing="8" HorizontalAlignment="Center">
                                     <TextBlock Text="Verify Your Code" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" />
-                                    <TextBlock Text="Enter the 6-digit code sent to your device" Opacity="0.6" HorizontalAlignment="Center" />
+                                    <TextBlock Text="Enter the 6-digit code sent to your device" Opacity="0.6" HorizontalAlignment="Center" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 </StackPanel>
 
                                 <controls:DaisyOtpInput x:Name="VerifyOtp" Length="6" SeparatorInterval="3" HorizontalAlignment="Center" />
@@ -409,7 +409,7 @@
                     <local:SectionHeader SectionId="range" Title="Range" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="250">
-                            <TextBlock Text="Basic Variants" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Basic Variants" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyRange Value="20" Maximum="100" />
                             <controls:DaisyRange Value="40" Maximum="100" Variant="Primary" />
                             <controls:DaisyRange Value="60" Maximum="100" Variant="Secondary" />
@@ -417,12 +417,12 @@
                                 Size="ExtraSmall" />
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="250">
-                            <TextBlock Text="Custom Thumb Properties" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Custom Thumb Properties" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyRange Value="50" Maximum="100" ThumbSize="32" />
                             <controls:DaisyRange Value="70" Maximum="100" ThumbSize="20" />
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="250">
-                            <TextBlock Text="With Progress Fill" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="With Progress Fill" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyRange Value="45" Maximum="100" ShowProgress="True"
                                 Variant="Primary" />
                             <controls:DaisyRange Value="75" Maximum="100" ShowProgress="True"
@@ -481,7 +481,7 @@
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="tagpicker" Title="Tag Picker" />
                     <TextBlock Text="Multi-select chips for choosing tags."
-                        Opacity="0.7" FontSize="13" />
+                        Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="380">
                             <controls:DaisyTagPicker Tags="{Binding TagPickerTags}" />
@@ -547,7 +547,7 @@
                     <local:SectionHeader SectionId="toggle" Title="Toggle" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                            <TextBlock Text="Basic Variants" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Basic Variants" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyToggle Content="Default" />
                             <controls:DaisyToggle Content="Primary" Variant="Primary"
                                 IsChecked="True" />
@@ -558,7 +558,7 @@
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200"
                             controls:FlowerySizeManager.IgnoreGlobalSize="True">
-                            <TextBlock Text="Sizes" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Sizes" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyToggle Content="Extra Small" Size="ExtraSmall"
                                 IsChecked="True" />
                             <controls:DaisyToggle Content="Small" Size="Small" IsChecked="True" />
@@ -566,7 +566,7 @@
                             <controls:DaisyToggle Content="Large" Size="Large" IsChecked="True" />
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                            <TextBlock Text="Custom Padding" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Custom Padding" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyToggle Content="Default Padding" Variant="Info"
                                 IsChecked="True" />
                             <controls:DaisyToggle Content="Tight Padding (1)" TogglePadding="1"

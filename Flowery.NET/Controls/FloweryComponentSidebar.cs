@@ -23,21 +23,21 @@ namespace Flowery.Controls
 
         public SidebarCategory()
         {
-            FloweryLocalization.CultureChanged += (_, _) => 
+            FloweryLocalization.CultureChanged += (_, _) =>
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
         }
 
-        public string Name 
-        { 
+        public string Name
+        {
             get => _name;
-            set 
-            { 
-                if (_name != value) 
-                { 
-                    _name = value; 
+            set
+            {
+                if (_name != value)
+                {
+                    _name = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
-                } 
+                }
             }
         }
 
@@ -56,32 +56,79 @@ namespace Flowery.Controls
     public class SidebarItem : INotifyPropertyChanged
     {
         private string _name = string.Empty;
+        private bool _isFavorite;
+        private bool _showFavoriteIcon;
 
         public SidebarItem()
         {
-            FloweryLocalization.CultureChanged += (_, _) => 
+            FloweryLocalization.CultureChanged += (_, _) =>
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
         }
 
         public string Id { get; set; } = string.Empty;
-        public string Name 
-        { 
+        public string Name
+        {
             get => _name;
-            set 
-            { 
-                if (_name != value) 
-                { 
-                    _name = value; 
+            set
+            {
+                if (_name != value)
+                {
+                    _name = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Name)));
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
-                } 
+                }
             }
         }
-        
+
         public string DisplayName => FloweryLocalization.GetString(Name);
 
         public string TabHeader { get; set; } = string.Empty;
         public string? Badge { get; set; }
+
+        /// <summary>
+        /// Whether this item is marked as a favorite. When changed, updates the star icon state.
+        /// </summary>
+        public bool IsFavorite
+        {
+            get => _isFavorite;
+            set
+            {
+                if (_isFavorite != value)
+                {
+                    _isFavorite = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsFavorite)));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Whether to show the favorite (star) icon for this item.
+        /// </summary>
+        public bool ShowFavoriteIcon
+        {
+            get => _showFavoriteIcon;
+            set
+            {
+                if (_showFavoriteIcon != value)
+                {
+                    _showFavoriteIcon = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ShowFavoriteIcon)));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Event raised when the favorite icon is clicked.
+        /// </summary>
+        public event EventHandler? FavoriteToggleRequested;
+
+        /// <summary>
+        /// Raises the FavoriteToggleRequested event.
+        /// </summary>
+        internal void RaiseFavoriteToggleRequested()
+        {
+            FavoriteToggleRequested?.Invoke(this, EventArgs.Empty);
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
     }
@@ -108,6 +155,23 @@ namespace Flowery.Controls
         public string DisplayName { get; set; } = string.Empty;
 
         public override string ToString() => DisplayName;
+
+        /// <summary>
+        /// Creates a list of all supported languages with their native display names.
+        /// Uses the centralized language data from FloweryLocalization.
+        /// </summary>
+        public static ObservableCollection<SidebarLanguage> CreateAll()
+        {
+            var result = new ObservableCollection<SidebarLanguage>();
+            foreach (var code in FloweryLocalization.SupportedLanguages)
+            {
+                var displayName = FloweryLocalization.LanguageDisplayNames.TryGetValue(code, out var name)
+                    ? name
+                    : code;
+                result.Add(new SidebarLanguage { Code = code, DisplayName = displayName });
+            }
+            return result;
+        }
     }
 
     public class SidebarItemSelectedEventArgs : RoutedEventArgs
@@ -120,6 +184,17 @@ namespace Flowery.Controls
         {
             Item = item;
             Category = category;
+        }
+    }
+
+    public class SidebarFavoriteToggledEventArgs : RoutedEventArgs
+    {
+        public SidebarItem Item { get; }
+
+        public SidebarFavoriteToggledEventArgs(RoutedEvent routedEvent, SidebarItem item)
+            : base(routedEvent)
+        {
+            Item = item;
         }
     }
 
@@ -196,6 +271,16 @@ namespace Flowery.Controls
         {
             add => AddHandler(ItemSelectedEvent, value);
             remove => RemoveHandler(ItemSelectedEvent, value);
+        }
+
+        public static readonly RoutedEvent<SidebarFavoriteToggledEventArgs> FavoriteToggledEvent =
+            RoutedEvent.Register<FloweryComponentSidebar, SidebarFavoriteToggledEventArgs>(
+                nameof(FavoriteToggled), RoutingStrategies.Bubble);
+
+        public event EventHandler<SidebarFavoriteToggledEventArgs>? FavoriteToggled
+        {
+            add => AddHandler(FavoriteToggledEvent, value);
+            remove => RemoveHandler(FavoriteToggledEvent, value);
         }
 
         public static readonly StyledProperty<ObservableCollection<SidebarCategory>> CategoriesProperty =
@@ -355,20 +440,7 @@ namespace Flowery.Controls
 
         private static ObservableCollection<SidebarLanguage> CreateDefaultLanguages()
         {
-            return new ObservableCollection<SidebarLanguage>
-            {
-                new SidebarLanguage { Code = "en", DisplayName = "English" },
-                new SidebarLanguage { Code = "de", DisplayName = "Deutsch" },
-                new SidebarLanguage { Code = "es", DisplayName = "Español" },
-                new SidebarLanguage { Code = "fr", DisplayName = "Français" },
-                new SidebarLanguage { Code = "it", DisplayName = "Italiano" },
-                new SidebarLanguage { Code = "ja", DisplayName = "日本語" },
-                new SidebarLanguage { Code = "ko", DisplayName = "한국어" },
-                new SidebarLanguage { Code = "ar", DisplayName = "العربية" },
-                new SidebarLanguage { Code = "tr", DisplayName = "Türkçe" },
-                new SidebarLanguage { Code = "uk", DisplayName = "Українська" },
-                new SidebarLanguage { Code = "zh-CN", DisplayName = "简体中文" },
-            };
+            return SidebarLanguage.CreateAll();
         }
 
         private void OnSearchTextChanged()
@@ -436,10 +508,24 @@ namespace Flowery.Controls
 
         private void OnSidebarButtonClick(object? sender, RoutedEventArgs e)
         {
+            // Check if this is a click on the favorite button
+            if (e.Source is Button favoriteButton && favoriteButton.Classes.Contains("sidebar-favorite-btn"))
+            {
+                if (favoriteButton.Tag is SidebarItem favoriteItem)
+                {
+                    // Toggle IsFavorite and raise events
+                    favoriteItem.IsFavorite = !favoriteItem.IsFavorite;
+                    favoriteItem.RaiseFavoriteToggleRequested();
+                    RaiseEvent(new SidebarFavoriteToggledEventArgs(FavoriteToggledEvent, favoriteItem));
+                    e.Handled = true;
+                    return;
+                }
+            }
+
             // e.Source might be a child element (TextBlock, Grid, etc.) inside the Button
             // Walk up the visual tree to find the actual sidebar-item Button
             Button? button = null;
-            
+
             if (e.Source is Button b && b.Classes.Contains("sidebar-item"))
             {
                 button = b;
@@ -450,15 +536,20 @@ namespace Flowery.Controls
                 var parent = visual.GetVisualParent();
                 while (parent != null)
                 {
-                    if (parent is Button parentButton && parentButton.Classes.Contains("sidebar-item"))
+                    // Skip if we hit a favorite button - don't treat as item click
+                    if (parent is Button parentButton && parentButton.Classes.Contains("sidebar-favorite-btn"))
                     {
-                        button = parentButton;
+                        return;
+                    }
+                    if (parent is Button itemButton && itemButton.Classes.Contains("sidebar-item"))
+                    {
+                        button = itemButton;
                         break;
                     }
                     parent = parent.GetVisualParent();
                 }
             }
-            
+
             if (button?.Tag is SidebarItem item)
             {
                 var category = FindCategoryForItem(item);
@@ -613,6 +704,7 @@ namespace Flowery.Controls
                         new SidebarItem { Id = "hover-gallery", Name = "Hover Gallery", TabHeader = "Data Display" },
                         new SidebarItem { Id = "kbd", Name = "Kbd", TabHeader = "Data Display" },
                         new SidebarItem { Id = "list", Name = "List", TabHeader = "Data Display" },
+                        new SidebarItem { Id = "numberflow", Name = "Number Flow", TabHeader = "Data Display" },
                         new SidebarItem { Id = "stat", Name = "Stat", TabHeader = "Data Display" },
                         new SidebarItem { Id = "status", Name = "Status", TabHeader = "Data Display" },
                         new SidebarItem { Id = "table", Name = "Table", TabHeader = "Data Display" },

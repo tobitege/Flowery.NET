@@ -28,23 +28,13 @@ namespace Flowery.NET.Gallery.Localization
 
         static GalleryLocalization()
         {
-            // Load available translations at startup
-            LoadTranslation("en");
-            LoadTranslation("de");
-            LoadTranslation("fr");
-            LoadTranslation("es");
-            LoadTranslation("it");
-            LoadTranslation("ja");
-            LoadTranslation("ko");
-            LoadTranslation("zh-CN");
-            LoadTranslation("ar");
-            LoadTranslation("tr");
-            LoadTranslation("uk");
-            LoadTranslation("he");
-            
+            // Load available translations at startup - use library's list to stay in sync
+            foreach (var lang in Flowery.Localization.FloweryLocalization.SupportedLanguages)
+                LoadTranslation(lang);
+
             // Subscribe to FloweryLocalization culture changes
             Flowery.Localization.FloweryLocalization.CultureChanged += OnFloweryCultureChanged;
-            
+
             // Register Gallery's localization as the custom resolver for FloweryComponentSidebar
             // This allows sidebar items to use Gallery-specific keys (Sidebar_*, Effects_*, etc.)
             Flowery.Localization.FloweryLocalization.CustomResolver = GetString;
@@ -123,17 +113,17 @@ namespace Flowery.NET.Gallery.Localization
             {
                 var assembly = Assembly.GetExecutingAssembly();
                 var resourceName = $"Flowery.NET.Gallery.Localization.{languageCode}.json";
-                
+
                 using var stream = assembly.GetManifestResourceStream(resourceName);
                 if (stream == null)
                     return;
 
                 using var reader = new StreamReader(stream);
                 var json = reader.ReadToEnd();
-                
+
                 // Use source generator context for AOT compatibility
                 var dict = JsonSerializer.Deserialize(json, LocalizationJsonContext.Default.DictionaryStringString);
-                
+
                 if (dict != null)
                     _translations[languageCode] = dict;
             }

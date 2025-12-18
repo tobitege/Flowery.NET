@@ -19,7 +19,7 @@
                     <local:SectionHeader SectionId="accordion" Title="Accordion" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="350">
-                            <TextBlock Text="Only one item open at a time" FontSize="12"
+                            <TextBlock Text="Only one item open at a time" controls:FlowerySizeManager.ResponsiveFont="Primary"
                                 Opacity="0.7" />
                             <controls:DaisyAccordion ExpandedIndex="0">
                                 <controls:DaisyAccordionItem Header="How do I create an account?">
@@ -40,7 +40,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="350">
-                            <TextBlock Text="Plus Variant" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Plus Variant" controls:FlowerySizeManager.ResponsiveFont="Primary" Opacity="0.7" />
                             <controls:DaisyAccordion Variant="Plus" ExpandedIndex="0">
                                 <controls:DaisyAccordionItem Header="Question 1">
                                     <TextBlock Text="Answer to question 1." />
@@ -58,8 +58,8 @@
                 <!-- Animated Number -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="animatednumber" Title="Animated Number" />
-                    <TextBlock Text="Animated numeric display (slide transition on value changes)."
-                        Opacity="0.7" FontSize="13" />
+                    <TextBlock Text="Animated numeric display (slide transition on value changes). Buttons shown are separate controls - for built-in buttons with keyboard support, use DaisyNumberFlow instead."
+                        Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" TextWrapping="Wrap" Margin="0,0,0,8" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="240">
                             <TextBlock Text="Counter" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
@@ -411,7 +411,7 @@
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="contributiongraph" Title="Contribution Graph" />
                     <TextBlock Text="GitHub-style heatmap of daily activity."
-                        Opacity="0.7" FontSize="13" />
+                        Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                     <StackPanel Spacing="10" Margin="0,0,40,20">
                         <controls:DaisyToggle x:Name="MonthStartBorderToggle"
                             Content="Highlight month starts"
@@ -434,8 +434,8 @@
                     <WrapPanel Orientation="Horizontal">
                         <!-- Current time display -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Current Time" Classes="text-sm opacity-70"
-                                Margin="0,0,0,4" />
+                            <TextBlock Text="Current Time" Opacity="0.7"
+                                controls:FlowerySizeManager.ResponsiveFont="Primary" Margin="0,0,0,4" />
                             <StackPanel Orientation="Horizontal" Spacing="5">
                                 <controls:DaisyCountdown ClockUnit="Hours" Digits="2" />
                                 <TextBlock Text=":" VerticalAlignment="Center" FontSize="24"
@@ -448,8 +448,8 @@
                         </StackPanel>
                         <!-- Live countdown -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Live Countdown (loops)" Classes="text-sm opacity-70"
-                                Margin="0,0,0,4" />
+                            <TextBlock Text="Live Countdown (loops)" Opacity="0.7"
+                                controls:FlowerySizeManager.ResponsiveFont="Primary" Margin="0,0,0,4" />
                             <StackPanel Orientation="Horizontal" Spacing="5">
                                 <controls:DaisyCountdown Value="59" Digits="2" IsCountingDown="True"
                                     Loop="True" LoopFrom="59" FontSize="48" />
@@ -457,33 +457,54 @@
                         </StackPanel>
                         <!-- Large countdown with labels -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="With Labels" Classes="text-sm opacity-70"
-                                Margin="0,0,0,4" />
+                            <TextBlock Text="With Labels" Opacity="0.7"
+                                controls:FlowerySizeManager.ResponsiveFont="Primary" Margin="0,0,0,4" />
                             <StackPanel Orientation="Horizontal" Spacing="16">
                                 <StackPanel HorizontalAlignment="Center">
                                     <controls:DaisyCountdown Value="15" FontSize="32" />
                                     <TextBlock Text="days" HorizontalAlignment="Center"
-                                        Classes="text-sm" />
+                                        controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 </StackPanel>
                                 <StackPanel HorizontalAlignment="Center">
                                     <controls:DaisyCountdown Value="10" FontSize="32" />
                                     <TextBlock Text="hours" HorizontalAlignment="Center"
-                                        Classes="text-sm" />
+                                        controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 </StackPanel>
                                 <StackPanel HorizontalAlignment="Center">
                                     <controls:DaisyCountdown Value="24" FontSize="32" />
                                     <TextBlock Text="min" HorizontalAlignment="Center"
-                                        Classes="text-sm" />
+                                        controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 </StackPanel>
                                 <StackPanel HorizontalAlignment="Center">
                                     <controls:DaisyCountdown Value="30" FontSize="32"
                                         IsCountingDown="True" Loop="True" LoopFrom="59" />
                                     <TextBlock Text="sec" HorizontalAlignment="Center"
-                                        Classes="text-sm" />
+                                        controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
                     </WrapPanel>
+                </StackPanel>
+
+                <controls:DaisyDivider />
+
+                <!-- Number Flow -->
+                <StackPanel Spacing="12">
+                    <local:SectionHeader SectionId="numberflow" Title="Number Flow" />
+                    <TextBlock Text="Individual digit animation for smooth value transitions. Tap any digit to select it, then use +/- to control that position."
+                        Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+
+                    <!-- SmoothUI-style with digit selection: tap digits to control individual positions -->
+                    <controls:DaisyNumberFlow Value="28"
+                                              FormatString="000"
+                                              FontWeight="SemiBold"
+                                              ShowDigitBoxes="True"
+                                              ShowControls="True"
+                                              AllowDigitSelection="True"
+                                              WrapAround="True"
+                                              Minimum="0"
+                                              Maximum="999"
+                                              HorizontalAlignment="Left" />
                 </StackPanel>
 
                 <controls:DaisyDivider />
@@ -517,11 +538,11 @@
                 <!-- Hover Gallery -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="hover-gallery" Title="Hover Gallery" />
-                    <TextBlock Text="Move mouse horizontally to reveal images" FontSize="12"
+                    <TextBlock Text="Move mouse horizontally to reveal images" controls:FlowerySizeManager.ResponsiveFont="Primary"
                         Foreground="{DynamicResource DaisyBaseContentBrush}" Opacity="0.6" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="8" Margin="0,0,40,20">
-                            <TextBlock Text="Standalone" FontSize="12"
+                            <TextBlock Text="Standalone" controls:FlowerySizeManager.ResponsiveFont="Primary"
                                 Foreground="{DynamicResource DaisyBaseContentBrush}" Opacity="0.6" />
                             <controls:DaisyHoverGallery Height="160" Width="200" CornerRadius="12">
                                 <Border CornerRadius="12">
@@ -588,7 +609,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="8" Margin="0,0,40,20">
-                            <TextBlock Text="Within a Card" FontSize="12"
+                            <TextBlock Text="Within a Card" controls:FlowerySizeManager.ResponsiveFont="Primary"
                                 Foreground="{DynamicResource DaisyBaseContentBrush}" Opacity="0.6" />
                             <controls:DaisyCard CornerRadius="16" Width="220">
                                 <StackPanel>
@@ -642,7 +663,7 @@
                     <local:SectionHeader SectionId="kbd" Title="Kbd" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Basic" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Basic" controls:FlowerySizeManager.ResponsiveFont="Primary" Opacity="0.7" />
                             <StackPanel Orientation="Horizontal" Spacing="5">
                                 <controls:DaisyKbd Content="Ctrl" />
                                 <controls:DaisyKbd Content="Shift" />
@@ -651,7 +672,7 @@
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20"
                             controls:FlowerySizeManager.IgnoreGlobalSize="True">
-                            <TextBlock Text="Sizes" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Sizes" controls:FlowerySizeManager.ResponsiveFont="Primary" Opacity="0.7" />
                             <StackPanel Orientation="Horizontal" Spacing="5"
                                 VerticalAlignment="Center">
                                 <controls:DaisyKbd Size="ExtraSmall" Content="XS" />
@@ -662,7 +683,7 @@
                             </StackPanel>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Keyboard Shortcut" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Keyboard Shortcut" controls:FlowerySizeManager.ResponsiveFont="Primary" Opacity="0.7" />
                             <StackPanel Orientation="Horizontal" Spacing="2"
                                 VerticalAlignment="Center">
                                 <controls:DaisyKbd Size="Small" Content="⌘" />
@@ -1683,7 +1704,7 @@
                         <!-- Data-driven scrollable list (10 items from code-behind) -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
                             <TextBlock Text="Data-driven (ItemsSource binding, 10 items)"
-                                FontSize="12" Opacity="0.7" />
+                                controls:FlowerySizeManager.ResponsiveFont="Primary" Opacity="0.7" />
                             <Border CornerRadius="16" ClipToBounds="True" MaxHeight="280">
                                 <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                                     VerticalScrollBarVisibility="Auto">
@@ -1730,7 +1751,7 @@
 
                         <!-- List with numbered rows (third column grows) -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Numbered list (third column grows)" FontSize="12"
+                            <TextBlock Text="Numbered list (third column grows)" controls:FlowerySizeManager.ResponsiveFont="Primary"
                                 Opacity="0.7" />
                             <controls:DaisyList Width="380">
                                 <TextBlock Text="Top Artists" FontSize="11" Opacity="0.6"
@@ -1860,7 +1881,7 @@
 
                         <!-- List with wrapped content -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="With wrapped description (Wrap=True)" FontSize="12"
+                            <TextBlock Text="With wrapped description (Wrap=True)" controls:FlowerySizeManager.ResponsiveFont="Primary"
                                 Opacity="0.7" />
                             <controls:DaisyList Width="380">
                                 <TextBlock Text="Featured albums" FontSize="11" Opacity="0.6"
@@ -1951,10 +1972,10 @@
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="text-rotate" Title="Text Rotate (Animation)" />
                     <TextBlock Text="Cycles through text items with animation. Pauses on hover."
-                        Opacity="0.7" FontSize="13" />
+                        Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Large Headline" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Large Headline" controls:FlowerySizeManager.ResponsiveFont="Primary" Opacity="0.7" />
                             <controls:DaisyTextRotate FontSize="32" FontWeight="Bold"
                                 Duration="6000" Foreground="{DynamicResource DaisyPrimaryBrush}">
                                 <TextBlock Text="DESIGN" />
@@ -1965,7 +1986,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Inline Usage" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Inline Usage" controls:FlowerySizeManager.ResponsiveFont="Primary" Opacity="0.7" />
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="We build for" VerticalAlignment="Center"
                                     FontSize="16" />
@@ -1982,7 +2003,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Fast Cycle (2s)" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Fast Cycle (2s)" controls:FlowerySizeManager.ResponsiveFont="Primary" Opacity="0.7" />
                             <controls:DaisyTextRotate FontSize="20" Duration="2000">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <PathIcon Data="{StaticResource DaisyIconPalette}" Width="20" Height="20" />

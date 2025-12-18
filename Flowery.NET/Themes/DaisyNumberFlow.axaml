@@ -1,0 +1,218 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+                    xmlns:services="clr-namespace:Flowery.Services;assembly=Flowery.NET"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="{DynamicResource DaisyBase100Brush}">
+            <StackPanel Spacing="20">
+                <controls:DaisyNumberFlow Value="123" FontSize="32" />
+                <controls:DaisyNumberFlow Value="0" FormatString="000" ShowDigitBoxes="True" ShowControls="True" />
+                <controls:DaisyNumberFlow Value="19.99" FormatString="F2" FontSize="24" Prefix="$" />
+                <!-- With digit selection enabled -->
+                <controls:DaisyNumberFlow Value="28" FormatString="000" ShowDigitBoxes="True" ShowControls="True" AllowDigitSelection="True" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <ControlTheme x:Key="{x:Type controls:DaisyNumberFlow}" TargetType="controls:DaisyNumberFlow">
+        <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="FontSize" Value="{DynamicResource LargeDisplayFontSize}" />
+        <Setter Property="FontFamily" Value="Consolas, 'Cascadia Mono', 'SF Mono', 'JetBrains Mono', monospace" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <!-- Outer container: shown when ShowControls=True, provides the card-like appearance -->
+                <Border x:Name="OuterContainer"
+                        Background="{DynamicResource DaisyBase200Brush}"
+                        CornerRadius="{DynamicResource LargeDisplayContainerCornerRadius}"
+                        Padding="{DynamicResource LargeDisplayContainerPadding}"
+                        BorderBrush="{DynamicResource DaisyBase300Brush}"
+                        BorderThickness="1"
+                        BoxShadow="0 4 12 0 #30000000">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <!-- Prefix -->
+                        <TextBlock Text="{TemplateBinding Prefix}"
+                                   IsVisible="{TemplateBinding Prefix, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                   FontSize="{TemplateBinding FontSize}"
+                                   FontWeight="{TemplateBinding FontWeight}"
+                                   FontFamily="{TemplateBinding FontFamily}"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,4,0" />
+
+                        <!-- Digit/Character Parts -->
+                        <ItemsControl x:Name="PART_ItemsControl" ItemsSource="{TemplateBinding Parts}" VerticalAlignment="Center">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="{DynamicResource LargeDisplayElementSpacing}" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="controls:NumberFlowPartViewModel">
+                                    <!-- Outer clickable container for digit selection -->
+                                    <Border x:Name="DigitContainer"
+                                            Tag="{Binding DigitIndex}"
+                                            Background="Transparent"
+                                            IsHitTestVisible="True">
+                                        <Border.Cursor>
+                                            <MultiBinding Converter="{x:Static services:FloweryConverters.NumberFlowDigitCursor}">
+                                                <Binding Path="$parent[controls:DaisyNumberFlow].AllowDigitSelection" />
+                                                <Binding Path="IsDigit" />
+                                            </MultiBinding>
+                                        </Border.Cursor>
+                                        <Grid Opacity="{Binding Opacity}"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Center">
+                                            <!-- Digit box background (only when ShowDigitBoxes=True) -->
+                                            <Border x:Name="DigitBox"
+                                                    IsVisible="{Binding $parent[controls:DaisyNumberFlow].ShowDigitBoxes}"
+                                                    Background="{DynamicResource DaisyNeutralBrush}"
+                                                    CornerRadius="{DynamicResource LargeDisplayElementCornerRadius}"
+                                                    Width="{DynamicResource LargeDisplayElementWidth}"
+                                                    Height="{DynamicResource LargeDisplayElementHeight}"
+                                                    BoxShadow="inset 0 2 8 0 #40000000, inset 0 -1 2 0 #20FFFFFF"
+                                                    VerticalAlignment="Center" />
+
+                                            <!-- Selection indicator (bottom border, shown when digit is selected) -->
+                                            <Border x:Name="SelectionIndicator"
+                                                    IsVisible="{Binding IsSelected}"
+                                                    Background="Transparent"
+                                                    Width="{DynamicResource LargeDisplayElementWidth}"
+                                                    Height="{DynamicResource LargeDisplayElementHeight}"
+                                                    BorderBrush="{DynamicResource DaisyAccentBrush}"
+                                                    BorderThickness="0,0,0,3"
+                                                    CornerRadius="{DynamicResource LargeDisplayElementCornerRadius}"
+                                                    VerticalAlignment="Center" />
+
+                                            <!-- Content container with clip bounds -->
+                                            <Panel Height="{Binding $parent[controls:DaisyNumberFlow].FontSize, Converter={x:Static services:FloweryConverters.Multiply}, ConverterParameter=1.4}"
+                                                   Width="{DynamicResource LargeDisplayElementWidth}"
+                                                   ClipToBounds="True"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center">
+
+                                                <!-- Two-element animation for digits -->
+                                                <Grid IsVisible="{Binding IsDigit}" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                    <!-- Previous character (slides out) -->
+                                                    <TextBlock Text="{Binding PreviousCharacter}"
+                                                               IsVisible="{Binding IsCurrentlyAnimating}"
+                                                               FontSize="{Binding $parent[controls:DaisyNumberFlow].FontSize}"
+                                                               FontWeight="{Binding $parent[controls:DaisyNumberFlow].FontWeight}"
+                                                               FontFamily="{Binding $parent[controls:DaisyNumberFlow].FontFamily}"
+                                                               Foreground="{Binding $parent[controls:DaisyNumberFlow].Foreground}"
+                                                               TextAlignment="Center"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center">
+                                                        <TextBlock.RenderTransform>
+                                                            <MultiBinding Converter="{x:Static services:FloweryConverters.NumberFlowTransformConverter}">
+                                                                <Binding Path="PreviousOffset" />
+                                                                <Binding Path="$parent[controls:DaisyNumberFlow].FontSize" />
+                                                            </MultiBinding>
+                                                        </TextBlock.RenderTransform>
+                                                    </TextBlock>
+
+                                                    <!-- Current character (slides in) -->
+                                                    <TextBlock Text="{Binding Character}"
+                                                               FontSize="{Binding $parent[controls:DaisyNumberFlow].FontSize}"
+                                                               FontWeight="{Binding $parent[controls:DaisyNumberFlow].FontWeight}"
+                                                               FontFamily="{Binding $parent[controls:DaisyNumberFlow].FontFamily}"
+                                                               Foreground="{Binding $parent[controls:DaisyNumberFlow].Foreground}"
+                                                               TextAlignment="Center"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center">
+                                                        <TextBlock.RenderTransform>
+                                                            <MultiBinding Converter="{x:Static services:FloweryConverters.NumberFlowTransformConverter}">
+                                                                <Binding Path="CurrentOffset" />
+                                                                <Binding Path="$parent[controls:DaisyNumberFlow].FontSize" />
+                                                            </MultiBinding>
+                                                        </TextBlock.RenderTransform>
+                                                    </TextBlock>
+                                                </Grid>
+
+                                                <!-- Non-digit characters -->
+                                                <TextBlock IsVisible="{Binding !IsDigit}"
+                                                           Text="{Binding Character}"
+                                                           FontSize="{Binding $parent[controls:DaisyNumberFlow].FontSize}"
+                                                           FontWeight="{Binding $parent[controls:DaisyNumberFlow].FontWeight}"
+                                                           FontFamily="{Binding $parent[controls:DaisyNumberFlow].FontFamily}"
+                                                           Foreground="{Binding $parent[controls:DaisyNumberFlow].Foreground}"
+                                                           TextAlignment="Center"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center" />
+                                            </Panel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Suffix -->
+                        <TextBlock Text="{TemplateBinding Suffix}"
+                                   IsVisible="{TemplateBinding Suffix, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                   FontSize="{TemplateBinding FontSize}"
+                                   FontWeight="{TemplateBinding FontWeight}"
+                                   FontFamily="{TemplateBinding FontFamily}"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   VerticalAlignment="Center"
+                                   Margin="4,0,0,0" />
+
+                        <!-- Built-in +/- buttons (shown when ShowControls=True) -->
+                        <StackPanel x:Name="ControlButtons"
+                                    IsVisible="{TemplateBinding ShowControls}"
+                                    Spacing="{DynamicResource LargeDisplayButtonSpacing}"
+                                    VerticalAlignment="Center">
+                            <controls:DaisyButton x:Name="PART_IncrementButton"
+                                                  Content="+"
+                                                  IsEnabled="{Binding CanIncrementValue, RelativeSource={RelativeSource TemplatedParent}}"
+                                                  Variant="Ghost"
+                                                  Padding="0"
+                                                  Classes="btn-square numberflow-btn" />
+                            <controls:DaisyButton x:Name="PART_DecrementButton"
+                                                  Content="−"
+                                                  IsEnabled="{Binding CanDecrementValue, RelativeSource={RelativeSource TemplatedParent}}"
+                                                  Variant="Ghost"
+                                                  Padding="0"
+                                                  Classes="btn-square numberflow-btn" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <!-- When ShowControls=False, hide the outer container styling -->
+        <Style Selector="^[ShowControls=False] /template/ Border#OuterContainer">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="BoxShadow" Value="0 0 0 0 Transparent" />
+        </Style>
+
+        <!-- Button sizing using LargeDisplay tokens -->
+        <Style Selector="^ /template/ controls|DaisyButton.numberflow-btn">
+            <Setter Property="Width" Value="{DynamicResource LargeDisplayButtonSize}" />
+            <Setter Property="Height" Value="{DynamicResource LargeDisplayButtonSize}" />
+            <Setter Property="MinWidth" Value="{DynamicResource LargeDisplayButtonSize}" />
+            <Setter Property="MinHeight" Value="{DynamicResource LargeDisplayButtonSize}" />
+            <Setter Property="FontSize" Value="{DynamicResource LargeDisplayButtonFontSize}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="{DynamicResource LargeDisplayButtonCornerRadius}" />
+        </Style>
+
+        <!-- Focus visual: show accent border when control has keyboard focus -->
+        <Style Selector="^:focus-visible /template/ Border#OuterContainer">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyAccentBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+
+        <!-- Also show focus for ShowControls=False (no outer container styling) -->
+        <Style Selector="^[ShowControls=False]:focus-visible /template/ Border#OuterContainer">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyAccentBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="Padding" Value="4" />
+            <Setter Property="CornerRadius" Value="8" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

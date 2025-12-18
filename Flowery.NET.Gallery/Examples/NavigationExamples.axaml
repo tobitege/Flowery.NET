@@ -17,7 +17,7 @@
                     <WrapPanel Orientation="Horizontal">
                         <!-- Basic breadcrumbs -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Basic" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Basic" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyBreadcrumbs>
                                 <controls:DaisyBreadcrumbItem Content="Home" />
                                 <controls:DaisyBreadcrumbItem Content="Documents" />
@@ -27,7 +27,7 @@
 
                         <!-- With custom separator -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Custom Separator (›)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Custom Separator (›)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyBreadcrumbs Separator="›">
                                 <controls:DaisyBreadcrumbItem Content="Home" />
                                 <controls:DaisyBreadcrumbItem Content="Products" />
@@ -37,7 +37,7 @@
 
                         <!-- With chevron separator -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Chevron Separator (»)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Chevron Separator (»)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyBreadcrumbs Separator="»" SeparatorOpacity="0.7">
                                 <controls:DaisyBreadcrumbItem Content="Root" />
                                 <controls:DaisyBreadcrumbItem Content="Folder" />
@@ -47,7 +47,7 @@
 
                         <!-- With icons -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="With Icons" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="With Icons" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyBreadcrumbs>
                                 <controls:DaisyBreadcrumbItem Content="Home" Icon="{StaticResource DaisyIconHome}" />
                                 <controls:DaisyBreadcrumbItem Content="Folder" Icon="{StaticResource DaisyIconFolder}" />
@@ -57,7 +57,7 @@
 
                         <!-- Max-width with scrolling -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="With Max-Width (scrollable)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="With Max-Width (scrollable)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyBreadcrumbs MaxWidth="220" MinHeight="80">
                                 <controls:DaisyBreadcrumbItem Content="Long text 1" />
                                 <controls:DaisyBreadcrumbItem Content="Long text 2" />
@@ -76,7 +76,7 @@
                     <local:SectionHeader SectionId="dock" Title="Dock" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Default Dock" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Default Dock" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyDock ItemSelected="OnDockItemSelected">
                                 <Button Tag="Home">
                                     <StackPanel>
@@ -100,7 +100,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Small Dock" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Small Dock" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyDock Size="Small" ItemSelected="OnDockItemSelected">
                                 <Button Tag="Home">
                                     <StackPanel>
@@ -118,7 +118,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Extra Small Dock (Icons only)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Extra Small Dock (Icons only)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyDock Size="ExtraSmall" ItemSelected="OnDockItemSelected">
                                 <Button Tag="Home">
                                     <PathIcon Data="{StaticResource DaisyIconHome}" />
@@ -139,13 +139,13 @@
                 <!-- Menu -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="menu" Title="Menu" />
-                    <TextBlock Text="Menu is used to display a list of links vertically or horizontally" Opacity="0.7" FontSize="13"/>
+                    <TextBlock Text="Menu is used to display a list of links vertically or horizontally" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
 
                     <!-- Basic Menu -->
                     <TextBlock Text="Basic Menu" FontWeight="SemiBold" Margin="0,8,0,0"/>
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Vertical (default)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Vertical (default)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Width="200" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>Item 1</ListBoxItem>
                                 <ListBoxItem>Item 2</ListBoxItem>
@@ -153,7 +153,7 @@
                             </controls:DaisyMenu>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Horizontal" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Horizontal" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Orientation="Horizontal" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>Item 1</ListBoxItem>
                                 <ListBoxItem>Item 2</ListBoxItem>
@@ -166,7 +166,7 @@
                     <TextBlock Text="Menu with Icon Only" FontWeight="SemiBold" Margin="0,8,0,0"/>
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Vertical" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Vertical" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>
                                     <PathIcon Data="{StaticResource DaisyIconHome}" Width="20" Height="20"/>
@@ -180,7 +180,7 @@
                             </controls:DaisyMenu>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Horizontal" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Horizontal" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Orientation="Horizontal" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>
                                     <PathIcon Data="{StaticResource DaisyIconHome}" Width="20" Height="20"/>
@@ -197,37 +197,38 @@
 
                     <!-- Menu Sizes -->
                     <TextBlock Text="Menu Sizes" FontWeight="SemiBold" Margin="0,8,0,0"/>
-                    <WrapPanel Orientation="Horizontal">
+                    <WrapPanel Orientation="Horizontal"
+                        controls:FlowerySizeManager.IgnoreGlobalSize="True">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Extra Small" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Extra Small" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Width="180" Size="ExtraSmall" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>Xsmall 1</ListBoxItem>
                                 <ListBoxItem>Xsmall 2</ListBoxItem>
                             </controls:DaisyMenu>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Small" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Small" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Width="180" Size="Small" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>Small 1</ListBoxItem>
                                 <ListBoxItem>Small 2</ListBoxItem>
                             </controls:DaisyMenu>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Medium (default)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Medium (default)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Width="180" Size="Medium" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>Medium 1</ListBoxItem>
                                 <ListBoxItem>Medium 2</ListBoxItem>
                             </controls:DaisyMenu>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Large" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Large" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Width="180" Size="Large" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>Large 1</ListBoxItem>
                                 <ListBoxItem>Large 2</ListBoxItem>
                             </controls:DaisyMenu>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Extra Large" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Extra Large" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Width="180" Size="ExtraLarge" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>Xlarge 1</ListBoxItem>
                                 <ListBoxItem>Xlarge 2</ListBoxItem>
@@ -251,7 +252,7 @@
                     <TextBlock Text="Menu with Icons" FontWeight="SemiBold" Margin="0,8,0,0"/>
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Vertical with icons" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Vertical with icons" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Width="200" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -274,7 +275,7 @@
                             </controls:DaisyMenu>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="With icons and badge" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="With icons and badge" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Orientation="Horizontal" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -304,7 +305,7 @@
                     <TextBlock Text="Menu with Title" FontWeight="SemiBold" Margin="0,8,0,0"/>
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Title as list item" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Title as list item" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Width="200" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem Classes="menu-title">Title</ListBoxItem>
                                 <ListBoxItem>Item 1</ListBoxItem>
@@ -318,7 +319,7 @@
                     <TextBlock Text="Menu with Active Item" FontWeight="SemiBold" Margin="0,8,0,0"/>
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Default active colors" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Default active colors" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Width="200" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>Item 1</ListBoxItem>
                                 <ListBoxItem IsSelected="True">Selected Item</ListBoxItem>
@@ -326,7 +327,7 @@
                             </controls:DaisyMenu>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Custom active colors (Primary)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Custom active colors (Primary)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Width="200" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8"
                                                ActiveForeground="{DynamicResource DaisyPrimaryContentBrush}"
                                                ActiveBackground="{DynamicResource DaisyPrimaryBrush}">
@@ -336,7 +337,7 @@
                             </controls:DaisyMenu>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Accent active colors" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Accent active colors" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Orientation="Horizontal" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8"
                                                ActiveForeground="{DynamicResource DaisyAccentContentBrush}"
                                                ActiveBackground="{DynamicResource DaisyAccentBrush}">
@@ -346,7 +347,7 @@
                             </controls:DaisyMenu>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Using menu-active class" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Using menu-active class" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Width="200" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>Item 1</ListBoxItem>
                                 <ListBoxItem Classes="menu-active">Active Item</ListBoxItem>
@@ -359,7 +360,7 @@
                     <TextBlock Text="Collapsible Submenu" FontWeight="SemiBold" Margin="0,8,0,0"/>
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Using Expander" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Using Expander" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Width="220" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>Item 1</ListBoxItem>
                                 <Expander Header="Parent" IsExpanded="True">
@@ -442,7 +443,7 @@
                     <TextBlock Text="Horizontal Menu" FontWeight="SemiBold" Margin="0,8,0,0"/>
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Basic horizontal" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Basic horizontal" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Orientation="Horizontal" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>Item 1</ListBoxItem>
                                 <ListBoxItem>Item 2</ListBoxItem>
@@ -450,7 +451,7 @@
                             </controls:DaisyMenu>
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="With icons" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="With icons" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyMenu Orientation="Horizontal" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
                                 <ListBoxItem>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -480,14 +481,14 @@
                 <!-- Navbar -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="navbar" Title="Navbar" />
-                    <TextBlock Text="Navbar is used to show a navigation bar on the top of the page. Use NavbarStart, NavbarCenter, and NavbarEnd properties for layout." Opacity="0.7" FontSize="13"/>
+                    <TextBlock Text="Navbar is used to show a navigation bar on the top of the page. Use NavbarStart, NavbarCenter, and NavbarEnd properties for layout." Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
 
                     <!-- Basic Navbars -->
                     <TextBlock Text="Basic Navbars" FontWeight="SemiBold" Margin="0,8,0,0"/>
                     <StackPanel Spacing="16">
                         <!-- Navbar with title only -->
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Title only" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Title only" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar>
                                 <controls:DaisyNavbar.NavbarStart>
                                     <controls:DaisyButton Variant="Ghost" FontSize="20" FontWeight="Bold" Content="Flowery"/>
@@ -497,7 +498,7 @@
 
                         <!-- Navbar with title and icon -->
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Title and icon" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Title and icon" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar>
                                 <controls:DaisyNavbar.NavbarStart>
                                     <controls:DaisyButton Variant="Ghost" FontSize="20" FontWeight="Bold" Content="Flowery"/>
@@ -512,7 +513,7 @@
 
                         <!-- Navbar with icons at start and end -->
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Icons at start and end" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Icons at start and end" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar>
                                 <controls:DaisyNavbar.NavbarStart>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -536,7 +537,7 @@
                     <StackPanel Spacing="16">
                         <!-- Navbar with horizontal menu -->
                         <StackPanel Spacing="6">
-                            <TextBlock Text="With horizontal menu" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="With horizontal menu" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar>
                                 <controls:DaisyNavbar.NavbarStart>
                                     <controls:DaisyButton Variant="Ghost" FontSize="20" FontWeight="Bold" Content="Flowery"/>
@@ -553,7 +554,7 @@
 
                         <!-- Navbar with center menu -->
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Center menu with action button" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Center menu with action button" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar>
                                 <controls:DaisyNavbar.NavbarStart>
                                     <controls:DaisyButton Variant="Ghost" FontSize="20" FontWeight="Bold" Content="Flowery"/>
@@ -576,7 +577,7 @@
                     <TextBlock Text="Navbar with Search and Avatar" FontWeight="SemiBold" Margin="0,16,0,0"/>
                     <StackPanel Spacing="16">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Search input and avatar" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Search input and avatar" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar>
                                 <controls:DaisyNavbar.NavbarStart>
                                     <controls:DaisyButton Variant="Ghost" FontSize="20" FontWeight="Bold" Content="Flowery"/>
@@ -597,7 +598,7 @@
                     <TextBlock Text="Center Logo with Side Icons" FontWeight="SemiBold" Margin="0,16,0,0"/>
                     <StackPanel Spacing="16">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Menu button, center title, action icons" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Menu button, center title, action icons" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar>
                                 <controls:DaisyNavbar.NavbarStart>
                                     <controls:DaisyButton Variant="Ghost" Shape="Circle">
@@ -630,7 +631,7 @@
                     <TextBlock Text="Navbar with Indicator" FontWeight="SemiBold" Margin="0,16,0,0"/>
                     <StackPanel Spacing="16">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Shopping cart with item count" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Shopping cart with item count" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar>
                                 <controls:DaisyNavbar.NavbarStart>
                                     <controls:DaisyButton Variant="Ghost" FontSize="20" FontWeight="Bold" Content="Flowery"/>
@@ -658,7 +659,7 @@
                     <TextBlock Text="Navbar with Colors" FontWeight="SemiBold" Margin="0,16,0,0"/>
                     <StackPanel Spacing="16">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Neutral background" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Neutral background" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar Background="{DynamicResource DaisyNeutralBrush}" Foreground="{DynamicResource DaisyNeutralContentBrush}">
                                 <controls:DaisyNavbar.NavbarStart>
                                     <controls:DaisyButton Variant="Ghost" FontSize="20" FontWeight="Bold" Content="Flowery"/>
@@ -667,7 +668,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Base-300 background" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Base-300 background" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar Background="{DynamicResource DaisyBase300Brush}">
                                 <controls:DaisyNavbar.NavbarStart>
                                     <controls:DaisyButton Variant="Ghost" FontSize="20" FontWeight="Bold" Content="Flowery"/>
@@ -676,7 +677,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Primary background" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Primary background" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar Background="{DynamicResource DaisyPrimaryBrush}" Foreground="{DynamicResource DaisyPrimaryContentBrush}">
                                 <controls:DaisyNavbar.NavbarStart>
                                     <controls:DaisyButton Variant="Ghost" FontSize="20" FontWeight="Bold" Content="Flowery"/>
@@ -689,7 +690,7 @@
                     <TextBlock Text="Full Width Navbar" FontWeight="SemiBold" Margin="0,16,0,0"/>
                     <StackPanel Spacing="16">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="No corner radius (IsFullWidth=True)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="No corner radius (IsFullWidth=True)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar IsFullWidth="True">
                                 <controls:DaisyNavbar.NavbarStart>
                                     <controls:DaisyButton Variant="Ghost" FontSize="20" FontWeight="Bold" Content="Flowery"/>
@@ -712,7 +713,7 @@
                     <TextBlock Text="Navbar without Shadow" FontWeight="SemiBold" Margin="0,16,0,0"/>
                     <StackPanel Spacing="16">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="HasShadow=False" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="HasShadow=False" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar HasShadow="False" Background="{DynamicResource DaisyBase200Brush}">
                                 <controls:DaisyNavbar.NavbarStart>
                                     <controls:DaisyButton Variant="Ghost" FontSize="20" FontWeight="Bold" Content="Flowery"/>
@@ -728,7 +729,7 @@
                     <TextBlock Text="Simple Content (Fallback)" FontWeight="SemiBold" Margin="0,16,0,0"/>
                     <StackPanel Spacing="16">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Using Content property directly (legacy support)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Using Content property directly (legacy support)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNavbar>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                     <TextBlock Text="Simple Navbar" FontWeight="Bold" FontSize="18" VerticalAlignment="Center"/>
@@ -748,7 +749,7 @@
                     <WrapPanel Orientation="Horizontal">
                         <!-- Basic with active button -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="With Active Button" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="With Active Button" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyPagination CurrentPage="2">
                                 <controls:DaisyPaginationItem Content="1" PageNumber="1" />
                                 <controls:DaisyPaginationItem Content="2" PageNumber="2" />
@@ -759,7 +760,7 @@
 
                         <!-- With disabled button (ellipsis) -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="With Disabled Button" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="With Disabled Button" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyPagination>
                                 <controls:DaisyPaginationItem Content="1" PageNumber="1" />
                                 <controls:DaisyPaginationItem Content="2" PageNumber="2" />
@@ -771,7 +772,7 @@
 
                         <!-- Prev/Next style -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Prev/Next Buttons" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Prev/Next Buttons" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyPagination>
                                 <controls:DaisyPaginationItem Content="«" />
                                 <controls:DaisyPaginationItem Content="Page 22" />
@@ -781,7 +782,7 @@
 
                         <!-- Outline style -->
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Outline Style" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Outline Style" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyPagination ButtonStyle="Outline">
                                 <controls:DaisyPaginationItem Content="Previous page" />
                                 <controls:DaisyPaginationItem Content="Next" />
@@ -790,7 +791,7 @@
                     </WrapPanel>
 
                     <!-- Sizes -->
-                    <TextBlock Text="Sizes" FontSize="12" Opacity="0.7" Margin="0,12,0,0"/>
+                    <TextBlock Text="Sizes" Opacity="0.7" Margin="0,12,0,0" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                     <StackPanel Spacing="12"
                         controls:FlowerySizeManager.IgnoreGlobalSize="True">
                         <controls:DaisyPagination Size="ExtraSmall" CurrentPage="2">
@@ -831,13 +832,13 @@
                 <!-- Steps -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="steps" Title="Steps" />
-                    <TextBlock Text="Steps can be used to show a list of steps in a process" Opacity="0.7" FontSize="13"/>
+                    <TextBlock Text="Steps can be used to show a list of steps in a process" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
 
                     <!-- Horizontal Steps -->
                     <TextBlock Text="Horizontal Steps" FontWeight="SemiBold" Margin="0,8,0,0"/>
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Basic horizontal" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Basic horizontal" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisySteps SelectedIndex="1" Width="400">
                                 <controls:DaisyStepItem Content="Register" Color="Primary"/>
                                 <controls:DaisyStepItem Content="Choose plan" Color="Primary"/>
@@ -851,7 +852,7 @@
                     <TextBlock Text="Vertical Steps" FontWeight="SemiBold" Margin="0,8,0,0"/>
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Basic vertical" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Basic vertical" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisySteps Orientation="Vertical" SelectedIndex="1" Height="200">
                                 <controls:DaisyStepItem Content="Register" Color="Primary"/>
                                 <controls:DaisyStepItem Content="Choose plan" Color="Primary"/>
@@ -865,7 +866,7 @@
                     <TextBlock Text="With data-content (Custom Icons)" FontWeight="SemiBold" Margin="0,8,0,0"/>
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Symbol icons" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Symbol icons" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisySteps Width="500">
                                 <controls:DaisyStepItem Content="Step 1" DataContent="?" Color="Neutral"/>
                                 <controls:DaisyStepItem Content="Step 2" DataContent="!" Color="Neutral"/>
@@ -881,7 +882,7 @@
                     <TextBlock Text="Custom Colors" FontWeight="SemiBold" Margin="0,8,0,0"/>
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Info and Error colors" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Info and Error colors" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisySteps Width="400">
                                 <controls:DaisyStepItem Content="Fly to moon" Color="Info"/>
                                 <controls:DaisyStepItem Content="Shrink the moon" Color="Info"/>
@@ -891,7 +892,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Mixed colors" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Mixed colors" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisySteps Width="400">
                                 <controls:DaisyStepItem Content="Start" Color="Primary"/>
                                 <controls:DaisyStepItem Content="In Progress" Color="Secondary"/>
@@ -930,7 +931,7 @@
                     <StackPanel Spacing="16"
                         controls:FlowerySizeManager.IgnoreGlobalSize="True">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Extra Small" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Extra Small" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisySteps Size="ExtraSmall" SelectedIndex="1" Width="350">
                                 <controls:DaisyStepItem Content="Register" Color="Primary"/>
                                 <controls:DaisyStepItem Content="Plan" Color="Primary"/>
@@ -939,7 +940,7 @@
                             </controls:DaisySteps>
                         </StackPanel>
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Small" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Small" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisySteps Size="Small" SelectedIndex="1" Width="350">
                                 <controls:DaisyStepItem Content="Register" Color="Primary"/>
                                 <controls:DaisyStepItem Content="Plan" Color="Primary"/>
@@ -948,7 +949,7 @@
                             </controls:DaisySteps>
                         </StackPanel>
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Medium (default)" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Medium (default)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisySteps Size="Medium" SelectedIndex="1" Width="350">
                                 <controls:DaisyStepItem Content="Register" Color="Primary"/>
                                 <controls:DaisyStepItem Content="Plan" Color="Primary"/>
@@ -957,7 +958,7 @@
                             </controls:DaisySteps>
                         </StackPanel>
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Large" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Large" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisySteps Size="Large" SelectedIndex="1" Width="400">
                                 <controls:DaisyStepItem Content="Register" Color="Primary"/>
                                 <controls:DaisyStepItem Content="Plan" Color="Primary"/>
@@ -966,7 +967,7 @@
                             </controls:DaisySteps>
                         </StackPanel>
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Extra Large" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="Extra Large" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisySteps Size="ExtraLarge" SelectedIndex="1" Width="450">
                                 <controls:DaisyStepItem Content="Register" Color="Primary"/>
                                 <controls:DaisyStepItem Content="Plan" Color="Primary"/>
@@ -1188,7 +1189,7 @@
                     <TextBlock Text="Variants" FontWeight="SemiBold" Margin="0,8,0,0" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="None (text only)" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="None (text only)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="None">
                                 <TabItem Header="Tab 1">
                                     <TextBlock Text="Content 1" Padding="10"/>
@@ -1200,7 +1201,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="Bordered (default)" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Bordered (default)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Bordered">
                                 <TabItem Header="Tab 1">
                                     <TextBlock Text="Content 1" Padding="10"/>
@@ -1212,7 +1213,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="Lifted (folder style)" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Lifted (folder style)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Lifted">
                                 <TabItem Header="Tab 1">
                                     <TextBlock Text="Content 1" Padding="10"/>
@@ -1224,7 +1225,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="Boxed (pill style)" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Boxed (pill style)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Boxed">
                                 <TabItem Header="Tab 1">
                                     <TextBlock Text="Content 1" Padding="10"/>
@@ -1241,7 +1242,7 @@
                     <WrapPanel Orientation="Horizontal"
                         controls:FlowerySizeManager.IgnoreGlobalSize="True">
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="Extra Small" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Extra Small" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Boxed" Size="ExtraSmall">
                                 <TabItem Header="Tab 1">
                                     <TextBlock Text="XS" Padding="8" />
@@ -1253,7 +1254,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="Small" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Small" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Boxed" Size="Small">
                                 <TabItem Header="Tab 1">
                                     <TextBlock Text="Small" Padding="8" />
@@ -1265,7 +1266,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="Medium (default)" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Medium (default)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Boxed" Size="Medium">
                                 <TabItem Header="Tab 1">
                                     <TextBlock Text="Medium" Padding="8" />
@@ -1277,7 +1278,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="Large" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Large" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Boxed" Size="Large">
                                 <TabItem Header="Tab 1">
                                     <TextBlock Text="Large" Padding="8" />
@@ -1293,10 +1294,10 @@
                     <TextBlock Text="Tab Width Modes" FontWeight="SemiBold" Margin="0,16,0,0" />
                     <TextBlock
                         Text="Control tab sizing behavior to prevent layout shifts or create uniform navigation"
-                        Opacity="0.7" FontSize="13" />
+                        Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="Auto (default)" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Auto (default)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Boxed" TabWidthMode="Auto">
                                 <TabItem Header="Short">
                                     <TextBlock Text="Content 1" Padding="10" />
@@ -1311,7 +1312,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="Equal (all same width)" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Equal (all same width)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Boxed" TabWidthMode="Equal">
                                 <TabItem Header="Short">
                                     <TextBlock Text="Content 1" Padding="10" />
@@ -1326,7 +1327,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="Fixed (100px each)" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Fixed (100px each)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Boxed" TabWidthMode="Fixed" TabWidth="100">
                                 <TabItem Header="Tab 1">
                                     <TextBlock Text="Content 1" Padding="10" />
@@ -1345,7 +1346,7 @@
                     <TextBlock Text="Width Constraints" FontWeight="SemiBold" Margin="0,16,0,0" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="With MaxWidth (120px)" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="With MaxWidth (120px)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Bordered" TabMaxWidth="120">
                                 <TabItem Header="Short">
                                     <TextBlock Text="Content" Padding="4" />
@@ -1361,7 +1362,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="With MinWidth (80px)" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="With MinWidth (80px)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Lifted" TabMinWidth="80">
                                 <TabItem Header="A">
                                     <TextBlock Text="Content" Padding="4" />
@@ -1381,7 +1382,7 @@
                     <StackPanel Spacing="10">
                         <TextBlock
                             Text="App-style navigation with Equal width (prevents layout shift when switching tabs)"
-                            FontSize="12" Opacity="0.7" />
+                            Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                         <controls:DaisyTabs Variant="Boxed" TabWidthMode="Equal" Size="Small">
                             <TabItem Header="Converter">
                                 <TextBlock Text="Color converter content..." Padding="16"
@@ -1408,10 +1409,10 @@
 
                     <!-- Tab Colors -->
                     <TextBlock Text="Tab Colors" FontWeight="SemiBold" Margin="0,16,0,0" />
-                    <TextBlock Text="Set semantic colors on individual tabs using the attached property" FontSize="12" Opacity="0.7" />
+                    <TextBlock Text="Set semantic colors on individual tabs using the attached property" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="Bordered with colors" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Bordered with colors" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Bordered">
                                 <TabItem Header="Default">
                                     <TextBlock Text="Default color" Padding="10" />
@@ -1426,7 +1427,7 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,20,10">
-                            <TextBlock Text="Boxed with colors" FontSize="12" Opacity="0.7" />
+                            <TextBlock Text="Boxed with colors" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyTabs Variant="Boxed">
                                 <TabItem Header="Accent" controls:DaisyTabs.TabColor="Accent">
                                     <TextBlock Text="Accent color" Padding="10" />
@@ -1443,7 +1444,7 @@
 
                     <!-- Code Editor Tabs Example (VS Code style) -->
                     <TextBlock Text="Code Editor Example (VS Code style)" FontWeight="SemiBold" Margin="0,16,0,0" />
-                    <TextBlock Text="Right-click tabs to access context menu with close actions and color selection" FontSize="12" Opacity="0.7" />
+                    <TextBlock Text="Right-click tabs to access context menu with close actions and color selection" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                     <StackPanel Spacing="0" Margin="0,0,0,10">
                         <controls:DaisyTabs x:Name="CodeEditorTabs"
                                                 Variant="Boxed"
