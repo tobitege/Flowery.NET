@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **DaisyButtonGroup**: New segmented button-group container for joined buttons and non-clickable parts (counters/labels), with size/variant/shape options and optional auto-selection.
 
+![DaisyButtonGroup Examples](https://tobitege.github.io/Flowery.NET/images/DaisyButtonGroup.png)
+
 ## [1.7.1] - 2025-12-18
 
 ### Fixed
@@ -44,6 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FloweryConverters**: Added new converter utilities in `Flowery.Services`
   - `NullToThicknessConverter`: Returns a `Thickness` from `ConverterParameter` when value is not null, zero otherwise
   - `DoubleToThicknessConverter`: Converts a `double` to a uniform `Thickness`
+
+![DaisyNumberFlow Example](https://tobitege.github.io/Flowery.NET/images/DaisyNumberFlow.png)
 
 ### Enhanced
 
