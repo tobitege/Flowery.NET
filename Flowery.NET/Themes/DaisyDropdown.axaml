@@ -62,7 +62,7 @@
                    Placement="{TemplateBinding PlacementMode}"
                    IsLightDismissEnabled="True"
                    InheritsTransform="True"
-                   MinWidth="{Binding Bounds.Width, ElementName=PART_Trigger}">
+                   MinWidth="{Binding Bounds.Width, ElementName=PART_Trigger, FallbackValue=0, TargetNullValue=0}">
               <Border Background="{DynamicResource DaisyBase100Brush}"
                       BorderBrush="{DynamicResource DaisyBase300Brush}"
                       BorderThickness="1"

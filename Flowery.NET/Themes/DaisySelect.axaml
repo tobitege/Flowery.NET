@@ -116,7 +116,7 @@
                                    PlacementTarget="{Binding ElementName=Background}"
                                    IsLightDismissEnabled="True"
                                    InheritsTransform="True"
-                                   MinWidth="{Binding Bounds.Width, ElementName=Background}">
+                                   MinWidth="{Binding Bounds.Width, ElementName=Background, FallbackValue=0, TargetNullValue=0}">
                                 <Border x:Name="PopupBorder"
                                         Background="{DynamicResource DaisyBase100Brush}"
                                         BorderBrush="{DynamicResource DaisyBaseContentBrush}"

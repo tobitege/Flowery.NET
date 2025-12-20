@@ -60,7 +60,7 @@
   </Styles.Resources>
 
   <Style Selector="controls|DaisyPopover[MatchTargetWidth=True] /template/ Popup#PART_Popup">
-    <Setter Property="MinWidth" Value="{Binding Bounds.Width, ElementName=PART_Target}" />
+    <Setter Property="MinWidth" Value="{Binding Bounds.Width, ElementName=PART_Target, FallbackValue=0, TargetNullValue=0}" />
   </Style>
 
 </Styles>
