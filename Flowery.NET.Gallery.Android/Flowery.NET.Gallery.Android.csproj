@@ -19,11 +19,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia.Android" Version="11.3.9" />
-        <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.1"/>
+        <PackageReference Include="Avalonia.Android" Version="11.3.10" />
+        <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Flowery.NET.Gallery\Flowery.NET.Gallery.csproj"/>
+        <ProjectReference Include="..\Flowery.NET.Gallery\Flowery.NET.Gallery.csproj" />
     </ItemGroup>
 </Project>

@@ -7,10 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Flowery.NET.Gallery\Flowery.NET.Gallery.csproj"/>
+        <ProjectReference Include="..\Flowery.NET.Gallery\Flowery.NET.Gallery.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia.Browser" Version="11.3.9" />
+        <PackageReference Include="Avalonia.Browser" Version="11.3.10" />
     </ItemGroup>
 </Project>
