@@ -119,7 +119,6 @@ jobs:
           mkdir -p ./final
           find ./release-artifacts -name "*.nupkg" -exec cp {} ./final/ \;
           find ./release-artifacts -name "*.zip" -exec cp {} ./final/ \;
-          find ./release-artifacts -name "*.tar.gz" -exec cp {} ./final/ \;
           echo "=== Release artifacts ==="
           ls -la ./final/
 
@@ -196,9 +195,6 @@ jobs:
           | Platform | Download |
           |----------|----------|
           | Windows x64 | `Flowery.Gallery-Windows-x64.zip` |
-          | Linux x64 | `Flowery.Gallery-Linux-x64.tar.gz` |
-          | macOS Intel | `Flowery.Gallery-macOS-x64.tar.gz` |
-          | macOS Apple Silicon | `Flowery.Gallery-macOS-arm64.tar.gz` |
           GALLERY
 
           echo "=== Release Notes ==="

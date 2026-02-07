@@ -20,15 +20,6 @@ jobs:
           - os: windows-latest
             rid: win-x64
             artifact_name: Flowery.Gallery-Windows-x64
-          - os: ubuntu-latest
-            rid: linux-x64
-            artifact_name: Flowery.Gallery-Linux-x64
-          - os: macos-latest
-            rid: osx-x64
-            artifact_name: Flowery.Gallery-macOS-x64
-          - os: macos-latest
-            rid: osx-arm64
-            artifact_name: Flowery.Gallery-macOS-arm64
 
     runs-on: ${{ matrix.os }}
     permissions:
@@ -60,18 +51,10 @@ jobs:
         run: Compress-Archive -Path ./publish/* -DestinationPath ./${{ matrix.artifact_name }}.zip
         shell: pwsh
 
-      - name: Tar Linux/macOS artifact
-        if: matrix.os != 'windows-latest'
-        run: |
-          chmod +x ./publish/Flowery.NET.Gallery.Desktop
-          tar -czvf ./${{ matrix.artifact_name }}.tar.gz -C ./publish .
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: |
             ./${{ matrix.artifact_name }}.zip
-            ./${{ matrix.artifact_name }}.tar.gz
           if-no-files-found: ignore
-

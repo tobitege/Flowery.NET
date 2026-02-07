@@ -117,7 +117,6 @@ jobs:
         run: |
           mkdir -p ./final
           find ./release-artifacts -name "*.zip" -exec cp {} ./final/ \;
-          find ./release-artifacts -name "*.tar.gz" -exec cp {} ./final/ \;
           echo "=== Release artifacts ==="
           ls -la ./final/
 
@@ -159,9 +158,6 @@ jobs:
             echo "| Platform | Download |"
             echo "|----------|----------|"
             echo "| Windows x64 | \`Flowery.Gallery-Windows-x64.zip\` |"
-            echo "| Linux x64 | \`Flowery.Gallery-Linux-x64.tar.gz\` |"
-            echo "| macOS Intel | \`Flowery.Gallery-macOS-x64.tar.gz\` |"
-            echo "| macOS Apple Silicon | \`Flowery.Gallery-macOS-arm64.tar.gz\` |"
             echo ""
             echo "---"
             echo ""
