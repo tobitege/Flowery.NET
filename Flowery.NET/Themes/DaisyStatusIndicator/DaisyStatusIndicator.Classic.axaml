@@ -7,6 +7,7 @@
 
     <Style Selector="controls|DaisyStatusIndicator[Variant=Ping] /template/ Ellipse#PART_AnimationEllipse">
         <Setter Property="IsVisible" Value="True" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -26,9 +27,6 @@
     <!-- ===================== BOUNCE VARIANT ===================== -->
     <!-- Dot bounces up and down -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Bounce]">
-        <Setter Property="Margin" Value="0,6,0,0" />
-    </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=Bounce] /template/ Ellipse#PART_MainEllipse">
         <Style.Animations>
             <Animation Duration="0:0:0.5" IterationCount="Infinite">
@@ -36,7 +34,7 @@
                     <Setter Property="TranslateTransform.Y" Value="0" />
                 </KeyFrame>
                 <KeyFrame KeyTime="0:0:0.25">
-                    <Setter Property="TranslateTransform.Y" Value="-6" />
+                    <Setter Property="TranslateTransform.Y" Value="-4" />
                 </KeyFrame>
                 <KeyFrame KeyTime="0:0:0.5">
                     <Setter Property="TranslateTransform.Y" Value="0" />
@@ -94,6 +92,7 @@
 
     <Style Selector="controls|DaisyStatusIndicator[Variant=Ripple] /template/ Ellipse#PART_AnimationEllipse">
         <Setter Property="IsVisible" Value="True" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -111,6 +110,7 @@
     </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=Ripple] /template/ Ellipse#PART_AnimationEllipse2">
         <Setter Property="IsVisible" Value="True" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:0.5">
                 <KeyFrame KeyTime="0:0:0">
@@ -128,6 +128,7 @@
     </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=Ripple] /template/ Ellipse#PART_AnimationEllipse3">
         <Setter Property="IsVisible" Value="True" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:1">
                 <KeyFrame KeyTime="0:0:0">
@@ -148,6 +149,7 @@
     <!-- Double-pulse like a heartbeat -->
 
     <Style Selector="controls|DaisyStatusIndicator[Variant=Heartbeat] /template/ Ellipse#PART_MainEllipse">
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">

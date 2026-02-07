@@ -10,34 +10,6 @@
         services:FloweryResponsive.BaseMaxWidth="430">
         <StackPanel Spacing="24" Margin="24,0,24,32">
 
-            <!-- CSS Theme Converter -->
-            <StackPanel Spacing="12">
-                <local:SectionHeader SectionId="css-theme-converter" Title="CSS Theme Converter" />
-                <WrapPanel Orientation="Horizontal">
-                    <controls:DaisyCard Width="660" Margin="0,0,20,20">
-                        <StackPanel Spacing="15">
-                            <TextBlock Text="Load a DaisyUI CSS theme file, convert to AXAML, and apply at runtime." Opacity="0.7" TextWrapping="Wrap" controls:FlowerySizeManager.ResponsiveFont="Primary" />
-                            <Grid ColumnDefinitions="*, Auto">
-                                <controls:DaisyInput x:Name="CssFilePathInput" Watermark="Path to .css file (e.g., synthwave.css)" />
-                                <controls:DaisyButton Grid.Column="1" Content="Browse..." Margin="8,0,0,0" Click="BrowseCssFile_Click" />
-                            </Grid>
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <controls:DaisyButton Content="Parse &amp; Apply Theme" Variant="Primary" Click="ParseAndApplyTheme_Click" />
-                                <controls:DaisyButton Content="Export AXAML" Variant="Secondary" Click="ExportAxaml_Click" />
-                            </StackPanel>
-                            <TextBlock x:Name="ThemeStatusText" Text="" Foreground="{DynamicResource DaisyInfoBrush}" TextWrapping="Wrap" />
-                            <Border x:Name="AxamlOutputBorder" IsVisible="False" Background="{DynamicResource DaisyBase300Brush}" Padding="10" CornerRadius="4" MaxHeight="200">
-                                <ScrollViewer>
-                                    <TextBlock x:Name="AxamlOutputText" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap" />
-                                </ScrollViewer>
-                            </Border>
-                        </StackPanel>
-                    </controls:DaisyCard>
-                </WrapPanel>
-            </StackPanel>
-
-            <controls:DaisyDivider />
-
             <!-- Theme Controller -->
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="theme-controller" Title="Theme Controller" />

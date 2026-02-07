@@ -1,96 +1,65 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
+using Flowery.Theming;
 
 namespace Flowery.Controls
 {
     /// <summary>
     /// Information about a DaisyUI theme.
     /// </summary>
-    public class DaisyThemeInfo
+    public class DaisyThemeInfo(string name, bool isDark)
     {
-        public string Name { get; }
-        public bool IsDark { get; }
-
-        public DaisyThemeInfo(string name, bool isDark)
-        {
-            Name = name;
-            IsDark = isDark;
-        }
+        public string Name { get; } = name;
+        public bool IsDark { get; } = isDark;
     }
 
     /// <summary>
-    /// Centralized theme manager for DaisyUI themes.
-    /// Handles loading and applying theme palettes app-wide.
+    /// Centralized theme manager for DaisyUI themes (flowery-net).
+    /// Swaps a single palette ResourceDictionary into Application.Resources.MergedDictionaries
+    /// and raises ThemeChanged.
     /// </summary>
     public static class DaisyThemeManager
     {
+        private sealed class ThemeDefinition(DaisyThemeInfo info, Func<ResourceDictionary> paletteFactory)
+        {
+            public DaisyThemeInfo Info { get; } = info;
+            public Func<ResourceDictionary> PaletteFactory { get; } = paletteFactory;
+        }
+
+        private static readonly Dictionary<string, ThemeDefinition> ThemesByName =
+            new(StringComparer.OrdinalIgnoreCase);
+
         private static ResourceDictionary? _currentPalette;
         private static string? _currentThemeName;
         private static string _baseThemeName = "Dark";
-        private static readonly Dictionary<string, DaisyThemeInfo> _themesByName;
 
         /// <summary>
         /// When true, ApplyTheme calls only update internal state without actually applying the theme.
-        /// Use this during app initialization to prevent theme controls from overriding persisted themes.
         /// </summary>
-        /// <example>
-        /// <code>
-        /// // During startup
-        /// DaisyThemeManager.SuppressThemeApplication = true;
-        ///
-        /// // Restore saved theme (updates internal state only)
-        /// DaisyThemeManager.ApplyTheme(savedTheme);
-        ///
-        /// // Create windows and controls...
-        ///
-        /// // After initialization - now actually apply
-        /// DaisyThemeManager.SuppressThemeApplication = false;
-        /// DaisyThemeManager.ApplyTheme(savedTheme); // Actually applies
-        /// </code>
-        /// </example>
         public static bool SuppressThemeApplication { get; set; }
 
         /// <summary>
         /// Optional custom theme applicator. When set, this delegate is called
-        /// instead of the default MergedDictionaries approach. The delegate receives
-        /// the theme name and should return true if the theme was applied successfully.
+        /// instead of the default MergedDictionaries approach.
         /// </summary>
-        /// <remarks>
-        /// Use this when your app requires a different theme application strategy,
-        /// such as in-place ThemeDictionary updates or persisting theme settings.
-        /// After calling, DaisyThemeManager automatically updates internal state
-        /// and fires ThemeChanged.
-        /// </remarks>
-        /// <example>
-        /// <code>
-        /// // In App.axaml.cs OnFrameworkInitializationCompleted:
-        /// DaisyThemeManager.CustomThemeApplicator = themeName =>
-        /// {
-        ///     // Custom in-place update logic
-        ///     var themeInfo = DaisyThemeManager.GetThemeInfo(themeName);
-        ///     if (themeInfo == null) return false;
-        ///
-        ///     // ... apply theme your way ...
-        ///     AppSettings.Current.DaisyUiTheme = themeName;
-        ///     return true;
-        /// };
-        /// </code>
-        /// </example>
         public static Func<string, bool>? CustomThemeApplicator { get; set; }
 
         /// <summary>
         /// All available DaisyUI themes.
         /// </summary>
-        public static readonly ReadOnlyCollection<DaisyThemeInfo> AvailableThemes;
+        public static ReadOnlyCollection<DaisyThemeInfo> AvailableThemes { get; private set; } =
+            new([]);
 
         static DaisyThemeManager()
         {
-            var themes = new List<DaisyThemeInfo>
+            // Register all standard DaisyUI themes
+            var standardThemes = new[]
             {
                 new DaisyThemeInfo("Abyss", true),
                 new DaisyThemeInfo("Acid", false),
@@ -127,15 +96,19 @@ namespace Flowery.Controls
                 new DaisyThemeInfo("Synthwave", true),
                 new DaisyThemeInfo("Valentine", false),
                 new DaisyThemeInfo("Winter", false),
-                new DaisyThemeInfo("Wireframe", false),
+                new DaisyThemeInfo("Wireframe", false)
             };
 
-            AvailableThemes = new ReadOnlyCollection<DaisyThemeInfo>(themes);
-            _themesByName = new Dictionary<string, DaisyThemeInfo>(StringComparer.OrdinalIgnoreCase);
-            foreach (var theme in themes)
+            foreach (var info in standardThemes)
             {
-                _themesByName[theme.Name] = theme;
+                RegisterTheme(info, () => LoadAxamlPalette(info.Name));
             }
+        }
+
+        private static ResourceDictionary LoadAxamlPalette(string themeName)
+        {
+            var uri = new Uri($"avares://Flowery.NET/Themes/Palettes/Daisy{themeName}.axaml");
+            return (ResourceDictionary)AvaloniaXamlLoader.Load(uri);
         }
 
         /// <summary>
@@ -150,7 +123,6 @@ namespace Flowery.Controls
 
         /// <summary>
         /// Gets or sets the base/default theme name (used by theme controllers as the "unchecked" theme).
-        /// Defaults to "Light".
         /// </summary>
         public static string BaseThemeName
         {
@@ -171,8 +143,29 @@ namespace Flowery.Controls
                 {
                     return _currentThemeName;
                 }
+
                 return "Dark";
             }
+        }
+
+        /// <summary>
+        /// Registers a theme with a palette factory. Call this to add more DaisyUI themes over time.
+        /// </summary>
+        public static void RegisterTheme(DaisyThemeInfo info, Func<ResourceDictionary> paletteFactory)
+        {
+            if (info == null) throw new ArgumentNullException(nameof(info));
+            if (paletteFactory == null) throw new ArgumentNullException(nameof(paletteFactory));
+            if (string.IsNullOrWhiteSpace(info.Name))
+                throw new ArgumentException("Theme name cannot be empty.", nameof(info));
+
+            ThemesByName[info.Name] = new ThemeDefinition(info, paletteFactory);
+            RebuildThemeList();
+        }
+
+        private static void RebuildThemeList()
+        {
+            var list = ThemesByName.Values.Select(d => d.Info).OrderBy(i => i.Name).ToList();
+            AvailableThemes = new ReadOnlyCollection<DaisyThemeInfo>(list);
         }
 
         /// <summary>
@@ -180,34 +173,43 @@ namespace Flowery.Controls
         /// </summary>
         public static DaisyThemeInfo? GetThemeInfo(string themeName)
         {
-            return _themesByName.TryGetValue(themeName, out var info) ? info : null;
+            if (string.IsNullOrWhiteSpace(themeName))
+                return null;
+
+            return ThemesByName.TryGetValue(themeName, out var def) ? def.Info : null;
         }
 
         /// <summary>
         /// Apply a theme by name.
         /// </summary>
-        /// <param name="themeName">The theme name (e.g., "Light", "Dark", "Synthwave").</param>
-        /// <returns>True if the theme was applied successfully.</returns>
         public static bool ApplyTheme(string themeName)
         {
-            if (string.IsNullOrEmpty(themeName))
+            if (string.IsNullOrWhiteSpace(themeName))
                 return false;
 
-            var themeInfo = GetThemeInfo(themeName);
-            if (themeInfo == null)
+            if (!ThemesByName.TryGetValue(themeName, out var def))
             {
-                System.Diagnostics.Debug.WriteLine($"Unknown theme: {themeName}");
-                return false;
+                // Try to find case-insensitive match if not found directly
+                var match = ThemesByName.Keys.FirstOrDefault(k => k.Equals(themeName, StringComparison.OrdinalIgnoreCase));
+                if (match != null)
+                {
+                    def = ThemesByName[match];
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"ApplyTheme: theme not registered: '{themeName}'");
+                    return false;
+                }
             }
 
             // Skip if already applied
-            if (string.Equals(_currentThemeName, themeInfo.Name, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(_currentThemeName, def.Info.Name, StringComparison.OrdinalIgnoreCase))
                 return true;
 
             // When suppressed, only update internal state without applying
             if (SuppressThemeApplication)
             {
-                _currentThemeName = themeInfo.Name;
+                _currentThemeName = def.Info.Name;
                 return true;
             }
 
@@ -217,37 +219,31 @@ namespace Flowery.Controls
                 var result = CustomThemeApplicator(themeName);
                 if (result)
                 {
-                    SetCurrentTheme(themeInfo.Name);
+                    SetCurrentTheme(def.Info.Name);
                 }
                 return result;
             }
 
-            // Default: use MergedDictionaries approach
             var app = Application.Current;
             if (app == null) return false;
 
-            var paletteUri = new Uri($"avares://Flowery.NET/Themes/Palettes/Daisy{themeInfo.Name}.axaml");
-
             try
             {
-                var newPalette = (ResourceDictionary)AvaloniaXamlLoader.Load(paletteUri);
+                var newPalette = def.PaletteFactory();
 
-                // Remove old palette if exists
                 if (_currentPalette != null && app.Resources.MergedDictionaries.Contains(_currentPalette))
                 {
                     app.Resources.MergedDictionaries.Remove(_currentPalette);
                 }
 
-                // Add new palette
                 app.Resources.MergedDictionaries.Add(newPalette);
                 _currentPalette = newPalette;
-                _currentThemeName = themeInfo.Name;
+                _currentThemeName = def.Info.Name;
 
                 // Set light/dark variant for system controls
-                app.RequestedThemeVariant = themeInfo.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
+                app.RequestedThemeVariant = def.Info.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
 
-                // Notify listeners
-                ThemeChanged?.Invoke(null, themeInfo.Name);
+                ThemeChanged?.Invoke(null, def.Info.Name);
 
                 return true;
             }
@@ -262,7 +258,6 @@ namespace Flowery.Controls
         /// Sets the current theme name and fires the ThemeChanged event.
         /// Used by custom theme applicators to update internal state after applying a theme.
         /// </summary>
-        /// <param name="themeName">The theme name that was applied.</param>
         public static void SetCurrentTheme(string themeName)
         {
             if (string.Equals(_currentThemeName, themeName, StringComparison.OrdinalIgnoreCase))

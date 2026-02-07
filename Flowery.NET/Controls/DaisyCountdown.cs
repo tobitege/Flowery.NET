@@ -63,6 +63,12 @@ namespace Flowery.Controls
         public static readonly StyledProperty<CountdownClockUnit> ClockUnitProperty =
             AvaloniaProperty.Register<DaisyCountdown, CountdownClockUnit>(nameof(ClockUnit), CountdownClockUnit.None);
 
+        /// <summary>
+        /// Gets or sets the size of the countdown display.
+        /// </summary>
+        public static readonly StyledProperty<DaisySize> SizeProperty =
+            AvaloniaProperty.Register<DaisyCountdown, DaisySize>(nameof(Size), DaisySize.Medium);
+
         public static readonly DirectProperty<DaisyCountdown, string> DisplayValueProperty =
             AvaloniaProperty.RegisterDirect<DaisyCountdown, string>(
                 nameof(DisplayValue),
@@ -110,6 +116,15 @@ namespace Flowery.Controls
         {
             get => GetValue(ClockUnitProperty);
             set => SetValue(ClockUnitProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the display size.
+        /// </summary>
+        public DaisySize Size
+        {
+            get => GetValue(SizeProperty);
+            set => SetValue(SizeProperty, value);
         }
 
         public string DisplayValue

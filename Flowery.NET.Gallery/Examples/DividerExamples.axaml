@@ -18,7 +18,7 @@
                 <!-- Basic divider with text -->
                 <TextBlock Text="Divider with text" FontWeight="SemiBold" Margin="0,0,0,4"/>
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
-                    <StackPanel Width="300">
+                    <StackPanel>
                         <TextBlock Text="Content" HorizontalAlignment="Center"/>
                         <controls:DaisyDivider>OR</controls:DaisyDivider>
                         <TextBlock Text="Content" HorizontalAlignment="Center"/>
@@ -38,7 +38,7 @@
                 <!-- Divider with no text -->
                 <TextBlock Text="Divider with no text" FontWeight="SemiBold" Margin="0,16,0,4"/>
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
-                    <StackPanel Width="300">
+                    <StackPanel>
                         <TextBlock Text="Content" HorizontalAlignment="Center"/>
                         <controls:DaisyDivider />
                         <TextBlock Text="Content" HorizontalAlignment="Center"/>
@@ -48,7 +48,7 @@
                 <!-- Divider with colors -->
                 <TextBlock Text="Divider with colors" FontWeight="SemiBold" Margin="0,16,0,4"/>
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
-                    <StackPanel Width="400">
+                    <StackPanel>
                         <controls:DaisyDivider>Default</controls:DaisyDivider>
                         <controls:DaisyDivider Color="Neutral">Neutral</controls:DaisyDivider>
                         <controls:DaisyDivider Color="Primary">Primary</controls:DaisyDivider>
@@ -64,7 +64,7 @@
                 <!-- Divider in different positions -->
                 <TextBlock Text="Divider placements" FontWeight="SemiBold" Margin="0,16,0,4"/>
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
-                    <StackPanel Width="400">
+                    <StackPanel>
                         <controls:DaisyDivider Placement="Start">Start</controls:DaisyDivider>
                         <controls:DaisyDivider>Default</controls:DaisyDivider>
                         <controls:DaisyDivider Placement="End">End</controls:DaisyDivider>
@@ -85,7 +85,7 @@
                 <TextBlock Text="Custom DividerMargin" FontWeight="SemiBold" Margin="0,16,0,4"/>
                 <TextBlock Text="DividerMargin property controls the spacing around the divider line" Opacity="0.7" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
-                    <StackPanel Width="400">
+                    <StackPanel>
                         <TextBlock Text="Content" HorizontalAlignment="Center"/>
                         <controls:DaisyDivider DividerMargin="0,4">Default Margin (0,4)</controls:DaisyDivider>
                         <TextBlock Text="Content" HorizontalAlignment="Center"/>
@@ -96,6 +96,137 @@
                         <controls:DaisyDivider DividerMargin="20,8" Color="Accent">Horizontal + Vertical (20,8)</controls:DaisyDivider>
                         <TextBlock Text="Content" HorizontalAlignment="Center"/>
                     </StackPanel>
+                </Border>
+
+                <controls:DaisyDivider Margin="0,24,0,0" />
+
+                <!-- Divider Styles -->
+                <TextBlock Text="Divider Styles" FontWeight="SemiBold" FontSize="18" Margin="0,16,0,4"/>
+                <TextBlock Text="Various visual styles for dividers: Solid, Dashed, Dotted, Inset, Gradient, Double, Glow, Wave, and Tapered." Opacity="0.7" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Solid (default)" Opacity="0.6" FontSize="11"/>
+                        <controls:DaisyDivider DividerStyle="Solid" />
+
+                        <TextBlock Text="Dashed" Opacity="0.6" FontSize="11" Margin="0,8,0,0"/>
+                        <controls:DaisyDivider DividerStyle="Dashed" Color="Primary" />
+
+                        <TextBlock Text="Dotted" Opacity="0.6" FontSize="11" Margin="0,8,0,0"/>
+                        <controls:DaisyDivider DividerStyle="Dotted" Color="Secondary" />
+
+                        <TextBlock Text="Inset (3D embossed effect)" Opacity="0.6" FontSize="11" Margin="0,8,0,0"/>
+                        <controls:DaisyDivider DividerStyle="Inset" LineThickness="2" />
+
+                        <TextBlock Text="Double (two parallel lines)" Opacity="0.6" FontSize="11" Margin="0,8,0,0"/>
+                        <controls:DaisyDivider DividerStyle="Double" Color="Accent" LineThickness="2" />
+
+                        <TextBlock Text="Gradient (fades from center)" Opacity="0.6" FontSize="11" Margin="0,8,0,0"/>
+                        <controls:DaisyDivider DividerStyle="Gradient" Color="Primary" LineThickness="3" />
+
+                        <TextBlock Text="Glow (animated neon effect)" Opacity="0.6" FontSize="11" Margin="0,8,0,0"/>
+                        <controls:DaisyDivider DividerStyle="Glow" Color="Success" LineThickness="2" />
+
+                        <TextBlock Text="Wave (wavy line pattern)" Opacity="0.6" FontSize="11" Margin="0,8,0,0"/>
+                        <controls:DaisyDivider DividerStyle="Wave" Color="Info" LineThickness="2" />
+
+                        <TextBlock Text="Tapered (thick center, thin ends)" Opacity="0.6" FontSize="11" Margin="0,8,0,0"/>
+                        <controls:DaisyDivider DividerStyle="Tapered" Color="Error" LineThickness="4" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Ornament Styles -->
+                <TextBlock Text="Ornament Dividers" FontWeight="SemiBold" Margin="0,16,0,4"/>
+                <TextBlock Text="Dividers with decorative shapes in the center: Diamond, Circle, Star, Square." Opacity="0.7" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Diamond (default)" Opacity="0.6" FontSize="11"/>
+                        <controls:DaisyDivider DividerStyle="Ornament" Ornament="Diamond" Color="Primary" LineThickness="2" />
+
+                        <TextBlock Text="Circle" Opacity="0.6" FontSize="11" Margin="0,8,0,0"/>
+                        <controls:DaisyDivider DividerStyle="Ornament" Ornament="Circle" Color="Secondary" LineThickness="2" />
+
+                        <TextBlock Text="Star" Opacity="0.6" FontSize="11" Margin="0,8,0,0"/>
+                        <controls:DaisyDivider DividerStyle="Ornament" Ornament="Star" Color="Accent" LineThickness="2" />
+
+                        <TextBlock Text="Square" Opacity="0.6" FontSize="11" Margin="0,8,0,0"/>
+                        <controls:DaisyDivider DividerStyle="Ornament" Ornament="Square" Color="Warning" LineThickness="2" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Size Variants with Ornaments -->
+                <TextBlock Text="Size Variants" FontWeight="SemiBold" Margin="0,16,0,4"/>
+                <TextBlock Text="Size property affects ornament size, line thickness, and spacing." Opacity="0.7" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
+                    <StackPanel Spacing="8">
+                        <Grid ColumnDefinitions="100,*">
+                            <TextBlock Text="Extra Small" Opacity="0.6" VerticalAlignment="Center" FontSize="11"/>
+                            <controls:DaisyDivider Grid.Column="1" Size="ExtraSmall" DividerStyle="Ornament" Ornament="Diamond" Color="Primary" LineThickness="1" />
+                        </Grid>
+                        <Grid ColumnDefinitions="100,*">
+                            <TextBlock Text="Small" Opacity="0.6" VerticalAlignment="Center" FontSize="11"/>
+                            <controls:DaisyDivider Grid.Column="1" Size="Small" DividerStyle="Ornament" Ornament="Circle" Color="Secondary" LineThickness="1" />
+                        </Grid>
+                        <Grid ColumnDefinitions="100,*">
+                            <TextBlock Text="Medium" Opacity="0.6" VerticalAlignment="Center" FontSize="11"/>
+                            <controls:DaisyDivider Grid.Column="1" Size="Medium" DividerStyle="Ornament" Ornament="Star" Color="Accent" LineThickness="2" />
+                        </Grid>
+                        <Grid ColumnDefinitions="100,*">
+                            <TextBlock Text="Large" Opacity="0.6" VerticalAlignment="Center" FontSize="11"/>
+                            <controls:DaisyDivider Grid.Column="1" Size="Large" DividerStyle="Ornament" Ornament="Square" Color="Success" LineThickness="3" />
+                        </Grid>
+                        <Grid ColumnDefinitions="100,*">
+                            <TextBlock Text="Extra Large" Opacity="0.6" VerticalAlignment="Center" FontSize="11"/>
+                            <controls:DaisyDivider Grid.Column="1" Size="ExtraLarge" DividerStyle="Ornament" Ornament="Diamond" Color="Warning" LineThickness="4" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Horizontal Styles -->
+                <TextBlock Text="Horizontal Divider Styles" FontWeight="SemiBold" Margin="0,16,0,4"/>
+                <TextBlock Text="Vertical line orientation with different colors." Opacity="0.7" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
+                    <WrapPanel HorizontalAlignment="Center">
+                        <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="12,8">
+                            <TextBlock Text="Default" FontSize="10" Opacity="0.6" HorizontalAlignment="Center"/>
+                            <controls:DaisyDivider Horizontal="True" Height="80" />
+                        </StackPanel>
+                        <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="12,8">
+                            <TextBlock Text="Primary" FontSize="10" Opacity="0.6" HorizontalAlignment="Center"/>
+                            <controls:DaisyDivider Horizontal="True" Color="Primary" Height="80" />
+                        </StackPanel>
+                        <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="12,8">
+                            <TextBlock Text="Secondary" FontSize="10" Opacity="0.6" HorizontalAlignment="Center"/>
+                            <controls:DaisyDivider Horizontal="True" Color="Secondary" Height="80" />
+                        </StackPanel>
+                        <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="12,8">
+                            <TextBlock Text="Accent" FontSize="10" Opacity="0.6" HorizontalAlignment="Center"/>
+                            <controls:DaisyDivider Horizontal="True" Color="Accent" Height="80" />
+                        </StackPanel>
+                        <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="12,8">
+                            <TextBlock Text="Success" FontSize="10" Opacity="0.6" HorizontalAlignment="Center"/>
+                            <controls:DaisyDivider Horizontal="True" Color="Success" Height="80" />
+                        </StackPanel>
+                        <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="12,8">
+                            <TextBlock Text="Dashed" FontSize="10" Opacity="0.6" HorizontalAlignment="Center"/>
+                            <controls:DaisyDivider Horizontal="True" DividerStyle="Dashed" Color="Warning" Height="80" />
+                        </StackPanel>
+                        <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="12,8">
+                            <TextBlock Text="Dotted" FontSize="10" Opacity="0.6" HorizontalAlignment="Center"/>
+                            <controls:DaisyDivider Horizontal="True" DividerStyle="Dotted" Color="Error" Height="80" />
+                        </StackPanel>
+                        <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="12,8">
+                            <TextBlock Text="Glow" FontSize="10" Opacity="0.6" HorizontalAlignment="Center"/>
+                            <controls:DaisyDivider Horizontal="True" DividerStyle="Glow" Color="Info" Height="80" />
+                        </StackPanel>
+                        <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="12,8">
+                            <TextBlock Text="Wave" FontSize="10" Opacity="0.6" HorizontalAlignment="Center"/>
+                            <controls:DaisyDivider Horizontal="True" DividerStyle="Wave" Color="Primary" Height="80" />
+                        </StackPanel>
+                        <StackPanel Spacing="4" HorizontalAlignment="Center" Margin="12,8">
+                            <TextBlock Text="Tapered" FontSize="10" Opacity="0.6" HorizontalAlignment="Center"/>
+                            <controls:DaisyDivider Horizontal="True" DividerStyle="Tapered" Color="Accent" Height="80" />
+                        </StackPanel>
+                    </WrapPanel>
                 </Border>
             </StackPanel>
 

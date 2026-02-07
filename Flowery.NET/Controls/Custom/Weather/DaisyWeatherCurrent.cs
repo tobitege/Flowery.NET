@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Flowery.Controls;
 using Flowery.Controls.Custom.Weather.Models;
 using Flowery.Services;
 
@@ -15,6 +16,17 @@ namespace Flowery.Controls.Custom.Weather
         protected override Type StyleKeyOverride => typeof(DaisyWeatherCurrent);
 
         private const double BaseTextFontSize = 14.0;
+        private readonly DaisyControlLifecycle _lifecycle;
+
+        public DaisyWeatherCurrent()
+        {
+            _lifecycle = new DaisyControlLifecycle(
+                this,
+                ApplyAll,
+                () => DaisySize.Medium,
+                _ => { },
+                subscribeSizeChanges: false);
+        }
 
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
@@ -116,6 +128,11 @@ namespace Flowery.Controls.Custom.Weather
         {
             get => GetValue(ShowSunTimesProperty);
             set => SetValue(ShowSunTimesProperty, value);
+        }
+
+        private void ApplyAll()
+        {
+            InvalidateVisual();
         }
     }
 }

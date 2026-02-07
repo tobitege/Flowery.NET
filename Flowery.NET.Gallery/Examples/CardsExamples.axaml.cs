@@ -154,7 +154,7 @@ public partial class CardsExamples : UserControl, IScrollableExample
         container.Children.Add(headerRow);
 
         // Rows (Blur values)
-        for (int blur = 0; blur <= 100; blur += 10)
+        for (int blur = 0; blur <= 40; blur += 10)
         {
             var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
 

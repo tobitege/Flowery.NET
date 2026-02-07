@@ -5,9 +5,9 @@
     <Design.PreviewWith>
         <Border Padding="50">
              <controls:DaisyIndicator>
-                 <controls:DaisyIndicator.Badge>
+                 <controls:DaisyIndicator.Marker>
                      <controls:DaisyBadge Variant="Primary" Content="99+" />
-                 </controls:DaisyIndicator.Badge>
+                 </controls:DaisyIndicator.Marker>
                  <Button Content="Inbox" />
              </controls:DaisyIndicator>
         </Border>
@@ -18,39 +18,17 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Grid ClipToBounds="False">
-                    <ContentPresenter Content="{TemplateBinding Content}"
-                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    <ContentPresenter x:Name="PART_MainContent"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Top" />
 
-                    <ContentPresenter Content="{TemplateBinding Badge}"
-                                      HorizontalAlignment="{TemplateBinding BadgeHorizontalAlignment}"
-                                      VerticalAlignment="{TemplateBinding BadgeVerticalAlignment}">
-                         <!-- We need to offset the badge so it sits on the corner.
-                              DaisyUI uses translate(-50%, -50%) typically for top-left, etc.
-                              Or translate(50%, -50%) for top-right.
-
-                              We can use a RenderTransform bound to alignment?
-                              Or hardcode typical variants.
-
-                              Let's assume default is TopRight.
-                              Translate(50%, -50%). -->
-                         <ContentPresenter.RenderTransform>
-                             <TranslateTransform X="{Binding $parent[ContentPresenter].Bounds.Width, Converter={x:Static controls:IndicatorConverters.HalfConverter}}"
-                                                 Y="{Binding $parent[ContentPresenter].Bounds.Height, Converter={x:Static controls:IndicatorConverters.NegativeHalfConverter}}"/>
-                         </ContentPresenter.RenderTransform>
-                    </ContentPresenter>
+                    <Canvas x:Name="PART_MarkerCanvas" ClipToBounds="False">
+                        <ContentPresenter x:Name="PART_MarkerPresenter" />
+                    </Canvas>
                 </Grid>
             </ControlTemplate>
         </Setter>
-
-        <!-- We need to adjust Transform based on Alignment.
-             Ideally use a Converter that takes Alignment and Size.
-             For MVP, let's hardcode the most common case (TopRight) or try to support basic corners via Styles?
-
-             Actually, pure XAML calc is hard.
-             DaisyUI .indicator-item is absolute positioned.
-             Avalonia doesn't support % translation easily without binding to bounds.
-
-             Let's implement a simple converter for offsets. -->
-
     </ControlTheme>
 </ResourceDictionary>

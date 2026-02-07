@@ -1,0 +1,111 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:services="clr-namespace:Flowery.Services;assembly=Flowery.NET"
+             xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
+             x:Class="Flowery.NET.Gallery.Examples.ProductThemesExamples">
+
+    <ScrollViewer x:Name="MainScrollViewer"
+                  HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto"
+                  Background="Transparent"
+                  Padding="0,0,0,32"
+                  services:FloweryResponsive.IsEnabled="True"
+                  services:FloweryResponsive.BaseMaxWidth="560">
+        <StackPanel Spacing="12" Margin="4,0,4,12">
+
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="product-themes" Title="Product Theme Dropdown" />
+            </StackPanel>
+
+            <Border x:Name="IntroCard" Padding="16" CornerRadius="12" BorderThickness="1">
+                <StackPanel Spacing="10">
+                    <TextBlock x:Name="IntroTitle"
+                               Text="Industry-Specific Color Palettes"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource DaisyPrimaryBrush}" />
+
+                    <TextBlock x:Name="IntroBody1"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource DaisyBaseContentBrush}">
+                        <Run Text="Looking for something beyond the classic DaisyUI themes? We've got you covered! " />
+                        <Run Text="Flowery.NET includes " FontWeight="SemiBold" />
+                        <Run Text="96 professionally crafted product-specific color palettes" FontWeight="Bold" Foreground="{DynamicResource DaisyAccentBrush}" />
+                        <Run Text=" designed for real-world applications across different industries." />
+                    </TextBlock>
+
+                    <TextBlock x:Name="IntroBody2"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource DaisyBaseContentBrush}">
+                        <Run Text="These palettes are imported from the fantastic " />
+                        <Run Text="UI UX Pro Max Skill" FontWeight="SemiBold" FontStyle="Italic" />
+                        <Run Text=" project - an open-source treasure trove of design intelligence. Whether you're building a sleek SaaS dashboard, a vibrant e-commerce storefront, a trustworthy fintech app, or a calming healthcare portal, there's a palette waiting for you!" />
+                    </TextBlock>
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <controls:DaisyBadge Content="MIT Licensed" Variant="Success" />
+                        <controls:DaisyBadge Content="96 Palettes" Variant="Info" />
+                        <controls:DaisyBadge Content="12+ Industries" Variant="Accent" />
+                    </StackPanel>
+
+                    <controls:DaisyDivider />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock x:Name="IntroCreditsTitle"
+                                   Text="Source &amp; Credits"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <TextBlock x:Name="IntroCreditsBody"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                   Opacity="0.85">
+                            <Run Text="These color palettes were lovingly imported from nextlevelbuilder/ui-ux-pro-max-skill on GitHub. Big thanks to the contributors for making professional design accessible to everyone!" />
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Spacing="6">
+                <local:SectionHeader SectionId="industry-forms" Title="Industry Form Example" />
+
+                <StackPanel x:Name="FormSelectorRow" Orientation="Horizontal" Spacing="16" Margin="0,0,0,4">
+                    <TextBlock Text="Select form:" VerticalAlignment="Center"
+                               Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                    <controls:DaisySelect x:Name="FormSelector" Size="Medium" Width="220" />
+                </StackPanel>
+
+                <StackPanel x:Name="ThemeSelectorRow" Orientation="Horizontal" Spacing="16" Margin="0,0,0,4">
+                    <TextBlock Text="Select theme:" VerticalAlignment="Center"
+                               Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                    <controls:DaisyProductThemeDropdown x:Name="ProductThemeDropdown" Width="220" />
+                    <controls:DaisyCheckBox x:Name="AutoScrollCheckBox" Content="Auto-Scroll" IsChecked="True" Size="Small" />
+                </StackPanel>
+
+                <TextBlock x:Name="FormDescription"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,6"
+                           Opacity="0.85"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}">
+                    <Run Text="Different themes will display a " />
+                    <Run Text="unique form" FontWeight="SemiBold" />
+                    <Run Text=" tailored to the theme's industry topic." />
+                </TextBlock>
+
+                <Border x:Name="FormWrapper"
+                        MinHeight="950"
+                        MaxWidth="500"
+                        HorizontalAlignment="Left"
+                        Background="Transparent"
+                        BorderBrush="{DynamicResource DaisyBase300Brush}"
+                        BorderThickness="2"
+                        CornerRadius="12"
+                        Padding="16">
+                    <StackPanel x:Name="FormContainer"
+                                Spacing="20"
+                                VerticalAlignment="Top" />
+                </Border>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

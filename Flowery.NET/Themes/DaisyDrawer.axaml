@@ -1,10 +1,11 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+                    xmlns:sys="clr-namespace:System;assembly=netstandard">
 
     <Design.PreviewWith>
         <Border Padding="0" Width="400" Height="300">
-             <controls:DaisyDrawer IsPaneOpen="True">
+             <controls:DaisyDrawer IsDrawerOpen="True">
                  <controls:DaisyDrawer.Pane>
                      <StackPanel Margin="20">
                          <TextBlock Text="Sidebar Item 1" />
@@ -19,49 +20,21 @@
     </Design.PreviewWith>
 
     <ControlTheme x:Key="{x:Type controls:DaisyDrawer}" TargetType="controls:DaisyDrawer">
-        <!-- SplitView template is complex, usually we inherit standard one but just change background colors.
-             Avalonia's default SplitView is unstyled or very basic.
-             DaisyUI drawer has a dark overlay (scrim) and a side panel. -->
         <Setter Property="PaneBackground" Value="{DynamicResource DaisyBase100Brush}" />
 
-        <!-- We can just rely on default SplitView template if we don't need custom logic,
-             but we should verify if default theme is applied.
-             Since we override StyleKey, we lose default SplitView theme unless we copy it.
-             Or we can rely on standard properties.
-             Let's copy the minimal SplitView template. -->
-
-        <!-- Simplified SplitView Template aligning with standard structure.
-             This relies on 'Overlay' mode logic for layout, but we manually handle the visual transitions
-             since SplitView is templated.
-             We ensure we use Panel for PaneRoot to allow SplitView logic to measure it. -->
+        <!-- Inline mode template: pane takes layout space instead of overlaying content. -->
         <Setter Property="Template">
             <ControlTemplate>
-                <Grid>
-                    <!-- Content -->
-                    <ContentPresenter Name="PART_ContentPresenter"
-                                      Content="{TemplateBinding Content}"
-                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
-
-                    <!-- Overlay (for Overlay display mode only - hidden for Inline mode) -->
-                    <Rectangle Name="Overlay"
-                               Fill="#80000000"
-                               IsVisible="False"
-                               IsHitTestVisible="False"
-                               Opacity="0" />
-
+                <DockPanel LastChildFill="True">
                     <!-- Pane -->
-                    <!-- We use PART_PaneRoot so SplitView logic (measuring OpenPaneLength) works. -->
                     <Grid Name="PART_PaneRoot"
+                          DockPanel.Dock="Left"
                           Background="{TemplateBinding PaneBackground}"
-                          Width="{TemplateBinding OpenPaneLength}"
-                          HorizontalAlignment="Left"
-                          ZIndex="100">
-                        <Grid.RenderTransform>
-                            <TranslateTransform X="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=OpenPaneLength, Converter={x:Static controls:DrawerConverters.NegativeConverter}}" />
-                        </Grid.RenderTransform>
+                          Width="{TemplateBinding OpenPaneLength}">
                         <Grid.Transitions>
                             <Transitions>
-                                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3" Easing="CubicEaseOut" />
+                                <DoubleTransition Property="Width" Duration="0:0:0.2" Easing="CubicEaseOut" />
+                                <DoubleTransition Property="Height" Duration="0:0:0.2" Easing="CubicEaseOut" />
                             </Transitions>
                         </Grid.Transitions>
 
@@ -69,13 +42,135 @@
                                           Content="{TemplateBinding Pane}"
                                           ContentTemplate="{TemplateBinding PaneTemplate}" />
                     </Grid>
-                </Grid>
+
+                    <!-- Content -->
+                    <ContentPresenter Name="PART_ContentPresenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
+                </DockPanel>
             </ControlTemplate>
         </Setter>
 
+        <Style Selector="^[DisplayMode=Inline][PanePlacement=Right] /template/ Grid#PART_PaneRoot, ^[DisplayMode=CompactInline][PanePlacement=Right] /template/ Grid#PART_PaneRoot">
+            <Setter Property="DockPanel.Dock" Value="Right" />
+        </Style>
 
-        <Style Selector="^[IsPaneOpen=True] /template/ Grid#PART_PaneRoot">
-             <Setter Property="RenderTransform" Value="translateX(0)" />
+        <Style Selector="^[DisplayMode=Inline][PanePlacement=Top] /template/ Grid#PART_PaneRoot, ^[DisplayMode=CompactInline][PanePlacement=Top] /template/ Grid#PART_PaneRoot">
+            <Setter Property="DockPanel.Dock" Value="Top" />
+            <Setter Property="Width" Value="{x:Static sys:Double.NaN}" />
+            <Setter Property="Height" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=OpenPaneLength}" />
+        </Style>
+
+        <Style Selector="^[DisplayMode=Inline][PanePlacement=Bottom] /template/ Grid#PART_PaneRoot, ^[DisplayMode=CompactInline][PanePlacement=Bottom] /template/ Grid#PART_PaneRoot">
+            <Setter Property="DockPanel.Dock" Value="Bottom" />
+            <Setter Property="Width" Value="{x:Static sys:Double.NaN}" />
+            <Setter Property="Height" Value="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=OpenPaneLength}" />
+        </Style>
+
+        <Style Selector="^[DisplayMode=Inline][PanePlacement=Left][IsPaneOpen=False] /template/ Grid#PART_PaneRoot, ^[DisplayMode=CompactInline][PanePlacement=Left][IsPaneOpen=False] /template/ Grid#PART_PaneRoot">
+            <Setter Property="Width" Value="0" />
+        </Style>
+
+        <Style Selector="^[DisplayMode=Inline][PanePlacement=Right][IsPaneOpen=False] /template/ Grid#PART_PaneRoot, ^[DisplayMode=CompactInline][PanePlacement=Right][IsPaneOpen=False] /template/ Grid#PART_PaneRoot">
+            <Setter Property="Width" Value="0" />
+        </Style>
+
+        <Style Selector="^[DisplayMode=Inline][PanePlacement=Top][IsPaneOpen=False] /template/ Grid#PART_PaneRoot, ^[DisplayMode=CompactInline][PanePlacement=Top][IsPaneOpen=False] /template/ Grid#PART_PaneRoot">
+            <Setter Property="Height" Value="0" />
+        </Style>
+
+        <Style Selector="^[DisplayMode=Inline][PanePlacement=Bottom][IsPaneOpen=False] /template/ Grid#PART_PaneRoot, ^[DisplayMode=CompactInline][PanePlacement=Bottom][IsPaneOpen=False] /template/ Grid#PART_PaneRoot">
+            <Setter Property="Height" Value="0" />
+        </Style>
+
+        <Style Selector="^[DisplayMode=Overlay]">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid>
+                        <!-- Content -->
+                        <ContentPresenter Name="PART_ContentPresenter"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+
+                        <!-- Overlay -->
+                        <Rectangle Name="Overlay"
+                                   Fill="#80000000"
+                                   IsVisible="False"
+                                   IsHitTestVisible="False"
+                                   Opacity="0" />
+
+                        <!-- Pane -->
+                        <Grid Name="PART_PaneRoot"
+                              Background="{TemplateBinding PaneBackground}"
+                              Width="{TemplateBinding OpenPaneLength}"
+                              HorizontalAlignment="Left"
+                              ZIndex="100">
+                            <Grid.RenderTransform>
+                                <TranslateTransform X="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=OpenPaneLength, Converter={x:Static controls:DrawerConverters.NegativeConverter}}" />
+                            </Grid.RenderTransform>
+                            <Grid.Transitions>
+                                <Transitions>
+                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3" Easing="CubicEaseOut" />
+                                </Transitions>
+                            </Grid.Transitions>
+
+                            <ContentPresenter Name="PART_PanePresenter"
+                                              Content="{TemplateBinding Pane}"
+                                              ContentTemplate="{TemplateBinding PaneTemplate}" />
+                        </Grid>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <Style Selector="^[DisplayMode=CompactOverlay]">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid>
+                        <!-- Content -->
+                        <ContentPresenter Name="PART_ContentPresenter"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+
+                        <!-- Overlay -->
+                        <Rectangle Name="Overlay"
+                                   Fill="#80000000"
+                                   IsVisible="False"
+                                   IsHitTestVisible="False"
+                                   Opacity="0" />
+
+                        <!-- Pane -->
+                        <Grid Name="PART_PaneRoot"
+                              Background="{TemplateBinding PaneBackground}"
+                              Width="{TemplateBinding OpenPaneLength}"
+                              HorizontalAlignment="Left"
+                              ZIndex="100">
+                            <Grid.RenderTransform>
+                                <TranslateTransform X="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=OpenPaneLength, Converter={x:Static controls:DrawerConverters.NegativeConverter}}" />
+                            </Grid.RenderTransform>
+                            <Grid.Transitions>
+                                <Transitions>
+                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3" Easing="CubicEaseOut" />
+                                </Transitions>
+                            </Grid.Transitions>
+
+                            <ContentPresenter Name="PART_PanePresenter"
+                                              Content="{TemplateBinding Pane}"
+                                              ContentTemplate="{TemplateBinding PaneTemplate}" />
+                        </Grid>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <Style Selector="^[DisplayMode=Overlay][IsPaneOpen=True] /template/ Grid#PART_PaneRoot, ^[DisplayMode=CompactOverlay][IsPaneOpen=True] /template/ Grid#PART_PaneRoot">
+            <Setter Property="RenderTransform" Value="translateX(0)" />
+        </Style>
+
+        <Style Selector="^[DisplayMode=Overlay][IsPaneOpen=True] /template/ Rectangle#Overlay, ^[DisplayMode=CompactOverlay][IsPaneOpen=True] /template/ Rectangle#Overlay">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="IsHitTestVisible" Value="True" />
         </Style>
 
     </ControlTheme>

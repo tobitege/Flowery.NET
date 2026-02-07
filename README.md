@@ -29,11 +29,6 @@
 
 This library provides native Avalonia controls that mimic the utility-first, semantic class naming of DaisyUI, making it easy to build beautiful, themed UIs in Avalonia. A NuGet package is also available.
 
-> [!NOTE]
->
-> The v1.x branch has been under heavy development, but I plan to have v1.8.0 to be
-> the final update for it and keep it stable. Development will continue in upcoming `alpha` branch.
-
 ## Features
 
 - **80+ Controls**: C# classes inheriting from Avalonia primitives (e.g., `DaisyButton : Button`).
@@ -99,6 +94,7 @@ xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
 - **Avatar Group** (`DaisyAvatarGroup`): Groups multiple avatars with automatic overflow into "+N" placeholder.
 - **Badge** (`DaisyBadge`): Small status indicators (Primary, Secondary, Outline, etc.).
 - **Card** (`DaisyCard`): Content container with padding and shadow.
+- **Clock** (`DaisyClock`): Multi-mode time control with Clock, Timer, and Stopwatch modes.
 - **Carousel** (`DaisyCarousel`): Scrollable container for items.
 - **Chat Bubble** (`DaisyChatBubble`): Message bubbles with header, footer, and alignment (Start/End).
 - **Collapse** (`DaisyCollapse`): Accordion/Expander with animated arrow or plus/minus icon.
@@ -118,12 +114,14 @@ xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
 - **Checkbox** (`DaisyCheckBox`): Checkbox with themed colors.
 - **File Input** (`DaisyFileInput`): Styled button/label for file selection.
 - **Input** (`DaisyInput`): Text input field with variants (Bordered, Ghost, Primary, etc.).
+- **PasswordBox** (`DaisyPasswordBox`): Themed password input with reveal toggle, labels, helper text, and icon slots.
 - **Radio** (`DaisyRadio`): Radio button with themed colors.
 - **Range** (`DaisyRange`): Slider control.
 - **Rating** (`DaisyRating`): Star rating control with interactivity and partial fill support.
 - **Select** (`DaisySelect`): ComboBox with themed styles.
 - **Textarea** (`DaisyTextArea`): Multiline text input.
 - **Toggle** (`DaisyToggle`): Switch toggle control.
+- **Slide to Confirm** (`DaisySlideToConfirm`): Drag-to-confirm interaction control with variants and auto-reset support.
 
 ### Layout
 
@@ -131,6 +129,7 @@ xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
 - **Drawer** (`DaisyDrawer`): Sidebar navigation with overlay (inherits `SplitView`).
 - **Hero** (`DaisyHero`): Large banner component.
 - **Join** (`DaisyJoin`): container that groups children (buttons/inputs) by merging their borders.
+- **Patterned Card** (`DaisyPatternedCard`): Decorative card with pattern backgrounds and corner ornaments.
 - **Stack** (`DaisyStack`): container that stacks children visually with offsets.
 
 ### Navigation
@@ -146,13 +145,15 @@ xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
 ### Feedback & Utils
 
 - **Indicator** (`DaisyIndicator`): Utility to place a badge on the corner of another element.
-- **Status Indicator** (`DaisyStatusIndicator`): Status dot with **27 animation variants** (Ping, Pulse, Ripple, Heartbeat, Orbit, Sonar, and more). Supports all theme colors and 5 sizes.
+- **Status Indicator** (`DaisyStatusIndicator`): Status indicator with **33 variants** including animation and glyph modes (battery, traffic lights, WiFi, cellular). Supports all theme colors and 5 sizes.
 
-- **Loading** (`DaisyLoading`): Animated loading indicators with **27 variants** (extended from DaisyUI's original 6) across 4 categories:
+- **Loading** (`DaisyLoading`): Animated loading indicators with **42 variants** (extended from DaisyUI's original 6) across 6 categories:
   - *Classic*: Spinner, Dots, Ring, Ball, Bars, Infinity
   - *Terminal-inspired*: Orbit, Snake, Pulse, Wave, Bounce
   - *Matrix/Colon-dot*: Matrix, MatrixInward, MatrixOutward, MatrixVertical
   - *Special effects*: MatrixRain, Hourglass, SignalSweep, BitFlip, PacketBurst, CometTrail, Heartbeat, TunnelZoom, GlitchReveal, RippleMatrix, CursorBlink, CountdownSpinner
+  - *Business*: DocumentFlipOn, DocumentFlipOff, MailSend, CloudUpload, CloudDownload, DocumentStamp, DocumentReject, ChartPulse, CalendarTick, ApprovalFlow, BriefcaseSpin
+  - *Win95 retro*: Win95FileCopy, Win95Delete, Win95Search, Win95EmptyRecycle
 - **Mask** (`DaisyMask`): Applies shapes (Squircle, Heart, Hexagon, etc.) to content.
 - **Mockup** (`DaisyMockup`): Frames for Code, Window, or Browser.
 - **Progress** (`DaisyProgress`): Linear progress bar.
@@ -167,6 +168,7 @@ xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
 - **Theme Controller** (`DaisyThemeController`): Flexible toggle with multiple modes (Toggle, Checkbox, Swap, ToggleWithText, ToggleWithIcons).
 - **Theme Dropdown** (`DaisyThemeDropdown`): Dropdown to select from all 35 themes.
 - **Theme Manager** (`DaisyThemeManager`): Static class for programmatic theme control.
+- **Product Theme Dropdown** (`DaisyProductThemeDropdown`): Dropdown for selecting product-specific theme palettes.
 - **Theme Radio** (`DaisyThemeRadio`): Radio button for theme selection.
 - **Theme Swap** (`DaisyThemeSwap`): Toggle button with animated sun/moon icons.
 
@@ -197,6 +199,7 @@ Supported: `DaisyLoading`, `DaisyProgress`, `DaisyRadialProgress`, `DaisyStatusI
 - **Copy Button** (`DaisyCopyButton`): Copy-to-clipboard button with temporary success state feedback.
 - **Dropdown** (`DaisyDropdown`): Menu-style dropdown (Popup + DaisyMenu) for action menus.
 - **Expandable Card** (`DaisyExpandableCard`): Card that expands to reveal secondary content with smooth width animation.
+- **Icon Text** (`DaisyIconText`): Reusable icon + text composition control with placement, sizing, and spacing options.
 - **Modifier Keys** (`DaisyModifierKeys`): Visualizes keyboard modifiers (Shift, Ctrl, Alt) and locks.
 - **Number Flow** (`DaisyNumberFlow`): High-quality numeric display with individual digit scrolling animations. Inspired by SmoothUI.
 - **OTP Input** (`DaisyOtpInput`): Multi-slot verification-code/OTP input with animated focus transitions and auto-advance.

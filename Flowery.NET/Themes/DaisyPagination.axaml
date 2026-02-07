@@ -42,6 +42,9 @@
             <Setter Property="CornerRadius" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="ClickMode" Value="Press" />
+            <Setter Property="Delay" Value="400" />
+            <Setter Property="Interval" Value="75" />
             <Setter Property="Template">
                 <ControlTemplate>
                     <Border x:Name="PART_Background"
@@ -76,7 +79,6 @@
             <Style Selector="^[IsActive=True]">
                 <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralContentBrush}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource DaisyNeutralBrush}" />
             </Style>
             <Style Selector="^[IsActive=True]:pointerover /template/ Border#PART_Background">
                 <Setter Property="Background" Value="{DynamicResource DaisyNeutralFocusBrush}" />
@@ -85,6 +87,13 @@
             <!-- Disabled State -->
             <Style Selector="^:disabled">
                 <Setter Property="Opacity" Value="0.5" />
+                <Setter Property="Cursor" Value="Arrow" />
+            </Style>
+
+            <!-- Ellipsis State -->
+            <Style Selector="^[IsEllipsis=True]">
+                <Setter Property="IsEnabled" Value="False" />
+                <Setter Property="Opacity" Value="0.6" />
                 <Setter Property="Cursor" Value="Arrow" />
             </Style>
         </ControlTheme>
@@ -240,7 +249,6 @@
     <Style Selector="controls|DaisyPagination[ButtonStyle=Outline] > controls|DaisyPaginationItem[IsActive=True]">
         <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralContentBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource DaisyNeutralBrush}" />
     </Style>
 
 </Styles>

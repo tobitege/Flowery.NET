@@ -6,6 +6,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-02-07
+
+### New
+
+- **DaisyClock**: New multi-mode time control with Clock, Timer, and Stopwatch modes; supports segmented/flip/text display styles, labels, 12h/24h formatting, and lap support.
+- **DaisyPasswordBox**: New themed password input with reveal toggle, label modes (including floating), helper text, validation states, and icon slots.
+- **DaisySlideToConfirm**: New drag-to-confirm interaction control with variant colors, depth styles, auto-reset behavior, and completion events.
+- **DaisyIconText**: New reusable icon+text composition control with placement, size, spacing, and variant support.
+- **DaisyPatternedCard**: New decorative card with pattern backgrounds and ornaments, backed by new pattern assets and rendering helpers.
+- **DaisyProductThemeDropdown**: New dropdown for product-specific palettes with runtime theme registration via `DaisyThemeManager`.
+- Added foundational helper utilities for lifecycle wiring, alarms/timers, slide transitions/effects, path/color helpers, and pattern loading/tiling.
+
+### Changed
+
+- **DaisyThemeManager / Theming**: Extended to support runtime theme registration and palette factories, including a large generated product palette catalog.
+- **DaisyLoading**: Expanded with business and retro Win95 animation families, increasing overall variant coverage.
+- **DaisyStatusIndicator**: Refactored into partial classes and expanded with glyph-driven variants (battery, traffic lights, wifi/cellular signal) plus richer motion/effect styles.
+- **DaisyCarousel**: Refactored to internal slide container architecture with improved navigation, slideshow modes, and transition options.
+- **DaisyDrawer**: Added responsive/overlay behavior tuning, swipe interactions, and improved `SplitView` sync compatibility.
+- **DaisyPagination**: Added generated page ranges (`TotalPages`, `MaxVisiblePages`, centering), optional nav/jump buttons, ellipsis logic, wheel navigation, and press-and-hold repeat.
+- **DaisyExpandableCard**: Added batteries-included content mode, configurable animation duration, and improved expansion shaping behavior.
+- **DaisyButtonGroup**, **DaisyDivider**, **DaisyIndicator**, **DaisyJoin**, **DaisySteps**, **DaisyTabs**, and **DaisyCountdown** received substantial feature parity, tokenization, and behavior updates.
+
+### Gallery App
+
+- Added and expanded demos across Actions, Cards, Data Display, Data Input, Divider, Feedback, Layout, and Navigation example pages.
+- Added gallery coverage for newly ported controls and expanded Status/Loading/interactive scenarios.
+- Updated gallery sidebar/category metadata and added refreshed visual assets (including new banner artwork).
+
+### Localization
+
+- Synced and expanded localization keys across all supported languages in both library and gallery resources (`ar`, `de`, `en`, `es`, `fr`, `he`, `it`, `ja`, `ko`, `tr`, `uk`, `zh-CN`).
+
+### Documentation
+
+- Updated theming and localization guides (`THEMING.md`, `LOCALIZATION.md`).
+- Updated LLM-facing docs for control behavior/token changes and added new docs for `DaisyClock`.
+
 ## [1.8.0] - 2025-12-20
 
 ### New

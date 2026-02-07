@@ -3,33 +3,63 @@
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
     <Design.PreviewWith>
-        <Border Padding="20" Width="400">
-             <StackPanel Spacing="4">
-                 <TextBlock Text="Basic dividers:" FontWeight="Bold" />
+        <Border Padding="20" Width="500" Background="{DynamicResource DaisyBase100Brush}">
+             <StackPanel Spacing="8">
+                 <TextBlock Text="Basic Styles:" FontWeight="Bold" />
                  <controls:DaisyDivider />
+                 <controls:DaisyDivider DividerStyle="Dashed" />
+                 <controls:DaisyDivider DividerStyle="Dotted" />
                  <controls:DaisyDivider>OR</controls:DaisyDivider>
+
+                 <TextBlock Text="New Styles:" FontWeight="Bold" Margin="0,12,0,0" />
+                 <controls:DaisyDivider DividerStyle="Inset" />
+                 <controls:DaisyDivider DividerStyle="Gradient" Color="Primary" />
+                 <controls:DaisyDivider DividerStyle="Double" />
+                 <controls:DaisyDivider DividerStyle="Ornament" Ornament="Diamond" Color="Primary" />
+                 <controls:DaisyDivider DividerStyle="Ornament" Ornament="Circle" Color="Secondary" />
+                 <controls:DaisyDivider DividerStyle="Ornament" Ornament="Star" Color="Accent" />
 
                  <TextBlock Text="Colors:" FontWeight="Bold" Margin="0,12,0,0" />
                  <controls:DaisyDivider Color="Primary">Primary</controls:DaisyDivider>
                  <controls:DaisyDivider Color="Secondary">Secondary</controls:DaisyDivider>
                  <controls:DaisyDivider Color="Accent">Accent</controls:DaisyDivider>
+                 <controls:DaisyDivider Color="Success">Success</controls:DaisyDivider>
+                 <controls:DaisyDivider Color="Warning">Warning</controls:DaisyDivider>
+                 <controls:DaisyDivider Color="Error">Error</controls:DaisyDivider>
 
                  <TextBlock Text="Placements:" FontWeight="Bold" Margin="0,12,0,0" />
                  <controls:DaisyDivider Placement="Start">Start</controls:DaisyDivider>
                  <controls:DaisyDivider Placement="End">End</controls:DaisyDivider>
 
-                 <TextBlock Text="Horizontal:" FontWeight="Bold" Margin="0,12,0,0" />
-                 <StackPanel Orientation="Horizontal" Height="60" HorizontalAlignment="Center" Spacing="16">
-                     <TextBlock Text="Left" VerticalAlignment="Center" />
+                 <TextBlock Text="Sizes:" FontWeight="Bold" Margin="0,12,0,0" />
+                 <controls:DaisyDivider Size="ExtraSmall">XS</controls:DaisyDivider>
+                 <controls:DaisyDivider Size="Small">SM</controls:DaisyDivider>
+                 <controls:DaisyDivider Size="Medium">MD</controls:DaisyDivider>
+                 <controls:DaisyDivider Size="Large">LG</controls:DaisyDivider>
+                 <controls:DaisyDivider Size="ExtraLarge">XL</controls:DaisyDivider>
+
+                 <TextBlock Text="Thicknesses:" FontWeight="Bold" Margin="0,12,0,0" />
+                 <controls:DaisyDivider LineThickness="1" />
+                 <controls:DaisyDivider LineThickness="2" />
+                 <controls:DaisyDivider LineThickness="4" />
+                 <controls:DaisyDivider LineThickness="6" />
+
+                 <TextBlock Text="Horizontal (Vertical Lines):" FontWeight="Bold" Margin="0,12,0,0" />
+                 <StackPanel Orientation="Horizontal" Height="80" HorizontalAlignment="Center" Spacing="24">
+                     <TextBlock Text="A" VerticalAlignment="Center" />
                      <controls:DaisyDivider Horizontal="True">OR</controls:DaisyDivider>
-                     <TextBlock Text="Right" VerticalAlignment="Center" />
+                     <TextBlock Text="B" VerticalAlignment="Center" />
+                     <controls:DaisyDivider Horizontal="True" DividerStyle="Dashed" Color="Primary" />
+                     <TextBlock Text="C" VerticalAlignment="Center" />
+                     <controls:DaisyDivider Horizontal="True" DividerStyle="Dotted" Color="Secondary" />
+                     <TextBlock Text="D" VerticalAlignment="Center" />
                  </StackPanel>
              </StackPanel>
         </Border>
     </Design.PreviewWith>
 
     <ControlTheme x:Key="{x:Type controls:DaisyDivider}" TargetType="controls:DaisyDivider">
-        <Setter Property="Background" Value="{DynamicResource DaisyBaseContentBrush}" /> <!-- Line color - uses content color for auto-contrast -->
+        <Setter Property="Background" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -41,32 +71,109 @@
                 <Panel Margin="{TemplateBinding DividerMargin}">
                     <!-- Vertical layout (default): horizontal line -->
                     <Grid x:Name="PART_VerticalGrid" ColumnDefinitions="*, Auto, *">
-                        <Border x:Name="PART_StartLine" Height="2" Background="{TemplateBinding Background}" Opacity="0.1" VerticalAlignment="Center" Margin="0,0,8,0" />
-                        <ContentPresenter x:Name="PART_Content" Grid.Column="1"
-                                          Content="{TemplateBinding Content}"
-                                          ContentTemplate="{TemplateBinding ContentTemplate}"
-                                          IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                          VerticalAlignment="Center"
-                                          HorizontalAlignment="Center" />
-                        <Border x:Name="PART_EndLine" Grid.Column="2" Height="2" Background="{TemplateBinding Background}" Opacity="0.1" VerticalAlignment="Center" Margin="8,0,0,0" />
+                        <!-- Solid line (Border) -->
+                        <Border x:Name="PART_StartLine" Height="{TemplateBinding LineThickness}" Background="{TemplateBinding Background}" Opacity="0.1" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <!-- Dashed/Dotted line (hidden by default) -->
+                        <Line x:Name="PART_StartDashedLine" Stretch="Fill" Stroke="{TemplateBinding Background}" StrokeThickness="{TemplateBinding LineThickness}" StrokeDashArray="8,4" StartPoint="0,0" EndPoint="1,0" VerticalAlignment="Center" Margin="0,0,8,0" IsVisible="False" />
+                        <!-- Second line for Double style (hidden by default) -->
+                        <Border x:Name="PART_StartLine2" Height="{TemplateBinding LineThickness}" Background="{TemplateBinding Background}" Opacity="0.1" VerticalAlignment="Center" Margin="0,4,8,0" IsVisible="False" />
+                        <!-- Inset light line (hidden by default) -->
+                        <Border x:Name="PART_StartInsetLight" Height="1" Background="{DynamicResource DaisyBase300Brush}" Opacity="0.8" VerticalAlignment="Center" Margin="0,-1,8,0" IsVisible="False" />
+                        <!-- Gradient line (hidden by default) -->
+                        <Border x:Name="PART_StartGradientLine" Height="{TemplateBinding LineThickness}" VerticalAlignment="Center" Margin="0,0,8,0" IsVisible="False">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                                    <GradientStop Color="Transparent" Offset="0" />
+                                    <GradientStop Color="{DynamicResource DaisyBaseContent}" Offset="1" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <!-- Wave line (hidden by default) -->
+                        <Path x:Name="PART_StartWaveLine" Stretch="Fill" Stroke="{TemplateBinding Background}" StrokeThickness="{TemplateBinding LineThickness}" VerticalAlignment="Center" Margin="0,0,8,0" IsVisible="False"
+                              Data="M0,5 Q5,0 10,5 T20,5 T30,5 T40,5 T50,5 T60,5 T70,5 T80,5 T90,5 T100,5" />
+                        <!-- Tapered line (hidden by default) -->
+                        <Path x:Name="PART_StartTaperedLine" Stretch="Fill" Fill="{TemplateBinding Background}" VerticalAlignment="Center" Margin="0,0,8,0" IsVisible="False"
+                              Data="M0,3 L100,0 L100,6 L0,3 Z" />
+
+                        <!-- Content area -->
+                        <Border x:Name="PART_ContentBorder" Grid.Column="1" Background="{TemplateBinding TextBackground}" Padding="4,0" VerticalAlignment="Center">
+                            <ContentPresenter x:Name="PART_Content"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Center" />
+                        </Border>
+
+                        <!-- Ornament shape (hidden by default) -->
+                        <Ellipse x:Name="PART_OrnamentCircle" Grid.Column="1" Width="8" Height="8" Fill="{TemplateBinding Background}" IsVisible="False" />
+                        <Rectangle x:Name="PART_OrnamentDiamond" Grid.Column="1" Width="8" Height="8" Fill="{TemplateBinding Background}" IsVisible="False">
+                            <Rectangle.RenderTransform>
+                                <RotateTransform Angle="45" />
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+                        <Rectangle x:Name="PART_OrnamentSquare" Grid.Column="1" Width="8" Height="8" Fill="{TemplateBinding Background}" IsVisible="False" />
+                        <Path x:Name="PART_OrnamentStar" Grid.Column="1" Fill="{TemplateBinding Background}" IsVisible="False"
+                              Data="M12,1 L15,9 L23,9 L17,14 L19,23 L12,18 L5,23 L7,14 L1,9 L9,9 Z"
+                              Width="16" Height="16" Stretch="Uniform" />
+
+                        <!-- End lines (mirrored) -->
+                        <Border x:Name="PART_EndLine" Grid.Column="2" Height="{TemplateBinding LineThickness}" Background="{TemplateBinding Background}" Opacity="0.1" VerticalAlignment="Center" Margin="8,0,0,0" />
+                        <Line x:Name="PART_EndDashedLine" Grid.Column="2" Stretch="Fill" Stroke="{TemplateBinding Background}" StrokeThickness="{TemplateBinding LineThickness}" StrokeDashArray="8,4" StartPoint="0,0" EndPoint="1,0" VerticalAlignment="Center" Margin="8,0,0,0" IsVisible="False" />
+                        <Border x:Name="PART_EndLine2" Grid.Column="2" Height="{TemplateBinding LineThickness}" Background="{TemplateBinding Background}" Opacity="0.1" VerticalAlignment="Center" Margin="8,4,0,0" IsVisible="False" />
+                        <Border x:Name="PART_EndInsetLight" Grid.Column="2" Height="1" Background="{DynamicResource DaisyBase300Brush}" Opacity="0.8" VerticalAlignment="Center" Margin="8,-1,0,0" IsVisible="False" />
+                        <Border x:Name="PART_EndGradientLine" Grid.Column="2" Height="{TemplateBinding LineThickness}" VerticalAlignment="Center" Margin="8,0,0,0" IsVisible="False">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
+                                    <GradientStop Color="{DynamicResource DaisyBaseContent}" Offset="0" />
+                                    <GradientStop Color="Transparent" Offset="1" />
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <!-- Wave line end (hidden by default) -->
+                        <Path x:Name="PART_EndWaveLine" Grid.Column="2" Stretch="Fill" Stroke="{TemplateBinding Background}" StrokeThickness="{TemplateBinding LineThickness}" VerticalAlignment="Center" Margin="8,0,0,0" IsVisible="False"
+                              Data="M0,5 Q5,0 10,5 T20,5 T30,5 T40,5 T50,5 T60,5 T70,5 T80,5 T90,5 T100,5" />
+                        <!-- Tapered line end (hidden by default) -->
+                        <Path x:Name="PART_EndTaperedLine" Grid.Column="2" Stretch="Fill" Fill="{TemplateBinding Background}" VerticalAlignment="Center" Margin="8,0,0,0" IsVisible="False"
+                              Data="M0,0 L100,3 L0,6 L0,0 Z" />
                     </Grid>
 
                     <!-- Horizontal layout: vertical line -->
                     <Grid x:Name="PART_HorizontalGrid" RowDefinitions="*, Auto, *" IsVisible="False">
-                        <Border x:Name="PART_StartLineH" Width="2" Background="{TemplateBinding Background}" Opacity="0.1" HorizontalAlignment="Center" Margin="0,0,0,8" />
-                        <ContentPresenter x:Name="PART_ContentH" Grid.Row="1"
-                                          Content="{TemplateBinding Content}"
-                                          ContentTemplate="{TemplateBinding ContentTemplate}"
-                                          IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                          VerticalAlignment="Center"
-                                          HorizontalAlignment="Center" />
-                        <Border x:Name="PART_EndLineH" Grid.Row="2" Width="2" Background="{TemplateBinding Background}" Opacity="0.1" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                        <Border x:Name="PART_StartLineH" Width="{TemplateBinding LineThickness}" Background="{TemplateBinding Background}" Opacity="0.1" HorizontalAlignment="Center" Margin="0,0,0,8" />
+                        <Line x:Name="PART_StartDashedLineH" Stretch="Fill" Stroke="{TemplateBinding Background}" StrokeThickness="{TemplateBinding LineThickness}" StrokeDashArray="8,4" StartPoint="0,0" EndPoint="0,1" HorizontalAlignment="Center" Margin="0,0,0,8" IsVisible="False" />
+
+                        <Border x:Name="PART_ContentBorderH" Grid.Row="1" Background="{TemplateBinding TextBackground}" Padding="0,4" HorizontalAlignment="Center">
+                            <ContentPresenter x:Name="PART_ContentH"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Center" />
+                        </Border>
+
+                        <Border x:Name="PART_EndLineH" Grid.Row="2" Width="{TemplateBinding LineThickness}" Background="{TemplateBinding Background}" Opacity="0.1" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                        <Line x:Name="PART_EndDashedLineH" Grid.Row="2" Stretch="Fill" Stroke="{TemplateBinding Background}" StrokeThickness="{TemplateBinding LineThickness}" StrokeDashArray="8,4" StartPoint="0,0" EndPoint="0,1" HorizontalAlignment="Center" Margin="0,8,0,0" IsVisible="False" />
+
+                        <!-- Wave line vertical (hidden by default) -->
+                        <Path x:Name="PART_StartWaveLineH" Stretch="Fill" Stroke="{TemplateBinding Background}" StrokeThickness="{TemplateBinding LineThickness}" HorizontalAlignment="Center" Margin="0,0,0,8" IsVisible="False" Width="10"
+                              Data="M5,0 Q0,5 5,10 T5,20 T5,30 T5,40 T5,50 T5,60 T5,70 T5,80 T5,90 T5,100" />
+                        <Path x:Name="PART_EndWaveLineH" Grid.Row="2" Stretch="Fill" Stroke="{TemplateBinding Background}" StrokeThickness="{TemplateBinding LineThickness}" HorizontalAlignment="Center" Margin="0,8,0,0" IsVisible="False" Width="10"
+                              Data="M5,0 Q0,5 5,10 T5,20 T5,30 T5,40 T5,50 T5,60 T5,70 T5,80 T5,90 T5,100" />
+
+                        <!-- Tapered line vertical (hidden by default) -->
+                        <Path x:Name="PART_StartTaperedLineH" Stretch="Fill" Fill="{TemplateBinding Background}" HorizontalAlignment="Center" Margin="0,0,0,8" IsVisible="False" Width="6"
+                              Data="M3,0 L0,100 L6,100 L3,0 Z" />
+                        <Path x:Name="PART_EndTaperedLineH" Grid.Row="2" Stretch="Fill" Fill="{TemplateBinding Background}" HorizontalAlignment="Center" Margin="0,8,0,0" IsVisible="False" Width="6"
+                              Data="M0,0 L3,100 L6,0 L0,0 Z" />
                     </Grid>
                 </Panel>
             </ControlTemplate>
         </Setter>
 
-        <!-- Horizontal mode: show vertical line layout, hide horizontal line layout -->
+        <!-- ========================================== -->
+        <!-- Horizontal mode: show vertical line layout -->
+        <!-- ========================================== -->
         <Style Selector="^[Horizontal=True]">
             <Setter Property="MinHeight" Value="0" />
             <Setter Property="MinWidth" Value="20" />
@@ -78,97 +185,449 @@
             <Setter Property="IsVisible" Value="True" />
         </Style>
 
-        <!-- Color variants (full opacity per official DaisyUI CSS) -->
+        <!-- ========================================== -->
+        <!-- DividerStyle: Dashed -->
+        <!-- ========================================== -->
+        <Style Selector="^[DividerStyle=Dashed] /template/ Border#PART_StartLine">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Dashed] /template/ Border#PART_EndLine">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Dashed] /template/ Line#PART_StartDashedLine">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="StrokeDashArray" Value="8,4" />
+        </Style>
+        <Style Selector="^[DividerStyle=Dashed] /template/ Line#PART_EndDashedLine">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="StrokeDashArray" Value="8,4" />
+        </Style>
+        <!-- Horizontal mode dashed -->
+        <Style Selector="^[DividerStyle=Dashed] /template/ Border#PART_StartLineH">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Dashed] /template/ Border#PART_EndLineH">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Dashed] /template/ Line#PART_StartDashedLineH">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="StrokeDashArray" Value="8,4" />
+        </Style>
+        <Style Selector="^[DividerStyle=Dashed] /template/ Line#PART_EndDashedLineH">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="StrokeDashArray" Value="8,4" />
+        </Style>
+
+        <!-- ========================================== -->
+        <!-- DividerStyle: Dotted -->
+        <!-- ========================================== -->
+        <Style Selector="^[DividerStyle=Dotted] /template/ Border#PART_StartLine">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Dotted] /template/ Border#PART_EndLine">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Dotted] /template/ Line#PART_StartDashedLine">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="StrokeDashArray" Value="2,4" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+        </Style>
+        <Style Selector="^[DividerStyle=Dotted] /template/ Line#PART_EndDashedLine">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="StrokeDashArray" Value="2,4" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+        </Style>
+        <!-- Horizontal mode dotted -->
+        <Style Selector="^[DividerStyle=Dotted] /template/ Border#PART_StartLineH">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Dotted] /template/ Border#PART_EndLineH">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Dotted] /template/ Line#PART_StartDashedLineH">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="StrokeDashArray" Value="2,4" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+        </Style>
+        <Style Selector="^[DividerStyle=Dotted] /template/ Line#PART_EndDashedLineH">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="StrokeDashArray" Value="2,4" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+        </Style>
+
+        <!-- ========================================== -->
+        <!-- DividerStyle: Double -->
+        <!-- ========================================== -->
+        <Style Selector="^[DividerStyle=Double] /template/ Border#PART_StartLine">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Margin" Value="0,-3,8,0" />
+        </Style>
+        <Style Selector="^[DividerStyle=Double] /template/ Border#PART_EndLine">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Margin" Value="8,-3,0,0" />
+        </Style>
+        <Style Selector="^[DividerStyle=Double] /template/ Border#PART_StartLine2">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Margin" Value="0,3,8,0" />
+        </Style>
+        <Style Selector="^[DividerStyle=Double] /template/ Border#PART_EndLine2">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Margin" Value="8,3,0,0" />
+        </Style>
+
+        <!-- ========================================== -->
+        <!-- DividerStyle: Inset (embossed 3D effect) -->
+        <!-- ========================================== -->
+        <Style Selector="^[DividerStyle=Inset] /template/ Border#PART_StartLine">
+            <Setter Property="Opacity" Value="0.5" />
+            <Setter Property="Margin" Value="0,1,8,0" />
+        </Style>
+        <Style Selector="^[DividerStyle=Inset] /template/ Border#PART_EndLine">
+            <Setter Property="Opacity" Value="0.5" />
+            <Setter Property="Margin" Value="8,1,0,0" />
+        </Style>
+        <Style Selector="^[DividerStyle=Inset] /template/ Border#PART_StartInsetLight">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="Margin" Value="0,-2,8,0" />
+        </Style>
+        <Style Selector="^[DividerStyle=Inset] /template/ Border#PART_EndInsetLight">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="Margin" Value="8,-2,0,0" />
+        </Style>
+
+        <!-- ========================================== -->
+        <!-- DividerStyle: Gradient (fade from edges) -->
+        <!-- ========================================== -->
+        <Style Selector="^[DividerStyle=Gradient] /template/ Border#PART_StartLine">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Gradient] /template/ Border#PART_EndLine">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Gradient] /template/ Border#PART_StartGradientLine">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^[DividerStyle=Gradient] /template/ Border#PART_EndGradientLine">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+
+        <!-- ========================================== -->
+        <!-- DividerStyle: Ornament -->
+        <!-- ========================================== -->
+        <Style Selector="^[DividerStyle=Ornament] /template/ Border#PART_StartLine">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^[DividerStyle=Ornament] /template/ Border#PART_EndLine">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^[DividerStyle=Ornament] /template/ ContentPresenter#PART_Content">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+
+        <!-- Ornament shapes -->
+        <Style Selector="^[DividerStyle=Ornament][Ornament=Diamond] /template/ Rectangle#PART_OrnamentDiamond">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^[DividerStyle=Ornament][Ornament=Circle] /template/ Ellipse#PART_OrnamentCircle">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^[DividerStyle=Ornament][Ornament=Square] /template/ Rectangle#PART_OrnamentSquare">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^[DividerStyle=Ornament][Ornament=Star] /template/ Path#PART_OrnamentStar">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+
+        <!-- ========================================== -->
+        <!-- DividerStyle: Glow (animated, falls back to gradient) -->
+        <!-- ========================================== -->
+        <Style Selector="^[DividerStyle=Glow] /template/ Border#PART_StartLine">
+            <Setter Property="Opacity" Value="0.8" />
+        </Style>
+        <Style Selector="^[DividerStyle=Glow] /template/ Border#PART_EndLine">
+            <Setter Property="Opacity" Value="0.8" />
+        </Style>
+
+        <!-- ========================================== -->
+        <!-- DividerStyle: Wave (wavy line pattern) -->
+        <!-- ========================================== -->
+        <Style Selector="^[DividerStyle=Wave] /template/ Border#PART_StartLine">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Wave] /template/ Border#PART_EndLine">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Wave] /template/ Path#PART_StartWaveLine">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^[DividerStyle=Wave] /template/ Path#PART_EndWaveLine">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <!-- Horizontal mode wave -->
+        <Style Selector="^[DividerStyle=Wave] /template/ Border#PART_StartLineH">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Wave] /template/ Border#PART_EndLineH">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Wave] /template/ Path#PART_StartWaveLineH">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^[DividerStyle=Wave] /template/ Path#PART_EndWaveLineH">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+
+        <!-- ========================================== -->
+        <!-- DividerStyle: Tapered (thick center, thin ends) -->
+        <!-- ========================================== -->
+        <Style Selector="^[DividerStyle=Tapered] /template/ Border#PART_StartLine">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Tapered] /template/ Border#PART_EndLine">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Tapered] /template/ Path#PART_StartTaperedLine">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^[DividerStyle=Tapered] /template/ Path#PART_EndTaperedLine">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <!-- Horizontal mode tapered -->
+        <Style Selector="^[DividerStyle=Tapered] /template/ Border#PART_StartLineH">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Tapered] /template/ Border#PART_EndLineH">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DividerStyle=Tapered] /template/ Path#PART_StartTaperedLineH">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^[DividerStyle=Tapered] /template/ Path#PART_EndTaperedLineH">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+
+        <!-- ========================================== -->
+        <!-- Color variants (full opacity for dashed/solid lines) -->
+        <!-- ========================================== -->
+
         <!-- Neutral -->
-        <Style Selector="^[Color=Neutral] /template/ Border#PART_StartLine, ^[Color=Neutral] /template/ Border#PART_StartLineH">
+        <Style Selector="^[Color=Neutral]">
             <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
+        </Style>
+        <Style Selector="^[Color=Neutral] /template/ Border#PART_StartLine, ^[Color=Neutral] /template/ Border#PART_StartLineH">
             <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[Color=Neutral] /template/ Border#PART_EndLine, ^[Color=Neutral] /template/ Border#PART_EndLineH">
-            <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
             <Setter Property="Opacity" Value="1" />
         </Style>
 
         <!-- Primary -->
-        <Style Selector="^[Color=Primary] /template/ Border#PART_StartLine, ^[Color=Primary] /template/ Border#PART_StartLineH">
+        <Style Selector="^[Color=Primary]">
             <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+        </Style>
+        <Style Selector="^[Color=Primary] /template/ Border#PART_StartLine, ^[Color=Primary] /template/ Border#PART_StartLineH">
             <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[Color=Primary] /template/ Border#PART_EndLine, ^[Color=Primary] /template/ Border#PART_EndLineH">
-            <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
             <Setter Property="Opacity" Value="1" />
         </Style>
 
         <!-- Secondary -->
-        <Style Selector="^[Color=Secondary] /template/ Border#PART_StartLine, ^[Color=Secondary] /template/ Border#PART_StartLineH">
+        <Style Selector="^[Color=Secondary]">
             <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}" />
+        </Style>
+        <Style Selector="^[Color=Secondary] /template/ Border#PART_StartLine, ^[Color=Secondary] /template/ Border#PART_StartLineH">
             <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[Color=Secondary] /template/ Border#PART_EndLine, ^[Color=Secondary] /template/ Border#PART_EndLineH">
-            <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}" />
             <Setter Property="Opacity" Value="1" />
         </Style>
 
         <!-- Accent -->
-        <Style Selector="^[Color=Accent] /template/ Border#PART_StartLine, ^[Color=Accent] /template/ Border#PART_StartLineH">
+        <Style Selector="^[Color=Accent]">
             <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}" />
+        </Style>
+        <Style Selector="^[Color=Accent] /template/ Border#PART_StartLine, ^[Color=Accent] /template/ Border#PART_StartLineH">
             <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[Color=Accent] /template/ Border#PART_EndLine, ^[Color=Accent] /template/ Border#PART_EndLineH">
-            <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}" />
             <Setter Property="Opacity" Value="1" />
         </Style>
 
         <!-- Success -->
-        <Style Selector="^[Color=Success] /template/ Border#PART_StartLine, ^[Color=Success] /template/ Border#PART_StartLineH">
+        <Style Selector="^[Color=Success]">
             <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}" />
+        </Style>
+        <Style Selector="^[Color=Success] /template/ Border#PART_StartLine, ^[Color=Success] /template/ Border#PART_StartLineH">
             <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[Color=Success] /template/ Border#PART_EndLine, ^[Color=Success] /template/ Border#PART_EndLineH">
-            <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}" />
             <Setter Property="Opacity" Value="1" />
         </Style>
 
         <!-- Warning -->
-        <Style Selector="^[Color=Warning] /template/ Border#PART_StartLine, ^[Color=Warning] /template/ Border#PART_StartLineH">
+        <Style Selector="^[Color=Warning]">
             <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}" />
+        </Style>
+        <Style Selector="^[Color=Warning] /template/ Border#PART_StartLine, ^[Color=Warning] /template/ Border#PART_StartLineH">
             <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[Color=Warning] /template/ Border#PART_EndLine, ^[Color=Warning] /template/ Border#PART_EndLineH">
-            <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}" />
             <Setter Property="Opacity" Value="1" />
         </Style>
 
         <!-- Info -->
-        <Style Selector="^[Color=Info] /template/ Border#PART_StartLine, ^[Color=Info] /template/ Border#PART_StartLineH">
+        <Style Selector="^[Color=Info]">
             <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}" />
+        </Style>
+        <Style Selector="^[Color=Info] /template/ Border#PART_StartLine, ^[Color=Info] /template/ Border#PART_StartLineH">
             <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[Color=Info] /template/ Border#PART_EndLine, ^[Color=Info] /template/ Border#PART_EndLineH">
-            <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}" />
             <Setter Property="Opacity" Value="1" />
         </Style>
 
         <!-- Error -->
-        <Style Selector="^[Color=Error] /template/ Border#PART_StartLine, ^[Color=Error] /template/ Border#PART_StartLineH">
+        <Style Selector="^[Color=Error]">
             <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}" />
+        </Style>
+        <Style Selector="^[Color=Error] /template/ Border#PART_StartLine, ^[Color=Error] /template/ Border#PART_StartLineH">
             <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[Color=Error] /template/ Border#PART_EndLine, ^[Color=Error] /template/ Border#PART_EndLineH">
-            <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}" />
             <Setter Property="Opacity" Value="1" />
         </Style>
 
-        <!-- Placement variants (per official DaisyUI CSS: divider-start hides before, divider-end hides after) -->
+        <!-- ========================================== -->
+        <!-- Placement variants -->
+        <!-- ========================================== -->
         <Style Selector="^[Placement=Start] /template/ Border#PART_StartLine, ^[Placement=Start] /template/ Border#PART_StartLineH">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[Placement=Start] /template/ Line#PART_StartDashedLine, ^[Placement=Start] /template/ Line#PART_StartDashedLineH">
             <Setter Property="IsVisible" Value="False" />
         </Style>
         <Style Selector="^[Placement=End] /template/ Border#PART_EndLine, ^[Placement=End] /template/ Border#PART_EndLineH">
             <Setter Property="IsVisible" Value="False" />
         </Style>
+        <Style Selector="^[Placement=End] /template/ Line#PART_EndDashedLine, ^[Placement=End] /template/ Line#PART_EndDashedLineH">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+
+        <!-- ========================================== -->
+        <!-- Size variants -->
+        <!-- ========================================== -->
+        <Style Selector="^[Size=ExtraSmall]">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="MinHeight" Value="16" />
+        </Style>
+        <Style Selector="^[Size=ExtraSmall] /template/ Ellipse#PART_OrnamentCircle">
+            <Setter Property="Width" Value="6" />
+            <Setter Property="Height" Value="6" />
+        </Style>
+        <Style Selector="^[Size=ExtraSmall] /template/ Rectangle#PART_OrnamentDiamond">
+            <Setter Property="Width" Value="6" />
+            <Setter Property="Height" Value="6" />
+        </Style>
+        <Style Selector="^[Size=ExtraSmall] /template/ Rectangle#PART_OrnamentSquare">
+            <Setter Property="Width" Value="6" />
+            <Setter Property="Height" Value="6" />
+        </Style>
+        <Style Selector="^[Size=ExtraSmall] /template/ Path#PART_OrnamentStar">
+            <Setter Property="Width" Value="10" />
+            <Setter Property="Height" Value="10" />
+        </Style>
+
+        <Style Selector="^[Size=Small]">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="MinHeight" Value="20" />
+        </Style>
+        <Style Selector="^[Size=Small] /template/ Ellipse#PART_OrnamentCircle">
+            <Setter Property="Width" Value="8" />
+            <Setter Property="Height" Value="8" />
+        </Style>
+        <Style Selector="^[Size=Small] /template/ Rectangle#PART_OrnamentDiamond">
+            <Setter Property="Width" Value="8" />
+            <Setter Property="Height" Value="8" />
+        </Style>
+        <Style Selector="^[Size=Small] /template/ Rectangle#PART_OrnamentSquare">
+            <Setter Property="Width" Value="8" />
+            <Setter Property="Height" Value="8" />
+        </Style>
+        <Style Selector="^[Size=Small] /template/ Path#PART_OrnamentStar">
+            <Setter Property="Width" Value="14" />
+            <Setter Property="Height" Value="14" />
+        </Style>
+
+        <Style Selector="^[Size=Medium]">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="MinHeight" Value="24" />
+        </Style>
+        <Style Selector="^[Size=Medium] /template/ Ellipse#PART_OrnamentCircle">
+            <Setter Property="Width" Value="10" />
+            <Setter Property="Height" Value="10" />
+        </Style>
+        <Style Selector="^[Size=Medium] /template/ Rectangle#PART_OrnamentDiamond">
+            <Setter Property="Width" Value="10" />
+            <Setter Property="Height" Value="10" />
+        </Style>
+        <Style Selector="^[Size=Medium] /template/ Rectangle#PART_OrnamentSquare">
+            <Setter Property="Width" Value="10" />
+            <Setter Property="Height" Value="10" />
+        </Style>
+        <Style Selector="^[Size=Medium] /template/ Path#PART_OrnamentStar">
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="18" />
+        </Style>
+
+        <Style Selector="^[Size=Large]">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="MinHeight" Value="28" />
+        </Style>
+        <Style Selector="^[Size=Large] /template/ Ellipse#PART_OrnamentCircle">
+            <Setter Property="Width" Value="12" />
+            <Setter Property="Height" Value="12" />
+        </Style>
+        <Style Selector="^[Size=Large] /template/ Rectangle#PART_OrnamentDiamond">
+            <Setter Property="Width" Value="12" />
+            <Setter Property="Height" Value="12" />
+        </Style>
+        <Style Selector="^[Size=Large] /template/ Rectangle#PART_OrnamentSquare">
+            <Setter Property="Width" Value="12" />
+            <Setter Property="Height" Value="12" />
+        </Style>
+        <Style Selector="^[Size=Large] /template/ Path#PART_OrnamentStar">
+            <Setter Property="Width" Value="22" />
+            <Setter Property="Height" Value="22" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge]">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="MinHeight" Value="32" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge] /template/ Ellipse#PART_OrnamentCircle">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge] /template/ Rectangle#PART_OrnamentDiamond">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge] /template/ Rectangle#PART_OrnamentSquare">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge] /template/ Path#PART_OrnamentStar">
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+        </Style>
 
         <!-- Empty state: remove margins when no content for seamless line -->
         <Style Selector="^:empty /template/ Border">
+             <Setter Property="Margin" Value="0" />
+        </Style>
+        <Style Selector="^:empty /template/ Line">
              <Setter Property="Margin" Value="0" />
         </Style>
         <Style Selector="^:empty /template/ ContentPresenter">

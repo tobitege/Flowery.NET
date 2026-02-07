@@ -4,6 +4,7 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 
@@ -62,6 +63,22 @@ public partial class DataInputExamples : UserControl, IScrollableExample
         if (otp != null)
         {
             otp.Value = string.Empty;
+        }
+    }
+
+    private void OnPinCodeChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is DaisyPasswordBox pinBox)
+        {
+            // Show check icon when exactly 6 characters are entered
+            if (pinBox.Password?.Length == 6)
+            {
+                pinBox.EndIcon = this.FindResource("DaisyIconCheck") as StreamGeometry;
+            }
+            else
+            {
+                pinBox.EndIcon = null;
+            }
         }
     }
 

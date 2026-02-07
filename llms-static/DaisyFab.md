@@ -3,13 +3,13 @@
 
 # Overview
 
-DaisyFab is a Floating Action Button container with built-in trigger and child action buttons. It supports **Vertical** stacking or **Flower** fan-out layouts, auto-closes when an action is clicked, and lets you customize trigger content, size, and variant. Ideal for exposing a small set of secondary actions from a single FAB.
+DaisyFab is a Floating Action Button container with built-in trigger and child action buttons. It supports **Vertical** stacking, **Horizontal** expansion, or **Flower** fan-out layouts. It auto-closes when an action is clicked and allows full customization of the trigger via content or specific icon data.
 
 ## Layout & Interaction
 
 | Property | Description |
 | -------- | ----------- |
-| `Layout` (`Vertical`, `Flower`) | Vertical stacks actions upward; Flower fans actions in a quarter-circle. |
+| `Layout` (`Vertical`, `Horizontal`, `Flower`) | `Vertical` stacks upward (Right aligned); `Horizontal` expands rightward (Left aligned); `Flower` fans out in a quarter-circle (Left aligned). |
 | `IsOpen` | Toggles the visibility/animation of action buttons. Trigger click flips this. |
 | `AutoClose` (default `True`) | Clicking an action button closes the menu. |
 
@@ -17,31 +17,28 @@ DaisyFab is a Floating Action Button container with built-in trigger and child a
 
 | Property | Description |
 | -------- | ----------- |
-| `TriggerVariant` | DaisyButton variant for the trigger (default Primary). |
-| `TriggerContent` | Trigger content (default "+"). |
-| `Size` | Propagated to trigger and action buttons (ExtraSmall–ExtraLarge from DaisySize). |
+| `TriggerVariant` | `DaisyButtonVariant` for the trigger (default Primary). |
+| `TriggerContent` | Trigger content (default "+"). Ignored if `TriggerIconData` is set. |
+| `TriggerIconData` | Vector path (StreamGeometry) for the trigger icon. |
+| `TriggerIconSize` | Explicit size for the trigger icon. |
+| `Size` | Propagated to trigger and action buttons (ExtraSmall–ExtraLarge from `DaisySize`). |
 
 ## Quick Examples
 
 ```xml
-<!-- Vertical FAB -->
-<controls:DaisyFab TriggerContent="+" TriggerVariant="Primary" Size="Medium">
-    <controls:DaisyButton Shape="Circle" Variant="Secondary" Content="A" />
-    <controls:DaisyButton Shape="Circle" Variant="Accent" Content="B" />
-    <controls:DaisyButton Shape="Circle" Variant="Warning" Content="C" />
+<!-- Horizontal FAB (Aligned Left, opens Right) -->
+<controls:DaisyFab Layout="Horizontal" TriggerContent="+" TriggerVariant="Accent" Size="Medium">
+    <controls:DaisyButton Content="1" />
+    <controls:DaisyButton Content="2" />
+    <controls:DaisyButton Content="3" />
 </controls:DaisyFab>
 
-<!-- Flower layout with custom trigger -->
-<controls:DaisyFab Layout="Flower" TriggerVariant="Secondary" Size="Large">
-    <controls:DaisyFab.TriggerContent>
-        <StackPanel Orientation="Horizontal" Spacing="6">
-            <PathIcon Data="{StaticResource DaisyIconPlus}" Width="18" Height="18" />
-            <TextBlock Text="New" VerticalAlignment="Center" />
-        </StackPanel>
-    </controls:DaisyFab.TriggerContent>
-    <controls:DaisyButton Shape="Circle" Variant="Primary" Content="1" />
-    <controls:DaisyButton Shape="Circle" Variant="Accent" Content="2" />
-    <controls:DaisyButton Shape="Circle" Variant="Success" Content="3" />
+<!-- Flower layout with Vector Icon -->
+<controls:DaisyFab Layout="Flower" TriggerVariant="Secondary" 
+                   TriggerIconData="M13,0L6,14H11V24L18,10H13V0Z" TriggerIconSize="16">
+    <controls:DaisyButton Content="A" />
+    <controls:DaisyButton Content="B" />
+    <controls:DaisyButton Content="C" />
 </controls:DaisyFab>
 ```
 

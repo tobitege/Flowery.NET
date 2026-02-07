@@ -12,30 +12,78 @@
         <!-- Default Template (static dot) -->
         <Setter Property="Template">
             <ControlTemplate>
-                <Grid ClipToBounds="False">
+                <Grid HorizontalAlignment="Center" 
+                      VerticalAlignment="Center"
+                      Width="{TemplateBinding Width}"
+                      Height="{TemplateBinding Height}"
+                      ClipToBounds="False">
                     <!-- Animation layer (behind main dot) -->
                     <Ellipse Name="PART_AnimationEllipse"
                              Width="{TemplateBinding Width}"
                              Height="{TemplateBinding Height}"
                              Fill="{TemplateBinding Background}"
-                             IsVisible="False" />
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             RenderTransformOrigin="50%,50%"
+                             IsVisible="False">
+                        <Ellipse.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform />
+                                <TranslateTransform />
+                                <RotateTransform />
+                            </TransformGroup>
+                        </Ellipse.RenderTransform>
+                    </Ellipse>
                     <!-- Secondary animation layer -->
                     <Ellipse Name="PART_AnimationEllipse2"
                              Width="{TemplateBinding Width}"
                              Height="{TemplateBinding Height}"
                              Fill="{TemplateBinding Background}"
-                             IsVisible="False" />
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             RenderTransformOrigin="50%,50%"
+                             IsVisible="False">
+                        <Ellipse.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform />
+                                <TranslateTransform />
+                                <RotateTransform />
+                            </TransformGroup>
+                        </Ellipse.RenderTransform>
+                    </Ellipse>
                     <!-- Tertiary animation layer -->
                     <Ellipse Name="PART_AnimationEllipse3"
                              Width="{TemplateBinding Width}"
                              Height="{TemplateBinding Height}"
                              Fill="{TemplateBinding Background}"
-                             IsVisible="False" />
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             RenderTransformOrigin="50%,50%"
+                             IsVisible="False">
+                        <Ellipse.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform />
+                                <TranslateTransform />
+                                <RotateTransform />
+                            </TransformGroup>
+                        </Ellipse.RenderTransform>
+                    </Ellipse>
                     <!-- Main status dot -->
                     <Ellipse Name="PART_MainEllipse"
                              Width="{TemplateBinding Width}"
                              Height="{TemplateBinding Height}"
-                             Fill="{TemplateBinding Background}" />
+                             Fill="{TemplateBinding Background}"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             RenderTransformOrigin="50%,50%">
+                        <Ellipse.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform />
+                                <TranslateTransform />
+                                <RotateTransform />
+                            </TransformGroup>
+                        </Ellipse.RenderTransform>
+                    </Ellipse>
                 </Grid>
             </ControlTemplate>
         </Setter>

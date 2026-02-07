@@ -49,6 +49,31 @@ DaisySteps renders a sequence of step items with lines and circles. It supports 
 </controls:DaisySteps>
 ```
 
+## JSON Steps Examples
+
+You can supply steps via the `JsonSteps` property in XAML or in code.
+
+```xml
+<!-- XAML: JSON string (single-quoted attribute to avoid &quot; escaping) -->
+<controls:DaisySteps Width="400"
+    JsonSteps='[{"content":"Register","color":"Primary","isActive":true},
+                {"content":"Choose plan","color":"Primary"},
+                {"content":"Purchase"},
+                {"content":"Receive"}]'/>
+```
+
+```csharp
+// C#: JSON string
+var steps = new DaisySteps
+{
+    Width = 400,
+    JsonSteps = "[{\"content\":\"Register\",\"color\":\"Primary\",\"isActive\":true}," +
+                "{\"content\":\"Choose plan\",\"color\":\"Primary\"}," +
+                "{\"content\":\"Purchase\"}," +
+                "{\"content\":\"Receive\"}]"
+};
+```
+
 ## Tips & Best Practices
 
 - Set `SelectedIndex` as progress advances; earlier steps automatically become active.

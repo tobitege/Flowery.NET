@@ -351,6 +351,26 @@
         <Style Selector="^[ButtonStyle=Outline]:pointerover /template/ Border#PART_Background">
             <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
         </Style>
+        <Style Selector="^[ButtonStyle=Outline][Variant=Default]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Outline][Variant=Default]:pointerover /template/ Border#PART_Background">
+            <Setter Property="Background" Value="{DynamicResource DaisyBaseContentBrush}" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Outline][Variant=Default]:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBase100Brush}" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Outline][Variant=Neutral]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralContentBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyNeutralContentBrush}" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Outline][Variant=Neutral]:pointerover /template/ Border#PART_Background">
+            <Setter Property="Background" Value="{DynamicResource DaisyNeutralContentBrush}" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Outline][Variant=Neutral]:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralBrush}" />
+        </Style>
         <Style Selector="^[ButtonStyle=Outline][Variant=Primary]">
             <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
@@ -434,6 +454,30 @@
         </Style>
         <Style Selector="^[ButtonStyle=Dash]:pointerover /template/ Border#PART_Background">
             <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Dash][Variant=Default]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Dash][Variant=Default] /template/ Rectangle#PART_DashBorder">
+            <Setter Property="Stroke" Value="{DynamicResource DaisyBaseContentBrush}" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Dash][Variant=Default]:pointerover /template/ Border#PART_Background">
+            <Setter Property="Background" Value="{DynamicResource DaisyBaseContentBrush}" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Dash][Variant=Default]:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBase100Brush}" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Dash][Variant=Neutral]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralContentBrush}" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Dash][Variant=Neutral] /template/ Rectangle#PART_DashBorder">
+            <Setter Property="Stroke" Value="{DynamicResource DaisyNeutralContentBrush}" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Dash][Variant=Neutral]:pointerover /template/ Border#PART_Background">
+            <Setter Property="Background" Value="{DynamicResource DaisyNeutralContentBrush}" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Dash][Variant=Neutral]:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralBrush}" />
         </Style>
         <Style Selector="^[ButtonStyle=Dash][Variant=Primary]">
             <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryBrush}" />

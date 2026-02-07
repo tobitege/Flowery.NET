@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <g fill="white" opacity="0.15">
+    <circle cx="-30.0" cy="-30.0" r="1.2"/>
+    <rect x="-30.0" y="-30.0" width="30.0" height="0.8"/>
+    <circle cx="-30.0" cy="0.0" r="1.2"/>
+    <rect x="-30.0" y="0.0" width="30.0" height="0.8"/>
+    <circle cx="-30.0" cy="30.0" r="1.2"/>
+    <rect x="-30.0" y="30.0" width="60.0" height="0.8"/>
+    <circle cx="-30.0" cy="60.0" r="1.2"/>
+    <rect x="-30.0" y="60.0" width="30.0" height="0.8"/>
+    <circle cx="-30.0" cy="90.0" r="1.2"/>
+    <rect x="-30.0" y="90.0" width="30.0" height="0.8"/>
+    <circle cx="0.0" cy="-30.0" r="1.2"/>
+    <rect x="0.0" y="-30.0" width="0.8" height="30.0"/>
+    <circle cx="0.0" cy="0.0" r="1.2"/>
+    <rect x="0.0" y="0.0" width="60.0" height="0.8"/>
+    <circle cx="0.0" cy="60.0" r="1.2"/>
+    <rect x="0.0" y="60.0" width="0.8" height="90.0"/>
+    <circle cx="0.0" cy="120.0" r="1.2"/>
+    <rect x="0.0" y="120.0" width="0.8" height="30.0"/>
+    <circle cx="30.0" cy="-30.0" r="1.2"/>
+    <rect x="30.0" y="-30.0" width="60.0" height="0.8"/>
+    <circle cx="30.0" cy="60.0" r="1.2"/>
+    <rect x="30.0" y="60.0" width="90.0" height="0.8"/>
+    <circle cx="30.0" cy="90.0" r="1.2"/>
+    <rect x="30.0" y="90.0" width="0.8" height="90.0"/>
+    <circle cx="60.0" cy="60.0" r="1.2"/>
+    <rect x="60.0" y="60.0" width="60.0" height="0.8"/>
+    <circle cx="60.0" cy="120.0" r="1.2"/>
+    <rect x="60.0" y="120.0" width="0.8" height="30.0"/>
+    <circle cx="90.0" cy="30.0" r="1.2"/>
+    <rect x="90.0" y="30.0" width="60.0" height="0.8"/>
+    <circle cx="90.0" cy="60.0" r="1.2"/>
+    <rect x="90.0" y="60.0" width="0.8" height="90.0"/>
+    <circle cx="120.0" cy="60.0" r="1.2"/>
+    <rect x="120.0" y="60.0" width="30.0" height="0.8"/>
+    <circle cx="120.0" cy="120.0" r="1.2"/>
+    <rect x="120.0" y="120.0" width="0.8" height="60.0"/>
+  </g>
+</svg>

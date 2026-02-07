@@ -21,7 +21,13 @@ public partial class LayoutExamples : UserControl, IScrollableExample
     public void DrawerToggleBtn_Click(object? sender, RoutedEventArgs e)
     {
         var drawer = this.FindControl<DaisyDrawer>("DemoDrawer");
-        if (drawer != null) drawer.IsPaneOpen = !drawer.IsPaneOpen;
+        if (drawer != null) drawer.Toggle();
+    }
+
+    public void DrawerCloseBtn_Click(object? sender, RoutedEventArgs e)
+    {
+        var drawer = this.FindControl<DaisyDrawer>("DemoDrawer");
+        if (drawer != null) drawer.Close();
     }
 
     public void ScrollToSection(string sectionName)

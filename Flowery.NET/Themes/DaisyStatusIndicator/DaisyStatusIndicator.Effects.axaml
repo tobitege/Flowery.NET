@@ -3,28 +3,114 @@
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
     <!-- ===================== RADAR VARIANT ===================== -->
-    <!-- Radar sweep effect -->
+    <!-- Radar sweep effect - rotating sweep arm like a real radar -->
 
+    <!-- Radar ring outline -->
     <Style Selector="controls|DaisyStatusIndicator[Variant=Radar] /template/ Ellipse#PART_MainEllipse">
-        <Setter Property="Opacity" Value="0.3" />
+        <Setter Property="Opacity" Value="0.35" />
+        <Setter Property="Fill" Value="Transparent" />
+        <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+        <Setter Property="StrokeThickness" Value="1.5" />
     </Style>
+    <!-- Sweep arm - very thin and half-height, positioned to sweep from center outward -->
     <Style Selector="controls|DaisyStatusIndicator[Variant=Radar] /template/ Ellipse#PART_AnimationEllipse">
         <Setter Property="IsVisible" Value="True" />
-        <Setter Property="Opacity" Value="0.8" />
-        <Setter Property="ScaleTransform.ScaleX" Value="0.3" />
-        <Setter Property="ScaleTransform.ScaleY" Value="1" />
+        <Setter Property="Opacity" Value="0.85" />
+        <Setter Property="Width" Value="2" />
+        <Setter Property="Height" Value="6" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="RenderTransformOrigin" Value="50%,100%" />
         <Style.Animations>
-            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+            <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
                     <Setter Property="RotateTransform.Angle" Value="0" />
-                    <Setter Property="Opacity" Value="0.8" />
                 </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.5">
+                <KeyFrame KeyTime="0:0:2">
                     <Setter Property="RotateTransform.Angle" Value="360" />
-                    <Setter Property="Opacity" Value="0.8" />
                 </KeyFrame>
             </Animation>
         </Style.Animations>
+    </Style>
+    <!-- First trail element -->
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar] /template/ Ellipse#PART_AnimationEllipse2">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Opacity" Value="0.45" />
+        <Setter Property="Width" Value="2" />
+        <Setter Property="Height" Value="5" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="RenderTransformOrigin" Value="50%,100%" />
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="RotateTransform.Angle" Value="-20" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="RotateTransform.Angle" Value="340" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <!-- Second trail element -->
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar] /template/ Ellipse#PART_AnimationEllipse3">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Opacity" Value="0.2" />
+        <Setter Property="Width" Value="2" />
+        <Setter Property="Height" Value="4" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="RenderTransformOrigin" Value="50%,100%" />
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="RotateTransform.Angle" Value="-40" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="RotateTransform.Angle" Value="320" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Radar sizing: arm/trails must pivot at center for all sizes -->
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar][Size=ExtraSmall] /template/ Ellipse#PART_AnimationEllipse">
+        <Setter Property="Height" Value="3" />
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar][Size=Small] /template/ Ellipse#PART_AnimationEllipse">
+        <Setter Property="Height" Value="4" />
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar][Size=Large] /template/ Ellipse#PART_AnimationEllipse">
+        <Setter Property="Height" Value="8" />
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar][Size=ExtraLarge] /template/ Ellipse#PART_AnimationEllipse">
+        <Setter Property="Height" Value="10" />
+    </Style>
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar][Size=ExtraSmall] /template/ Ellipse#PART_AnimationEllipse2">
+        <Setter Property="Height" Value="2" />
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar][Size=Small] /template/ Ellipse#PART_AnimationEllipse2">
+        <Setter Property="Height" Value="3" />
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar][Size=Large] /template/ Ellipse#PART_AnimationEllipse2">
+        <Setter Property="Height" Value="7" />
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar][Size=ExtraLarge] /template/ Ellipse#PART_AnimationEllipse2">
+        <Setter Property="Height" Value="9" />
+    </Style>
+
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar][Size=ExtraSmall] /template/ Ellipse#PART_AnimationEllipse3">
+        <Setter Property="Height" Value="1" />
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar][Size=Small] /template/ Ellipse#PART_AnimationEllipse3">
+        <Setter Property="Height" Value="2" />
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar][Size=Large] /template/ Ellipse#PART_AnimationEllipse3">
+        <Setter Property="Height" Value="6" />
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar][Size=ExtraLarge] /template/ Ellipse#PART_AnimationEllipse3">
+        <Setter Property="Height" Value="8" />
     </Style>
 
     <!-- ===================== SONAR VARIANT ===================== -->
@@ -38,6 +124,7 @@
         <Setter Property="Fill" Value="Transparent" />
         <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
         <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -58,6 +145,7 @@
         <Setter Property="Fill" Value="Transparent" />
         <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
         <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite" Delay="0:0:0.66">
                 <KeyFrame KeyTime="0:0:0">
@@ -78,6 +166,7 @@
         <Setter Property="Fill" Value="Transparent" />
         <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
         <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite" Delay="0:0:1.33">
                 <KeyFrame KeyTime="0:0:0">
@@ -89,6 +178,56 @@
                     <Setter Property="Opacity" Value="0" />
                     <Setter Property="ScaleTransform.ScaleX" Value="3" />
                     <Setter Property="ScaleTransform.ScaleY" Value="3" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- Reduce max sonar ring size specifically for ExtraLarge -->
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar][Size=ExtraLarge] /template/ Ellipse#PART_AnimationEllipse">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0.8" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="2.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="2.5" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar][Size=ExtraLarge] /template/ Ellipse#PART_AnimationEllipse2">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite" Delay="0:0:0.66">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0.8" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="2.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="2.5" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar][Size=ExtraLarge] /template/ Ellipse#PART_AnimationEllipse3">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite" Delay="0:0:1.33">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0.8" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="2.5" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="2.5" />
                 </KeyFrame>
             </Animation>
         </Style.Animations>
@@ -117,6 +256,7 @@
     </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=Beacon] /template/ Ellipse#PART_AnimationEllipse">
         <Setter Property="IsVisible" Value="True" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -147,6 +287,7 @@
     <!-- Pop in/out scale effect -->
 
     <Style Selector="controls|DaisyStatusIndicator[Variant=Pop] /template/ Ellipse#PART_MainEllipse">
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:0.8" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -211,6 +352,7 @@
     <!-- Slow breathing scale -->
 
     <Style Selector="controls|DaisyStatusIndicator[Variant=Breathe] /template/ Ellipse#PART_MainEllipse">
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:3" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -239,6 +381,7 @@
         <Setter Property="Fill" Value="Transparent" />
         <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
         <Setter Property="StrokeThickness" Value="2" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -259,6 +402,7 @@
         <Setter Property="Fill" Value="Transparent" />
         <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
         <Setter Property="StrokeThickness" Value="2" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:0.5">
                 <KeyFrame KeyTime="0:0:0">
@@ -279,6 +423,7 @@
         <Setter Property="Fill" Value="Transparent" />
         <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
         <Setter Property="StrokeThickness" Value="2" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:1">
                 <KeyFrame KeyTime="0:0:0">
@@ -299,6 +444,7 @@
     <!-- Quick flash effect -->
 
     <Style Selector="controls|DaisyStatusIndicator[Variant=Flash] /template/ Ellipse#PART_MainEllipse">
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -329,6 +475,7 @@
     <!-- Throbbing intensity effect -->
 
     <Style Selector="controls|DaisyStatusIndicator[Variant=Throb] /template/ Ellipse#PART_MainEllipse">
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:0.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -359,6 +506,7 @@
     <!-- Star-like twinkling -->
 
     <Style Selector="controls|DaisyStatusIndicator[Variant=Twinkle] /template/ Ellipse#PART_MainEllipse">
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -399,6 +547,7 @@
     <!-- Splash ripple effect -->
 
     <Style Selector="controls|DaisyStatusIndicator[Variant=Splash] /template/ Ellipse#PART_MainEllipse">
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -426,6 +575,7 @@
     </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=Splash] /template/ Ellipse#PART_AnimationEllipse">
         <Setter Property="IsVisible" Value="True" />
+        <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">

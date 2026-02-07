@@ -42,6 +42,23 @@
             </ControlTemplate>
         </Setter>
 
+        <!-- Size adjustments -->
+        <Style Selector="^[Size=ExtraSmall]">
+            <Setter Property="FontSize" Value="16" />
+        </Style>
+        <Style Selector="^[Size=Small]">
+            <Setter Property="FontSize" Value="20" />
+        </Style>
+        <Style Selector="^[Size=Medium]">
+            <Setter Property="FontSize" Value="24" />
+        </Style>
+        <Style Selector="^[Size=Large]">
+            <Setter Property="FontSize" Value="32" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge]">
+            <Setter Property="FontSize" Value="40" />
+        </Style>
+
         <Style Selector="^:pointerover /template/ TextBlock#PART_Text">
             <Setter Property="Opacity" Value="0.8" />
         </Style>

@@ -9,6 +9,7 @@
                 <ResourceInclude Source="/Themes/DaisyIcons.axaml" />
                 <ResourceInclude Source="/Themes/DaisyButton.axaml" />
                 <ResourceInclude Source="/Themes/DaisyInput.axaml" />
+                <ResourceInclude Source="/Themes/DaisyPasswordBox.axaml" />
                 <ResourceInclude Source="/Themes/DaisyNumericUpDown.axaml" />
                 <ResourceInclude Source="/Themes/DaisyCheckBox.axaml" />
                 <ResourceInclude Source="/Themes/DaisyToggle.axaml" />
@@ -18,6 +19,7 @@
                 <ResourceInclude Source="/Themes/DaisyTagPicker.axaml" />
                 <ResourceInclude Source="/Themes/DaisyAlert.axaml" />
                 <ResourceInclude Source="/Themes/DaisyCard.axaml" />
+                <ResourceInclude Source="/Themes/DaisyPatternedCard.axaml" />
                 <ResourceInclude Source="/Themes/DaisyExpandableCard.axaml" />
                 <ResourceInclude Source="/Themes/DaisyTextArea.axaml" />
                 <ResourceInclude Source="/Themes/DaisyRating.axaml" />
@@ -39,8 +41,11 @@
                 <ResourceInclude Source="/Themes/DaisyAvatar.axaml" />
                 <ResourceInclude Source="/Themes/DaisyAvatarGroup.axaml" />
                 <ResourceInclude Source="/Themes/DaisyKbd.axaml" />
+                <ResourceInclude Source="/Themes/DaisyIconText.axaml" />
+                <ResourceInclude Source="/Themes/DaisySlideToConfirm.axaml" />
                 <ResourceInclude Source="/Themes/DaisyStat.axaml" />
                 <ResourceInclude Source="/Themes/DaisyCountdown.axaml" />
+                <ResourceInclude Source="/Themes/DaisyClock.axaml" />
                 <ResourceInclude Source="/Themes/DaisyChatBubble.axaml" />
                 <ResourceInclude Source="/Themes/DaisyCollapse.axaml" />
                 <ResourceInclude Source="/Themes/DaisyAccordion.axaml" />
@@ -80,6 +85,7 @@
     <StyleInclude Source="/Themes/DaisyMenu.axaml" />
     <StyleInclude Source="/Themes/DaisyTabs.axaml" />
     <StyleInclude Source="/Themes/DaisyThemeDropdown.axaml" />
+    <StyleInclude Source="/Themes/DaisyProductThemeDropdown.axaml" />
     <StyleInclude Source="/Themes/DaisySizeDropdown.axaml" />
     <StyleInclude Source="/Themes/DaisyJoin.axaml" />
     <StyleInclude Source="/Themes/DaisyButtonGroup.axaml" />

@@ -1,0 +1,180 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="{DynamicResource DaisyBase100Brush}">
+            <StackPanel Spacing="20">
+                <controls:DaisyClock Size="Large" />
+                <controls:DaisyClock DisplayStyle="Flip" Size="Medium" />
+                <controls:DaisyClock DisplayStyle="Text" Size="Small" />
+                <controls:DaisyClock Format="TwelveHour" ShowAmPm="True" Size="Medium" />
+                <controls:DaisyClock LabelFormat="Short" Size="Medium" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <ControlTheme x:Key="{x:Type controls:DaisyClock}" TargetType="controls:DaisyClock">
+        <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+
+        <Setter Property="Template">
+            <ControlTemplate>
+                <StackPanel x:Name="PART_Root"
+                            Orientation="{TemplateBinding Orientation}"
+                            Spacing="{TemplateBinding Spacing}"
+                            HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalAlignment}">
+
+                    <!-- Segmented style: Use DaisyCountdown controls -->
+                    <StackPanel x:Name="PART_SegmentedContainer"
+                                Orientation="{TemplateBinding Orientation}"
+                                Spacing="{TemplateBinding Spacing}"
+                                IsVisible="True">
+                        <!-- Hours -->
+                        <controls:DaisyCountdown x:Name="PART_HoursCountdown"
+                                                 Value="{TemplateBinding HoursValue}"
+                                                 Digits="2"
+                                                 Size="{TemplateBinding Size}" />
+                        <!-- Separator 1 -->
+                        <TextBlock x:Name="PART_Separator1"
+                                   Text="{TemplateBinding Separator}"
+                                   FontSize="{DynamicResource DaisySizeMediumHeaderFontSize}"
+                                   FontWeight="Bold"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   VerticalAlignment="Center" />
+                        <!-- Minutes -->
+                        <controls:DaisyCountdown x:Name="PART_MinutesCountdown"
+                                                 Value="{TemplateBinding MinutesValue}"
+                                                 Digits="2"
+                                                 Size="{TemplateBinding Size}" />
+                        <!-- Separator 2 -->
+                        <TextBlock x:Name="PART_Separator2"
+                                   Text="{TemplateBinding Separator}"
+                                   FontSize="{DynamicResource DaisySizeMediumHeaderFontSize}"
+                                   FontWeight="Bold"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   VerticalAlignment="Center"
+                                   IsVisible="{TemplateBinding ShowSeconds}" />
+                        <!-- Seconds -->
+                        <controls:DaisyCountdown x:Name="PART_SecondsCountdown"
+                                                 Value="{TemplateBinding SecondsValue}"
+                                                 Digits="2"
+                                                 Size="{TemplateBinding Size}"
+                                                 IsVisible="{TemplateBinding ShowSeconds}" />
+                        <!-- AM/PM -->
+                        <TextBlock x:Name="PART_AmPm"
+                                   Text="{TemplateBinding AmPmText}"
+                                   FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   VerticalAlignment="Center"
+                                   Margin="8,0,0,0"
+                                   IsVisible="{TemplateBinding AmPmText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+
+                    <!-- Text style: Simple TextBlock -->
+                    <TextBlock x:Name="PART_TextDisplay"
+                               Text="{TemplateBinding DisplayText}"
+                               FontSize="{DynamicResource DaisySizeMediumHeaderFontSize}"
+                               FontWeight="Bold"
+                               Foreground="{TemplateBinding Foreground}"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               IsVisible="False" />
+                </StackPanel>
+            </ControlTemplate>
+        </Setter>
+
+        <!-- DisplayStyle: Segmented (default) - show countdown controls -->
+        <Style Selector="^[DisplayStyle=Segmented] /template/ StackPanel#PART_SegmentedContainer">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^[DisplayStyle=Segmented] /template/ TextBlock#PART_TextDisplay">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+
+        <!-- DisplayStyle: Flip - show countdown controls with flip styling -->
+        <Style Selector="^[DisplayStyle=Flip] /template/ StackPanel#PART_SegmentedContainer">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="^[DisplayStyle=Flip] /template/ TextBlock#PART_TextDisplay">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DisplayStyle=Flip] /template/ controls|DaisyCountdown">
+            <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+        </Style>
+
+        <!-- DisplayStyle: Text - show simple text -->
+        <Style Selector="^[DisplayStyle=Text] /template/ StackPanel#PART_SegmentedContainer">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[DisplayStyle=Text] /template/ TextBlock#PART_TextDisplay">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+
+        <!-- Size: ExtraSmall -->
+        <Style Selector="^[Size=ExtraSmall] /template/ TextBlock#PART_TextDisplay">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallHeaderFontSize}" />
+        </Style>
+        <Style Selector="^[Size=ExtraSmall] /template/ TextBlock#PART_Separator1, ^[Size=ExtraSmall] /template/ TextBlock#PART_Separator2">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+        </Style>
+        <Style Selector="^[Size=ExtraSmall] /template/ TextBlock#PART_AmPm">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallSecondaryFontSize}" />
+        </Style>
+
+        <!-- Size: Small -->
+        <Style Selector="^[Size=Small] /template/ TextBlock#PART_TextDisplay">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallHeaderFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Small] /template/ TextBlock#PART_Separator1, ^[Size=Small] /template/ TextBlock#PART_Separator2">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Small] /template/ TextBlock#PART_AmPm">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallSecondaryFontSize}" />
+        </Style>
+
+        <!-- Size: Medium -->
+        <Style Selector="^[Size=Medium] /template/ TextBlock#PART_TextDisplay">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumHeaderFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Medium] /template/ TextBlock#PART_Separator1, ^[Size=Medium] /template/ TextBlock#PART_Separator2">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Medium] /template/ TextBlock#PART_AmPm">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumSecondaryFontSize}" />
+        </Style>
+
+        <!-- Size: Large -->
+        <Style Selector="^[Size=Large] /template/ TextBlock#PART_TextDisplay">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeHeaderFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Large] /template/ TextBlock#PART_Separator1, ^[Size=Large] /template/ TextBlock#PART_Separator2">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Large] /template/ TextBlock#PART_AmPm">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeSecondaryFontSize}" />
+        </Style>
+
+        <!-- Size: ExtraLarge -->
+        <Style Selector="^[Size=ExtraLarge] /template/ TextBlock#PART_TextDisplay">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeHeaderFontSize}" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge] /template/ TextBlock#PART_Separator1, ^[Size=ExtraLarge] /template/ TextBlock#PART_Separator2">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge] /template/ TextBlock#PART_AmPm">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeSecondaryFontSize}" />
+        </Style>
+
+        <!-- LabelFormat: Hide separators when using labels -->
+        <Style Selector="^[LabelFormat=Short] /template/ TextBlock#PART_Separator1, ^[LabelFormat=Short] /template/ TextBlock#PART_Separator2">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^[LabelFormat=Long] /template/ TextBlock#PART_Separator1, ^[LabelFormat=Long] /template/ TextBlock#PART_Separator2">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+
+    </ControlTheme>
+</ResourceDictionary>

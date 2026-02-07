@@ -294,54 +294,126 @@
                     <StackPanel Spacing="10" Margin="0,0,40,20">
                         <controls:DaisyCarousel Height="150" HorizontalAlignment="Stretch"
                             MaxWidth="{Binding (services:FloweryResponsive.ResponsiveMaxWidth), ElementName=MainScrollViewer}">
-                            <Border Background="#FF5F56" CornerRadius="8">
-                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="4">
-                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                        <PathIcon Data="{StaticResource DaisyIconSun}" Foreground="White" Width="24" Height="24"/>
-                                        <TextBlock Text="Slide 1" FontSize="24" FontWeight="Bold"
-                                            Foreground="White" VerticalAlignment="Center" />
+                            <StackPanel>
+                                <Border Background="#FF5F56" CornerRadius="8">
+                                    <StackPanel VerticalAlignment="Center"
+                                        HorizontalAlignment="Center" Spacing="4">
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                            HorizontalAlignment="Center">
+                                            <PathIcon Data="{StaticResource DaisyIconSun}"
+                                                Foreground="White" Width="24" Height="24" />
+                                            <TextBlock Text="Slide 1" FontSize="24"
+                                                FontWeight="Bold"
+                                                Foreground="White" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="Morning Breeze" FontSize="14"
+                                            Foreground="White"
+                                            Opacity="0.9" HorizontalAlignment="Center" />
                                     </StackPanel>
-                                    <TextBlock Text="Morning Breeze" FontSize="14" Foreground="White"
-                                        Opacity="0.9" HorizontalAlignment="Center" />
-                                </StackPanel>
-                            </Border>
-                            <Border Background="#FFBD2E" CornerRadius="8">
-                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="4">
-                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                        <PathIcon Data="{StaticResource DaisyIconStar}" Foreground="White" Width="24" Height="24"/>
-                                        <TextBlock Text="Slide 2" FontSize="24" FontWeight="Bold"
-                                            Foreground="White" VerticalAlignment="Center" />
+                                </Border>
+                                <Border Background="#FFBD2E" CornerRadius="8">
+                                    <StackPanel VerticalAlignment="Center"
+                                        HorizontalAlignment="Center" Spacing="4">
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                            HorizontalAlignment="Center">
+                                            <PathIcon Data="{StaticResource DaisyIconStar}"
+                                                Foreground="White" Width="24" Height="24" />
+                                            <TextBlock Text="Slide 2" FontSize="24"
+                                                FontWeight="Bold"
+                                                Foreground="White" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="Golden Star" FontSize="14"
+                                            Foreground="White"
+                                            Opacity="0.9" HorizontalAlignment="Center" />
                                     </StackPanel>
-                                    <TextBlock Text="Golden Star" FontSize="14" Foreground="White"
-                                        Opacity="0.9" HorizontalAlignment="Center" />
-                                </StackPanel>
-                            </Border>
-                            <Border Background="#27C93F" CornerRadius="8">
-                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="4">
-                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                        <PathIcon Data="{StaticResource DaisyIconHeart}" Foreground="White" Width="24" Height="24"/>
-                                        <TextBlock Text="Slide 3" FontSize="24" FontWeight="Bold"
-                                            Foreground="White" VerticalAlignment="Center" />
+                                </Border>
+                                <Border Background="#27C93F" CornerRadius="8">
+                                    <StackPanel VerticalAlignment="Center"
+                                        HorizontalAlignment="Center" Spacing="4">
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                            HorizontalAlignment="Center">
+                                            <PathIcon Data="{StaticResource DaisyIconHeart}"
+                                                Foreground="White" Width="24" Height="24" />
+                                            <TextBlock Text="Slide 3" FontSize="24"
+                                                FontWeight="Bold"
+                                                Foreground="White" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="Warm Heart" FontSize="14"
+                                            Foreground="White" Opacity="0.9"
+                                            HorizontalAlignment="Center" />
                                     </StackPanel>
-                                    <TextBlock Text="Warm Heart" FontSize="14"
-                                        Foreground="White" Opacity="0.9"
-                                        HorizontalAlignment="Center" />
-                                </StackPanel>
-                            </Border>
-                            <Border Background="#007BFF" CornerRadius="8">
-                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="4">
-                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                        <PathIcon Data="{StaticResource DaisyIconMoon}" Foreground="White" Width="24" Height="24"/>
-                                        <TextBlock Text="Slide 4" FontSize="24" FontWeight="Bold"
-                                            Foreground="White" VerticalAlignment="Center" />
+                                </Border>
+                                <Border Background="#007BFF" CornerRadius="8">
+                                    <StackPanel VerticalAlignment="Center"
+                                        HorizontalAlignment="Center" Spacing="4">
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                            HorizontalAlignment="Center">
+                                            <PathIcon Data="{StaticResource DaisyIconMoon}"
+                                                Foreground="White" Width="24" Height="24" />
+                                            <TextBlock Text="Slide 4" FontSize="24"
+                                                FontWeight="Bold"
+                                                Foreground="White" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="Night Sky" FontSize="14"
+                                            Foreground="White" Opacity="0.9"
+                                            HorizontalAlignment="Center" />
                                     </StackPanel>
-                                    <TextBlock Text="Night Sky" FontSize="14"
-                                        Foreground="White" Opacity="0.9"
-                                        HorizontalAlignment="Center" />
-                                </StackPanel>
-                            </Border>
+                                </Border>
+                            </StackPanel>
                         </controls:DaisyCarousel>
                     </StackPanel>
+                </StackPanel>
+
+                <controls:DaisyDivider />
+
+                <!-- Advanced Carousel -->
+                <StackPanel Spacing="12">
+                    <local:SectionHeader SectionId="advanced-carousel" Title="Advanced Carousel" />
+                    <TextBlock Text="Demonstrating Kiosk mode (auto-play) and Vertical orientation."
+                        Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+
+                    <WrapPanel Orientation="Horizontal">
+                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                            <TextBlock Text="Kiosk Mode (Auto-Play)" FontWeight="SemiBold"
+                                Opacity="0.7" />
+                            <controls:DaisyCarousel Height="200" Width="300"
+                                Mode="Kiosk"
+                                SlideInterval="3.0"
+                                WrapAround="True">
+                                <StackPanel>
+                                    <Image
+                                        Source="avares://Flowery.NET.Gallery/Assets/wallpaper_blue.jpg"
+                                        Stretch="UniformToFill" />
+                                    <Image
+                                        Source="avares://Flowery.NET.Gallery/Assets/wallpaper_red.jpg"
+                                        Stretch="UniformToFill" />
+                                    <Image
+                                        Source="avares://Flowery.NET.Gallery/Assets/wallpaper_green.jpg"
+                                        Stretch="UniformToFill" />
+                                </StackPanel>
+                            </controls:DaisyCarousel>
+                        </StackPanel>
+
+                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                            <TextBlock Text="Vertical Orientation" FontWeight="SemiBold"
+                                Opacity="0.7" />
+                            <controls:DaisyCarousel Height="200" Width="300"
+                                Orientation="Vertical"
+                                WrapAround="True">
+                                <StackPanel>
+                                    <Image
+                                        Source="avares://Flowery.NET.Gallery/Assets/wallpaper_yellow.jpg"
+                                        Stretch="UniformToFill" />
+                                    <Image
+                                        Source="avares://Flowery.NET.Gallery/Assets/wallpaper_blue.jpg"
+                                        Stretch="UniformToFill" />
+                                    <Image
+                                        Source="avares://Flowery.NET.Gallery/Assets/wallpaper_red.jpg"
+                                        Stretch="UniformToFill" />
+                                </StackPanel>
+                            </controls:DaisyCarousel>
+                        </StackPanel>
+                    </WrapPanel>
                 </StackPanel>
 
                 <controls:DaisyDivider />
@@ -455,6 +527,96 @@
 
                 <controls:DaisyDivider />
 
+                <!-- Clock -->
+                <StackPanel Spacing="12">
+                    <local:SectionHeader SectionId="clock" Title="Clock" />
+                    <WrapPanel Orientation="Horizontal">
+                        <!-- Display Styles -->
+                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                            <TextBlock Text="Display Styles" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Segmented (Default)" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock DisplayStyle="Segmented" />
+                            </StackPanel>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="With Background" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock DisplayStyle="Flip" />
+                            </StackPanel>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Plain Text" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock DisplayStyle="Text" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Formats -->
+                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                            <TextBlock Text="Time Formats" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="24-Hour" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock Format="TwentyFourHour" />
+                            </StackPanel>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="12-Hour with AM/PM" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock Format="TwelveHour" ShowAmPm="True" />
+                            </StackPanel>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="No Seconds" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock ShowSeconds="False" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Joined Layouts -->
+                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                            <TextBlock Text="Joined Layouts" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Segmented + Join" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock DisplayStyle="Segmented" UseJoin="True" />
+                            </StackPanel>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="With Background + Join" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock DisplayStyle="Flip" UseJoin="True" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Labels -->
+                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                            <TextBlock Text="Label Formats" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Short Labels" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock LabelFormat="Short" DisplayStyle="Text" />
+                            </StackPanel>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Long Labels" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock LabelFormat="Long" DisplayStyle="Text" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Sizes -->
+                        <StackPanel Spacing="10" Margin="0,0,40,20"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
+                            <TextBlock Text="Sizes" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Extra Small" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock Size="ExtraSmall" />
+                            </StackPanel>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Small" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock Size="Small" />
+                            </StackPanel>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Medium" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock Size="Medium" />
+                            </StackPanel>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Large" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyClock Size="Large" />
+                            </StackPanel>
+                        </StackPanel>
+                    </WrapPanel>
+                </StackPanel>
+
+                <controls:DaisyDivider />
+
                 <!-- Countdown -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="countdown" Title="Countdown" />
@@ -506,6 +668,39 @@
                                     <controls:DaisyCountdown Value="30" FontSize="32"
                                         IsCountingDown="True" Loop="True" LoopFrom="59" />
                                     <TextBlock Text="sec" HorizontalAlignment="Center"
+                                        controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                        <!-- Sizes -->
+                        <StackPanel Spacing="10" Margin="0,0,40,20"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
+                            <TextBlock Text="Sizes" Opacity="0.7"
+                                controls:FlowerySizeManager.ResponsiveFont="Primary" Margin="0,0,0,4" />
+                            <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Bottom">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <controls:DaisyCountdown Value="42" Size="ExtraSmall" Digits="2" />
+                                    <TextBlock Text="XS" HorizontalAlignment="Center"
+                                        controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Center">
+                                    <controls:DaisyCountdown Value="42" Size="Small" Digits="2" />
+                                    <TextBlock Text="S" HorizontalAlignment="Center"
+                                        controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Center">
+                                    <controls:DaisyCountdown Value="42" Size="Medium" Digits="2" />
+                                    <TextBlock Text="M" HorizontalAlignment="Center"
+                                        controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Center">
+                                    <controls:DaisyCountdown Value="42" Size="Large" Digits="2" />
+                                    <TextBlock Text="L" HorizontalAlignment="Center"
+                                        controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                </StackPanel>
+                                <StackPanel HorizontalAlignment="Center">
+                                    <controls:DaisyCountdown Value="42" Size="ExtraLarge" Digits="2" />
+                                    <TextBlock Text="XL" HorizontalAlignment="Center"
                                         controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 </StackPanel>
                             </StackPanel>
@@ -1208,6 +1403,133 @@
                                     <controls:DaisyStatusIndicator Color="Info" Variant="Splash" />
                                     <TextBlock Text="Splash" FontSize="9" Opacity="0.5"
                                         HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Status Glyph Variants -->
+                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                            <TextBlock Text="Status Glyph Variants" FontWeight="SemiBold" Opacity="0.7" />
+
+                            <!-- Battery Indicator -->
+                            <TextBlock Text="Battery" FontSize="12" Opacity="0.6" />
+                            <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="Battery" BatteryChargePercent="100" Color="Success" />
+                                    <TextBlock Text="100%" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="Battery" BatteryChargePercent="75" Color="Success" />
+                                    <TextBlock Text="75%" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="Battery" BatteryChargePercent="50" Color="Warning" />
+                                    <TextBlock Text="50%" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="Battery" BatteryChargePercent="25" Color="Warning" />
+                                    <TextBlock Text="25%" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Traffic Lights -->
+                            <TextBlock Text="Traffic Lights" FontSize="12" Opacity="0.6" Margin="0,8,0,0" />
+                            <StackPanel Orientation="Horizontal" Spacing="24" VerticalAlignment="Center">
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="TrafficLightVertical" TrafficLightActive="Green" />
+                                    <TextBlock Text="Green" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="TrafficLightVertical" TrafficLightActive="Yellow" />
+                                    <TextBlock Text="Yellow" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="TrafficLightVertical" TrafficLightActive="Red" />
+                                    <TextBlock Text="Red" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="TrafficLightHorizontal" TrafficLightActive="Green" />
+                                    <TextBlock Text="Horizontal LTR" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="TrafficLightHorizontalReversed" TrafficLightActive="Green" />
+                                    <TextBlock Text="Horizontal RTL" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- WiFi Signal -->
+                            <TextBlock Text="WiFi Signal" FontSize="12" Opacity="0.6" Margin="0,8,0,0" />
+                            <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="WifiSignal" SignalStrength="0" Color="Error" />
+                                    <TextBlock Text="None" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="WifiSignal" SignalStrength="1" Color="Warning" />
+                                    <TextBlock Text="Weak" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="WifiSignal" SignalStrength="2" Color="Info" />
+                                    <TextBlock Text="Fair" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="WifiSignal" SignalStrength="3" Color="Success" />
+                                    <TextBlock Text="Strong" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Cellular Signal -->
+                            <TextBlock Text="Cellular Signal" FontSize="12" Opacity="0.6" Margin="0,8,0,0" />
+                            <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="CellularSignal" SignalStrength="0" Color="Error" />
+                                    <TextBlock Text="0/5" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="CellularSignal" SignalStrength="1" Color="Error" />
+                                    <TextBlock Text="1/5" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="CellularSignal" SignalStrength="2" Color="Warning" />
+                                    <TextBlock Text="2/5" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="CellularSignal" SignalStrength="3" Color="Warning" />
+                                    <TextBlock Text="3/5" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="CellularSignal" SignalStrength="4" Color="Success" />
+                                    <TextBlock Text="4/5" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="CellularSignal" SignalStrength="5" Color="Success" />
+                                    <TextBlock Text="5/5" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Glyph Size Variants -->
+                            <TextBlock Text="Sizes" FontSize="12" Opacity="0.6" Margin="0,8,0,0" />
+                            <StackPanel Orientation="Horizontal" Spacing="24" VerticalAlignment="Bottom"
+                                controls:FlowerySizeManager.IgnoreGlobalSize="True">
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="TrafficLightVertical" TrafficLightActive="Green" Size="ExtraSmall" />
+                                    <TextBlock Text="XS" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="TrafficLightVertical" TrafficLightActive="Yellow" Size="Small" />
+                                    <TextBlock Text="SM" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="TrafficLightVertical" TrafficLightActive="Green" Size="Medium" />
+                                    <TextBlock Text="MD" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="TrafficLightVertical" TrafficLightActive="Red" Size="Large" />
+                                    <TextBlock Text="LG" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Spacing="4" HorizontalAlignment="Center">
+                                    <controls:DaisyStatusIndicator Variant="TrafficLightVertical" TrafficLightActive="Green" Size="ExtraLarge" />
+                                    <TextBlock Text="XL" FontSize="9" Opacity="0.5" HorizontalAlignment="Center" />
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>

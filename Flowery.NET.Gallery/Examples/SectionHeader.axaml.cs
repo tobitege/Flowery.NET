@@ -13,6 +13,8 @@ namespace Flowery.NET.Gallery.Examples;
 
 public partial class SectionHeader : UserControl
 {
+    private bool _isSizeSubscriptionActive;
+
     /// <summary>
     /// Maps SectionId to Daisy control name. Used for screenshot filenames and documentation.
     /// Keep in sync with generate_docs.py _section_to_control() mapping.
@@ -99,6 +101,10 @@ public partial class SectionHeader : UserControl
         ["mockup"] = "DaisyMockup",
         ["hovergallery"] = "DaisyHoverGallery",
         ["glass"] = "DaisyGlass",
+        ["daisyglasssimulated"] = "DaisyGlass",
+        ["daisyglassbitmapcapture"] = "DaisyGlass",
+        ["daisyglassskiamatrix"] = "DaisyGlass",
+        ["daisyglassfullwidth"] = "DaisyGlass",
         ["textrotate"] = "DaisyTextRotate",
 
         // Color Picker
@@ -122,10 +128,12 @@ public partial class SectionHeader : UserControl
         // Theming
         ["themecontroller"] = "DaisyThemeController",
         ["themedropdown"] = "DaisyThemeDropdown",
+        ["productthemes"] = "DaisyProductThemeDropdown",
         ["themeswap"] = "DaisyThemeSwap",
         ["themeradio"] = "DaisyThemeRadio",
         // Showcase / Eye Candy
         ["expandablecards"] = "DaisyExpandableCard",
+        ["expandable-batteries"] = "DaisyExpandableCard",
         ["power-off-slide"] = "Showcase_PowerOff",
         ["typewriter"] = "Showcase_Typewriter",
         ["scroll-reveal"] = "Showcase_ScrollReveal",
@@ -187,8 +195,7 @@ public partial class SectionHeader : UserControl
     {
         InitializeComponent();
 
-        // Subscribe to global size changes
-        Flowery.Controls.FlowerySizeManager.SizeChanged += OnGlobalSizeChanged;
+        SubscribeToGlobalSizeChanges();
 
         // Apply initial size
         ApplySizeToHeader(Flowery.Controls.FlowerySizeManager.CurrentSize);
@@ -217,10 +224,17 @@ public partial class SectionHeader : UserControl
         };
     }
 
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+        SubscribeToGlobalSizeChanges();
+        ApplySizeToHeader(Flowery.Controls.FlowerySizeManager.CurrentSize);
+    }
+
     protected override void OnUnloaded(RoutedEventArgs e)
     {
         base.OnUnloaded(e);
-        Flowery.Controls.FlowerySizeManager.SizeChanged -= OnGlobalSizeChanged;
+        UnsubscribeFromGlobalSizeChanges();
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -431,5 +445,23 @@ public partial class SectionHeader : UserControl
             return panel.Children[headerIndex + 1] as Panel;
 
         return null;
+    }
+
+    private void SubscribeToGlobalSizeChanges()
+    {
+        if (_isSizeSubscriptionActive)
+            return;
+
+        Flowery.Controls.FlowerySizeManager.SizeChanged += OnGlobalSizeChanged;
+        _isSizeSubscriptionActive = true;
+    }
+
+    private void UnsubscribeFromGlobalSizeChanges()
+    {
+        if (!_isSizeSubscriptionActive)
+            return;
+
+        Flowery.Controls.FlowerySizeManager.SizeChanged -= OnGlobalSizeChanged;
+        _isSizeSubscriptionActive = false;
     }
 }

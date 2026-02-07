@@ -13,35 +13,71 @@
             <!-- Drawer -->
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="drawer" Title="Drawer" />
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <controls:DaisyButton x:Name="DrawerToggleBtn" Size="Small" Click="DrawerToggleBtn_Click">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <PathIcon Data="{StaticResource DaisyIconHamburger}" Width="16" Height="16"/>
-                            <TextBlock Text="Toggle" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </controls:DaisyButton>
-                </StackPanel>
-                <TextBlock Text="A responsive sidebar that can show/hide. Click the hamburger button to toggle." Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
-                <WrapPanel Orientation="Horizontal">
-                    <StackPanel Spacing="10" Margin="0,0,40,20">
-                        <Border BorderBrush="{DynamicResource DaisyBase300Brush}" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
-                            <controls:DaisyDrawer x:Name="DemoDrawer" Height="200" Width="500" IsPaneOpen="True">
-                                <controls:DaisyDrawer.Pane>
-                                    <StackPanel Margin="20" Spacing="10">
-                                        <TextBlock Text="Sidebar Menu" FontWeight="Bold"/>
-                                        <TextBlock Text="Item 1" />
-                                        <TextBlock Text="Item 2" />
-                                    </StackPanel>
-                                </controls:DaisyDrawer.Pane>
-                                <Grid Background="{DynamicResource DaisyBase100Brush}">
-                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                        <TextBlock Text="Main Content Area" />
-                                    </StackPanel>
-                                </Grid>
-                            </controls:DaisyDrawer>
-                        </Border>
+                <TextBlock Text="A sliding sidebar panel for navigation menus or auxiliary content. Toggle between overlay mode (content is covered) and inline mode (content is pushed aside). The drawer automatically opens in responsive layouts when sufficient width is available."
+                           Opacity="0.7"
+                           TextWrapping="Wrap"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+
+                <StackPanel Spacing="10">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <controls:DaisyButton Content="Toggle drawer" Variant="Primary" Click="DrawerToggleBtn_Click" />
+                        <controls:DaisyButton Content="Close" Variant="Ghost" Click="DrawerCloseBtn_Click" />
                     </StackPanel>
-                </WrapPanel>
+
+                    <controls:DaisyCheckBox Content="Overlay mode"
+                                            IsChecked="{Binding OverlayMode, ElementName=DemoDrawer, Mode=TwoWay}" />
+
+                    <Border BorderBrush="{DynamicResource DaisyBase300Brush}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            HorizontalAlignment="Stretch"
+                            Background="{DynamicResource DaisyBase100Brush}">
+                        <controls:DaisyDrawer x:Name="DemoDrawer"
+                                              OverlayMode="False"
+                                              ResponsiveMode="True"
+                                              ResponsiveThreshold="500"
+                                              DrawerWidth="180"
+                                              Height="260"
+                                              HorizontalAlignment="Stretch"
+                                              VerticalAlignment="Stretch">
+                            <controls:DaisyDrawer.Pane>
+                                <Border Background="{DynamicResource DaisyBase200Brush}"
+                                        Padding="12"
+                                        Width="180">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="Navigation" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                        <controls:DaisyMenu>
+                                            <ListBoxItem Content="Dashboard" IsSelected="True" />
+                                            <ListBoxItem Content="Billing" />
+                                            <ListBoxItem Content="Settings" />
+                                            <ListBoxItem Content="Help" />
+                                        </controls:DaisyMenu>
+                                    </StackPanel>
+                                </Border>
+                            </controls:DaisyDrawer.Pane>
+
+                            <controls:DaisyDrawer.Content>
+                                <Border Background="{DynamicResource DaisyBase100Brush}"
+                                        Padding="16"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Stretch">
+                                    <StackPanel Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock Text="Main Content Area"
+                                                   FontWeight="SemiBold"
+                                                   HorizontalAlignment="Center"
+                                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                        <TextBlock Text="Resize window to see drawer auto-open/close."
+                                                   Opacity="0.7"
+                                                   TextWrapping="Wrap"
+                                                   HorizontalAlignment="Center"
+                                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                    </StackPanel>
+                                </Border>
+                            </controls:DaisyDrawer.Content>
+                        </controls:DaisyDrawer>
+                    </Border>
+                </StackPanel>
             </StackPanel>
 
             <controls:DaisyDivider />
@@ -66,15 +102,76 @@
             <!-- Indicator -->
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="indicator" Title="Indicator" />
+                <TextBlock Text="Badge overlay that can be aligned to any corner/edge."
+                           Opacity="0.7"
+                           TextWrapping="Wrap"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+
                 <WrapPanel Orientation="Horizontal">
-                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                    <StackPanel Spacing="10" Margin="0,0,24,16">
                         <controls:DaisyIndicator>
-                            <controls:DaisyIndicator.Badge>
-                                <controls:DaisyBadge Variant="Secondary" Content="NEW" />
-                            </controls:DaisyIndicator.Badge>
-                            <Border Background="{DynamicResource DaisyBase300Brush}" Width="100" Height="100" CornerRadius="8">
-                                <TextBlock Text="Content" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
+                            <controls:DaisyIndicator.Marker>
+                                <controls:DaisyBadge Content="NEW" Variant="Warning" />
+                            </controls:DaisyIndicator.Marker>
+                            <controls:DaisyCard CardStyle="Beveled"
+                                                BorderThickness="1"
+                                                MinWidth="160"
+                                                MinHeight="80"
+                                                Size="Medium" />
+                        </controls:DaisyIndicator>
+                    </StackPanel>
+
+                    <StackPanel Spacing="10" Margin="0,0,24,16">
+                        <controls:DaisyIndicator MarkerPosition="TopLeft">
+                            <controls:DaisyIndicator.Marker>
+                                <controls:DaisyBadge Content="SALE" Variant="Error" />
+                            </controls:DaisyIndicator.Marker>
+                            <controls:DaisyCard CardStyle="Beveled"
+                                                BorderThickness="1"
+                                                MinWidth="160"
+                                                MinHeight="80"
+                                                Size="Medium" />
+                        </controls:DaisyIndicator>
+                    </StackPanel>
+
+                    <StackPanel Spacing="10" Margin="0,0,24,16">
+                        <controls:DaisyIndicator MarkerPosition="BottomRight">
+                            <controls:DaisyIndicator.Marker>
+                                <controls:DaisyBadge Variant="Success"
+                                                     CornerRadius="6"
+                                                     Padding="0"
+                                                     Width="12"
+                                                     Height="12"
+                                                     MinWidth="12"
+                                                     MinHeight="12" />
+                            </controls:DaisyIndicator.Marker>
+                            <controls:DaisyAvatar Size="Large"
+                                                  Background="{DynamicResource DaisyPrimaryBrush}"
+                                                  controls:FlowerySizeManager.IgnoreGlobalSize="True">
+                                <TextBlock Text="JD"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource DaisyPrimaryContentBrush}" />
+                            </controls:DaisyAvatar>
+                        </controls:DaisyIndicator>
+                    </StackPanel>
+
+                    <StackPanel Spacing="10" Margin="0,0,24,16">
+                        <controls:DaisyIndicator MarkerAlignment="Edge">
+                            <controls:DaisyIndicator.Marker>
+                                <controls:DaisyBadge Content="9+" Variant="Error" Size="ExtraSmall" />
+                            </controls:DaisyIndicator.Marker>
+                            <controls:DaisyButton Variant="Secondary" Size="Large" Shape="Circle">
+                                <PathIcon Data="{StaticResource DaisyIconMail}" Width="16" Height="16" />
+                            </controls:DaisyButton>
+                        </controls:DaisyIndicator>
+                    </StackPanel>
+
+                    <StackPanel Spacing="10" Margin="0,0,24,16">
+                        <controls:DaisyIndicator MarkerPosition="BottomRight" MarkerAlignment="Edge">
+                            <controls:DaisyIndicator.Marker>
+                                <controls:DaisyBadge Content="3" Variant="Secondary" Size="Small" />
+                            </controls:DaisyIndicator.Marker>
+                            <controls:DaisyButton Content="Inbox" Variant="Primary" Size="Large" />
                         </controls:DaisyIndicator>
                     </StackPanel>
                 </WrapPanel>
@@ -86,11 +183,34 @@
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="join" Title="Join" />
                 <WrapPanel Orientation="Horizontal">
-                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                    <StackPanel Spacing="10" Margin="0,0,20,20">
+                        <TextBlock Text="Buttons" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                         <controls:DaisyJoin>
-                            <Button Content="Join 1" />
-                            <Button Content="Join 2" />
-                            <Button Content="Join 3" />
+                            <controls:DaisyButton Content="Join" />
+                            <controls:DaisyButton Content="Item" />
+                            <controls:DaisyButton Content="Here" />
+                        </controls:DaisyJoin>
+                    </StackPanel>
+
+                    <StackPanel Spacing="10" Margin="0,0,20,20">
+                        <TextBlock Text="Inputs" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                        <controls:DaisyJoin>
+                            <controls:DaisyInput Width="160" Text="Search" />
+                            <controls:DaisySelect Width="140" SelectedIndex="0">
+                                <x:String>All</x:String>
+                                <x:String>Images</x:String>
+                                <x:String>Videos</x:String>
+                            </controls:DaisySelect>
+                            <controls:DaisyButton Variant="Primary" Content="Go" />
+                        </controls:DaisyJoin>
+                    </StackPanel>
+
+                    <StackPanel Spacing="10" Margin="0,0,20,20">
+                        <TextBlock Text="Vertical" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                        <controls:DaisyJoin Orientation="Vertical">
+                            <controls:DaisyButton Content="Top" />
+                            <controls:DaisyButton Content="Middle" />
+                            <controls:DaisyButton Content="Bottom" />
                         </controls:DaisyJoin>
                     </StackPanel>
                 </WrapPanel>

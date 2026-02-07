@@ -18,21 +18,31 @@
         <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
         <Setter Property="Padding" Value="40" />
         <Setter Property="MinHeight" Value="300" />
+        <Setter Property="OverlayOpacity" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
 
         <Setter Property="Template">
             <ControlTemplate>
-                <Grid>
+                <Grid x:Name="PART_Root" MinHeight="{TemplateBinding MinHeight}">
                     <!-- Background (Image or Color) -->
-                    <Border Background="{TemplateBinding Background}" />
+                    <Border x:Name="PART_BackgroundBorder"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}" />
 
                     <!-- Overlay (Optional, could be part of background or explicit) -->
+                    <Border x:Name="PART_OverlayBorder"
+                            Background="Black"
+                            Opacity="{TemplateBinding OverlayOpacity}"
+                            CornerRadius="{TemplateBinding CornerRadius}" />
 
                     <!-- Content -->
-                    <ContentPresenter Content="{TemplateBinding Content}"
+                    <ContentPresenter x:Name="PART_ContentPresenter"
+                                      Content="{TemplateBinding Content}"
                                       ContentTemplate="{TemplateBinding ContentTemplate}"
                                       Padding="{TemplateBinding Padding}"
-                                      HorizontalAlignment="Center"
-                                      VerticalAlignment="Center" />
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                 </Grid>
             </ControlTemplate>
         </Setter>

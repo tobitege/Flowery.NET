@@ -7,7 +7,7 @@
 
     <!-- NuGet Package Properties -->
     <PackageId>Flowery.NET</PackageId>
-    <Version>1.8.0</Version>
+    <Version>1.9.0</Version>
     <Authors>tobitege</Authors>
     <Description>DaisyUI theme components for Avalonia UI</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

@@ -1,10 +1,14 @@
 using System;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.LogicalTree;
 using Avalonia.VisualTree;
+using Flowery.Enums;
 using Flowery.Services;
 
 namespace Flowery.Controls
@@ -15,6 +19,12 @@ namespace Flowery.Controls
         Square,
         Rounded,
         Pill
+    }
+
+    public enum DaisyButtonGroupSelectionMode
+    {
+        Single,
+        Multiple
     }
 
     public class ButtonGroupItemSelectedEventArgs : RoutedEventArgs
@@ -38,6 +48,9 @@ namespace Flowery.Controls
         protected override Type StyleKeyOverride => typeof(DaisyButtonGroup);
 
         private const double BaseTextFontSize = 14.0;
+        private readonly DaisyControlLifecycle _lifecycle;
+        private readonly ObservableCollection<int> _selectedIndices = new();
+        private INotifyCollectionChanged? _itemsObservable;
 
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
@@ -152,6 +165,49 @@ namespace Flowery.Controls
             set => SetValue(ShowShadowProperty, value);
         }
 
+        /// <summary>
+        /// Defines the <see cref="SelectedIndex"/> property.
+        /// </summary>
+        public static readonly StyledProperty<int> SelectedIndexProperty =
+            AvaloniaProperty.Register<DaisyButtonGroup, int>(nameof(SelectedIndex), -1);
+
+        /// <summary>
+        /// Gets or sets the selected index when SelectionMode is Single.
+        /// </summary>
+        public int SelectedIndex
+        {
+            get => GetValue(SelectedIndexProperty);
+            set => SetValue(SelectedIndexProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="SelectionMode"/> property.
+        /// </summary>
+        public static readonly StyledProperty<DaisyButtonGroupSelectionMode> SelectionModeProperty =
+            AvaloniaProperty.Register<DaisyButtonGroup, DaisyButtonGroupSelectionMode>(
+                nameof(SelectionMode),
+                DaisyButtonGroupSelectionMode.Single);
+
+        /// <summary>
+        /// Gets or sets the selection mode (Single or Multiple).
+        /// </summary>
+        public DaisyButtonGroupSelectionMode SelectionMode
+        {
+            get => GetValue(SelectionModeProperty);
+            set => SetValue(SelectionModeProperty, value);
+        }
+
+        /// <summary>
+        /// Gets the collection of selected indices when SelectionMode is Multiple.
+        /// Modifying this collection updates the visual selection state.
+        /// </summary>
+        public ObservableCollection<int> SelectedIndices => _selectedIndices;
+
+        /// <summary>
+        /// Raised when the selected indices collection changes (Multiple mode).
+        /// </summary>
+        public event EventHandler<NotifyCollectionChangedEventArgs>? SelectedIndicesChanged;
+
         public static readonly RoutedEvent<ButtonGroupItemSelectedEventArgs> ItemSelectedEvent =
             RoutedEvent.Register<DaisyButtonGroup, ButtonGroupItemSelectedEventArgs>(
                 nameof(ItemSelected), RoutingStrategies.Bubble);
@@ -167,7 +223,19 @@ namespace Flowery.Controls
 
         public DaisyButtonGroup()
         {
+            _lifecycle = new DaisyControlLifecycle(
+                this,
+                ApplyAll,
+                () => Size,
+                s => Size = s,
+                handleLifecycleEvents: false);
+
             AddHandler(Button.ClickEvent, OnButtonClick);
+            AttachedToVisualTree += OnAttachedToVisualTree;
+            DetachedFromVisualTree += OnDetachedFromVisualTree;
+
+            _selectedIndices.CollectionChanged += OnSelectedIndicesChanged;
+            SubscribeItemsCollection(Items);
         }
 
         private void OnButtonClick(object? sender, RoutedEventArgs e)
@@ -175,20 +243,175 @@ namespace Flowery.Controls
             var button = e.Source as Button ?? (e.Source as Control)?.FindAncestorOfType<Button>();
             if (button != null && this.IsLogicalAncestorOf(button))
             {
-                if (AutoSelect)
-                    UpdateSelection(button);
+                var index = GetItemIndexForButton(button);
+
+                if (AutoSelect && index >= 0)
+                {
+                    if (SelectionMode == DaisyButtonGroupSelectionMode.Multiple)
+                    {
+                        if (_selectedIndices.Contains(index))
+                            _selectedIndices.Remove(index);
+                        else
+                            _selectedIndices.Add(index);
+                    }
+                    else
+                    {
+                        SelectedIndex = index;
+                    }
+                }
 
                 RaiseEvent(new ButtonGroupItemSelectedEventArgs(ItemSelectedEvent, button));
             }
         }
 
-        private void UpdateSelection(Button selectedButton)
+        private void SubscribeItemsCollection(object? items)
         {
-            foreach (var child in this.GetLogicalChildren())
+            if (_itemsObservable != null)
             {
-                if (child is Button btn)
-                    btn.Classes.Set("button-group-active", btn == selectedButton);
+                _itemsObservable.CollectionChanged -= OnItemsCollectionChanged;
+                _itemsObservable = null;
             }
+
+            if (items is INotifyCollectionChanged notify)
+            {
+                _itemsObservable = notify;
+                _itemsObservable.CollectionChanged += OnItemsCollectionChanged;
+            }
+        }
+
+        private void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            ApplyAll();
+        }
+
+        private void OnSelectedIndicesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (SelectionMode == DaisyButtonGroupSelectionMode.Multiple)
+            {
+                ApplySelectionClasses();
+                SelectedIndicesChanged?.Invoke(this, e);
+            }
+        }
+
+        private void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+        {
+            SubscribeItemsCollection(Items);
+            _lifecycle.HandleLoaded();
+            ApplyAll();
+        }
+
+        private void OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+        {
+            if (_itemsObservable != null)
+            {
+                _itemsObservable.CollectionChanged -= OnItemsCollectionChanged;
+                _itemsObservable = null;
+            }
+            _lifecycle.HandleUnloaded();
+        }
+
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            base.OnPropertyChanged(change);
+
+            if (change.Property == SelectedIndexProperty ||
+                change.Property == SelectionModeProperty ||
+                change.Property == AutoSelectProperty ||
+                change.Property == ItemsSourceProperty ||
+                change.Property == VariantProperty ||
+                change.Property == SizeProperty ||
+                change.Property == ButtonStyleProperty ||
+                change.Property == ShapeProperty ||
+                change.Property == OrientationProperty)
+            {
+                if (change.Property == ItemsSourceProperty)
+                {
+                    SubscribeItemsCollection(change.NewValue);
+                }
+
+                if (change.Property == SelectionModeProperty &&
+                    change.NewValue is DaisyButtonGroupSelectionMode mode &&
+                    mode == DaisyButtonGroupSelectionMode.Single)
+                {
+                    _selectedIndices.Clear();
+                    if (SelectedIndex >= ItemCount)
+                    {
+                        SelectedIndex = -1;
+                    }
+                }
+
+                ApplyAll();
+            }
+        }
+
+        private void ApplyAll()
+        {
+            ApplySelectionClasses();
+        }
+
+        private int GetItemIndexForButton(Button button)
+        {
+            // First try ItemContainerGenerator for bound items
+            Control? container = button;
+            while (container != null)
+            {
+                var index = IndexFromContainer(container);
+                if (index >= 0)
+                    return index;
+
+                container = container.GetVisualParent() as Control;
+            }
+
+            // Fallback: find index among direct logical children (for XAML-placed buttons)
+            var buttons = this.GetLogicalChildren().OfType<Button>().ToList();
+            return buttons.IndexOf(button);
+        }
+
+        private void ApplySelectionClasses()
+        {
+            // Try generated containers first
+            var itemsCount = ItemCount;
+            var foundAny = false;
+
+            for (var i = 0; i < itemsCount; i++)
+            {
+                var container = ContainerFromIndex(i);
+                var button = container as Button ?? container?.GetVisualDescendants().FirstOrDefault(ctrl => ctrl is Button) as Button;
+
+                if (button == null)
+                    continue;
+
+                foundAny = true;
+                ApplyActiveClass(button, i);
+            }
+
+            // Fallback: direct logical children (for XAML-placed buttons)
+            if (!foundAny)
+            {
+                var buttons = this.GetLogicalChildren().OfType<Button>().ToList();
+                for (var i = 0; i < buttons.Count; i++)
+                {
+                    ApplyActiveClass(buttons[i], i);
+                }
+            }
+        }
+
+        private void ApplyActiveClass(Button button, int index)
+        {
+            var isActive = false;
+            if (AutoSelect)
+            {
+                if (SelectionMode == DaisyButtonGroupSelectionMode.Multiple)
+                {
+                    isActive = _selectedIndices.Contains(index);
+                }
+                else
+                {
+                    isActive = SelectedIndex == index;
+                }
+            }
+
+            button.Classes.Set("button-group-active", isActive);
         }
     }
 }

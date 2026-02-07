@@ -65,6 +65,18 @@
                     <controls:DaisyStatusIndicator Variant="Pulse" Color="Warning" />
                     <controls:DaisyStatusIndicator Variant="Pulse" Color="Error" />
                 </StackPanel>
+                <TextBlock Text="Status Glyphs" FontWeight="SemiBold" Foreground="White"/>
+                <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
+                    <controls:DaisyStatusIndicator Variant="Battery" BatteryChargePercent="100" Color="Success" />
+                    <controls:DaisyStatusIndicator Variant="Battery" BatteryChargePercent="50" Color="Warning" />
+                    <controls:DaisyStatusIndicator Variant="Battery" BatteryChargePercent="15" Color="Error" />
+                    <controls:DaisyStatusIndicator Variant="TrafficLightVertical" TrafficLightActive="Green" />
+                    <controls:DaisyStatusIndicator Variant="TrafficLightHorizontal" TrafficLightActive="Red" />
+                    <controls:DaisyStatusIndicator Variant="WifiSignal" SignalStrength="3" Color="Primary" />
+                    <controls:DaisyStatusIndicator Variant="WifiSignal" SignalStrength="1" Color="Warning" />
+                    <controls:DaisyStatusIndicator Variant="CellularSignal" SignalStrength="5" Color="Success" />
+                    <controls:DaisyStatusIndicator Variant="CellularSignal" SignalStrength="2" Color="Error" />
+                </StackPanel>
             </StackPanel>
         </Border>
     </Design.PreviewWith>
@@ -82,5 +94,6 @@
     <StyleInclude Source="/Themes/DaisyStatusIndicator/DaisyStatusIndicator.Classic.axaml" />
     <StyleInclude Source="/Themes/DaisyStatusIndicator/DaisyStatusIndicator.Motion.axaml" />
     <StyleInclude Source="/Themes/DaisyStatusIndicator/DaisyStatusIndicator.Effects.axaml" />
+    <StyleInclude Source="/Themes/DaisyStatusIndicator/DaisyStatusIndicator.Glyphs.axaml" />
 
 </Styles>

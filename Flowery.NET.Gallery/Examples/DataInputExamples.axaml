@@ -388,6 +388,60 @@
 
                 <controls:DaisyDivider />
 
+                <!-- PasswordBox -->
+                <StackPanel Spacing="12">
+                    <local:SectionHeader SectionId="passwordbox" Title="PasswordBox" />
+                    <WrapPanel Orientation="Horizontal">
+                        <!-- Variants -->
+                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="250">
+                            <TextBlock Text="Variants" FontSize="12" />
+                            <controls:DaisyPasswordBox Watermark="Bordered (Default)" MaxLength="30" Margin="0,4" />
+                            <controls:DaisyPasswordBox Variant="Ghost" Watermark="Ghost" MaxLength="30" Margin="0,4" />
+                            <controls:DaisyPasswordBox Variant="Filled" Watermark="Filled" MaxLength="30" Margin="0,4" />
+                            <controls:DaisyPasswordBox Variant="Primary" Watermark="Primary" MaxLength="30" Margin="0,4" />
+                            <controls:DaisyPasswordBox Variant="Error" Watermark="Error" MaxLength="30" Margin="0,4" />
+                        </StackPanel>
+
+                        <!-- Floating Labels & Icons -->
+                        <StackPanel Spacing="8" Margin="0,0,40,10" Width="250">
+                            <TextBlock Text="Floating Label &amp; Icons" FontSize="12" />
+                            <controls:DaisyPasswordBox Label="Password" LabelPosition="Floating"
+                                Watermark="Enter password..." MaxLength="30" />
+                            <controls:DaisyPasswordBox Label="Secret Key" LabelPosition="Floating"
+                                StartIcon="{StaticResource DaisyIconSettings}"
+                                Watermark="Enter secret key..." MaxLength="30" />
+                            <controls:DaisyPasswordBox x:Name="PinCodeInput" Label="PIN Code" LabelPosition="Floating"
+                                PasswordChanged="OnPinCodeChanged"
+                                Watermark="Enter PIN..." MaxLength="6" />
+                        </StackPanel>
+
+                        <!-- Sizes -->
+                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="250"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
+                            <TextBlock Text="Sizes" FontSize="12" />
+                            <controls:DaisyPasswordBox Size="ExtraSmall" Watermark="Extra Small" MaxLength="30" Margin="0,4" />
+                            <controls:DaisyPasswordBox Size="Small" Watermark="Small" MaxLength="30" Margin="0,4" />
+                            <controls:DaisyPasswordBox Size="Medium" Watermark="Medium (default)" MaxLength="30" Margin="0,4" />
+                            <controls:DaisyPasswordBox Size="Large" Watermark="Large" MaxLength="30" Margin="0,4" />
+                        </StackPanel>
+
+                        <!-- Customization -->
+                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="250">
+                            <TextBlock Text="Customization" FontSize="12" />
+                            <controls:DaisyPasswordBox Watermark="Custom mask (*)"
+                                PasswordChar="*" MaxLength="30" Margin="0,4" />
+                            <controls:DaisyPasswordBox Watermark="No reveal button"
+                                IsPasswordRevealButtonEnabled="False" MaxLength="30" Margin="0,4" />
+                            <controls:DaisyPasswordBox Label="Password" IsRequired="True"
+                                Watermark="Required field" MaxLength="30" Margin="0,4" />
+                            <controls:DaisyPasswordBox Label="Optional Code" IsOptional="True"
+                                Watermark="Optional field" MaxLength="30" Margin="0,4" />
+                        </StackPanel>
+                    </WrapPanel>
+                </StackPanel>
+
+                <controls:DaisyDivider />
+
                 <!-- Radio -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="radio" Title="Radio" />
@@ -471,6 +525,67 @@
                                 <ComboBoxItem>Option 1</ComboBoxItem>
                                 <ComboBoxItem>Option 2</ComboBoxItem>
                             </controls:DaisySelect>
+                        </StackPanel>
+                    </WrapPanel>
+                </StackPanel>
+
+                <controls:DaisyDivider />
+
+                <!-- Slide to Confirm -->
+                <StackPanel Spacing="12">
+                    <local:SectionHeader SectionId="slide-to-confirm" Title="Slide to Confirm" />
+                    <TextBlock Text="Drag the handle to complete an action. Provides visual feedback with color transitions."
+                               Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                    <WrapPanel Orientation="Horizontal">
+                        <!-- Variants -->
+                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="320">
+                            <TextBlock Text="Variants" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                            <controls:DaisySlideToConfirm Variant="Primary"
+                                Text="SLIDE TO POWER OFF" ConfirmingText="POWERING OFF..."
+                                IconData="{StaticResource DaisyIconPowerOff}" AutoReset="True" />
+                            <controls:DaisySlideToConfirm Variant="Success"
+                                Text="SLIDE TO CONFIRM" ConfirmingText="CONFIRMED!"
+                                IconData="{StaticResource DaisyIconCheck}" AutoReset="True" />
+                            <controls:DaisySlideToConfirm Variant="Error"
+                                Text="SLIDE TO DELETE" ConfirmingText="DELETING..."
+                                IconData="{StaticResource DaisyIconDelete}" AutoReset="True" />
+                            <controls:DaisySlideToConfirm Variant="Info"
+                                Text="SLIDE TO UNLOCK" ConfirmingText="UNLOCKED!"
+                                IconData="{StaticResource DaisyIconSettings}" AutoReset="True" />
+                        </StackPanel>
+
+                        <!-- Sizes -->
+                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="320"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
+                            <TextBlock Text="Sizes" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                            <controls:DaisySlideToConfirm Size="ExtraSmall" Variant="Primary"
+                                Text="EXTRA SMALL" AutoReset="True" />
+                            <controls:DaisySlideToConfirm Size="Small" Variant="Primary"
+                                Text="SMALL" AutoReset="True" />
+                            <controls:DaisySlideToConfirm Size="Medium" Variant="Primary"
+                                Text="MEDIUM (DEFAULT)" AutoReset="True" />
+                            <controls:DaisySlideToConfirm Size="Large" Variant="Primary"
+                                Text="LARGE" AutoReset="True" />
+                        </StackPanel>
+
+                        <!-- Depth Styles -->
+                        <StackPanel Spacing="10" Margin="0,0,40,20" Width="320">
+                            <TextBlock Text="Depth Styles" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Flat" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisySlideToConfirm DepthStyle="Flat" Variant="Secondary"
+                                    Text="FLAT STYLE" AutoReset="True" />
+                            </StackPanel>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="3D Effect" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisySlideToConfirm DepthStyle="ThreeDimensional" Variant="Secondary"
+                                    Text="3D EFFECT" AutoReset="True" />
+                            </StackPanel>
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Raised" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisySlideToConfirm DepthStyle="Raised" Variant="Secondary"
+                                    Text="RAISED STYLE" AutoReset="True" />
+                            </StackPanel>
                         </StackPanel>
                     </WrapPanel>
                 </StackPanel>

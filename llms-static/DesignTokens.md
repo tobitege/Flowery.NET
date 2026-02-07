@@ -181,6 +181,71 @@ Both horizontal and vertical padding (tabs don't use fixed height).
 | `DaisyTabSmallPadding` | 12,4 |
 | `DaisyTabExtraSmallPadding` | 10,2 |
 
+### Tab Container/Borders
+
+| Token | Default | Description |
+| ----- | ------- | ----------- |
+| `DaisyTabHeaderContainerPadding` | 4 | Boxed variant header container padding (default). |
+| `DaisyTabHeaderContainerPaddingSmall` | 2 | Boxed header padding for Small size. |
+| `DaisyTabHeaderContainerPaddingExtraSmall` | 1 | Boxed header padding for ExtraSmall size. |
+| `DaisyTabHeaderContainerMargin` | 0,0,0,8 | Boxed header bottom margin. |
+| `DaisyTabUnderlineThickness` | 0,0,0,2 | Bordered variant underline thickness. |
+| `DaisyTabLiftedBorderThickness` | 1,1,1,0 | Lifted variant border thickness (no bottom). |
+| `DaisyTabLiftedOverlapMargin` | 0,0,-1,0 | Lifted variant overlap margin. |
+| `DaisyTabLiftedCornerRadius` | 8,8,0,0 | Lifted variant top corner radius. |
+
+### Steps (DaisySteps)
+
+#### Circle Sizes
+
+| Token | Default |
+| ----- | ------- |
+| `DaisyStepsExtraLargeCircleSize` | 32 |
+| `DaisyStepsLargeCircleSize` | 28 |
+| `DaisyStepsMediumCircleSize` | 24 |
+| `DaisyStepsSmallCircleSize` | 20 |
+| `DaisyStepsExtraSmallCircleSize` | 16 |
+
+#### Circle Corner Radius
+
+| Token | Default |
+| ----- | ------- |
+| `DaisyStepsExtraLargeCircleCornerRadius` | 16 |
+| `DaisyStepsLargeCircleCornerRadius` | 14 |
+| `DaisyStepsMediumCircleCornerRadius` | 12 |
+| `DaisyStepsSmallCircleCornerRadius` | 10 |
+| `DaisyStepsExtraSmallCircleCornerRadius` | 8 |
+
+#### Line Thickness
+
+| Token | Default |
+| ----- | ------- |
+| `DaisyStepsExtraLargeLineThickness` | 5 |
+| `DaisyStepsLargeLineThickness` | 4 |
+| `DaisyStepsMediumLineThickness` | 3 |
+| `DaisyStepsSmallLineThickness` | 2 |
+| `DaisyStepsExtraSmallLineThickness` | 1 |
+
+#### Data Font Sizes
+
+| Token | Default |
+| ----- | ------- |
+| `DaisyStepsExtraLargeDataFontSize` | 16 |
+| `DaisyStepsLargeDataFontSize` | 14 |
+| `DaisyStepsMediumDataFontSize` | 12 |
+| `DaisyStepsSmallDataFontSize` | 10 |
+| `DaisyStepsExtraSmallDataFontSize` | 8 |
+
+#### Content Font Sizes
+
+| Token | Default |
+| ----- | ------- |
+| `DaisyStepsExtraLargeContentFontSize` | 18 |
+| `DaisyStepsLargeContentFontSize` | 16 |
+| `DaisyStepsMediumContentFontSize` | 14 |
+| `DaisyStepsSmallContentFontSize` | 12 |
+| `DaisyStepsExtraSmallContentFontSize` | 10 |
+
 ### Badge Tokens
 
 Badges use a separate, more compact scale.
@@ -239,6 +304,7 @@ The following controls use design tokens for consistent sizing:
 - **DaisySelect** - Heights, font sizes, corner radius
 - **DaisyNumericUpDown** - Heights, font sizes, corner radius
 - **DaisyTabs** - Font sizes, padding, corner radius
+- **DaisySteps** - Circle sizes, line thickness, content/data font sizes
 - **DaisyBadge** - Badge-specific heights, font sizes, padding
 - **DaisyFileInput** - Heights, font sizes, corner radius
 - **DaisyCheckBox** - Indicator sizes, checkmark sizes

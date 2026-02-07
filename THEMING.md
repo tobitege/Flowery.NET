@@ -52,6 +52,55 @@ Flowery.NET includes all 35 official DaisyUI themes:
 | ------------ | ----------- |
 | Light, Acid, Autumn, Bumblebee, Caramellatte, Cmyk, Corporate, Cupcake, Cyberpunk, Emerald, Fantasy, Garden, Lemonade, Lofi, Nord, Pastel, Retro, Silk, Valentine, Winter, Wireframe | Dark, Abyss, Aqua, Black, Business, Coffee, Dim, Dracula, Forest, Halloween, Luxury, Night, Sunset, Synthwave |
 
+## Product Palettes
+
+Flowery.NET includes **96 industry-standard product palettes** (e.g., "SaaS", "Fintech", "Health", "Social") designed for specific use cases. These are generic, high-quality palettes that work seamlessly with DaisyUI components.
+
+### Usage
+
+Use the **DaisyProductThemeDropdown** to let users select a product palette:
+
+```xml
+<controls:DaisyProductThemeDropdown />
+```
+
+Or apply programmatically:
+
+```csharp
+using Flowery.Theming;
+using Flowery.Controls;
+
+// 1. Get the SaaS palette
+if (ProductPaletteFactory.FindByName("SaaS") is ProductPalette saas)
+{
+    // 2. Convert to ThemeInfo and Register
+    var info = new DaisyThemeInfo(saas.Name, FloweryColorHelpers.IsDark(saas.Background));
+    DaisyThemeManager.RegisterTheme(info, () => ProductPaletteFactory.CreateResourceDictionary(saas));
+
+    // 3. Apply
+    DaisyThemeManager.ApplyTheme("SaaS");
+}
+```
+
+## Dynamic Theme Registration
+
+The `DaisyThemeManager` now supports registering custom themes at runtime, enabling plugins and dynamic palette generation.
+
+```csharp
+// Register a custom theme
+var myTheme = new DaisyThemeInfo("MyCustomTheme", isDark: true);
+
+DaisyThemeManager.RegisterTheme(myTheme, () => 
+{
+    // Return a ResourceDictionary (loaded from XAML, built in code, etc.)
+    return new ResourceDictionary(); 
+});
+
+// Apply it
+DaisyThemeManager.ApplyTheme("MyCustomTheme");
+```
+
+
 ---
 
 ## Quick Start

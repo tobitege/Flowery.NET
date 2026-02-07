@@ -144,6 +144,12 @@
   "Sidebar_Cards": "Tarjetas",
   "Sidebar_CardStack": "Card Stack",
   "Sidebar_Card": "Card",
+  "Sidebar_PatternedCard": "Tarjeta con Patrón",
+  "Sidebar_GlassCard": "Glass Card",
+  "Sidebar_DaisyGlassSimulated": "DaisyGlass (Simulated Glass)",
+  "Sidebar_DaisyGlassBitmapCapture": "DaisyGlass (Bitmap Capture Mode)",
+  "Sidebar_DaisyGlassSkiaMatrix": "DaisyGlass (SkiaSharp Mode Matrix)",
+  "Sidebar_DaisyGlassFullWidth": "DaisyGlass (Full Width Example)",
   "Sidebar_DataDisplay": "Visualización de datos",
   "Sidebar_Accordion": "Accordion",
   "Sidebar_AnimatedNumber": "Animated Number",
@@ -208,6 +214,7 @@
   "Sidebar_Tabs": "Tabs",
   "Sidebar_Theming": "Temas",
   "Sidebar_CSSThemeConverter": "CSS Theme Converter",
+  "Sidebar_ProductThemes": "Temas de Producto",
   "Sidebar_ThemeController": "Theme Controller",
   "Sidebar_ThemeRadio": "Theme Radio",
   "Sidebar_Effects": "Efectos",
@@ -252,3 +259,4 @@
   "Showcase_ScrollReveal_Title": "Revelación al desplazar",
   "Showcase_ScrollReveal_Desc": "Activa animaciones cuando los elementos entran en el área de visualización del desplazamiento."
 }
+

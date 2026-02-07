@@ -74,7 +74,7 @@
                         <Popup x:Name="PART_Popup"
                                WindowManagerAddShadowHint="False"
                                IsOpen="{TemplateBinding IsDropDownOpen, Mode=TwoWay}"
-                               PlacementTarget="{Binding ElementName=Background}"
+                               PlacementTarget="{Binding #Background}"
                                IsLightDismissEnabled="True"
                                InheritsTransform="True">
                             <Border x:Name="PopupBorder"
@@ -121,11 +121,13 @@
                 <Setter Property="Height" Value="{DynamicResource DaisySizeSmallHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
                 <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
+                <Setter Property="Padding" Value="8,0,26,0" />
             </Style>
             <Style Selector="^[Size=ExtraSmall]">
                 <Setter Property="Height" Value="{DynamicResource DaisySizeExtraSmallHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
                 <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraSmallCornerRadius}" />
+                <Setter Property="Padding" Value="4,2,22,2" />
             </Style>
 
         </ControlTheme>

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using Flowery.Controls;
 using Flowery.Controls.Custom.Weather.Models;
 using Flowery.Controls.Custom.Weather.Services;
 using Flowery.Services;
@@ -22,6 +23,17 @@ namespace Flowery.Controls.Custom.Weather
         protected override Type StyleKeyOverride => typeof(DaisyWeatherCard);
 
         private const double BaseTextFontSize = 14.0;
+        private readonly DaisyControlLifecycle _lifecycle;
+
+        public DaisyWeatherCard()
+        {
+            _lifecycle = new DaisyControlLifecycle(
+                this,
+                ApplyAll,
+                () => DaisySize.Medium,
+                _ => { },
+                subscribeSizeChanges: false);
+        }
 
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
@@ -406,6 +418,11 @@ namespace Flowery.Controls.Custom.Weather
             {
                 IsLoading = false;
             }
+        }
+
+        private void ApplyAll()
+        {
+            InvalidateVisual();
         }
     }
 }

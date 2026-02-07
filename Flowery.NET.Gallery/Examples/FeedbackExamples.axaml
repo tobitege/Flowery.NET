@@ -34,7 +34,7 @@
                 <!-- ═══════════════════════════════════════════════════════════════════════════════ -->
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16" Margin="0,8,0,0">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="🎨 Classic DaisyUI Variants" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
+                        <TextBlock Text="Classic DaisyUI Variants" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
                         <TextBlock Text="Original loading animations from DaisyUI component library" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <WrapPanel Orientation="Horizontal"
                             controls:FlowerySizeManager.IgnoreGlobalSize="True">
@@ -119,7 +119,7 @@
                 <!-- ═══════════════════════════════════════════════════════════════════════════════ -->
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16" Margin="0,16,0,0">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="💻 Terminal-Style Variants" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
+                        <TextBlock Text="Terminal-Style Variants" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
                         <TextBlock Text="CLI-inspired animations reminiscent of npm, yarn, and terminal progress indicators" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <WrapPanel Orientation="Horizontal"
                             controls:FlowerySizeManager.IgnoreGlobalSize="True">
@@ -192,35 +192,32 @@
                 <!-- ═══════════════════════════════════════════════════════════════════════════════ -->
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16" Margin="0,16,0,0">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="⬡ Matrix Colon Patterns" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
+                        <TextBlock Text="Matrix Colon Patterns" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
                         <TextBlock Text="Colon-dot patterns ( ::: ::: ) with directional wave animations" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
-                        <WrapPanel Orientation="Horizontal">
+                        <WrapPanel Orientation="Horizontal"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <StackPanel Spacing="10" Margin="0,0,40,12">
                                 <TextBlock Text="Matrix (left→right)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                                 <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-                                    <controls:DaisyLoading Variant="Matrix" Size="ExtraSmall" />
-                                    <controls:DaisyLoading Variant="Matrix" Size="Small" />
                                     <controls:DaisyLoading Variant="Matrix" Size="Medium" />
-                                    <controls:DaisyLoading Variant="Matrix" Size="Large" />
-                                    <controls:DaisyLoading Variant="Matrix" Size="ExtraLarge" />
+                                    <controls:DaisyLoading Variant="Matrix" Size="Large" Color="Primary" />
+                                    <controls:DaisyLoading Variant="Matrix" Size="ExtraLarge" Color="Accent" />
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Spacing="10" Margin="0,0,40,12">
                                 <TextBlock Text="MatrixInward (center→edges)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                                 <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
                                     <controls:DaisyLoading Variant="MatrixInward" Size="Medium" />
-                                    <controls:DaisyLoading Variant="MatrixInward" Size="Large" Color="Primary" />
                                     <controls:DaisyLoading Variant="MatrixInward" Size="Large" Color="Secondary" />
-                                    <controls:DaisyLoading Variant="MatrixInward" Size="Large" Color="Accent" />
+                                    <controls:DaisyLoading Variant="MatrixInward" Size="ExtraLarge" Color="Info" />
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Spacing="10" Margin="0,0,40,12">
                                 <TextBlock Text="MatrixOutward (edges→center)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                                 <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
                                     <controls:DaisyLoading Variant="MatrixOutward" Size="Medium" />
-                                    <controls:DaisyLoading Variant="MatrixOutward" Size="Large" Color="Info" />
                                     <controls:DaisyLoading Variant="MatrixOutward" Size="Large" Color="Success" />
-                                    <controls:DaisyLoading Variant="MatrixOutward" Size="Large" Color="Warning" />
+                                    <controls:DaisyLoading Variant="MatrixOutward" Size="ExtraLarge" Color="Warning" />
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Spacing="10" Margin="0,0,40,12">
@@ -228,31 +225,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
                                     <controls:DaisyLoading Variant="MatrixVertical" Size="Medium" />
                                     <controls:DaisyLoading Variant="MatrixVertical" Size="Large" Color="Primary" />
-                                    <controls:DaisyLoading Variant="MatrixVertical" Size="Large" Color="Error" />
-                                    <controls:DaisyLoading Variant="MatrixVertical" Size="Large" Color="Success" />
-                                </StackPanel>
-                            </StackPanel>
-                            <StackPanel Spacing="10" Margin="0,0,40,12">
-                                <TextBlock Text="Matrix Colors" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
-                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-                                    <controls:DaisyLoading Variant="Matrix" Color="Primary" Size="Large" />
-                                    <controls:DaisyLoading Variant="Matrix" Color="Secondary" Size="Large" />
-                                    <controls:DaisyLoading Variant="Matrix" Color="Accent" Size="Large" />
-                                    <controls:DaisyLoading Variant="Matrix" Color="Info" Size="Large" />
-                                    <controls:DaisyLoading Variant="Matrix" Color="Success" Size="Large" />
-                                    <controls:DaisyLoading Variant="Matrix" Color="Warning" Size="Large" />
-                                    <controls:DaisyLoading Variant="Matrix" Color="Error" Size="Large" />
-                                </StackPanel>
-                            </StackPanel>
-                            <StackPanel Spacing="10" Margin="0,0,40,12">
-                                <TextBlock Text="Matrix Inline Usage" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <TextBlock Text="Processing" VerticalAlignment="Center" FontSize="14"/>
-                                    <controls:DaisyLoading Variant="Matrix" Size="Small" Color="Primary" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <controls:DaisyLoading Variant="Matrix" Size="Medium" Color="Info" />
-                                    <TextBlock Text="Loading data..." VerticalAlignment="Center" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                                    <controls:DaisyLoading Variant="MatrixVertical" Size="ExtraLarge" Color="Error" />
                                 </StackPanel>
                             </StackPanel>
                         </WrapPanel>
@@ -264,15 +237,15 @@
                 <!-- ═══════════════════════════════════════════════════════════════════════════════ -->
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16" Margin="0,16,0,0">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="● Dot-Based Effects" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
+                        <TextBlock Text="Dot-Based Effects" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
                         <TextBlock Text="Animated dot patterns including rain, ripples, bursts, and orbital motions" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
-                        <WrapPanel Orientation="Horizontal">
+                        <WrapPanel Orientation="Horizontal"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <StackPanel Spacing="10" Margin="0,0,40,12">
                                 <TextBlock Text="MatrixRain (digital rain)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                                 <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
                                     <controls:DaisyLoading Variant="MatrixRain" Size="Medium" />
-                                    <controls:DaisyLoading Variant="MatrixRain" Size="Large" />
-                                    <controls:DaisyLoading Variant="MatrixRain" Size="ExtraLarge" Color="Success" />
+                                    <controls:DaisyLoading Variant="MatrixRain" Size="Large" Color="Success" />
                                     <controls:DaisyLoading Variant="MatrixRain" Size="ExtraLarge" Color="Primary" />
                                 </StackPanel>
                             </StackPanel>
@@ -325,15 +298,15 @@
                 <!-- ═══════════════════════════════════════════════════════════════════════════════ -->
                 <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16" Margin="0,16,0,0">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="✨ Special Effects" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
+                        <TextBlock Text="Special Effects" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
                         <TextBlock Text="Unique animations including hourglass, oscilloscope, EKG pulse, and glitch effects" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
-                        <WrapPanel Orientation="Horizontal">
+                        <WrapPanel Orientation="Horizontal"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <StackPanel Spacing="10" Margin="0,0,40,12">
                                 <TextBlock Text="Hourglass (classic timer)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                                 <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
                                     <controls:DaisyLoading Variant="Hourglass" Size="Medium" />
-                                    <controls:DaisyLoading Variant="Hourglass" Size="Large" />
-                                    <controls:DaisyLoading Variant="Hourglass" Size="ExtraLarge" Color="Warning" />
+                                    <controls:DaisyLoading Variant="Hourglass" Size="Large" Color="Warning" />
                                     <controls:DaisyLoading Variant="Hourglass" Size="ExtraLarge" Color="Accent" />
                                 </StackPanel>
                             </StackPanel>
@@ -380,6 +353,152 @@
                         </WrapPanel>
                     </StackPanel>
                 </Border>
+
+                <!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+                <!-- BUSINESS VARIANTS -->
+                <!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16" Margin="0,16,0,0">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Business Variants" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
+                        <TextBlock Text="Professional loading animations for business applications - documents, email, cloud, invoices" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                        <WrapPanel Orientation="Horizontal"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="DocumentFlipOn (page open)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="DocumentFlipOn" Size="Medium" />
+                                    <controls:DaisyLoading Variant="DocumentFlipOn" Size="Large" Color="Primary" />
+                                    <controls:DaisyLoading Variant="DocumentFlipOn" Size="ExtraLarge" Color="Info" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="DocumentFlipOff (page close)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="DocumentFlipOff" Size="Medium" />
+                                    <controls:DaisyLoading Variant="DocumentFlipOff" Size="Large" Color="Secondary" />
+                                    <controls:DaisyLoading Variant="DocumentFlipOff" Size="ExtraLarge" Color="Accent" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="MailSend (sending email)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="MailSend" Size="Medium" />
+                                    <controls:DaisyLoading Variant="MailSend" Size="Large" Color="Primary" />
+                                    <controls:DaisyLoading Variant="MailSend" Size="ExtraLarge" Color="Info" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="CloudUpload" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="CloudUpload" Size="Medium" />
+                                    <controls:DaisyLoading Variant="CloudUpload" Size="Large" Color="Success" />
+                                    <controls:DaisyLoading Variant="CloudUpload" Size="ExtraLarge" Color="Primary" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="CloudDownload" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="CloudDownload" Size="Medium" />
+                                    <controls:DaisyLoading Variant="CloudDownload" Size="Large" Color="Info" />
+                                    <controls:DaisyLoading Variant="CloudDownload" Size="ExtraLarge" Color="Accent" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="DocumentStamp (approval OK)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="DocumentStamp" Size="Medium" />
+                                    <controls:DaisyLoading Variant="DocumentStamp" Size="Large" Color="Success" />
+                                    <controls:DaisyLoading Variant="DocumentStamp" Size="ExtraLarge" Color="Primary" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="DocumentReject (rejection X)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="DocumentReject" Size="Medium" />
+                                    <controls:DaisyLoading Variant="DocumentReject" Size="Large" Color="Error" />
+                                    <controls:DaisyLoading Variant="DocumentReject" Size="ExtraLarge" Color="Warning" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="ChartPulse (analytics)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="ChartPulse" Size="Medium" />
+                                    <controls:DaisyLoading Variant="ChartPulse" Size="Large" Color="Primary" />
+                                    <controls:DaisyLoading Variant="ChartPulse" Size="ExtraLarge" Color="Accent" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="CalendarTick (scheduling)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="CalendarTick" Size="Medium" />
+                                    <controls:DaisyLoading Variant="CalendarTick" Size="Large" Color="Success" />
+                                    <controls:DaisyLoading Variant="CalendarTick" Size="ExtraLarge" Color="Info" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="ApprovalFlow (workflow)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="ApprovalFlow" Size="Medium" />
+                                    <controls:DaisyLoading Variant="ApprovalFlow" Size="Large" Color="Success" />
+                                    <controls:DaisyLoading Variant="ApprovalFlow" Size="ExtraLarge" Color="Primary" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="BriefcaseSpin (business)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="BriefcaseSpin" Size="Medium" />
+                                    <controls:DaisyLoading Variant="BriefcaseSpin" Size="Large" Color="Secondary" />
+                                    <controls:DaisyLoading Variant="BriefcaseSpin" Size="ExtraLarge" Color="Accent" />
+                                </StackPanel>
+                            </StackPanel>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+                <!-- WIN95 RETRO VARIANTS -->
+                <!-- ═══════════════════════════════════════════════════════════════════════════════ -->
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16" Margin="0,16,0,0">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Win95 Retro Variants" FontWeight="Bold" FontSize="16" Opacity="0.95"/>
+                        <TextBlock Text="Nostalgic Windows 95 style file operation animations - file copy, search, delete, recycle" Opacity="0.6" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                        <WrapPanel Orientation="Horizontal"
+                            controls:FlowerySizeManager.IgnoreGlobalSize="True">
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="Win95FileCopy (flying papers)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="Win95FileCopy" Size="Medium" />
+                                    <controls:DaisyLoading Variant="Win95FileCopy" Size="Large" />
+                                    <controls:DaisyLoading Variant="Win95FileCopy" Size="ExtraLarge" Color="Primary" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="Win95Search (magnifying glass)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="Win95Search" Size="Medium" />
+                                    <controls:DaisyLoading Variant="Win95Search" Size="Large" />
+                                    <controls:DaisyLoading Variant="Win95Search" Size="ExtraLarge" Color="Info" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="Win95Delete (to recycle bin)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="Win95Delete" Size="Medium" />
+                                    <controls:DaisyLoading Variant="Win95Delete" Size="Large" />
+                                    <controls:DaisyLoading Variant="Win95Delete" Size="ExtraLarge" Color="Error" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="Win95EmptyRecycle (emptying bin)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="Win95EmptyRecycle" Size="Medium" />
+                                    <controls:DaisyLoading Variant="Win95EmptyRecycle" Size="Large" />
+                                    <controls:DaisyLoading Variant="Win95EmptyRecycle" Size="ExtraLarge" Color="Warning" />
+                                </StackPanel>
+                            </StackPanel>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
             </StackPanel>
 
             <controls:DaisyDivider />
@@ -389,6 +508,7 @@
                 <local:SectionHeader SectionId="progress" Title="Progress (Linear)" />
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
+                        <TextBlock Text="Variants and sizes" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                         <controls:DaisyProgress Value="40" />
                         <controls:DaisyProgress Value="70" Variant="Primary" />
                         <controls:DaisyProgress Value="100" Variant="Accent" Size="Small" />

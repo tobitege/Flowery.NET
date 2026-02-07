@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Flowery.Controls;
 using Flowery.Controls.Custom.Weather.Models;
 using Flowery.Services;
 
@@ -15,6 +16,7 @@ namespace Flowery.Controls.Custom.Weather
         protected override Type StyleKeyOverride => typeof(DaisyWeatherIcon);
 
         private const double BaseTextFontSize = 14.0;
+        private readonly DaisyControlLifecycle _lifecycle;
 
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
@@ -56,6 +58,16 @@ namespace Flowery.Controls.Custom.Weather
         {
             get => GetValue(IconSizeProperty);
             set => SetValue(IconSizeProperty, value);
+        }
+
+        public DaisyWeatherIcon()
+        {
+            _lifecycle = new DaisyControlLifecycle(
+                this,
+                ApplyAll,
+                () => DaisySize.Medium,
+                _ => { },
+                subscribeSizeChanges: false);
         }
 
         static DaisyWeatherIcon()
@@ -125,6 +137,12 @@ namespace Flowery.Controls.Custom.Weather
                     PseudoClasses.Add(":foggy");
                     break;
             }
+        }
+
+        private void ApplyAll()
+        {
+            UpdatePseudoClasses();
+            InvalidateVisual();
         }
     }
 }

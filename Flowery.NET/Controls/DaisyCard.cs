@@ -2,17 +2,11 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Flowery.Enums;
 using Flowery.Services;
 
 namespace Flowery.Controls
 {
-    public enum DaisyCardVariant
-    {
-        Normal,
-        Compact,
-        Side
-    }
-
     /// <summary>
     /// A Card control styled after DaisyUI's Card component.
     /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
@@ -23,21 +17,99 @@ namespace Flowery.Controls
 
         private const double BaseTitleFontSize = 20.0;
         private const double BaseBodyFontSize = 14.0;
+        private readonly DaisyControlLifecycle _lifecycle;
+
+        public DaisyCard()
+        {
+            _lifecycle = new DaisyControlLifecycle(
+                this,
+                ApplyAll,
+                () => Size,
+                s => Size = s);
+        }
+
+        private void ApplyAll()
+        {
+            // Most visual changes are handled via AXAML style triggers.
+            // Complex code-behind logic can be added here if needed.
+        }
 
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
         {
-            TitleFontSize = FloweryScaleManager.ApplyScale(BaseTitleFontSize, 14.0, scaleFactor);
-            BodyFontSize = FloweryScaleManager.ApplyScale(BaseBodyFontSize, 11.0, scaleFactor);
+            // Factor in the Size property for base font sizes
+            double sizeMultiplier = Size switch
+            {
+                DaisySize.ExtraSmall => 0.75,
+                DaisySize.Small => 0.85,
+                DaisySize.Medium => 1.0,
+                DaisySize.Large => 1.25,
+                DaisySize.ExtraLarge => 1.5,
+                _ => 1.0
+            };
+
+            TitleFontSize = FloweryScaleManager.ApplyScale(BaseTitleFontSize * sizeMultiplier, 14.0 * sizeMultiplier, scaleFactor);
+            BodyFontSize = FloweryScaleManager.ApplyScale(BaseBodyFontSize * sizeMultiplier, 11.0 * sizeMultiplier, scaleFactor);
         }
 
+        /// <summary>
+        /// Defines the <see cref="Variant"/> property.
+        /// </summary>
         public static readonly StyledProperty<DaisyCardVariant> VariantProperty =
             AvaloniaProperty.Register<DaisyCard, DaisyCardVariant>(nameof(Variant), DaisyCardVariant.Normal);
 
+        /// <summary>
+        /// Gets or sets the card layout variant (Normal, Compact, Side).
+        /// </summary>
         public DaisyCardVariant Variant
         {
             get => GetValue(VariantProperty);
             set => SetValue(VariantProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="Size"/> property.
+        /// </summary>
+        public static readonly StyledProperty<DaisySize> SizeProperty =
+            AvaloniaProperty.Register<DaisyCard, DaisySize>(nameof(Size), DaisySize.Medium);
+
+        /// <summary>
+        /// Gets or sets the card size tier.
+        /// </summary>
+        public DaisySize Size
+        {
+            get => GetValue(SizeProperty);
+            set => SetValue(SizeProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="ColorVariant"/> property.
+        /// </summary>
+        public static readonly StyledProperty<DaisyColor> ColorVariantProperty =
+            AvaloniaProperty.Register<DaisyCard, DaisyColor>(nameof(ColorVariant), DaisyColor.Default);
+
+        /// <summary>
+        /// Gets or sets the semantic color variant (Primary, Secondary, etc.).
+        /// </summary>
+        public DaisyColor ColorVariant
+        {
+            get => GetValue(ColorVariantProperty);
+            set => SetValue(ColorVariantProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="CardStyle"/> property.
+        /// </summary>
+        public static readonly StyledProperty<DaisyCardStyle> CardStyleProperty =
+            AvaloniaProperty.Register<DaisyCard, DaisyCardStyle>(nameof(CardStyle), DaisyCardStyle.Default);
+
+        /// <summary>
+        /// Gets or sets the visual style variant.
+        /// </summary>
+        public DaisyCardStyle CardStyle
+        {
+            get => GetValue(CardStyleProperty);
+            set => SetValue(CardStyleProperty, value);
         }
 
         /// <summary>
@@ -146,6 +218,24 @@ namespace Flowery.Controls
         {
             get => GetValue(GlassBorderOpacityProperty);
             set => SetValue(GlassBorderOpacityProperty, value);
+        }
+
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            base.OnPropertyChanged(change);
+
+            if (change.Property == SizeProperty)
+            {
+                ApplyScaleFactor(FloweryScaleManager.GetScaleFactor(this));
+            }
+
+            if (change.Property == ColorVariantProperty ||
+                change.Property == CardStyleProperty ||
+                change.Property == IsGlassProperty ||
+                change.Property == VariantProperty)
+            {
+                ApplyAll();
+            }
         }
     }
 }

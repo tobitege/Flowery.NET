@@ -261,32 +261,6 @@
 
             <controls:DaisyDivider />
 
-            <!-- Power-Off Slide -->
-            <StackPanel Spacing="12">
-                <local:SectionHeader SectionId="power-off-slide" Title="{galloc:Localize Showcase_PowerOff_Title}" />
-                <TextBlock Text="{galloc:Localize Showcase_PowerOff_Desc}" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
-
-                <Border x:Name="SlideTrack" Background="{DynamicResource DaisyBase300Brush}" CornerRadius="24" Padding="4" HorizontalAlignment="Left" Width="240" Height="48">
-                    <Grid>
-                        <TextBlock x:Name="SlideLabel"
-                            Text="{galloc:Localize Showcase_PowerOff_SlideLabel}"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                            FontWeight="Bold" FontSize="11" LetterSpacing="1" />
-                        <Canvas x:Name="SlideCanvas" Background="Transparent">
-                            <Border x:Name="SlideHandle" Background="White" CornerRadius="20" Width="40" Height="40"
-                                    Canvas.Left="0" Canvas.Top="0" Cursor="Hand">
-                                <Border.Transitions>
-                                    <Transitions>
-                                        <DoubleTransition Property="Canvas.Left" Duration="0:0:0.2" Easing="CubicEaseOut" />
-                                    </Transitions>
-                                </Border.Transitions>
-                                <PathIcon Data="{StaticResource DaisyIconError}" Foreground="Red" Width="18" Height="18" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                            </Border>
-                        </Canvas>
-                    </Grid>
-                </Border>
-            </StackPanel>
-
         </StackPanel>
     </ScrollViewer>
 </UserControl>

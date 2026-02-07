@@ -114,6 +114,16 @@ The dropdown respects global size changes. When a new size is selected, the drop
 
 ### Size Variants
 
+The dropdown control itself uses the standard Flowery.NET size tokens:
+
+| Size | Height | Font Size |
+| ---- | ------ | --------- |
+| ExtraSmall | 24 | 10 |
+| Small | 28 | 12 |
+| Medium (default) | 32 | 14 |
+| Large | 34 | 18 |
+| ExtraLarge | 36 | 20 |
+
 ```xml
 <!-- Use the dropdown's own Size property for its appearance -->
 <controls:DaisySizeDropdown Size="Small" Width="120" />

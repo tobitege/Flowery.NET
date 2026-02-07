@@ -79,9 +79,9 @@
                 <!-- Boxed header container styling -->
                 <Style Selector="^[Variant=Boxed] /template/ Border#PART_HeaderContainer">
                     <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
-                    <Setter Property="CornerRadius" Value="8" />
-                    <Setter Property="Margin" Value="0,0,0,8" />
-                    <Setter Property="Padding" Value="4" />
+                    <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeMediumCornerRadius}" />
+                    <Setter Property="Margin" Value="{DynamicResource DaisyTabHeaderContainerMargin}" />
+                    <Setter Property="Padding" Value="{DynamicResource DaisyTabHeaderContainerPadding}" />
                     <Setter Property="HorizontalAlignment" Value="Left" />
                 </Style>
             </ControlTheme>
@@ -126,33 +126,37 @@
     <!-- ==================== NONE VARIANT (Plain) ==================== -->
     <!-- Just text, selected one is bolder - transparent border to prevent layout shift -->
     <Style Selector="controls|DaisyTabs[Variant=None] TabItem">
-        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyBorderThicknessMedium}" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="CornerRadius" Value="0" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=None] TabItem:pointerover">
-        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyBorderThicknessMedium}" />
         <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=None] TabItem:selected">
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyBorderThicknessMedium}" />
         <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=None] TabItem:selected:pointerover">
-        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyBorderThicknessMedium}" />
         <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
 
     <!-- ==================== BORDERED VARIANT ==================== -->
     <!-- Simple underline on selected, matching DaisyUI tabs-border -->
+    <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem /template/ Border#PART_LayoutRoot">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
+    </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem:pointerover /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem:selected /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
 
     <!-- ==================== BOXED VARIANT ==================== -->
@@ -161,9 +165,9 @@
         <Setter Property="FontWeight" Value="Medium" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Boxed] TabItem /template/ Border#PART_LayoutRoot">
-        <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="BorderThickness" Value="2" />
-        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeMediumCornerRadius}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyBorderThicknessMedium}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Boxed] TabItem:pointerover /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
@@ -183,10 +187,10 @@
         <Setter Property="FontWeight" Value="Medium" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Lifted] TabItem /template/ Border#PART_LayoutRoot">
-        <Setter Property="CornerRadius" Value="8,8,0,0" />
-        <Setter Property="BorderThickness" Value="1,1,1,0" />
-        <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="Margin" Value="0,0,-1,0" />
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisyTabLiftedCornerRadius}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabLiftedBorderThickness}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
+        <Setter Property="Margin" Value="{DynamicResource DaisyTabLiftedOverlapMargin}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Lifted] TabItem:pointerover /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
@@ -222,36 +226,36 @@
     <!-- Boxed header container size adjustments -->
     <Style
         Selector="controls|DaisyTabs[Variant=Boxed][Size=Small] /template/ Border#PART_HeaderContainer">
-        <Setter Property="Padding" Value="2" />
+        <Setter Property="Padding" Value="{DynamicResource DaisyTabHeaderContainerPaddingSmall}" />
         <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
     </Style>
     <Style
         Selector="controls|DaisyTabs[Variant=Boxed][Size=ExtraSmall] /template/ Border#PART_HeaderContainer">
-        <Setter Property="Padding" Value="1" />
+        <Setter Property="Padding" Value="{DynamicResource DaisyTabHeaderContainerPaddingExtraSmall}" />
         <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraSmallCornerRadius}" />
     </Style>
 
     <!-- Boxed TabItem size-specific border adjustments -->
     <Style
         Selector="controls|DaisyTabs[Variant=Boxed][Size=Small] TabItem /template/ Border#PART_LayoutRoot">
-        <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraSmallCornerRadius}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
         <Setter Property="BorderThickness" Value="{DynamicResource DaisyBorderThicknessThin}" />
     </Style>
     <Style
         Selector="controls|DaisyTabs[Variant=Boxed][Size=ExtraSmall] TabItem /template/ Border#PART_LayoutRoot">
-        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraSmallCornerRadius}" />
         <Setter Property="BorderThickness" Value="{DynamicResource DaisyBorderThicknessThin}" />
     </Style>
 
     <!-- NONE VARIANT OVERRIDES - must be last to win specificity -->
     <Style Selector="controls|DaisyTabs[Variant=None] TabItem:selected /template/ Border#PART_LayoutRoot">
-        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyBorderThicknessMedium}" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="CornerRadius" Value="0" />
         <Setter Property="Background" Value="Transparent" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=None] TabItem:selected:pointerover /template/ Border#PART_LayoutRoot">
-        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyBorderThicknessMedium}" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="CornerRadius" Value="0" />
         <Setter Property="Background" Value="Transparent" />
@@ -266,47 +270,47 @@
     <!-- BORDERED VARIANT - palette underline -->
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabPaletteColor)=Purple] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="#7c3aed" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabPaletteColor)=Indigo] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="#6366f1" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabPaletteColor)=Pink] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="#f472b6" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabPaletteColor)=SkyBlue] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="#38bdf8" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabPaletteColor)=Blue] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="#0ea5e9" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabPaletteColor)=Lime] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="#84cc16" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabPaletteColor)=Green] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="#22c55e" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabPaletteColor)=Yellow] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="#eab308" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabPaletteColor)=Orange] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="#f59e0b" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabPaletteColor)=Red] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="#ef4444" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabPaletteColor)=Gray] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="#64748b" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
 
     <!-- BOXED VARIANT - palette border -->
@@ -417,56 +421,56 @@
     <!-- BORDERED VARIANT - Tab Colors (underline uses tab color) -->
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Primary] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Primary]:selected /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Secondary] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisySecondaryBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Secondary]:selected /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisySecondaryBrush}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Accent] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyAccentBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Accent]:selected /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyAccentBrush}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Info] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyInfoBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Info]:selected /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyInfoBrush}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Success] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisySuccessBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Success]:selected /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisySuccessBrush}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Warning] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyWarningBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Warning]:selected /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyWarningBrush}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Error] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyErrorBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Error]:selected /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyErrorBrush}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Neutral] /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyNeutralBrush}" />
-        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyTabUnderlineThickness}" />
     </Style>
     <Style Selector="controls|DaisyTabs[Variant=Bordered] TabItem[(controls|DaisyTabs.TabColor)=Neutral]:selected /template/ Border#PART_LayoutRoot">
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyNeutralBrush}" />
@@ -623,3 +627,4 @@
     </Style>
 
 </Styles>
+

@@ -3,7 +3,7 @@
 
 # Overview
 
-DaisyStatusIndicator shows a status dot with **27 animation variants**. It supports **9 colors** and **5 sizes**, making it suitable for online/offline markers, alerts, or activity indicators.
+DaisyStatusIndicator shows a status dot with **27 animation variants** and also supports **status glyph variants** (battery, traffic lights, WiFi/cellular signal). It supports **9 colors** and **5 sizes**, making it suitable for online/offline markers, alerts, activity indicators, and compact status glyphs.
 
 ![Status Indicator Animations](images/status_animations.gif)
 
@@ -11,9 +11,12 @@ DaisyStatusIndicator shows a status dot with **27 animation variants**. It suppo
 
 | Property | Description |
 | -------- | ----------- |
-| `Variant` | Animation style: Default (static), Ping, Bounce, Pulse, Blink, Ripple, Heartbeat, Spin, Wave, Glow, Morph, Orbit, Radar, Sonar, Beacon, Shake, Wobble, Pop, Flicker, Breathe, Ring, Flash, Swing, Jiggle, Throb, Twinkle, Splash. |
+| `Variant` | Selects a visual variant. **Animation variants**: Default (static), Ping, Bounce, Pulse, Blink, Ripple, Heartbeat, Spin, Wave, Glow, Morph, Orbit, Radar, Sonar, Beacon, Shake, Wobble, Pop, Flicker, Breathe, Ring, Flash, Swing, Jiggle, Throb, Twinkle, Splash. **Status glyph variants**: Battery, TrafficLightVertical, TrafficLightHorizontal (left-to-right), TrafficLightHorizontalReversed (right-to-left), WifiSignal, CellularSignal. |
 | `Color` | Default, Neutral, Primary, Secondary, Accent, Info, Success, Warning, Error (sets dot fill). Uses shared `DaisyColor` enum. |
 | `Size` | ExtraSmall, Small, Medium (default), Large, ExtraLarge (adjusts diameter). Uses shared `DaisySize` enum. |
+| `BatteryChargePercent` | Battery charge percentage (0-100). Only used when `Variant="Battery"`. |
+| `TrafficLightActive` | Active traffic light state: Green, Yellow, Red. Only used when `Variant` is a traffic light variant. |
+| `SignalStrength` | Signal strength. For `WifiSignal`: 0-3. For `CellularSignal`: 0-5. |
 | `AccessibleText` | Custom text for screen readers. When null, auto-derived from Color (see below). |
 
 ## Color Selection Guide
@@ -88,9 +91,31 @@ DaisyStatusIndicator shows a status dot with **27 animation variants**. It suppo
 | `Twinkle` | Star-like twinkling |
 | `Splash` | Splash ripple effect |
 
+## Status Glyph Variants
+
+| Variant | Description | Notes |
+| ------- | ----------- | ----- |
+| `Battery` | Segmented battery indicator | Use `BatteryChargePercent` (0-100). |
+| `TrafficLightVertical` | Vertical traffic light | Use `TrafficLightActive` (Green/Yellow/Red). |
+| `TrafficLightHorizontal` | Horizontal traffic light (left-to-right order) | Use `TrafficLightActive` (Green/Yellow/Red). |
+| `TrafficLightHorizontalReversed` | Horizontal traffic light (right-to-left order) | Useful for sports/RTL layouts. Uses `TrafficLightActive` (Green/Yellow/Red). |
+| `WifiSignal` | WiFi signal indicator | Use `SignalStrength` (0-3). |
+| `CellularSignal` | Cellular signal indicator | Use `SignalStrength` (0-5). |
+
 ## Accessibility Support
 
 DaisyStatusIndicator includes built-in accessibility for screen readers. Since status indicators convey meaning purely through color, the control automatically provides semantic text based on the `Color` property.
+
+For **status glyph variants**, the default accessible text is derived from the glyph state (battery percent, traffic light active color, WiFi/Cellular strength). You can always override it via `AccessibleText`.
+
+### Default Accessible Text by Glyph Variant
+
+| Variant | Default Text |
+| ------- | ------------ |
+| `Battery` | "Battery: {BatteryChargePercent}%" |
+| `TrafficLightVertical` / `TrafficLightHorizontal` / `TrafficLightHorizontalReversed` | "Traffic light: {TrafficLightActive}" |
+| `WifiSignal` | "WiFi signal: {SignalStrength}/3" |
+| `CellularSignal` | "Cellular signal: {SignalStrength}/5" |
 
 ### Default Accessible Text by Color
 
@@ -151,6 +176,14 @@ Override the automatic text with the `AccessibleText` property:
 <controls:DaisyStatusIndicator Color="Warning" Variant="Beacon" />
 <controls:DaisyStatusIndicator Color="Error" Variant="Flash" />
 
+<!-- Status glyphs -->
+<controls:DaisyStatusIndicator Variant="Battery" BatteryChargePercent="70" Color="Success" />
+<controls:DaisyStatusIndicator Variant="TrafficLightVertical" TrafficLightActive="Green" />
+<controls:DaisyStatusIndicator Variant="TrafficLightHorizontal" TrafficLightActive="Green" />
+<controls:DaisyStatusIndicator Variant="TrafficLightHorizontalReversed" TrafficLightActive="Green" />
+<controls:DaisyStatusIndicator Variant="WifiSignal" SignalStrength="3" Color="Info" />
+<controls:DaisyStatusIndicator Variant="CellularSignal" SignalStrength="4" Color="Warning" />
+
 <!-- Compact sizing -->
 <controls:DaisyStatusIndicator Size="ExtraSmall" Color="Success" Variant="Ping" />
 <controls:DaisyStatusIndicator Size="Large" Color="Primary" Variant="Ripple" />
@@ -165,3 +198,13 @@ Override the automatic text with the `AccessibleText` property:
 - Use **Flash** or **Beacon** for urgent notifications.
 - Keep indicators small near text/icons (ExtraSmall/Small) and larger for standalone badges.
 - Place inside `DaisyIndicator` when overlaying on other controls (avatars/cards).
+- If your app uses global sizing via `FlowerySizeManager`, use `controls:FlowerySizeManager.IgnoreGlobalSize="True"` on specific indicators (or a parent container) when you need to demonstrate or enforce explicit `Size` values.
+
+### Animation Setup (Avalonia) – What Actually Works
+
+- **Always set a centered transform origin**: Use `RenderTransformOrigin="50%,50%"` for scale/rotate animations (and `50%,100%` when you need a bottom pivot, e.g. radar sweep arms).
+- **Center the template parts**: In the base template, keep all animation layers (`PART_AnimationEllipse*` and `PART_MainEllipse`) centered and sized consistently (bind to `Width`/`Height`). Layout offsets (e.g. `Margin`) will make “centered” animations drift.
+- **Predefine a transform group**: If an element needs both scale + translation + rotation, give it a `RenderTransform` with a `TransformGroup` containing `ScaleTransform`, `TranslateTransform`, and `RotateTransform`. Otherwise, setting `TranslateTransform.*` can effectively override scale/rotate and you’ll get “top-left growth” or wrong motion.
+- **Avoid `CompositeTransform` here**: In this repo, `CompositeTransform.Translate` caused build errors. Prefer `TransformGroup` with the individual transforms instead.
+- **Don’t use layout properties to “fix” animation**: For example, avoid using `Margin` to compensate for a bounce height—use `TranslateTransform` on the animated element so the control doesn’t measure larger than its siblings.
+- **Make motion size-aware**: Any pixel-based orbit radius / sweep length should be defined per `Size` (XS/S/M/L/XL) so indicators look consistent across global sizing and explicit size overrides.

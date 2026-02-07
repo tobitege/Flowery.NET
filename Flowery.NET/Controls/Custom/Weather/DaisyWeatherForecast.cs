@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Flowery.Controls;
 using Flowery.Services;
 
 namespace Flowery.Controls.Custom.Weather
@@ -14,6 +15,17 @@ namespace Flowery.Controls.Custom.Weather
         protected override Type StyleKeyOverride => typeof(DaisyWeatherForecast);
 
         private const double BaseTextFontSize = 12.0;
+        private readonly DaisyControlLifecycle _lifecycle;
+
+        public DaisyWeatherForecast()
+        {
+            _lifecycle = new DaisyControlLifecycle(
+                this,
+                ApplyAll,
+                () => DaisySize.Medium,
+                _ => { },
+                subscribeSizeChanges: false);
+        }
 
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
@@ -43,6 +55,11 @@ namespace Flowery.Controls.Custom.Weather
         {
             get => GetValue(ShowPrecipitationProperty);
             set => SetValue(ShowPrecipitationProperty, value);
+        }
+
+        private void ApplyAll()
+        {
+            InvalidateVisual();
         }
     }
 }

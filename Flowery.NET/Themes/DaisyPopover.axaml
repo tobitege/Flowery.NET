@@ -36,7 +36,7 @@
 
             <Popup Name="PART_Popup"
                    IsOpen="{TemplateBinding IsOpen, Mode=TwoWay}"
-                   PlacementTarget="{Binding ElementName=PART_Target}"
+                   PlacementTarget="{TemplateBinding}"
                    Placement="{TemplateBinding PlacementMode}"
                    HorizontalOffset="{TemplateBinding HorizontalOffset}"
                    VerticalOffset="{TemplateBinding VerticalOffset}"
@@ -60,7 +60,7 @@
   </Styles.Resources>
 
   <Style Selector="controls|DaisyPopover[MatchTargetWidth=True] /template/ Popup#PART_Popup">
-    <Setter Property="MinWidth" Value="{Binding Bounds.Width, ElementName=PART_Target, FallbackValue=0, TargetNullValue=0}" />
+    <Setter Property="MinWidth" Value="{Binding $parent[controls:DaisyPopover].Bounds.Width, FallbackValue=0}" />
   </Style>
 
 </Styles>

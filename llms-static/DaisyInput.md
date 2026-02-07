@@ -17,20 +17,21 @@ DaisyInput is a styled TextBox with **10 variants** and **4 size presets**. It s
 
 ## Size Options
 
-DaisyInput uses **fixed heights** for each size to match DaisyUI's design.
+DaisyInput uses **fixed heights** for consistent sizing across all Flowery.NET controls.
 
 | Size | Height | Font Size | Floating Height | Use Case |
 | ---- | ------ | --------- | --------------- | -------- |
-| ExtraSmall | 24 | 10 | 40 | Dense tables/toolbars. |
-| Small | 32 | 12 | 48 | Compact forms. |
-| Medium (default) | 48 | 14 | 56 | General usage. |
-| Large | 64 | 18 | 64 | Prominent inputs/hero sections. |
+| ExtraSmall | 24 | 10 | 36 | Dense tables/toolbars. |
+| Small | 28 | 12 | 40 | Compact forms. |
+| Medium (default) | 32 | 14 | 44 | General usage. |
+| Large | 34 | 18 | 48 | Prominent inputs. |
+| ExtraLarge | 36 | 20 | 50 | Hero sections/dashboards. |
 
 > [!TIP]
 > The heights for `LabelPosition="Floating"` are slightly larger to provide vertical headroom for the label. See `DaisyInputFloating*Height` tokens in Design Tokens documentation.
 
 > [!NOTE]
-> DaisyInput uses **fixed heights** for each size to match DaisyUI's design. Single-line inputs will not grow vertically. For multi-line text entry, use `DaisyTextArea` instead.
+> DaisyInput uses **fixed heights** for consistent sizing. Single-line inputs will not grow vertically. For multi-line text entry, use `DaisyTextArea` instead.
 
 ## Properties
 
@@ -76,10 +77,11 @@ Setting `LabelPosition="Floating"` enables a high-fidelity interaction inspired 
 
 Floating labels require additional vertical headroom above the input border to prevent clipping. This is handled automatically by the control's template using dedicated design tokens:
 
-- `DaisyInputFloatingMediumHeight` (Default: 56px)
-- `DaisyInputFloatingSmallHeight` (Default: 48px)
-- `DaisyInputFloatingExtraSmallHeight` (Default: 40px)
-- `DaisyInputFloatingLargeHeight` (Default: 64px)
+- `DaisyInputFloatingExtraSmallHeight` (Default: 36px)
+- `DaisyInputFloatingSmallHeight` (Default: 40px)
+- `DaisyInputFloatingMediumHeight` (Default: 44px)
+- `DaisyInputFloatingLargeHeight` (Default: 48px)
+- `DaisyInputFloatingExtraLargeHeight` (Default: 50px)
 
 ## Quick Examples
 
