@@ -45,6 +45,9 @@ namespace Flowery.Controls
         public static readonly StyledProperty<int> SelectedIndexProperty =
             AvaloniaProperty.Register<DaisySteps, int>(nameof(SelectedIndex), -1);
 
+        public static readonly StyledProperty<string?> JsonStepsProperty =
+            AvaloniaProperty.Register<DaisySteps, string?>(nameof(JsonSteps));
+
         public Orientation Orientation
         {
             get => GetValue(OrientationProperty);
@@ -63,6 +66,12 @@ namespace Flowery.Controls
             set => SetValue(SelectedIndexProperty, value);
         }
 
+        public string? JsonSteps
+        {
+            get => GetValue(JsonStepsProperty);
+            set => SetValue(JsonStepsProperty, value);
+        }
+
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
@@ -73,6 +82,11 @@ namespace Flowery.Controls
                 change.Property == SizeProperty)
             {
                 UpdateItemStates();
+            }
+
+            if (change.Property == JsonStepsProperty)
+            {
+                UpdateItemsSourceFromJson(change.GetNewValue<string?>());
             }
         }
 
@@ -96,9 +110,12 @@ namespace Flowery.Controls
                     item.SetCurrentValue(DaisyStepItem.OrientationProperty, Orientation);
                     item.SetCurrentValue(DaisyStepItem.SizeProperty, Size);
 
-                    // Update active state based on SelectedIndex
-                    bool isActive = SelectedIndex >= 0 && i <= SelectedIndex;
-                    item.SetCurrentValue(DaisyStepItem.IsActiveProperty, isActive);
+                    // Update active state based on SelectedIndex if set
+                    if (SelectedIndex >= 0)
+                    {
+                        bool isActive = i <= SelectedIndex;
+                        item.SetCurrentValue(DaisyStepItem.IsActiveProperty, isActive);
+                    }
                 }
             }
         }
@@ -127,9 +144,51 @@ namespace Flowery.Controls
                 stepItem.SetCurrentValue(DaisyStepItem.OrientationProperty, Orientation);
                 stepItem.SetCurrentValue(DaisyStepItem.SizeProperty, Size);
 
-                // Update active state based on SelectedIndex
-                bool isActive = SelectedIndex >= 0 && index <= SelectedIndex;
-                stepItem.SetCurrentValue(DaisyStepItem.IsActiveProperty, isActive);
+                // Update active state based on SelectedIndex if set
+                if (SelectedIndex >= 0)
+                {
+                    bool isActive = index <= SelectedIndex;
+                    stepItem.SetCurrentValue(DaisyStepItem.IsActiveProperty, isActive);
+                }
+
+                if (item is DaisyStepModel model)
+                {
+                    stepItem.Content = model.Content;
+                    if (!string.IsNullOrEmpty(model.Color) && Enum.TryParse<DaisyStepColor>(model.Color, true, out var color))
+                    {
+                        stepItem.Color = color;
+                    }
+
+                    // Only apply model's IsActive if SelectedIndex is not controlling it
+                    if (SelectedIndex < 0)
+                    {
+                        stepItem.SetCurrentValue(DaisyStepItem.IsActiveProperty, model.IsActive);
+                    }
+                }
+            }
+        }
+
+        private void UpdateItemsSourceFromJson(string? json)
+        {
+            var jsonValue = json?.Trim();
+            if (jsonValue is null || jsonValue.Length == 0)
+            {
+                ItemsSource = null;
+                return;
+            }
+
+            try
+            {
+                var options = new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var data = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<DaisyStepModel>>(jsonValue, options);
+                ItemsSource = data;
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                ItemsSource = null;
             }
         }
     }
@@ -248,5 +307,16 @@ namespace Flowery.Controls
             PseudoClasses.Set(":warning", Color == DaisyStepColor.Warning);
             PseudoClasses.Set(":error", Color == DaisyStepColor.Error);
         }
+
+    }
+
+    /// <summary>
+    /// Model for JSON deserialization of steps.
+    /// </summary>
+    public class DaisyStepModel
+    {
+        public string? Content { get; set; }
+        public string? Color { get; set; }
+        public bool IsActive { get; set; }
     }
 }

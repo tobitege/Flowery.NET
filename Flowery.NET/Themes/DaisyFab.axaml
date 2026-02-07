@@ -12,18 +12,19 @@
         </Border>
     </Design.PreviewWith>
 
-    <!-- Base DaisyFab style -->
     <Style Selector="controls|DaisyFab">
         <Setter Property="HorizontalAlignment" Value="Right" />
         <Setter Property="VerticalAlignment" Value="Bottom" />
-        <Setter Property="Margin" Value="16" />
+        <Setter Property="ClipToBounds" Value="False" />
+        <Setter Property="Background" Value="Transparent" />
     </Style>
 
-    <!-- Action buttons: hidden by default, positioned at bottom-right -->
+    <!-- Base alignment for buttons: Bottom-Right by default (Vertical/Flower) -->
     <Style Selector="controls|DaisyFab > controls|DaisyButton">
-        <Setter Property="Shape" Value="Circle" />
         <Setter Property="HorizontalAlignment" Value="Right" />
         <Setter Property="VerticalAlignment" Value="Bottom" />
+        <Setter Property="Margin" Value="16" />
+        <Setter Property="Shape" Value="Circle" />
         <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
         <Setter Property="RenderTransform" Value="scale(0.5)" />
         <Setter Property="Opacity" Value="0" />
@@ -34,6 +35,13 @@
                 <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="CubicEaseOut" />
             </Transitions>
         </Setter>
+    </Style>
+
+    <!-- Specific alignment for Horizontal and Flower: Bottom-Left -->
+    <Style
+        Selector="controls|DaisyFab[Layout=Horizontal] > controls|DaisyButton,
+                     controls|DaisyFab[Layout=Flower] > controls|DaisyButton">
+        <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>
 
     <!-- Trigger button: always visible -->
@@ -61,22 +69,53 @@
         <Setter Property="RenderTransform" Value="translateY(-192px)" />
     </Style>
 
-    <!-- FLOWER LAYOUT: When open, fan out in quarter circle -->
+    <!-- HORIZONTAL LAYOUT: When open, stack buttons rightward from trigger -->
+    <Style Selector="controls|DaisyFab[Layout=Horizontal]">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <Style Selector="controls|DaisyFab[Layout=Horizontal] > controls|DaisyButton">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <Style Selector="controls|DaisyFab[Layout=Horizontal][IsOpen=True] > controls|DaisyButton">
+        <Setter Property="Opacity" Value="1" />
+        <Setter Property="IsHitTestVisible" Value="True" />
+    </Style>
+    <Style
+        Selector="controls|DaisyFab[Layout=Horizontal][IsOpen=True] > controls|DaisyButton:nth-last-child(2)">
+        <Setter Property="RenderTransform" Value="translateX(144px)" />
+    </Style>
+    <Style
+        Selector="controls|DaisyFab[Layout=Horizontal][IsOpen=True] > controls|DaisyButton:nth-last-child(3)">
+        <Setter Property="RenderTransform" Value="translateX(96px)" />
+    </Style>
+    <Style
+        Selector="controls|DaisyFab[Layout=Horizontal][IsOpen=True] > controls|DaisyButton:nth-last-child(4)">
+        <Setter Property="RenderTransform" Value="translateX(48px)" />
+    </Style>
+    <Style
+        Selector="controls|DaisyFab[Layout=Horizontal][IsOpen=True] > controls|DaisyButton:nth-last-child(5)">
+        <Setter Property="RenderTransform" Value="translateX(192px)" />
+    </Style>
+
+    <!-- FLOWER LAYOUT: FAB at left, fan out to right/up -->
+    <Style Selector="controls|DaisyFab[Layout=Flower]">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
     <Style Selector="controls|DaisyFab[Layout=Flower][IsOpen=True] > controls|DaisyButton">
         <Setter Property="Opacity" Value="1" />
         <Setter Property="IsHitTestVisible" Value="True" />
     </Style>
     <Style Selector="controls|DaisyFab[Layout=Flower][IsOpen=True] > controls|DaisyButton:nth-last-child(2)">
-        <Setter Property="RenderTransform" Value="translate(0px, -52px)" />
+        <Setter Property="RenderTransform" Value="translate(48px, 0px)" />
     </Style>
     <Style Selector="controls|DaisyFab[Layout=Flower][IsOpen=True] > controls|DaisyButton:nth-last-child(3)">
-        <Setter Property="RenderTransform" Value="translate(-36px, -36px)" />
+        <Setter Property="RenderTransform" Value="translate(34px, -34px)" />
     </Style>
     <Style Selector="controls|DaisyFab[Layout=Flower][IsOpen=True] > controls|DaisyButton:nth-last-child(4)">
-        <Setter Property="RenderTransform" Value="translate(-52px, 0px)" />
+        <Setter Property="RenderTransform" Value="translate(0px, -48px)" />
     </Style>
     <Style Selector="controls|DaisyFab[Layout=Flower][IsOpen=True] > controls|DaisyButton:nth-last-child(5)">
-        <Setter Property="RenderTransform" Value="translate(-36px, 36px)" />
+        <Setter Property="RenderTransform" Value="translate(34px, 34px)" />
     </Style>
 
 </Styles>

@@ -3,7 +3,7 @@
 
 # Overview
 
-DaisyLoading provides animated loading indicators with **27 different animation styles**, **5 size options**, and **9 color variants**. The control includes standard DaisyUI animations, creative terminal-inspired variants, Matrix/retro variants, and unique special effect variants. All animations scale properly across all sizes using Viewbox-based rendering.
+DaisyLoading provides animated loading indicators with **42 different animation styles**, **5 size options**, and **9 color variants**. The control includes standard DaisyUI animations, creative terminal-inspired variants, Matrix/retro variants, unique special effect variants, professional business-themed animations, and nostalgic Windows 95-style animations. All animations scale properly across all sizes using Viewbox-based rendering.
 
 ![Loading Animations](images/loading_animations.gif)
 
@@ -57,6 +57,35 @@ DaisyLoading provides animated loading indicators with **27 different animation 
 | **RippleMatrix** | 3×3 dot grid (9 dots) with brightness rippling outward from the center dot to adjacent dots then corner dots. |
 | **CursorBlink** | Classic CLI terminal prompt (`>`) with a blinking block cursor. Simple and nostalgic. |
 | **CountdownSpinner** | 12 dots arranged in a clock face pattern, lighting up sequentially like clock hands ticking. |
+
+### Business Variants
+
+Professional animations suitable for enterprise and productivity applications.
+
+| Variant | Description |
+| ------- | ----------- |
+| **DocumentFlipOn** | Three stacked document pages with the front page sliding in from the upper-left. Represents opening/loading a document. |
+| **DocumentFlipOff** | Three stacked document pages with the front page sliding out to the upper-right and fading. Represents closing/saving a document. |
+| **MailSend** | Paper/letter sliding down into an envelope. Perfect for email sending or message submission states. |
+| **CloudUpload** | Cloud icon with an animated arrow rising upward. Ideal for upload operations. |
+| **CloudDownload** | Cloud icon with an animated arrow falling downward. Ideal for download operations. |
+| **DocumentStamp** | Document with an "OK" approval stamp that scales down with a bounce effect. Great for approval/confirmation states. |
+| **DocumentReject** | Document with an "✕" rejection stamp that scales down with a bounce effect. Perfect for rejection/error states. |
+| **ChartPulse** | Five bar chart columns pulsing at different heights with a sweep line. Analytics/reporting themed. |
+| **CalendarTick** | Calendar with header and rings, featuring a checkmark that pops in. Scheduling/completion themed. |
+| **ApprovalFlow** | Three workflow nodes (circles) with inner dots that pulse in sequence. Workflow/process states. |
+| **BriefcaseSpin** | Briefcase with handle that wobbles side-to-side with a subtle bounce. Business/work themed. |
+
+### Windows 95 Retro Variants
+
+Nostalgic animations inspired by classic Windows 95 file operations.
+
+| Variant | Description |
+| ------- | ----------- |
+| **Win95FileCopy** | Two folder icons with paper documents flying in an arc from left folder to right folder. Classic file copy animation. |
+| **Win95Search** | Row of folder icons with a flashlight and beam sweeping left-to-right. File search animation. |
+| **Win95Delete** | Large recycle bin with papers flying down into the lid and fading out. File deletion animation. |
+| **Win95EmptyRecycle** | Large recycle bin with papers flying upward out of the lid and fading. Emptying recycle bin animation. |
 
 ## Accessibility Support
 
@@ -157,6 +186,8 @@ The DaisyLoading theme styles are organized into multiple files for maintainabil
 | `Themes/DaisyLoading/DaisyLoading.Matrix.axaml` | Matrix, MatrixInward, MatrixOutward, MatrixVertical variants |
 | `Themes/DaisyLoading/DaisyLoading.Dots.axaml` | MatrixRain, BitFlip, PacketBurst, CometTrail, RippleMatrix, CountdownSpinner variants (dot-based animations) |
 | `Themes/DaisyLoading/DaisyLoading.Special.axaml` | Hourglass, SignalSweep, Heartbeat, TunnelZoom, GlitchReveal, CursorBlink variants (non-dot special effects) |
+| `Themes/DaisyLoading/DaisyLoading.Business.axaml` | DocumentFlipOn, DocumentFlipOff, MailSend, CloudUpload, CloudDownload, DocumentStamp, DocumentReject, ChartPulse, CalendarTick, ApprovalFlow, BriefcaseSpin variants (professional/enterprise animations) |
+| `Themes/DaisyLoading/DaisyLoading.Win95.axaml` | Win95FileCopy, Win95Search, Win95Delete, Win95EmptyRecycle variants (retro Windows 95 file operation animations) |
 
 ### Adding New Variants
 
@@ -239,6 +270,25 @@ Use the `Color` property to apply theme colors. All variants support coloring.
 <controls:DaisyLoading Variant="CursorBlink" Color="Success" />
 <controls:DaisyLoading Variant="CountdownSpinner" Color="Warning" Size="Large" />
 
+<!-- Business variants -->
+<controls:DaisyLoading Variant="DocumentFlipOn" Color="Primary" Size="Large" />
+<controls:DaisyLoading Variant="DocumentFlipOff" Color="Secondary" Size="Large" />
+<controls:DaisyLoading Variant="MailSend" Color="Info" Size="Large" />
+<controls:DaisyLoading Variant="CloudUpload" Color="Success" Size="Large" />
+<controls:DaisyLoading Variant="CloudDownload" Color="Primary" Size="Large" />
+<controls:DaisyLoading Variant="DocumentStamp" Color="Success" Size="Large" />
+<controls:DaisyLoading Variant="DocumentReject" Color="Error" Size="Large" />
+<controls:DaisyLoading Variant="ChartPulse" Color="Info" Size="Large" />
+<controls:DaisyLoading Variant="CalendarTick" Color="Primary" Size="Large" />
+<controls:DaisyLoading Variant="ApprovalFlow" Color="Success" Size="Large" />
+<controls:DaisyLoading Variant="BriefcaseSpin" Color="Neutral" Size="Large" />
+
+<!-- Windows 95 retro variants -->
+<controls:DaisyLoading Variant="Win95FileCopy" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95Search" Color="Info" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95Delete" Color="Error" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95EmptyRecycle" Size="ExtraLarge" />
+
 <!-- With accessibility -->
 <controls:DaisyLoading Variant="Spinner" AccessibleText="Loading dashboard" />
 ```
@@ -274,12 +324,27 @@ Use the `Color` property to apply theme colors. All variants support coloring.
 | RippleMatrix | 1.2s | Center-outward ripple wave |
 | CursorBlink | 1.0s | 50% on, 50% off blink cycle |
 | CountdownSpinner | 1.2s | Sequential 12-position lighting |
+| DocumentFlipOn | 1.5s | Page slides in from upper-left |
+| DocumentFlipOff | 1.5s | Page slides out to upper-right with fade |
+| MailSend | 2.0s | Paper slides down into envelope |
+| CloudUpload | 1.4s | Arrow rises with opacity pulse |
+| CloudDownload | 1.4s | Arrow falls with opacity pulse |
+| DocumentStamp | 2.0s | Stamp scales down with bounce |
+| DocumentReject | 2.0s | X stamp scales down with bounce |
+| ChartPulse | 1.2s | Bars pulse with 0.15s stagger, 2.4s sweep |
+| CalendarTick | 2.0s | Checkmark pops in with bounce |
+| ApprovalFlow | 2.4s | Sequential node highlighting (0.8s per node) |
+| BriefcaseSpin | 1.2s | Wobble rotation with bounce |
+| Win95FileCopy | 1.6s | Papers fly with arc motion, 0.4s stagger |
+| Win95Search | 2.0s | Flashlight sweeps left-to-right |
+| Win95Delete | 1.6s | Papers fly down into bin, 0.2s stagger |
+| Win95EmptyRecycle | 1.6s | Papers fly up from bin, 0.2s stagger |
 
 ## Property Summary
 
 | Property | Type | Default | Description |
 | -------- | ---- | ------- | ----------- |
-| `Variant` | `DaisyLoadingVariant` | `Spinner` | Animation style (27 options) |
+| `Variant` | `DaisyLoadingVariant` | `Spinner` | Animation style (42 options) |
 | `Size` | `DaisySize` | `Medium` | Control dimensions (5 options). Uses shared enum. |
 | `Color` | `DaisyColor` | `Default` | Theme color (9 options). Uses shared enum. |
 | `AccessibleText` | `string` | `"Loading"` | Screen reader announcement |
@@ -289,13 +354,21 @@ Use the `Color` property to apply theme colors. All variants support coloring.
 | Use Case | Recommended Variants |
 | -------- | ------------------- |
 | General purpose | `Spinner`, `Ring`, `Dots` |
-| Form submission | `Spinner`, `Pulse`, `Hourglass` |
+| Form submission | `Spinner`, `Pulse`, `Hourglass`, `DocumentStamp` |
 | Data fetching | `Dots`, `Wave`, `Matrix`, `RippleMatrix` |
-| File upload/download | `Bars`, `MatrixRain`, `Hourglass`, `SignalSweep` |
+| File upload/download | `Bars`, `MatrixRain`, `Hourglass`, `SignalSweep`, `CloudUpload`, `CloudDownload` |
+| File operations | `Win95FileCopy`, `Win95Search`, `Win95Delete`, `Win95EmptyRecycle` |
 | Connection/sync | `Orbit`, `Pulse`, `PacketBurst` |
 | Terminal/developer UI | `Snake`, `Matrix`, `MatrixRain`, `CursorBlink`, `BitFlip`, `GlitchReveal` |
 | Gaming/entertainment | `Bounce`, `MatrixRain`, `CometTrail`, `TunnelZoom` |
-| Retro/nostalgic | `Hourglass`, `Matrix`, `Infinity`, `CursorBlink` |
+| Retro/nostalgic | `Hourglass`, `Matrix`, `Infinity`, `CursorBlink`, `Win95FileCopy`, `Win95Search`, `Win95Delete`, `Win95EmptyRecycle` |
 | Health/medical UI | `Heartbeat`, `Pulse` |
 | Sci-fi/futuristic | `TunnelZoom`, `SignalSweep`, `PacketBurst`, `GlitchReveal` |
-| Time-based operations | `Hourglass`, `CountdownSpinner` |
+| Time-based operations | `Hourglass`, `CountdownSpinner`, `CalendarTick` |
+| Business/enterprise | `DocumentFlipOn`, `DocumentFlipOff`, `DocumentStamp`, `DocumentReject`, `BriefcaseSpin`, `ApprovalFlow` |
+| Email/messaging | `MailSend`, `Dots`, `Spinner` |
+| Analytics/reporting | `ChartPulse`, `Bars`, `Wave` |
+| Approval workflows | `DocumentStamp`, `DocumentReject`, `ApprovalFlow`, `CalendarTick` |
+| Cloud operations | `CloudUpload`, `CloudDownload`, `PacketBurst` |
+| Document processing | `DocumentFlipOn`, `DocumentFlipOff`, `DocumentStamp`, `DocumentReject` |
+| Scheduling/calendar | `CalendarTick`, `CountdownSpinner`, `Hourglass` |

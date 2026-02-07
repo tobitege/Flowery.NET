@@ -385,7 +385,8 @@
                                         MinHeight="120">
                                     <StackPanel Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <TextBlock Text="Outline style" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
-                                        <controls:DaisyButtonGroup ButtonStyle="Outline" Variant="Secondary" ShowShadow="True">
+                                        <controls:DaisyButtonGroup ButtonStyle="Outline"
+                                            Variant="Secondary" AutoSelect="True" ShowShadow="True">
                                             <Button ToolTip.Tip="Left">
                                                 <TextBlock Text="Left" />
                                             </Button>
@@ -394,6 +395,35 @@
                                             </Button>
                                             <Button ToolTip.Tip="Right">
                                                 <TextBlock Text="Right" />
+                                            </Button>
+                                        </controls:DaisyButtonGroup>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- 10: Multi-select formatting -->
+                                <Border Width="320"
+                                    MaxWidth="{Binding (services:FloweryResponsive.ResponsiveMaxWidth), ElementName=ButtonGroupResponsiveHost}"
+                                    Margin="12,0,12,24"
+                                    BorderBrush="{DynamicResource DaisyBase300Brush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
+                                    Padding="16"
+                                    MinHeight="120">
+                                    <StackPanel Spacing="12" HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                        <TextBlock Text="Multi-select (formatting)"
+                                            FontWeight="SemiBold" FontSize="14" Opacity="0.8" />
+                                        <controls:DaisyButtonGroup AutoSelect="True"
+                                            SelectionMode="Multiple" ShowShadow="True">
+                                            <Button Padding="0" Width="40" ToolTip.Tip="Bold">
+                                                <TextBlock Text="B" FontWeight="Bold" FontSize="16" />
+                                            </Button>
+                                            <Button Padding="0" Width="40" ToolTip.Tip="Italic">
+                                                <TextBlock Text="I" FontStyle="Italic" FontSize="16" />
+                                            </Button>
+                                            <Button Padding="0" Width="40" ToolTip.Tip="Underline">
+                                                <TextBlock Text="U" TextDecorations="Underline"
+                                                    FontSize="16" />
                                             </Button>
                                         </controls:DaisyButtonGroup>
                                     </StackPanel>
@@ -617,7 +647,8 @@
                     <local:SectionHeader SectionId="fab" Title="FAB / Speed Dial" />
                     <TextBlock Text="Click the FAB buttons below to expand" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                     <WrapPanel Orientation="Horizontal">
-                        <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="8" Margin="0,0,8,8" Width="85" Height="220">
+                        <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8"
+                            Padding="12" Margin="0,0,8,8" Width="100" Height="220">
                             <Grid>
                                 <TextBlock Text="Vertical" Opacity="0.6" VerticalAlignment="Top" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 <controls:DaisyFab TriggerContent="+" TriggerVariant="Primary" Size="Medium">
@@ -628,7 +659,25 @@
                             </Grid>
                         </Border>
 
-                        <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="8" Margin="0,0,8,8" Width="85" Height="220">
+                        <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8"
+                            Padding="8" Margin="0,0,8,8" Width="240" Height="85">
+                            <Grid>
+                                <TextBlock Text="Horizontal" Opacity="0.6" VerticalAlignment="Top"
+                                    controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                                <controls:DaisyFab Layout="Horizontal" TriggerContent="+"
+                                    TriggerVariant="Accent" Size="Medium">
+                                    <controls:DaisyButton Shape="Circle" Size="Medium" Content="1"
+                                        Click="OnFabItemClick" Tag="Horizontal 1" />
+                                    <controls:DaisyButton Shape="Circle" Size="Medium" Content="2"
+                                        Click="OnFabItemClick" Tag="Horizontal 2" />
+                                    <controls:DaisyButton Shape="Circle" Size="Medium" Content="3"
+                                        Click="OnFabItemClick" Tag="Horizontal 3" />
+                                </controls:DaisyFab>
+                            </Grid>
+                        </Border>
+
+                        <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8"
+                            Padding="12" Margin="0,0,8,8" Width="100" Height="220">
                             <Grid>
                                 <TextBlock Text="Icons" Opacity="0.6" VerticalAlignment="Top" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 <controls:DaisyFab TriggerVariant="Secondary" Size="Medium">
@@ -648,22 +697,28 @@
                             </Grid>
                         </Border>
 
-                        <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="8" Margin="0,0,8,8" Width="85" Height="220">
+                        <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8"
+                            Padding="8" Margin="0,0,8,8" Width="180" Height="220">
                             <Grid>
                                 <TextBlock Text="Flower" Opacity="0.6" VerticalAlignment="Top" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 <controls:DaisyFab TriggerContent="F" TriggerVariant="Success" Layout="Flower" Size="Medium">
                                     <controls:DaisyButton Shape="Circle" Size="Medium" Content="A" Click="OnFabItemClick" Tag="Flower A"/>
                                     <controls:DaisyButton Shape="Circle" Size="Medium" Content="B" Click="OnFabItemClick" Tag="Flower B"/>
+                                    <controls:DaisyButton Shape="Circle" Size="Medium" Content="C"
+                                        Click="OnFabItemClick" Tag="Flower C" />
                                 </controls:DaisyFab>
                             </Grid>
                         </Border>
 
-                        <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="8" Margin="0,0,8,8" Width="85" Height="220">
+                        <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8"
+                            Padding="12" Margin="0,0,8,8" Width="100" Height="220">
                             <Grid>
                                 <TextBlock Text="Variants" Opacity="0.6" VerticalAlignment="Top" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                                 <controls:DaisyFab TriggerContent="★" TriggerVariant="Warning" Size="Medium">
                                     <controls:DaisyButton Shape="Circle" Size="Medium" Content="1" Variant="Info" Click="OnFabItemClick" Tag="Variant 1"/>
                                     <controls:DaisyButton Shape="Circle" Size="Medium" Content="2" Variant="Success" Click="OnFabItemClick" Tag="Variant 2"/>
+                                    <controls:DaisyButton Shape="Circle" Size="Medium" Content="3"
+                                        Variant="Error" Click="OnFabItemClick" Tag="Variant 3" />
                                 </controls:DaisyFab>
                             </Grid>
                         </Border>

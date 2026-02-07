@@ -19,12 +19,13 @@ DaisySelect is a styled ComboBox with **9 variants** and **4 size presets**. It 
 | Size | Height | Font Size |
 | ---- | ------ | --------- |
 | ExtraSmall | 24 | 10 |
-| Small | 32 | 12 |
-| Medium (default) | 48 | 14 |
-| Large | 64 | 18 |
+| Small | 28 | 12 |
+| Medium (default) | 32 | 14 |
+| Large | 34 | 18 |
+| ExtraLarge | 36 | 20 |
 
 > [!NOTE]
-> DaisySelect uses **fixed heights** for each size to match DaisyUI's design.
+> DaisySelect uses **fixed heights** for consistent sizing across all Flowery.NET controls.
 
 ## Quick Examples
 

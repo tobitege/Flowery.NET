@@ -46,29 +46,32 @@
                                     <!-- Start line -->
                                     <Border x:Name="PART_HStartLine"
                                             Grid.Column="0"
-                                            Height="4"
+                                            Height="{DynamicResource DaisyStepsMediumLineThickness}"
                                             Background="{DynamicResource DaisyBase300Brush}"
                                             VerticalAlignment="Center"/>
                                     <!-- Circle -->
                                     <Border x:Name="PART_HCircle"
                                             Grid.Column="1"
-                                            Width="32"
-                                            Height="32"
-                                            CornerRadius="16"
-                                            Background="{DynamicResource DaisyBase300Brush}"
+                                            Width="{DynamicResource DaisyStepsMediumCircleSize}"
+                                            Height="{DynamicResource DaisyStepsMediumCircleSize}"
+                                            CornerRadius="{DynamicResource DaisyStepsMediumCircleCornerRadius}"
+                                            Background="{DynamicResource DaisyBase100Brush}"
+                                            BorderBrush="{DynamicResource DaisyBase300Brush}"
+                                            BorderThickness="{DynamicResource DaisyBorderThicknessMedium}"
                                             VerticalAlignment="Center"
                                             HorizontalAlignment="Center">
                                         <TextBlock x:Name="PART_HDataContent"
                                                    Text="{TemplateBinding DataContent}"
                                                    HorizontalAlignment="Center"
                                                    VerticalAlignment="Center"
+                                                   FontSize="{DynamicResource DaisyStepsMediumDataFontSize}"
                                                    FontWeight="Bold"
                                                    Foreground="{DynamicResource DaisyBaseContentBrush}"/>
                                     </Border>
                                     <!-- End line -->
                                     <Border x:Name="PART_HEndLine"
                                             Grid.Column="2"
-                                            Height="4"
+                                            Height="{DynamicResource DaisyStepsMediumLineThickness}"
                                             Background="{DynamicResource DaisyBase300Brush}"
                                             VerticalAlignment="Center"/>
                                 </Grid>
@@ -79,7 +82,9 @@
                                                   ContentTemplate="{TemplateBinding ContentTemplate}"
                                                   HorizontalAlignment="Center"
                                                   Margin="4,8,4,0"
-                                                  TextBlock.TextAlignment="Center"/>
+                                                  TextBlock.FontSize="{DynamicResource DaisyStepsMediumContentFontSize}"
+                                                  TextBlock.TextAlignment="Center"
+                                                  TextBlock.TextWrapping="Wrap"/>
                             </Grid>
 
                             <!-- Vertical layout -->
@@ -89,30 +94,33 @@
                                     <!-- Start line -->
                                     <Border x:Name="PART_VStartLine"
                                             Grid.Row="0"
-                                            Width="4"
+                                            Width="{DynamicResource DaisyStepsMediumLineThickness}"
                                             Background="{DynamicResource DaisyBase300Brush}"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Stretch"/>
                                     <!-- Circle -->
                                     <Border x:Name="PART_VCircle"
                                             Grid.Row="1"
-                                            Width="32"
-                                            Height="32"
-                                            CornerRadius="16"
-                                            Background="{DynamicResource DaisyBase300Brush}"
+                                            Width="{DynamicResource DaisyStepsMediumCircleSize}"
+                                            Height="{DynamicResource DaisyStepsMediumCircleSize}"
+                                            CornerRadius="{DynamicResource DaisyStepsMediumCircleCornerRadius}"
+                                            Background="{DynamicResource DaisyBase100Brush}"
+                                            BorderBrush="{DynamicResource DaisyBase300Brush}"
+                                            BorderThickness="{DynamicResource DaisyBorderThicknessMedium}"
                                             VerticalAlignment="Center"
                                             HorizontalAlignment="Center">
                                         <TextBlock x:Name="PART_VDataContent"
                                                    Text="{TemplateBinding DataContent}"
                                                    HorizontalAlignment="Center"
                                                    VerticalAlignment="Center"
+                                                   FontSize="{DynamicResource DaisyStepsMediumDataFontSize}"
                                                    FontWeight="Bold"
                                                    Foreground="{DynamicResource DaisyBaseContentBrush}"/>
                                     </Border>
                                     <!-- End line -->
                                     <Border x:Name="PART_VEndLine"
                                             Grid.Row="2"
-                                            Width="4"
+                                            Width="{DynamicResource DaisyStepsMediumLineThickness}"
                                             Background="{DynamicResource DaisyBase300Brush}"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Stretch"/>
@@ -124,7 +132,8 @@
                                                   ContentTemplate="{TemplateBinding ContentTemplate}"
                                                   HorizontalAlignment="Left"
                                                   VerticalAlignment="Center"
-                                                  Margin="12,4,4,4"/>
+                                                  Margin="12,4,4,4"
+                                                  TextBlock.FontSize="{DynamicResource DaisyStepsMediumContentFontSize}"/>
                             </Grid>
                         </Panel>
                     </ControlTemplate>
@@ -190,6 +199,7 @@
     <!-- Horizontal -->
     <Style Selector="controls|DaisyStepItem:active /template/ Border#PART_HCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:active /template/ Border#PART_HStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}"/>
@@ -200,6 +210,7 @@
     <!-- Vertical -->
     <Style Selector="controls|DaisyStepItem:active /template/ Border#PART_VCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:active /template/ Border#PART_VStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}"/>
@@ -211,6 +222,7 @@
     <!-- ==================== Color: Neutral ==================== -->
     <Style Selector="controls|DaisyStepItem:neutral /template/ Border#PART_HCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyNeutralBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:neutral /template/ Border#PART_HStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}"/>
@@ -223,6 +235,7 @@
     </Style>
     <Style Selector="controls|DaisyStepItem:neutral /template/ Border#PART_VCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyNeutralBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:neutral /template/ Border#PART_VStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}"/>
@@ -237,6 +250,7 @@
     <!-- ==================== Color: Primary ==================== -->
     <Style Selector="controls|DaisyStepItem:primary /template/ Border#PART_HCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:primary /template/ Border#PART_HStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}"/>
@@ -249,6 +263,7 @@
     </Style>
     <Style Selector="controls|DaisyStepItem:primary /template/ Border#PART_VCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:primary /template/ Border#PART_VStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}"/>
@@ -263,6 +278,7 @@
     <!-- ==================== Color: Secondary ==================== -->
     <Style Selector="controls|DaisyStepItem:secondary /template/ Border#PART_HCircle">
         <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisySecondaryBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:secondary /template/ Border#PART_HStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}"/>
@@ -275,6 +291,7 @@
     </Style>
     <Style Selector="controls|DaisyStepItem:secondary /template/ Border#PART_VCircle">
         <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisySecondaryBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:secondary /template/ Border#PART_VStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}"/>
@@ -289,6 +306,7 @@
     <!-- ==================== Color: Accent ==================== -->
     <Style Selector="controls|DaisyStepItem:accent /template/ Border#PART_HCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyAccentBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:accent /template/ Border#PART_HStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}"/>
@@ -301,6 +319,7 @@
     </Style>
     <Style Selector="controls|DaisyStepItem:accent /template/ Border#PART_VCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyAccentBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:accent /template/ Border#PART_VStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}"/>
@@ -315,6 +334,7 @@
     <!-- ==================== Color: Info ==================== -->
     <Style Selector="controls|DaisyStepItem:info /template/ Border#PART_HCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyInfoBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:info /template/ Border#PART_HStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}"/>
@@ -327,6 +347,7 @@
     </Style>
     <Style Selector="controls|DaisyStepItem:info /template/ Border#PART_VCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyInfoBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:info /template/ Border#PART_VStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}"/>
@@ -341,6 +362,7 @@
     <!-- ==================== Color: Success ==================== -->
     <Style Selector="controls|DaisyStepItem:success /template/ Border#PART_HCircle">
         <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisySuccessBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:success /template/ Border#PART_HStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}"/>
@@ -353,6 +375,7 @@
     </Style>
     <Style Selector="controls|DaisyStepItem:success /template/ Border#PART_VCircle">
         <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisySuccessBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:success /template/ Border#PART_VStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}"/>
@@ -367,6 +390,7 @@
     <!-- ==================== Color: Warning ==================== -->
     <Style Selector="controls|DaisyStepItem:warning /template/ Border#PART_HCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyWarningBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:warning /template/ Border#PART_HStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}"/>
@@ -379,6 +403,7 @@
     </Style>
     <Style Selector="controls|DaisyStepItem:warning /template/ Border#PART_VCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyWarningBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:warning /template/ Border#PART_VStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}"/>
@@ -393,6 +418,7 @@
     <!-- ==================== Color: Error ==================== -->
     <Style Selector="controls|DaisyStepItem:error /template/ Border#PART_HCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyErrorBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:error /template/ Border#PART_HStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}"/>
@@ -405,6 +431,7 @@
     </Style>
     <Style Selector="controls|DaisyStepItem:error /template/ Border#PART_VCircle">
         <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyErrorBrush}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem:error /template/ Border#PART_VStartLine">
         <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}"/>
@@ -419,153 +446,153 @@
     <!-- ==================== Size: ExtraSmall ==================== -->
     <!-- Horizontal -->
     <Style Selector="controls|DaisyStepItem[Size=ExtraSmall] /template/ Border#PART_HCircle">
-        <Setter Property="Width" Value="20"/>
-        <Setter Property="Height" Value="20"/>
-        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsExtraSmallCircleSize}"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsExtraSmallCircleSize}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisyStepsExtraSmallCircleCornerRadius}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraSmall] /template/ Border#PART_HStartLine">
-        <Setter Property="Height" Value="2"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsExtraSmallLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraSmall] /template/ Border#PART_HEndLine">
-        <Setter Property="Height" Value="2"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsExtraSmallLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraSmall] /template/ TextBlock#PART_HDataContent">
-        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontSize" Value="{DynamicResource DaisyStepsExtraSmallDataFontSize}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraSmall] /template/ ContentPresenter#PART_HContentPresenter">
-        <Setter Property="TextBlock.FontSize" Value="11"/>
+        <Setter Property="TextBlock.FontSize" Value="{DynamicResource DaisyStepsExtraSmallContentFontSize}"/>
     </Style>
     <!-- Vertical -->
     <Style Selector="controls|DaisyStepItem[Size=ExtraSmall] /template/ Border#PART_VCircle">
-        <Setter Property="Width" Value="20"/>
-        <Setter Property="Height" Value="20"/>
-        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsExtraSmallCircleSize}"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsExtraSmallCircleSize}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisyStepsExtraSmallCircleCornerRadius}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraSmall] /template/ Border#PART_VStartLine">
-        <Setter Property="Width" Value="2"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsExtraSmallLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraSmall] /template/ Border#PART_VEndLine">
-        <Setter Property="Width" Value="2"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsExtraSmallLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraSmall] /template/ TextBlock#PART_VDataContent">
-        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontSize" Value="{DynamicResource DaisyStepsExtraSmallDataFontSize}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraSmall] /template/ ContentPresenter#PART_VContentPresenter">
-        <Setter Property="TextBlock.FontSize" Value="11"/>
+        <Setter Property="TextBlock.FontSize" Value="{DynamicResource DaisyStepsExtraSmallContentFontSize}"/>
     </Style>
 
     <!-- ==================== Size: Small ==================== -->
     <!-- Horizontal -->
     <Style Selector="controls|DaisyStepItem[Size=Small] /template/ Border#PART_HCircle">
-        <Setter Property="Width" Value="24"/>
-        <Setter Property="Height" Value="24"/>
-        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsSmallCircleSize}"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsSmallCircleSize}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisyStepsSmallCircleCornerRadius}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Small] /template/ Border#PART_HStartLine">
-        <Setter Property="Height" Value="3"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsSmallLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Small] /template/ Border#PART_HEndLine">
-        <Setter Property="Height" Value="3"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsSmallLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Small] /template/ TextBlock#PART_HDataContent">
-        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontSize" Value="{DynamicResource DaisyStepsSmallDataFontSize}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Small] /template/ ContentPresenter#PART_HContentPresenter">
-        <Setter Property="TextBlock.FontSize" Value="12"/>
+        <Setter Property="TextBlock.FontSize" Value="{DynamicResource DaisyStepsSmallContentFontSize}"/>
     </Style>
     <!-- Vertical -->
     <Style Selector="controls|DaisyStepItem[Size=Small] /template/ Border#PART_VCircle">
-        <Setter Property="Width" Value="24"/>
-        <Setter Property="Height" Value="24"/>
-        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsSmallCircleSize}"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsSmallCircleSize}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisyStepsSmallCircleCornerRadius}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Small] /template/ Border#PART_VStartLine">
-        <Setter Property="Width" Value="3"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsSmallLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Small] /template/ Border#PART_VEndLine">
-        <Setter Property="Width" Value="3"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsSmallLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Small] /template/ TextBlock#PART_VDataContent">
-        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontSize" Value="{DynamicResource DaisyStepsSmallDataFontSize}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Small] /template/ ContentPresenter#PART_VContentPresenter">
-        <Setter Property="TextBlock.FontSize" Value="12"/>
+        <Setter Property="TextBlock.FontSize" Value="{DynamicResource DaisyStepsSmallContentFontSize}"/>
     </Style>
 
     <!-- ==================== Size: Large ==================== -->
     <!-- Horizontal -->
     <Style Selector="controls|DaisyStepItem[Size=Large] /template/ Border#PART_HCircle">
-        <Setter Property="Width" Value="40"/>
-        <Setter Property="Height" Value="40"/>
-        <Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsLargeCircleSize}"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsLargeCircleSize}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisyStepsLargeCircleCornerRadius}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Large] /template/ Border#PART_HStartLine">
-        <Setter Property="Height" Value="5"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsLargeLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Large] /template/ Border#PART_HEndLine">
-        <Setter Property="Height" Value="5"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsLargeLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Large] /template/ TextBlock#PART_HDataContent">
-        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontSize" Value="{DynamicResource DaisyStepsLargeDataFontSize}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Large] /template/ ContentPresenter#PART_HContentPresenter">
-        <Setter Property="TextBlock.FontSize" Value="16"/>
+        <Setter Property="TextBlock.FontSize" Value="{DynamicResource DaisyStepsLargeContentFontSize}"/>
     </Style>
     <!-- Vertical -->
     <Style Selector="controls|DaisyStepItem[Size=Large] /template/ Border#PART_VCircle">
-        <Setter Property="Width" Value="40"/>
-        <Setter Property="Height" Value="40"/>
-        <Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsLargeCircleSize}"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsLargeCircleSize}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisyStepsLargeCircleCornerRadius}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Large] /template/ Border#PART_VStartLine">
-        <Setter Property="Width" Value="5"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsLargeLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Large] /template/ Border#PART_VEndLine">
-        <Setter Property="Width" Value="5"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsLargeLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Large] /template/ TextBlock#PART_VDataContent">
-        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontSize" Value="{DynamicResource DaisyStepsLargeDataFontSize}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=Large] /template/ ContentPresenter#PART_VContentPresenter">
-        <Setter Property="TextBlock.FontSize" Value="16"/>
+        <Setter Property="TextBlock.FontSize" Value="{DynamicResource DaisyStepsLargeContentFontSize}"/>
     </Style>
 
     <!-- ==================== Size: ExtraLarge ==================== -->
     <!-- Horizontal -->
     <Style Selector="controls|DaisyStepItem[Size=ExtraLarge] /template/ Border#PART_HCircle">
-        <Setter Property="Width" Value="48"/>
-        <Setter Property="Height" Value="48"/>
-        <Setter Property="CornerRadius" Value="24"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsExtraLargeCircleSize}"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsExtraLargeCircleSize}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisyStepsExtraLargeCircleCornerRadius}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraLarge] /template/ Border#PART_HStartLine">
-        <Setter Property="Height" Value="6"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsExtraLargeLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraLarge] /template/ Border#PART_HEndLine">
-        <Setter Property="Height" Value="6"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsExtraLargeLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraLarge] /template/ TextBlock#PART_HDataContent">
-        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontSize" Value="{DynamicResource DaisyStepsExtraLargeDataFontSize}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraLarge] /template/ ContentPresenter#PART_HContentPresenter">
-        <Setter Property="TextBlock.FontSize" Value="18"/>
+        <Setter Property="TextBlock.FontSize" Value="{DynamicResource DaisyStepsExtraLargeContentFontSize}"/>
     </Style>
     <!-- Vertical -->
     <Style Selector="controls|DaisyStepItem[Size=ExtraLarge] /template/ Border#PART_VCircle">
-        <Setter Property="Width" Value="48"/>
-        <Setter Property="Height" Value="48"/>
-        <Setter Property="CornerRadius" Value="24"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsExtraLargeCircleSize}"/>
+        <Setter Property="Height" Value="{DynamicResource DaisyStepsExtraLargeCircleSize}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisyStepsExtraLargeCircleCornerRadius}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraLarge] /template/ Border#PART_VStartLine">
-        <Setter Property="Width" Value="6"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsExtraLargeLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraLarge] /template/ Border#PART_VEndLine">
-        <Setter Property="Width" Value="6"/>
+        <Setter Property="Width" Value="{DynamicResource DaisyStepsExtraLargeLineThickness}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraLarge] /template/ TextBlock#PART_VDataContent">
-        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontSize" Value="{DynamicResource DaisyStepsExtraLargeDataFontSize}"/>
     </Style>
     <Style Selector="controls|DaisyStepItem[Size=ExtraLarge] /template/ ContentPresenter#PART_VContentPresenter">
-        <Setter Property="TextBlock.FontSize" Value="18"/>
+        <Setter Property="TextBlock.FontSize" Value="{DynamicResource DaisyStepsExtraLargeContentFontSize}"/>
     </Style>
 
 </Styles>

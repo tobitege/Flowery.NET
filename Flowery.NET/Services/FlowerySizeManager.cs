@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.VisualTree;
 
 namespace Flowery.Controls
 {
@@ -18,19 +20,26 @@ namespace Flowery.Controls
         Secondary,
         /// <summary>Tertiary font size (very small text).</summary>
         Tertiary,
-        /// <summary>Header font size (section titles).</summary>
+        /// <summary>
+        /// Section headers - smaller than page headers, larger than body text.
+        /// Use for control group titles, example section headers, etc.
+        /// </summary>
+        SectionHeader,
+        /// <summary>
+        /// Page/screen headers - the largest tier for main titles.
+        /// </summary>
         Header
     }
 
     /// <summary>
-    /// Centralized size manager for DaisyUI controls.
-    /// Controls that subscribe to SizeChanged can dynamically update their Size property
-    /// when the global size is changed via ApplySize.
+    /// Centralized size manager for DaisyUI controls (Avalonia).
     /// </summary>
     /// <remarks>
     /// This service enables a "global size override" feature for applications that want
-    /// consistent sizing across all DaisyUI controls. Individual controls can opt-in by
-    /// subscribing to the <see cref="SizeChanged"/> event.
+    /// consistent sizing across all DaisyUI controls. When <see cref="EnableGlobalAutoSize"/> is true,
+    /// size changes propagate to all controls with a Size property in the visual tree.
+    /// Controls with explicitly-set Size values (in XAML or code) are respected and not overwritten.
+    /// Use <see cref="IgnoreGlobalSizeProperty"/> to opt-out entire branches of the visual tree.
     /// </remarks>
     /// <example>
     /// <code>
@@ -50,6 +59,12 @@ namespace Flowery.Controls
     {
         private static DaisySize _currentSize = DaisySize.Small;
 
+        // Cache for SizeProperty StyledProperty by type
+        private static readonly Dictionary<Type, AvaloniaProperty?> _sizeDPCache = [];
+
+        // Cache for Size property reflection lookup
+        private static readonly Dictionary<Type, PropertyInfo?> _sizePropertyCache = [];
+
         /// <summary>
         /// Attached property to mark a control as ignoring global size changes.
         /// Use this on demonstration controls that should show specific sizes.
@@ -63,7 +78,7 @@ namespace Flowery.Controls
             AvaloniaProperty.RegisterAttached<Control, Control, bool>("IgnoreGlobalSize", false);
 
         /// <summary>
-        /// Gets whether the control ignores global size changes.
+        /// Gets whether the control ignores global size changes (direct property access).
         /// </summary>
         public static bool GetIgnoreGlobalSize(Control control) =>
             control.GetValue(IgnoreGlobalSizeProperty);
@@ -73,6 +88,30 @@ namespace Flowery.Controls
         /// </summary>
         public static void SetIgnoreGlobalSize(Control control, bool value) =>
             control.SetValue(IgnoreGlobalSizeProperty, value);
+
+        /// <summary>
+        /// Checks if this control or any of its ancestors has IgnoreGlobalSize explicitly set.
+        /// Stops at the first explicit setting and returns that value.
+        /// This allows parent containers to opt-out and child controls to opt back in.
+        /// </summary>
+        public static bool ShouldIgnoreGlobalSize(Control control)
+        {
+            Visual? current = control;
+            while (current != null)
+            {
+                if (current is Control c)
+                {
+                    // Check if property is explicitly set (not default)
+                    if (c.IsSet(IgnoreGlobalSizeProperty))
+                    {
+                        // Property is explicitly set - return its value and stop walking
+                        return c.GetValue(IgnoreGlobalSizeProperty);
+                    }
+                }
+                current = current.GetVisualParent();
+            }
+            return false; // No explicit setting found, use global size
+        }
 
         /// <summary>
         /// Attached property to make a TextBlock's FontSize respond to global size changes.
@@ -88,7 +127,7 @@ namespace Flowery.Controls
             AvaloniaProperty.RegisterAttached<Control, Control, ResponsiveFontTier>(
                 "ResponsiveFont", ResponsiveFontTier.None);
 
-        private static readonly HashSet<Control> _responsiveControls = new();
+        private static readonly HashSet<TextBlock> _responsiveTextBlocks = [];
 
         static FlowerySizeManager()
         {
@@ -97,49 +136,251 @@ namespace Flowery.Controls
 
         private static void OnResponsiveFontChanged(Control control, AvaloniaPropertyChangedEventArgs e)
         {
+            if (control is not TextBlock textBlock)
+                return;
+
             var newTier = (ResponsiveFontTier)(e.NewValue ?? ResponsiveFontTier.None);
             var oldTier = (ResponsiveFontTier)(e.OldValue ?? ResponsiveFontTier.None);
 
             if (newTier != ResponsiveFontTier.None && oldTier == ResponsiveFontTier.None)
             {
-                // Subscribe to size changes
-                _responsiveControls.Add(control);
-                control.Unloaded += OnResponsiveControlUnloaded;
-
-                // Apply current size immediately
-                ApplyFontSizeToControl(control, newTier, _currentSize);
+                _responsiveTextBlocks.Add(textBlock);
+                textBlock.Unloaded += OnResponsiveTextBlockUnloaded;
+                ApplyFontSizeToControl(textBlock, newTier, _currentSize);
             }
             else if (newTier == ResponsiveFontTier.None && oldTier != ResponsiveFontTier.None)
             {
-                // Unsubscribe
-                _responsiveControls.Remove(control);
-                control.Unloaded -= OnResponsiveControlUnloaded;
+                _responsiveTextBlocks.Remove(textBlock);
+                textBlock.Unloaded -= OnResponsiveTextBlockUnloaded;
             }
             else if (newTier != ResponsiveFontTier.None)
             {
-                // Tier changed, update font size
-                ApplyFontSizeToControl(control, newTier, _currentSize);
+                ApplyFontSizeToControl(textBlock, newTier, _currentSize);
             }
         }
 
-        private static void OnResponsiveControlUnloaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        private static void OnResponsiveTextBlockUnloaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            if (sender is Control control)
+            if (sender is TextBlock tb)
             {
-                _responsiveControls.Remove(control);
-                control.Unloaded -= OnResponsiveControlUnloaded;
+                _responsiveTextBlocks.Remove(tb);
+                tb.Unloaded -= OnResponsiveTextBlockUnloaded;
             }
         }
 
-        private static void ApplyFontSizeToControl(Control control, ResponsiveFontTier tier, DaisySize size)
-        {
-            if (control is not TextBlock textBlock) return;
+        /// <summary>
+        /// Gets the responsive font tier for a control.
+        /// </summary>
+        public static ResponsiveFontTier GetResponsiveFont(Control control) =>
+            control.GetValue(ResponsiveFontProperty);
 
-            var fontSize = GetFontSizeForTier(tier, size);
-            textBlock.FontSize = fontSize;
+        /// <summary>
+        /// Sets the responsive font tier for a control.
+        /// </summary>
+        public static void SetResponsiveFont(Control control, ResponsiveFontTier value) =>
+            control.SetValue(ResponsiveFontProperty, value);
+
+        /// <summary>
+        /// Event raised when the global size changes.
+        /// </summary>
+        public static event EventHandler<DaisySize>? SizeChanged;
+
+        /// <summary>
+        /// Gets the currently active global size.
+        /// </summary>
+        public static DaisySize CurrentSize => _currentSize;
+
+        /// <summary>
+        /// Gets or sets whether controls should use the global size by default.
+        /// Default is true (opt-out behavior).
+        /// </summary>
+        public static bool UseGlobalSizeByDefault { get; set; } = true;
+
+        /// <summary>
+        /// When true (default), ApplySize() automatically propagates to all controls
+        /// with a Size property of type DaisySize in the visual tree.
+        /// Use IgnoreGlobalSize="True" on individual controls to opt-out.
+        /// </summary>
+        public static bool EnableGlobalAutoSize { get; set; } = true;
+
+        /// <summary>
+        /// The main window reference for visual tree propagation.
+        /// Set this in your App.axaml.cs after creating the window.
+        /// </summary>
+        public static Window? MainWindow { get; set; }
+
+        /// <summary>
+        /// Apply a global size to all subscribing controls.
+        /// When EnableGlobalAutoSize is true, also propagates to all controls
+        /// with a Size property in the visual tree.
+        /// </summary>
+        /// <param name="size">The DaisySize to apply globally.</param>
+        public static void ApplySize(DaisySize size)
+        {
+            if (_currentSize == size)
+                return;
+
+            _currentSize = size;
+            UpdateResponsiveTextBlocks(size);
+            SizeChanged?.Invoke(null, size);
+
+            if (EnableGlobalAutoSize)
+            {
+                PropagateToVisualTree();
+            }
         }
 
-        private static double GetFontSizeForTier(ResponsiveFontTier tier, DaisySize size)
+        /// <summary>
+        /// Forces propagation of the current size to all controls in the visual tree.
+        /// Call this after the visual tree is fully loaded (e.g., in Window.Opened).
+        /// </summary>
+        public static void RefreshAllSizes()
+        {
+            if (EnableGlobalAutoSize)
+            {
+                PropagateToVisualTree();
+            }
+        }
+
+        /// <summary>
+        /// Propagates the current size to all controls with a Size property
+        /// in the visual tree.
+        /// </summary>
+        private static void PropagateToVisualTree()
+        {
+            try
+            {
+                if (MainWindow?.Content is Control root)
+                {
+                    PropagateSize(root, _currentSize);
+                }
+            }
+            catch
+            {
+                // Silently ignore errors during propagation
+            }
+        }
+
+        /// <summary>
+        /// Iteratively propagates size to all controls in the visual tree to avoid StackOverflow.
+        /// </summary>
+        private static void PropagateSize(Control root, DaisySize size)
+        {
+            var queue = new Queue<Control>();
+            queue.Enqueue(root);
+
+            while (queue.Count > 0)
+            {
+                var element = queue.Dequeue();
+
+                if (ShouldIgnoreGlobalSize(element))
+                {
+                    // This branch has opted out - stop propagation for this branch
+                    continue;
+                }
+
+                TrySetSizeProperty(element, size);
+
+                // Add children to queue
+                foreach (var child in element.GetVisualChildren())
+                {
+                    if (child is Control childControl)
+                    {
+                        queue.Enqueue(childControl);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Attempts to set the Size property on a control if it exists and is DaisySize.
+        /// Respects explicitly-set local values (from XAML or code) by not overwriting them.
+        /// Uses reflection with caching for performance.
+        /// </summary>
+        private static void TrySetSizeProperty(Control element, DaisySize size)
+        {
+            var type = element.GetType();
+
+            // First try to find the SizeProperty StyledProperty (preferred for Avalonia)
+            if (!_sizeDPCache.TryGetValue(type, out var dp))
+            {
+                var sizeField = type.GetField("SizeProperty", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+                dp = sizeField?.GetValue(null) as AvaloniaProperty;
+                _sizeDPCache[type] = dp;
+            }
+
+            if (dp != null)
+            {
+                // Check if a local value was set (in XAML or code) and respect it
+                if (element.IsSet(dp))
+                {
+                    // Control has an explicit Size set - don't override
+                    return;
+                }
+
+                try
+                {
+                    element.SetValue(dp, size);
+                }
+                catch
+                {
+                    // Silently ignore errors setting property
+                }
+                return;
+            }
+
+            // Fallback to reflection for non-AvaloniaProperty Size properties (rare)
+            if (!_sizePropertyCache.TryGetValue(type, out var sizeProp))
+            {
+                sizeProp = type.GetProperty("Size", BindingFlags.Public | BindingFlags.Instance);
+                if (sizeProp?.PropertyType != typeof(DaisySize) || !sizeProp.CanWrite)
+                {
+                    sizeProp = null;
+                }
+                _sizePropertyCache[type] = sizeProp;
+            }
+
+            if (sizeProp != null)
+            {
+                try
+                {
+                    sizeProp.SetValue(element, size);
+                }
+                catch
+                {
+                    // Silently ignore errors setting property
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates all TextBlocks with ResponsiveFont attached property.
+        /// </summary>
+        private static void UpdateResponsiveTextBlocks(DaisySize size)
+        {
+            foreach (var tb in _responsiveTextBlocks)
+            {
+                // Respect IgnoreGlobalSize on the TextBlock or its ancestors
+                if (ShouldIgnoreGlobalSize(tb))
+                    continue;
+
+                var tier = GetResponsiveFont(tb);
+                if (tier != ResponsiveFontTier.None)
+                {
+                    ApplyFontSizeToControl(tb, tier, size);
+                }
+            }
+        }
+
+        private static void ApplyFontSizeToControl(TextBlock textBlock, ResponsiveFontTier tier, DaisySize size)
+        {
+            textBlock.FontSize = GetFontSizeForTier(tier, size);
+        }
+
+        /// <summary>
+        /// Gets the font size for a given tier and size.
+        /// </summary>
+        public static double GetFontSizeForTier(ResponsiveFontTier tier, DaisySize size)
         {
             return tier switch
             {
@@ -170,6 +411,15 @@ namespace Flowery.Controls
                     DaisySize.ExtraLarge => 14,
                     _ => 9
                 },
+                ResponsiveFontTier.SectionHeader => size switch
+                {
+                    DaisySize.ExtraSmall => 12,
+                    DaisySize.Small => 14,
+                    DaisySize.Medium => 16,
+                    DaisySize.Large => 18,
+                    DaisySize.ExtraLarge => 20,
+                    _ => 14
+                },
                 ResponsiveFontTier.Header => size switch
                 {
                     DaisySize.ExtraSmall => 14,
@@ -184,62 +434,19 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Gets the responsive font tier for a control.
+        /// Gets the default sidebar width for the given size.
         /// </summary>
-        public static ResponsiveFontTier GetResponsiveFont(Control control) =>
-            control.GetValue(ResponsiveFontProperty);
-
-        /// <summary>
-        /// Sets the responsive font tier for a control.
-        /// </summary>
-        public static void SetResponsiveFont(Control control, ResponsiveFontTier value) =>
-            control.SetValue(ResponsiveFontProperty, value);
-
-        /// <summary>
-        /// Event raised when the global size changes.
-        /// Controls can subscribe to this event to automatically update their Size property.
-        /// </summary>
-        public static event EventHandler<DaisySize>? SizeChanged;
-
-        /// <summary>
-        /// Gets the currently active global size.
-        /// </summary>
-        public static DaisySize CurrentSize => _currentSize;
-
-        /// <summary>
-        /// Gets or sets whether controls should use the global size by default.
-        /// When true, new controls will automatically use <see cref="CurrentSize"/>.
-        /// Default is false (opt-in behavior).
-        /// </summary>
-        public static bool UseGlobalSizeByDefault { get; set; }
-
-        /// <summary>
-        /// Apply a global size to all subscribing controls.
-        /// </summary>
-        /// <param name="size">The DaisySize to apply globally.</param>
-        public static void ApplySize(DaisySize size)
+        public static double GetSidebarWidth(DaisySize size)
         {
-            if (_currentSize == size)
-                return;
-
-            _currentSize = size;
-            UpdateResponsiveControls(size);
-            SizeChanged?.Invoke(null, size);
-        }
-
-        /// <summary>
-        /// Updates all controls with ResponsiveFont attached property.
-        /// </summary>
-        private static void UpdateResponsiveControls(DaisySize size)
-        {
-            foreach (var control in _responsiveControls)
+            return size switch
             {
-                var tier = GetResponsiveFont(control);
-                if (tier != ResponsiveFontTier.None)
-                {
-                    ApplyFontSizeToControl(control, tier, size);
-                }
-            }
+                DaisySize.ExtraSmall => 190d,
+                DaisySize.Small => 205d,
+                DaisySize.Medium => 220d,
+                DaisySize.Large => 235d,
+                DaisySize.ExtraLarge => 250d,
+                _ => 220d
+            };
         }
 
         /// <summary>

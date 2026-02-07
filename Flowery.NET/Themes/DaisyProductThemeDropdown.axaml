@@ -1,0 +1,56 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="{DynamicResource DaisyBase200Brush}" Height="400">
+            <StackPanel Spacing="10" Width="220">
+                <controls:DaisyProductThemeDropdown />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <Styles.Resources>
+        <!-- Item template for product theme preview (5 dots: bg indicator + 4 colors) -->
+        <DataTemplate x:Key="ProductThemeItemTemplate" DataType="controls:ProductThemePreviewInfo">
+            <Grid ColumnDefinitions="Auto,*" MinHeight="24">
+                <!-- 5-dot horizontal swatch: base background (with border) + 4 theme colors -->
+                <Border Grid.Column="0"
+                        Background="{Binding Base100}"
+                        CornerRadius="6"
+                        Padding="3"
+                        VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="1">
+                        <!-- Base background dot with contrasting border to show dark/light -->
+                        <Ellipse Width="6" Height="6" Fill="{Binding Base100}"
+                                 Stroke="{Binding BaseContent}" StrokeThickness="1" />
+                        <Ellipse Width="6" Height="6" Fill="{Binding BaseContent}" />
+                        <Ellipse Width="6" Height="6" Fill="{Binding Primary}" />
+                        <Ellipse Width="6" Height="6" Fill="{Binding Secondary}" />
+                        <Ellipse Width="6" Height="6" Fill="{Binding Accent}" />
+                    </StackPanel>
+                </Border>
+                <!-- Theme name -->
+                <TextBlock Grid.Column="1"
+                    Text="{Binding DisplayName}"
+                    Foreground="{DynamicResource DaisyBaseContentBrush}"
+                    VerticalAlignment="Center"
+                    Margin="10,0,0,0" />
+            </Grid>
+        </DataTemplate>
+
+        <ControlTheme x:Key="{x:Type controls:DaisyProductThemeDropdown}"
+                      TargetType="controls:DaisyProductThemeDropdown"
+                      BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="ItemTemplate" Value="{StaticResource ProductThemeItemTemplate}" />
+            <Setter Property="PlaceholderText" Value="Select Product Theme..." />
+            <Setter Property="Height" Value="32" />
+        </ControlTheme>
+    </Styles.Resources>
+
+    <Style Selector="controls|DaisyProductThemeDropdown">
+        <Setter Property="ItemTemplate" Value="{StaticResource ProductThemeItemTemplate}" />
+        <Setter Property="PlaceholderText" Value="Select Product Theme" />
+    </Style>
+
+</Styles>

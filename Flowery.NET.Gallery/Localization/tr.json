@@ -144,6 +144,12 @@
   "Sidebar_Cards": "Kartlar",
   "Sidebar_CardStack": "Card Stack",
   "Sidebar_Card": "Card",
+  "Sidebar_PatternedCard": "Desenli Kart",
+  "Sidebar_GlassCard": "Glass Card",
+  "Sidebar_DaisyGlassSimulated": "DaisyGlass (Simulated Glass)",
+  "Sidebar_DaisyGlassBitmapCapture": "DaisyGlass (Bitmap Capture Mode)",
+  "Sidebar_DaisyGlassSkiaMatrix": "DaisyGlass (SkiaSharp Mode Matrix)",
+  "Sidebar_DaisyGlassFullWidth": "DaisyGlass (Full Width Example)",
   "Sidebar_DataDisplay": "Veri Gösterimi",
   "Sidebar_Accordion": "Accordion",
   "Sidebar_AnimatedNumber": "Animated Number",
@@ -208,6 +214,7 @@
   "Sidebar_Tabs": "Tabs",
   "Sidebar_Theming": "Temalandırma",
   "Sidebar_CSSThemeConverter": "CSS Theme Converter",
+  "Sidebar_ProductThemes": "Ürün Temaları",
   "Sidebar_ThemeController": "Theme Controller",
   "Sidebar_ThemeRadio": "Theme Radio",
   "Sidebar_Effects": "Efektler",
@@ -252,3 +259,4 @@
   "Showcase_ScrollReveal_Title": "Kaydırma Görünümü",
   "Showcase_ScrollReveal_Desc": "Öğeler kaydırma görünümüne girdiğinde animasyonları tetikler."
 }
+

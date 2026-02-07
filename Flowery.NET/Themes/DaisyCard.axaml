@@ -149,6 +149,83 @@
             <Setter Property="Effect" Value="{x:Null}" />
         </Style>
 
+        <!-- Size Variants -->
+        <Style Selector="^[Size=ExtraSmall]">
+            <Setter Property="BodyPadding" Value="12" />
+            <Setter Property="BodyFontSize" Value="11" />
+            <Setter Property="TitleFontSize" Value="14" />
+        </Style>
+        <Style Selector="^[Size=Small]">
+            <Setter Property="BodyPadding" Value="20" />
+            <Setter Property="BodyFontSize" Value="12" />
+            <Setter Property="TitleFontSize" Value="16" />
+        </Style>
+        <Style Selector="^[Size=Large]">
+            <Setter Property="BodyPadding" Value="40" />
+            <Setter Property="BodyFontSize" Value="16" />
+            <Setter Property="TitleFontSize" Value="24" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge]">
+            <Setter Property="BodyPadding" Value="48" />
+            <Setter Property="BodyFontSize" Value="20" />
+            <Setter Property="TitleFontSize" Value="32" />
+        </Style>
+
+        <!-- Color Variants -->
+        <Style Selector="^[ColorVariant=Primary]">
+            <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryContentBrush}" />
+        </Style>
+        <Style Selector="^[ColorVariant=Secondary]">
+            <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisySecondaryContentBrush}" />
+        </Style>
+        <Style Selector="^[ColorVariant=Accent]">
+            <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyAccentContentBrush}" />
+        </Style>
+        <Style Selector="^[ColorVariant=Neutral]">
+            <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralContentBrush}" />
+        </Style>
+        <Style Selector="^[ColorVariant=Info]">
+            <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyInfoContentBrush}" />
+        </Style>
+        <Style Selector="^[ColorVariant=Success]">
+            <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisySuccessContentBrush}" />
+        </Style>
+        <Style Selector="^[ColorVariant=Warning]">
+            <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyWarningContentBrush}" />
+        </Style>
+        <Style Selector="^[ColorVariant=Error]">
+            <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyErrorContentBrush}" />
+        </Style>
+
+        <!-- Card Styles -->
+        <Style Selector="^[CardStyle=Beveled] /template/ Border#PART_SolidBackground">
+            <Setter Property="BoxShadow" Value="inset 0 1 0 0 #40FFFFFF, inset 0 -1 0 0 #40000000, 0 4 6 -1 #20000000" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase200Brush}" />
+        </Style>
+
+        <Style Selector="^[CardStyle=Inset] /template/ Border#PART_SolidBackground">
+            <Setter Property="BoxShadow" Value="inset 0 2 4 0 #20000000" />
+            <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
+        </Style>
+
+        <Style Selector="^[CardStyle=Panel] /template/ Border#PART_SolidBackground">
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
+            <Setter Property="Effect" Value="{x:Null}" />
+        </Style>
+
         <!-- Variants -->
         <Style Selector="^[Variant=Compact]">
             <Setter Property="BodyPadding" Value="16" />

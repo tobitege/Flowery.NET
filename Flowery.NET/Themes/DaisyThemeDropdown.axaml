@@ -11,21 +11,24 @@
     </Design.PreviewWith>
 
     <Styles.Resources>
-        <!-- Item template for theme preview (matches DaisyUI 2x2 dot grid) -->
+        <!-- Item template for theme preview (5 dots: bg indicator + 4 colors) -->
         <DataTemplate x:Key="ThemeItemTemplate" DataType="controls:ThemePreviewInfo">
-            <Grid ColumnDefinitions="Auto,*" MinHeight="24">
-                <!-- 2x2 color dot grid with theme's base background -->
+            <Grid ColumnDefinitions="Auto,*">
+                <!-- 5-dot horizontal swatch: base background (with border) + 4 theme colors -->
                 <Border Grid.Column="0"
                         Background="{Binding Base100}"
                         CornerRadius="6"
-                        Padding="4"
+                        Padding="3"
                         VerticalAlignment="Center">
-                    <Grid ColumnDefinitions="8,2,8" RowDefinitions="8,2,8">
-                        <Ellipse Grid.Row="0" Grid.Column="0" Width="8" Height="8" Fill="{Binding BaseContent}" />
-                        <Ellipse Grid.Row="0" Grid.Column="2" Width="8" Height="8" Fill="{Binding Primary}" />
-                        <Ellipse Grid.Row="2" Grid.Column="0" Width="8" Height="8" Fill="{Binding Secondary}" />
-                        <Ellipse Grid.Row="2" Grid.Column="2" Width="8" Height="8" Fill="{Binding Accent}" />
-                    </Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="1">
+                        <!-- Base background dot with contrasting border to show dark/light -->
+                        <Ellipse Width="6" Height="6" Fill="{Binding Base100}"
+                                 Stroke="{Binding BaseContent}" StrokeThickness="1" />
+                        <Ellipse Width="6" Height="6" Fill="{Binding BaseContent}" />
+                        <Ellipse Width="6" Height="6" Fill="{Binding Primary}" />
+                        <Ellipse Width="6" Height="6" Fill="{Binding Secondary}" />
+                        <Ellipse Width="6" Height="6" Fill="{Binding Accent}" />
+                    </StackPanel>
                 </Border>
                 <!-- Theme name (localized) - inherits FontSize from parent -->
                 <TextBlock Grid.Column="1"
@@ -85,7 +88,7 @@
                         <Popup x:Name="PART_Popup"
                                WindowManagerAddShadowHint="False"
                                IsOpen="{TemplateBinding IsDropDownOpen, Mode=TwoWay}"
-                               PlacementTarget="{Binding ElementName=Background}"
+                               PlacementTarget="{Binding #Background}"
                                IsLightDismissEnabled="True"
                                InheritsTransform="True">
                             <Border x:Name="PopupBorder"
@@ -137,13 +140,13 @@
             </Style>
             <!-- Smaller dots for Small -->
             <Style Selector="^[Size=Small] /template/ ContentPresenter#ContentPresenter Border">
-                <Setter Property="Padding" Value="3" />
+                <Setter Property="Padding" Value="2" />
                 <Setter Property="CornerRadius" Value="5" />
             </Style>
             <Style
                 Selector="^[Size=Small] /template/ ContentPresenter#ContentPresenter Border Ellipse">
-                <Setter Property="Width" Value="6" />
-                <Setter Property="Height" Value="6" />
+                <Setter Property="Width" Value="4" />
+                <Setter Property="Height" Value="4" />
             </Style>
             <Style Selector="^[Size=ExtraSmall]">
                 <Setter Property="MinHeight" Value="{DynamicResource DaisySizeExtraSmallHeight}" />
@@ -159,8 +162,8 @@
             </Style>
             <Style
                 Selector="^[Size=ExtraSmall] /template/ ContentPresenter#ContentPresenter Border Ellipse">
-                <Setter Property="Width" Value="5" />
-                <Setter Property="Height" Value="5" />
+                <Setter Property="Width" Value="3" />
+                <Setter Property="Height" Value="3" />
             </Style>
 
         </ControlTheme>
@@ -170,9 +173,22 @@
     <Style Selector="controls|DaisyThemeDropdown ComboBoxItem">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
-        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="Padding" Value="4,4" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="MinHeight" Value="20" />
+    </Style>
+    <Style Selector="controls|DaisyThemeDropdown[Size=ExtraSmall] ComboBoxItem">
+        <Setter Property="MinHeight" Value="16" />
+    </Style>
+    <Style Selector="controls|DaisyThemeDropdown[Size=Small] ComboBoxItem">
+        <Setter Property="MinHeight" Value="18" />
+    </Style>
+    <Style Selector="controls|DaisyThemeDropdown[Size=Large] ComboBoxItem">
+        <Setter Property="MinHeight" Value="24" />
+    </Style>
+    <Style Selector="controls|DaisyThemeDropdown[Size=ExtraLarge] ComboBoxItem">
+        <Setter Property="MinHeight" Value="26" />
     </Style>
     <Style Selector="controls|DaisyThemeDropdown ComboBoxItem:pointerover">
         <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />

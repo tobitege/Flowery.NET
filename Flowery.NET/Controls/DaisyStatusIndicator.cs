@@ -2,77 +2,17 @@ using System;
 using Avalonia;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls.Primitives;
+using Flowery.Enums;
 using Flowery.Localization;
 using Flowery.Services;
 
 namespace Flowery.Controls
 {
     /// <summary>
-    /// Animation variant styles for the status indicator.
-    /// </summary>
-    public enum DaisyStatusIndicatorVariant
-    {
-        /// <summary>Static dot with no animation (default)</summary>
-        Default,
-        /// <summary>Ping animation - expanding ring that fades out</summary>
-        Ping,
-        /// <summary>Bounce animation - dot bounces up and down</summary>
-        Bounce,
-        /// <summary>Pulse animation - breathing/pulsing opacity effect</summary>
-        Pulse,
-        /// <summary>Blink animation - simple on/off blinking</summary>
-        Blink,
-        /// <summary>Ripple animation - multiple expanding rings</summary>
-        Ripple,
-        /// <summary>Heartbeat animation - double-pulse like a heartbeat</summary>
-        Heartbeat,
-        /// <summary>Spin animation - rotating dot indicator</summary>
-        Spin,
-        /// <summary>Wave animation - wave-like scale effect</summary>
-        Wave,
-        /// <summary>Glow animation - glowing halo effect</summary>
-        Glow,
-        /// <summary>Morph animation - shape morphing effect</summary>
-        Morph,
-        /// <summary>Orbit animation - small dot orbiting around</summary>
-        Orbit,
-        /// <summary>Radar animation - radar sweep effect</summary>
-        Radar,
-        /// <summary>Sonar animation - sonar ping effect</summary>
-        Sonar,
-        /// <summary>Beacon animation - lighthouse beacon sweep</summary>
-        Beacon,
-        /// <summary>Shake animation - horizontal shake effect</summary>
-        Shake,
-        /// <summary>Wobble animation - wobbling rotation effect</summary>
-        Wobble,
-        /// <summary>Pop animation - pop in/out scale effect</summary>
-        Pop,
-        /// <summary>Flicker animation - random flickering effect</summary>
-        Flicker,
-        /// <summary>Breathe animation - slow breathing scale</summary>
-        Breathe,
-        /// <summary>Ring animation - expanding ring outline</summary>
-        Ring,
-        /// <summary>Flash animation - quick flash effect</summary>
-        Flash,
-        /// <summary>Swing animation - pendulum swing effect</summary>
-        Swing,
-        /// <summary>Jiggle animation - jiggling effect</summary>
-        Jiggle,
-        /// <summary>Throb animation - throbbing intensity effect</summary>
-        Throb,
-        /// <summary>Twinkle animation - star-like twinkling</summary>
-        Twinkle,
-        /// <summary>Splash animation - splash ripple effect</summary>
-        Splash
-    }
-
-    /// <summary>
     /// A status indicator control that displays a small colored dot to represent status.
     /// Includes accessibility support for screen readers via the AccessibleText attached property.
     /// </summary>
-    public class DaisyStatusIndicator : TemplatedControl, IScalableControl
+    public partial class DaisyStatusIndicator : TemplatedControl, IScalableControl
     {
         private const string DefaultAccessibleText = "Status";
 
@@ -134,6 +74,67 @@ namespace Flowery.Controls
         }
 
         /// <summary>
+        /// Defines the <see cref="BatteryChargePercent"/> property.
+        /// </summary>
+        public static readonly StyledProperty<int> BatteryChargePercentProperty =
+            AvaloniaProperty.Register<DaisyStatusIndicator, int>(nameof(BatteryChargePercent), 100,
+                coerce: CoerceBatteryChargePercent);
+
+        private static int CoerceBatteryChargePercent(AvaloniaObject obj, int value)
+        {
+            if (value < 0) return 0;
+            if (value > 100) return 100;
+            return value;
+        }
+
+        /// <summary>
+        /// Gets or sets the battery charge percentage (0-100). Only used when Variant is Battery.
+        /// </summary>
+        public int BatteryChargePercent
+        {
+            get => GetValue(BatteryChargePercentProperty);
+            set => SetValue(BatteryChargePercentProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="TrafficLightActive"/> property.
+        /// </summary>
+        public static readonly StyledProperty<DaisyTrafficLightState> TrafficLightActiveProperty =
+            AvaloniaProperty.Register<DaisyStatusIndicator, DaisyTrafficLightState>(nameof(TrafficLightActive), DaisyTrafficLightState.Green);
+
+        /// <summary>
+        /// Gets or sets the active traffic light state. Only used when Variant is TrafficLightVertical, TrafficLightHorizontal, or TrafficLightHorizontalReversed.
+        /// </summary>
+        public DaisyTrafficLightState TrafficLightActive
+        {
+            get => GetValue(TrafficLightActiveProperty);
+            set => SetValue(TrafficLightActiveProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="SignalStrength"/> property.
+        /// </summary>
+        public static readonly StyledProperty<int> SignalStrengthProperty =
+            AvaloniaProperty.Register<DaisyStatusIndicator, int>(nameof(SignalStrength), 3,
+                coerce: CoerceSignalStrength);
+
+        private static int CoerceSignalStrength(AvaloniaObject obj, int value)
+        {
+            if (value < 0) return 0;
+            if (value > 5) return 5;
+            return value;
+        }
+
+        /// <summary>
+        /// Gets or sets the signal strength (0-3 for WiFi, 0-5 for Cellular). Only used when Variant is WifiSignal or CellularSignal.
+        /// </summary>
+        public int SignalStrength
+        {
+            get => GetValue(SignalStrengthProperty);
+            set => SetValue(SignalStrengthProperty, value);
+        }
+
+        /// <summary>
         /// Gets or sets the accessible text announced by screen readers.
         /// When null (default), the text is automatically derived from the Color property.
         /// </summary>
@@ -181,11 +182,53 @@ namespace Flowery.Controls
             {
                 ApplyScaleFactor(FloweryScaleManager.GetScaleFactor(this));
             }
+
+            if (change.Property == VariantProperty ||
+                change.Property == BatteryChargePercentProperty ||
+                change.Property == TrafficLightActiveProperty ||
+                change.Property == SignalStrengthProperty)
+            {
+                UpdateAccessibleNameFromColor();
+            }
+
+            if (change.Property == VariantProperty)
+            {
+                UpdateGlyphVisuals();
+                OnVariantChanged();
+                UpdateOverlayEffects();
+            }
+
+            if (change.Property == BatteryChargePercentProperty)
+            {
+                OnBatteryChargePercentChanged();
+            }
         }
 
         internal string GetDefaultAccessibleText()
         {
-            // Color-specific text is also localizable
+            // Glyph variant-specific accessible text
+            return Variant switch
+            {
+                DaisyStatusIndicatorVariant.Battery =>
+                    string.Format(FloweryLocalization.GetStringInternal("Accessibility_BatteryPercent"), BatteryChargePercent),
+                DaisyStatusIndicatorVariant.TrafficLightVertical or DaisyStatusIndicatorVariant.TrafficLightHorizontal or DaisyStatusIndicatorVariant.TrafficLightHorizontalReversed =>
+                    TrafficLightActive switch
+                    {
+                        DaisyTrafficLightState.Green => FloweryLocalization.GetStringInternal("Accessibility_TrafficLightGreen"),
+                        DaisyTrafficLightState.Yellow => FloweryLocalization.GetStringInternal("Accessibility_TrafficLightYellow"),
+                        DaisyTrafficLightState.Red => FloweryLocalization.GetStringInternal("Accessibility_TrafficLightRed"),
+                        _ => FloweryLocalization.GetStringInternal("Accessibility_TrafficLight")
+                    },
+                DaisyStatusIndicatorVariant.WifiSignal =>
+                    string.Format(FloweryLocalization.GetStringInternal("Accessibility_WifiSignal"), SignalStrength, 3),
+                DaisyStatusIndicatorVariant.CellularSignal =>
+                    string.Format(FloweryLocalization.GetStringInternal("Accessibility_CellularSignal"), SignalStrength, 5),
+                _ => GetColorBasedAccessibleText()
+            };
+        }
+
+        private string GetColorBasedAccessibleText()
+        {
             return Color switch
             {
                 DaisyColor.Success => FloweryLocalization.GetStringInternal("Accessibility_StatusOnline"),

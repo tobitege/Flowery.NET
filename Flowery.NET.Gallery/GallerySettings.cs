@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using Flowery.Controls;
 
@@ -20,6 +21,20 @@ public static class GallerySettings
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Flowery.NET.Gallery",
         "size.txt");
+
+    private static readonly string WindowPlacementPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Flowery.NET.Gallery",
+        "window-placement.txt");
+
+    public sealed class WindowPlacement
+    {
+        public required int X { get; init; }
+        public required int Y { get; init; }
+        public required double Width { get; init; }
+        public required double Height { get; init; }
+        public required string WindowState { get; init; }
+    }
 
     public static string? Load()
     {
@@ -84,6 +99,62 @@ public static class GallerySettings
         {
             Directory.CreateDirectory(Path.GetDirectoryName(GlobalSizePath)!);
             File.WriteAllText(GlobalSizePath, size.ToString());
+        }
+        catch { /* ignore */ }
+    }
+
+    public static WindowPlacement? LoadWindowPlacement()
+    {
+        try
+        {
+            if (!File.Exists(WindowPlacementPath))
+                return null;
+
+            var lines = File.ReadAllLines(WindowPlacementPath);
+            if (lines.Length < 5)
+                return null;
+
+            if (!int.TryParse(lines[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var x))
+                return null;
+            if (!int.TryParse(lines[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var y))
+                return null;
+            if (!double.TryParse(lines[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var width))
+                return null;
+            if (!double.TryParse(lines[3], NumberStyles.Float, CultureInfo.InvariantCulture, out var height))
+                return null;
+
+            var state = lines[4].Trim();
+            if (string.IsNullOrWhiteSpace(state))
+                return null;
+
+            return new WindowPlacement
+            {
+                X = x,
+                Y = y,
+                Width = width,
+                Height = height,
+                WindowState = state
+            };
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public static void SaveWindowPlacement(WindowPlacement placement)
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(WindowPlacementPath)!);
+            File.WriteAllLines(WindowPlacementPath,
+            [
+                placement.X.ToString(CultureInfo.InvariantCulture),
+                placement.Y.ToString(CultureInfo.InvariantCulture),
+                placement.Width.ToString(CultureInfo.InvariantCulture),
+                placement.Height.ToString(CultureInfo.InvariantCulture),
+                placement.WindowState
+            ]);
         }
         catch { /* ignore */ }
     }

@@ -144,6 +144,12 @@
   "Sidebar_Cards": "卡片",
   "Sidebar_CardStack": "卡片堆叠",
   "Sidebar_Card": "卡片",
+  "Sidebar_PatternedCard": "图案卡片",
+  "Sidebar_GlassCard": "Glass Card",
+  "Sidebar_DaisyGlassSimulated": "DaisyGlass (Simulated Glass)",
+  "Sidebar_DaisyGlassBitmapCapture": "DaisyGlass (Bitmap Capture Mode)",
+  "Sidebar_DaisyGlassSkiaMatrix": "DaisyGlass (SkiaSharp Mode Matrix)",
+  "Sidebar_DaisyGlassFullWidth": "DaisyGlass (Full Width Example)",
   "Sidebar_DataDisplay": "数据展示",
   "Sidebar_Accordion": "手风琴",
   "Sidebar_AnimatedNumber": "动画数字",
@@ -208,6 +214,7 @@
   "Sidebar_Tabs": "选项卡",
   "Sidebar_Theming": "主题设置",
   "Sidebar_CSSThemeConverter": "CSS主题转换器",
+  "Sidebar_ProductThemes": "产品主题",
   "Sidebar_ThemeController": "主题控制器",
   "Sidebar_ThemeRadio": "主题单选",
   "Sidebar_Effects": "特效",
@@ -252,3 +259,4 @@
   "Showcase_ScrollReveal_Title": "滚动揭示",
   "Showcase_ScrollReveal_Desc": "当元素进入滚动视口时触发动画。"
 }
+

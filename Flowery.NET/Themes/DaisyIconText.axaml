@@ -1,0 +1,102 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="{DynamicResource DaisyBase100Brush}">
+            <StackPanel Spacing="10">
+                <controls:DaisyIconText Text="Text Only" Size="Medium" />
+                <controls:DaisyIconText IconData="M12 4v16m8-8H4" Text="Icon + Text" Size="Medium" />
+                <controls:DaisyIconText IconData="M12 4v16m8-8H4" Size="Large" />
+                <controls:DaisyIconText IconData="M12 4v16m8-8H4" Text="Right" IconPlacement="Right" />
+                <controls:DaisyIconText IconData="M12 4v16m8-8H4" Text="Top" IconPlacement="Top" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <ControlTheme x:Key="{x:Type controls:DaisyIconText}" TargetType="controls:DaisyIconText">
+        <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+
+        <Setter Property="Template">
+            <ControlTemplate>
+                <StackPanel x:Name="PART_Root"
+                            Orientation="{TemplateBinding EffectiveOrientation}"
+                            Spacing="{TemplateBinding EffectiveSpacing}"
+                            HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalAlignment}">
+
+                    <!-- Icon (shown first when IconFirst=true) -->
+                    <Viewbox x:Name="PART_IconViewbox"
+                             Width="{TemplateBinding EffectiveIconSize}"
+                             Height="{TemplateBinding EffectiveIconSize}"
+                             Stretch="Uniform"
+                             IsVisible="{TemplateBinding HasIcon}">
+                        <Path Data="{TemplateBinding IconData}"
+                              Fill="{TemplateBinding Foreground}"
+                              Stretch="Uniform" />
+                    </Viewbox>
+
+                    <!-- Text -->
+                    <TextBlock x:Name="PART_TextBlock"
+                               Text="{TemplateBinding Text}"
+                               FontSize="{TemplateBinding EffectiveFontSize}"
+                               FontWeight="{TemplateBinding FontWeight}"
+                               Foreground="{TemplateBinding Foreground}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               IsVisible="{TemplateBinding HasText}" />
+                </StackPanel>
+            </ControlTemplate>
+        </Setter>
+
+        <!-- Reorder for IconPlacement=Right or Bottom -->
+        <Style Selector="^[IconFirst=False] /template/ StackPanel#PART_Root">
+            <Style Selector="^ > Viewbox#PART_IconViewbox">
+                <Setter Property="DockPanel.Dock" Value="Right" />
+            </Style>
+        </Style>
+
+        <!-- Variant: Primary -->
+        <Style Selector="^[Variant=Primary]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryBrush}" />
+        </Style>
+
+        <!-- Variant: Secondary -->
+        <Style Selector="^[Variant=Secondary]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisySecondaryBrush}" />
+        </Style>
+
+        <!-- Variant: Accent -->
+        <Style Selector="^[Variant=Accent]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyAccentBrush}" />
+        </Style>
+
+        <!-- Variant: Neutral -->
+        <Style Selector="^[Variant=Neutral]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralBrush}" />
+        </Style>
+
+        <!-- Variant: Info -->
+        <Style Selector="^[Variant=Info]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyInfoBrush}" />
+        </Style>
+
+        <!-- Variant: Success -->
+        <Style Selector="^[Variant=Success]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisySuccessBrush}" />
+        </Style>
+
+        <!-- Variant: Warning -->
+        <Style Selector="^[Variant=Warning]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyWarningBrush}" />
+        </Style>
+
+        <!-- Variant: Error -->
+        <Style Selector="^[Variant=Error]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyErrorBrush}" />
+        </Style>
+
+    </ControlTheme>
+</ResourceDictionary>

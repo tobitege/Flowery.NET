@@ -144,6 +144,12 @@
   "Sidebar_Cards": "カード",
   "Sidebar_CardStack": "Card Stack",
   "Sidebar_Card": "Card",
+  "Sidebar_PatternedCard": "パターンカード",
+  "Sidebar_GlassCard": "Glass Card",
+  "Sidebar_DaisyGlassSimulated": "DaisyGlass (Simulated Glass)",
+  "Sidebar_DaisyGlassBitmapCapture": "DaisyGlass (Bitmap Capture Mode)",
+  "Sidebar_DaisyGlassSkiaMatrix": "DaisyGlass (SkiaSharp Mode Matrix)",
+  "Sidebar_DaisyGlassFullWidth": "DaisyGlass (Full Width Example)",
   "Sidebar_DataDisplay": "データ表示",
   "Sidebar_Accordion": "Accordion",
   "Sidebar_AnimatedNumber": "Animated Number",
@@ -208,6 +214,7 @@
   "Sidebar_Tabs": "Tabs",
   "Sidebar_Theming": "テーマ設定",
   "Sidebar_CSSThemeConverter": "CSS Theme Converter",
+  "Sidebar_ProductThemes": "製品テーマ",
   "Sidebar_ThemeController": "Theme Controller",
   "Sidebar_ThemeRadio": "Theme Radio",
   "Sidebar_Effects": "エフェクト",
@@ -252,3 +259,4 @@
   "Showcase_ScrollReveal_Title": "スクロール公開",
   "Showcase_ScrollReveal_Desc": "要素がスクロールビューに入ったときにアニメーションをトリガーします。"
 }
+

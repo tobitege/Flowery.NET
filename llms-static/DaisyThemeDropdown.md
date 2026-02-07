@@ -13,10 +13,23 @@ This control uses `DaisyThemeManager` internally, which works with Avalonia's `T
 - Each of the 35 built-in themes is mapped to either `Light` or `Dark` variant with its unique color palette
 - For custom themes beyond the built-in set, use `DaisyThemeLoader.ApplyThemeToApplication()` instead
 
+## Size Options
+
+DaisyThemeDropdown supports all standard Flowery.NET sizes:
+
+| Size | Height | Font Size | Use Case |
+| ---- | ------ | --------- | -------- |
+| ExtraSmall | 24 | 10 | Dense toolbars/sidebars. |
+| Small | 28 | 12 | Compact settings panels. |
+| Medium (default) | 32 | 14 | General usage. |
+| Large | 34 | 18 | Prominent settings. |
+| ExtraLarge | 36 | 20 | Hero sections/dashboards. |
+
 ## Properties & Behavior
 
 | Property | Description |
 | -------- | ----------- |
+| `Size` | `DaisySize` preset controlling height and font size (see table above). |
 | `SelectedTheme` | Name of the currently selected theme. Setting this applies the theme. |
 | ItemsSource | Auto-populated from `DaisyThemeManager.AvailableThemes` with preview brushes. |
 | Sync | Subscribes to `ThemeChanged` to update selection when themes change elsewhere. |

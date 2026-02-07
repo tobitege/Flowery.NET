@@ -144,6 +144,12 @@
   "Sidebar_Cards": "כרטיסים",
   "Sidebar_CardStack": "ערימת כרטיסים",
   "Sidebar_Card": "Card",
+  "Sidebar_PatternedCard": "כרטיס מעוטר",
+  "Sidebar_GlassCard": "Glass Card",
+  "Sidebar_DaisyGlassSimulated": "DaisyGlass (Simulated Glass)",
+  "Sidebar_DaisyGlassBitmapCapture": "DaisyGlass (Bitmap Capture Mode)",
+  "Sidebar_DaisyGlassSkiaMatrix": "DaisyGlass (SkiaSharp Mode Matrix)",
+  "Sidebar_DaisyGlassFullWidth": "DaisyGlass (Full Width Example)",
   "Sidebar_DataDisplay": "הצגת נתונים",
   "Sidebar_Accordion": "Accordion",
   "Sidebar_AnimatedNumber": "Animated Number",
@@ -208,6 +214,7 @@
   "Sidebar_Tabs": "Tabs",
   "Sidebar_Theming": "עיצוב",
   "Sidebar_CSSThemeConverter": "CSS Theme Converter",
+  "Sidebar_ProductThemes": "ערכות נושא מוצר",
   "Sidebar_ThemeController": "Theme Controller",
   "Sidebar_ThemeRadio": "Theme Radio",
   "Sidebar_Effects": "אפקטים",
@@ -252,3 +259,4 @@
   "Showcase_ScrollReveal_Title": "חשיפה בגלילה",
   "Showcase_ScrollReveal_Desc": "מפעיל אנימציות כאשר אלמנטים נכנסים לשטח הגלילה."
 }
+

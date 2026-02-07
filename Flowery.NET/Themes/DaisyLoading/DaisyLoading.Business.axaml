@@ -1,0 +1,717 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <!-- ==================== DOCUMENT FLIP ON ==================== -->
+    <!-- DocumentFlipOn - 3 stacked document pages with flip animation -->
+    <Style Selector="controls|DaisyLoading[Variant=DocumentFlipOn]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Grid Width="96" Height="96">
+                        <!-- Back page (offset) -->
+                        <Border Width="62" Height="76" Margin="6,6,0,0"
+                                Background="{TemplateBinding Foreground}" Opacity="0.15"
+                                CornerRadius="4" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                        <!-- Middle page (offset) -->
+                        <Border Classes="mid-page" Width="62" Height="76" Margin="3,3,0,0"
+                                Background="{TemplateBinding Foreground}" Opacity="0.35"
+                                CornerRadius="4" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                        <!-- Front page with lines -->
+                        <Border Classes="front-page" Width="62" Height="76"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                Background="{DynamicResource DaisyBase100Brush}"
+                                CornerRadius="4" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                RenderTransformOrigin="0,0.5">
+                            <StackPanel Spacing="6" Margin="10,14,10,10">
+                                <Border Height="3" Background="{TemplateBinding Foreground}" Opacity="0.5" CornerRadius="1"/>
+                                <Border Height="3" Background="{TemplateBinding Foreground}" Opacity="0.25" CornerRadius="1"/>
+                                <Border Height="3" Background="{TemplateBinding Foreground}" Opacity="0.25" CornerRadius="1"/>
+                                <Border Height="3" Background="{TemplateBinding Foreground}" Opacity="0.25" CornerRadius="1"/>
+                                <Border Height="3" Background="{TemplateBinding Foreground}" Opacity="0.25" CornerRadius="1"/>
+                                <Border Height="3" Background="{TemplateBinding Foreground}" Opacity="0.25" CornerRadius="1"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=DocumentFlipOn] /template/ Border.front-page">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="-30"/>
+                    <Setter Property="TranslateTransform.Y" Value="-30"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="TranslateTransform.X" Value="3"/>
+                    <Setter Property="TranslateTransform.Y" Value="3"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=DocumentFlipOn] /template/ Border.mid-page">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.35"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="0.55"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.55"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.35"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ==================== DOCUMENT FLIP OFF ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=DocumentFlipOff]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Grid Width="96" Height="96">
+                        <Border Width="62" Height="76" Margin="6,6,0,0"
+                                Background="{TemplateBinding Foreground}" Opacity="0.15"
+                                CornerRadius="4" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                        <Border Classes="mid-page-off" Width="62" Height="76" Margin="3,3,0,0"
+                                Background="{TemplateBinding Foreground}" Opacity="0.35"
+                                CornerRadius="4" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                        <Border Classes="front-page-off" Width="62" Height="76"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                Background="{DynamicResource DaisyBase100Brush}"
+                                CornerRadius="4" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                RenderTransformOrigin="0,0.5">
+                            <StackPanel Spacing="6" Margin="10,14,10,10">
+                                <Border Height="3" Background="{TemplateBinding Foreground}" Opacity="0.5" CornerRadius="1"/>
+                                <Border Height="3" Background="{TemplateBinding Foreground}" Opacity="0.25" CornerRadius="1"/>
+                                <Border Height="3" Background="{TemplateBinding Foreground}" Opacity="0.25" CornerRadius="1"/>
+                                <Border Height="3" Background="{TemplateBinding Foreground}" Opacity="0.25" CornerRadius="1"/>
+                                <Border Height="3" Background="{TemplateBinding Foreground}" Opacity="0.25" CornerRadius="1"/>
+                                <Border Height="3" Background="{TemplateBinding Foreground}" Opacity="0.25" CornerRadius="1"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=DocumentFlipOff] /template/ Border.front-page-off">
+        <Style.Animations>
+            <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="3"/>
+                    <Setter Property="TranslateTransform.Y" Value="3"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="TranslateTransform.X" Value="30"/>
+                    <Setter Property="TranslateTransform.Y" Value="-30"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ==================== MAIL SEND ==================== -->
+    <!-- MailSend - Paper sliding into envelope -->
+    <Style Selector="controls|DaisyLoading[Variant=MailSend]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96" ClipToBounds="True">
+                        <!-- Paper (slides down into envelope) -->
+                        <Border Classes="paper" Width="58" Height="40" Canvas.Left="19" Canvas.Top="6"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                CornerRadius="3" Background="Transparent">
+                            <StackPanel Spacing="3" Margin="6,8,6,6">
+                                <Border Height="2" Background="{TemplateBinding Foreground}" Opacity="0.5"/>
+                                <Border Height="2" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                                <Border Height="2" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                                <Border Height="2" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                            </StackPanel>
+                        </Border>
+                        <!-- Envelope back -->
+                        <Border Width="70" Height="44" Canvas.Left="13" Canvas.Top="50"
+                                Background="{DynamicResource DaisyBase100Brush}" CornerRadius="6"/>
+                        <!-- Envelope border -->
+                        <Border Width="70" Height="44" Canvas.Left="13" Canvas.Top="50"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                CornerRadius="6" Background="Transparent"/>
+                        <!-- Envelope flap -->
+                        <Path Fill="{TemplateBinding Foreground}" Opacity="0.35"
+                              Data="M15,54 L48,75 L81,54"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=MailSend] /template/ Border.paper">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8"><Setter Property="TranslateTransform.Y" Value="46"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.4"><Setter Property="TranslateTransform.Y" Value="46"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:2"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ==================== CLOUD UPLOAD ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=CloudUpload]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Grid Width="96" Height="96">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <!-- Cloud -->
+                        <Path Grid.Row="0" Fill="{TemplateBinding Foreground}" Opacity="0.65"
+                              Stretch="Uniform" Width="44" Height="28"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Data="M19.35,10.04 C18.67,6.59 15.64,4 12,4 C9.11,4 6.6,5.64 5.35,8.04 C2.34,8.36 0,10.91 0,14 C0,17.31 2.69,20 6,20 L19,20 C21.76,20 24,17.76 24,15 C24,12.36 21.95,10.22 19.35,10.04 Z"/>
+                        <!-- Upload arrow -->
+                        <Path Classes="upload-arrow" Grid.Row="1" Stroke="{TemplateBinding Foreground}"
+                              StrokeThickness="3" StrokeLineCap="Round" StrokeJoin="Round"
+                              Stretch="Uniform" Width="27" Height="27"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Data="M12,19 L12,7 M7,12 L12,7 L17,12"/>
+                    </Grid>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=CloudUpload] /template/ Path.upload-arrow">
+        <Style.Animations>
+            <Animation Duration="0:0:1.4" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.Y" Value="10"/>
+                    <Setter Property="Opacity" Value="0.3"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.7">
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.4">
+                    <Setter Property="TranslateTransform.Y" Value="10"/>
+                    <Setter Property="Opacity" Value="0.3"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ==================== CLOUD DOWNLOAD ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=CloudDownload]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Grid Width="96" Height="96">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <!-- Cloud -->
+                        <Path Grid.Row="0" Fill="{TemplateBinding Foreground}" Opacity="0.65"
+                              Stretch="Uniform" Width="44" Height="28"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Data="M19.35,10.04 C18.67,6.59 15.64,4 12,4 C9.11,4 6.6,5.64 5.35,8.04 C2.34,8.36 0,10.91 0,14 C0,17.31 2.69,20 6,20 L19,20 C21.76,20 24,17.76 24,15 C24,12.36 21.95,10.22 19.35,10.04 Z"/>
+                        <!-- Download arrow -->
+                        <Path Classes="download-arrow" Grid.Row="1" Stroke="{TemplateBinding Foreground}"
+                              StrokeThickness="3" StrokeLineCap="Round" StrokeJoin="Round"
+                              Stretch="Uniform" Width="27" Height="27"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Data="M12,5 L12,17 M7,12 L12,17 L17,12"/>
+                    </Grid>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=CloudDownload] /template/ Path.download-arrow">
+        <Style.Animations>
+            <Animation Duration="0:0:1.4" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.Y" Value="-10"/>
+                    <Setter Property="Opacity" Value="0.3"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.7">
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.4">
+                    <Setter Property="TranslateTransform.Y" Value="-10"/>
+                    <Setter Property="Opacity" Value="0.3"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ==================== DOCUMENT STAMP (OK) ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=DocumentStamp]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96">
+                        <!-- Document -->
+                        <Border Width="60" Height="76" Canvas.Left="18" Canvas.Top="10"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                CornerRadius="4" Background="Transparent">
+                            <StackPanel Spacing="6" Margin="6,8,6,8">
+                                <Border Height="4" Background="{TemplateBinding Foreground}" Opacity="0.3" CornerRadius="2"/>
+                                <Border Height="4" Background="{TemplateBinding Foreground}" Opacity="0.3" CornerRadius="2"/>
+                                <Border Height="4" Background="{TemplateBinding Foreground}" Opacity="0.3" CornerRadius="2"/>
+                                <Border Height="4" Width="24" Background="{TemplateBinding Foreground}" Opacity="0.3" CornerRadius="2" HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+                        <!-- OK Stamp -->
+                        <Border Classes="stamp" Width="40" Height="40" Canvas.Left="34" Canvas.Top="44"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="4"
+                                CornerRadius="20" Background="Transparent"
+                                RenderTransformOrigin="0.5,0.5">
+                            <TextBlock Text="OK" FontWeight="Bold" FontSize="18"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=DocumentStamp] /template/ Border.stamp">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="2.5"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="2.5"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2">
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3">
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.9"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.9"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.8">
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="ScaleTransform.ScaleX" Value="2.5"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="2.5"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ==================== DOCUMENT REJECT (X) ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=DocumentReject]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96">
+                        <!-- Document -->
+                        <Border Width="60" Height="76" Canvas.Left="18" Canvas.Top="10"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                CornerRadius="4" Background="Transparent">
+                            <StackPanel Spacing="6" Margin="6,8,6,8">
+                                <Border Height="4" Background="{TemplateBinding Foreground}" Opacity="0.3" CornerRadius="2"/>
+                                <Border Height="4" Background="{TemplateBinding Foreground}" Opacity="0.3" CornerRadius="2"/>
+                                <Border Height="4" Background="{TemplateBinding Foreground}" Opacity="0.3" CornerRadius="2"/>
+                                <Border Height="4" Width="24" Background="{TemplateBinding Foreground}" Opacity="0.3" CornerRadius="2" HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+                        <!-- X Stamp -->
+                        <Border Classes="reject-stamp" Width="40" Height="40" Canvas.Left="34" Canvas.Top="44"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="4"
+                                CornerRadius="20" Background="Transparent"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Path Width="18" Height="18" Stretch="Uniform"
+                                  Stroke="{TemplateBinding Foreground}" StrokeThickness="4"
+                                  StrokeLineCap="Round" Data="M0,0 L18,18 M18,0 L0,18"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=DocumentReject] /template/ Border.reject-stamp">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="2.5"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="2.5"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2">
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3">
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.9"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.9"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.8">
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="ScaleTransform.ScaleX" Value="2.5"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="2.5"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ==================== CHART PULSE ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=ChartPulse]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96">
+                        <!-- 5 bars with different heights -->
+                        <Border Classes="bar1" Width="10" Height="21" Canvas.Left="8" Canvas.Top="51"
+                                Background="{TemplateBinding Foreground}" CornerRadius="5,5,0,0"
+                                RenderTransformOrigin="0.5,1"/>
+                        <Border Classes="bar2" Width="10" Height="37" Canvas.Left="24" Canvas.Top="35"
+                                Background="{TemplateBinding Foreground}" CornerRadius="5,5,0,0"
+                                RenderTransformOrigin="0.5,1"/>
+                        <Border Classes="bar3" Width="10" Height="27" Canvas.Left="40" Canvas.Top="45"
+                                Background="{TemplateBinding Foreground}" CornerRadius="5,5,0,0"
+                                RenderTransformOrigin="0.5,1"/>
+                        <Border Classes="bar4" Width="10" Height="48" Canvas.Left="56" Canvas.Top="24"
+                                Background="{TemplateBinding Foreground}" CornerRadius="5,5,0,0"
+                                RenderTransformOrigin="0.5,1"/>
+                        <Border Classes="bar5" Width="10" Height="32" Canvas.Left="72" Canvas.Top="40"
+                                Background="{TemplateBinding Foreground}" CornerRadius="5,5,0,0"
+                                RenderTransformOrigin="0.5,1"/>
+                        <!-- Sweep line -->
+                        <Border Classes="sweep" Width="3" Height="60" Canvas.Left="0" Canvas.Top="16"
+                                Background="{TemplateBinding Foreground}" Opacity="0.5" CornerRadius="1.5"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar1">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar2">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.15">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar3">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.3">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar4">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.45">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar5">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.6">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.sweep">
+        <Style.Animations>
+            <Animation Duration="0:0:2.4" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="TranslateTransform.X" Value="96"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.22"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:2.4"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ==================== CALENDAR TICK ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=CalendarTick]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96">
+                        <!-- Calendar body -->
+                        <Border Width="64" Height="72" Canvas.Left="16" Canvas.Top="20"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                CornerRadius="6" Background="Transparent"/>
+                        <!-- Calendar header -->
+                        <Border Width="64" Height="16" Canvas.Left="16" Canvas.Top="20"
+                                Background="{TemplateBinding Foreground}" Opacity="0.3"
+                                CornerRadius="6,6,0,0"/>
+                        <!-- Calendar rings -->
+                        <Border Width="4" Height="10" Canvas.Left="28" Canvas.Top="16"
+                                Background="{TemplateBinding Foreground}" CornerRadius="2"/>
+                        <Border Width="4" Height="10" Canvas.Left="60" Canvas.Top="16"
+                                Background="{TemplateBinding Foreground}" CornerRadius="2"/>
+                        <!-- Checkmark -->
+                        <Path Classes="checkmark" Stroke="{TemplateBinding Foreground}" StrokeThickness="4"
+                              StrokeLineCap="Round" StrokeJoin="Round"
+                              Data="M28,60 L40,72 L68,44" Opacity="0"
+                              RenderTransformOrigin="0.5,0.5"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=CalendarTick] /template/ Path.checkmark">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="ScaleTransform.ScaleX" Value="0"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="0"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.2">
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.2"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.2"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.8">
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2">
+                    <Setter Property="ScaleTransform.ScaleX" Value="0"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="0"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ==================== APPROVAL FLOW ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=ApprovalFlow]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96">
+                        <!-- Flow lines -->
+                        <Border Width="20" Height="2" Canvas.Left="26" Canvas.Top="47"
+                                Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                        <Border Width="20" Height="2" Canvas.Left="50" Canvas.Top="47"
+                                Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                        <!-- Node circles -->
+                        <Ellipse Width="20" Height="20" Canvas.Left="8" Canvas.Top="38"
+                                 Stroke="{TemplateBinding Foreground}" StrokeThickness="2"/>
+                        <Ellipse Width="20" Height="20" Canvas.Left="38" Canvas.Top="38"
+                                 Stroke="{TemplateBinding Foreground}" StrokeThickness="2"/>
+                        <Ellipse Width="20" Height="20" Canvas.Left="68" Canvas.Top="38"
+                                 Stroke="{TemplateBinding Foreground}" StrokeThickness="2"/>
+                        <!-- Inner dots -->
+                        <Ellipse Classes="dot1" Width="8" Height="8" Canvas.Left="14" Canvas.Top="44"
+                                 Fill="{TemplateBinding Foreground}" Opacity="0.2"
+                                 RenderTransformOrigin="0.5,0.5"/>
+                        <Ellipse Classes="dot2" Width="8" Height="8" Canvas.Left="44" Canvas.Top="44"
+                                 Fill="{TemplateBinding Foreground}" Opacity="0.2"
+                                 RenderTransformOrigin="0.5,0.5"/>
+                        <Ellipse Classes="dot3" Width="8" Height="8" Canvas.Left="74" Canvas.Top="44"
+                                 Fill="{TemplateBinding Foreground}" Opacity="0.2"
+                                 RenderTransformOrigin="0.5,0.5"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=ApprovalFlow] /template/ Ellipse.dot1">
+        <Style.Animations>
+            <Animation Duration="0:0:2.4" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="Opacity" Value="0.2"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.32">
+                    <Setter Property="Opacity" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.3"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.3"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8">
+                    <Setter Property="Opacity" Value="0.5"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2.4">
+                    <Setter Property="Opacity" Value="0.2"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=ApprovalFlow] /template/ Ellipse.dot2">
+        <Style.Animations>
+            <Animation Duration="0:0:2.4" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0.8">
+                    <Setter Property="Opacity" Value="0.2"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.12">
+                    <Setter Property="Opacity" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.3"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.3"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="Opacity" Value="0.5"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2.4">
+                    <Setter Property="Opacity" Value="0.2"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=ApprovalFlow] /template/ Ellipse.dot3">
+        <Style.Animations>
+            <Animation Duration="0:0:2.4" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="Opacity" Value="0.2"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.92">
+                    <Setter Property="Opacity" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="1.3"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1.3"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:2.4">
+                    <Setter Property="Opacity" Value="0.5"/>
+                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ==================== BRIEFCASE SPIN ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=BriefcaseSpin]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Classes="briefcase-group" Width="96" Height="96" RenderTransformOrigin="0.5,0.5">
+                        <!-- Briefcase body -->
+                        <Border Width="60" Height="44" Canvas.Left="18" Canvas.Top="38"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2.5"
+                                CornerRadius="6" Background="Transparent"/>
+                        <!-- Handle -->
+                        <Border Width="24" Height="12" Canvas.Left="36" Canvas.Top="28"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2.5,2.5,2.5,0"
+                                CornerRadius="4,4,0,0" Background="Transparent"/>
+                        <!-- Latch -->
+                        <Border Classes="latch" Width="16" Height="8" Canvas.Left="40" Canvas.Top="56"
+                                Background="{TemplateBinding Foreground}" Opacity="0.6" CornerRadius="2"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=BriefcaseSpin] /template/ Canvas.briefcase-group">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="RotateTransform.Angle" Value="-5"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.3">
+                    <Setter Property="RotateTransform.Angle" Value="5"/>
+                    <Setter Property="TranslateTransform.Y" Value="-4"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6">
+                    <Setter Property="RotateTransform.Angle" Value="-5"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.9">
+                    <Setter Property="RotateTransform.Angle" Value="5"/>
+                    <Setter Property="TranslateTransform.Y" Value="-4"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2">
+                    <Setter Property="RotateTransform.Angle" Value="-5"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=BriefcaseSpin] /template/ Border.latch">
+        <Style.Animations>
+            <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+</Styles>

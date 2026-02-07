@@ -48,6 +48,29 @@
                     <controls:DaisyLoading Variant="CursorBlink" />
                     <controls:DaisyLoading Variant="CountdownSpinner" />
                 </StackPanel>
+                <TextBlock Text="Business Variants" FontWeight="SemiBold" Foreground="White"/>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyLoading Variant="DocumentFlipOn" />
+                    <controls:DaisyLoading Variant="DocumentFlipOff" />
+                    <controls:DaisyLoading Variant="MailSend" />
+                    <controls:DaisyLoading Variant="CloudUpload" />
+                    <controls:DaisyLoading Variant="CloudDownload" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyLoading Variant="DocumentStamp" />
+                    <controls:DaisyLoading Variant="DocumentReject" />
+                    <controls:DaisyLoading Variant="ChartPulse" />
+                    <controls:DaisyLoading Variant="CalendarTick" />
+                    <controls:DaisyLoading Variant="ApprovalFlow" />
+                    <controls:DaisyLoading Variant="BriefcaseSpin" />
+                </StackPanel>
+                <TextBlock Text="Win95 Retro Variants" FontWeight="SemiBold" Foreground="White"/>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyLoading Variant="Win95FileCopy" />
+                    <controls:DaisyLoading Variant="Win95Delete" />
+                    <controls:DaisyLoading Variant="Win95Search" />
+                    <controls:DaisyLoading Variant="Win95EmptyRecycle" />
+                </StackPanel>
                 <TextBlock Text="Sizes" FontWeight="SemiBold" Foreground="White"/>
                 <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
                     <controls:DaisyLoading Variant="Spinner" Size="ExtraSmall" />
@@ -85,5 +108,7 @@
     <StyleInclude Source="/Themes/DaisyLoading/DaisyLoading.Matrix.axaml" />
     <StyleInclude Source="/Themes/DaisyLoading/DaisyLoading.Dots.axaml" />
     <StyleInclude Source="/Themes/DaisyLoading/DaisyLoading.Special.axaml" />
+    <StyleInclude Source="/Themes/DaisyLoading/DaisyLoading.Business.axaml" />
+    <StyleInclude Source="/Themes/DaisyLoading/DaisyLoading.Win95.axaml" />
 
 </Styles>

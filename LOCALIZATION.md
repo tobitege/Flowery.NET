@@ -401,13 +401,139 @@ python "Utils/sync_resx_keys.py" "Flowery.NET/Localization/FloweryStrings.resx" 
 
 ## Available Resource Keys
 
+The library provides localized strings for control text, accessibility labels, and theme names. Below is the complete list of keys available in each language JSON file.
+
+### Select
+
 | Key | English (Default) | Description |
 | --- | ----------------- | ----------- |
 | `Select_Placeholder` | Pick one | DaisySelect default placeholder |
-| `Theme_*` | Theme names | Localized display names for all 35 themes |
+
+### Clock/Time
+
+| Key | English (Default) | Description |
+| --- | ----------------- | ----------- |
+| `Clock_Hour` | hour | Singular hour label |
+| `Clock_Hours` | hours | Plural hours label |
+| `Clock_Hours_Short` | h | Abbreviated hours |
+| `Clock_Minute` | minute | Singular minute label |
+| `Clock_Minutes` | minutes | Plural minutes label |
+| `Clock_Minutes_Short` | m | Abbreviated minutes |
+| `Clock_Second` | second | Singular second label |
+| `Clock_Seconds` | seconds | Plural seconds label |
+| `Clock_Seconds_Short` | s | Abbreviated seconds |
+| `Clock_AM` | AM | Morning indicator |
+| `Clock_PM` | PM | Afternoon indicator |
+
+### Size Labels
+
+| Key | English (Default) | Description |
+| --- | ----------------- | ----------- |
+| `Size_ExtraSmall` | Extra Small | XS size label |
+| `Size_Small` | Small | S size label |
+| `Size_Medium` | Medium | M size label |
+| `Size_Large` | Large | L size label |
+| `Size_ExtraLarge` | Extra Large | XL size label |
+
+### Masked Input Watermarks
+
+| Key | English (Default) | Description |
+| --- | ----------------- | ----------- |
+| `MaskInput_Watermark_AlphaNumericCode` | AB12 CDE | Alphanumeric code placeholder |
+| `MaskInput_Watermark_Timer` | 00:00:00 | Timer format placeholder |
+| `MaskInput_Watermark_ExpiryShort` | MM/YY | Short expiry date format |
+| `MaskInput_Watermark_ExpiryLong` | MM/YYYY | Long expiry date format |
+| `MaskInput_Watermark_CreditCardNumber` | Card number | Credit card number placeholder |
+| `MaskInput_Watermark_Cvc` | CVC | Card verification code placeholder |
+
+### Accessibility Labels
+
+| Key | English (Default) | Description |
+| --- | ----------------- | ----------- |
 | `Accessibility_Loading` | Loading | DaisyLoading accessible text |
 | `Accessibility_Progress` | Progress | DaisyProgress accessible text |
 | `Accessibility_Rating` | Rating | DaisyRating accessible text |
+| `Accessibility_LoadingPlaceholder` | Loading placeholder | Skeleton loading state |
+| `Accessibility_Status` | Status | Status indicator label |
+| `Accessibility_StatusOnline` | Online | Online status |
+| `Accessibility_StatusError` | Error | Error status |
+| `Accessibility_StatusWarning` | Warning | Warning status |
+| `Accessibility_StatusInfo` | Information | Info status |
+| `Accessibility_StatusActive` | Active | Active status |
+| `Accessibility_StatusSecondary` | Secondary | Secondary status |
+| `Accessibility_StatusHighlighted` | Highlighted | Highlighted status |
+| `Accessibility_BatteryPercent` | Battery at {0} percent | Battery level (format string) |
+| `Accessibility_TrafficLight` | Traffic light | Traffic light indicator |
+| `Accessibility_TrafficLightGreen` | Green light - Go | Green traffic light |
+| `Accessibility_TrafficLightYellow` | Yellow light - Caution | Yellow traffic light |
+| `Accessibility_TrafficLightRed` | Red light - Stop | Red traffic light |
+| `Accessibility_WifiSignal` | WiFi signal {0} of {1} bars | WiFi strength (format string) |
+| `Accessibility_CellularSignal` | Cellular signal {0} of {1} bars | Cell signal (format string) |
+| `Accessibility_Countdown` | Countdown | Countdown timer |
+
+### Tabs
+
+| Key | English (Default) | Description |
+| --- | ----------------- | ----------- |
+| `Tabs_CloseTab` | Close Tab | Close single tab action |
+| `Tabs_CloseOtherTabs` | Close Other Tabs | Close all other tabs |
+| `Tabs_CloseTabsToRight` | Close Tabs to the Right | Close tabs to right |
+| `Tabs_TabColor` | Tab Color | Tab color picker label |
+| `Tabs_Palette_Default` | Default | Default palette option |
+| `Tabs_Palette_Purple` | Purple | Purple palette option |
+| `Tabs_Palette_Indigo` | Indigo | Indigo palette option |
+| `Tabs_Palette_Pink` | Pink | Pink palette option |
+| `Tabs_Palette_SkyBlue` | Sky Blue | Sky Blue palette option |
+| `Tabs_Palette_Blue` | Blue | Blue palette option |
+| `Tabs_Palette_Lime` | Lime | Lime palette option |
+| `Tabs_Palette_Green` | Green | Green palette option |
+| `Tabs_Palette_Yellow` | Yellow | Yellow palette option |
+| `Tabs_Palette_Orange` | Orange | Orange palette option |
+| `Tabs_Palette_Red` | Red | Red palette option |
+| `Tabs_Palette_Gray` | Gray | Gray palette option |
+
+### Theme Names (35 themes)
+
+All theme names follow the pattern `Theme_{ThemeName}`:
+
+| Key | English (Default) |
+| --- | ----------------- |
+| `Theme_Abyss` | Abyss |
+| `Theme_Acid` | Acid |
+| `Theme_Aqua` | Aqua |
+| `Theme_Autumn` | Autumn |
+| `Theme_Black` | Black |
+| `Theme_Bumblebee` | Bumblebee |
+| `Theme_Business` | Business |
+| `Theme_Caramellatte` | Caramel Latte |
+| `Theme_Cmyk` | CMYK |
+| `Theme_Coffee` | Coffee |
+| `Theme_Corporate` | Corporate |
+| `Theme_Cupcake` | Cupcake |
+| `Theme_Cyberpunk` | Cyberpunk |
+| `Theme_Dark` | Dark |
+| `Theme_Dim` | Dim |
+| `Theme_Dracula` | Dracula |
+| `Theme_Emerald` | Emerald |
+| `Theme_Fantasy` | Fantasy |
+| `Theme_Forest` | Forest |
+| `Theme_Garden` | Garden |
+| `Theme_Halloween` | Halloween |
+| `Theme_Lemonade` | Lemonade |
+| `Theme_Light` | Light |
+| `Theme_Lofi` | Lo-Fi |
+| `Theme_Luxury` | Luxury |
+| `Theme_Night` | Night |
+| `Theme_Nord` | Nord |
+| `Theme_Pastel` | Pastel |
+| `Theme_Retro` | Retro |
+| `Theme_Silk` | Silk |
+| `Theme_Smooth` | Smooth |
+| `Theme_Sunset` | Sunset |
+| `Theme_Synthwave` | Synthwave |
+| `Theme_Valentine` | Valentine |
+| `Theme_Winter` | Winter |
+| `Theme_Wireframe` | Wireframe |
 
 ---
 

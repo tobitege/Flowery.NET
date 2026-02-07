@@ -73,6 +73,15 @@ public partial class NavigationExamples : UserControl, IScrollableExample
         }
     }
 
+    private void OnPaginationPageChanged(object? sender, int page)
+    {
+        _ = sender;
+
+        var statusText = this.FindControl<TextBlock>("PaginationStatusText");
+        if (statusText != null)
+            statusText.Text = $"Current page: {page}";
+    }
+
     private void ShowToast(string message)
     {
         var toast = this.FindControl<DaisyToast>("NavigationToast");

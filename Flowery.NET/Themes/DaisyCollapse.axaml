@@ -21,7 +21,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeMediumCornerRadius}" />
-        <Setter Property="Padding" Value="{DynamicResource DaisyCardSmallPadding}" />
+        <Setter Property="Padding" Value="{DynamicResource DaisyCollapseMediumPadding}" />
         <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
         <Setter Property="MinHeight" Value="{DynamicResource DaisySizeLargeHeight}" />
 
@@ -74,6 +74,12 @@
                                                    StrokeThickness="2"
                                                    Stretch="None" />
                                          </Grid>
+
+                                         <!-- Optional underline (used by consumers via BorderBrush) -->
+                                         <Border Grid.ColumnSpan="2"
+                                                 Height="1"
+                                                 VerticalAlignment="Bottom"
+                                                 Background="{TemplateBinding BorderBrush}" />
                                      </Grid>
                                  </ControlTemplate>
                              </ToggleButton.Template>
@@ -122,26 +128,26 @@
         <!-- Sizes -->
         <Style Selector="^[Size=ExtraSmall]">
             <Setter Property="MinHeight" Value="{DynamicResource DaisySizeExtraSmallHeight}" />
-            <Setter Property="Padding" Value="{DynamicResource DaisyCardCompactPadding}" />
+            <Setter Property="Padding" Value="{DynamicResource DaisyCollapseExtraSmallPadding}" />
             <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
             <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraSmallCornerRadius}" />
         </Style>
         <Style Selector="^[Size=Small]">
             <Setter Property="MinHeight" Value="{DynamicResource DaisySizeSmallHeight}" />
-            <Setter Property="Padding" Value="{DynamicResource DaisyCardCompactPadding}" />
+            <Setter Property="Padding" Value="{DynamicResource DaisyCollapseSmallPadding}" />
             <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
             <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
         </Style>
         <!-- Medium is the default, no override needed -->
         <Style Selector="^[Size=Large]">
             <Setter Property="MinHeight" Value="{DynamicResource DaisySizeLargeHeight}" />
-            <Setter Property="Padding" Value="{DynamicResource DaisyCardMediumPadding}" />
+            <Setter Property="Padding" Value="{DynamicResource DaisyCollapseLargePadding}" />
             <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
             <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeLargeCornerRadius}" />
         </Style>
         <Style Selector="^[Size=ExtraLarge]">
             <Setter Property="MinHeight" Value="{DynamicResource DaisySizeExtraLargeHeight}" />
-            <Setter Property="Padding" Value="{DynamicResource DaisyCardLargePadding}" />
+            <Setter Property="Padding" Value="{DynamicResource DaisyCollapseExtraLargePadding}" />
             <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
             <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraLargeCornerRadius}" />
         </Style>

@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.VisualTree;
 using Flowery.Services;
 
@@ -13,6 +14,7 @@ namespace Flowery.Controls
     public enum FabLayout
     {
         Vertical,
+        Horizontal,
         Flower
     }
 
@@ -47,6 +49,12 @@ namespace Flowery.Controls
 
         public static readonly StyledProperty<bool> AutoCloseProperty =
             AvaloniaProperty.Register<DaisyFab, bool>(nameof(AutoClose), true);
+
+        public static readonly StyledProperty<string?> TriggerIconDataProperty =
+            AvaloniaProperty.Register<DaisyFab, string?>(nameof(TriggerIconData));
+
+        public static readonly StyledProperty<double> TriggerIconSizeProperty =
+            AvaloniaProperty.Register<DaisyFab, double>(nameof(TriggerIconSize), double.NaN);
 
         public FabLayout Layout
         {
@@ -87,12 +95,22 @@ namespace Flowery.Controls
             set => SetValue(AutoCloseProperty, value);
         }
 
+        public string? TriggerIconData
+        {
+            get => GetValue(TriggerIconDataProperty);
+            set => SetValue(TriggerIconDataProperty, value);
+        }
+
+        public double TriggerIconSize
+        {
+            get => GetValue(TriggerIconSizeProperty);
+            set => SetValue(TriggerIconSizeProperty, value);
+        }
+
         private DaisyButton? _triggerButton;
 
         public DaisyFab()
         {
-            HorizontalAlignment = HorizontalAlignment.Right;
-            VerticalAlignment = VerticalAlignment.Bottom;
         }
 
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -160,6 +178,8 @@ namespace Flowery.Controls
 
             if (change.Property == TriggerVariantProperty ||
                 change.Property == TriggerContentProperty ||
+                change.Property == TriggerIconDataProperty ||
+                change.Property == TriggerIconSizeProperty ||
                 change.Property == SizeProperty)
             {
                 UpdateTriggerButton();
@@ -172,15 +192,12 @@ namespace Flowery.Controls
 
             _triggerButton = new DaisyButton
             {
-                Shape = DaisyButtonShape.Circle,
-                Size = Size,
-                Variant = TriggerVariant,
-                Content = TriggerContent,
-                HorizontalAlignment = HorizontalAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Bottom
+                Shape = DaisyButtonShape.Circle
             };
             _triggerButton.Classes.Add("fab-trigger");
             _triggerButton.Click += OnTriggerClick;
+
+            UpdateTriggerButton();
 
             Children.Add(_triggerButton);
         }
@@ -190,7 +207,20 @@ namespace Flowery.Controls
             if (_triggerButton == null) return;
             _triggerButton.Size = Size;
             _triggerButton.Variant = TriggerVariant;
-            _triggerButton.Content = TriggerContent;
+
+            if (!string.IsNullOrEmpty(TriggerIconData))
+            {
+                _triggerButton.Content = new PathIcon
+                {
+                    Data = StreamGeometry.Parse(TriggerIconData!),
+                    Width = double.IsNaN(TriggerIconSize) ? double.NaN : TriggerIconSize,
+                    Height = double.IsNaN(TriggerIconSize) ? double.NaN : TriggerIconSize
+                };
+            }
+            else
+            {
+                _triggerButton.Content = TriggerContent;
+            }
         }
 
         private void OnTriggerClick(object? sender, RoutedEventArgs e)

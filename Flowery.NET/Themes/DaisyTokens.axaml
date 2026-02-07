@@ -18,20 +18,20 @@
     <!-- ==================== CONTROL HEIGHTS ==================== -->
     <!-- Used for buttons, inputs, and other fixed-height controls -->
     <!-- Heights scale modestly to accommodate font size changes -->
-    <sys:Double x:Key="DaisySizeExtraLargeHeight">48</sys:Double>
-    <sys:Double x:Key="DaisySizeLargeHeight">48</sys:Double>
-    <sys:Double x:Key="DaisySizeMediumHeight">40</sys:Double>
-    <sys:Double x:Key="DaisySizeSmallHeight">32</sys:Double>
+    <sys:Double x:Key="DaisySizeExtraLargeHeight">36</sys:Double>
+    <sys:Double x:Key="DaisySizeLargeHeight">34</sys:Double>
+    <sys:Double x:Key="DaisySizeMediumHeight">32</sys:Double>
+    <sys:Double x:Key="DaisySizeSmallHeight">28</sys:Double>
     <sys:Double x:Key="DaisySizeExtraSmallHeight">24</sys:Double>
 
     <!-- ==================== FLOATING INPUT HEIGHTS ==================== -->
     <!-- Specific heights for DaisyInput with LabelPosition="Floating" -->
     <!-- These add headroom for the label to float above the input border -->
-    <sys:Double x:Key="DaisyInputFloatingExtraLargeHeight">64</sys:Double>
-    <sys:Double x:Key="DaisyInputFloatingLargeHeight">64</sys:Double>
-    <sys:Double x:Key="DaisyInputFloatingMediumHeight">56</sys:Double>
-    <sys:Double x:Key="DaisyInputFloatingSmallHeight">48</sys:Double>
-    <sys:Double x:Key="DaisyInputFloatingExtraSmallHeight">40</sys:Double>
+    <sys:Double x:Key="DaisyInputFloatingExtraLargeHeight">50</sys:Double>
+    <sys:Double x:Key="DaisyInputFloatingLargeHeight">48</sys:Double>
+    <sys:Double x:Key="DaisyInputFloatingMediumHeight">44</sys:Double>
+    <sys:Double x:Key="DaisyInputFloatingSmallHeight">40</sys:Double>
+    <sys:Double x:Key="DaisyInputFloatingExtraSmallHeight">36</sys:Double>
 
     <!-- ==================== FONT SIZES ==================== -->
     <!-- Primary font sizes for main control text -->
@@ -99,6 +99,47 @@
     <Thickness x:Key="DaisyTabSmallPadding">12,4</Thickness>
     <Thickness x:Key="DaisyTabExtraSmallPadding">10,2</Thickness>
 
+    <!-- ==================== TAB CONTAINER/BORDER TOKENS ==================== -->
+    <Thickness x:Key="DaisyTabHeaderContainerPadding">4</Thickness>
+    <Thickness x:Key="DaisyTabHeaderContainerPaddingSmall">2</Thickness>
+    <Thickness x:Key="DaisyTabHeaderContainerPaddingExtraSmall">1</Thickness>
+    <Thickness x:Key="DaisyTabHeaderContainerMargin">0,0,0,8</Thickness>
+    <Thickness x:Key="DaisyTabUnderlineThickness">0,0,0,2</Thickness>
+    <Thickness x:Key="DaisyTabLiftedBorderThickness">1,1,1,0</Thickness>
+    <Thickness x:Key="DaisyTabLiftedOverlapMargin">0,0,-1,0</Thickness>
+    <CornerRadius x:Key="DaisyTabLiftedCornerRadius">8,8,0,0</CornerRadius>
+
+    <!-- ==================== STEPS (DAISYSTEPS) SIZES ==================== -->
+    <sys:Double x:Key="DaisyStepsExtraLargeCircleSize">32</sys:Double>
+    <sys:Double x:Key="DaisyStepsLargeCircleSize">28</sys:Double>
+    <sys:Double x:Key="DaisyStepsMediumCircleSize">24</sys:Double>
+    <sys:Double x:Key="DaisyStepsSmallCircleSize">20</sys:Double>
+    <sys:Double x:Key="DaisyStepsExtraSmallCircleSize">16</sys:Double>
+
+    <CornerRadius x:Key="DaisyStepsExtraLargeCircleCornerRadius">16</CornerRadius>
+    <CornerRadius x:Key="DaisyStepsLargeCircleCornerRadius">14</CornerRadius>
+    <CornerRadius x:Key="DaisyStepsMediumCircleCornerRadius">12</CornerRadius>
+    <CornerRadius x:Key="DaisyStepsSmallCircleCornerRadius">10</CornerRadius>
+    <CornerRadius x:Key="DaisyStepsExtraSmallCircleCornerRadius">8</CornerRadius>
+
+    <sys:Double x:Key="DaisyStepsExtraLargeLineThickness">5</sys:Double>
+    <sys:Double x:Key="DaisyStepsLargeLineThickness">4</sys:Double>
+    <sys:Double x:Key="DaisyStepsMediumLineThickness">3</sys:Double>
+    <sys:Double x:Key="DaisyStepsSmallLineThickness">2</sys:Double>
+    <sys:Double x:Key="DaisyStepsExtraSmallLineThickness">1</sys:Double>
+
+    <sys:Double x:Key="DaisyStepsExtraLargeDataFontSize">16</sys:Double>
+    <sys:Double x:Key="DaisyStepsLargeDataFontSize">14</sys:Double>
+    <sys:Double x:Key="DaisyStepsMediumDataFontSize">12</sys:Double>
+    <sys:Double x:Key="DaisyStepsSmallDataFontSize">10</sys:Double>
+    <sys:Double x:Key="DaisyStepsExtraSmallDataFontSize">8</sys:Double>
+
+    <sys:Double x:Key="DaisyStepsExtraLargeContentFontSize">18</sys:Double>
+    <sys:Double x:Key="DaisyStepsLargeContentFontSize">16</sys:Double>
+    <sys:Double x:Key="DaisyStepsMediumContentFontSize">14</sys:Double>
+    <sys:Double x:Key="DaisyStepsSmallContentFontSize">12</sys:Double>
+    <sys:Double x:Key="DaisyStepsExtraSmallContentFontSize">10</sys:Double>
+
     <!-- ==================== BADGE PADDING ==================== -->
     <Thickness x:Key="DaisyBadgeLargePadding">12,0</Thickness>
     <Thickness x:Key="DaisyBadgeMediumPadding">8,0</Thickness>
@@ -123,6 +164,14 @@
     <Thickness x:Key="DaisyCardMediumPadding">24</Thickness>
     <Thickness x:Key="DaisyCardSmallPadding">16</Thickness>
     <Thickness x:Key="DaisyCardCompactPadding">12</Thickness>
+
+    <!-- ==================== COLLAPSE CONTENT PADDING ==================== -->
+    <!-- More compact padding for collapse content areas -->
+    <Thickness x:Key="DaisyCollapseExtraSmallPadding">2</Thickness>
+    <Thickness x:Key="DaisyCollapseSmallPadding">4</Thickness>
+    <Thickness x:Key="DaisyCollapseMediumPadding">5</Thickness>
+    <Thickness x:Key="DaisyCollapseLargePadding">6</Thickness>
+    <Thickness x:Key="DaisyCollapseExtraLargePadding">7</Thickness>
 
     <!-- ==================== SPACING ==================== -->
     <!-- General spacing values for layouts -->
@@ -211,6 +260,14 @@
     <sys:Double x:Key="DaisyMenuMediumFontSize">14</sys:Double>
     <sys:Double x:Key="DaisyMenuSmallFontSize">12</sys:Double>
     <sys:Double x:Key="DaisyMenuExtraSmallFontSize">11</sys:Double>
+
+    <!-- ==================== FLOWERY COMPONENT SIDEBAR ITEM PADDING ==================== -->
+    <!-- Sidebar items should be more compact than generic buttons; vertical padding scales 1..5 across XS..XL -->
+    <Thickness x:Key="FloweryComponentSidebarItemExtraSmallPadding">10,1</Thickness>
+    <Thickness x:Key="FloweryComponentSidebarItemSmallPadding">10,2</Thickness>
+    <Thickness x:Key="FloweryComponentSidebarItemMediumPadding">10,3</Thickness>
+    <Thickness x:Key="FloweryComponentSidebarItemLargePadding">10,4</Thickness>
+    <Thickness x:Key="FloweryComponentSidebarItemExtraLargePadding">10,4</Thickness>
 
     <!-- ==================== KBD (KEYBOARD) SIZES ==================== -->
     <sys:Double x:Key="DaisyKbdExtraLargeHeight">40</sys:Double>

@@ -58,11 +58,11 @@
 
             <Popup x:Name="PART_Popup"
                    IsOpen="{TemplateBinding IsOpen, Mode=TwoWay}"
-                   PlacementTarget="{Binding ElementName=PART_Trigger}"
+                   PlacementTarget="{Binding #PART_Trigger}"
                    Placement="{TemplateBinding PlacementMode}"
                    IsLightDismissEnabled="True"
                    InheritsTransform="True"
-                   MinWidth="{Binding Bounds.Width, ElementName=PART_Trigger, FallbackValue=0, TargetNullValue=0}">
+                   MinWidth="{Binding #PART_Trigger.Bounds.Width, FallbackValue=0}">
               <Border Background="{DynamicResource DaisyBase100Brush}"
                       BorderBrush="{DynamicResource DaisyBase300Brush}"
                       BorderThickness="1"

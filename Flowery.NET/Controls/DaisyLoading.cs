@@ -65,7 +65,41 @@ namespace Flowery.Controls
         /// <summary>CursorBlink animation - classic CLI cursor that moves and blinks</summary>
         CursorBlink,
         /// <summary>CountdownSpinner animation - 12 dots toggle like clock ticking</summary>
-        CountdownSpinner
+        CountdownSpinner,
+
+        // ==================== BUSINESS VARIANTS ====================
+        /// <summary>DocumentFlipOn animation - document page flipping animation (opening)</summary>
+        DocumentFlipOn,
+        /// <summary>DocumentFlipOff animation - document page flipping animation (closing)</summary>
+        DocumentFlipOff,
+        /// <summary>MailSend animation - envelope sending animation</summary>
+        MailSend,
+        /// <summary>CloudUpload animation - cloud with uploading arrow</summary>
+        CloudUpload,
+        /// <summary>CloudDownload animation - cloud with downloading arrow</summary>
+        CloudDownload,
+        /// <summary>DocumentStamp animation - document being stamped with OK</summary>
+        DocumentStamp,
+        /// <summary>DocumentReject animation - document being stamped with X (rejected)</summary>
+        DocumentReject,
+        /// <summary>ChartPulse animation - bar chart with pulsing bars</summary>
+        ChartPulse,
+        /// <summary>CalendarTick animation - calendar with checkmark appearing</summary>
+        CalendarTick,
+        /// <summary>ApprovalFlow animation - workflow with approval checkmarks</summary>
+        ApprovalFlow,
+        /// <summary>BriefcaseSpin animation - spinning briefcase</summary>
+        BriefcaseSpin,
+
+        // ==================== WIN95 RETRO VARIANTS ====================
+        /// <summary>Win95FileCopy animation - classic Windows 95 file copy with flying papers</summary>
+        Win95FileCopy,
+        /// <summary>Win95Delete animation - classic Windows 95 file delete with papers going to trash</summary>
+        Win95Delete,
+        /// <summary>Win95Search animation - classic Windows 95 magnifying glass search</summary>
+        Win95Search,
+        /// <summary>Win95EmptyRecycle animation - classic Windows 95 recycle bin emptying</summary>
+        Win95EmptyRecycle
     }
 
     /// <summary>

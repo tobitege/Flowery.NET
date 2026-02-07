@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- Diagonal stripes pattern - seamless tiling -->
+  <!-- Step = 30px (divides evenly into 120), rotated 45° -->
+  <g fill="none" stroke="black" stroke-width="3" opacity="0.1">
+    <!-- Diagonal lines from bottom-left to top-right -->
+    <line x1="-120" y1="120" x2="0" y2="0"/>
+    <line x1="-90" y1="120" x2="30" y2="0"/>
+    <line x1="-60" y1="120" x2="60" y2="0"/>
+    <line x1="-30" y1="120" x2="90" y2="0"/>
+    <line x1="0" y1="120" x2="120" y2="0"/>
+    <line x1="30" y1="120" x2="150" y2="0"/>
+    <line x1="60" y1="120" x2="180" y2="0"/>
+    <line x1="90" y1="120" x2="210" y2="0"/>
+    <line x1="120" y1="120" x2="240" y2="0"/>
+    <!-- Bottom half continuations -->
+    <line x1="0" y1="240" x2="120" y2="120"/>
+    <line x1="-30" y1="240" x2="90" y2="120"/>
+    <line x1="-60" y1="240" x2="60" y2="120"/>
+    <line x1="-90" y1="240" x2="30" y2="120"/>
+    <line x1="-120" y1="240" x2="0" y2="120"/>
+  </g>
+</svg>

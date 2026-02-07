@@ -56,7 +56,7 @@
         <ControlTheme x:Key="{x:Type controls:DaisySelect}" TargetType="controls:DaisySelect">
             <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
             <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeMediumCornerRadius}" />
             <Setter Property="Padding" Value="12,0,30,0" />
@@ -106,20 +106,20 @@
                                   Stroke="{DynamicResource DaisyBaseContentBrush}"
                                   StrokeThickness="2"
                                   Fill="Transparent"
-                                  Margin="0,0,16,0"
+                                  Margin="0,0,12,0"
                                   VerticalAlignment="Center"
                                   IsHitTestVisible="False"/>
 
                             <Popup x:Name="PART_Popup"
                                    WindowManagerAddShadowHint="False"
                                    IsOpen="{TemplateBinding IsDropDownOpen, Mode=TwoWay}"
-                                   PlacementTarget="{Binding ElementName=Background}"
+                                   PlacementTarget="{Binding #Background}"
                                    IsLightDismissEnabled="True"
                                    InheritsTransform="True"
-                                   MinWidth="{Binding Bounds.Width, ElementName=Background, FallbackValue=0, TargetNullValue=0}">
+                                   MinWidth="{Binding #Background.Bounds.Width, FallbackValue=0}">
                                 <Border x:Name="PopupBorder"
-                                        Background="{DynamicResource DaisyBase100Brush}"
-                                        BorderBrush="{DynamicResource DaisyBaseContentBrush}"
+                                        Background="{DynamicResource DaisyBase200Brush}"
+                                        BorderBrush="{DynamicResource DaisyNeutralBrush}"
                                         BorderThickness="1"
                                         CornerRadius="8"
                                         Padding="4"
@@ -135,6 +135,11 @@
                     </DataValidationErrors>
                 </ControlTemplate>
             </Setter>
+
+            <!-- Hover State -->
+            <Style Selector="^:pointerover /template/ Border#Background">
+                 <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
+            </Style>
 
             <!-- Focus State -->
             <Style Selector="^:focus /template/ Border#Background">
@@ -185,18 +190,24 @@
             <Style Selector="^[Size=ExtraLarge]">
                 <Setter Property="Height" Value="{DynamicResource DaisySizeExtraLargeHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+                <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraLargeCornerRadius}" />
             </Style>
             <Style Selector="^[Size=Large]">
                 <Setter Property="Height" Value="{DynamicResource DaisySizeLargeHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
+                <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeLargeCornerRadius}" />
             </Style>
             <Style Selector="^[Size=Small]">
                 <Setter Property="Height" Value="{DynamicResource DaisySizeSmallHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
+                <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
+                <Setter Property="Padding" Value="8,0,26,0" />
             </Style>
             <Style Selector="^[Size=ExtraSmall]">
                 <Setter Property="Height" Value="{DynamicResource DaisySizeExtraSmallHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+                <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraSmallCornerRadius}" />
+                <Setter Property="Padding" Value="4,2,22,2" />
             </Style>
 
         </ControlTheme>

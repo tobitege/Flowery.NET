@@ -1,0 +1,156 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Background="{DynamicResource DaisyBase100Brush}">
+            <StackPanel Spacing="20">
+                <controls:DaisySlideToConfirm Variant="Primary" Text="SLIDE TO CONFIRM" />
+                <controls:DaisySlideToConfirm Variant="Success" Text="SLIDE TO APPROVE" />
+                <controls:DaisySlideToConfirm Variant="Error" Text="SLIDE TO DELETE" Size="Small" />
+                <controls:DaisySlideToConfirm Variant="Warning" Text="SLIDE TO LOCK" Size="Large" />
+                <!-- Depth Styles -->
+                <controls:DaisySlideToConfirm Variant="Secondary" DepthStyle="Flat" Text="FLAT" />
+                <controls:DaisySlideToConfirm Variant="Secondary" DepthStyle="ThreeDimensional" Text="3D EFFECT" />
+                <controls:DaisySlideToConfirm Variant="Secondary" DepthStyle="Raised" Text="RAISED" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <ControlTheme x:Key="{x:Type controls:DaisySlideToConfirm}" TargetType="controls:DaisySlideToConfirm">
+        <Setter Property="MinWidth" Value="200" />
+        <Setter Property="IconData" Value="{StaticResource DaisyIconPowerOff}" />
+        <Setter Property="Cursor" Value="Hand" />
+
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border x:Name="PART_Track"
+                        Background="{DynamicResource DaisyBase300Brush}"
+                        BorderBrush="{DynamicResource DaisyPrimaryBrush}"
+                        BorderThickness="{DynamicResource DaisyBorderThicknessMedium}"
+                        CornerRadius="{DynamicResource DaisySizeLargeCornerRadius}"
+                        Height="{TemplateBinding EffectiveTrackHeight}"
+                        Padding="4">
+                    <Grid>
+                        <!-- Label (centered in track) -->
+                        <TextBlock x:Name="PART_Label"
+                                   Text="{TemplateBinding Text}"
+                                   FontSize="{TemplateBinding EffectiveFontSize}"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                   Opacity="0.7"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Margin="48,0,8,0" />
+
+                        <!-- Handle -->
+                        <Border x:Name="PART_Handle"
+                                Width="{TemplateBinding EffectiveHandleSize}"
+                                Height="{TemplateBinding EffectiveHandleSize}"
+                                Background="{DynamicResource DaisyBase100Brush}"
+                                CornerRadius="{DynamicResource DaisySizeMediumCornerRadius}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Cursor="Hand">
+                            <Border.RenderTransform>
+                                <TranslateTransform X="0" />
+                            </Border.RenderTransform>
+
+                            <!-- Icon inside handle -->
+                            <Viewbox Width="{TemplateBinding EffectiveIconSize}"
+                                     Height="{TemplateBinding EffectiveIconSize}"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center">
+                                <Path x:Name="PART_Icon"
+                                      Data="{TemplateBinding IconData}"
+                                      Fill="{DynamicResource DaisyPrimaryBrush}"
+                                      Stretch="Uniform" />
+                            </Viewbox>
+                        </Border>
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <!-- Variant: Primary -->
+        <Style Selector="^[Variant=Primary] /template/ Border#PART_Track">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Primary] /template/ Path#PART_Icon">
+            <Setter Property="Fill" Value="{DynamicResource DaisyPrimaryBrush}" />
+        </Style>
+
+        <!-- Variant: Secondary -->
+        <Style Selector="^[Variant=Secondary] /template/ Border#PART_Track">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisySecondaryBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Secondary] /template/ Path#PART_Icon">
+            <Setter Property="Fill" Value="{DynamicResource DaisySecondaryBrush}" />
+        </Style>
+
+        <!-- Variant: Accent -->
+        <Style Selector="^[Variant=Accent] /template/ Border#PART_Track">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyAccentBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Accent] /template/ Path#PART_Icon">
+            <Setter Property="Fill" Value="{DynamicResource DaisyAccentBrush}" />
+        </Style>
+
+        <!-- Variant: Info -->
+        <Style Selector="^[Variant=Info] /template/ Border#PART_Track">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyInfoBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Info] /template/ Path#PART_Icon">
+            <Setter Property="Fill" Value="{DynamicResource DaisyInfoBrush}" />
+        </Style>
+
+        <!-- Variant: Success -->
+        <Style Selector="^[Variant=Success] /template/ Border#PART_Track">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisySuccessBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Success] /template/ Path#PART_Icon">
+            <Setter Property="Fill" Value="{DynamicResource DaisySuccessBrush}" />
+        </Style>
+
+        <!-- Variant: Warning -->
+        <Style Selector="^[Variant=Warning] /template/ Border#PART_Track">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyWarningBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Warning] /template/ Path#PART_Icon">
+            <Setter Property="Fill" Value="{DynamicResource DaisyWarningBrush}" />
+        </Style>
+
+        <!-- Variant: Error -->
+        <Style Selector="^[Variant=Error] /template/ Border#PART_Track">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyErrorBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Error] /template/ Path#PART_Icon">
+            <Setter Property="Fill" Value="{DynamicResource DaisyErrorBrush}" />
+        </Style>
+
+        <!-- DepthStyle: Flat (default - no shadow) -->
+        <Style Selector="^[DepthStyle=Flat] /template/ Border#PART_Track">
+            <Setter Property="BoxShadow" Value="none" />
+        </Style>
+        <Style Selector="^[DepthStyle=Flat] /template/ Border#PART_Handle">
+            <Setter Property="BoxShadow" Value="none" />
+        </Style>
+
+        <!-- DepthStyle: ThreeDimensional (subtle 3D effect with inset shadow on track, raised handle) -->
+        <Style Selector="^[DepthStyle=ThreeDimensional] /template/ Border#PART_Track">
+            <Setter Property="BoxShadow" Value="inset 0 2 4 0 #40000000" />
+        </Style>
+        <Style Selector="^[DepthStyle=ThreeDimensional] /template/ Border#PART_Handle">
+            <Setter Property="BoxShadow" Value="0 2 4 0 #40000000, inset 0 1 0 0 #20FFFFFF" />
+        </Style>
+
+        <!-- DepthStyle: Raised (deep shadow for prominent raised appearance) -->
+        <Style Selector="^[DepthStyle=Raised] /template/ Border#PART_Track">
+            <Setter Property="BoxShadow" Value="inset 0 3 6 0 #50000000, inset 0 -1 2 0 #20FFFFFF" />
+        </Style>
+        <Style Selector="^[DepthStyle=Raised] /template/ Border#PART_Handle">
+            <Setter Property="BoxShadow" Value="0 4 8 0 #50000000, 0 2 4 0 #30000000, inset 0 1 0 0 #30FFFFFF" />
+        </Style>
+
+    </ControlTheme>
+</ResourceDictionary>

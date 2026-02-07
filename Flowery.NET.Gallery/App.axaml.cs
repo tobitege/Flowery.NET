@@ -1,3 +1,6 @@
+using System;
+using System.Diagnostics;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -17,6 +20,29 @@ public partial class App : Application
         // which registers the CustomResolver with FloweryLocalization
         // so sidebar items display translated text instead of keys.
         _ = GalleryLocalization.Instance;
+    }
+
+    /// <summary>
+    /// Logs a fatal exception to Debug output and a crash.log file.
+    /// </summary>
+    internal static void LogFatal(string source, Exception? ex)
+    {
+        var message = $"[{DateTimeOffset.Now:O}] {source}: {ex}\n";
+        Debug.WriteLine(message);
+        Console.Error.WriteLine(message);
+
+        try
+        {
+            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Flowery.NET.Gallery");
+            Directory.CreateDirectory(dir);
+            var logPath = Path.Combine(dir, "crash.log");
+            File.AppendAllText(logPath, message);
+            Debug.WriteLine($"Crash log written to: {logPath}");
+        }
+        catch
+        {
+            // Ignore file IO failures; Debug output is still useful.
+        }
     }
 
     public override void OnFrameworkInitializationCompleted()

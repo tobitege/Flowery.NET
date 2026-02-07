@@ -70,7 +70,7 @@
                                                         </StackPanel>
                                                     </controls:DaisyCollapse.Header>
                                                     <!-- Category Items -->
-                                                    <ItemsControl ItemsSource="{Binding Items}" Margin="4,0,0,0">
+                                                    <ItemsControl ItemsSource="{Binding Items}" Margin="2,3,0,3">
                                                         <ItemsControl.DataTemplates>
                                                                 <DataTemplate
                                                                     x:DataType="controls:SidebarThemeSelectorItem">
@@ -127,12 +127,6 @@
                                                                         Tag="{Binding}"
                                                                         HorizontalAlignment="Stretch"
                                                                         HorizontalContentAlignment="Stretch"
-                                                                        Margin="8,1,0,1"
-                                                                        Padding="10,8"
-                                                                        Background="Transparent"
-                                                                        Foreground="{DynamicResource DaisyBaseContentBrush}"
-                                                                        BorderThickness="0"
-                                                                        CornerRadius="6"
                                                                         Cursor="Hand">
                                                                     <Grid
                                                                         ColumnDefinitions="*,Auto,Auto">
@@ -216,6 +210,10 @@
         <Setter Property="Padding" Value="10,8" />
         <Setter Property="MinHeight" Value="36" />
     </Style>
+    <Style Selector="controls|FloweryComponentSidebar[Size=ExtraSmall] controls|DaisyInput.sidebar-search">
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="MinHeight" Value="32" />
+    </Style>
 
     <!-- Clear button style -->
     <Style Selector="Button.sidebar-search-clear">
@@ -237,6 +235,14 @@
     <Style Selector="controls|DaisyCollapse.sidebar-category /template/ ToggleButton#PART_HeaderButton">
         <Setter Property="Padding" Value="16,8,8,4" />
         <Setter Property="Cursor" Value="Hand" />
+        <!-- Always reserve a 1px underline; collapsed uses transparent brush -->
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="controls|DaisyCollapse.sidebar-category[IsExpanded=True] /template/ ToggleButton#PART_HeaderButton">
+        <Setter Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=controls:DaisyCollapse}}" />
+    </Style>
+    <Style Selector="controls|FloweryComponentSidebar[Size=ExtraSmall] controls|DaisyCollapse.sidebar-category /template/ ToggleButton#PART_HeaderButton">
+        <Setter Property="Padding" Value="16,6,8,2" />
     </Style>
     <Style Selector="controls|DaisyCollapse.sidebar-category /template/ ToggleButton#PART_HeaderButton:pointerover">
         <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
@@ -246,16 +252,67 @@
     </Style>
 
     <!-- Sidebar item button styles -->
-    <Style Selector="Button.sidebar-item:pointerover">
+    <Style Selector="controls|FloweryComponentSidebar Button.sidebar-item">
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Margin" Value="4,0,4,0" />
+        <Setter Property="Padding" Value="{DynamicResource FloweryComponentSidebarItemMediumPadding}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="PART_Background"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Name="PART_ContentPresenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      RecognizesAccessKey="True"
+                                      TextElement.Foreground="{TemplateBinding Foreground}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|FloweryComponentSidebar[Size=ExtraSmall] Button.sidebar-item">
+        <Setter Property="Padding" Value="{DynamicResource FloweryComponentSidebarItemExtraSmallPadding}" />
+    </Style>
+    <Style Selector="controls|FloweryComponentSidebar[Size=Small] Button.sidebar-item">
+        <Setter Property="Padding" Value="{DynamicResource FloweryComponentSidebarItemSmallPadding}" />
+    </Style>
+    <Style Selector="controls|FloweryComponentSidebar[Size=Large] Button.sidebar-item">
+        <Setter Property="Padding" Value="{DynamicResource FloweryComponentSidebarItemLargePadding}" />
+    </Style>
+    <Style Selector="controls|FloweryComponentSidebar[Size=ExtraLarge] Button.sidebar-item">
+        <Setter Property="Padding" Value="{DynamicResource FloweryComponentSidebarItemExtraLargePadding}" />
+    </Style>
+    <Style Selector="controls|FloweryComponentSidebar Button.sidebar-item:pointerover">
         <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
     </Style>
-    <Style Selector="Button.sidebar-item:pressed">
+    <Style Selector="controls|FloweryComponentSidebar Button.sidebar-item:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="controls|FloweryComponentSidebar Button.sidebar-item:pressed">
         <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralContentBrush}" />
     </Style>
-    <Style Selector="Button.sidebar-item.selected">
+    <Style Selector="controls|FloweryComponentSidebar Button.sidebar-item:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="controls|FloweryComponentSidebar Button.sidebar-item.selected">
         <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryContentBrush}" />
+    </Style>
+    <Style Selector="controls|FloweryComponentSidebar Button.sidebar-item.selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
     </Style>
 
     <!-- Sidebar favorite button styles -->

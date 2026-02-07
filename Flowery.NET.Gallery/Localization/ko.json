@@ -144,6 +144,12 @@
   "Sidebar_Cards": "카드",
   "Sidebar_CardStack": "Card Stack",
   "Sidebar_Card": "Card",
+  "Sidebar_PatternedCard": "패턴 카드",
+  "Sidebar_GlassCard": "Glass Card",
+  "Sidebar_DaisyGlassSimulated": "DaisyGlass (Simulated Glass)",
+  "Sidebar_DaisyGlassBitmapCapture": "DaisyGlass (Bitmap Capture Mode)",
+  "Sidebar_DaisyGlassSkiaMatrix": "DaisyGlass (SkiaSharp Mode Matrix)",
+  "Sidebar_DaisyGlassFullWidth": "DaisyGlass (Full Width Example)",
   "Sidebar_DataDisplay": "데이터 표시",
   "Sidebar_Accordion": "Accordion",
   "Sidebar_AnimatedNumber": "Animated Number",
@@ -208,6 +214,7 @@
   "Sidebar_Tabs": "Tabs",
   "Sidebar_Theming": "테마 설정",
   "Sidebar_CSSThemeConverter": "CSS Theme Converter",
+  "Sidebar_ProductThemes": "제품 테마",
   "Sidebar_ThemeController": "Theme Controller",
   "Sidebar_ThemeRadio": "Theme Radio",
   "Sidebar_Effects": "효과",
@@ -252,3 +259,4 @@
   "Showcase_ScrollReveal_Title": "스크롤 리빌",
   "Showcase_ScrollReveal_Desc": "요소가 스크롤 뷰포트에 들어올 때 애니메이션을 트리거합니다."
 }
+

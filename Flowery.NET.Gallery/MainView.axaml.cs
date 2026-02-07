@@ -97,6 +97,7 @@ public partial class MainView : UserControl
             ["Sidebar_Divider"] = () => new DividerExamples(),
             ["Sidebar_Layout"] = () => new LayoutExamples(),
             ["Sidebar_Theming"] = () => new ThemingExamples(),
+            ["Sidebar_ProductThemes"] = () => new ProductThemesExamples(),
             ["Sidebar_Effects"] = () => new EffectsExamples(),
             ["Sidebar_Scaling"] = () => new ScalingExamples(),
             ["Sidebar_CustomControls"] = () => new CustomControls(),

@@ -746,84 +746,88 @@
                 <!-- Pagination -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="pagination" Title="Pagination" />
-                    <WrapPanel Orientation="Horizontal">
-                        <!-- Basic with active button -->
-                        <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="With Active Button" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
-                            <controls:DaisyPagination CurrentPage="2">
-                                <controls:DaisyPaginationItem Content="1" PageNumber="1" />
-                                <controls:DaisyPaginationItem Content="2" PageNumber="2" />
-                                <controls:DaisyPaginationItem Content="3" PageNumber="3" />
-                                <controls:DaisyPaginationItem Content="4" PageNumber="4" />
-                            </controls:DaisyPagination>
+                    <TextBlock Text="Page navigation control with smart truncation, ellipsis, and jump buttons for large page counts. All are optional."
+                               Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+
+                    <StackPanel Spacing="16">
+                        <!-- Basic pagination -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Basic (7 pages)" FontWeight="SemiBold" Opacity="0.8"
+                                       controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                            <controls:DaisyPagination x:Name="BasicPagination"
+                                                      TotalPages="7"
+                                                      CurrentPage="3"
+                                                      PageChanged="OnPaginationPageChanged" />
                         </StackPanel>
 
-                        <!-- With disabled button (ellipsis) -->
-                        <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="With Disabled Button" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
-                            <controls:DaisyPagination>
-                                <controls:DaisyPaginationItem Content="1" PageNumber="1" />
-                                <controls:DaisyPaginationItem Content="2" PageNumber="2" />
-                                <controls:DaisyPaginationItem Content="..." IsEnabled="False" />
-                                <controls:DaisyPaginationItem Content="99" PageNumber="99" />
-                                <controls:DaisyPaginationItem Content="100" PageNumber="100" />
-                            </controls:DaisyPagination>
+                        <!-- Large page count with full navigation (100 pages) -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Large page count (100 pages) - full navigation" FontWeight="SemiBold" Opacity="0.8"
+                                       controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                            <controls:DaisyPagination x:Name="LargePagination"
+                                                      TotalPages="100"
+                                                      CurrentPage="50"
+                                                      MaxVisiblePages="7"
+                                                      ShowFirstLast="True"
+                                                      ShowJumpButtons="True"
+                                                      JumpStep="10"
+                                                      PageChanged="OnPaginationPageChanged" />
+                            <TextBlock Text="Order by magnitude: first, jump, prev/next, pages, next/prev, jump, last"
+                                       Opacity="0.5" FontSize="12" />
                         </StackPanel>
 
-                        <!-- Prev/Next style -->
-                        <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Prev/Next Buttons" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
-                            <controls:DaisyPagination>
-                                <controls:DaisyPaginationItem Content="«" />
-                                <controls:DaisyPaginationItem Content="Page 22" />
-                                <controls:DaisyPaginationItem Content="»" />
-                            </controls:DaisyPagination>
+                        <!-- With First/Last buttons -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="With First/Last buttons" FontWeight="SemiBold" Opacity="0.8"
+                                       controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                            <controls:DaisyPagination TotalPages="50"
+                                                      CurrentPage="25"
+                                                      MaxVisiblePages="5"
+                                                      ShowFirstLast="True"
+                                                      PageChanged="OnPaginationPageChanged" />
                         </StackPanel>
 
-                        <!-- Outline style -->
-                        <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Outline Style" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
-                            <controls:DaisyPagination ButtonStyle="Outline">
-                                <controls:DaisyPaginationItem Content="Previous page" />
-                                <controls:DaisyPaginationItem Content="Next" />
-                            </controls:DaisyPagination>
+                        <!-- With Jump buttons (double chevron) -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="With jump buttons (skip 10 pages)" FontWeight="SemiBold" Opacity="0.8"
+                                       controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                            <controls:DaisyPagination TotalPages="100"
+                                                      CurrentPage="50"
+                                                      MaxVisiblePages="5"
+                                                      ShowJumpButtons="True"
+                                                      JumpStep="10"
+                                                      PageChanged="OnPaginationPageChanged" />
                         </StackPanel>
-                    </WrapPanel>
 
-                    <!-- Sizes -->
-                    <TextBlock Text="Sizes" Opacity="0.7" Margin="0,12,0,0" controls:FlowerySizeManager.ResponsiveFont="Primary" />
-                    <StackPanel Spacing="12"
-                        controls:FlowerySizeManager.IgnoreGlobalSize="True">
-                        <controls:DaisyPagination Size="ExtraSmall" CurrentPage="2">
-                            <controls:DaisyPaginationItem Content="1" PageNumber="1" />
-                            <controls:DaisyPaginationItem Content="2" PageNumber="2" />
-                            <controls:DaisyPaginationItem Content="3" PageNumber="3" />
-                            <controls:DaisyPaginationItem Content="4" PageNumber="4" />
-                        </controls:DaisyPagination>
-                        <controls:DaisyPagination Size="Small" CurrentPage="2">
-                            <controls:DaisyPaginationItem Content="1" PageNumber="1" />
-                            <controls:DaisyPaginationItem Content="2" PageNumber="2" />
-                            <controls:DaisyPaginationItem Content="3" PageNumber="3" />
-                            <controls:DaisyPaginationItem Content="4" PageNumber="4" />
-                        </controls:DaisyPagination>
-                        <controls:DaisyPagination Size="Medium" CurrentPage="2">
-                            <controls:DaisyPaginationItem Content="1" PageNumber="1" />
-                            <controls:DaisyPaginationItem Content="2" PageNumber="2" />
-                            <controls:DaisyPaginationItem Content="3" PageNumber="3" />
-                            <controls:DaisyPaginationItem Content="4" PageNumber="4" />
-                        </controls:DaisyPagination>
-                        <controls:DaisyPagination Size="Large" CurrentPage="2">
-                            <controls:DaisyPaginationItem Content="1" PageNumber="1" />
-                            <controls:DaisyPaginationItem Content="2" PageNumber="2" />
-                            <controls:DaisyPaginationItem Content="3" PageNumber="3" />
-                            <controls:DaisyPaginationItem Content="4" PageNumber="4" />
-                        </controls:DaisyPagination>
-                        <controls:DaisyPagination Size="ExtraLarge" CurrentPage="2">
-                            <controls:DaisyPaginationItem Content="1" PageNumber="1" />
-                            <controls:DaisyPaginationItem Content="2" PageNumber="2" />
-                            <controls:DaisyPaginationItem Content="3" PageNumber="3" />
-                            <controls:DaisyPaginationItem Content="4" PageNumber="4" />
-                        </controls:DaisyPagination>
+                        <!-- Full featured -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Full featured (First/Last + Jump + Prev/Next)" FontWeight="SemiBold" Opacity="0.8"
+                                       controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                            <controls:DaisyPagination x:Name="FullPagination"
+                                                      TotalPages="200"
+                                                      CurrentPage="100"
+                                                      CenterVisiblePages="10"
+                                                      MaxVisiblePages="12"
+                                                      ShowFirstLast="True"
+                                                      ShowJumpButtons="True"
+                                                      JumpStep="10"
+                                                      PageChanged="OnPaginationPageChanged" />
+                        </StackPanel>
+
+                        <!-- Minimal (no prev/next) -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Minimal (no prev/next buttons)" FontWeight="SemiBold" Opacity="0.8"
+                                       controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                            <controls:DaisyPagination TotalPages="10"
+                                                      CurrentPage="5"
+                                                      ShowPrevNext="False"
+                                                      PageChanged="OnPaginationPageChanged" />
+                        </StackPanel>
+
+                        <TextBlock x:Name="PaginationStatusText"
+                                   Text="Current page: 3"
+                                   Opacity="0.7"
+                                   controls:FlowerySizeManager.ResponsiveFont="Primary" />
                     </StackPanel>
                 </StackPanel>
 

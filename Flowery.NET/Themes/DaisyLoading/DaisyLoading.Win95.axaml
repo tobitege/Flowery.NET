@@ -1,0 +1,584 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <!-- ==================== WIN95 FILE COPY ==================== -->
+    <!-- Win95FileCopy - Folders with flying papers in arc -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95FileCopy]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Grid Width="96" Height="96">
+                        <!-- Left folder -->
+                        <Canvas HorizontalAlignment="Left" VerticalAlignment="Center" Margin="12,10,0,0">
+                            <!-- Folder tab -->
+                            <Border Width="14" Height="6" Canvas.Left="0" Canvas.Top="0"
+                                    BorderBrush="{TemplateBinding Foreground}" BorderThickness="2,2,2,0"
+                                    CornerRadius="2,2,0,0" Background="Transparent"/>
+                            <!-- Folder body -->
+                            <Border Width="32" Height="20" Canvas.Left="0" Canvas.Top="6"
+                                    BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                    CornerRadius="0,2,2,2" Background="Transparent"/>
+                        </Canvas>
+                        <!-- Right folder -->
+                        <Canvas HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,10,12,0">
+                            <!-- Folder tab -->
+                            <Border Width="14" Height="6" Canvas.Left="0" Canvas.Top="0"
+                                    BorderBrush="{TemplateBinding Foreground}" BorderThickness="2,2,2,0"
+                                    CornerRadius="2,2,0,0" Background="Transparent"/>
+                            <!-- Folder body -->
+                            <Border Width="32" Height="20" Canvas.Left="0" Canvas.Top="6"
+                                    BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                    CornerRadius="0,2,2,2" Background="Transparent"/>
+                        </Canvas>
+                        <!-- Flying papers -->
+                        <Border Classes="paper1" Width="10" Height="12" Margin="28,32,0,0"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.2"
+                                CornerRadius="1" Background="Transparent" Opacity="0"
+                                HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <StackPanel Spacing="1.5" Margin="1.5,2,1.5,1.5">
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="paper2" Width="10" Height="12" Margin="28,30,0,0"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.2"
+                                CornerRadius="1" Background="Transparent" Opacity="0"
+                                HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <StackPanel Spacing="1.5" Margin="1.5,2,1.5,1.5">
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="paper3" Width="10" Height="12" Margin="28,28,0,0"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.2"
+                                CornerRadius="1" Background="Transparent" Opacity="0"
+                                HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <StackPanel Spacing="1.5" Margin="1.5,2,1.5,1.5">
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Paper flying animations with arc motion -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95FileCopy] /template/ Border.paper1">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4">
+                    <Setter Property="TranslateTransform.X" Value="20"/>
+                    <Setter Property="TranslateTransform.Y" Value="-8"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8">
+                    <Setter Property="TranslateTransform.X" Value="42"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.81">
+                    <Setter Property="TranslateTransform.X" Value="42"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.59">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=Win95FileCopy] /template/ Border.paper2">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.4">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4">
+                    <Setter Property="TranslateTransform.X" Value="20"/>
+                    <Setter Property="TranslateTransform.Y" Value="-10"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8">
+                    <Setter Property="TranslateTransform.X" Value="42"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.81">
+                    <Setter Property="TranslateTransform.X" Value="42"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.59">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=Win95FileCopy] /template/ Border.paper3">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.8">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.4">
+                    <Setter Property="TranslateTransform.X" Value="20"/>
+                    <Setter Property="TranslateTransform.Y" Value="-12"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.8">
+                    <Setter Property="TranslateTransform.X" Value="42"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.81">
+                    <Setter Property="TranslateTransform.X" Value="42"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.59">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ==================== WIN95 DELETE ==================== -->
+    <!-- Win95Delete - Papers flying INTO recycle bin from above -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95Delete]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96" ClipToBounds="True">
+                        <!-- Large centered recycle bin -->
+                        <!-- Lid handle -->
+                        <Border Width="12" Height="4" Canvas.Left="42" Canvas.Top="28"
+                                Background="{TemplateBinding Foreground}" CornerRadius="2"/>
+                        <!-- Lid -->
+                        <Border Width="52" Height="10" Canvas.Left="22" Canvas.Top="32"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                CornerRadius="3,3,0,0" Background="Transparent"/>
+                        <!-- Bin body -->
+                        <Border Width="46" Height="44" Canvas.Left="25" Canvas.Top="42"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                CornerRadius="0,0,6,6" Background="Transparent">
+                            <StackPanel Orientation="Horizontal" Spacing="6"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border Width="2" Height="28" Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                                <Border Width="2" Height="28" Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                                <Border Width="2" Height="28" Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                            </StackPanel>
+                        </Border>
+                        <!-- Flying papers - start above bin, fly down into lid -->
+                        <Border Classes="del-paper1" Width="10" Height="12" Canvas.Left="26" Canvas.Top="4"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.2"
+                                CornerRadius="1" Background="Transparent"
+                                RenderTransformOrigin="0.5,0.5">
+                            <StackPanel Spacing="1.5" Margin="1.5,2,1.5,1.5">
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="del-paper2" Width="10" Height="12" Canvas.Left="43" Canvas.Top="2"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.2"
+                                CornerRadius="1" Background="Transparent"
+                                RenderTransformOrigin="0.5,0.5">
+                            <StackPanel Spacing="1.5" Margin="1.5,2,1.5,1.5">
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="del-paper3" Width="10" Height="12" Canvas.Left="60" Canvas.Top="4"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.2"
+                                CornerRadius="1" Background="Transparent"
+                                RenderTransformOrigin="0.5,0.5">
+                            <StackPanel Spacing="1.5" Margin="1.5,2,1.5,1.5">
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                            </StackPanel>
+                        </Border>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Papers fly DOWN into bin and fade out at lid level -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95Delete] /template/ Border.del-paper1">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="TranslateTransform.X" Value="12"/>
+                    <Setter Property="TranslateTransform.Y" Value="28"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6">
+                    <Setter Property="TranslateTransform.X" Value="14"/>
+                    <Setter Property="TranslateTransform.Y" Value="32"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="TranslateTransform.X" Value="14"/>
+                    <Setter Property="TranslateTransform.Y" Value="32"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=Win95Delete] /template/ Border.del-paper2">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.2">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="30"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="34"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="34"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=Win95Delete] /template/ Border.del-paper3">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.4">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="TranslateTransform.X" Value="-12"/>
+                    <Setter Property="TranslateTransform.Y" Value="28"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6">
+                    <Setter Property="TranslateTransform.X" Value="-14"/>
+                    <Setter Property="TranslateTransform.Y" Value="32"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.5">
+                    <Setter Property="TranslateTransform.X" Value="-14"/>
+                    <Setter Property="TranslateTransform.Y" Value="32"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ==================== WIN95 SEARCH ==================== -->
+    <!-- Win95Search - Flashlight sweeping over folders -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95Search]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Grid Width="96" Height="96">
+                        <!-- Row of folders at bottom -->
+                        <StackPanel Orientation="Horizontal" Spacing="4"
+                                    HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                    Margin="0,0,0,16">
+                            <!-- Folder 1 -->
+                            <Canvas Width="20" Height="20" Opacity="0.4">
+                                <Border Width="10" Height="4" Canvas.Left="0" Canvas.Top="0"
+                                        BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.6,1.6,1.6,0"
+                                        CornerRadius="2,2,0,0" Background="Transparent"/>
+                                <Border Width="20" Height="16" Canvas.Left="0" Canvas.Top="4"
+                                        BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.6"
+                                        CornerRadius="0,2,2,2" Background="Transparent"/>
+                            </Canvas>
+                            <!-- Folder 2 -->
+                            <Canvas Width="20" Height="20" Opacity="0.4">
+                                <Border Width="10" Height="4" Canvas.Left="0" Canvas.Top="0"
+                                        BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.6,1.6,1.6,0"
+                                        CornerRadius="2,2,0,0" Background="Transparent"/>
+                                <Border Width="20" Height="16" Canvas.Left="0" Canvas.Top="4"
+                                        BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.6"
+                                        CornerRadius="0,2,2,2" Background="Transparent"/>
+                            </Canvas>
+                            <!-- Folder 3 -->
+                            <Canvas Width="20" Height="20" Opacity="0.4">
+                                <Border Width="10" Height="4" Canvas.Left="0" Canvas.Top="0"
+                                        BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.6,1.6,1.6,0"
+                                        CornerRadius="2,2,0,0" Background="Transparent"/>
+                                <Border Width="20" Height="16" Canvas.Left="0" Canvas.Top="4"
+                                        BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.6"
+                                        CornerRadius="0,2,2,2" Background="Transparent"/>
+                            </Canvas>
+                            <!-- Folder 4 -->
+                            <Canvas Width="20" Height="20" Opacity="0.4">
+                                <Border Width="10" Height="4" Canvas.Left="0" Canvas.Top="0"
+                                        BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.6,1.6,1.6,0"
+                                        CornerRadius="2,2,0,0" Background="Transparent"/>
+                                <Border Width="20" Height="16" Canvas.Left="0" Canvas.Top="4"
+                                        BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.6"
+                                        CornerRadius="0,2,2,2" Background="Transparent"/>
+                            </Canvas>
+                        </StackPanel>
+                        <!-- Flashlight + beam (sweeps left to right) -->
+                        <Canvas Classes="flashlight-group" Width="96" Height="96">
+                            <!-- Light beam (trapezoid approximation) -->
+                            <Path Fill="{TemplateBinding Foreground}" Opacity="0.15"
+                                  Data="M44,38 L52,38 L62,58 L34,58 Z"/>
+                            <!-- Flashlight handle -->
+                            <Border Width="14" Height="7" Canvas.Left="30" Canvas.Top="28"
+                                    BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                    CornerRadius="2" Background="Transparent"/>
+                            <!-- Flashlight head -->
+                            <Border Width="16" Height="10" Canvas.Left="44" Canvas.Top="26"
+                                    BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                    CornerRadius="0,3,3,0" Background="Transparent"/>
+                            <!-- Lens -->
+                            <Ellipse Width="5" Height="5" Canvas.Left="57" Canvas.Top="28.5"
+                                     Fill="{TemplateBinding Foreground}" Opacity="0.6"/>
+                        </Canvas>
+                    </Grid>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=Win95Search] /template/ Canvas.flashlight-group">
+        <Style.Animations>
+            <Animation Duration="0:0:2" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="-24"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:1"><Setter Property="TranslateTransform.X" Value="24"/></KeyFrame>
+                <KeyFrame KeyTime="0:0:2"><Setter Property="TranslateTransform.X" Value="-24"/></KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <!-- ==================== WIN95 EMPTY RECYCLE ==================== -->
+    <!-- Win95EmptyRecycle - Papers flying OUT of recycle bin upward -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95EmptyRecycle]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96" ClipToBounds="True">
+                        <!-- Large centered recycle bin -->
+                        <!-- Lid handle -->
+                        <Border Width="12" Height="4" Canvas.Left="42" Canvas.Top="28"
+                                Background="{TemplateBinding Foreground}" CornerRadius="2"/>
+                        <!-- Lid -->
+                        <Border Width="52" Height="10" Canvas.Left="22" Canvas.Top="32"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                CornerRadius="3,3,0,0" Background="Transparent"/>
+                        <!-- Bin body -->
+                        <Border Width="46" Height="44" Canvas.Left="25" Canvas.Top="42"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                CornerRadius="0,0,6,6" Background="Transparent">
+                            <StackPanel Orientation="Horizontal" Spacing="6"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border Width="2" Height="28" Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                                <Border Width="2" Height="28" Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                                <Border Width="2" Height="28" Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                            </StackPanel>
+                        </Border>
+                        <!-- Papers all start at center of lid, fly outward -->
+                        <Border Classes="empty-paper1" Width="10" Height="12" Canvas.Left="43" Canvas.Top="34"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.2"
+                                CornerRadius="1" Background="Transparent"
+                                RenderTransformOrigin="0.5,0.5">
+                            <StackPanel Spacing="1.5" Margin="1.5,2,1.5,1.5">
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="empty-paper2" Width="10" Height="12" Canvas.Left="43" Canvas.Top="34"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.2"
+                                CornerRadius="1" Background="Transparent"
+                                RenderTransformOrigin="0.5,0.5">
+                            <StackPanel Spacing="1.5" Margin="1.5,2,1.5,1.5">
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="empty-paper3" Width="10" Height="12" Canvas.Left="43" Canvas.Top="34"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.2"
+                                CornerRadius="1" Background="Transparent"
+                                RenderTransformOrigin="0.5,0.5">
+                            <StackPanel Spacing="1.5" Margin="1.5,2,1.5,1.5">
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="1" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                            </StackPanel>
+                        </Border>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- Papers fade in at center, fly UP, fade out at top -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95EmptyRecycle] /template/ Border.empty-paper1">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.05">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="TranslateTransform.X" Value="-12"/>
+                    <Setter Property="TranslateTransform.Y" Value="-28"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6">
+                    <Setter Property="TranslateTransform.X" Value="-14"/>
+                    <Setter Property="TranslateTransform.Y" Value="-32"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="TranslateTransform.X" Value="-14"/>
+                    <Setter Property="TranslateTransform.Y" Value="-32"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=Win95EmptyRecycle] /template/ Border.empty-paper2">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.2">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.05">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="-30"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="-34"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="-34"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=Win95EmptyRecycle] /template/ Border.empty-paper3">
+        <Style.Animations>
+            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.4">
+                <KeyFrame KeyTime="0:0:0">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.05">
+                    <Setter Property="TranslateTransform.X" Value="0"/>
+                    <Setter Property="TranslateTransform.Y" Value="0"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.5">
+                    <Setter Property="TranslateTransform.X" Value="12"/>
+                    <Setter Property="TranslateTransform.Y" Value="-28"/>
+                    <Setter Property="Opacity" Value="1"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:0.6">
+                    <Setter Property="TranslateTransform.X" Value="14"/>
+                    <Setter Property="TranslateTransform.Y" Value="-32"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+                <KeyFrame KeyTime="0:0:1.6">
+                    <Setter Property="TranslateTransform.X" Value="14"/>
+                    <Setter Property="TranslateTransform.Y" Value="-32"/>
+                    <Setter Property="Opacity" Value="0"/>
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+</Styles>

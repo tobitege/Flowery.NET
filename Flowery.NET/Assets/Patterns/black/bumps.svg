@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <g fill="black" opacity="0.15">
+    <circle cx="0.0" cy="0.0" r="6"/>
+    <circle cx="0.0" cy="24.0" r="6"/>
+    <circle cx="0.0" cy="48.0" r="6"/>
+    <circle cx="0.0" cy="72.0" r="6"/>
+    <circle cx="0.0" cy="96.0" r="6"/>
+    <circle cx="0.0" cy="120.0" r="6"/>
+    <circle cx="24.0" cy="0.0" r="6"/>
+    <circle cx="24.0" cy="24.0" r="6"/>
+    <circle cx="24.0" cy="48.0" r="6"/>
+    <circle cx="24.0" cy="72.0" r="6"/>
+    <circle cx="24.0" cy="96.0" r="6"/>
+    <circle cx="24.0" cy="120.0" r="6"/>
+    <circle cx="48.0" cy="0.0" r="6"/>
+    <circle cx="48.0" cy="24.0" r="6"/>
+    <circle cx="48.0" cy="48.0" r="6"/>
+    <circle cx="48.0" cy="72.0" r="6"/>
+    <circle cx="48.0" cy="96.0" r="6"/>
+    <circle cx="48.0" cy="120.0" r="6"/>
+    <circle cx="72.0" cy="0.0" r="6"/>
+    <circle cx="72.0" cy="24.0" r="6"/>
+    <circle cx="72.0" cy="48.0" r="6"/>
+    <circle cx="72.0" cy="72.0" r="6"/>
+    <circle cx="72.0" cy="96.0" r="6"/>
+    <circle cx="72.0" cy="120.0" r="6"/>
+    <circle cx="96.0" cy="0.0" r="6"/>
+    <circle cx="96.0" cy="24.0" r="6"/>
+    <circle cx="96.0" cy="48.0" r="6"/>
+    <circle cx="96.0" cy="72.0" r="6"/>
+    <circle cx="96.0" cy="96.0" r="6"/>
+    <circle cx="96.0" cy="120.0" r="6"/>
+    <circle cx="120.0" cy="0.0" r="6"/>
+    <circle cx="120.0" cy="24.0" r="6"/>
+    <circle cx="120.0" cy="48.0" r="6"/>
+    <circle cx="120.0" cy="72.0" r="6"/>
+    <circle cx="120.0" cy="96.0" r="6"/>
+    <circle cx="120.0" cy="120.0" r="6"/>
+  </g>
+</svg>
