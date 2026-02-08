@@ -32,6 +32,8 @@ namespace Flowery.Controls
 
         private bool _isSyncing;
 
+        public bool IsCurrentThemeDark => DaisyThemeManager.IsCurrentThemeDark;
+
         public static readonly StyledProperty<ThemeControllerMode> ModeProperty =
             AvaloniaProperty.Register<DaisyThemeController, ThemeControllerMode>(nameof(Mode), ThemeControllerMode.Toggle);
 

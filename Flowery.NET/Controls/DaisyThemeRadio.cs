@@ -30,6 +30,8 @@ namespace Flowery.Controls
 
         private bool _isSyncing;
 
+        public bool IsCurrentThemeDark => DaisyThemeManager.IsCurrentThemeDark;
+
         public static readonly StyledProperty<string> ThemeNameProperty =
             AvaloniaProperty.Register<DaisyThemeRadio, string>(nameof(ThemeName), string.Empty);
 

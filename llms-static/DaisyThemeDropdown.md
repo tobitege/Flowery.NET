@@ -31,6 +31,7 @@ DaisyThemeDropdown supports all standard Flowery.NET sizes:
 | -------- | ----------- |
 | `Size` | `DaisySize` preset controlling height and font size (see table above). |
 | `SelectedTheme` | Name of the currently selected theme. Setting this applies the theme. |
+| `IsCurrentThemeDark` | Read-only flag returning `DaisyThemeManager.IsCurrentThemeDark`. |
 | ItemsSource | Auto-populated from `DaisyThemeManager.AvailableThemes` with preview brushes. |
 | Sync | Subscribes to `ThemeChanged` to update selection when themes change elsewhere. |
 

@@ -7,6 +7,8 @@ namespace Flowery.Controls
     {
         protected override Type StyleKeyOverride => typeof(DaisyThemeSwap);
 
+        public bool IsCurrentThemeDark => DaisyThemeManager.IsCurrentThemeDark;
+
         public static readonly StyledProperty<string> LightThemeProperty =
             AvaloniaProperty.Register<DaisyThemeSwap, string>(nameof(LightTheme), "Light");
 
@@ -65,8 +67,7 @@ namespace Flowery.Controls
 
         private void SyncState()
         {
-            var currentTheme = DaisyThemeManager.CurrentThemeName;
-            IsChecked = currentTheme != null && DaisyThemeManager.IsDarkTheme(currentTheme);
+            IsChecked = IsCurrentThemeDark;
         }
 
         protected override void OnDetachedFromVisualTree(global::Avalonia.VisualTreeAttachmentEventArgs e)

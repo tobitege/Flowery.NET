@@ -122,6 +122,18 @@ namespace Flowery.Controls
         public static string? CurrentThemeName => _currentThemeName;
 
         /// <summary>
+        /// Gets whether the current theme is dark.
+        /// </summary>
+        public static bool IsCurrentThemeDark
+        {
+            get
+            {
+                var currentTheme = _currentThemeName;
+                return currentTheme != null && IsDarkTheme(currentTheme);
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the base/default theme name (used by theme controllers as the "unchecked" theme).
         /// </summary>
         public static string BaseThemeName

@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.1] - 2026-02-08
+
+### Changed
+
+- **Theme Controls**: Exposed `IsCurrentThemeDark` as a read-only pass-through to `DaisyThemeManager.IsCurrentThemeDark`.
+- Bump Avalonia NuGet refs to 11.3.11 from 11.3.10.
+- Centralize version metadata in Directory.Build.targets. Keeping it in lib project for workflows, though.
+
 ## [1.9.0] - 2026-02-07
 
 ### New

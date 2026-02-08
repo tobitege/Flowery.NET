@@ -12,6 +12,7 @@ DaisyThemeRadio is a theme-selecting RadioButton. When checked, it applies its `
 | `ThemeName` | Theme to apply when checked (e.g., “Synthwave”, “Retro”). |
 | `Mode` | `Radio` (default) or `Button` display. |
 | `Size` | ExtraSmall–ExtraLarge for button/radio sizing. |
+| `IsCurrentThemeDark` | Read-only flag returning `DaisyThemeManager.IsCurrentThemeDark`. |
 
 ## Behavior
 

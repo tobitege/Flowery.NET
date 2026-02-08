@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <Version Condition="'$(Version)' == ''">1.9.1</Version>
+    <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">1.9.1.0</AssemblyVersion>
+    <FileVersion Condition="'$(FileVersion)' == ''">1.9.1.0</FileVersion>
+    <Authors Condition="'$(Authors)' == '' or '$(Authors)' == '$(MSBuildProjectName)'">tobitege</Authors>
+    <PackageProjectUrl Condition="'$(PackageProjectUrl)' == ''">https://github.com/tobitege/Flowery.NET</PackageProjectUrl>
+    <RepositoryUrl Condition="'$(RepositoryUrl)' == ''">https://github.com/tobitege/Flowery.NET</RepositoryUrl>
+  </PropertyGroup>
+</Project>

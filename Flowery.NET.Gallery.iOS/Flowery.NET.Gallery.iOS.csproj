@@ -14,6 +14,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Avalonia.iOS" Version="11.3.10" />
+      <PackageReference Include="Avalonia.iOS" Version="11.3.11" />
     </ItemGroup>
 </Project>

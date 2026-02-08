@@ -44,6 +44,7 @@ DaisyThemeLoader.ApplyThemeToApplication(theme);
 | `CustomThemeApplicator` | Optional `Func<string, bool>` delegate. When set, called instead of the default MergedDictionaries approach. |
 | `SetCurrentTheme(string name)` | Updates internal state and fires `ThemeChanged`. Used by custom applicators after applying a theme. |
 | `CurrentThemeName` | Name of the currently applied theme. |
+| `IsCurrentThemeDark` | Read-only flag indicating whether the current theme is dark. |
 | `BaseThemeName` | Default/unchecked theme name (default "Light"). |
 | `AlternateThemeName` | Current theme if not the base; otherwise "Dark". |
 | `ThemeChanged` | Event fired with the new theme name after successful application. |
@@ -95,7 +96,7 @@ DaisyThemeManager.ApplyTheme(savedTheme); // Actually applies
 
 ## Custom Theme Applicator
 
-* Available since v1.0.9
+- _Available since v1.0.9_
 
 > 📖 **[Full Migration Example](../MigrationExample.md)** - Step-by-step guide for integrating Flowery.NET into existing apps with custom resources.
 

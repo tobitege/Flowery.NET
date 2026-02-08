@@ -11,6 +11,7 @@ DaisyThemeSwap is a themed variant of DaisySwap for toggling light/dark (or any 
 | -------- | ----------- |
 | `LightTheme` | Theme applied when toggling to light (default “Light”). |
 | `DarkTheme` | Theme applied when toggling to dark (default “Dark”). |
+| `IsCurrentThemeDark` | Read-only flag returning `DaisyThemeManager.IsCurrentThemeDark`. |
 | `OnContent` / `OffContent` / `IndeterminateContent` | Inherited from DaisySwap for custom visuals. |
 | `TransitionEffect` | Inherited; defaults to `Rotate`. |
 
@@ -18,6 +19,7 @@ DaisyThemeSwap is a themed variant of DaisySwap for toggling light/dark (or any 
 
 - Click toggles between `LightTheme` and `DarkTheme`.
 - `IsChecked` is set to true when the current theme is dark (via `IsDarkTheme`).
+- `IsCurrentThemeDark` returns `DaisyThemeManager.IsCurrentThemeDark`.
 - Listens to `ThemeChanged` to stay synced with external theme changes.
 
 ## Quick Examples

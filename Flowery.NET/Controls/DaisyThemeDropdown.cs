@@ -81,6 +81,8 @@ namespace Flowery.Controls
         private static List<ThemePreviewInfo>? _cachedThemes;
         private bool _isSyncing;
 
+        public bool IsCurrentThemeDark => DaisyThemeManager.IsCurrentThemeDark;
+
         public DaisyThemeDropdown()
         {
             // Enable keyboard navigation by DisplayName (e.g., press 'S' to jump to "Synthwave")

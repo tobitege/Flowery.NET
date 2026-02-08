@@ -9,7 +9,6 @@
 
     <!-- NuGet Package Properties -->
     <PackageId>Flowery.Capture.NET</PackageId>
-    <Version>1.0.0</Version>
     <Authors>tobitege</Authors>
     <Description>Screen capture utilities for Avalonia UI applications with platform-specific high-quality implementations.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -26,7 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.3.10" />
+    <PackageReference Include="Avalonia" Version="11.3.11" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.1" />
   </ItemGroup>
 

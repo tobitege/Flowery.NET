@@ -20,6 +20,7 @@ This control uses `DaisyThemeManager` internally, which works with Avalonia's `T
 | `Mode` | Visual mode: Toggle, Checkbox, Swap, ToggleWithText, ToggleWithIcons. |
 | `UncheckedLabel` / `CheckedLabel` | Labels for light/dark (or custom) modes. |
 | `UncheckedTheme` / `CheckedTheme` | Theme names to apply on off/on states (defaults: Light/Dark). |
+| `IsCurrentThemeDark` | Read-only flag returning `DaisyThemeManager.IsCurrentThemeDark`. |
 
 ## Behavior
 
