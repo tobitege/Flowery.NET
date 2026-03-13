@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.2] - 2026-03-13
+
+### Changed
+
+- Bumped Avalonia package references across the library, gallery, desktop, browser, capture, and test projects to `11.3.12`, including `Avalonia.Skia`, `Avalonia.Desktop`, `Avalonia.Browser`, `Avalonia.Diagnostics`, `Avalonia.Fonts.Inter`, `Avalonia.Headless`, `Avalonia.Headless.XUnit`, and `Avalonia.Themes.Fluent`.
+- Bumped `System.Text.Json` to `10.0.3`.
+- Updated test infrastructure packages: `Microsoft.NET.Test.Sdk` to `18.3.0` and `coverlet.collector` to `8.0.0`.
+
 ## [1.9.1] - 2026-02-08
 
 ### Changed
@@ -610,3 +618,6 @@ At least that's the plan. Happy holidays 2025!
 [1.0.3]: https://github.com/tobitege/Flowery.NET/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/tobitege/Flowery.NET/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/tobitege/Flowery.NET/releases/tag/v1.0.1
+[1.9.2]: https://github.com/tobitege/Flowery.NET/compare/v1.9.1...HEAD
+[1.9.1]: https://github.com/tobitege/Flowery.NET/compare/v1.9.0...v1.9.1
+[1.9.0]: https://github.com/tobitege/Flowery.NET/compare/v1.8.0...v1.9.0
