@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - alpha
+      - avalonia12
   pull_request:
     branches:
       - main
       - alpha
+      - avalonia12
   schedule:
     - cron: '32 3 * * 1'
   workflow_dispatch:

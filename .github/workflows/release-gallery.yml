@@ -15,6 +15,7 @@ on:
         options:
           - main
           - alpha
+          - avalonia12
         default: main
       description:
         description: 'Optional: What changed in this release?'

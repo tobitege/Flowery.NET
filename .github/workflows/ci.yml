@@ -8,10 +8,12 @@ on:
     branches:
       - main
       - alpha
+      - avalonia12
   pull_request:
     branches:
       - main
       - alpha
+      - avalonia12
 
 jobs:
   build-library:

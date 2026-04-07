@@ -31,9 +31,9 @@ jobs:
       tag: ${{ steps.validate.outputs.tag }}
     steps:
       - name: Ensure branch is main
-        if: github.ref != 'refs/heads/main'
+        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/avalonia12'
         run: |
-          echo "::error::Releases can only be created from the main branch."
+          echo "::error::Releases can only be created from the main or avalonia12 branch."
           exit 1
 
       - name: Validate version format
