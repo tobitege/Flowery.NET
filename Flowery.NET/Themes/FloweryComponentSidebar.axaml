@@ -22,7 +22,7 @@
                             <!-- Search Box -->
                             <Border Grid.Row="0" Margin="8,8,20,8">
                                 <controls:DaisyInput x:Name="PART_SearchInput"
-                                                     Watermark="Search components..."
+                                                     PlaceholderText="Search components..."
                                                      Text="{TemplateBinding SearchText, Mode=TwoWay}"
                                                      Variant="Bordered"
                                                      Classes="sidebar-search">

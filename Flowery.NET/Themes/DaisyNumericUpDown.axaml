@@ -5,15 +5,15 @@
     <Design.PreviewWith>
         <Border Padding="20" Background="{DynamicResource DaisyBase100Brush}">
             <StackPanel Spacing="10" Width="300">
-                <controls:DaisyNumericUpDown Watermark="Bordered (Default)" Value="42" />
-                <controls:DaisyNumericUpDown Variant="Ghost" Watermark="Ghost" Value="10" />
-                <controls:DaisyNumericUpDown Variant="Primary" Watermark="Primary" Value="100" />
-                <controls:DaisyNumericUpDown Variant="Secondary" Watermark="Secondary" Value="50" />
-                <controls:DaisyNumericUpDown Variant="Error" Watermark="Error" Value="0" />
-                <controls:DaisyNumericUpDown ShowButtons="False" Watermark="No Buttons" Value="25" />
-                <controls:DaisyNumericUpDown Size="Small" Watermark="Small" Value="5" />
-                <controls:DaisyNumericUpDown Size="Large" Watermark="Large" Value="999" />
-                <controls:DaisyNumericUpDown ShowClearButton="True" Watermark="With Clear Button" Value="123" />
+                <controls:DaisyNumericUpDown PlaceholderText="Bordered (Default)" Value="42" />
+                <controls:DaisyNumericUpDown Variant="Ghost" PlaceholderText="Ghost" Value="10" />
+                <controls:DaisyNumericUpDown Variant="Primary" PlaceholderText="Primary" Value="100" />
+                <controls:DaisyNumericUpDown Variant="Secondary" PlaceholderText="Secondary" Value="50" />
+                <controls:DaisyNumericUpDown Variant="Error" PlaceholderText="Error" Value="0" />
+                <controls:DaisyNumericUpDown ShowButtons="False" PlaceholderText="No Buttons" Value="25" />
+                <controls:DaisyNumericUpDown Size="Small" PlaceholderText="Small" Value="5" />
+                <controls:DaisyNumericUpDown Size="Large" PlaceholderText="Large" Value="999" />
+                <controls:DaisyNumericUpDown ShowClearButton="True" PlaceholderText="With Clear Button" Value="123" />
             </StackPanel>
         </Border>
     </Design.PreviewWith>
@@ -60,7 +60,7 @@
                                      Grid.Column="1"
                                      Foreground="{TemplateBinding Foreground}"
                                      Padding="{TemplateBinding Padding}"
-                                     Watermark="{TemplateBinding Watermark}"
+                                     PlaceholderText="{TemplateBinding PlaceholderText}"
                                      FontSize="{TemplateBinding FontSize}"
                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
@@ -80,7 +80,7 @@
                                                           VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}">
                                                 <Panel>
                                                     <TextBlock x:Name="PART_Watermark"
-                                                               Text="{TemplateBinding Watermark}"
+                                                               Text="{TemplateBinding PlaceholderText}"
                                                                Opacity="0.5"
                                                                IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
                                                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"

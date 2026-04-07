@@ -83,7 +83,7 @@ namespace Flowery.Controls.Custom
 
         /// <summary>
         /// Gets or sets a preset mask mode (Timer, CreditCardNumber, etc.). When set to a value other than Custom,
-        /// this updates <see cref="MaskedTextBox.Mask"/> (and may set <see cref="TextBox.Watermark"/> if empty).
+        /// this updates <see cref="MaskedTextBox.Mask"/> (and may set <see cref="TextBox.PlaceholderText"/> if empty).
         /// </summary>
         public DaisyMaskInputMode Mode
         {
@@ -304,7 +304,7 @@ namespace Flowery.Controls.Custom
         {
             base.OnPropertyChanged(change);
 
-            if (change.Property == TextBox.WatermarkProperty && !_isApplyingMode)
+            if (change.Property == TextBox.PlaceholderTextProperty && !_isApplyingMode)
                 _isAutoWatermark = false;
         }
 
@@ -335,20 +335,20 @@ namespace Flowery.Controls.Custom
                 _ => Mask
             };
 
-            if (forceWatermarkUpdate ? !_isAutoWatermark : !string.IsNullOrEmpty(Watermark))
+            if (forceWatermarkUpdate ? !_isAutoWatermark : !string.IsNullOrEmpty(PlaceholderText))
                 return;
 
             _isApplyingMode = true;
             try
             {
-                Watermark = Mode switch
+                PlaceholderText = Mode switch
                 {
                     DaisyMaskInputMode.AlphaNumericCode => FloweryLocalization.GetStringInternal("MaskInput_Watermark_AlphaNumericCode", "AB12 CDE"),
                     DaisyMaskInputMode.Timer => FloweryLocalization.GetStringInternal("MaskInput_Watermark_Timer", "00:00:00"),
                     DaisyMaskInputMode.ExpiryDate => GetExpiryWatermark(ExpiryYearDigits),
                     DaisyMaskInputMode.CreditCardNumber => FloweryLocalization.GetStringInternal("MaskInput_Watermark_CreditCardNumber", "Card number"),
                     DaisyMaskInputMode.Cvc => FloweryLocalization.GetStringInternal("MaskInput_Watermark_Cvc", "CVC"),
-                    _ => Watermark
+                    _ => PlaceholderText
                 };
                 _isAutoWatermark = true;
             }

@@ -66,7 +66,7 @@ namespace Flowery.NET.Tests
             var input = new DaisyMaskInput
             {
                 Mask = "00:00:00",
-                Watermark = "00:00:00"
+                PlaceholderText = "00:00:00"
             };
 
             var window = new Window { Content = input };
