@@ -4,6 +4,7 @@ name: CI Build
 # Does NOT publish anything - just verification
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
