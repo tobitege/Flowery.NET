@@ -233,7 +233,7 @@ namespace Flowery.Controls
             return box;
         }
 
-        private void OnSlotGotFocus(object? sender, GotFocusEventArgs e)
+        private void OnSlotGotFocus(object? sender, FocusChangedEventArgs e)
         {
             if (!AutoSelectOnFocus) return;
             if (sender is TextBox box)

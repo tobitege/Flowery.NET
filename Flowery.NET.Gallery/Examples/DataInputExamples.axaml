@@ -4,7 +4,8 @@
     xmlns:custom="clr-namespace:Flowery.Controls.Custom;assembly=Flowery.NET"
     xmlns:services="clr-namespace:Flowery.Services;assembly=Flowery.NET"
     xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
-    x:Class="Flowery.NET.Gallery.Examples.DataInputExamples">
+    x:Class="Flowery.NET.Gallery.Examples.DataInputExamples"
+    x:CompileBindings="False">
 
     <Panel>
         <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled"

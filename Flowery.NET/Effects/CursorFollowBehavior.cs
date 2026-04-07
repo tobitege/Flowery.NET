@@ -161,7 +161,7 @@ namespace Flowery.Effects
                 element.AttachedToVisualTree += OnAttachedToVisualTree;
                 element.DetachedFromVisualTree += OnDetachedFromVisualTree;
 
-                if (element.GetVisualRoot() != null)
+                if (TopLevel.GetTopLevel(element) != null)
                 {
                     SetupFollower(element);
                 }

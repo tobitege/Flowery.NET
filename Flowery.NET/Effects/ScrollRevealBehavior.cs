@@ -37,7 +37,7 @@ namespace Flowery.Effects
                 element.AttachedToVisualTree += (s, ev) => AttachToScroll(element);
                 element.DetachedFromVisualTree += (s, ev) => DetachFromScroll(element);
 
-                if (element.GetVisualRoot() != null)
+                if (TopLevel.GetTopLevel(element) != null)
                 {
                     AttachToScroll(element);
                 }

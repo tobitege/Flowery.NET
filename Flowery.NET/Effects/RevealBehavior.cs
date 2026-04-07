@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation.Easings;
+using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 
@@ -94,7 +95,7 @@ namespace Flowery.Effects
                 element.AttachedToVisualTree += OnAttachedToVisualTree;
 
                 // If already attached to visual tree, start animation immediately (unless manual trigger only)
-                if (element.GetVisualRoot() != null && !GetManualTriggerOnly(element))
+                if (TopLevel.GetTopLevel(element) != null && !GetManualTriggerOnly(element))
                 {
                     StartRevealAnimation(element);
                 }

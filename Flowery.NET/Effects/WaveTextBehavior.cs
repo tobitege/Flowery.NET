@@ -90,7 +90,7 @@ namespace Flowery.Effects
                 element.DetachedFromVisualTree += OnDetachedFromVisualTree;
 
                 // If already attached, start now
-                if (element.GetVisualRoot() != null)
+                if (TopLevel.GetTopLevel(element) != null)
                 {
                     StartWaveAnimation(element);
                 }

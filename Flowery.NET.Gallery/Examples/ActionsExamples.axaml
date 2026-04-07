@@ -3,7 +3,8 @@
     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
     xmlns:services="clr-namespace:Flowery.Services;assembly=Flowery.NET"
     xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
-    x:Class="Flowery.NET.Gallery.Examples.ActionsExamples">
+    x:Class="Flowery.NET.Gallery.Examples.ActionsExamples"
+    x:CompileBindings="False">
 
     <Grid>
         <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled"

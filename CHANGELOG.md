@@ -6,6 +6,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-04-07
+
+### Changed
+
+- Upgraded the full Flowery.NET stack from Avalonia 11.x to Avalonia `12.0.0`, including the core library, gallery hosts, capture project, and headless test project.
+- Raised the main `Flowery.NET` package target framework from `netstandard2.0` to `net8.0` to match Avalonia 12's supported target frameworks.
+- Updated gallery platform targets for Avalonia 12 compatibility, including Android to `net10.0-android36.0` with `minSdkVersion` 23 and iOS to `net10.0-ios26.0`.
+- Migrated the Android gallery host to Avalonia 12's new Android application startup pattern.
+- Removed the obsolete `Avalonia.Diagnostics` package reference from the gallery because it is no longer shipped for Avalonia 12.
+- Updated the test project to xUnit v3-compatible package references and executable test host settings so `dotnet test` continues to work with `Avalonia.Headless.XUnit` 12.
+
+### Fixed
+
+- Updated code for Avalonia 12 API changes, including focus event args, metadata attributes, clipboard/input namespace usage, and visual root/top-level checks.
+- Fixed Avalonia 12 XAML/style compatibility issues in the theme and gallery example files, including compiled binding handling and template-relative bindings.
+
 ## [1.9.2] - 2026-03-13
 
 ### Changed

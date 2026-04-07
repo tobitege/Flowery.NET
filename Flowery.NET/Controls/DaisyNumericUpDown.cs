@@ -404,7 +404,7 @@ namespace Flowery.Controls
             UpdateDisplayText();
         }
 
-        private void OnTextBoxGotFocus(object? sender, GotFocusEventArgs e)
+        private void OnTextBoxGotFocus(object? sender, FocusChangedEventArgs e)
         {
             _isEditing = true;
             // Don't call UpdateDisplayText here - it would strip formatting set by button clicks

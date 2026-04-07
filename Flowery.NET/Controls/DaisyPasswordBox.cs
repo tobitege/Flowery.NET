@@ -462,7 +462,7 @@ namespace Flowery.Controls
             }
         }
 
-        private void OnInnerGotFocus(object? sender, GotFocusEventArgs e)
+        private void OnInnerGotFocus(object? sender, FocusChangedEventArgs e)
         {
             PseudoClasses.Set(":focus", true);
         }

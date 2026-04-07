@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Markup.Xaml;
+using Avalonia.Metadata;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 

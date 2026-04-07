@@ -166,7 +166,7 @@ namespace Flowery.Effects
                 element.AttachedToVisualTree += OnAttachedToVisualTree;
 
                 // If already attached, initialize now
-                if (element.GetVisualRoot() != null)
+                if (TopLevel.GetTopLevel(element) != null)
                 {
                     InitializeText(element);
                 }

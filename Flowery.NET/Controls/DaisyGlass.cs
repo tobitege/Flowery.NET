@@ -231,7 +231,7 @@ namespace Flowery.Controls
 
             if (change.Property == EnableBackdropBlurProperty)
             {
-                if (EnableBackdropBlur && this.GetVisualRoot() != null)
+                if (EnableBackdropBlur && TopLevel.GetTopLevel(this) != null)
                 {
                     ScheduleBackdropCapture();
                 }
@@ -262,7 +262,7 @@ namespace Flowery.Controls
 
         private async void CaptureAndBlurBackdrop()
         {
-            if (_isCapturing || !EnableBackdropBlur || this.GetVisualRoot() == null)
+            if (_isCapturing || !EnableBackdropBlur || TopLevel.GetTopLevel(this) == null)
                 return;
 
             _isCapturing = true;

@@ -401,7 +401,7 @@ public partial class NavigationExamples : UserControl, IScrollableExample
             HidePhotoTabOverlay();
     }
 
-    private void OnPhotoTabActionGotFocus(object? sender, GotFocusEventArgs e)
+    private void OnPhotoTabActionGotFocus(object? sender, FocusChangedEventArgs e)
     {
         ShowPhotoTabOverlay();
     }

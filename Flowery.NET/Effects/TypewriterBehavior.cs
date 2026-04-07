@@ -50,7 +50,7 @@ namespace Flowery.Effects
                     element.DetachedFromVisualTree += OnDetachedFromVisualTree;
                 }
 
-                if (element.GetVisualRoot() != null)
+                if (TopLevel.GetTopLevel(element) != null)
                 {
                     ScheduleTypewriter(element);
                 }

@@ -9,7 +9,7 @@
 [![NuGet](https://img.shields.io/nuget/v/Flowery.NET?style=flat-square)](https://www.nuget.org/packages/Flowery.NET)
 [![Downloads](https://img.shields.io/nuget/dt/Flowery.NET?style=flat-square)](https://www.nuget.org/packages/Flowery.NET)
 [![License](https://img.shields.io/github/license/tobitege/Flowery.NET?style=flat-square)](LICENSE)
-[![Avalonia](https://img.shields.io/badge/Avalonia-11.0+-purple?style=flat-square)](https://avaloniaui.net/)
+[![Avalonia](https://img.shields.io/badge/Avalonia-12.0+-purple?style=flat-square)](https://avaloniaui.net/)
 [![Docs](https://img.shields.io/badge/Docs-GitHub%20Pages-blue?style=flat-square)](https://tobitege.github.io/Flowery.NET/)
 [![X](https://img.shields.io/badge/X-@tobitege-000000?style=flat-square&logo=x)](https://x.com/tobitege)
 
@@ -36,7 +36,7 @@ This library provides native Avalonia controls that mimic the utility-first, sem
 - **Runtime Theme Switching**: Use `DaisyThemeDropdown` to switch themes at runtime.
 - **Localization Support**: Built-in i18n with **12 languages** (🇺🇸 🇩🇪 🇫🇷 🇪🇸 🇮🇹 🇨🇳 🇰🇷 🇯🇵 🇸🇦 🇹🇷 🇺🇦 🇮🇱), localizable theme names, and runtime language switching. [📖 Guide](LOCALIZATION.md)
 - **Variants**: Supports `Primary`, `Secondary`, `Accent`, `Ghost`, etc.
-- **Framework Support**: Library targets `netstandard2.0` for maximum compatibility.
+- **Framework Support**: Library targets `.NET 8.0+` and Avalonia `12.0+`.
 - **Gallery App**: Multi-platform demo application showcasing all controls and features (Desktop, Browser/WASM, Android, iOS).
 
 **Note:** I'm looking for feedback on iOS builds, I don't have any (physical) environment to test this!
@@ -347,7 +347,7 @@ dotnet run --project Flowery.NET.Gallery.Desktop
 dotnet run --project Flowery.NET.Gallery.Browser
 
 # Android (requires Android SDK)
-dotnet build Flowery.NET.Gallery.Android -f net9.0-android
+dotnet build Flowery.NET.Gallery.Android -f net10.0-android36.0
 ```
 
 ---
@@ -371,12 +371,12 @@ For details and parameters, see `scripts/README.md`.
 
 **To use the library:**
 
-- .NET Standard 2.0 compatible framework (.NET Core 2.0+, .NET Framework 4.6.1+, .NET 5/6/7/8+)
-- Avalonia UI 11.0+
+- .NET 8.0 or later
+- Avalonia UI 12.0 or later
 
 **To build from source:**
 
-- .NET 8.0 SDK or later
+- .NET 10.0 SDK or later
 - Visual Studio 2022, JetBrains Rider, or VS Code
 - Windows, macOS, or Linux
 

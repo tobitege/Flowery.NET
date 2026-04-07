@@ -1,13 +1,13 @@
 name: Release
 
 # MANUAL TRIGGER ONLY - Creates a new release with NuGet package and Gallery apps
-# Go to Actions → Release → Run workflow → Enter version (e.g., 1.8.0)
+# Go to Actions → Release → Run workflow → Enter version (e.g., 2.0.0)
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., 1.8.0) - without "v" prefix'
+        description: 'Version to release (e.g., 2.0.0) - without "v" prefix'
         required: true
         type: string
       skip_nuget:
@@ -52,21 +52,21 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
-      - name: Verify version in csproj
+      - name: Verify version in Directory.Build.props
         run: |
-          CSPROJ_VERSION=$(grep -oP '(?<=<Version>)[^<]+' Flowery.NET/Flowery.NET.csproj)
-          if [ "$CSPROJ_VERSION" != "${{ needs.validate.outputs.version }}" ]; then
-            echo "::error::Version mismatch! csproj has $CSPROJ_VERSION but you specified ${{ needs.validate.outputs.version }}"
-            echo "::error::Please update Flowery.NET/Flowery.NET.csproj first!"
+          SHARED_VERSION=$(sed -n "s/.*<Version Condition=\"'\\\$(Version)' == ''\">\\([^<]*\\)<\\/Version>.*/\\1/p" Directory.Build.props)
+          if [ "$SHARED_VERSION" != "${{ needs.validate.outputs.version }}" ]; then
+            echo "::error::Version mismatch! Directory.Build.props has $SHARED_VERSION but you specified ${{ needs.validate.outputs.version }}"
+            echo "::error::Please update Directory.Build.props first!"
             exit 1
           fi
-          echo "✅ Version matches: $CSPROJ_VERSION"
+          echo "✅ Version matches: $SHARED_VERSION"
 
       - name: Build library
         run: dotnet build Flowery.NET/Flowery.NET.csproj -c Release -o ./build-output
@@ -83,7 +83,7 @@ jobs:
           zip ../Flowery.NET-lib.zip *
 
       - name: Upload library artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: library-artifacts
           path: |
@@ -103,14 +103,14 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ./release-artifacts
 
@@ -211,7 +211,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.validate.outputs.tag }}
           name: "v${{ needs.validate.outputs.version }}"

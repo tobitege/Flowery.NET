@@ -2,8 +2,8 @@ name: Release Gallery
 
 # MANUAL TRIGGER ONLY - Creates a Gallery-only release (no NuGet publish)
 # Automatically determines version from library + increments gallery suffix
-# Tags from main:  v1.8.0-gallery.1, v1.8.0-gallery.2, etc.
-# Tags from alpha: v1.8.0-alpha-gallery.1, v1.8.0-alpha-gallery.2, etc.
+# Tags from main:  v2.0.0-gallery.1, v2.0.0-gallery.2, etc.
+# Tags from alpha: v2.0.0-alpha-gallery.1, v2.0.0-alpha-gallery.2, etc.
 
 on:
   workflow_dispatch:
@@ -34,7 +34,7 @@ jobs:
       branch: ${{ steps.version.outputs.branch }}
       is_prerelease: ${{ steps.version.outputs.is_prerelease }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.branch }}
           fetch-depth: 0  # Need full history for tags
@@ -47,18 +47,18 @@ jobs:
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
           echo "Branch: $BRANCH"
 
-          # Get library version from csproj
-          LIB_VERSION=$(grep -oP '(?<=<Version>)[^<]+' Flowery.NET/Flowery.NET.csproj)
+          # Get library version from shared build metadata
+          LIB_VERSION=$(sed -n "s/.*<Version Condition=\"'\\\$(Version)' == ''\">\\([^<]*\\)<\\/Version>.*/\\1/p" Directory.Build.props)
           echo "lib_version=$LIB_VERSION" >> $GITHUB_OUTPUT
           echo "Library version: $LIB_VERSION"
 
           # Build tag pattern based on branch
           if [ "$BRANCH" = "main" ]; then
-            # Main branch: v1.8.0-gallery.N
+            # Main branch: v2.0.0-gallery.N
             TAG_PREFIX="v${LIB_VERSION}-gallery."
             IS_PRERELEASE="false"
           else
-            # Other branches (e.g., alpha): v1.8.0-alpha-gallery.N
+            # Other branches (e.g., alpha): v2.0.0-alpha-gallery.N
             TAG_PREFIX="v${LIB_VERSION}-${BRANCH}-gallery."
             IS_PRERELEASE="true"
           fi
@@ -104,12 +104,12 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.branch }}
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ./release-artifacts
 
@@ -178,7 +178,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.prepare.outputs.tag }}
           name: "Gallery ${{ needs.prepare.outputs.display_version }}"
