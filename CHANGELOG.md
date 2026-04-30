@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Bumped stable dependency patches for Avalonia 12, .NET 10 packages, test tooling, Android splash screen, and the pinned .NET SDK.
+- Bumped stable dependency patches for Avalonia 12, .NET 10 packages, test tooling, and Android splash screen.
 - Replaced obsolete gallery example `Watermark` usages with `PlaceholderText`.
 
 ## [2.0.0] - 2026-04-07
