@@ -617,7 +617,7 @@ namespace Flowery.NET.Gallery.Examples
             policyGrid.RowDefinitions.Add(new RowDefinition());
             policyGrid.RowDefinitions.Add(new RowDefinition());
 
-            var policyNumber = WithNeumorphic(new DaisyInput { Label = "Policy Number", Watermark = "POL-2024-XXXXXX", IsRequired = true });
+            var policyNumber = WithNeumorphic(new DaisyInput { Label = "Policy Number", PlaceholderText = "POL-2024-XXXXXX", IsRequired = true });
             Grid.SetColumn(policyNumber, 0); Grid.SetRow(policyNumber, 0);
             policyGrid.Children.Add(policyNumber);
 
@@ -628,11 +628,11 @@ namespace Flowery.NET.Gallery.Examples
             Grid.SetColumn(claimTypeLabeled, 1); Grid.SetRow(claimTypeLabeled, 0);
             policyGrid.Children.Add(claimTypeLabeled);
 
-            var incidentDate = WithNeumorphic(new DaisyInput { Label = "Date of Incident", Watermark = "MM/DD/YYYY", IsRequired = true });
+            var incidentDate = WithNeumorphic(new DaisyInput { Label = "Date of Incident", PlaceholderText = "MM/DD/YYYY", IsRequired = true });
             Grid.SetColumn(incidentDate, 0); Grid.SetRow(incidentDate, 1);
             policyGrid.Children.Add(incidentDate);
 
-            var estimatedLoss = WithNeumorphic(new DaisyInput { Label = "Estimated Loss ($)", Watermark = "0.00" });
+            var estimatedLoss = WithNeumorphic(new DaisyInput { Label = "Estimated Loss ($)", PlaceholderText = "0.00" });
             Grid.SetColumn(estimatedLoss, 1); Grid.SetRow(estimatedLoss, 1);
             policyGrid.Children.Add(estimatedLoss);
 
@@ -640,16 +640,16 @@ namespace Flowery.NET.Gallery.Examples
 
             // Incident Details
             panel.Children.Add(CreateSectionLabel("Incident Details"));
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Location of Incident", Watermark = "Address where incident occurred" }));
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Description of Incident", Watermark = "Please describe what happened in detail...", MinHeight = 100 }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Location of Incident", PlaceholderText = "Address where incident occurred" }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Description of Incident", PlaceholderText = "Please describe what happened in detail...", MinHeight = 100 }));
 
             // Witnesses
             panel.Children.Add(CreateSectionLabel("Witnesses (if any)"));
             var witnessGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var witnessName = WithNeumorphic(new DaisyInput { Label = "Witness Name", Watermark = "Full name" });
+            var witnessName = WithNeumorphic(new DaisyInput { Label = "Witness Name", PlaceholderText = "Full name" });
             Grid.SetColumn(witnessName, 0);
             witnessGrid.Children.Add(witnessName);
-            var witnessPhone = WithNeumorphic(new DaisyInput { Label = "Witness Phone", Watermark = "(555) 123-4567" });
+            var witnessPhone = WithNeumorphic(new DaisyInput { Label = "Witness Phone", PlaceholderText = "(555) 123-4567" });
             Grid.SetColumn(witnessPhone, 1);
             witnessGrid.Children.Add(witnessPhone);
             panel.Children.Add(witnessGrid);
@@ -690,7 +690,7 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(nameGrid);
 
             var dobGenderGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var dob = WithNeumorphic(new DaisyInput { Label = "Date of Birth", Watermark = "MM/DD/YYYY", IsRequired = true });
+            var dob = WithNeumorphic(new DaisyInput { Label = "Date of Birth", PlaceholderText = "MM/DD/YYYY", IsRequired = true });
             Grid.SetColumn(dob, 0);
             dobGenderGrid.Children.Add(dob);
             var gender = WithNeumorphic(new DaisySelect());
@@ -704,15 +704,15 @@ namespace Flowery.NET.Gallery.Examples
             // Contact Info
             panel.Children.Add(CreateSectionLabel("Contact Information"));
             var contactGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var phone = WithNeumorphic(new DaisyInput { Label = "Phone Number", Watermark = "(555) 123-4567", IsRequired = true });
+            var phone = WithNeumorphic(new DaisyInput { Label = "Phone Number", PlaceholderText = "(555) 123-4567", IsRequired = true });
             Grid.SetColumn(phone, 0);
             contactGrid.Children.Add(phone);
-            var email = WithNeumorphic(new DaisyInput { Label = "Email Address", Watermark = "patient@email.com" });
+            var email = WithNeumorphic(new DaisyInput { Label = "Email Address", PlaceholderText = "patient@email.com" });
             Grid.SetColumn(email, 1);
             contactGrid.Children.Add(email);
             panel.Children.Add(contactGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Street Address", Watermark = "123 Main Street" }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Street Address", PlaceholderText = "123 Main Street" }));
 
             // Insurance
             panel.Children.Add(CreateSectionLabel("Insurance Information"));
@@ -727,8 +727,8 @@ namespace Flowery.NET.Gallery.Examples
 
             // Medical History
             panel.Children.Add(CreateSectionLabel("Medical History"));
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Current Medications", Watermark = "List any medications you are currently taking...", MinHeight = 60 }));
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Allergies", Watermark = "List any known allergies...", MinHeight = 60 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Current Medications", PlaceholderText = "List any medications you are currently taking...", MinHeight = 60 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Allergies", PlaceholderText = "List any known allergies...", MinHeight = 60 }));
 
             // Consent
             panel.Children.Add(new DaisyDivider { Content = "Consent" });
@@ -767,13 +767,13 @@ namespace Flowery.NET.Gallery.Examples
             typeGrid.Children.Add(listingTypeLabeled);
             panel.Children.Add(typeGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Property Address", Watermark = "123 Oak Street, City, State ZIP", IsRequired = true }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Property Address", PlaceholderText = "123 Oak Street, City, State ZIP", IsRequired = true }));
 
             var priceGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var price = WithNeumorphic(new DaisyInput { Label = "Asking Price ($)", Watermark = "450,000", IsRequired = true });
+            var price = WithNeumorphic(new DaisyInput { Label = "Asking Price ($)", PlaceholderText = "450,000", IsRequired = true });
             Grid.SetColumn(price, 0);
             priceGrid.Children.Add(price);
-            var sqft = WithNeumorphic(new DaisyInput { Label = "Square Footage", Watermark = "2,500" });
+            var sqft = WithNeumorphic(new DaisyInput { Label = "Square Footage", PlaceholderText = "2,500" });
             Grid.SetColumn(sqft, 1);
             priceGrid.Children.Add(sqft);
             panel.Children.Add(priceGrid);
@@ -799,7 +799,7 @@ namespace Flowery.NET.Gallery.Examples
             var garageLabeled = CreateLabeledSelect("Garage", garage);
             Grid.SetColumn(garageLabeled, 2);
             roomGrid.Children.Add(garageLabeled);
-            var yearBuilt = WithNeumorphic(new DaisyInput { Label = "Year Built", Watermark = "1995" });
+            var yearBuilt = WithNeumorphic(new DaisyInput { Label = "Year Built", PlaceholderText = "1995" });
             Grid.SetColumn(yearBuilt, 3);
             roomGrid.Children.Add(yearBuilt);
             panel.Children.Add(roomGrid);
@@ -813,7 +813,7 @@ namespace Flowery.NET.Gallery.Examples
             featuresPanel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "Hardwood Floors", Variant = DaisyCheckBoxVariant.Accent }));
             panel.Children.Add(featuresPanel);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Property Description", Watermark = "Describe the property's best features, recent upgrades, neighborhood highlights...", MinHeight = 100 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Property Description", PlaceholderText = "Describe the property's best features, recent upgrades, neighborhood highlights...", MinHeight = 100 }));
 
             // Contact
             panel.Children.Add(CreateSectionLabel("Agent/Owner Contact"));
@@ -821,7 +821,7 @@ namespace Flowery.NET.Gallery.Examples
             var agentName = WithNeumorphic(new DaisyInput { Label = "Contact Name", IsRequired = true });
             Grid.SetColumn(agentName, 0);
             agentGrid.Children.Add(agentName);
-            var agentPhone = WithNeumorphic(new DaisyInput { Label = "Phone", Watermark = "(555) 123-4567" });
+            var agentPhone = WithNeumorphic(new DaisyInput { Label = "Phone", PlaceholderText = "(555) 123-4567" });
             Grid.SetColumn(agentPhone, 1);
             agentGrid.Children.Add(agentPhone);
             panel.Children.Add(agentGrid);
@@ -850,7 +850,7 @@ namespace Flowery.NET.Gallery.Examples
             var loanTypeLabeled = CreateLabeledSelect("Loan Type", loanType);
             Grid.SetColumn(loanTypeLabeled, 0);
             loanGrid.Children.Add(loanTypeLabeled);
-            var loanAmount = WithNeumorphic(new DaisyInput { Label = "Requested Amount ($)", Watermark = "25,000", IsRequired = true });
+            var loanAmount = WithNeumorphic(new DaisyInput { Label = "Requested Amount ($)", PlaceholderText = "25,000", IsRequired = true });
             Grid.SetColumn(loanAmount, 1);
             loanGrid.Children.Add(loanAmount);
             panel.Children.Add(loanGrid);
@@ -862,7 +862,7 @@ namespace Flowery.NET.Gallery.Examples
             var termLabeled = CreateLabeledSelect("Loan Term", term);
             Grid.SetColumn(termLabeled, 0);
             termGrid.Children.Add(termLabeled);
-            var purpose = WithNeumorphic(new DaisyInput { Label = "Loan Purpose", Watermark = "Describe intended use" });
+            var purpose = WithNeumorphic(new DaisyInput { Label = "Loan Purpose", PlaceholderText = "Describe intended use" });
             Grid.SetColumn(purpose, 1);
             termGrid.Children.Add(purpose);
             panel.Children.Add(termGrid);
@@ -873,13 +873,13 @@ namespace Flowery.NET.Gallery.Examples
             var fullName = WithNeumorphic(new DaisyInput { Label = "Full Legal Name", IsRequired = true });
             Grid.SetColumn(fullName, 0);
             nameGrid.Children.Add(fullName);
-            var ssn = WithNeumorphic(new DaisyInput { Label = "SSN (last 4 digits)", Watermark = "XXXX" });
+            var ssn = WithNeumorphic(new DaisyInput { Label = "SSN (last 4 digits)", PlaceholderText = "XXXX" });
             Grid.SetColumn(ssn, 1);
             nameGrid.Children.Add(ssn);
             panel.Children.Add(nameGrid);
 
             var dobGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var dob = WithNeumorphic(new DaisyInput { Label = "Date of Birth", Watermark = "MM/DD/YYYY", IsRequired = true });
+            var dob = WithNeumorphic(new DaisyInput { Label = "Date of Birth", PlaceholderText = "MM/DD/YYYY", IsRequired = true });
             Grid.SetColumn(dob, 0);
             dobGrid.Children.Add(dob);
             var citizenship = WithNeumorphic(new DaisySelect());
@@ -896,7 +896,7 @@ namespace Flowery.NET.Gallery.Examples
             var employer = WithNeumorphic(new DaisyInput { Label = "Employer Name" });
             Grid.SetColumn(employer, 0);
             empGrid.Children.Add(employer);
-            var income = WithNeumorphic(new DaisyInput { Label = "Annual Income ($)", Watermark = "75,000", IsRequired = true });
+            var income = WithNeumorphic(new DaisyInput { Label = "Annual Income ($)", PlaceholderText = "75,000", IsRequired = true });
             Grid.SetColumn(income, 1);
             empGrid.Children.Add(income);
             panel.Children.Add(empGrid);
@@ -908,7 +908,7 @@ namespace Flowery.NET.Gallery.Examples
             var empStatusLabeled = CreateLabeledSelect("Employment Status", empStatus);
             Grid.SetColumn(empStatusLabeled, 0);
             empStatusGrid.Children.Add(empStatusLabeled);
-            var yearsEmployed = WithNeumorphic(new DaisyInput { Label = "Years at Current Job", Watermark = "3" });
+            var yearsEmployed = WithNeumorphic(new DaisyInput { Label = "Years at Current Job", PlaceholderText = "3" });
             Grid.SetColumn(yearsEmployed, 1);
             empStatusGrid.Children.Add(yearsEmployed);
             panel.Children.Add(empStatusGrid);
@@ -952,19 +952,19 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(tripGrid);
 
             var locGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var origin = WithNeumorphic(new DaisyInput { Label = "Departing From", Watermark = "City or Airport Code", IsRequired = true });
+            var origin = WithNeumorphic(new DaisyInput { Label = "Departing From", PlaceholderText = "City or Airport Code", IsRequired = true });
             Grid.SetColumn(origin, 0);
             locGrid.Children.Add(origin);
-            var dest = WithNeumorphic(new DaisyInput { Label = "Destination", Watermark = "City or Airport Code", IsRequired = true });
+            var dest = WithNeumorphic(new DaisyInput { Label = "Destination", PlaceholderText = "City or Airport Code", IsRequired = true });
             Grid.SetColumn(dest, 1);
             locGrid.Children.Add(dest);
             panel.Children.Add(locGrid);
 
             var dateGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var depart = WithNeumorphic(new DaisyInput { Label = "Departure Date", Watermark = "MM/DD/YYYY", IsRequired = true });
+            var depart = WithNeumorphic(new DaisyInput { Label = "Departure Date", PlaceholderText = "MM/DD/YYYY", IsRequired = true });
             Grid.SetColumn(depart, 0);
             dateGrid.Children.Add(depart);
-            var returnDate = WithNeumorphic(new DaisyInput { Label = "Return Date", Watermark = "MM/DD/YYYY" });
+            var returnDate = WithNeumorphic(new DaisyInput { Label = "Return Date", PlaceholderText = "MM/DD/YYYY" });
             Grid.SetColumn(returnDate, 1);
             dateGrid.Children.Add(returnDate);
             panel.Children.Add(dateGrid);
@@ -998,12 +998,12 @@ namespace Flowery.NET.Gallery.Examples
             var passName = WithNeumorphic(new DaisyInput { Label = "Full Name (as on ID)", IsRequired = true });
             Grid.SetColumn(passName, 0);
             passGrid.Children.Add(passName);
-            var passEmail = WithNeumorphic(new DaisyInput { Label = "Email", Watermark = "traveler@email.com", IsRequired = true });
+            var passEmail = WithNeumorphic(new DaisyInput { Label = "Email", PlaceholderText = "traveler@email.com", IsRequired = true });
             Grid.SetColumn(passEmail, 1);
             passGrid.Children.Add(passEmail);
             panel.Children.Add(passGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Special Requests", Watermark = "Dietary requirements, wheelchair assistance, etc.", MinHeight = 60 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Special Requests", PlaceholderText = "Dietary requirements, wheelchair assistance, etc.", MinHeight = 60 }));
 
             var buttonRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Margin = new Thickness(0, 8, 0, 0) };
             buttonRow.Children.Add(WithNeumorphic(new DaisyButton { Content = "Search Flights", Variant = DaisyButtonVariant.Primary }));
@@ -1023,7 +1023,7 @@ namespace Flowery.NET.Gallery.Examples
             // Reservation Details
             panel.Children.Add(CreateSectionLabel("Reservation Details"));
             var resGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 12 };
-            var date = WithNeumorphic(new DaisyInput { Label = "Date", Watermark = "MM/DD/YYYY", IsRequired = true });
+            var date = WithNeumorphic(new DaisyInput { Label = "Date", PlaceholderText = "MM/DD/YYYY", IsRequired = true });
             Grid.SetColumn(date, 0);
             resGrid.Children.Add(date);
             var time = WithNeumorphic(new DaisySelect());
@@ -1067,13 +1067,13 @@ namespace Flowery.NET.Gallery.Examples
             var name = WithNeumorphic(new DaisyInput { Label = "Name", IsRequired = true });
             Grid.SetColumn(name, 0);
             contactGrid.Children.Add(name);
-            var phone = WithNeumorphic(new DaisyInput { Label = "Phone", Watermark = "(555) 123-4567", IsRequired = true });
+            var phone = WithNeumorphic(new DaisyInput { Label = "Phone", PlaceholderText = "(555) 123-4567", IsRequired = true });
             Grid.SetColumn(phone, 1);
             contactGrid.Children.Add(phone);
             panel.Children.Add(contactGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Email", Watermark = "guest@email.com" }));
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Special Requests", Watermark = "Allergies, dietary restrictions, highchair needed...", MinHeight = 60 }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Email", PlaceholderText = "guest@email.com" }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Special Requests", PlaceholderText = "Allergies, dietary restrictions, highchair needed...", MinHeight = 60 }));
 
             panel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "Send me exclusive offers and updates", Variant = DaisyCheckBoxVariant.Accent }));
 
@@ -1115,7 +1115,7 @@ namespace Flowery.NET.Gallery.Examples
             var fullName = WithNeumorphic(new DaisyInput { Label = "Full Legal Name", IsRequired = true });
             Grid.SetColumn(fullName, 0);
             nameGrid.Children.Add(fullName);
-            var phone = WithNeumorphic(new DaisyInput { Label = "Phone Number", Watermark = "(555) 123-4567", IsRequired = true });
+            var phone = WithNeumorphic(new DaisyInput { Label = "Phone Number", PlaceholderText = "(555) 123-4567", IsRequired = true });
             Grid.SetColumn(phone, 1);
             nameGrid.Children.Add(phone);
             panel.Children.Add(nameGrid);
@@ -1132,17 +1132,17 @@ namespace Flowery.NET.Gallery.Examples
             contactGrid.Children.Add(preferredContactLabeled);
             panel.Children.Add(contactGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Address", Watermark = "Street, City, State, ZIP" }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Address", PlaceholderText = "Street, City, State, ZIP" }));
 
             // Case Details
             panel.Children.Add(CreateSectionLabel("Case Details"));
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Brief Description of Your Legal Matter", Watermark = "Please describe your situation and what legal assistance you need...", MinHeight = 120, IsRequired = true }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Brief Description of Your Legal Matter", PlaceholderText = "Please describe your situation and what legal assistance you need...", MinHeight = 120, IsRequired = true }));
 
             var dateGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var incidentDate = WithNeumorphic(new DaisyInput { Label = "Date of Incident (if applicable)", Watermark = "MM/DD/YYYY" });
+            var incidentDate = WithNeumorphic(new DaisyInput { Label = "Date of Incident (if applicable)", PlaceholderText = "MM/DD/YYYY" });
             Grid.SetColumn(incidentDate, 0);
             dateGrid.Children.Add(incidentDate);
-            var deadline = WithNeumorphic(new DaisyInput { Label = "Any Known Deadlines", Watermark = "MM/DD/YYYY" });
+            var deadline = WithNeumorphic(new DaisyInput { Label = "Any Known Deadlines", PlaceholderText = "MM/DD/YYYY" });
             Grid.SetColumn(deadline, 1);
             dateGrid.Children.Add(deadline);
             panel.Children.Add(dateGrid);
@@ -1219,10 +1219,10 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(nameGrid);
 
             var contactGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var email = WithNeumorphic(new DaisyInput { Label = "Email", Watermark = "student@email.com", IsRequired = true });
+            var email = WithNeumorphic(new DaisyInput { Label = "Email", PlaceholderText = "student@email.com", IsRequired = true });
             Grid.SetColumn(email, 0);
             contactGrid.Children.Add(email);
-            var phone = WithNeumorphic(new DaisyInput { Label = "Phone", Watermark = "(555) 123-4567" });
+            var phone = WithNeumorphic(new DaisyInput { Label = "Phone", PlaceholderText = "(555) 123-4567" });
             Grid.SetColumn(phone, 1);
             contactGrid.Children.Add(phone);
             panel.Children.Add(contactGrid);
@@ -1244,7 +1244,7 @@ namespace Flowery.NET.Gallery.Examples
             eduGrid.Children.Add(experienceLabeled);
             panel.Children.Add(eduGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Why are you interested in this program?", Watermark = "Tell us about your goals and what you hope to achieve...", MinHeight = 80 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Why are you interested in this program?", PlaceholderText = "Tell us about your goals and what you hope to achieve...", MinHeight = 80 }));
 
             // Payment
             panel.Children.Add(CreateSectionLabel("Payment Options"));
@@ -1275,7 +1275,7 @@ namespace Flowery.NET.Gallery.Examples
             // Position
             panel.Children.Add(CreateSectionLabel("Position Details"));
             var posGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var position = WithNeumorphic(new DaisyInput { Label = "Position Applied For", Watermark = "e.g., Senior Software Engineer", IsRequired = true });
+            var position = WithNeumorphic(new DaisyInput { Label = "Position Applied For", PlaceholderText = "e.g., Senior Software Engineer", IsRequired = true });
             Grid.SetColumn(position, 0);
             posGrid.Children.Add(position);
             var department = WithNeumorphic(new DaisySelect());
@@ -1292,22 +1292,22 @@ namespace Flowery.NET.Gallery.Examples
             var fullName = WithNeumorphic(new DaisyInput { Label = "Full Name", IsRequired = true });
             Grid.SetColumn(fullName, 0);
             nameGrid.Children.Add(fullName);
-            var email = WithNeumorphic(new DaisyInput { Label = "Email", Watermark = "applicant@email.com", IsRequired = true });
+            var email = WithNeumorphic(new DaisyInput { Label = "Email", PlaceholderText = "applicant@email.com", IsRequired = true });
             Grid.SetColumn(email, 1);
             nameGrid.Children.Add(email);
             panel.Children.Add(nameGrid);
 
             var contactGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var phone = WithNeumorphic(new DaisyInput { Label = "Phone Number", Watermark = "(555) 123-4567" });
+            var phone = WithNeumorphic(new DaisyInput { Label = "Phone Number", PlaceholderText = "(555) 123-4567" });
             Grid.SetColumn(phone, 0);
             contactGrid.Children.Add(phone);
-            var location = WithNeumorphic(new DaisyInput { Label = "Current Location", Watermark = "City, State/Country" });
+            var location = WithNeumorphic(new DaisyInput { Label = "Current Location", PlaceholderText = "City, State/Country" });
             Grid.SetColumn(location, 1);
             contactGrid.Children.Add(location);
             panel.Children.Add(contactGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "LinkedIn Profile", Watermark = "https://linkedin.com/in/yourprofile" }));
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Portfolio/Website", Watermark = "https://yourportfolio.com" }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "LinkedIn Profile", PlaceholderText = "https://linkedin.com/in/yourprofile" }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Portfolio/Website", PlaceholderText = "https://yourportfolio.com" }));
 
             // Experience
             panel.Children.Add(CreateSectionLabel("Experience & Qualifications"));
@@ -1327,7 +1327,7 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(expGrid);
 
             panel.Children.Add(CreateLabeledFileInput("Resume/CV", WithNeumorphic(new DaisyFileInput())));
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Cover Letter / Why This Role?", Watermark = "Tell us why you're interested in this position and what makes you a great fit...", MinHeight = 100 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Cover Letter / Why This Role?", PlaceholderText = "Tell us why you're interested in this position and what makes you a great fit...", MinHeight = 100 }));
 
             // Availability
             panel.Children.Add(CreateSectionLabel("Availability"));
@@ -1338,7 +1338,7 @@ namespace Flowery.NET.Gallery.Examples
             var availStartDateLabeled = CreateLabeledSelect("Available to Start", availStartDate);
             Grid.SetColumn(availStartDateLabeled, 0);
             availGrid.Children.Add(availStartDateLabeled);
-            var salary = WithNeumorphic(new DaisyInput { Label = "Expected Salary", Watermark = "$XX,XXX - $XX,XXX" });
+            var salary = WithNeumorphic(new DaisyInput { Label = "Expected Salary", PlaceholderText = "$XX,XXX - $XX,XXX" });
             Grid.SetColumn(salary, 1);
             availGrid.Children.Add(salary);
             panel.Children.Add(availGrid);
@@ -1370,7 +1370,7 @@ namespace Flowery.NET.Gallery.Examples
             // Reservation
             panel.Children.Add(CreateSectionLabel("Reservation Details"));
             var resGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var confNumber = WithNeumorphic(new DaisyInput { Label = "Confirmation Number", Watermark = "ABC123456", IsRequired = true });
+            var confNumber = WithNeumorphic(new DaisyInput { Label = "Confirmation Number", PlaceholderText = "ABC123456", IsRequired = true });
             Grid.SetColumn(confNumber, 0);
             resGrid.Children.Add(confNumber);
             var roomType = WithNeumorphic(new DaisySelect());
@@ -1382,10 +1382,10 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(resGrid);
 
             var dateGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 12 };
-            var checkIn = WithNeumorphic(new DaisyInput { Label = "Check-In Date", Watermark = "MM/DD/YYYY", IsRequired = true });
+            var checkIn = WithNeumorphic(new DaisyInput { Label = "Check-In Date", PlaceholderText = "MM/DD/YYYY", IsRequired = true });
             Grid.SetColumn(checkIn, 0);
             dateGrid.Children.Add(checkIn);
-            var checkOut = WithNeumorphic(new DaisyInput { Label = "Check-Out Date", Watermark = "MM/DD/YYYY", IsRequired = true });
+            var checkOut = WithNeumorphic(new DaisyInput { Label = "Check-Out Date", PlaceholderText = "MM/DD/YYYY", IsRequired = true });
             Grid.SetColumn(checkOut, 1);
             dateGrid.Children.Add(checkOut);
             var guestsHotel = WithNeumorphic(new DaisySelect());
@@ -1411,15 +1411,15 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(nameGrid);
 
             var contactGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var email = WithNeumorphic(new DaisyInput { Label = "Email", Watermark = "guest@email.com", IsRequired = true });
+            var email = WithNeumorphic(new DaisyInput { Label = "Email", PlaceholderText = "guest@email.com", IsRequired = true });
             Grid.SetColumn(email, 0);
             contactGrid.Children.Add(email);
-            var phone = WithNeumorphic(new DaisyInput { Label = "Phone", Watermark = "(555) 123-4567", IsRequired = true });
+            var phone = WithNeumorphic(new DaisyInput { Label = "Phone", PlaceholderText = "(555) 123-4567", IsRequired = true });
             Grid.SetColumn(phone, 1);
             contactGrid.Children.Add(phone);
             panel.Children.Add(contactGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Address", Watermark = "Street, City, State, ZIP, Country" }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Address", PlaceholderText = "Street, City, State, ZIP, Country" }));
 
             // Preferences
             panel.Children.Add(CreateSectionLabel("Room Preferences"));
@@ -1443,11 +1443,11 @@ namespace Flowery.NET.Gallery.Examples
             extrasPanel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "Spa Access", Variant = DaisyCheckBoxVariant.Accent }));
             panel.Children.Add(extrasPanel);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Special Requests", Watermark = "Feather-free pillows, extra towels, celebration decorations...", MinHeight = 60 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Special Requests", PlaceholderText = "Feather-free pillows, extra towels, celebration decorations...", MinHeight = 60 }));
 
             // Payment
             panel.Children.Add(CreateSectionLabel("Payment Information"));
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Credit Card (for incidentals)", Watermark = "**** **** **** ****" }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Credit Card (for incidentals)", PlaceholderText = "**** **** **** ****" }));
 
             panel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "I agree to the hotel policies and terms of stay", Variant = DaisyCheckBoxVariant.Primary }));
 
@@ -1486,16 +1486,16 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(nameGrid);
 
             var contactGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var email = WithNeumorphic(new DaisyInput { Label = "Email", Watermark = "member@email.com", IsRequired = true });
+            var email = WithNeumorphic(new DaisyInput { Label = "Email", PlaceholderText = "member@email.com", IsRequired = true });
             Grid.SetColumn(email, 0);
             contactGrid.Children.Add(email);
-            var phone = WithNeumorphic(new DaisyInput { Label = "Phone", Watermark = "(555) 123-4567", IsRequired = true });
+            var phone = WithNeumorphic(new DaisyInput { Label = "Phone", PlaceholderText = "(555) 123-4567", IsRequired = true });
             Grid.SetColumn(phone, 1);
             contactGrid.Children.Add(phone);
             panel.Children.Add(contactGrid);
 
             var dobGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var dob = WithNeumorphic(new DaisyInput { Label = "Date of Birth", Watermark = "MM/DD/YYYY", IsRequired = true });
+            var dob = WithNeumorphic(new DaisyInput { Label = "Date of Birth", PlaceholderText = "MM/DD/YYYY", IsRequired = true });
             Grid.SetColumn(dob, 0);
             dobGrid.Children.Add(dob);
             var genderFitness = WithNeumorphic(new DaisySelect());
@@ -1512,7 +1512,7 @@ namespace Flowery.NET.Gallery.Examples
             var emergName = WithNeumorphic(new DaisyInput { Label = "Contact Name", IsRequired = true });
             Grid.SetColumn(emergName, 0);
             emergGrid.Children.Add(emergName);
-            var emergPhone = WithNeumorphic(new DaisyInput { Label = "Phone", Watermark = "(555) 123-4567" });
+            var emergPhone = WithNeumorphic(new DaisyInput { Label = "Phone", PlaceholderText = "(555) 123-4567" });
             Grid.SetColumn(emergPhone, 1);
             emergGrid.Children.Add(emergPhone);
             var relationship = WithNeumorphic(new DaisySelect());
@@ -1544,7 +1544,7 @@ namespace Flowery.NET.Gallery.Examples
 
             // Health Waiver
             panel.Children.Add(new DaisyDivider { Content = "Health & Liability" });
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Known Health Conditions", Watermark = "List any injuries, conditions, or limitations we should be aware of...", MinHeight = 60 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Known Health Conditions", PlaceholderText = "List any injuries, conditions, or limitations we should be aware of...", MinHeight = 60 }));
 
             panel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "I confirm I am physically able to participate in fitness activities", Variant = DaisyCheckBoxVariant.Primary }));
             panel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "I have read and agree to the liability waiver and gym rules", Variant = DaisyCheckBoxVariant.Primary }));
@@ -1575,9 +1575,9 @@ namespace Flowery.NET.Gallery.Examples
             nameGrid.Children.Add(lastName);
             panel.Children.Add(nameGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Company (optional)", Watermark = "Company name" }));
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Street Address", Watermark = "123 Main Street", IsRequired = true }));
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Apartment, suite, etc.", Watermark = "Apt 4B" }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Company (optional)", PlaceholderText = "Company name" }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Street Address", PlaceholderText = "123 Main Street", IsRequired = true }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Apartment, suite, etc.", PlaceholderText = "Apt 4B" }));
 
             var cityGrid = new Grid { ColumnDefinitions = { new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) }, new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 12 };
             var city = WithNeumorphic(new DaisyInput { Label = "City", IsRequired = true });
@@ -1589,16 +1589,16 @@ namespace Flowery.NET.Gallery.Examples
             var stateLabeled = CreateLabeledSelect("State", state);
             Grid.SetColumn(stateLabeled, 1);
             cityGrid.Children.Add(stateLabeled);
-            var zip = WithNeumorphic(new DaisyInput { Label = "ZIP Code", Watermark = "12345", IsRequired = true });
+            var zip = WithNeumorphic(new DaisyInput { Label = "ZIP Code", PlaceholderText = "12345", IsRequired = true });
             Grid.SetColumn(zip, 2);
             cityGrid.Children.Add(zip);
             panel.Children.Add(cityGrid);
 
             var contactGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var email = WithNeumorphic(new DaisyInput { Label = "Email", Watermark = "you@email.com", IsRequired = true });
+            var email = WithNeumorphic(new DaisyInput { Label = "Email", PlaceholderText = "you@email.com", IsRequired = true });
             Grid.SetColumn(email, 0);
             contactGrid.Children.Add(email);
-            var phone = WithNeumorphic(new DaisyInput { Label = "Phone", Watermark = "(555) 123-4567" });
+            var phone = WithNeumorphic(new DaisyInput { Label = "Phone", PlaceholderText = "(555) 123-4567" });
             Grid.SetColumn(phone, 1);
             contactGrid.Children.Add(phone);
             panel.Children.Add(contactGrid);
@@ -1615,13 +1615,13 @@ namespace Flowery.NET.Gallery.Examples
 
             // Payment
             panel.Children.Add(CreateSectionLabel("Payment Information"));
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Card Number", Watermark = "1234 5678 9012 3456", IsRequired = true }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Card Number", PlaceholderText = "1234 5678 9012 3456", IsRequired = true }));
 
             var payGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 12 };
-            var expiry = WithNeumorphic(new DaisyInput { Label = "Expiry Date", Watermark = "MM/YY", IsRequired = true });
+            var expiry = WithNeumorphic(new DaisyInput { Label = "Expiry Date", PlaceholderText = "MM/YY", IsRequired = true });
             Grid.SetColumn(expiry, 0);
             payGrid.Children.Add(expiry);
-            var cvv = WithNeumorphic(new DaisyInput { Label = "CVV", Watermark = "123", IsRequired = true });
+            var cvv = WithNeumorphic(new DaisyInput { Label = "CVV", PlaceholderText = "123", IsRequired = true });
             Grid.SetColumn(cvv, 1);
             payGrid.Children.Add(cvv);
             var cardName = WithNeumorphic(new DaisyInput { Label = "Name on Card", IsRequired = true });
@@ -1634,7 +1634,7 @@ namespace Flowery.NET.Gallery.Examples
             // Promo
             panel.Children.Add(CreateSectionLabel("Promo Code"));
             var promoGrid = new Grid { ColumnDefinitions = { new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) }, new ColumnDefinition() }, ColumnSpacing = 12 };
-            var promoCode = WithNeumorphic(new DaisyInput { Watermark = "Enter promo code" });
+            var promoCode = WithNeumorphic(new DaisyInput { PlaceholderText = "Enter promo code" });
             Grid.SetColumn(promoCode, 0);
             promoGrid.Children.Add(promoCode);
             var applyBtn = WithNeumorphic(new DaisyButton { Content = "Apply", Variant = DaisyButtonVariant.Secondary });
@@ -1663,7 +1663,7 @@ namespace Flowery.NET.Gallery.Examples
 
             panel.Children.Add(CreateSectionLabel("Account Information"));
             var gameGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var gamerTag = WithNeumorphic(new DaisyInput { Label = "GamerTag", Watermark = "NoobSlayer99", IsRequired = true });
+            var gamerTag = WithNeumorphic(new DaisyInput { Label = "GamerTag", PlaceholderText = "NoobSlayer99", IsRequired = true });
             Grid.SetColumn(gamerTag, 0);
             gameGrid.Children.Add(gamerTag);
             var platform = WithNeumorphic(new DaisySelect());
@@ -1688,7 +1688,7 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(CreateLabeledSelect("Server Region", serverRegion));
 
             panel.Children.Add(CreateSectionLabel("Streaming & Social"));
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Twitch URL", Watermark = "twitch.tv/username" }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Twitch URL", PlaceholderText = "twitch.tv/username" }));
             panel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "Enable cross-play with other platforms", Variant = DaisyCheckBoxVariant.Primary, IsChecked = true }));
             panel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "Show my online status to friends", Variant = DaisyCheckBoxVariant.Primary, IsChecked = true }));
 
@@ -1708,7 +1708,7 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(CreateFormTitle("Project Inquiry Brief"));
 
             panel.Children.Add(CreateSectionLabel("Project Overview"));
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Project Name", Watermark = "e.g., Brand Identity Refresh", IsRequired = true }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Project Name", PlaceholderText = "e.g., Brand Identity Refresh", IsRequired = true }));
 
             var serviceGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
             var service = WithNeumorphic(new DaisySelect());
@@ -1725,7 +1725,7 @@ namespace Flowery.NET.Gallery.Examples
             serviceGrid.Children.Add(budgetLabeled);
             panel.Children.Add(serviceGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "What are your goals for this project?", Watermark = "Describe your vision, target audience, and key deliverables...", MinHeight = 80 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "What are your goals for this project?", PlaceholderText = "Describe your vision, target audience, and key deliverables...", MinHeight = 80 }));
 
             panel.Children.Add(CreateSectionLabel("Brand Direction"));
             var vibePanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 16 };
@@ -1760,19 +1760,19 @@ namespace Flowery.NET.Gallery.Examples
             var modelLabeled = CreateLabeledSelect("Base Model", model);
             Grid.SetColumn(modelLabeled, 0);
             modelGrid.Children.Add(modelLabeled);
-            var temperature = WithNeumorphic(new DaisyInput { Label = "Temperature (0.0 - 2.0)", Watermark = "0.7" });
+            var temperature = WithNeumorphic(new DaisyInput { Label = "Temperature (0.0 - 2.0)", PlaceholderText = "0.7" });
             Grid.SetColumn(temperature, 1);
             modelGrid.Children.Add(temperature);
             panel.Children.Add(modelGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "System Prompt / Instructions", Watermark = "You are a helpful assistant specialized in coding and software architecture...", MinHeight = 100 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "System Prompt / Instructions", PlaceholderText = "You are a helpful assistant specialized in coding and software architecture...", MinHeight = 100 }));
 
             panel.Children.Add(CreateSectionLabel("Safety & Filters"));
             panel.Children.Add(WithNeumorphic(new DaisyToggle { Content = "Enable Content Filtering", IsChecked = true, Variant = DaisyToggleVariant.Success }));
             panel.Children.Add(WithNeumorphic(new DaisyToggle { Content = "Log All Interactions", IsChecked = false, Variant = DaisyToggleVariant.Primary }));
 
             panel.Children.Add(CreateSectionLabel("API Integration"));
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "API Key", Watermark = "sk-....", Variant = DaisyInputVariant.Bordered }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "API Key", PlaceholderText = "sk-....", Variant = DaisyInputVariant.Bordered }));
 
             var buttonRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Margin = new Thickness(0, 8, 0, 0) };
             buttonRow.Children.Add(WithNeumorphic(new DaisyButton { Content = "Save Settings", Variant = DaisyButtonVariant.Primary }));
@@ -1805,7 +1805,7 @@ namespace Flowery.NET.Gallery.Examples
             targetGrid.Children.Add(severityLabeled);
             panel.Children.Add(targetGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Target Domain / IP Range", Watermark = "https://api.example.com", IsRequired = true }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Target Domain / IP Range", PlaceholderText = "https://api.example.com", IsRequired = true }));
 
             panel.Children.Add(CreateSectionLabel("Security Compliance"));
             var compPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 16 };
@@ -1815,7 +1815,7 @@ namespace Flowery.NET.Gallery.Examples
             compPanel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "PCI-DSS", Variant = DaisyCheckBoxVariant.Accent }));
             panel.Children.Add(compPanel);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Access Details / Known Vulnerabilities", Watermark = "Provide any specific areas of concern or credentials for authenticated scanning...", MinHeight = 80 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Access Details / Known Vulnerabilities", PlaceholderText = "Provide any specific areas of concern or credentials for authenticated scanning...", MinHeight = 80 }));
 
             var buttonRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Margin = new Thickness(0, 8, 0, 0) };
             buttonRow.Children.Add(WithNeumorphic(new DaisyButton { Content = "Schedule Audit", Variant = DaisyButtonVariant.Primary }));
@@ -1848,7 +1848,7 @@ namespace Flowery.NET.Gallery.Examples
             missionGrid.Children.Add(vehicleLabeled);
             panel.Children.Add(missionGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Payload Mass (kg)", Watermark = "5,400", IsRequired = true }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Payload Mass (kg)", PlaceholderText = "5,400", IsRequired = true }));
 
             panel.Children.Add(CreateSectionLabel("Pre-Launch Status"));
             panel.Children.Add(WithNeumorphic(new DaisyToggle { Content = "Telemetry Sync Confirmed", IsChecked = true, Variant = DaisyToggleVariant.Success }));
@@ -1856,7 +1856,7 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(WithNeumorphic(new DaisyToggle { Content = "Guidance System Calibrated", IsChecked = true, Variant = DaisyToggleVariant.Success }));
 
             panel.Children.Add(CreateSectionLabel("Payload Description"));
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Watermark = "Communication satellite array for global broadband connectivity...", MinHeight = 60 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { PlaceholderText = "Communication satellite array for global broadband connectivity...", MinHeight = 60 }));
 
             var buttonRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Margin = new Thickness(0, 8, 0, 0) };
             buttonRow.Children.Add(WithNeumorphic(new DaisyButton { Content = "Finalize Flight Plan", Variant = DaisyButtonVariant.Primary }));
@@ -1875,7 +1875,7 @@ namespace Flowery.NET.Gallery.Examples
 
             panel.Children.Add(CreateSectionLabel("About You"));
             var bioGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var age = WithNeumorphic(new DaisyInput { Label = "Age", Watermark = "28", IsRequired = true });
+            var age = WithNeumorphic(new DaisyInput { Label = "Age", PlaceholderText = "28", IsRequired = true });
             Grid.SetColumn(age, 0);
             bioGrid.Children.Add(age);
             var identity = WithNeumorphic(new DaisySelect());
@@ -1886,7 +1886,7 @@ namespace Flowery.NET.Gallery.Examples
             bioGrid.Children.Add(identityLabeled);
             panel.Children.Add(bioGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "My Perfect Sunday", Watermark = "Waking up late, grabbing coffee at the local market, and a long walk in the park...", MinHeight = 80 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "My Perfect Sunday", PlaceholderText = "Waking up late, grabbing coffee at the local market, and a long walk in the park...", MinHeight = 80 }));
 
             panel.Children.Add(CreateSectionLabel("What are you looking for?"));
             var interestPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 16 };
@@ -1923,7 +1923,7 @@ namespace Flowery.NET.Gallery.Examples
 
             panel.Children.Add(CreateSectionLabel("Pet Information"));
             var petGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var petName = WithNeumorphic(new DaisyInput { Label = "Pet's Name", Watermark = "Buddy", IsRequired = true });
+            var petName = WithNeumorphic(new DaisyInput { Label = "Pet's Name", PlaceholderText = "Buddy", IsRequired = true });
             Grid.SetColumn(petName, 0);
             petGrid.Children.Add(petName);
             var species = WithNeumorphic(new DaisySelect());
@@ -1935,10 +1935,10 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(petGrid);
 
             var breedGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var breed = WithNeumorphic(new DaisyInput { Label = "Breed", Watermark = "Golden Retriever" });
+            var breed = WithNeumorphic(new DaisyInput { Label = "Breed", PlaceholderText = "Golden Retriever" });
             Grid.SetColumn(breed, 0);
             breedGrid.Children.Add(breed);
-            var age = WithNeumorphic(new DaisyInput { Label = "Age (years)", Watermark = "3" });
+            var age = WithNeumorphic(new DaisyInput { Label = "Age (years)", PlaceholderText = "3" });
             Grid.SetColumn(age, 1);
             breedGrid.Children.Add(age);
             panel.Children.Add(breedGrid);
@@ -1950,7 +1950,7 @@ namespace Flowery.NET.Gallery.Examples
             medicalPanel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "Neutered/Spayed", Variant = DaisyCheckBoxVariant.Success }));
             panel.Children.Add(medicalPanel);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Allergies or Special Needs", Watermark = "Sensitive stomach, allergic to grain, fearful of loud noises...", MinHeight = 60 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Allergies or Special Needs", PlaceholderText = "Sensitive stomach, allergic to grain, fearful of loud noises...", MinHeight = 60 }));
 
             panel.Children.Add(WithNeumorphic(new DaisyToggle { Content = "Enable Smart Tracker Notifications", IsChecked = true, Variant = DaisyToggleVariant.Primary }));
 
@@ -1971,10 +1971,10 @@ namespace Flowery.NET.Gallery.Examples
 
             panel.Children.Add(CreateSectionLabel("Business Operations"));
             var energyGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var energy = WithNeumorphic(new DaisyInput { Label = "Monthly Electricity (kWh)", Watermark = "1,200", IsRequired = true });
+            var energy = WithNeumorphic(new DaisyInput { Label = "Monthly Electricity (kWh)", PlaceholderText = "1,200", IsRequired = true });
             Grid.SetColumn(energy, 0);
             energyGrid.Children.Add(energy);
-            var fuel = WithNeumorphic(new DaisyInput { Label = "Fleet Fuel (Liters)", Watermark = "450" });
+            var fuel = WithNeumorphic(new DaisyInput { Label = "Fleet Fuel (Liters)", PlaceholderText = "450" });
             Grid.SetColumn(fuel, 1);
             energyGrid.Children.Add(fuel);
             panel.Children.Add(energyGrid);
@@ -1996,7 +1996,7 @@ namespace Flowery.NET.Gallery.Examples
             goalGrid.Children.Add(targetLabeled);
             panel.Children.Add(goalGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Recent Green Initiatives", Watermark = "Installed solar panels, moved to remote-first policy, optimized shipping routes...", MinHeight = 80 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Recent Green Initiatives", PlaceholderText = "Installed solar panels, moved to remote-first policy, optimized shipping routes...", MinHeight = 80 }));
 
             panel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "Receive quarterly sustainability impact report", Variant = DaisyCheckBoxVariant.Accent, IsChecked = true }));
 
@@ -2020,7 +2020,7 @@ namespace Flowery.NET.Gallery.Examples
             var name = WithNeumorphic(new DaisyInput { Label = "Full Name", IsRequired = true });
             Grid.SetColumn(name, 0);
             nameGrid.Children.Add(name);
-            var email = WithNeumorphic(new DaisyInput { Label = "Email", Watermark = "volunteer@email.org", IsRequired = true });
+            var email = WithNeumorphic(new DaisyInput { Label = "Email", PlaceholderText = "volunteer@email.org", IsRequired = true });
             Grid.SetColumn(email, 1);
             nameGrid.Children.Add(email);
             panel.Children.Add(nameGrid);
@@ -2037,11 +2037,11 @@ namespace Flowery.NET.Gallery.Examples
             interest.SelectedIndex = 0;
             panel.Children.Add(CreateLabeledSelect("Primary Interest Area", interest));
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Why do you want to volunteer with us?", Watermark = "Share your motivation and any relevant skills or experience...", MinHeight = 100 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Why do you want to volunteer with us?", PlaceholderText = "Share your motivation and any relevant skills or experience...", MinHeight = 100 }));
 
             panel.Children.Add(CreateSectionLabel("Donation (Optional)"));
             var donationGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var amount = WithNeumorphic(new DaisyInput { Label = "One-time Donation ($)", Watermark = "25.00" });
+            var amount = WithNeumorphic(new DaisyInput { Label = "One-time Donation ($)", PlaceholderText = "25.00" });
             Grid.SetColumn(amount, 0);
             donationGrid.Children.Add(amount);
             panel.Children.Add(donationGrid);
@@ -2063,7 +2063,7 @@ namespace Flowery.NET.Gallery.Examples
 
             panel.Children.Add(CreateSectionLabel("Team Details"));
             var teamGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var teamName = WithNeumorphic(new DaisyInput { Label = "Team Name", Watermark = "The Thunderbolts", IsRequired = true });
+            var teamName = WithNeumorphic(new DaisyInput { Label = "Team Name", PlaceholderText = "The Thunderbolts", IsRequired = true });
             Grid.SetColumn(teamName, 0);
             teamGrid.Children.Add(teamName);
             var sport = WithNeumorphic(new DaisySelect());
@@ -2081,15 +2081,15 @@ namespace Flowery.NET.Gallery.Examples
 
             panel.Children.Add(CreateSectionLabel("Team Logistics"));
             var colorGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var primaryColor = WithNeumorphic(new DaisyInput { Label = "Primary Jersey Color", Watermark = "Navy Blue" });
+            var primaryColor = WithNeumorphic(new DaisyInput { Label = "Primary Jersey Color", PlaceholderText = "Navy Blue" });
             Grid.SetColumn(primaryColor, 0);
             colorGrid.Children.Add(primaryColor);
-            var secondaryColor = WithNeumorphic(new DaisyInput { Label = "Secondary Color", Watermark = "Gold" });
+            var secondaryColor = WithNeumorphic(new DaisyInput { Label = "Secondary Color", PlaceholderText = "Gold" });
             Grid.SetColumn(secondaryColor, 1);
             colorGrid.Children.Add(secondaryColor);
             panel.Children.Add(colorGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Home Field / Venue", Watermark = "Central Community Park" }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Home Field / Venue", PlaceholderText = "Central Community Park" }));
 
             panel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "We require equipment rental", Variant = DaisyCheckBoxVariant.Accent }));
             panel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "I have read the league liability waiver", Variant = DaisyCheckBoxVariant.Primary }));
@@ -2117,7 +2117,7 @@ namespace Flowery.NET.Gallery.Examples
             var eventTypeLabeled = CreateLabeledSelect("Event Type", eventType);
             Grid.SetColumn(eventTypeLabeled, 0);
             artGrid.Children.Add(eventTypeLabeled);
-            var date = WithNeumorphic(new DaisyInput { Label = "Requested Date", Watermark = "MM/DD/YYYY", IsRequired = true });
+            var date = WithNeumorphic(new DaisyInput { Label = "Requested Date", PlaceholderText = "MM/DD/YYYY", IsRequired = true });
             Grid.SetColumn(date, 1);
             artGrid.Children.Add(date);
             panel.Children.Add(artGrid);
@@ -2130,14 +2130,14 @@ namespace Flowery.NET.Gallery.Examples
             spacePanel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "Catering Tables", Variant = DaisyCheckBoxVariant.Accent }));
             panel.Children.Add(spacePanel);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Artist/Exhibition Statement", Watermark = "Tell us about the work being presented and its technical requirements...", MinHeight = 100 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Artist/Exhibition Statement", PlaceholderText = "Tell us about the work being presented and its technical requirements...", MinHeight = 100 }));
 
             panel.Children.Add(CreateSectionLabel("Tickets & Pricing"));
             var ticketGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var price = WithNeumorphic(new DaisyInput { Label = "Standard Ticket Price ($)", Watermark = "15.00" });
+            var price = WithNeumorphic(new DaisyInput { Label = "Standard Ticket Price ($)", PlaceholderText = "15.00" });
             Grid.SetColumn(price, 0);
             ticketGrid.Children.Add(price);
-            var capacity = WithNeumorphic(new DaisyInput { Label = "Target Capacity", Watermark = "150" });
+            var capacity = WithNeumorphic(new DaisyInput { Label = "Target Capacity", PlaceholderText = "150" });
             Grid.SetColumn(capacity, 1);
             ticketGrid.Children.Add(capacity);
             panel.Children.Add(ticketGrid);
@@ -2173,11 +2173,11 @@ namespace Flowery.NET.Gallery.Examples
             designGrid.Children.Add(stylePrefLabeled);
             panel.Children.Add(designGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Space Description & Key Goals", Watermark = "Describe the current space and your vision for its transformation...", MinHeight = 100 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Space Description & Key Goals", PlaceholderText = "Describe the current space and your vision for its transformation...", MinHeight = 100 }));
 
             panel.Children.Add(CreateSectionLabel("Technical Specifications"));
             var techGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var sqft = WithNeumorphic(new DaisyInput { Label = "Total Area (sq ft)", Watermark = "1,500" });
+            var sqft = WithNeumorphic(new DaisyInput { Label = "Total Area (sq ft)", PlaceholderText = "1,500" });
             Grid.SetColumn(sqft, 0);
             techGrid.Children.Add(sqft);
             var timeline = WithNeumorphic(new DaisySelect());
@@ -2210,7 +2210,7 @@ namespace Flowery.NET.Gallery.Examples
             // Customer Identification
             panel.Children.Add(CreateSectionLabel("Customer Identification"));
             var idGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 12 };
-            var customerId = WithNeumorphic(new DaisyInput { Label = "Customer ID", Watermark = "Auto-generated", IsEnabled = false });
+            var customerId = WithNeumorphic(new DaisyInput { Label = "Customer ID", PlaceholderText = "Auto-generated", IsEnabled = false });
             Grid.SetColumn(customerId, 0);
             idGrid.Children.Add(customerId);
             var customerType = WithNeumorphic(new DaisySelect());
@@ -2231,35 +2231,35 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(CreateSectionLabel("Company / Contact Details"));
             panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Company Name / Full Name", IsRequired = true }));
             var contactGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var contactPerson = WithNeumorphic(new DaisyInput { Label = "Primary Contact Person", Watermark = "John Smith" });
+            var contactPerson = WithNeumorphic(new DaisyInput { Label = "Primary Contact Person", PlaceholderText = "John Smith" });
             Grid.SetColumn(contactPerson, 0);
             contactGrid.Children.Add(contactPerson);
-            var jobTitle = WithNeumorphic(new DaisyInput { Label = "Job Title", Watermark = "Procurement Manager" });
+            var jobTitle = WithNeumorphic(new DaisyInput { Label = "Job Title", PlaceholderText = "Procurement Manager" });
             Grid.SetColumn(jobTitle, 1);
             contactGrid.Children.Add(jobTitle);
             panel.Children.Add(contactGrid);
 
             var phoneEmailGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var phone = WithNeumorphic(new DaisyInput { Label = "Phone Number", Watermark = "+1 (555) 123-4567", IsRequired = true });
+            var phone = WithNeumorphic(new DaisyInput { Label = "Phone Number", PlaceholderText = "+1 (555) 123-4567", IsRequired = true });
             Grid.SetColumn(phone, 0);
             phoneEmailGrid.Children.Add(phone);
-            var email = WithNeumorphic(new DaisyInput { Label = "Email Address", Watermark = "contact@company.com", IsRequired = true });
+            var email = WithNeumorphic(new DaisyInput { Label = "Email Address", PlaceholderText = "contact@company.com", IsRequired = true });
             Grid.SetColumn(email, 1);
             phoneEmailGrid.Children.Add(email);
             panel.Children.Add(phoneEmailGrid);
 
             // Billing Address
             panel.Children.Add(CreateSectionLabel("Billing Address"));
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Street Address Line 1", Watermark = "123 Business Park Drive", IsRequired = true }));
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Street Address Line 2", Watermark = "Suite 400" }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Street Address Line 1", PlaceholderText = "123 Business Park Drive", IsRequired = true }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Street Address Line 2", PlaceholderText = "Suite 400" }));
             var cityStateGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 12 };
-            var city = WithNeumorphic(new DaisyInput { Label = "City", Watermark = "New York", IsRequired = true });
+            var city = WithNeumorphic(new DaisyInput { Label = "City", PlaceholderText = "New York", IsRequired = true });
             Grid.SetColumn(city, 0);
             cityStateGrid.Children.Add(city);
-            var state = WithNeumorphic(new DaisyInput { Label = "State/Province", Watermark = "NY" });
+            var state = WithNeumorphic(new DaisyInput { Label = "State/Province", PlaceholderText = "NY" });
             Grid.SetColumn(state, 1);
             cityStateGrid.Children.Add(state);
-            var zip = WithNeumorphic(new DaisyInput { Label = "ZIP/Postal Code", Watermark = "10001" });
+            var zip = WithNeumorphic(new DaisyInput { Label = "ZIP/Postal Code", PlaceholderText = "10001" });
             Grid.SetColumn(zip, 2);
             cityStateGrid.Children.Add(zip);
             panel.Children.Add(cityStateGrid);
@@ -2280,7 +2280,7 @@ namespace Flowery.NET.Gallery.Examples
             var paymentTermsLabeled = CreateLabeledSelect("Payment Terms", paymentTerms);
             Grid.SetColumn(paymentTermsLabeled, 0);
             finGrid.Children.Add(paymentTermsLabeled);
-            var creditLimit = WithNeumorphic(new DaisyInput { Label = "Credit Limit ($)", Watermark = "10,000.00" });
+            var creditLimit = WithNeumorphic(new DaisyInput { Label = "Credit Limit ($)", PlaceholderText = "10,000.00" });
             Grid.SetColumn(creditLimit, 1);
             finGrid.Children.Add(creditLimit);
             var currency = WithNeumorphic(new DaisySelect());
@@ -2292,7 +2292,7 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(finGrid);
 
             var taxGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var taxId = WithNeumorphic(new DaisyInput { Label = "Tax ID / VAT Number", Watermark = "XX-XXXXXXX" });
+            var taxId = WithNeumorphic(new DaisyInput { Label = "Tax ID / VAT Number", PlaceholderText = "XX-XXXXXXX" });
             Grid.SetColumn(taxId, 0);
             taxGrid.Children.Add(taxId);
             var taxExempt = WithNeumorphic(new DaisySelect());
@@ -2321,7 +2321,7 @@ namespace Flowery.NET.Gallery.Examples
             panel.Children.Add(salesGrid);
 
             // Notes
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Internal Notes", Watermark = "Add any relevant notes about this customer account...", MinHeight = 80 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Internal Notes", PlaceholderText = "Add any relevant notes about this customer account...", MinHeight = 80 }));
 
             var buttonRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Margin = new Thickness(0, 8, 0, 0) };
             buttonRow.Children.Add(WithNeumorphic(new DaisyButton { Content = "Save Customer", Variant = DaisyButtonVariant.Primary }));
@@ -2341,7 +2341,7 @@ namespace Flowery.NET.Gallery.Examples
 
             // Article Details
             panel.Children.Add(CreateSectionLabel("Content Details"));
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Title / Headline", Watermark = "Enter a compelling headline...", IsRequired = true }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Title / Headline", PlaceholderText = "Enter a compelling headline...", IsRequired = true }));
 
             var typeGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
             var contentType = WithNeumorphic(new DaisySelect());
@@ -2358,7 +2358,7 @@ namespace Flowery.NET.Gallery.Examples
             typeGrid.Children.Add(categoryLabeled);
             panel.Children.Add(typeGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Summary / Excerpt", Watermark = "Write a brief summary (150-200 words) that will appear in previews...", MinHeight = 80, IsRequired = true }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Summary / Excerpt", PlaceholderText = "Write a brief summary (150-200 words) that will appear in previews...", MinHeight = 80, IsRequired = true }));
 
             // Author Information
             panel.Children.Add(CreateSectionLabel("Author Information"));
@@ -2366,12 +2366,12 @@ namespace Flowery.NET.Gallery.Examples
             var authorName = WithNeumorphic(new DaisyInput { Label = "Author Name", IsRequired = true });
             Grid.SetColumn(authorName, 0);
             authorGrid.Children.Add(authorName);
-            var authorEmail = WithNeumorphic(new DaisyInput { Label = "Author Email", Watermark = "author@publication.com" });
+            var authorEmail = WithNeumorphic(new DaisyInput { Label = "Author Email", PlaceholderText = "author@publication.com" });
             Grid.SetColumn(authorEmail, 1);
             authorGrid.Children.Add(authorEmail);
             panel.Children.Add(authorGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Author Bio", Watermark = "Brief author biography for the byline...", MinHeight = 60 }));
+            panel.Children.Add(WithNeumorphic(new DaisyTextArea { Label = "Author Bio", PlaceholderText = "Brief author biography for the byline...", MinHeight = 60 }));
 
             // Publishing Options
             panel.Children.Add(CreateSectionLabel("Publishing Options"));
@@ -2382,12 +2382,12 @@ namespace Flowery.NET.Gallery.Examples
             var pubStatusLabeled = CreateLabeledSelect("Status", pubStatus);
             Grid.SetColumn(pubStatusLabeled, 0);
             pubGrid.Children.Add(pubStatusLabeled);
-            var pubDate = WithNeumorphic(new DaisyInput { Label = "Publish Date", Watermark = "MM/DD/YYYY HH:MM" });
+            var pubDate = WithNeumorphic(new DaisyInput { Label = "Publish Date", PlaceholderText = "MM/DD/YYYY HH:MM" });
             Grid.SetColumn(pubDate, 1);
             pubGrid.Children.Add(pubDate);
             panel.Children.Add(pubGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Tags (comma-separated)", Watermark = "technology, innovation, startup, AI" }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Tags (comma-separated)", PlaceholderText = "technology, innovation, startup, AI" }));
 
             var optionsPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 16 };
             optionsPanel.Children.Add(WithNeumorphic(new DaisyCheckBox { Content = "Featured Article", Variant = DaisyCheckBoxVariant.Accent }));
@@ -2398,7 +2398,7 @@ namespace Flowery.NET.Gallery.Examples
             // Media Attachments
             panel.Children.Add(CreateSectionLabel("Media Attachments"));
             panel.Children.Add(CreateLabeledFileInput("Featured Image", WithNeumorphic(new DaisyFileInput())));
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Image Caption", Watermark = "Describe the featured image..." }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Image Caption", PlaceholderText = "Describe the featured image..." }));
 
             var buttonRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, Margin = new Thickness(0, 8, 0, 0) };
             buttonRow.Children.Add(WithNeumorphic(new DaisyButton { Content = "Submit for Review", Variant = DaisyButtonVariant.Primary }));
@@ -2419,10 +2419,10 @@ namespace Flowery.NET.Gallery.Examples
             // Account Setup
             panel.Children.Add(CreateSectionLabel("Account Setup"));
             var emailGrid = new Grid { ColumnDefinitions = { new ColumnDefinition(), new ColumnDefinition() }, ColumnSpacing = 16 };
-            var email = WithNeumorphic(new DaisyInput { Label = "Work Email", Watermark = "you@company.com", IsRequired = true });
+            var email = WithNeumorphic(new DaisyInput { Label = "Work Email", PlaceholderText = "you@company.com", IsRequired = true });
             Grid.SetColumn(email, 0);
             emailGrid.Children.Add(email);
-            var password = WithNeumorphic(new DaisyInput { Label = "Password", Watermark = "Create a strong password", IsRequired = true });
+            var password = WithNeumorphic(new DaisyInput { Label = "Password", PlaceholderText = "Create a strong password", IsRequired = true });
             Grid.SetColumn(password, 1);
             emailGrid.Children.Add(password);
             panel.Children.Add(emailGrid);
@@ -2456,7 +2456,7 @@ namespace Flowery.NET.Gallery.Examples
             industryGrid.Children.Add(roleLabeled);
             panel.Children.Add(industryGrid);
 
-            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Company Website", Watermark = "https://yourcompany.com" }));
+            panel.Children.Add(WithNeumorphic(new DaisyInput { Label = "Company Website", PlaceholderText = "https://yourcompany.com" }));
 
             // Use Case
             panel.Children.Add(CreateSectionLabel("How will you use our product?"));
@@ -2491,7 +2491,7 @@ namespace Flowery.NET.Gallery.Examples
             var referralLabeled = CreateLabeledSelect("Source", referral);
             Grid.SetColumn(referralLabeled, 0);
             referralGrid.Children.Add(referralLabeled);
-            var refCode = WithNeumorphic(new DaisyInput { Label = "Referral Code (optional)", Watermark = "FRIEND20" });
+            var refCode = WithNeumorphic(new DaisyInput { Label = "Referral Code (optional)", PlaceholderText = "FRIEND20" });
             Grid.SetColumn(refCode, 1);
             referralGrid.Children.Add(refCode);
             panel.Children.Add(referralGrid);

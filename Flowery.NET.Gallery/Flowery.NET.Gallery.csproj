@@ -8,9 +8,9 @@
     <SatelliteResourceLanguages>en;de;fr;es;it;zh-CN;ko;ja;ar;tr;uk;he</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.0.0" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.0" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.0" />
+    <PackageReference Include="Avalonia" Version="12.0.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.1" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.1" />
   </ItemGroup>
 
   <ItemGroup>

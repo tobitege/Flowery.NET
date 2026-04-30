@@ -584,7 +584,7 @@
                                 </controls:DaisyNavbar.NavbarStart>
                                 <controls:DaisyNavbar.NavbarEnd>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <controls:DaisyInput Watermark="Search..." Width="150" Size="Small"/>
+                                        <controls:DaisyInput PlaceholderText="Search..." Width="150" Size="Small"/>
                                         <controls:DaisyAvatar Size="Small" Shape="Circle">
                                             <PathIcon Data="{StaticResource DaisyIconUser}" Width="20" Height="20"/>
                                         </controls:DaisyAvatar>

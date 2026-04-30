@@ -340,7 +340,7 @@
                                     <controls:DaisyDivider />
                                     <controls:DaisyTextArea IsReadOnly="True" Height="80"
                                         Text="{galloc:Localize Scaling_Notes_Content}" />
-                                    <controls:DaisyTextArea Watermark="{galloc:Localize Scaling_Notes_Placeholder}" Height="60" />
+                                    <controls:DaisyTextArea PlaceholderText="{galloc:Localize Scaling_Notes_Placeholder}" Height="60" />
                                     <controls:DaisyButton Content="{galloc:Localize Scaling_Notes_SaveButton}" Variant="Primary" Size="Small" HorizontalAlignment="Right" />
                                 </StackPanel>
                             </controls:DaisyCard>

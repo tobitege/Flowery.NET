@@ -372,7 +372,7 @@
                             <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Spacing="8">
                                 <controls:DaisyInput x:Name="ApiKeyInput"
                                                      PasswordChar="•"
-                                                     Watermark="Enter your OpenWeatherMap API key"
+                                                     PlaceholderText="Enter your OpenWeatherMap API key"
                                                      Width="240" />
                                 <controls:DaisyButton x:Name="TestApiKeyBtn"
                                                       Content="Test Key"
@@ -385,7 +385,7 @@
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Location:" VerticalAlignment="Center" />
                             <controls:DaisyInput x:Name="LocationInput" Grid.Row="1" Grid.Column="1"
                                                  Text="London,UK"
-                                                 Watermark="City name (e.g., London,UK or New York,US)"
+                                                 PlaceholderText="City name (e.g., London,UK or New York,US)"
                                                  Width="320"
                                                  KeyDown="LocationInput_KeyDown" />
 

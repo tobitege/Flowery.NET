@@ -83,51 +83,51 @@
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="250">
                             <TextBlock Text="Variants" FontSize="12" />
-                            <controls:DaisyInput Watermark="Default (Bordered)" Margin="0,4" />
-                            <controls:DaisyInput Variant="Ghost" Watermark="Ghost" Margin="0,4" />
-                            <controls:DaisyInput Variant="Filled" Watermark="Filled" Margin="0,4" />
-                            <controls:DaisyInput Variant="Primary" Watermark="Primary" Margin="0,4" />
-                            <controls:DaisyInput Variant="Error" Watermark="Error" Margin="0,4" />
+                            <controls:DaisyInput PlaceholderText="Default (Bordered)" Margin="0,4" />
+                            <controls:DaisyInput Variant="Ghost" PlaceholderText="Ghost" Margin="0,4" />
+                            <controls:DaisyInput Variant="Filled" PlaceholderText="Filled" Margin="0,4" />
+                            <controls:DaisyInput Variant="Primary" PlaceholderText="Primary" Margin="0,4" />
+                            <controls:DaisyInput Variant="Error" PlaceholderText="Error" Margin="0,4" />
                         </StackPanel>
                         <StackPanel Spacing="20" Margin="0,0,40,10" Width="250">
                             <TextBlock Text="Labels &amp; Required" FontSize="12" />
                             <controls:DaisyInput Label="Email" IsRequired="True"
-                                Watermark="Enter email..." />
+                                PlaceholderText="Enter email..." />
                             <controls:DaisyInput Label="Notes" IsOptional="True"
-                                Watermark="Optional notes..." />
+                                PlaceholderText="Optional notes..." />
                             <controls:DaisyInput Label="Password" HelperText="Must be 8+ characters"
-                                Watermark="Enter password..." />
+                                PlaceholderText="Enter password..." />
                         </StackPanel>
                         <StackPanel Spacing="8" Margin="0,0,40,10" Width="250">
                             <TextBlock Text="Floating Label" FontSize="12" />
                             <controls:DaisyInput Label="Email" LabelPosition="Floating"
-                                Watermark="Enter email..." />
+                                PlaceholderText="Enter email..." />
                             <controls:DaisyInput Label="Username" LabelPosition="Floating"
                                 StartIcon="{StaticResource DaisyIconUser}"
-                                Watermark="Pick a username..." />
+                                PlaceholderText="Pick a username..." />
                             <controls:DaisyInput Label="Password" LabelPosition="Floating"
                                 EndIcon="{StaticResource DaisyIconSettings}"
-                                Watermark="Enter password..." />
+                                PlaceholderText="Enter password..." />
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="250">
                             <TextBlock Text="With Icons" FontSize="12" />
                             <controls:DaisyInput StartIcon="{StaticResource DaisyIconHome}"
-                                Watermark="Address" Margin="0,4" />
+                                PlaceholderText="Address" Margin="0,4" />
                             <controls:DaisyInput EndIcon="{StaticResource DaisyIconSearch}"
-                                Watermark="Search..." Margin="0,4" />
+                                PlaceholderText="Search..." Margin="0,4" />
                             <controls:DaisyInput StartIcon="{StaticResource DaisyIconUser}"
                                 EndIcon="{StaticResource DaisyIconCheck}"
-                                Watermark="Username" Variant="Success" Margin="0,4" />
+                                PlaceholderText="Username" Variant="Success" Margin="0,4" />
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="250"
                             controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <TextBlock Text="Sizes" FontSize="12" />
-                            <controls:DaisyInput Size="ExtraSmall" Watermark="Extra Small"
+                            <controls:DaisyInput Size="ExtraSmall" PlaceholderText="Extra Small"
                                 Margin="0,4" />
-                            <controls:DaisyInput Size="Small" Watermark="Small" Margin="0,4" />
-                            <controls:DaisyInput Size="Medium" Watermark="Medium (default)"
+                            <controls:DaisyInput Size="Small" PlaceholderText="Small" Margin="0,4" />
+                            <controls:DaisyInput Size="Medium" PlaceholderText="Medium (default)"
                                 Margin="0,4" />
-                            <controls:DaisyInput Size="Large" Watermark="Large" Margin="0,4" />
+                            <controls:DaisyInput Size="Large" PlaceholderText="Large" Margin="0,4" />
                         </StackPanel>
                     </WrapPanel>
                 </StackPanel>
@@ -205,140 +205,140 @@
                         <!-- Color Variants -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
                             <TextBlock Text="Color Variants" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
-                            <controls:DaisyNumericUpDown Watermark="Bordered (Default)" Value="42"
+                            <controls:DaisyNumericUpDown PlaceholderText="Bordered (Default)" Value="42"
                                 ShowClearButton="True"
                                 ToolTip.Tip="Bordered: Neutral border, highlights with primary color on focus" />
-                            <controls:DaisyNumericUpDown Variant="Ghost" Watermark="Ghost"
+                            <controls:DaisyNumericUpDown Variant="Ghost" PlaceholderText="Ghost"
                                 Value="10"
                                 ToolTip.Tip="Ghost: No border, shows subtle background on focus" />
-                            <controls:DaisyNumericUpDown Variant="Primary" Watermark="Primary"
+                            <controls:DaisyNumericUpDown Variant="Primary" PlaceholderText="Primary"
                                 Value="100"
                                 ToolTip.Tip="Primary: Uses primary theme color for the border" />
-                            <controls:DaisyNumericUpDown Variant="Secondary" Watermark="Secondary"
+                            <controls:DaisyNumericUpDown Variant="Secondary" PlaceholderText="Secondary"
                                 Value="50"
                                 ToolTip.Tip="Secondary: Uses secondary theme color for the border" />
                         </StackPanel>
                         <!-- Status Variants -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
                             <TextBlock Text="Status Variants" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
-                            <controls:DaisyNumericUpDown Variant="Info" Watermark="Info" Value="123"
+                            <controls:DaisyNumericUpDown Variant="Info" PlaceholderText="Info" Value="123"
                                 ShowClearButton="True"
                                 ToolTip.Tip="Info: Blue border for informational inputs" />
-                            <controls:DaisyNumericUpDown Variant="Success" Watermark="Success"
+                            <controls:DaisyNumericUpDown Variant="Success" PlaceholderText="Success"
                                 Value="100"
                                 ToolTip.Tip="Success: Green border for valid/success states" />
-                            <controls:DaisyNumericUpDown Variant="Warning" Watermark="Warning"
+                            <controls:DaisyNumericUpDown Variant="Warning" PlaceholderText="Warning"
                                 Value="50"
                                 ToolTip.Tip="Warning: Yellow border for warning states" />
-                            <controls:DaisyNumericUpDown Variant="Error" Watermark="Error" Value="0"
+                            <controls:DaisyNumericUpDown Variant="Error" PlaceholderText="Error" Value="0"
                                 ToolTip.Tip="Error: Red border for validation errors" />
                         </StackPanel>
                         <!-- Sizes -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200"
                             controls:FlowerySizeManager.IgnoreGlobalSize="True">
                             <TextBlock Text="Sizes" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
-                            <controls:DaisyNumericUpDown Size="ExtraSmall" Watermark="Extra Small"
+                            <controls:DaisyNumericUpDown Size="ExtraSmall" PlaceholderText="Extra Small"
                                 Value="1" ShowClearButton="True"
                                 ToolTip.Tip="ExtraSmall: 24px height, compact for dense UIs" />
-                            <controls:DaisyNumericUpDown Size="Small" Watermark="Small" Value="5"
+                            <controls:DaisyNumericUpDown Size="Small" PlaceholderText="Small" Value="5"
                                 ToolTip.Tip="Small: 32px height, good for secondary inputs" />
-                            <controls:DaisyNumericUpDown Size="Medium" Watermark="Medium (Default)"
+                            <controls:DaisyNumericUpDown Size="Medium" PlaceholderText="Medium (Default)"
                                 Value="25"
                                 ToolTip.Tip="Medium: 48px height, default size for general use" />
-                            <controls:DaisyNumericUpDown Size="Large" Watermark="Large" Value="999"
+                            <controls:DaisyNumericUpDown Size="Large" PlaceholderText="Large" Value="999"
                                 ToolTip.Tip="Large: 64px height, prominent inputs or touch targets" />
                         </StackPanel>
                         <!-- Constraints & Buttons -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
                             <TextBlock Text="Constraints &amp; Buttons" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown ShowButtons="False"
-                                Watermark="No Spin Buttons" Value="25" ShowClearButton="True"
+                                PlaceholderText="No Spin Buttons" Value="25" ShowClearButton="True"
                                 ToolTip.Tip="ShowButtons=False: Hides the up/down spin buttons" />
                             <controls:DaisyNumericUpDown Minimum="0" Maximum="100" Increment="5"
-                                Value="50" Watermark="Min/Max/Step"
+                                Value="50" PlaceholderText="Min/Max/Step"
                                 ToolTip.Tip="Constrained: Min=0, Max=100, Increment=5" />
                             <controls:DaisyNumericUpDown Minimum="-50" Maximum="50" Value="0"
-                                Watermark="Negative Range"
+                                PlaceholderText="Negative Range"
                                 ToolTip.Tip="Negative values supported: Min=-50, Max=50" />
                             <controls:DaisyNumericUpDown IsReadOnly="True" Value="42"
-                                Watermark="Read Only"
+                                PlaceholderText="Read Only"
                                 ToolTip.Tip="IsReadOnly=True: Value displayed but not editable" />
                         </StackPanel>
                         <!-- Prefix & Suffix -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
                             <TextBlock Text="Prefix &amp; Suffix" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown Prefix="$" FormatString="N2" Value="19.99"
-                                Watermark="Currency ($)" ShowClearButton="True"
+                                PlaceholderText="Currency ($)" ShowClearButton="True"
                                 ToolTip.Tip="Prefix='$': Fixed symbol on left, doesn't interfere with editing" />
                             <controls:DaisyNumericUpDown Suffix="%" Minimum="0" Maximum="100"
-                                Value="75" Watermark="Percent (%)"
+                                Value="75" PlaceholderText="Percent (%)"
                                 ToolTip.Tip="Suffix='%': Fixed percent symbol on the right" />
                             <controls:DaisyNumericUpDown Suffix="kg" FormatString="N1" Value="72.5"
-                                Watermark="Weight (kg)"
+                                PlaceholderText="Weight (kg)"
                                 ToolTip.Tip="Suffix='kg': Unit suffix for measurements" />
                             <controls:DaisyNumericUpDown Prefix="€" FormatString="N2" Value="49.50"
-                                Watermark="Euro (€)"
+                                PlaceholderText="Euro (€)"
                                 ToolTip.Tip="Prefix='€': Euro currency prefix" />
                         </StackPanel>
                         <!-- Thousand Separators -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
                             <TextBlock Text="Thousand Separators" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown ShowThousandSeparators="True"
-                                Value="1234567" Watermark="Millions" ShowClearButton="True"
+                                Value="1234567" PlaceholderText="Millions" ShowClearButton="True"
                                 ToolTip.Tip="ShowThousandSeparators: Displays 1,234,567" />
                             <controls:DaisyNumericUpDown ShowThousandSeparators="True" Value="9999"
-                                Watermark="Thousands"
+                                PlaceholderText="Thousands"
                                 ToolTip.Tip="ShowThousandSeparators: Displays 9,999" />
                             <controls:DaisyNumericUpDown ShowThousandSeparators="True"
-                                FormatString="N2" Value="12345.67" Watermark="With Decimals"
+                                FormatString="N2" Value="12345.67" PlaceholderText="With Decimals"
                                 ToolTip.Tip="Thousand separators work with decimals too" />
                         </StackPanel>
                         <!-- Hexadecimal -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
                             <TextBlock Text="Hexadecimal" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown NumberBase="Hexadecimal" Value="255"
-                                Watermark="Hex (0xFF)" ShowClearButton="True"
+                                PlaceholderText="Hex (0xFF)" ShowClearButton="True"
                                 ToolTip.Tip="Hexadecimal: Displays 0xFF, input allows 0-9 and A-F" />
                             <controls:DaisyNumericUpDown NumberBase="Hexadecimal"
-                                ShowBasePrefix="False" Value="255" Watermark="Hex no prefix (FF)"
+                                ShowBasePrefix="False" Value="255" PlaceholderText="Hex no prefix (FF)"
                                 ToolTip.Tip="ShowBasePrefix=False: Displays FF without 0x prefix" />
                             <controls:DaisyNumericUpDown NumberBase="Hexadecimal" HexCase="Lower"
-                                Value="171" Watermark="Hex lowercase (0xab)"
+                                Value="171" PlaceholderText="Hex lowercase (0xab)"
                                 ToolTip.Tip="HexCase=Lower: Displays 0xab, auto-cases input to lowercase" />
                             <controls:DaisyNumericUpDown NumberBase="Hexadecimal" Value="65535"
-                                Watermark="16-bit (0xFFFF)"
+                                PlaceholderText="16-bit (0xFFFF)"
                                 ToolTip.Tip="Hexadecimal: 16-bit value displayed as 0xFFFF" />
                         </StackPanel>
                         <!-- Binary & Octal -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
                             <TextBlock Text="Binary &amp; Octal" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown NumberBase="Binary" Value="10"
-                                Watermark="Binary (0b1010)" ShowClearButton="True"
+                                PlaceholderText="Binary (0b1010)" ShowClearButton="True"
                                 ToolTip.Tip="Binary: Displays 0b1010, input allows only 0 and 1" />
                             <controls:DaisyNumericUpDown NumberBase="Binary" ShowBasePrefix="False"
-                                Value="255" Watermark="Binary no prefix"
+                                Value="255" PlaceholderText="Binary no prefix"
                                 ToolTip.Tip="Binary without prefix: 11111111" />
                             <controls:DaisyNumericUpDown NumberBase="Octal" Value="493"
-                                Watermark="Octal (0o755)"
+                                PlaceholderText="Octal (0o755)"
                                 ToolTip.Tip="Octal: Displays 0o755, input allows 0-7 (Unix permissions!)" />
                             <controls:DaisyNumericUpDown NumberBase="Octal" Value="438"
-                                Watermark="Octal (0o666)"
+                                PlaceholderText="Octal (0o666)"
                                 ToolTip.Tip="Octal: Unix file permission 666" />
                         </StackPanel>
                         <!-- Special Formats -->
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
                             <TextBlock Text="Special Formats" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisyNumericUpDown NumberBase="ColorHex" Value="16734003"
-                                Watermark="Color (#FF5733)" ShowClearButton="True"
+                                PlaceholderText="Color (#FF5733)" ShowClearButton="True"
                                 ToolTip.Tip="ColorHex: Displays #FF5733, 6-digit padded, max 7 chars" />
                             <controls:DaisyNumericUpDown NumberBase="ColorHex" Value="65280"
-                                Watermark="Color (#00FF00)"
+                                PlaceholderText="Color (#00FF00)"
                                 ToolTip.Tip="ColorHex: Green color, auto-pads to 6 digits" />
                             <controls:DaisyNumericUpDown NumberBase="IPAddress" Value="3232235777"
-                                Watermark="IP (192.168.1.1)"
+                                PlaceholderText="IP (192.168.1.1)"
                                 ToolTip.Tip="IPAddress: Validates octets 0-255, per-octet increment" />
                             <controls:DaisyNumericUpDown NumberBase="IPAddress" Value="2130706433"
-                                Watermark="Localhost (127.0.0.1)"
+                                PlaceholderText="Localhost (127.0.0.1)"
                                 ToolTip.Tip="IPAddress: localhost address" />
                         </StackPanel>
                     </WrapPanel>
@@ -613,46 +613,46 @@
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="280">
                             <TextBlock Text="Variants" FontSize="12" />
-                            <controls:DaisyTextArea Watermark="Default (Bordered)" MinHeight="70" />
-                            <controls:DaisyTextArea Variant="Filled" Watermark="Filled variant"
+                            <controls:DaisyTextArea PlaceholderText="Default (Bordered)" MinHeight="70" />
+                            <controls:DaisyTextArea Variant="Filled" PlaceholderText="Filled variant"
                                 MinHeight="70" />
-                            <controls:DaisyTextArea Variant="Primary" Watermark="Primary"
+                            <controls:DaisyTextArea Variant="Primary" PlaceholderText="Primary"
                                 MinHeight="70" />
                             <controls:DaisyTextArea Variant="Error" HelperText="Invalid input"
-                                Watermark="Error state" MinHeight="70" />
+                                PlaceholderText="Error state" MinHeight="70" />
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="280">
                             <TextBlock Text="Labels &amp; Helper Text" FontSize="12" />
                             <controls:DaisyTextArea Label="Bio" IsRequired="True"
-                                Watermark="Tell us about yourself..." MinHeight="70" />
+                                PlaceholderText="Tell us about yourself..." MinHeight="70" />
                             <controls:DaisyTextArea Label="Notes" IsOptional="True"
-                                HelperText="Optional field" Watermark="Additional notes..."
+                                HelperText="Optional field" PlaceholderText="Additional notes..."
                                 MinHeight="70" />
                             <controls:DaisyTextArea Label="Feedback" HintText="Your opinion matters"
-                                HelperText="We read all feedback" Watermark="Type here..."
+                                HelperText="We read all feedback" PlaceholderText="Type here..."
                                 MinHeight="70" />
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="280">
                             <TextBlock Text="Character Counter" FontSize="12" />
                             <controls:DaisyTextArea Label="Tweet" ShowCharacterCount="True"
-                                MaxLength="280" Watermark="What's happening?" MinHeight="70" />
+                                MaxLength="280" PlaceholderText="What's happening?" MinHeight="70" />
                             <controls:DaisyTextArea Label="Comment" ShowCharacterCount="True"
                                 MaxLength="500" HelperText="Be respectful"
-                                Watermark="Leave a comment..." MinHeight="70" />
+                                PlaceholderText="Leave a comment..." MinHeight="70" />
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="280">
                             <TextBlock Text="Action Button" FontSize="12" />
                             <controls:DaisyTextArea x:Name="FeedbackTextArea" Label="Feedback"
                                 ActionButtonContent="Submit Feedback"
                                 ActionButtonClicked="OnFeedbackButtonClicked"
-                                Watermark="Type your feedback here..." MinHeight="80" />
+                                PlaceholderText="Type your feedback here..." MinHeight="80" />
                         </StackPanel>
                     </WrapPanel>
                     <!-- Auto-Grow placed outside WrapPanel to allow unrestricted growth -->
                     <StackPanel Spacing="10" Margin="0,16,0,0" Width="300">
                         <TextBlock Text="Auto-Grow (type to see it expand)" FontSize="12" />
                         <controls:DaisyTextArea Label="Description" IsAutoGrow="True"
-                            Watermark="This textarea grows as you type..." MinHeight="50" />
+                            PlaceholderText="This textarea grows as you type..." MinHeight="50" />
                     </StackPanel>
                 </StackPanel>
 
