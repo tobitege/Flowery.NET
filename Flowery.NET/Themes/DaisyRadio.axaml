@@ -21,6 +21,8 @@
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Grid ColumnDefinitions="Auto,*">
@@ -28,8 +30,8 @@
                             Grid.Column="0"
                             Width="{DynamicResource DaisyCheckboxMediumSize}" Height="{DynamicResource DaisyCheckboxMediumSize}"
                             CornerRadius="12"
-                            BorderThickness="1"
-                            BorderBrush="{DynamicResource DaisyBaseContentBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
                             Background="{DynamicResource DaisyBase100Brush}">
                         <Ellipse x:Name="CheckMark"
                                  Width="{DynamicResource DaisyRadioDotMediumSize}" Height="{DynamicResource DaisyRadioDotMediumSize}"
@@ -52,38 +54,31 @@
         </Style>
         <Style Selector="^:checked /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisyBaseContentBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
         </Style>
 
         <!-- Variants -->
         <Style Selector="^[Variant=Primary]:checked /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
         </Style>
 
         <Style Selector="^[Variant=Secondary]:checked /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource DaisySecondaryBrush}" />
         </Style>
 
         <Style Selector="^[Variant=Accent]:checked /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource DaisyAccentBrush}" />
         </Style>
 
         <Style Selector="^[Variant=Success]:checked /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisySuccessBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource DaisySuccessBrush}" />
         </Style>
 
         <Style Selector="^[Variant=Warning]:checked /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource DaisyWarningBrush}" />
         </Style>
 
         <Style Selector="^[Variant=Error]:checked /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource DaisyErrorBrush}" />
         </Style>
 
         <!-- Sizes -->

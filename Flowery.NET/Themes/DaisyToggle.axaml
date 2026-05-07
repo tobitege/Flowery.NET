@@ -20,6 +20,8 @@
         <Setter Property="FontSize" Value="14" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="TogglePadding" Value="2" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Grid ColumnDefinitions="Auto, *">
@@ -28,8 +30,8 @@
                             Width="{DynamicResource DaisyToggleMediumWidth}" Height="{DynamicResource DaisyToggleMediumHeight}"
                             CornerRadius="12"
                             Background="{DynamicResource DaisyBase300Brush}"
-                            BorderBrush="{DynamicResource DaisyBase300Brush}"
-                            BorderThickness="1">
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
                         <!-- Avalonia ToggleSwitch expects PART_MovingKnobs -->
                         <Canvas x:Name="PART_MovingKnobs" Width="{DynamicResource DaisyToggleMediumWidth}" Height="{DynamicResource DaisyToggleMediumHeight}">
                             <Ellipse x:Name="Knob"

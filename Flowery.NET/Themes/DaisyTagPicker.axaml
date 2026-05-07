@@ -3,6 +3,8 @@
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
     <ControlTheme x:Key="{x:Type controls:DaisyTagPicker}" TargetType="controls:DaisyTagPicker">
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <StackPanel Spacing="8">
@@ -11,8 +13,8 @@
                                FontSize="14"
                                Opacity="0.8"/>
 
-                    <Border BorderThickness="1"
-                            BorderBrush="{DynamicResource DaisyBase300Brush}"
+                    <Border BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="12"
                             Background="{DynamicResource DaisyBase200Brush}"
                             Padding="8"
