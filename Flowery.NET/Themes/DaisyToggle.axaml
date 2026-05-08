@@ -20,39 +20,47 @@
         <Setter Property="FontSize" Value="14" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="TogglePadding" Value="2" />
-        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderThickness" Value="0" />
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
         <Setter Property="Template">
             <ControlTemplate>
-                <Grid ColumnDefinitions="Auto, *">
-                    <Border x:Name="SwitchArea"
-                            Grid.Column="0"
-                            Width="{DynamicResource DaisyToggleMediumWidth}" Height="{DynamicResource DaisyToggleMediumHeight}"
-                            CornerRadius="12"
-                            Background="{DynamicResource DaisyBase300Brush}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}">
-                        <!-- Avalonia ToggleSwitch expects PART_MovingKnobs -->
-                        <Canvas x:Name="PART_MovingKnobs" Width="{DynamicResource DaisyToggleMediumWidth}" Height="{DynamicResource DaisyToggleMediumHeight}">
-                            <Ellipse x:Name="Knob"
-                                Width="{DynamicResource DaisyToggleKnobMediumSize}"
-                                Height="{DynamicResource DaisyToggleKnobMediumSize}"
-                                Fill="White"
-                                Canvas.Left="2" Canvas.Top="2">
-                                <Ellipse.Transitions>
-                                    <Transitions>
-                                        <DoubleTransition Property="Canvas.Left" Duration="0:0:0.2" Easing="CubicEaseOut"/>
-                                    </Transitions>
-                                </Ellipse.Transitions>
-                            </Ellipse>
-                        </Canvas>
-                    </Border>
-                    <ContentPresenter Grid.Column="1"
-                                      Content="{TemplateBinding Content}"
-                                      ContentTemplate="{TemplateBinding ContentTemplate}"
-                                      Margin="8,0,0,0"
-                                      VerticalAlignment="Center"/>
-                </Grid>
+                <Border BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                    <Grid ColumnDefinitions="Auto, *">
+                        <Border x:Name="SwitchArea"
+                                Grid.Column="0"
+                                Width="{DynamicResource DaisyToggleMediumWidth}" Height="{DynamicResource DaisyToggleMediumHeight}"
+                                CornerRadius="12"
+                                Background="{DynamicResource DaisyBase300Brush}"
+                                BorderBrush="{DynamicResource DaisyBase300Brush}"
+                                BorderThickness="1">
+                            <!-- Avalonia ToggleSwitch expects PART_MovingKnobs -->
+                            <Canvas x:Name="PART_MovingKnobs" Width="{DynamicResource DaisyToggleMediumWidth}" Height="{DynamicResource DaisyToggleMediumHeight}">
+                                <Ellipse x:Name="Knob"
+                                    Width="{DynamicResource DaisyToggleKnobMediumSize}"
+                                    Height="{DynamicResource DaisyToggleKnobMediumSize}"
+                                    Fill="White"
+                                    Canvas.Left="2" Canvas.Top="2">
+                                    <Ellipse.Transitions>
+                                        <Transitions>
+                                            <DoubleTransition Property="Canvas.Left" Duration="0:0:0.2" Easing="CubicEaseOut"/>
+                                        </Transitions>
+                                    </Ellipse.Transitions>
+                                </Ellipse>
+                            </Canvas>
+                        </Border>
+                        <ContentPresenter Grid.Column="1"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Margin="8,0,0,0"
+                                          VerticalAlignment="Center"
+                                          TextElement.FontSize="{TemplateBinding FontSize}"
+                                          TextElement.FontFamily="{TemplateBinding FontFamily}"
+                                          TextElement.FontStyle="{TemplateBinding FontStyle}"
+                                          TextElement.FontWeight="{TemplateBinding FontWeight}"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Grid>
+                </Border>
             </ControlTemplate>
         </Setter>
         <!-- Checked State (track stays gray, only knob changes) -->

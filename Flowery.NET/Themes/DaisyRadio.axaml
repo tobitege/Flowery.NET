@@ -21,30 +21,38 @@
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="FontSize" Value="14" />
         <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderThickness" Value="0" />
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="Template">
             <ControlTemplate>
-                <Grid ColumnDefinitions="Auto,*">
-                    <Border x:Name="PART_Border"
-                            Grid.Column="0"
-                            Width="{DynamicResource DaisyCheckboxMediumSize}" Height="{DynamicResource DaisyCheckboxMediumSize}"
-                            CornerRadius="12"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            Background="{DynamicResource DaisyBase100Brush}">
-                        <Ellipse x:Name="CheckMark"
-                                 Width="{DynamicResource DaisyRadioDotMediumSize}" Height="{DynamicResource DaisyRadioDotMediumSize}"
-                                 Fill="{DynamicResource DaisyBase100Brush}"
-                                 IsVisible="False" />
-                    </Border>
-                    <ContentPresenter Grid.Column="1"
-                                      Content="{TemplateBinding Content}"
-                                      ContentTemplate="{TemplateBinding ContentTemplate}"
-                                      Margin="{TemplateBinding Padding}"
-                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                </Grid>
+                <Border BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border x:Name="PART_Border"
+                                Grid.Column="0"
+                                Width="{DynamicResource DaisyCheckboxMediumSize}" Height="{DynamicResource DaisyCheckboxMediumSize}"
+                                CornerRadius="12"
+                                BorderThickness="1"
+                                BorderBrush="{DynamicResource DaisyBaseContentBrush}"
+                                Background="{DynamicResource DaisyBase100Brush}">
+                            <Ellipse x:Name="CheckMark"
+                                     Width="{DynamicResource DaisyRadioDotMediumSize}" Height="{DynamicResource DaisyRadioDotMediumSize}"
+                                     Fill="{DynamicResource DaisyBase100Brush}"
+                                     IsVisible="False" />
+                        </Border>
+                        <ContentPresenter Grid.Column="1"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          TextElement.FontSize="{TemplateBinding FontSize}"
+                                          TextElement.FontFamily="{TemplateBinding FontFamily}"
+                                          TextElement.FontStyle="{TemplateBinding FontStyle}"
+                                          TextElement.FontWeight="{TemplateBinding FontWeight}"
+                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Grid>
+                </Border>
             </ControlTemplate>
         </Setter>
 
