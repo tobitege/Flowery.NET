@@ -69,6 +69,12 @@ $browserProject = Join-Path $repoRoot "Flowery.NET.Gallery.Browser/Flowery.NET.G
 $testsProject = Join-Path $repoRoot "Flowery.NET.Tests/Flowery.NET.Tests.csproj"
 $androidProject = Join-Path $repoRoot "Flowery.NET.Gallery.Android/Flowery.NET.Gallery.Android.csproj"
 
+$androidProjectXml = [xml](Get-Content -LiteralPath $androidProject -Raw)
+$androidTargetFramework = $androidProjectXml.Project.PropertyGroup.TargetFramework | Select-Object -First 1
+if ([string]::IsNullOrWhiteSpace($androidTargetFramework)) {
+    throw "TargetFramework not found in $androidProject."
+}
+
 Invoke-Step "Build: Flowery.Capture.NET" "dotnet build `"$captureProject`" -c $Configuration"
 Invoke-Step "Build: Flowery.NET" "dotnet build `"$floweryProject`" -c $Configuration"
 Invoke-Step "Build: Flowery.NET.Gallery" "dotnet build `"$galleryProject`" -c $Configuration"
@@ -76,8 +82,9 @@ Invoke-Step "Build: Flowery.NET.Gallery.Desktop" "dotnet build `"$desktopProject
 Invoke-Step "Build: Flowery.NET.Gallery.Browser" "dotnet build `"$browserProject`" -c $Configuration"
 Invoke-Step "Build: Flowery.NET.Tests" "dotnet build `"$testsProject`" -c $Configuration"
 
-Invoke-Step "Android: InstallAndroidDependencies" "dotnet build `"$androidProject`" -c $Configuration -f net9.0-android -t:InstallAndroidDependencies -p:AndroidSdkDirectory=`"$AndroidSdkDirectory`""
-Invoke-Step "Android: Build" "dotnet build `"$androidProject`" -c $Configuration -f net9.0-android -p:AndroidSdkDirectory=`"$AndroidSdkDirectory`""
+Invoke-Step "Android: Restore" "dotnet restore `"$androidProject`" -p:TargetFramework=$androidTargetFramework"
+Invoke-Step "Android: InstallAndroidDependencies" "dotnet build `"$androidProject`" -c $Configuration -f $androidTargetFramework -t:InstallAndroidDependencies -p:AndroidSdkDirectory=`"$AndroidSdkDirectory`""
+Invoke-Step "Android: Build" "dotnet build `"$androidProject`" -c $Configuration -f $androidTargetFramework -p:AndroidSdkDirectory=`"$AndroidSdkDirectory`""
 
 $totalDuration = (Get-Date) - $script:startTime
 

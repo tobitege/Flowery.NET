@@ -56,7 +56,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Verify version in Directory.Build.props
         run: |
@@ -107,7 +107,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Download all artifacts
         uses: actions/download-artifact@v8
@@ -119,6 +119,7 @@ jobs:
           mkdir -p ./final
           find ./release-artifacts -name "*.nupkg" -exec cp {} ./final/ \;
           find ./release-artifacts -name "*.zip" -exec cp {} ./final/ \;
+          find ./release-artifacts -name "*.apk" -exec cp {} ./final/ \;
           echo "=== Release artifacts ==="
           ls -la ./final/
 
@@ -195,6 +196,7 @@ jobs:
           | Platform | Download |
           |----------|----------|
           | Windows x64 | `Flowery.Gallery-Windows-x64.zip` |
+          | Android | `Flowery.Gallery-Android.apk` |
           GALLERY
 
           echo "=== Release Notes ==="

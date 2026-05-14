@@ -13,7 +13,7 @@ on:
         default: 'main'
 
 jobs:
-  build:
+  build-desktop:
     strategy:
       matrix:
         include:
@@ -32,7 +32,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Publish Gallery App
         shell: bash
@@ -58,3 +58,61 @@ jobs:
           path: |
             ./${{ matrix.artifact_name }}.zip
           if-no-files-found: ignore
+
+  build-android:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch }}
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Android workload
+        run: dotnet workload install android
+
+      - name: Resolve Android target framework
+        id: android
+        shell: pwsh
+        run: |
+          $project = 'Flowery.NET.Gallery.Android/Flowery.NET.Gallery.Android.csproj'
+          $projectXml = [xml](Get-Content -LiteralPath $project -Raw)
+          $targetFramework = $projectXml.Project.PropertyGroup.TargetFramework | Select-Object -First 1
+          if ([string]::IsNullOrWhiteSpace($targetFramework)) {
+              throw "TargetFramework not found in $project."
+          }
+          "target_framework=$targetFramework" >> $env:GITHUB_OUTPUT
+
+      - name: Build Android APK
+        run: |
+          dotnet publish Flowery.NET.Gallery.Android/Flowery.NET.Gallery.Android.csproj \
+            -c Release \
+            -f ${{ steps.android.outputs.target_framework }} \
+            -p:AndroidPackageFormat=apk
+
+      - name: Collect Android APK
+        shell: bash
+        run: |
+          mkdir -p ./android-artifacts
+          output_dir="./bin/Release/Flowery.NET.Gallery.Android/${{ steps.android.outputs.target_framework }}/publish"
+          apk=$(find "$output_dir" -name "*-Signed.apk" | head -n 1)
+          if [ -z "$apk" ]; then
+            apk=$(find "$output_dir" -name "*.apk" | head -n 1)
+          fi
+          if [ -z "$apk" ]; then
+            echo "::error::No Android APK was produced."
+            exit 1
+          fi
+          cp "$apk" ./android-artifacts/Flowery.Gallery-Android.apk
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: Flowery.Gallery-Android
+          path: ./android-artifacts/Flowery.Gallery-Android.apk
+          if-no-files-found: error

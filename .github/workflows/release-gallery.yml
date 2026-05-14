@@ -118,6 +118,7 @@ jobs:
         run: |
           mkdir -p ./final
           find ./release-artifacts -name "*.zip" -exec cp {} ./final/ \;
+          find ./release-artifacts -name "*.apk" -exec cp {} ./final/ \;
           echo "=== Release artifacts ==="
           ls -la ./final/
 
@@ -159,6 +160,7 @@ jobs:
             echo "| Platform | Download |"
             echo "|----------|----------|"
             echo "| Windows x64 | \`Flowery.Gallery-Windows-x64.zip\` |"
+            echo "| Android | \`Flowery.Gallery-Android.apk\` |"
             echo ""
             echo "---"
             echo ""

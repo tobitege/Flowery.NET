@@ -39,7 +39,7 @@ The `build_all.ps1` script handles this automatically - it resolves the repo roo
 
 ## Prerequisites
 
-- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) or later
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later
 - PowerShell 7+ (`pwsh`)
 - For Android builds: Android SDK (auto-detected or specify path)
 - For Browser builds: `wasm-tools` workload
@@ -95,7 +95,7 @@ The script builds projects in dependency order:
 4. `Flowery.NET.Gallery.Desktop` - Desktop host (Windows/Linux/macOS)
 5. `Flowery.NET.Gallery.Browser` - WebAssembly host
 6. `Flowery.NET.Tests` - Unit tests
-7. `Flowery.NET.Gallery.Android` - Android host (with `InstallAndroidDependencies`)
+7. `Flowery.NET.Gallery.Android` - Android host (restore, `InstallAndroidDependencies`, and build)
 
 ### Output
 
@@ -112,11 +112,12 @@ The script displays a build summary at the end:
   [OK] Build: Flowery.NET.Gallery.Desktop          00:01.23
   [OK] Build: Flowery.NET.Gallery.Browser          00:05.67
   [OK] Build: Flowery.NET.Tests                    00:02.89
+  [OK] Android: Restore                            00:01.35
   [OK] Android: InstallAndroidDependencies         00:08.45
   [OK] Android: Build                              00:12.34
 
-  Total time: 00:40.60
-  Projects built: 8
+  Total time: 00:41.95
+  Projects built: 9
 
 All builds completed successfully.
 ```
@@ -225,14 +226,14 @@ $env:ANDROID_SDK_ROOT = "C:\Users\YOURUSER\AppData\Local\Android\Sdk"
 pwsh ./scripts/build_all.ps1 -AndroidSdkDirectory "C:\Users\YOURUSER\AppData\Local\Android\Sdk"
 ```
 
-### Browser build fails with SkiaSharp error
+### Browser build fails because `wasm-tools` is missing
 
-Ensure `WasmBuildNative` is enabled in `Flowery.NET.Gallery.Browser.csproj`:
+The Browser project links native SkiaSharp/HarfBuzz WebAssembly assets through `WasmBuildNative`, so the `wasm-tools` workload must be installed.
 
-```xml
-<PropertyGroup>
-    <WasmBuildNative>true</WasmBuildNative>
-</PropertyGroup>
+```powershell
+dotnet workload install wasm-tools
+# Or use:
+pwsh ./scripts/build_all.ps1 -RestoreWorkloads
 ```
 
 ### Workload not installed
