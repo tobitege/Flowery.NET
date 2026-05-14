@@ -9,6 +9,7 @@ param(
 $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path $PSScriptRoot -Parent
 $ProjectPath = Join-Path $RepoRoot "Flowery.NET.Gallery.Android"
+$ProjectFile = Join-Path $ProjectPath "Flowery.NET.Gallery.Android.csproj"
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host " Flowery.NET Gallery - Android Runner" -ForegroundColor Cyan
@@ -24,6 +25,21 @@ if (-not (Test-Path $ProjectPath)) {
     Write-Host "ERROR: Project folder not found at $ProjectPath" -ForegroundColor Red
     exit 1
 }
+
+if (-not (Test-Path $ProjectFile)) {
+    Write-Host "ERROR: Project file not found at $ProjectFile" -ForegroundColor Red
+    exit 1
+}
+
+$projectXml = [xml](Get-Content -LiteralPath $ProjectFile -Raw)
+$TargetFramework = $projectXml.Project.PropertyGroup.TargetFramework | Select-Object -First 1
+if ([string]::IsNullOrWhiteSpace($TargetFramework)) {
+    Write-Host "ERROR: TargetFramework not found in $ProjectFile" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "Target:        $TargetFramework" -ForegroundColor Gray
+Write-Host ""
 
 # Check if emulator is running
 Write-Host "Checking for connected devices..." -ForegroundColor Yellow
@@ -49,8 +65,8 @@ Write-Host ""
 # Run the build command
 Push-Location $ProjectPath
 try {
-    dotnet build -t:Run -f net9.0-android -c $Configuration -p:DeviceName=$DeviceName
-    
+    dotnet build -t:Run -f $TargetFramework -c $Configuration -p:DeviceName=$DeviceName
+
     if ($LASTEXITCODE -eq 0) {
         Write-Host ""
         Write-Host "SUCCESS: App deployed and running!" -ForegroundColor Green

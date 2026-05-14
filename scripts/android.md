@@ -4,7 +4,7 @@ Builds and deploys the Flowery.NET Gallery app to an Android emulator.
 
 ## Requirements
 
-- **.NET 9 SDK** with Android workload installed
+- **.NET 10 SDK** with Android workload installed
 - **Android SDK** (via Android Studio or standalone)
 - **ADB** (Android Debug Bridge) in PATH
 - Running Android emulator or connected device
