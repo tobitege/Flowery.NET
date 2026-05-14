@@ -166,7 +166,7 @@
                         FontSize="{DynamicResource DaisySizeMediumFontSize}" Opacity="0.7"
                         HorizontalAlignment="Center"
                         Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                    <TextBlock Text="© 2025 tobitege - MIT License"
+                    <TextBlock Text="© 2025, 2026 tobitege - MIT License"
                         FontSize="{DynamicResource DaisySizeSmallFontSize}" Opacity="0.5"
                         HorizontalAlignment="Center"
                         Foreground="{DynamicResource DaisyBaseContentBrush}" />

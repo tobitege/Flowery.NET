@@ -94,7 +94,7 @@
                                                     <TextBlock Text="tobitege" FontSize="13"
                                                         FontWeight="SemiBold" Foreground="#38bdf8" />
                                                 </Button>
-                                                <TextBlock Text="· 2025 · MIT licensed"
+                                                <TextBlock Text="· 2025, 2026 · MIT licensed"
                                                     FontSize="13"
                                                     Foreground="#64748b" VerticalAlignment="Center" />
                                             </StackPanel>
