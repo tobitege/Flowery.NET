@@ -60,7 +60,24 @@ jobs:
 
       - name: Verify version in Directory.Build.props
         run: |
-          SHARED_VERSION=$(sed -n "s/.*<Version Condition=\"'\\\$(Version)' == ''\">\\([^<]*\\)<\\/Version>.*/\\1/p" Directory.Build.props)
+          SHARED_VERSION=$(python3 - <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+
+          root = ET.parse('Directory.Build.props').getroot()
+          for property_group in root.findall('PropertyGroup'):
+              version = property_group.find('Version')
+              if version is not None and version.text and version.text.strip():
+                  print(version.text.strip())
+                  break
+          else:
+              sys.exit('Version not found in Directory.Build.props')
+          PY
+          )
+          if [ -z "$SHARED_VERSION" ]; then
+            echo "::error::Version not found in Directory.Build.props"
+            exit 1
+          fi
           if [ "$SHARED_VERSION" != "${{ needs.validate.outputs.version }}" ]; then
             echo "::error::Version mismatch! Directory.Build.props has $SHARED_VERSION but you specified ${{ needs.validate.outputs.version }}"
             echo "::error::Please update Directory.Build.props first!"
