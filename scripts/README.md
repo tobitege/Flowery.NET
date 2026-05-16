@@ -126,6 +126,38 @@ If any step fails, the script stops immediately and shows `[FAILED]` status.
 
 ---
 
+## build_android_apks.ps1
+
+Publishes separate Android APKs per runtime identifier. By default it creates:
+
+- `artifacts/android/Flowery.Gallery-Android-arm.apk`
+- `artifacts/android/Flowery.Gallery-Android-arm64.apk`
+- `artifacts/android/Flowery.Gallery-Android-x86.apk`
+- `artifacts/android/Flowery.Gallery-Android-x64.apk`
+
+### Android APK Usage
+
+```powershell
+# Build all ABI-specific Release APKs
+pwsh ./scripts/build_android_apks.ps1
+
+# Build only the common physical-device and emulator APKs
+pwsh ./scripts/build_android_apks.ps1 -RuntimeIdentifiers android-arm64,android-x64
+
+# Specify Android SDK path manually
+pwsh ./scripts/build_android_apks.ps1 -AndroidSdkDirectory "C:\Users\YOURUSER\AppData\Local\Android\Sdk"
+```
+
+### Android APK Parameters
+
+| Parameter | Type | Default | Description |
+| --------- | ---- | ------- | ----------- |
+| `-Configuration` | string | `Release` | Build configuration (`Debug` or `Release`) |
+| `-AndroidSdkDirectory` | string | auto-detect | Path to Android SDK. Auto-detected from `ANDROID_SDK_ROOT`, `ANDROID_HOME`, or `%LOCALAPPDATA%\Android\Sdk` |
+| `-RuntimeIdentifiers` | string[] | `android-arm`, `android-arm64`, `android-x86`, `android-x64` | Android runtime identifiers to publish |
+
+---
+
 ## build-desktop.ps1
 
 Builds the desktop-relevant Flowery.NET projects in the correct order (skips Browser/WASM, Android, iOS).

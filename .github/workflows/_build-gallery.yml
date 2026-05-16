@@ -60,7 +60,19 @@ jobs:
           if-no-files-found: ignore
 
   build-android:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - rid: android-arm
+            artifact_name: Flowery.Gallery-Android-arm
+          - rid: android-arm64
+            artifact_name: Flowery.Gallery-Android-arm64
+          - rid: android-x86
+            artifact_name: Flowery.Gallery-Android-x86
+          - rid: android-x64
+            artifact_name: Flowery.Gallery-Android-x64
+
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
 
@@ -93,13 +105,15 @@ jobs:
           dotnet publish Flowery.NET.Gallery.Android/Flowery.NET.Gallery.Android.csproj \
             -c Release \
             -f ${{ steps.android.outputs.target_framework }} \
-            -p:AndroidPackageFormat=apk
+            -r ${{ matrix.rid }} \
+            -p:AndroidPackageFormat=apk \
+            -o ./android-publish/${{ matrix.rid }}
 
       - name: Collect Android APK
         shell: bash
         run: |
           mkdir -p ./android-artifacts
-          output_dir="./bin/Release/Flowery.NET.Gallery.Android/${{ steps.android.outputs.target_framework }}/publish"
+          output_dir="./android-publish/${{ matrix.rid }}"
           apk=$(find "$output_dir" -name "*-Signed.apk" | head -n 1)
           if [ -z "$apk" ]; then
             apk=$(find "$output_dir" -name "*.apk" | head -n 1)
@@ -108,11 +122,11 @@ jobs:
             echo "::error::No Android APK was produced."
             exit 1
           fi
-          cp "$apk" ./android-artifacts/Flowery.Gallery-Android.apk
+          cp "$apk" ./android-artifacts/${{ matrix.artifact_name }}.apk
 
       - name: Upload Android artifact
         uses: actions/upload-artifact@v7
         with:
-          name: Flowery.Gallery-Android
-          path: ./android-artifacts/Flowery.Gallery-Android.apk
+          name: ${{ matrix.artifact_name }}
+          path: ./android-artifacts/${{ matrix.artifact_name }}.apk
           if-no-files-found: error

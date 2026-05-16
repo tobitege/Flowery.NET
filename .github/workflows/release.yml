@@ -23,7 +23,7 @@ on:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     outputs:
@@ -50,7 +50,7 @@ jobs:
 
   build-library:
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
 
@@ -98,7 +98,7 @@ jobs:
 
   publish:
     needs: [validate, build-library, build-gallery]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
 
@@ -196,7 +196,10 @@ jobs:
           | Platform | Download |
           |----------|----------|
           | Windows x64 | `Flowery.Gallery-Windows-x64.zip` |
-          | Android | `Flowery.Gallery-Android.apk` |
+          | Android arm | `Flowery.Gallery-Android-arm.apk` |
+          | Android arm64 | `Flowery.Gallery-Android-arm64.apk` |
+          | Android x86 | `Flowery.Gallery-Android-x86.apk` |
+          | Android x64 | `Flowery.Gallery-Android-x64.apk` |
           GALLERY
 
           echo "=== Release Notes ==="

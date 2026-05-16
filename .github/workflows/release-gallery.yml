@@ -24,7 +24,7 @@ on:
 
 jobs:
   prepare:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     outputs:
@@ -100,7 +100,7 @@ jobs:
 
   publish:
     needs: [prepare, build-gallery]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
 
@@ -160,7 +160,10 @@ jobs:
             echo "| Platform | Download |"
             echo "|----------|----------|"
             echo "| Windows x64 | \`Flowery.Gallery-Windows-x64.zip\` |"
-            echo "| Android | \`Flowery.Gallery-Android.apk\` |"
+            echo "| Android arm | \`Flowery.Gallery-Android-arm.apk\` |"
+            echo "| Android arm64 | \`Flowery.Gallery-Android-arm64.apk\` |"
+            echo "| Android x86 | \`Flowery.Gallery-Android-x86.apk\` |"
+            echo "| Android x64 | \`Flowery.Gallery-Android-x64.apk\` |"
             echo ""
             echo "---"
             echo ""

@@ -15,6 +15,14 @@ Builds and deploys the Flowery.NET Gallery app to an Android emulator.
 .\scripts\run-android.ps1
 ```
 
+To create release-style APK files locally, use:
+
+```powershell
+.\scripts\build_android_apks.ps1
+```
+
+The APKs are written to `artifacts/android/` and are split by Android runtime identifier.
+
 ## Options
 
 | Parameter | Default | Description |

@@ -359,6 +359,7 @@ The `scripts/` folder contains PowerShell helpers for common build and run workf
 - **Build scripts**:
   - `scripts/build_all.ps1`: Builds the full solution/projects
   - `scripts/build_desktop.ps1`: Builds the Desktop gallery host
+  - `scripts/build_android_apks.ps1`: Publishes ABI-specific Android Gallery APKs
   - `scripts/build_nuget.ps1`: Builds/packaging workflow for NuGet output
 - **Run scripts**:
   - `scripts/run-desktop.ps1`: Runs the Desktop gallery host
