@@ -2,7 +2,7 @@ name: Release Gallery
 
 # MANUAL TRIGGER ONLY - Creates a Gallery-only release (no NuGet publish)
 # Automatically determines version from library + increments gallery suffix
-# Tags from main:  v2.0.0-gallery.1, v2.0.0-gallery.2, etc.
+# Tags from avalonia12: v2.0.0-gallery.1, v2.0.0-gallery.2, etc.
 # Tags from alpha: v2.0.0-alpha-gallery.1, v2.0.0-alpha-gallery.2, etc.
 
 on:
@@ -13,10 +13,10 @@ on:
         required: true
         type: choice
         options:
+          - avalonia12
           - main
           - alpha
-          - avalonia12
-        default: main
+        default: avalonia12
       description:
         description: 'Optional: What changed in this release?'
         required: false
@@ -71,8 +71,8 @@ jobs:
           echo "Library version: $LIB_VERSION"
 
           # Build tag pattern based on branch
-          if [ "$BRANCH" = "main" ]; then
-            # Main branch: v2.0.0-gallery.N
+          if [ "$BRANCH" = "avalonia12" ] || [ "$BRANCH" = "main" ]; then
+            # Default release branches: v2.0.0-gallery.N
             TAG_PREFIX="v${LIB_VERSION}-gallery."
             IS_PRERELEASE="false"
           else
@@ -96,7 +96,7 @@ jobs:
           echo "gallery_suffix=$NEXT_SUFFIX" >> $GITHUB_OUTPUT
 
           TAG="${TAG_PREFIX}${NEXT_SUFFIX}"
-          if [ "$BRANCH" = "main" ]; then
+          if [ "$BRANCH" = "avalonia12" ] || [ "$BRANCH" = "main" ]; then
             DISPLAY="${LIB_VERSION}-gallery.${NEXT_SUFFIX}"
           else
             DISPLAY="${LIB_VERSION}-${BRANCH}-gallery.${NEXT_SUFFIX}"

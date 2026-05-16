@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: windows-latest
+          - os: windows-2025-vs2026
             rid: win-x64
             artifact_name: Flowery.Gallery-Windows-x64
 
@@ -47,7 +47,7 @@ jobs:
             -o ./publish
 
       - name: Zip Windows artifact
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2025-vs2026'
         run: Compress-Archive -Path ./publish/* -DestinationPath ./${{ matrix.artifact_name }}.zip
         shell: pwsh
 
