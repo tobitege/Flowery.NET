@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.7] - 2026-06-06
+
+### Added
+
+- **DaisyLoading**: Added segmented battery loading variants for charging and emptying states.
+- **DaisyLoading**: Added directional traffic-light loading variants for up, right, down, and left cycles.
+- **Gallery App**: Added examples for the new battery and traffic-light loading variants, including `DaisyIndicator` marker scenarios.
+- **Gallery App**: Improved the browser Loading page by routing it to a dedicated view that loads later animation groups as they near the viewport.
+
 ## [2.0.6] - 2026-05-14
 
 ### Fixed

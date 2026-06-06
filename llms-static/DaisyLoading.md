@@ -3,7 +3,7 @@
 
 # Overview
 
-DaisyLoading provides animated loading indicators with **42 different animation styles**, **5 size options**, and **9 color variants**. The control includes standard DaisyUI animations, creative terminal-inspired variants, Matrix/retro variants, unique special effect variants, professional business-themed animations, and nostalgic Windows 95-style animations. All animations scale properly across all sizes using Viewbox-based rendering.
+DaisyLoading provides animated loading indicators with **48 different animation styles**, **5 size options**, and **9 color variants**. The control includes standard DaisyUI animations, creative terminal-inspired variants, Matrix/retro variants, unique special effect variants, professional business-themed animations, and nostalgic Windows 95-style animations. All animations scale properly across all sizes using Viewbox-based rendering.
 
 ![Loading Animations](images/loading_animations.gif)
 
@@ -75,6 +75,12 @@ Professional animations suitable for enterprise and productivity applications.
 | **CalendarTick** | Calendar with header and rings, featuring a checkmark that pops in. Scheduling/completion themed. |
 | **ApprovalFlow** | Three workflow nodes (circles) with inner dots that pulse in sequence. Workflow/process states. |
 | **BriefcaseSpin** | Briefcase with handle that wobbles side-to-side with a subtle bounce. Business/work themed. |
+| **BatteryCharging** | Segmented battery icon that fills from empty to full, useful for device/power states. |
+| **BatteryEmptying** | Segmented battery icon that drains from full to empty, useful for discharge or remaining-power states. |
+| **TrafficLightUp** | Vertical traffic light that cycles from green to yellow to red. |
+| **TrafficLightRight** | Rotated traffic light that cycles toward the right. |
+| **TrafficLightDown** | Vertical traffic light that cycles from red to yellow to green. |
+| **TrafficLightLeft** | Rotated traffic light that cycles toward the left. |
 
 ### Windows 95 Retro Variants
 
