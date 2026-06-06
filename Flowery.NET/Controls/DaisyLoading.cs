@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls.Primitives;
@@ -90,6 +90,18 @@ namespace Flowery.Controls
         ApprovalFlow,
         /// <summary>BriefcaseSpin animation - spinning briefcase</summary>
         BriefcaseSpin,
+        /// <summary>BatteryCharging animation - segmented battery filling from empty to full</summary>
+        BatteryCharging,
+        /// <summary>BatteryEmptying animation - segmented battery draining from full to empty</summary>
+        BatteryEmptying,
+        /// <summary>TrafficLightUp animation - vertical traffic light cycling upward</summary>
+        TrafficLightUp,
+        /// <summary>TrafficLightRight animation - traffic light cycling toward the right</summary>
+        TrafficLightRight,
+        /// <summary>TrafficLightDown animation - vertical traffic light cycling downward</summary>
+        TrafficLightDown,
+        /// <summary>TrafficLightLeft animation - traffic light cycling toward the left</summary>
+        TrafficLightLeft,
 
         // ==================== WIN95 RETRO VARIANTS ====================
         /// <summary>Win95FileCopy animation - classic Windows 95 file copy with flying papers</summary>

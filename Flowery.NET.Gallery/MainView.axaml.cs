@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -330,12 +330,12 @@ public partial class MainView : UserControl
         if (CategoryTitleBar != null)
             CategoryTitleBar.IsVisible = tabHeader != "Sidebar_Home";
 
-        if (_categoryControls.TryGetValue(tabHeader, out var factory))
+        if (TryGetCategoryFactory(tabHeader, sectionId, out var cacheKey, out var factory))
         {
-            if (!_categoryControlCache.TryGetValue(tabHeader, out var newContent))
+            if (!_categoryControlCache.TryGetValue(cacheKey, out var newContent))
             {
                 newContent = factory();
-                _categoryControlCache[tabHeader] = newContent;
+                _categoryControlCache[cacheKey] = newContent;
             }
 
             var contentChanged = !ReferenceEquals(_activeCategoryContent, newContent);
@@ -384,6 +384,24 @@ public partial class MainView : UserControl
                 }, global::Avalonia.Threading.DispatcherPriority.Loaded);
             }
         }
+    }
+
+    private bool TryGetCategoryFactory(
+        string tabHeader,
+        string? sectionId,
+        out string cacheKey,
+        out Func<Control> factory)
+    {
+        if (string.Equals(tabHeader, "Sidebar_Feedback", StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(sectionId, "loading", StringComparison.OrdinalIgnoreCase))
+        {
+            cacheKey = "Sidebar_Feedback:loading";
+            factory = static () => new LoadingExamples();
+            return true;
+        }
+
+        cacheKey = tabHeader;
+        return _categoryControls.TryGetValue(tabHeader, out factory!);
     }
 
     private ScrollViewer? _currentScrollViewer;

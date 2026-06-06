@@ -451,6 +451,23 @@
                                     <controls:DaisyLoading Variant="BriefcaseSpin" Size="ExtraLarge" Color="Accent" />
                                 </StackPanel>
                             </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="Battery (charge/drain)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="BatteryCharging" Size="Medium" Color="Success" />
+                                    <controls:DaisyLoading Variant="BatteryEmptying" Size="Large" Color="Warning" />
+                                    <controls:DaisyLoading Variant="BatteryCharging" Size="ExtraLarge" Color="Primary" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Spacing="10" Margin="0,0,40,12">
+                                <TextBlock Text="TrafficLight (directional)" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                                <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                    <controls:DaisyLoading Variant="TrafficLightUp" Size="Medium" />
+                                    <controls:DaisyLoading Variant="TrafficLightRight" Size="Large" />
+                                    <controls:DaisyLoading Variant="TrafficLightDown" Size="Large" />
+                                    <controls:DaisyLoading Variant="TrafficLightLeft" Size="ExtraLarge" />
+                                </StackPanel>
+                            </StackPanel>
                         </WrapPanel>
                     </StackPanel>
                 </Border>
@@ -504,25 +521,7 @@
             <controls:DaisyDivider />
 
             <!-- Progress (Linear) -->
-            <StackPanel Spacing="12">
-                <local:SectionHeader SectionId="progress" Title="Progress (Linear)" />
-                <WrapPanel Orientation="Horizontal">
-                    <StackPanel Spacing="10" Margin="0,0,40,20" Width="200">
-                        <TextBlock Text="Variants and sizes" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
-                        <controls:DaisyProgress Value="40" />
-                        <controls:DaisyProgress Value="70" Variant="Primary" />
-                        <controls:DaisyProgress Value="100" Variant="Accent" Size="Small" />
-                        <controls:DaisyProgress IsIndeterminate="True" Variant="Secondary" />
-                    </StackPanel>
-                    <StackPanel Spacing="10" Margin="0,0,40,20" Width="260">
-                        <TextBlock Text="Animated value updates" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
-                        <Slider x:Name="ProgressDemoSlider" Minimum="0" Maximum="100" Value="40" />
-                        <TextBlock Text="{Binding Value, ElementName=ProgressDemoSlider, StringFormat={}{0:0}%}" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Secondary" />
-                        <controls:DaisyProgress Value="{Binding Value, ElementName=ProgressDemoSlider}" />
-                        <controls:DaisyProgress Value="{Binding Value, ElementName=ProgressDemoSlider}" Variant="Primary" />
-                    </StackPanel>
-                </WrapPanel>
-            </StackPanel>
+            <local:ProgressSection />
 
             <controls:DaisyDivider />
 

@@ -714,4 +714,191 @@
         </Style.Animations>
     </Style>
 
+    <!-- ==================== BATTERY ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=BatteryCharging], controls|DaisyLoading[Variant=BatteryEmptying]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Grid Width="96" Height="96">
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Spacing="-2">
+                            <Border Width="78" Height="42"
+                                    BorderBrush="{TemplateBinding Foreground}"
+                                    BorderThickness="4"
+                                    CornerRadius="7"
+                                    Padding="7,6"
+                                    Background="Transparent">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <Border Classes="battery-bar battery-bar1" Width="12" Height="22" CornerRadius="2" Background="{TemplateBinding Foreground}" Opacity="0.15"/>
+                                    <Border Classes="battery-bar battery-bar2" Width="12" Height="22" CornerRadius="2" Background="{TemplateBinding Foreground}" Opacity="0.15"/>
+                                    <Border Classes="battery-bar battery-bar3" Width="12" Height="22" CornerRadius="2" Background="{TemplateBinding Foreground}" Opacity="0.15"/>
+                                    <Border Classes="battery-bar battery-bar4" Width="12" Height="22" CornerRadius="2" Background="{TemplateBinding Foreground}" Opacity="0.15"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Width="8" Height="22"
+                                    VerticalAlignment="Center"
+                                    CornerRadius="0,3,3,0"
+                                    Background="{TemplateBinding Foreground}"/>
+                        </StackPanel>
+                    </Grid>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=BatteryCharging] /template/ Border.battery-bar1">
+        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=BatteryCharging] /template/ Border.battery-bar2">
+        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:0.375"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=BatteryCharging] /template/ Border.battery-bar3">
+        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=BatteryCharging] /template/ Border.battery-bar4">
+        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=BatteryEmptying] /template/ Border.battery-bar1">
+        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:0.95"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=BatteryEmptying] /template/ Border.battery-bar2">
+        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:0.625"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=BatteryEmptying] /template/ Border.battery-bar3">
+        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:0.375"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=BatteryEmptying] /template/ Border.battery-bar4">
+        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:0.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+
+    <!-- ==================== TRAFFIC LIGHT ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=TrafficLightUp], controls|DaisyLoading[Variant=TrafficLightRight], controls|DaisyLoading[Variant=TrafficLightDown], controls|DaisyLoading[Variant=TrafficLightLeft]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Grid Width="96" Height="96">
+                        <Border Classes="traffic-body"
+                                Width="38" Height="84"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                BorderBrush="{TemplateBinding Foreground}"
+                                BorderThickness="2"
+                                CornerRadius="10"
+                                Background="Transparent"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Grid Margin="6,8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Ellipse Classes="traffic-red" Grid.Row="0" Fill="#CD5C5C" Opacity="0.15"/>
+                                <Ellipse Classes="traffic-yellow" Grid.Row="1" Fill="#FFD700" Opacity="0.15"/>
+                                <Ellipse Classes="traffic-green" Grid.Row="2" Fill="#32CD32" Opacity="0.15"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=TrafficLightRight] /template/ Border.traffic-body">
+        <Setter Property="RotateTransform.Angle" Value="90"/>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=TrafficLightLeft] /template/ Border.traffic-body">
+        <Setter Property="RotateTransform.Angle" Value="270"/>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=TrafficLightUp] /template/ Ellipse.traffic-green, controls|DaisyLoading[Variant=TrafficLightRight] /template/ Ellipse.traffic-green, controls|DaisyLoading[Variant=TrafficLightLeft] /template/ Ellipse.traffic-green">
+        <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="1"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=TrafficLightUp] /template/ Ellipse.traffic-yellow, controls|DaisyLoading[Variant=TrafficLightRight] /template/ Ellipse.traffic-yellow, controls|DaisyLoading[Variant=TrafficLightLeft] /template/ Ellipse.traffic-yellow">
+        <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=TrafficLightUp] /template/ Ellipse.traffic-red, controls|DaisyLoading[Variant=TrafficLightRight] /template/ Ellipse.traffic-red, controls|DaisyLoading[Variant=TrafficLightLeft] /template/ Ellipse.traffic-red">
+        <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+
+    <Style Selector="controls|DaisyLoading[Variant=TrafficLightDown] /template/ Ellipse.traffic-red">
+        <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="1"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=TrafficLightDown] /template/ Ellipse.traffic-yellow">
+        <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=TrafficLightDown] /template/ Ellipse.traffic-green">
+        <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
+            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="1"/></KeyFrame>
+            <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+        </Animation></Style.Animations>
+    </Style>
+
 </Styles>

@@ -147,12 +147,12 @@ xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
 - **Indicator** (`DaisyIndicator`): Utility to place a badge on the corner of another element.
 - **Status Indicator** (`DaisyStatusIndicator`): Status indicator with **33 variants** including animation and glyph modes (battery, traffic lights, WiFi, cellular). Supports all theme colors and 5 sizes.
 
-- **Loading** (`DaisyLoading`): Animated loading indicators with **42 variants** (extended from DaisyUI's original 6) across 6 categories:
+- **Loading** (`DaisyLoading`): Animated loading indicators with **48 variants** (extended from DaisyUI's original 6) across 6 categories:
   - *Classic*: Spinner, Dots, Ring, Ball, Bars, Infinity
   - *Terminal-inspired*: Orbit, Snake, Pulse, Wave, Bounce
   - *Matrix/Colon-dot*: Matrix, MatrixInward, MatrixOutward, MatrixVertical
   - *Special effects*: MatrixRain, Hourglass, SignalSweep, BitFlip, PacketBurst, CometTrail, Heartbeat, TunnelZoom, GlitchReveal, RippleMatrix, CursorBlink, CountdownSpinner
-  - *Business*: DocumentFlipOn, DocumentFlipOff, MailSend, CloudUpload, CloudDownload, DocumentStamp, DocumentReject, ChartPulse, CalendarTick, ApprovalFlow, BriefcaseSpin
+  - *Business*: DocumentFlipOn, DocumentFlipOff, MailSend, CloudUpload, CloudDownload, DocumentStamp, DocumentReject, ChartPulse, CalendarTick, ApprovalFlow, BriefcaseSpin, BatteryCharging, BatteryEmptying, TrafficLightUp, TrafficLightRight, TrafficLightDown, TrafficLightLeft
   - *Win95 retro*: Win95FileCopy, Win95Delete, Win95Search, Win95EmptyRecycle
 - **Mask** (`DaisyMask`): Applies shapes (Squircle, Heart, Hexagon, etc.) to content.
 - **Mockup** (`DaisyMockup`): Frames for Code, Window, or Browser.
