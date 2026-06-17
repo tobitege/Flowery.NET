@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.8] - 2026-06-17
+
+### Changed
+
+- Bumped Avalonia package references across the library, gallery, desktop, browser, Android, iOS, capture, and test projects to `12.0.4`.
+- Updated supporting dependency packages: `Microsoft.NET.Test.Sdk` to `18.6.0`, `coverlet.collector` to `10.0.1`, and `Microsoft.Extensions.DependencyInjection.Abstractions` to `10.0.9`.
+
 ## [2.0.7] - 2026-06-06
 
 ### Added
