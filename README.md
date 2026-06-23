@@ -411,6 +411,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
 - [**Cyotek ColorPicker**](https://github.com/cyotek/Cyotek.Windows.Forms.ColorPicker) - Inspiration for color picker controls.
 - [**Easy Date Timeline**](https://github.com/FadyFayezYounan/easy_date_timeline) - Inspiration for date timeline controls.
 - [**smoothui**](https://github.com/educlopez/smoothui) - Inspiration for visual effects (React/Tailwind/Framer Motion).
+- [**liquid-glass**](https://github.com/samasante/liquid-glass) - Kudos to Sam Asante for the Liquid Glass optics reference that inspired the DaisyGlass SkiaSharp lens parameters.
 - [**@frandelfo**](https://github.com/frandelfo) - Multi-platform Gallery architecture (Desktop, Browser, Android, iOS).
 
 > **Disclaimer:** This project is not affiliated with, endorsed by, or sponsored by any of the above.

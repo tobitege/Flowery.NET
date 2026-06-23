@@ -719,6 +719,97 @@
 
             <controls:DaisyDivider />
 
+            <!-- DaisyGlass Control - Liquid Glass -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="daisyglass-liquid"
+                    Title="DaisyGlass (Liquid Glass)" />
+                <TextBlock
+                    Text="SkiaSharp mode with depth, curvature, bend, and dispersion controls."
+                    Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                <Border CornerRadius="16" MinHeight="340" ClipToBounds="True">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                            <GradientStop Color="#0ea5e9" Offset="0" />
+                            <GradientStop Color="#7c3aed" Offset="0.45" />
+                            <GradientStop Color="#fb7185" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Grid>
+                        <StackPanel Margin="24" Spacing="10">
+                            <TextBlock Text="LIQUID REFRACTION" FontSize="32"
+                                FontWeight="Black" Foreground="White" Opacity="0.9" />
+                            <TextBlock Text="Depth  Curvature  Bend  Dispersion"
+                                FontSize="16" Foreground="White" Opacity="0.8" />
+                            <WrapPanel Orientation="Horizontal">
+                                <Border Width="92" Height="44" CornerRadius="10"
+                                    Background="#80FFFFFF" Margin="0,0,10,10">
+                                    <TextBlock Text="D0.85" FontWeight="Bold"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <Border Width="92" Height="44" CornerRadius="10"
+                                    Background="#80A7F3D0" Margin="0,0,10,10">
+                                    <TextBlock Text="C0.80" FontWeight="Bold"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <Border Width="92" Height="44" CornerRadius="10"
+                                    Background="#80FDE68A" Margin="0,0,10,10">
+                                    <TextBlock Text="B0.65" FontWeight="Bold"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <Border Width="92" Height="44" CornerRadius="10"
+                                    Background="#80FBCFE8" Margin="0,0,10,10">
+                                    <TextBlock Text="RGB" FontWeight="Bold"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <TextBlock Text="LIQUID" FontSize="76" FontWeight="Black"
+                            Foreground="#30FFFFFF"
+                            HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20" />
+
+                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                            VerticalAlignment="Center" Margin="32">
+                            <controls:DaisyGlass Padding="22" CornerRadius="22" Margin="10"
+                                Width="260"
+                                EnableBackdropBlur="True" BlurMode="SkiaSharp"
+                                GlassBlur="28" GlassSaturation="1.15"
+                                GlassTint="#FFFFFF" GlassTintOpacity="0.12"
+                                GlassReflectDegree="35" GlassReflectOpacity="0.28"
+                                GlassDepth="0.85" GlassCurvature="0.8"
+                                GlassBend="0.65" GlassDispersion="0.28">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Convex Lens" FontWeight="Bold"
+                                        FontSize="18" />
+                                    <TextBlock Text="Strong rim bend with chromatic edge split."
+                                        TextWrapping="Wrap" />
+                                    <controls:DaisyButton Content="Preview" Size="Small"
+                                        HorizontalAlignment="Right" Margin="0,8,0,0" />
+                                </StackPanel>
+                            </controls:DaisyGlass>
+
+                            <controls:DaisyGlass Padding="22" CornerRadius="22" Margin="10"
+                                Width="260"
+                                EnableBackdropBlur="True" BlurMode="SkiaSharp"
+                                GlassBlur="20" GlassSaturation="0.85"
+                                GlassTint="#111827" GlassTintOpacity="0.38"
+                                GlassReflectDegree="135" GlassReflectOpacity="0.22"
+                                GlassDepth="0.55" GlassCurvature="0.45"
+                                GlassBend="0.35" GlassDispersion="0.12">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Dark Lens" FontWeight="Bold"
+                                        FontSize="18" Foreground="White" />
+                                    <TextBlock Text="Lower curvature with a softer liquid rim."
+                                        TextWrapping="Wrap" Foreground="White" Opacity="0.9" />
+                                </StackPanel>
+                            </controls:DaisyGlass>
+                        </WrapPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
             <!-- DaisyGlass Control - Bitmap Capture Mode -->
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="daisyglass-bitmap-capture"

@@ -146,6 +146,7 @@
   "Sidebar_Card": "Card",
   "Sidebar_PatternedCard": "Carte à Motif",
   "Sidebar_GlassCard": "Glass Card",
+  "Sidebar_DaisyGlassLiquid": "DaisyGlass (Liquid Glass)",
   "Sidebar_DaisyGlassSimulated": "DaisyGlass (Simulated Glass)",
   "Sidebar_DaisyGlassBitmapCapture": "DaisyGlass (Bitmap Capture Mode)",
   "Sidebar_DaisyGlassSkiaMatrix": "DaisyGlass (SkiaSharp Mode Matrix)",

@@ -36,6 +36,10 @@
         <Setter Property="GlassReflectDegree" Value="100" />
         <Setter Property="GlassReflectOpacity" Value="0.1" />
         <Setter Property="GlassTextShadowOpacity" Value="0.5" />
+        <Setter Property="GlassDepth" Value="0.65" />
+        <Setter Property="GlassCurvature" Value="0.6" />
+        <Setter Property="GlassBend" Value="0.35" />
+        <Setter Property="GlassDispersion" Value="0.18" />
         <Setter Property="EnableBackdropBlur" Value="False" />
 
         <Setter Property="Template">
@@ -50,7 +54,7 @@
                                    Source="{TemplateBinding BlurredBackground}"
                                    Stretch="Fill">
                                 <Image.Effect>
-                                    <BlurEffect Radius="80" />
+                                    <BlurEffect Radius="{Binding GlassBlur, RelativeSource={RelativeSource TemplatedParent}}" />
                                 </Image.Effect>
                             </Image>
                         </Panel>
@@ -135,14 +139,14 @@
             </ControlTemplate>
         </Setter>
 
-        <!-- When backdrop blur is enabled -->
-        <Style Selector="^[EnableBackdropBlur=True] /template/ Panel#PART_BackdropBlurPanel">
+        <!-- Bitmap capture mode owns the image blur layer. SkiaSharp renders its backdrop in code. -->
+        <Style Selector="^[EnableBackdropBlur=True][BlurMode=BitmapCapture] /template/ Panel#PART_BackdropBlurPanel">
             <Setter Property="IsVisible" Value="True" />
         </Style>
         <Style Selector="^[EnableBackdropBlur=True] /template/ Panel#PART_SimulatedGlassPanel">
             <Setter Property="IsVisible" Value="False" />
         </Style>
-        <Style Selector="^[EnableBackdropBlur=True] /template/ Border#PART_TintOverlay">
+        <Style Selector="^[EnableBackdropBlur=True][BlurMode=BitmapCapture] /template/ Border#PART_TintOverlay">
             <Setter Property="IsVisible" Value="True" />
         </Style>
     </ControlTheme>

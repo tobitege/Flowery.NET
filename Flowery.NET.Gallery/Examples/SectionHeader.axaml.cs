@@ -101,6 +101,7 @@ public partial class SectionHeader : UserControl
         ["mockup"] = "DaisyMockup",
         ["hovergallery"] = "DaisyHoverGallery",
         ["glass"] = "DaisyGlass",
+        ["daisyglassliquid"] = "DaisyGlass",
         ["daisyglasssimulated"] = "DaisyGlass",
         ["daisyglassbitmapcapture"] = "DaisyGlass",
         ["daisyglassskiamatrix"] = "DaisyGlass",

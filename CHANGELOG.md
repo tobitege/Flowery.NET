@@ -6,6 +6,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-06-23
+
+### Added
+
+- **DaisyGlass**: Added Liquid Glass optics for SkiaSharp mode with `GlassDepth`, `GlassCurvature`, `GlassBend`, and `GlassDispersion` properties.
+- **Gallery App**: Added a dedicated DaisyGlass Liquid Glass demo section and sidebar entry.
+- **Documentation**: Added Liquid Glass setup guidance and credits for the upstream `liquid-glass` reference implementation.
+
+### Changed
+
+- **DaisyGlass**: Separated SkiaSharp rendering from bitmap capture mode so SkiaSharp no longer starts the capture pipeline.
+- **DaisyGlass**: Bitmap capture blur now follows the `GlassBlur` property instead of a fixed template blur radius.
+
 ## [2.0.8] - 2026-06-17
 
 ### Changed
@@ -675,6 +688,8 @@ At least that's the plan. Happy holidays 2025!
 - Custom controls: ComponentSidebar, ModifierKeys
 - Gallery demo application
 
+[2.1.0]: https://github.com/tobitege/Flowery.NET/compare/v2.0.8...HEAD
+[2.0.8]: https://github.com/tobitege/Flowery.NET/compare/v2.0.7...v2.0.8
 [1.5.0]: https://github.com/tobitege/Flowery.NET/compare/v1.4.1...HEAD
 [1.4.1]: https://github.com/tobitege/Flowery.NET/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/tobitege/Flowery.NET/compare/v1.3.1...v1.4.0

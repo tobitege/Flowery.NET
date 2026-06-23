@@ -57,6 +57,7 @@ public static class GallerySidebarData
                     new SidebarItem { Id = "expandable-cards", Name = "Showcase_ExpandableCards_Title", TabHeader = "Sidebar_Cards" },
                     new SidebarItem { Id = "patterned-card", Name = "Sidebar_PatternedCard", TabHeader = "Sidebar_Cards" },
                     new SidebarItem { Id = "glass-card", Name = "Sidebar_GlassCard", TabHeader = "Sidebar_Cards" },
+                    new SidebarItem { Id = "daisyglass-liquid", Name = "Sidebar_DaisyGlassLiquid", TabHeader = "Sidebar_Cards" },
                     new SidebarItem { Id = "daisyglass-simulated", Name = "Sidebar_DaisyGlassSimulated", TabHeader = "Sidebar_Cards" },
                     new SidebarItem { Id = "daisyglass-bitmap-capture", Name = "Sidebar_DaisyGlassBitmapCapture", TabHeader = "Sidebar_Cards" },
                     new SidebarItem { Id = "daisyglass-skia-matrix", Name = "Sidebar_DaisyGlassSkiaMatrix", TabHeader = "Sidebar_Cards" },

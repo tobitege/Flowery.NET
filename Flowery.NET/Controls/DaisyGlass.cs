@@ -5,7 +5,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
@@ -56,6 +55,8 @@ namespace Flowery.Controls
         private bool _isCapturing;
         private RenderTargetBitmap? _capturedBitmap;
         private bool _needsUpdate = true;
+
+        private bool ShouldCaptureBackdrop => EnableBackdropBlur && BlurMode == GlassBlurMode.BitmapCapture;
 
         /// <summary>
         /// Gets or sets the blur amount for the glass effect.
@@ -166,6 +167,54 @@ namespace Flowery.Controls
         }
 
         /// <summary>
+        /// Gets or sets how far the liquid-glass refraction reaches inward from the edge.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassDepthProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassDepth), 0.65);
+
+        public double GlassDepth
+        {
+            get => GetValue(GlassDepthProperty);
+            set => SetValue(GlassDepthProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the convex lens curvature used by the liquid-glass highlight model.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassCurvatureProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassCurvature), 0.6);
+
+        public double GlassCurvature
+        {
+            get => GetValue(GlassCurvatureProperty);
+            set => SetValue(GlassCurvatureProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the inner rim bend for the liquid-glass meniscus effect.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassBendProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassBend), 0.35);
+
+        public double GlassBend
+        {
+            get => GetValue(GlassBendProperty);
+            set => SetValue(GlassBendProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the chromatic edge split used by the liquid-glass effect.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassDispersionProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassDispersion), 0.18);
+
+        public double GlassDispersion
+        {
+            get => GetValue(GlassDispersionProperty);
+            set => SetValue(GlassDispersionProperty, value);
+        }
+
+        /// <summary>
         /// Gets or sets whether to enable real backdrop blur (performance intensive).
         /// When false, uses the simulated glass effect.
         /// </summary>
@@ -204,14 +253,27 @@ namespace Flowery.Controls
 
         static DaisyGlass()
         {
-            AffectsRender<DaisyGlass>(EnableBackdropBlurProperty, GlassBlurProperty);
+            AffectsRender<DaisyGlass>(
+                EnableBackdropBlurProperty,
+                BlurModeProperty,
+                GlassBlurProperty,
+                GlassOpacityProperty,
+                GlassTintProperty,
+                GlassTintOpacityProperty,
+                GlassReflectDegreeProperty,
+                GlassReflectOpacityProperty,
+                GlassSaturationProperty,
+                GlassDepthProperty,
+                GlassCurvatureProperty,
+                GlassBendProperty,
+                GlassDispersionProperty);
         }
 
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
             _needsUpdate = true;
-            if (EnableBackdropBlur)
+            if (ShouldCaptureBackdrop)
             {
                 ScheduleBackdropCapture();
             }
@@ -231,21 +293,33 @@ namespace Flowery.Controls
 
             if (change.Property == EnableBackdropBlurProperty)
             {
-                if (EnableBackdropBlur && TopLevel.GetTopLevel(this) != null)
+                if (ShouldCaptureBackdrop && TopLevel.GetTopLevel(this) != null)
                 {
                     ScheduleBackdropCapture();
                 }
                 else
                 {
-                    BlurredBackground = null;
+                    ClearCapturedBackdrop();
                 }
             }
-            else if (change.Property == GlassBlurProperty && EnableBackdropBlur)
+            else if (change.Property == BlurModeProperty)
+            {
+                if (ShouldCaptureBackdrop && TopLevel.GetTopLevel(this) != null)
+                {
+                    _needsUpdate = true;
+                    ScheduleBackdropCapture();
+                }
+                else
+                {
+                    ClearCapturedBackdrop();
+                }
+            }
+            else if (change.Property == GlassBlurProperty && ShouldCaptureBackdrop)
             {
                 _needsUpdate = true;
                 ScheduleBackdropCapture();
             }
-            else if (change.Property == BoundsProperty && EnableBackdropBlur)
+            else if (change.Property == BoundsProperty && ShouldCaptureBackdrop)
             {
                 _needsUpdate = true;
                 ScheduleBackdropCapture();
@@ -254,7 +328,7 @@ namespace Flowery.Controls
 
         private void ScheduleBackdropCapture()
         {
-            if (_isCapturing || !_needsUpdate)
+            if (_isCapturing || !_needsUpdate || !ShouldCaptureBackdrop)
                 return;
 
             Dispatcher.UIThread.Post(CaptureAndBlurBackdrop, DispatcherPriority.Background);
@@ -262,7 +336,7 @@ namespace Flowery.Controls
 
         private async void CaptureAndBlurBackdrop()
         {
-            if (_isCapturing || !EnableBackdropBlur || TopLevel.GetTopLevel(this) == null)
+            if (_isCapturing || !ShouldCaptureBackdrop || TopLevel.GetTopLevel(this) == null)
                 return;
 
             _isCapturing = true;
@@ -398,11 +472,19 @@ namespace Flowery.Controls
         /// </summary>
         public void RefreshBackdrop()
         {
-            if (EnableBackdropBlur)
+            if (ShouldCaptureBackdrop)
             {
                 _needsUpdate = true;
                 ScheduleBackdropCapture();
             }
+        }
+
+        private void ClearCapturedBackdrop()
+        {
+            var oldBitmap = _capturedBitmap;
+            _capturedBitmap = null;
+            BlurredBackground = null;
+            oldBitmap?.Dispose();
         }
 
         /// <summary>
@@ -419,7 +501,13 @@ namespace Flowery.Controls
                     GlassTint,
                     GlassTintOpacity,
                     CornerRadius.TopLeft,
-                    GlassSaturation);
+                    GlassSaturation,
+                    GlassReflectDegree,
+                    GlassReflectOpacity,
+                    GlassDepth,
+                    GlassCurvature,
+                    GlassBend,
+                    GlassDispersion);
 
                 context.Custom(operation);
             }
@@ -438,6 +526,12 @@ namespace Flowery.Controls
         private readonly SKColor _tintColor;
         private readonly float _cornerRadius;
         private readonly float _saturation;
+        private readonly float _sheenAngle;
+        private readonly float _reflectOpacity;
+        private readonly float _depth;
+        private readonly float _curvature;
+        private readonly float _bend;
+        private readonly float _dispersion;
 
         public SkiaGlassDrawOperation(
             Rect bounds,
@@ -445,21 +539,29 @@ namespace Flowery.Controls
             Color tintColor,
             double tintOpacity,
             double cornerRadius,
-            double saturation)
+            double saturation,
+            double sheenAngle,
+            double reflectOpacity,
+            double depth,
+            double curvature,
+            double bend,
+            double dispersion)
         {
             _bounds = bounds;
-            // Use a divisor to make the blur scale more gradual.
-            // Previous: / 2.0 (too strong). Removed: direct (way too strong).
-            // New: / 4.0 - this makes GlassBlur=10 roughly Sigma=2.5, which is a soft start.
-            // GlassBlur=100 becomes Sigma=25, which is very blurry but still distinct.
             _blurSigma = (float)(blurRadius / 10.0);
             _tintColor = new SKColor(
                 tintColor.R,
                 tintColor.G,
                 tintColor.B,
-                (byte)(255 * tintOpacity));
+                ToAlpha(Clamp01((float)tintOpacity)));
             _cornerRadius = (float)cornerRadius;
-            _saturation = (float)saturation;
+            _saturation = Math.Max(0, (float)saturation);
+            _sheenAngle = (float)sheenAngle;
+            _reflectOpacity = Clamp01((float)reflectOpacity);
+            _depth = Clamp01((float)depth);
+            _curvature = Clamp01((float)curvature);
+            _bend = Clamp01((float)bend);
+            _dispersion = Clamp01((float)dispersion);
         }
 
         public Rect Bounds => _bounds;
@@ -471,7 +573,12 @@ namespace Flowery.Controls
             return other is SkiaGlassDrawOperation op &&
                    op._bounds == _bounds &&
                    Math.Abs(op._blurSigma - _blurSigma) < 0.1f &&
-                   Math.Abs(op._saturation - _saturation) < 0.01f;
+                   Math.Abs(op._saturation - _saturation) < 0.01f &&
+                   Math.Abs(op._reflectOpacity - _reflectOpacity) < 0.01f &&
+                   Math.Abs(op._depth - _depth) < 0.01f &&
+                   Math.Abs(op._curvature - _curvature) < 0.01f &&
+                   Math.Abs(op._bend - _bend) < 0.01f &&
+                   Math.Abs(op._dispersion - _dispersion) < 0.01f;
         }
 
         public void Dispose() { }
@@ -576,7 +683,6 @@ namespace Flowery.Controls
                 canvas.Restore();
             }
 
-            // Dispose filters
             if (backdropFilter != blurFilter)
             {
                 backdropFilter?.Dispose();
@@ -591,6 +697,8 @@ namespace Flowery.Controls
                 IsAntialias = true
             };
             canvas.DrawRoundRect(roundedRect, tintPaint);
+
+            DrawLiquidOptics(canvas, rect);
 
             // Draw highlight border (gradient from top to bottom to simulate light source)
             using var highlightPaint = new SKPaint
@@ -621,5 +729,115 @@ namespace Flowery.Controls
             // Restore canvas
             canvas.RestoreToCount(saveCount);
         }
+
+        private void DrawLiquidOptics(SKCanvas canvas, SKRect rect)
+        {
+            var minSide = Math.Min(rect.Width, rect.Height);
+            if (minSide <= 0)
+                return;
+
+            var rimWidth = Math.Clamp(minSide * (0.035f + _depth * 0.055f + _bend * 0.04f), 2f, minSide * 0.2f);
+            var insetRect = rect;
+            insetRect.Inflate(-rimWidth * 0.5f, -rimWidth * 0.5f);
+            if (insetRect.Width <= 0 || insetRect.Height <= 0)
+                return;
+
+            var insetRadius = Math.Max(0, _cornerRadius - rimWidth * 0.5f);
+            var rimRect = new SKRoundRect(insetRect, insetRadius);
+            var angle = _sheenAngle * MathF.PI / 180f;
+            var light = new SKPoint(MathF.Cos(angle), MathF.Sin(angle));
+            var specularAlpha = ToAlpha(Math.Clamp(_reflectOpacity + _curvature * 0.12f, 0f, 0.75f));
+
+            if (_dispersion > 0.001f)
+            {
+                var offset = Math.Clamp(_dispersion * 4f, 0.5f, 4f);
+                DrawChromaticRim(canvas, rimRect, offset, rimWidth);
+            }
+
+            using (var rimPaint = new SKPaint
+            {
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = rimWidth,
+                IsAntialias = true
+            })
+            {
+                var colors = new[]
+                {
+                    new SKColor(255, 255, 255, specularAlpha),
+                    new SKColor(255, 255, 255, ToAlpha(_reflectOpacity * 0.28f)),
+                    new SKColor(0, 0, 0, ToAlpha(_bend * 0.18f)),
+                    new SKColor(255, 255, 255, ToAlpha(_reflectOpacity * 0.36f))
+                };
+                var points = new[] { 0f, 0.38f, 0.72f, 1f };
+                rimPaint.Shader = SKShader.CreateLinearGradient(
+                    new SKPoint(rect.MidX - light.X * rect.Width * 0.5f, rect.MidY - light.Y * rect.Height * 0.5f),
+                    new SKPoint(rect.MidX + light.X * rect.Width * 0.5f, rect.MidY + light.Y * rect.Height * 0.5f),
+                    colors,
+                    points,
+                    SKShaderTileMode.Clamp);
+
+                canvas.DrawRoundRect(rimRect, rimPaint);
+            }
+
+            if (_curvature > 0.001f || _bend > 0.001f)
+            {
+                var glowCenter = new SKPoint(
+                    rect.MidX - light.X * rect.Width * 0.22f,
+                    rect.MidY - light.Y * rect.Height * 0.22f);
+                var glowRadius = Math.Max(8f, minSide * (0.28f + _depth * 0.2f));
+                using var glowPaint = new SKPaint
+                {
+                    Style = SKPaintStyle.Fill,
+                    IsAntialias = true,
+                    Shader = SKShader.CreateRadialGradient(
+                        glowCenter,
+                        glowRadius,
+                        new[]
+                        {
+                            new SKColor(255, 255, 255, ToAlpha(_reflectOpacity * (0.25f + _curvature * 0.25f))),
+                            new SKColor(255, 255, 255, 0)
+                        },
+                        new[] { 0f, 1f },
+                        SKShaderTileMode.Clamp)
+                };
+
+                canvas.DrawRoundRect(new SKRoundRect(rect, _cornerRadius), glowPaint);
+            }
+        }
+
+        private static void DrawChromaticRim(SKCanvas canvas, SKRoundRect rimRect, float offset, float rimWidth)
+        {
+            canvas.Save();
+            canvas.Translate(-offset, 0);
+            using (var redPaint = new SKPaint
+            {
+                Color = new SKColor(255, 80, 80, 34),
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = Math.Max(1f, rimWidth * 0.35f),
+                IsAntialias = true
+            })
+            {
+                canvas.DrawRoundRect(rimRect, redPaint);
+            }
+            canvas.Restore();
+
+            canvas.Save();
+            canvas.Translate(offset, 0);
+            using (var bluePaint = new SKPaint
+            {
+                Color = new SKColor(80, 150, 255, 34),
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = Math.Max(1f, rimWidth * 0.35f),
+                IsAntialias = true
+            })
+            {
+                canvas.DrawRoundRect(rimRect, bluePaint);
+            }
+            canvas.Restore();
+        }
+
+        private static float Clamp01(float value) => Math.Clamp(value, 0f, 1f);
+
+        private static byte ToAlpha(float opacity) => (byte)Math.Clamp(opacity * 255f, 0f, 255f);
     }
 }

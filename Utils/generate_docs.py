@@ -1161,6 +1161,7 @@ class DocumentationGenerator:
             'mockup': 'DaisyMockup',
             'hovergallery': 'DaisyHoverGallery',
             'glass': 'DaisyGlass',
+            'daisyglassliquid': 'DaisyGlass',
             'textrotate': 'DaisyTextRotate',
             # Color Picker controls
             'colorslider': 'DaisyColorSlider',
