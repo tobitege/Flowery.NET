@@ -6,6 +6,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-07-04
+
+### Added
+
+- DaisyLoading: Added 14 business-themed loading variants: `PrinterOutput`, `PaperShredder`, `SignaturePen`, `DocumentScan`, `FolderSync`, `MailReceive`, `PhoneRing`, `CoinStack`, `InvoicePaid`, `PiggyBank`, `PieChartFill`, `TrendLine`, `ClockSpin`, and `CoffeeCup`.
+- DaisyLoading: Added 11 Win95 retro loading variants with deliberately chunky, stepped animations: `Win95Defrag`, `Win95Download`, `Win95Install`, `Win95ScanDisk`, `Win95Hourglass`, `Win95DialUp`, `Win95Solitaire`, `Win95PrintQueue`, `Win95FindComputer`, `Win95Startup`, and `Win95StartupColor` (Windows flag colors).
+- Gallery App: Added examples for all 25 new loading variants in the Business and Win95 Retro sections of the Loading page.
+- Gallery App: Added a dedicated DaisyDivider Glow animation demo.
+
+### Fixed
+
+- FloweryComponentSidebar: Fixed clearing the search text so the full component list is restored after filtering.
+- FloweryComponentSidebar: Fixed unreadable text while pressing sidebar items in themes such as Corporate.
+- FloweryComponentSidebar: Fixed the restored last-viewed sidebar item not being marked as selected on gallery startup.
+- Gallery App: Fixed the Toggle demo's Accent variant being mislabeled and sized as Large.
+- Text input controls: Fixed unreadable selected text in themes such as Lo-Fi by using base selection colors for editable text controls.
+- DaisyInput: Fixed size variants so input height and placeholder text size differ correctly in the gallery.
+- DaisyOtpInput: Fixed OTP slot sizing after Avalonia 12 so verification-code examples fit inside their card.
+- DaisyButton: Fixed neutral outline colors so Tag Picker chips remain visible without hover.
+- DaisyRadio: Fixed the keyboard focus indicator and changed checked radios to use an inner dot.
+- DaisyDivider: Replaced the Glow divider animation with timer-based opacity updates to avoid runtime exceptions.
+- DaisyTextRotate: Replaced fade transition animations with timer-based opacity updates.
+- FloweryAnimationHelpers: Replaced reusable control animations with timer-based interpolation.
+- DaisyLoading: Fixed the MatrixRain animation so dots fade out at the bottom and restart from the top instead of visibly traveling back up.
+- Gallery App: Fixed the Loading and Progress pages not following theme changes at runtime by binding section card backgrounds dynamically instead of resolving the brush once at construction.
+- Gallery App: Removed the duplicated Loading animations section from the Feedback page; the dedicated Loading page now covers all variants.
+
 ## [2.1.0] - 2026-06-23
 
 ### Added

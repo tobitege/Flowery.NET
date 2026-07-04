@@ -23,8 +23,8 @@
           <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeMediumCornerRadius}" />
           <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
           <Setter Property="MinHeight" Value="{DynamicResource DaisySizeMediumHeight}" />
-          <Setter Property="SelectionBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
-          <Setter Property="SelectionForegroundBrush" Value="{DynamicResource DaisyPrimaryContentBrush}" />
+          <Setter Property="SelectionBrush" Value="{DynamicResource DaisyBase300Brush}" />
+          <Setter Property="SelectionForegroundBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
           <Setter Property="CaretBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
           <Setter Property="VerticalContentAlignment" Value="{DynamicResource DaisyInputVerticalContentAlignment}" />
 

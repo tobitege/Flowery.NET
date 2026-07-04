@@ -58,6 +58,7 @@ namespace Flowery.Controls
         private string _name = string.Empty;
         private bool _isFavorite;
         private bool _showFavoriteIcon;
+        private bool _isSelected;
 
         public SidebarItem()
         {
@@ -113,6 +114,22 @@ namespace Flowery.Controls
                 {
                     _showFavoriteIcon = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ShowFavoriteIcon)));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether this item is the currently selected sidebar item.
+        /// </summary>
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                if (_isSelected != value)
+                {
+                    _isSelected = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsSelected)));
                 }
             }
         }
@@ -209,7 +226,7 @@ namespace Flowery.Controls
         private ObservableCollection<SidebarLanguage> _availableLanguages = new();
         private SidebarLanguage? _selectedLanguage;
         private bool _updatingLanguage;
-        private Button? _selectedItemButton;
+        private bool _updatingCategoriesFromFilter;
 
         public static readonly DirectProperty<FloweryComponentSidebar, ObservableCollection<SidebarLanguage>> AvailableLanguagesProperty =
             AvaloniaProperty.RegisterDirect<FloweryComponentSidebar, ObservableCollection<SidebarLanguage>>(
@@ -365,6 +382,7 @@ namespace Flowery.Controls
         {
             SearchTextProperty.Changed.AddClassHandler<FloweryComponentSidebar>((s, e) => s.OnSearchTextChanged());
             CategoriesProperty.Changed.AddClassHandler<FloweryComponentSidebar>((s, e) => s.OnCategoriesChanged());
+            SelectedItemProperty.Changed.AddClassHandler<FloweryComponentSidebar>((s, e) => s.OnSelectedItemChanged(e));
         }
 
         public FloweryComponentSidebar()
@@ -385,6 +403,12 @@ namespace Flowery.Controls
 
         private void OnCategoriesChanged()
         {
+            // Ignore changes caused by FilterCategories itself, otherwise the
+            // filtered collection would overwrite _allCategories and clearing
+            // the search text could no longer restore the full list.
+            if (_updatingCategoriesFromFilter)
+                return;
+
             var newCategories = Categories;
             if (newCategories == null || newCategories.Count == 0)
                 return;
@@ -453,7 +477,15 @@ namespace Flowery.Controls
             if (string.IsNullOrWhiteSpace(searchText))
             {
                 // Restore all categories with original items
-                Categories = _allCategories;
+                _updatingCategoriesFromFilter = true;
+                try
+                {
+                    Categories = _allCategories;
+                }
+                finally
+                {
+                    _updatingCategoriesFromFilter = false;
+                }
                 return;
             }
 
@@ -486,7 +518,15 @@ namespace Flowery.Controls
                 }
             }
 
-            Categories = filtered;
+            _updatingCategoriesFromFilter = true;
+            try
+            {
+                Categories = filtered;
+            }
+            finally
+            {
+                _updatingCategoriesFromFilter = false;
+            }
         }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -556,9 +596,16 @@ namespace Flowery.Controls
                 if (category != null)
                 {
                     SelectItem(item, category);
-                    UpdateSelectedButtonVisuals(button);
                 }
             }
+        }
+
+        private void OnSelectedItemChanged(AvaloniaPropertyChangedEventArgs e)
+        {
+            if (e.OldValue is SidebarItem oldItem)
+                oldItem.IsSelected = false;
+            if (e.NewValue is SidebarItem newItem)
+                newItem.IsSelected = true;
         }
 
         private SidebarCategory? FindCategoryForItem(SidebarItem item)
@@ -570,16 +617,6 @@ namespace Flowery.Controls
                     return category;
             }
             return null;
-        }
-
-        private void UpdateSelectedButtonVisuals(Button selectedButton)
-        {
-            if (_selectedItemButton != null && _selectedItemButton.Classes.Contains("sidebar-item"))
-                _selectedItemButton.Classes.Remove("selected");
-
-            _selectedItemButton = selectedButton;
-            if (!_selectedItemButton.Classes.Contains("selected"))
-                _selectedItemButton.Classes.Add("selected");
         }
 
         internal void SelectItem(SidebarItem item, SidebarCategory category)

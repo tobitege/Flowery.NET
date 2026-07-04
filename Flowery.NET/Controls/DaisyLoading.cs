@@ -102,6 +102,34 @@ namespace Flowery.Controls
         TrafficLightDown,
         /// <summary>TrafficLightLeft animation - traffic light cycling toward the left</summary>
         TrafficLightLeft,
+        /// <summary>PrinterOutput animation - printer feeding pages out</summary>
+        PrinterOutput,
+        /// <summary>PaperShredder animation - document being shredded into strips</summary>
+        PaperShredder,
+        /// <summary>SignaturePen animation - pen signing a document</summary>
+        SignaturePen,
+        /// <summary>DocumentScan animation - scan beam moving over a document</summary>
+        DocumentScan,
+        /// <summary>FolderSync animation - folders syncing with a moving document</summary>
+        FolderSync,
+        /// <summary>MailReceive animation - incoming envelope opening with a document</summary>
+        MailReceive,
+        /// <summary>PhoneRing animation - phone handset ringing with wave arcs</summary>
+        PhoneRing,
+        /// <summary>CoinStack animation - coins falling onto a growing stack</summary>
+        CoinStack,
+        /// <summary>InvoicePaid animation - invoice being stamped as paid</summary>
+        InvoicePaid,
+        /// <summary>PiggyBank animation - coin dropping into a piggy bank</summary>
+        PiggyBank,
+        /// <summary>PieChartFill animation - pie chart segments appearing in sequence</summary>
+        PieChartFill,
+        /// <summary>TrendLine animation - analytical trend line drawing upward</summary>
+        TrendLine,
+        /// <summary>ClockSpin animation - clock hands spinning while waiting</summary>
+        ClockSpin,
+        /// <summary>CoffeeCup animation - coffee cup with rising steam</summary>
+        CoffeeCup,
 
         // ==================== WIN95 RETRO VARIANTS ====================
         /// <summary>Win95FileCopy animation - classic Windows 95 file copy with flying papers</summary>
@@ -111,7 +139,29 @@ namespace Flowery.Controls
         /// <summary>Win95Search animation - classic Windows 95 magnifying glass search</summary>
         Win95Search,
         /// <summary>Win95EmptyRecycle animation - classic Windows 95 recycle bin emptying</summary>
-        Win95EmptyRecycle
+        Win95EmptyRecycle,
+        /// <summary>Win95Defrag animation - classic block defragmentation grid</summary>
+        Win95Defrag,
+        /// <summary>Win95Download animation - paper downloading from globe to folder</summary>
+        Win95Download,
+        /// <summary>Win95Install animation - floppy disk sliding into a drive</summary>
+        Win95Install,
+        /// <summary>Win95ScanDisk animation - scan boxes checking across a disk row</summary>
+        Win95ScanDisk,
+        /// <summary>Win95Hourglass animation - chunky retro hourglass cursor</summary>
+        Win95Hourglass,
+        /// <summary>Win95DialUp animation - two computers exchanging dial-up signals</summary>
+        Win95DialUp,
+        /// <summary>Win95Solitaire animation - cards cascading after a win</summary>
+        Win95Solitaire,
+        /// <summary>Win95PrintQueue animation - retro printer output queue</summary>
+        Win95PrintQueue,
+        /// <summary>Win95FindComputer animation - magnifying glass searching a PC</summary>
+        Win95FindComputer,
+        /// <summary>Win95Startup animation - four startup squares lighting in sequence</summary>
+        Win95Startup,
+        /// <summary>Win95StartupColor animation - four Windows-colored squares lighting in sequence</summary>
+        Win95StartupColor
     }
 
     /// <summary>

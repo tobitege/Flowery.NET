@@ -64,6 +64,10 @@ namespace Flowery.Controls
             {
                 UpdateHasTextPseudoClass();
             }
+            else if (change.Property == SizeProperty)
+            {
+                ApplyScaleFactor(FloweryScaleManager.GetScaleFactor(this));
+            }
         }
 
         private void UpdateHasTextPseudoClass()
@@ -106,9 +110,34 @@ namespace Flowery.Controls
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
         {
-            ScaledLabelFontSize = FloweryScaleManager.ApplyScale(BaseLabelFontSize, 10.0, scaleFactor);
-            ScaledTextFontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+            var textFontSize = GetTextFontSize(Size);
+            var labelFontSize = GetLabelFontSize(Size);
+
+            ScaledLabelFontSize = FloweryScaleManager.ApplyScale(labelFontSize, 10.0, scaleFactor);
+            ScaledTextFontSize = FloweryScaleManager.ApplyScale(textFontSize, 10.0, scaleFactor);
             FontSize = ScaledTextFontSize;
+        }
+
+        private static double GetTextFontSize(DaisySize size)
+        {
+            switch (size)
+            {
+                case DaisySize.ExtraSmall:
+                    return 10.0;
+                case DaisySize.Small:
+                    return 12.0;
+                case DaisySize.Large:
+                    return 18.0;
+                case DaisySize.ExtraLarge:
+                    return 20.0;
+                default:
+                    return BaseTextFontSize;
+            }
+        }
+
+        private static double GetLabelFontSize(DaisySize size)
+        {
+            return Math.Max(10.0, GetTextFontSize(size) - 2.0);
         }
 
         /// <summary>

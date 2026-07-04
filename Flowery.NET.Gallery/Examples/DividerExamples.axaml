@@ -134,6 +134,21 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Glow Style -->
+                <TextBlock Text="Glow animation" FontWeight="SemiBold" Margin="0,16,0,4"/>
+                <TextBlock Text="Animated Glow dividers pulse their line opacity with timer-based updates." Opacity="0.7" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                <Border Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" Padding="16">
+                    <StackPanel Spacing="12">
+                        <controls:DaisyDivider DividerStyle="Glow" Color="Primary" LineThickness="3">Primary Glow</controls:DaisyDivider>
+                        <controls:DaisyDivider DividerStyle="Glow" Color="Success" LineThickness="3">Success Glow</controls:DaisyDivider>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16" Height="90">
+                            <TextBlock Text="Left" VerticalAlignment="Center"/>
+                            <controls:DaisyDivider Horizontal="True" DividerStyle="Glow" Color="Info" LineThickness="3">Glow</controls:DaisyDivider>
+                            <TextBlock Text="Right" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
                 <!-- Ornament Styles -->
                 <TextBlock Text="Ornament Dividers" FontWeight="SemiBold" Margin="0,16,0,4"/>
                 <TextBlock Text="Dividers with decorative shapes in the center: Diamond, Circle, Star, Square." Opacity="0.7" Margin="0,0,0,8" controls:FlowerySizeManager.ResponsiveFont="Primary" />

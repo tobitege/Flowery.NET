@@ -2,11 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
-using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Styling;
 using Avalonia.Threading;
 
 namespace Flowery.Controls
@@ -250,43 +248,11 @@ namespace Flowery.Controls
 
             if (fromContainer == null || toContainer == null) return;
 
-            var duration = TimeSpan.FromMilliseconds(durationMs);
             var easing = Easing;
-
-            // Create fade-out animation for the old item
-            var fadeOut = new Animation
-            {
-                Duration = duration,
-                Easing = easing,
-                FillMode = FillMode.Both,
-                Children =
-                {
-                    new KeyFrame { Cue = new Cue(0), Setters = { new Setter(OpacityProperty, 1.0) } },
-                    new KeyFrame { Cue = new Cue(1), Setters = { new Setter(OpacityProperty, 0.0) } }
-                }
-            };
-
-            // Create fade-in animation for the new item
-            var fadeIn = new Animation
-            {
-                Duration = duration,
-                Easing = easing,
-                FillMode = FillMode.Both,
-                Children =
-                {
-                    new KeyFrame { Cue = new Cue(0), Setters = { new Setter(OpacityProperty, 0.0) } },
-                    new KeyFrame { Cue = new Cue(1), Setters = { new Setter(OpacityProperty, 1.0) } }
-                }
-            };
-
-            // Run both animations concurrently
-            // FillMode.Both ensures values persist before and after animation
-            var fadeOutTask = fadeOut.RunAsync(fromContainer, ct);
-            var fadeInTask = fadeIn.RunAsync(toContainer, ct);
 
             try
             {
-                await Task.WhenAll(fadeOutTask, fadeInTask);
+                await AnimateOpacityTransitionAsync(fromContainer, toContainer, durationMs, easing, ct);
             }
             catch (TaskCanceledException)
             {
@@ -294,6 +260,73 @@ namespace Flowery.Controls
                 fromContainer.Opacity = 0.0;
                 toContainer.Opacity = 1.0;
             }
+        }
+
+        private static Task AnimateOpacityTransitionAsync(
+            Control fromContainer,
+            Control toContainer,
+            double durationMs,
+            Easing easing,
+            CancellationToken ct)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            var durationMilliseconds = Math.Max(1.0, durationMs);
+            var startedAt = DateTime.UtcNow;
+            DispatcherTimer? timer = null;
+
+            void StopTimer()
+            {
+                if (timer != null)
+                {
+                    timer.Stop();
+                    timer = null;
+                }
+            }
+
+            void ApplyProgress(double progress)
+            {
+                var easedProgress = easing.Ease(Math.Max(0.0, Math.Min(1.0, progress)));
+                fromContainer.Opacity = 1.0 - easedProgress;
+                toContainer.Opacity = easedProgress;
+            }
+
+            if (ct.IsCancellationRequested)
+            {
+                tcs.SetCanceled();
+                return tcs.Task;
+            }
+
+            timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(16)
+            };
+            timer.Tick += (_, _) =>
+            {
+                if (ct.IsCancellationRequested)
+                {
+                    StopTimer();
+                    tcs.TrySetCanceled();
+                    return;
+                }
+
+                var elapsedMilliseconds = (DateTime.UtcNow - startedAt).TotalMilliseconds;
+                var progress = elapsedMilliseconds / durationMilliseconds;
+
+                if (progress >= 1.0)
+                {
+                    ApplyProgress(1.0);
+                    StopTimer();
+                    tcs.TrySetResult(true);
+                    return;
+                }
+
+                ApplyProgress(progress);
+            };
+
+            ApplyProgress(0.0);
+            timer.Start();
+
+            return tcs.Task;
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)

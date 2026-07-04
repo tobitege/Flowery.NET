@@ -1,12 +1,10 @@
 using System;
 using System.Runtime.CompilerServices;
 using Avalonia;
-using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Styling;
 using Avalonia.Threading;
 using Flowery.Enums;
 
@@ -406,7 +404,11 @@ namespace Flowery.Helpers
 
         /// <summary>
         /// Ensures the element has a TransformOperations builder set up for animation.
-        /// Sets RenderTransformOrigin to center (0.5, 0.5) for symmetric transformations.
+        /// Sets RenderTransformOrigin to center for symmetric transformations.
+        /// In C# this uses RelativePoint(0.5, 0.5, RelativeUnit.Relative); in AXAML use
+        /// "50%,50%" or omit RenderTransformOrigin to keep Avalonia's default center origin.
+        /// Do not copy the C# numeric form into AXAML, because "0.5,0.5" is not a centered
+        /// relative point there and can make rotations pivot near the top-left corner.
         /// </summary>
         public static void EnsureTransformBuilder(Control element)
         {
@@ -458,33 +460,15 @@ namespace Flowery.Helpers
             Action? onComplete,
             Easing? easing = null)
         {
-            var animation = new Animation
-            {
-                Duration = duration,
-                Easing = easing ?? new QuadraticEaseInOut(),
-                FillMode = FillMode.Forward,
-                Children =
+            RunTimedAnimation(
+                duration,
+                easing ?? new QuadraticEaseInOut(),
+                progress =>
                 {
-                    new KeyFrame
-                    {
-                        Cue = new Cue(0),
-                        Setters =
-                        {
-                            new Setter(Control.RenderTransformProperty, new ScaleTransform(fromScale, fromScale))
-                        }
-                    },
-                    new KeyFrame
-                    {
-                        Cue = new Cue(1),
-                        Setters =
-                        {
-                            new Setter(Control.RenderTransformProperty, new ScaleTransform(toScale, toScale))
-                        }
-                    }
-                }
-            };
-
-            RunAnimation(target, animation, onComplete);
+                    var scale = Interpolate(fromScale, toScale, progress);
+                    target.RenderTransform = new ScaleTransform(scale, scale);
+                },
+                onComplete);
         }
 
         /// <summary>
@@ -498,33 +482,16 @@ namespace Flowery.Helpers
             Action? onComplete,
             Easing? easing = null)
         {
-            var animation = new Animation
-            {
-                Duration = duration,
-                Easing = easing ?? new QuadraticEaseInOut(),
-                FillMode = FillMode.Forward,
-                Children =
+            RunTimedAnimation(
+                duration,
+                easing ?? new QuadraticEaseInOut(),
+                progress =>
                 {
-                    new KeyFrame
-                    {
-                        Cue = new Cue(0),
-                        Setters =
-                        {
-                            new Setter(Control.RenderTransformProperty, new TranslateTransform(0, 0))
-                        }
-                    },
-                    new KeyFrame
-                    {
-                        Cue = new Cue(1),
-                        Setters =
-                        {
-                            new Setter(Control.RenderTransformProperty, new TranslateTransform(translateX, translateY))
-                        }
-                    }
-                }
-            };
-
-            RunAnimation(target, animation, onComplete);
+                    target.RenderTransform = new TranslateTransform(
+                        Interpolate(0, translateX, progress),
+                        Interpolate(0, translateY, progress));
+                },
+                onComplete);
         }
 
         /// <summary>
@@ -542,41 +509,20 @@ namespace Flowery.Helpers
             Action? onComplete,
             Easing? easing = null)
         {
-            var startTransform = new TransformGroup();
-            startTransform.Children.Add(new ScaleTransform(fromScale, fromScale));
-            startTransform.Children.Add(new TranslateTransform(fromTranslateX, fromTranslateY));
-
-            var endTransform = new TransformGroup();
-            endTransform.Children.Add(new ScaleTransform(toScale, toScale));
-            endTransform.Children.Add(new TranslateTransform(toTranslateX, toTranslateY));
-
-            var animation = new Animation
-            {
-                Duration = duration,
-                Easing = easing ?? new QuadraticEaseInOut(),
-                FillMode = FillMode.Forward,
-                Children =
+            RunTimedAnimation(
+                duration,
+                easing ?? new QuadraticEaseInOut(),
+                progress =>
                 {
-                    new KeyFrame
-                    {
-                        Cue = new Cue(0),
-                        Setters =
-                        {
-                            new Setter(Control.RenderTransformProperty, startTransform)
-                        }
-                    },
-                    new KeyFrame
-                    {
-                        Cue = new Cue(1),
-                        Setters =
-                        {
-                            new Setter(Control.RenderTransformProperty, endTransform)
-                        }
-                    }
-                }
-            };
-
-            RunAnimation(target, animation, onComplete);
+                    var transform = new TransformGroup();
+                    var scale = Interpolate(fromScale, toScale, progress);
+                    transform.Children.Add(new ScaleTransform(scale, scale));
+                    transform.Children.Add(new TranslateTransform(
+                        Interpolate(fromTranslateX, toTranslateX, progress),
+                        Interpolate(fromTranslateY, toTranslateY, progress)));
+                    target.RenderTransform = transform;
+                },
+                onComplete);
         }
 
         /// <summary>
@@ -589,41 +535,18 @@ namespace Flowery.Helpers
             Action? onComplete,
             Easing? easing = null)
         {
-            var animation = new Animation
-            {
-                Duration = duration,
-                Easing = easing ?? new QuadraticEaseInOut(),
-                FillMode = FillMode.Forward,
-                Children =
+            RunTimedAnimation(
+                duration,
+                easing ?? new QuadraticEaseInOut(),
+                progress =>
                 {
-                    new KeyFrame
-                    {
-                        Cue = new Cue(0),
-                        Setters =
-                        {
-                            new Setter(Control.RenderTransformProperty, new ScaleTransform(1.0, 1.0))
-                        }
-                    },
-                    new KeyFrame
-                    {
-                        Cue = new Cue(0.5),
-                        Setters =
-                        {
-                            new Setter(Control.RenderTransformProperty, new ScaleTransform(1.0 + intensity, 1.0 + intensity))
-                        }
-                    },
-                    new KeyFrame
-                    {
-                        Cue = new Cue(1),
-                        Setters =
-                        {
-                            new Setter(Control.RenderTransformProperty, new ScaleTransform(1.0, 1.0))
-                        }
-                    }
-                }
-            };
-
-            RunAnimation(target, animation, onComplete);
+                    var localProgress = progress <= 0.5
+                        ? progress * 2
+                        : (1 - progress) * 2;
+                    var scale = Interpolate(1.0, 1.0 + intensity, localProgress);
+                    target.RenderTransform = new ScaleTransform(scale, scale);
+                },
+                onComplete);
         }
 
         /// <summary>
@@ -637,33 +560,14 @@ namespace Flowery.Helpers
             Action? onComplete,
             Easing? easing = null)
         {
-            var animation = new Animation
-            {
-                Duration = duration,
-                Easing = easing ?? new QuadraticEaseInOut(),
-                FillMode = FillMode.Forward,
-                Children =
+            RunTimedAnimation(
+                duration,
+                easing ?? new QuadraticEaseInOut(),
+                progress =>
                 {
-                    new KeyFrame
-                    {
-                        Cue = new Cue(0),
-                        Setters =
-                        {
-                            new Setter(Visual.OpacityProperty, fromOpacity)
-                        }
-                    },
-                    new KeyFrame
-                    {
-                        Cue = new Cue(1),
-                        Setters =
-                        {
-                            new Setter(Visual.OpacityProperty, toOpacity)
-                        }
-                    }
-                }
-            };
-
-            RunAnimation(target, animation, onComplete);
+                    target.Opacity = Interpolate(fromOpacity, toOpacity, progress);
+                },
+                onComplete);
         }
 
         /// <summary>
@@ -692,55 +596,64 @@ namespace Flowery.Helpers
             TimeSpan duration,
             Action? onComplete)
         {
-            var animation = new Animation
-            {
-                Duration = duration,
-                Easing = new QuadraticEaseInOut(),
-                FillMode = FillMode.Forward,
-                Children =
+            RunTimedAnimation(
+                duration,
+                new QuadraticEaseInOut(),
+                progress =>
                 {
-                    new KeyFrame
-                    {
-                        Cue = new Cue(0),
-                        Setters =
-                        {
-                            new Setter(Control.RenderTransformProperty, new RotateTransform(fromDegrees))
-                        }
-                    },
-                    new KeyFrame
-                    {
-                        Cue = new Cue(1),
-                        Setters =
-                        {
-                            new Setter(Control.RenderTransformProperty, new RotateTransform(toDegrees))
-                        }
-                    }
-                }
-            };
-
-            RunAnimation(target, animation, onComplete);
+                    target.RenderTransform = new RotateTransform(Interpolate(fromDegrees, toDegrees, progress));
+                },
+                onComplete);
         }
 
         #endregion
 
         #region Animation Runner
 
-        private static void RunAnimation(Control target, Animation animation, Action? onComplete)
+        private static void RunTimedAnimation(
+            TimeSpan duration,
+            Easing easing,
+            Action<double> applyFrame,
+            Action? onComplete)
         {
-            var cancellation = new System.Threading.CancellationTokenSource();
-
-            Dispatcher.UIThread.Post(async () =>
+            Dispatcher.UIThread.Post(() =>
             {
-                try
+                var durationMilliseconds = Math.Max(1.0, duration.TotalMilliseconds);
+                var startedAt = DateTime.UtcNow;
+
+                void ApplyProgress(double progress)
                 {
-                    await animation.RunAsync(target, cancellation.Token);
-                    onComplete?.Invoke();
+                    applyFrame(easing.Ease(Math.Max(0.0, Math.Min(1.0, progress))));
                 }
-                catch (OperationCanceledException)
+
+                ApplyProgress(0.0);
+
+                var timer = new DispatcherTimer
                 {
-                    // Animation was cancelled
-                }
+                    Interval = TimeSpan.FromMilliseconds(16)
+                };
+                timer.Tick += (_, _) =>
+                {
+                    var elapsedMilliseconds = (DateTime.UtcNow - startedAt).TotalMilliseconds;
+                    var progress = elapsedMilliseconds / durationMilliseconds;
+
+                    if (progress >= 1.0)
+                    {
+                        ApplyProgress(1.0);
+                        timer.Stop();
+                        onComplete?.Invoke();
+                        return;
+                    }
+
+                    ApplyProgress(progress);
+                };
+                timer.Start();
             });
+        }
+
+        private static double Interpolate(double from, double to, double progress)
+        {
+            return from + ((to - from) * progress);
         }
 
         #endregion

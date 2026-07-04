@@ -1,0 +1,349 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <!-- ==================== WIN95 DEFRAG ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95Defrag]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96">
+                        <Border Width="68" Height="54" Canvas.Left="14" Canvas.Top="21"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                Background="{DynamicResource DaisyBase100Brush}"/>
+                        <UniformGrid Rows="5" Columns="7" Width="56" Height="40" Canvas.Left="20" Canvas.Top="28">
+                            <Border Classes="defrag-a" Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-b" Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-c" Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-d" Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-e" Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-f" Margin="1" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-g" Margin="1" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-h" Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-i" Margin="1" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                            <Border Classes="defrag-j" Margin="1" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-k" Margin="1" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-l" Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-m" Margin="1" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-n" Margin="1" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-o" Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-p" Margin="1" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                            <Border Classes="defrag-q" Margin="1" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                            <Border Classes="defrag-r" Margin="1" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                            <Border Classes="defrag-s" Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-t" Margin="1" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                            <Border Margin="1" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Opacity="0.25"/>
+                            <Border Classes="defrag-u" Margin="1" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                        </UniformGrid>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-a, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-f, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-m">
+        <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-b, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-g, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-n">
+        <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-c, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-k, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-q">
+        <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-d, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-r, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-u">
+        <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:1.0"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+
+    <!-- ==================== WIN95 DOWNLOAD ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95Download]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96" ClipToBounds="True">
+                        <Ellipse Width="28" Height="28" Canvas.Left="12" Canvas.Top="21"
+                                 Stroke="{TemplateBinding Foreground}" StrokeThickness="2" Fill="Transparent"/>
+                        <Path Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5" Data="M 12 35 L 40 35 M 26 21 C 20 28, 20 42, 26 49 M 26 21 C 32 28, 32 42, 26 49"/>
+                        <Canvas Canvas.Left="56" Canvas.Top="55">
+                            <Border Width="16" Height="7" Canvas.Left="0" Canvas.Top="0" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2,2,2,0" CornerRadius="2,2,0,0"/>
+                            <Border Width="32" Height="24" Canvas.Left="0" Canvas.Top="7" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" CornerRadius="0,3,3,3"/>
+                        </Canvas>
+                        <Border Classes="download-page" Width="12" Height="16" Canvas.Left="29" Canvas.Top="27"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.5" Background="{DynamicResource DaisyBase100Brush}"/>
+                        <Path Classes="download-arrow" Stroke="{TemplateBinding Foreground}" StrokeThickness="3" StrokeLineCap="Square"
+                              Data="M 49 28 L 49 56 M 40 48 L 49 57 L 58 48"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Download] /template/ Border.download-page">
+        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:0.95"><Setter Property="TranslateTransform.X" Value="34"/><Setter Property="TranslateTransform.Y" Value="38"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.15"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.5"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Download] /template/ Path.download-arrow">
+        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame><KeyFrame KeyTime="0:0:0.45"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.2"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+
+    <!-- ==================== WIN95 INSTALL ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95Install]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96" ClipToBounds="True">
+                        <Border Width="64" Height="30" Canvas.Left="16" Canvas.Top="48"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Background="{DynamicResource DaisyBase100Brush}"/>
+                        <Border Width="46" Height="5" Canvas.Left="25" Canvas.Top="57" Background="{TemplateBinding Foreground}" Opacity="0.35"/>
+                        <Border Classes="install-led" Width="6" Height="6" Canvas.Left="67" Canvas.Top="67" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                        <!-- Clip region ends at the slot line so the floppy visually sinks into the slot -->
+                        <Canvas Width="96" Height="58" ClipToBounds="True">
+                            <Border Classes="floppy" Width="38" Height="34" Canvas.Left="29" Canvas.Top="9"
+                                    BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"
+                                    Background="{DynamicResource DaisyBase100Brush}">
+                                <Canvas>
+                                    <Border Width="20" Height="10" Canvas.Left="5" Canvas.Top="4" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                                    <Border Width="24" Height="10" Canvas.Left="7" Canvas.Top="20" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.5"/>
+                                </Canvas>
+                            </Border>
+                        </Canvas>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Install] /template/ Border.floppy">
+        <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.12"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.05"><Setter Property="TranslateTransform.Y" Value="50"/></KeyFrame><KeyFrame KeyTime="0:0:1.3"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.34"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.35"><Setter Property="TranslateTransform.Y" Value="50"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Install] /template/ Border.install-led">
+        <Style.Animations><Animation Duration="0:0:0.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.2"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+
+    <!-- ==================== WIN95 SCANDISK ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96">
+                        <Border Width="70" Height="50" Canvas.Left="13" Canvas.Top="23"
+                                BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Background="{DynamicResource DaisyBase100Brush}"/>
+                        <TextBlock Text="SCAN" Canvas.Left="28" Canvas.Top="31" FontSize="11" FontWeight="Bold" Foreground="{TemplateBinding Foreground}"/>
+                        <StackPanel Orientation="Horizontal" Spacing="3" Canvas.Left="20" Canvas.Top="53">
+                            <Border Classes="scanbox1" Width="7" Height="7" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.5" Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                            <Border Classes="scanbox2" Width="7" Height="7" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.5" Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                            <Border Classes="scanbox3" Width="7" Height="7" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.5" Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                            <Border Classes="scanbox4" Width="7" Height="7" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.5" Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                            <Border Classes="scanbox5" Width="7" Height="7" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.5" Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                            <Border Classes="scanbox6" Width="7" Height="7" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1.5" Background="{TemplateBinding Foreground}" Opacity="0.3"/>
+                        </StackPanel>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox1">
+        <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.3"/></KeyFrame><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox2">
+        <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame><KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox3">
+        <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.3"/></KeyFrame><KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox4">
+        <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="0.3"/></KeyFrame><KeyFrame KeyTime="0:0:0.8"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox5">
+        <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.8"><Setter Property="Opacity" Value="0.3"/></KeyFrame><KeyFrame KeyTime="0:0:1.0"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox6">
+        <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:1.0"><Setter Property="Opacity" Value="0.3"/></KeyFrame><KeyFrame KeyTime="0:0:1.15"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+
+    <!-- ==================== WIN95 HOURGLASS ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95Hourglass]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96">
+                        <Canvas Classes="hourglass" Width="70" Height="70" Canvas.Left="13" Canvas.Top="13">
+                            <Border Width="46" Height="6" Canvas.Left="12" Canvas.Top="0" Background="{TemplateBinding Foreground}"/>
+                            <Border Width="46" Height="6" Canvas.Left="12" Canvas.Top="64" Background="{TemplateBinding Foreground}"/>
+                            <Path Stroke="{TemplateBinding Foreground}" StrokeThickness="4" StrokeLineCap="Square"
+                                  Data="M 20 6 L 50 6 L 20 64 L 50 64 Z"/>
+                            <Path Fill="{TemplateBinding Foreground}" Opacity="0.35" Data="M 26 12 L 44 12 L 35 32 Z"/>
+                            <Path Classes="sand-bottom" Fill="{TemplateBinding Foreground}" Opacity="0.35" Data="M 35 38 L 25 60 L 45 60 Z"/>
+                        </Canvas>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Hourglass] /template/ Canvas.hourglass">
+        <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="RotateTransform.Angle" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.4"><Setter Property="RotateTransform.Angle" Value="90"/></KeyFrame><KeyFrame KeyTime="0:0:0.8"><Setter Property="RotateTransform.Angle" Value="180"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="RotateTransform.Angle" Value="270"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="RotateTransform.Angle" Value="360"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+
+    <!-- ==================== WIN95 DIAL UP ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95DialUp]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96">
+                        <Canvas Canvas.Left="10" Canvas.Top="38">
+                            <Border Width="25" Height="19" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Background="Transparent"/>
+                            <Border Width="35" Height="5" Canvas.Left="-5" Canvas.Top="23" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"/>
+                            <Border Classes="dial-screen-left" Width="15" Height="9" Canvas.Left="5" Canvas.Top="5" Background="{TemplateBinding Foreground}" Opacity="0.2"/>
+                        </Canvas>
+                        <Canvas Canvas.Left="61" Canvas.Top="38">
+                            <Border Width="25" Height="19" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Background="Transparent"/>
+                            <Border Width="35" Height="5" Canvas.Left="-5" Canvas.Top="23" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"/>
+                            <Border Classes="dial-screen-right" Width="15" Height="9" Canvas.Left="5" Canvas.Top="5" Background="{TemplateBinding Foreground}" Opacity="0.2"/>
+                        </Canvas>
+                        <Ellipse Classes="dial-dot" Width="6" Height="6" Canvas.Left="45" Canvas.Top="46" Fill="{TemplateBinding Foreground}"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95DialUp] /template/ Ellipse.dial-dot">
+        <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="-18"/></KeyFrame><KeyFrame KeyTime="0:0:0.35"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.7"><Setter Property="TranslateTransform.X" Value="18"/></KeyFrame><KeyFrame KeyTime="0:0:1.05"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="TranslateTransform.X" Value="-18"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95DialUp] /template/ Border.dial-screen-left">
+        <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame><KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="0.75"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0.2"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95DialUp] /template/ Border.dial-screen-right">
+        <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.65"><Setter Property="Opacity" Value="0.2"/></KeyFrame><KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.75"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0.2"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+
+    <!-- ==================== WIN95 SOLITAIRE ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95Solitaire]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96" ClipToBounds="True">
+                        <Border Classes="card1" Width="28" Height="38" Canvas.Left="11" Canvas.Top="15" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Background="{DynamicResource DaisyBase100Brush}"/>
+                        <Border Classes="card2" Width="28" Height="38" Canvas.Left="11" Canvas.Top="15" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Background="{DynamicResource DaisyBase100Brush}"/>
+                        <Border Classes="card3" Width="28" Height="38" Canvas.Left="11" Canvas.Top="15" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Background="{DynamicResource DaisyBase100Brush}"/>
+                        <Border Classes="card4" Width="28" Height="38" Canvas.Left="11" Canvas.Top="15" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Background="{DynamicResource DaisyBase100Brush}"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Solitaire] /template/ Border.card1">
+        <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.0"><Setter Property="TranslateTransform.X" Value="12"/><Setter Property="TranslateTransform.Y" Value="33"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Solitaire] /template/ Border.card2">
+        <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.15"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.0"><Setter Property="TranslateTransform.X" Value="25"/><Setter Property="TranslateTransform.Y" Value="38"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Solitaire] /template/ Border.card3">
+        <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.3"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.0"><Setter Property="TranslateTransform.X" Value="39"/><Setter Property="TranslateTransform.Y" Value="31"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Solitaire] /template/ Border.card4">
+        <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.45"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.0"><Setter Property="TranslateTransform.X" Value="52"/><Setter Property="TranslateTransform.Y" Value="21"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+
+    <!-- ==================== WIN95 PRINT QUEUE ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95PrintQueue]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96" ClipToBounds="True">
+                        <Border Width="62" Height="29" Canvas.Left="17" Canvas.Top="42" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Background="{DynamicResource DaisyBase100Brush}"/>
+                        <Border Width="48" Height="18" Canvas.Left="24" Canvas.Top="28" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Opacity="0.45"/>
+                        <Border Classes="queue-page" Width="42" Height="34" Canvas.Left="27" Canvas.Top="55" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Background="{DynamicResource DaisyBase100Brush}">
+                            <StackPanel Spacing="3" Margin="6,6,6,5">
+                                <Border Height="2" Background="{TemplateBinding Foreground}" Opacity="0.4"/>
+                                <Border Height="2" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                                <Border Height="2" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                            </StackPanel>
+                        </Border>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95PrintQueue] /template/ Border.queue-page">
+        <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="-16"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:0.45"><Setter Property="TranslateTransform.Y" Value="-6"/></KeyFrame><KeyFrame KeyTime="0:0:0.7"><Setter Property="TranslateTransform.Y" Value="4"/></KeyFrame><KeyFrame KeyTime="0:0:0.95"><Setter Property="TranslateTransform.Y" Value="14"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="TranslateTransform.Y" Value="24"/><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+
+    <!-- ==================== WIN95 FIND COMPUTER ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95FindComputer]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96">
+                        <Canvas Canvas.Left="28" Canvas.Top="34">
+                            <Border Width="32" Height="24" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Background="Transparent"/>
+                            <Border Width="44" Height="6" Canvas.Left="-6" Canvas.Top="30" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2"/>
+                            <Border Width="18" Height="10" Canvas.Left="7" Canvas.Top="7" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                        </Canvas>
+                        <Canvas Classes="computer-lens" Canvas.Left="16" Canvas.Top="18" RenderTransformOrigin="0.5,0.5">
+                            <Ellipse Width="24" Height="24" Stroke="{TemplateBinding Foreground}" StrokeThickness="3" Fill="Transparent"/>
+                            <Path Stroke="{TemplateBinding Foreground}" StrokeThickness="4" StrokeLineCap="Round" Data="M 20 20 L 33 33"/>
+                        </Canvas>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95FindComputer] /template/ Canvas.computer-lens">
+        <Style.Animations><Animation Duration="0:0:1.8" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.45"><Setter Property="TranslateTransform.X" Value="34"/><Setter Property="TranslateTransform.Y" Value="4"/></KeyFrame><KeyFrame KeyTime="0:0:0.9"><Setter Property="TranslateTransform.X" Value="24"/><Setter Property="TranslateTransform.Y" Value="30"/></KeyFrame><KeyFrame KeyTime="0:0:1.35"><Setter Property="TranslateTransform.X" Value="-3"/><Setter Property="TranslateTransform.Y" Value="24"/></KeyFrame><KeyFrame KeyTime="0:0:1.8"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+
+    <!-- ==================== WIN95 STARTUP ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95Startup]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96">
+                        <Border Width="60" Height="60" Canvas.Left="18" Canvas.Top="18" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Background="{DynamicResource DaisyBase100Brush}"/>
+                        <Border Classes="startup1" Width="20" Height="20" Canvas.Left="26" Canvas.Top="26" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                        <Border Classes="startup2" Width="20" Height="20" Canvas.Left="50" Canvas.Top="26" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                        <Border Classes="startup3" Width="20" Height="20" Canvas.Left="26" Canvas.Top="50" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                        <Border Classes="startup4" Width="20" Height="20" Canvas.Left="50" Canvas.Top="50" Background="{TemplateBinding Foreground}" Opacity="0.25"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Startup] /template/ Border.startup1, controls|DaisyLoading[Variant=Win95StartupColor] /template/ Border.startup1">
+        <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Startup] /template/ Border.startup2, controls|DaisyLoading[Variant=Win95StartupColor] /template/ Border.startup2">
+        <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Startup] /template/ Border.startup3, controls|DaisyLoading[Variant=Win95StartupColor] /template/ Border.startup3">
+        <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+    <Style Selector="controls|DaisyLoading[Variant=Win95Startup] /template/ Border.startup4, controls|DaisyLoading[Variant=Win95StartupColor] /template/ Border.startup4">
+        <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.8"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
+    </Style>
+
+    <!-- ==================== WIN95 STARTUP COLOR ==================== -->
+    <Style Selector="controls|DaisyLoading[Variant=Win95StartupColor]">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Canvas Width="96" Height="96">
+                        <Border Width="60" Height="60" Canvas.Left="18" Canvas.Top="18" BorderBrush="{TemplateBinding Foreground}" BorderThickness="2" Background="{DynamicResource DaisyBase100Brush}"/>
+                        <Border Classes="startup1" Width="20" Height="20" Canvas.Left="26" Canvas.Top="26" Background="#F25022" Opacity="0.25"/>
+                        <Border Classes="startup2" Width="20" Height="20" Canvas.Left="50" Canvas.Top="26" Background="#7FBA00" Opacity="0.25"/>
+                        <Border Classes="startup3" Width="20" Height="20" Canvas.Left="26" Canvas.Top="50" Background="#00A4EF" Opacity="0.25"/>
+                        <Border Classes="startup4" Width="20" Height="20" Canvas.Left="50" Canvas.Top="50" Background="#FFB900" Opacity="0.25"/>
+                    </Canvas>
+                </Viewbox>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+</Styles>

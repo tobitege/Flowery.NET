@@ -256,7 +256,21 @@ public sealed class LoadingExamples : UserControl, IScrollableExample
             new LoadingRow("ApprovalFlow (workflow)", DaisyLoadingVariant.ApprovalFlow, MediumLargeExtraLarge),
             new LoadingRow("BriefcaseSpin (business)", DaisyLoadingVariant.BriefcaseSpin, MediumLargeExtraLarge),
             new LoadingRow("Battery (charge/drain)", BatteryVariants),
-            new LoadingRow("TrafficLight (directional)", TrafficLightVariants)
+            new LoadingRow("TrafficLight (directional)", TrafficLightVariants),
+            new LoadingRow("PrinterOutput (printing)", DaisyLoadingVariant.PrinterOutput, MediumLargeExtraLarge),
+            new LoadingRow("PaperShredder (secure delete)", DaisyLoadingVariant.PaperShredder, MediumLargeExtraLarge),
+            new LoadingRow("SignaturePen (signing)", DaisyLoadingVariant.SignaturePen, MediumLargeExtraLarge),
+            new LoadingRow("DocumentScan (OCR/import)", DaisyLoadingVariant.DocumentScan, MediumLargeExtraLarge),
+            new LoadingRow("FolderSync (sync)", DaisyLoadingVariant.FolderSync, MediumLargeExtraLarge),
+            new LoadingRow("MailReceive (inbox)", DaisyLoadingVariant.MailReceive, MediumLargeExtraLarge),
+            new LoadingRow("PhoneRing (calling)", DaisyLoadingVariant.PhoneRing, MediumLargeExtraLarge),
+            new LoadingRow("CoinStack (payment)", DaisyLoadingVariant.CoinStack, MediumLargeExtraLarge),
+            new LoadingRow("InvoicePaid (billing)", DaisyLoadingVariant.InvoicePaid, MediumLargeExtraLarge),
+            new LoadingRow("PiggyBank (saving)", DaisyLoadingVariant.PiggyBank, MediumLargeExtraLarge),
+            new LoadingRow("PieChartFill (reporting)", DaisyLoadingVariant.PieChartFill, MediumLargeExtraLarge),
+            new LoadingRow("TrendLine (forecast)", DaisyLoadingVariant.TrendLine, MediumLargeExtraLarge),
+            new LoadingRow("ClockSpin (waiting)", DaisyLoadingVariant.ClockSpin, MediumLargeExtraLarge),
+            new LoadingRow("CoffeeCup (please wait)", DaisyLoadingVariant.CoffeeCup, MediumLargeExtraLarge)
         ];
     }
 
@@ -267,7 +281,18 @@ public sealed class LoadingExamples : UserControl, IScrollableExample
             new LoadingRow("Win95FileCopy (flying papers)", DaisyLoadingVariant.Win95FileCopy, MediumLargeExtraLarge),
             new LoadingRow("Win95Search (magnifying glass)", DaisyLoadingVariant.Win95Search, MediumLargeExtraLarge),
             new LoadingRow("Win95Delete (to recycle bin)", DaisyLoadingVariant.Win95Delete, MediumLargeExtraLarge),
-            new LoadingRow("Win95EmptyRecycle (emptying bin)", DaisyLoadingVariant.Win95EmptyRecycle, MediumLargeExtraLarge)
+            new LoadingRow("Win95EmptyRecycle (emptying bin)", DaisyLoadingVariant.Win95EmptyRecycle, MediumLargeExtraLarge),
+            new LoadingRow("Win95Defrag (block grid)", DaisyLoadingVariant.Win95Defrag, MediumLargeExtraLarge),
+            new LoadingRow("Win95Download (web to folder)", DaisyLoadingVariant.Win95Download, MediumLargeExtraLarge),
+            new LoadingRow("Win95Install (floppy disk)", DaisyLoadingVariant.Win95Install, MediumLargeExtraLarge),
+            new LoadingRow("Win95ScanDisk (checking)", DaisyLoadingVariant.Win95ScanDisk, MediumLargeExtraLarge),
+            new LoadingRow("Win95Hourglass (cursor)", DaisyLoadingVariant.Win95Hourglass, MediumLargeExtraLarge),
+            new LoadingRow("Win95DialUp (connection)", DaisyLoadingVariant.Win95DialUp, MediumLargeExtraLarge),
+            new LoadingRow("Win95Solitaire (card cascade)", DaisyLoadingVariant.Win95Solitaire, MediumLargeExtraLarge),
+            new LoadingRow("Win95PrintQueue (printing)", DaisyLoadingVariant.Win95PrintQueue, MediumLargeExtraLarge),
+            new LoadingRow("Win95FindComputer (network search)", DaisyLoadingVariant.Win95FindComputer, MediumLargeExtraLarge),
+            new LoadingRow("Win95Startup (startup panes)", DaisyLoadingVariant.Win95Startup, MediumLargeExtraLarge),
+            new LoadingRow("Win95StartupColor (Windows colors)", DaisyLoadingVariant.Win95StartupColor, MediumLargeExtraLarge)
         ];
     }
 
@@ -304,8 +329,7 @@ public sealed class LoadingExamples : UserControl, IScrollableExample
             Child = panel
         };
 
-        if (Application.Current?.TryFindResource("DaisyBase200Brush", out var resource) == true && resource is IBrush brush)
-            border.Background = brush;
+        border.Bind(Border.BackgroundProperty, border.GetResourceObservable("DaisyBase200Brush"));
 
         return border;
     }
@@ -485,8 +509,7 @@ public sealed class LoadingExamples : UserControl, IScrollableExample
                 }
             };
 
-            if (Application.Current?.TryFindResource("DaisyBase200Brush", out var resource) == true && resource is IBrush brush)
-                Background = brush;
+            this.Bind(BackgroundProperty, this.GetResourceObservable("DaisyBase200Brush"));
         }
 
         public bool HasLoadedContent { get; set; }

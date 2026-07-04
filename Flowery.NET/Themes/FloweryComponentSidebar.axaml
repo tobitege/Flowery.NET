@@ -124,6 +124,7 @@
 
                                                             <DataTemplate x:DataType="controls:SidebarItem">
                                                                 <Button Classes="sidebar-item"
+                                                                        Classes.selected="{Binding IsSelected}"
                                                                         Tag="{Binding}"
                                                                         HorizontalAlignment="Stretch"
                                                                         HorizontalContentAlignment="Stretch"
@@ -306,6 +307,7 @@
     </Style>
     <Style Selector="controls|FloweryComponentSidebar Button.sidebar-item:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource DaisyNeutralContentBrush}" />
     </Style>
     <Style Selector="controls|FloweryComponentSidebar Button.sidebar-item.selected">
         <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
@@ -313,6 +315,7 @@
     </Style>
     <Style Selector="controls|FloweryComponentSidebar Button.sidebar-item.selected /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource DaisyPrimaryContentBrush}" />
     </Style>
 
     <!-- Sidebar favorite button styles -->

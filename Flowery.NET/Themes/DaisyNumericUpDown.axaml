@@ -67,8 +67,8 @@
                                      IsReadOnly="{TemplateBinding IsReadOnly}"
                                      FocusAdorner="{x:Null}"
                                      CaretBrush="{DynamicResource DaisyBaseContentBrush}"
-                                     SelectionBrush="{DynamicResource DaisyPrimaryBrush}"
-                                     SelectionForegroundBrush="{DynamicResource DaisyPrimaryContentBrush}">
+                                     SelectionBrush="{DynamicResource DaisyBase300Brush}"
+                                     SelectionForegroundBrush="{DynamicResource DaisyBaseContentBrush}">
                             <TextBox.Theme>
                                 <ControlTheme TargetType="TextBox">
                                     <Setter Property="Background" Value="Transparent" />

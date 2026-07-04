@@ -209,8 +209,7 @@ public sealed class ProgressSection : UserControl
             Child = child
         };
 
-        if (Application.Current?.TryFindResource("DaisyBase200Brush", out var resource) == true && resource is IBrush brush)
-            border.Background = brush;
+        border.Bind(Border.BackgroundProperty, border.GetResourceObservable("DaisyBase200Brush"));
 
         return border;
     }

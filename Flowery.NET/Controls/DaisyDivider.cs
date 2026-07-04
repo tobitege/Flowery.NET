@@ -1,12 +1,9 @@
 using System;
-using System.Threading;
 using Avalonia;
-using Avalonia.Animation;
-using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
-using Avalonia.Styling;
+using Avalonia.Threading;
 using Flowery.Enums;
 using Flowery.Services;
 
@@ -29,8 +26,10 @@ namespace Flowery.Controls
         private Border? _endLineH;
         private Border? _startGradientLine;
         private Border? _endGradientLine;
-        private Animation? _glowAnimation;
-        private CancellationTokenSource? _glowAnimationCts;
+        private DispatcherTimer? _glowAnimationTimer;
+        private DateTime _glowAnimationStartedAt;
+        private Border? _glowStartTarget;
+        private Border? _glowEndTarget;
 
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
@@ -290,42 +289,57 @@ namespace Flowery.Controls
 
             StopGlowAnimation();
 
-            _glowAnimationCts = new CancellationTokenSource();
-            var token = _glowAnimationCts.Token;
-
-            _glowAnimation = new Animation
+            _glowStartTarget = targetLine;
+            _glowEndTarget = targetLineEnd;
+            _glowAnimationStartedAt = DateTime.UtcNow;
+            _glowAnimationTimer = new DispatcherTimer
             {
-                Duration = TimeSpan.FromSeconds(1.5),
-                IterationCount = IterationCount.Infinite,
-                PlaybackDirection = PlaybackDirection.Alternate,
-                Easing = new SineEaseInOut(),
-                Children =
-                {
-                    new KeyFrame
-                    {
-                        Cue = new Cue(0),
-                        Setters = { new Setter(OpacityProperty, 0.4) }
-                    },
-                    new KeyFrame
-                    {
-                        Cue = new Cue(1),
-                        Setters = { new Setter(OpacityProperty, 1.0) }
-                    }
-                }
+                Interval = TimeSpan.FromMilliseconds(33)
             };
+            _glowAnimationTimer.Tick += OnGlowAnimationTick;
+            UpdateGlowOpacity();
+            _glowAnimationTimer.Start();
+        }
 
-            _ = _glowAnimation.RunAsync(targetLine, token);
-            if (targetLineEnd != null)
+        private void OnGlowAnimationTick(object? sender, EventArgs e)
+        {
+            UpdateGlowOpacity();
+        }
+
+        private void UpdateGlowOpacity()
+        {
+            const double MinOpacity = 0.4;
+            const double MaxOpacity = 1.0;
+            const double HalfPeriodSeconds = 1.5;
+
+            var elapsedSeconds = (DateTime.UtcNow - _glowAnimationStartedAt).TotalSeconds;
+            var easedProgress = (1 - Math.Cos(elapsedSeconds / HalfPeriodSeconds * Math.PI)) / 2;
+            var opacity = MinOpacity + (MaxOpacity - MinOpacity) * easedProgress;
+
+            if (_glowStartTarget != null)
             {
-                _ = _glowAnimation.RunAsync(targetLineEnd, token);
+                _glowStartTarget.Opacity = opacity;
+            }
+
+            if (_glowEndTarget != null)
+            {
+                _glowEndTarget.Opacity = opacity;
             }
         }
 
         private void StopGlowAnimation()
         {
-            _glowAnimationCts?.Cancel();
-            _glowAnimationCts?.Dispose();
-            _glowAnimationCts = null;
+            if (_glowAnimationTimer != null)
+            {
+                _glowAnimationTimer.Stop();
+                _glowAnimationTimer.Tick -= OnGlowAnimationTick;
+                _glowAnimationTimer = null;
+            }
+
+            _glowStartTarget?.ClearValue(OpacityProperty);
+            _glowEndTarget?.ClearValue(OpacityProperty);
+            _glowStartTarget = null;
+            _glowEndTarget = null;
         }
     }
 }

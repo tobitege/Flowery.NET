@@ -64,12 +64,47 @@
                     <controls:DaisyLoading Variant="ApprovalFlow" />
                     <controls:DaisyLoading Variant="BriefcaseSpin" />
                 </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyLoading Variant="PrinterOutput" />
+                    <controls:DaisyLoading Variant="PaperShredder" />
+                    <controls:DaisyLoading Variant="SignaturePen" />
+                    <controls:DaisyLoading Variant="DocumentScan" />
+                    <controls:DaisyLoading Variant="FolderSync" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyLoading Variant="MailReceive" />
+                    <controls:DaisyLoading Variant="PhoneRing" />
+                    <controls:DaisyLoading Variant="CoinStack" />
+                    <controls:DaisyLoading Variant="InvoicePaid" />
+                    <controls:DaisyLoading Variant="PiggyBank" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyLoading Variant="PieChartFill" />
+                    <controls:DaisyLoading Variant="TrendLine" />
+                    <controls:DaisyLoading Variant="ClockSpin" />
+                    <controls:DaisyLoading Variant="CoffeeCup" />
+                </StackPanel>
                 <TextBlock Text="Win95 Retro Variants" FontWeight="SemiBold" Foreground="White"/>
                 <StackPanel Orientation="Horizontal" Spacing="20">
                     <controls:DaisyLoading Variant="Win95FileCopy" />
                     <controls:DaisyLoading Variant="Win95Delete" />
                     <controls:DaisyLoading Variant="Win95Search" />
                     <controls:DaisyLoading Variant="Win95EmptyRecycle" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyLoading Variant="Win95Defrag" />
+                    <controls:DaisyLoading Variant="Win95Download" />
+                    <controls:DaisyLoading Variant="Win95Install" />
+                    <controls:DaisyLoading Variant="Win95ScanDisk" />
+                    <controls:DaisyLoading Variant="Win95Hourglass" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="20">
+                    <controls:DaisyLoading Variant="Win95DialUp" />
+                    <controls:DaisyLoading Variant="Win95Solitaire" />
+                    <controls:DaisyLoading Variant="Win95PrintQueue" />
+                    <controls:DaisyLoading Variant="Win95FindComputer" />
+                    <controls:DaisyLoading Variant="Win95Startup" />
+                    <controls:DaisyLoading Variant="Win95StartupColor" />
                 </StackPanel>
                 <TextBlock Text="Sizes" FontWeight="SemiBold" Foreground="White"/>
                 <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
@@ -109,6 +144,8 @@
     <StyleInclude Source="/Themes/DaisyLoading/DaisyLoading.Dots.axaml" />
     <StyleInclude Source="/Themes/DaisyLoading/DaisyLoading.Special.axaml" />
     <StyleInclude Source="/Themes/DaisyLoading/DaisyLoading.Business.axaml" />
+    <StyleInclude Source="/Themes/DaisyLoading/DaisyLoading.Business2.axaml" />
     <StyleInclude Source="/Themes/DaisyLoading/DaisyLoading.Win95.axaml" />
+    <StyleInclude Source="/Themes/DaisyLoading/DaisyLoading.Win95B.axaml" />
 
 </Styles>

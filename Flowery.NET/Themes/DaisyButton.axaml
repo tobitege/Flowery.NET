@@ -362,14 +362,14 @@
             <Setter Property="Foreground" Value="{DynamicResource DaisyBase100Brush}" />
         </Style>
         <Style Selector="^[ButtonStyle=Outline][Variant=Neutral]">
-            <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralContentBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource DaisyNeutralContentBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyNeutralBrush}" />
         </Style>
         <Style Selector="^[ButtonStyle=Outline][Variant=Neutral]:pointerover /template/ Border#PART_Background">
-            <Setter Property="Background" Value="{DynamicResource DaisyNeutralContentBrush}" />
+            <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />
         </Style>
         <Style Selector="^[ButtonStyle=Outline][Variant=Neutral]:pointerover">
-            <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralContentBrush}" />
         </Style>
         <Style Selector="^[ButtonStyle=Outline][Variant=Primary]">
             <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryBrush}" />

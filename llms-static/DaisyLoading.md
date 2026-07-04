@@ -3,7 +3,7 @@
 
 # Overview
 
-DaisyLoading provides animated loading indicators with **48 different animation styles**, **5 size options**, and **9 color variants**. The control includes standard DaisyUI animations, creative terminal-inspired variants, Matrix/retro variants, unique special effect variants, professional business-themed animations, and nostalgic Windows 95-style animations. All animations scale properly across all sizes using Viewbox-based rendering.
+DaisyLoading provides animated loading indicators with **73 different animation styles**, **5 size options**, and **9 color variants**. The control includes standard DaisyUI animations, creative terminal-inspired variants, Matrix/retro variants, unique special effect variants, professional business-themed animations, and nostalgic Windows 95-style animations. All animations scale properly across all sizes using Viewbox-based rendering.
 
 ![Loading Animations](images/loading_animations.gif)
 
@@ -81,6 +81,20 @@ Professional animations suitable for enterprise and productivity applications.
 | **TrafficLightRight** | Rotated traffic light that cycles toward the right. |
 | **TrafficLightDown** | Vertical traffic light that cycles from red to yellow to green. |
 | **TrafficLightLeft** | Rotated traffic light that cycles toward the left. |
+| **PrinterOutput** | Printer body with a page feeding out line by line. Good for report generation, print queues, and document export. |
+| **PaperShredder** | Document entering a shredder while strips fall below. Useful for secure deletion, redaction, or disposal workflows. |
+| **SignaturePen** | Pen travels across a document while signature strokes appear in sequence. Represents contract signing and approval completion. |
+| **DocumentScan** | Scan beam moves down a document while text lines brighten. Ideal for OCR, imports, and document ingestion. |
+| **FolderSync** | Two folders connected by sync arrows with a document moving between them. Suitable for folder sync and replication tasks. |
+| **MailReceive** | Envelope opens while a document rises out. Counterpart to MailSend for receiving or inbox operations. |
+| **PhoneRing** | Handset shakes with wave arcs pulsing outward. Good for calls, contact attempts, or connection setup. |
+| **CoinStack** | Coin drops onto a stack while stack levels brighten. Suitable for payment, billing, and accounting workflows. |
+| **InvoicePaid** | Invoice document with a PAID stamp that lands with a scale bounce. Purpose-built for billing and payment confirmation. |
+| **PiggyBank** | Coin falls into a piggy bank and the body wobbles. Useful for saving, budgeting, or lightweight finance states. |
+| **PieChartFill** | Pie chart segments brighten in sequence. Suitable for dashboard loading and report aggregation. |
+| **TrendLine** | Analytical trend line draws upward over a grid and ends with an arrow. Good for forecasts, charts, and data analysis. |
+| **ClockSpin** | Analog clock with independently rotating hands. Represents waiting, scheduling, or time-sensitive processing. |
+| **CoffeeCup** | Coffee cup with rising steam trails. Friendly "please wait" animation for longer business operations. |
 
 ### Windows 95 Retro Variants
 
@@ -92,6 +106,17 @@ Nostalgic animations inspired by classic Windows 95 file operations.
 | **Win95Search** | Row of folder icons with a flashlight and beam sweeping left-to-right. File search animation. |
 | **Win95Delete** | Large recycle bin with papers flying down into the lid and fading out. File deletion animation. |
 | **Win95EmptyRecycle** | Large recycle bin with papers flying upward out of the lid and fading. Emptying recycle bin animation. |
+| **Win95Defrag** | Block-grid defragmentation animation with square cells lighting in stepped groups. Inspired by classic disk optimization UIs. |
+| **Win95Download** | Paper travels from a globe icon to a folder with a chunky download arrow. Classic web download motif. |
+| **Win95Install** | Floppy disk slides into a drive while an activity LED blinks. Nostalgic installer/media loading state. |
+| **Win95ScanDisk** | Retro ScanDisk panel with boxes filling from left to right. Useful for checking, validating, or scanning operations. |
+| **Win95Hourglass** | Pixel-style hourglass cursor rotating in four discrete steps. Deliberately chunky for authentic retro timing. |
+| **Win95DialUp** | Two computer icons exchange a moving signal dot while screens blink. Dial-up/network connection inspired. |
+| **Win95Solitaire** | Cards cascade away from a starting stack, echoing the classic Solitaire win animation. |
+| **Win95PrintQueue** | Printer outputs a page in visible step increments. Retro counterpart to PrinterOutput. |
+| **Win95FindComputer** | Magnifying glass searches over a computer icon. Network computer search inspired. |
+| **Win95Startup** | Four startup pane squares light up in sequence inside a simple window frame. |
+| **Win95StartupColor** | Win95Startup with the classic Windows flag colors (red, green, blue, yellow) for the four panes. |
 
 ## Accessibility Support
 
@@ -192,8 +217,10 @@ The DaisyLoading theme styles are organized into multiple files for maintainabil
 | `Themes/DaisyLoading/DaisyLoading.Matrix.axaml` | Matrix, MatrixInward, MatrixOutward, MatrixVertical variants |
 | `Themes/DaisyLoading/DaisyLoading.Dots.axaml` | MatrixRain, BitFlip, PacketBurst, CometTrail, RippleMatrix, CountdownSpinner variants (dot-based animations) |
 | `Themes/DaisyLoading/DaisyLoading.Special.axaml` | Hourglass, SignalSweep, Heartbeat, TunnelZoom, GlitchReveal, CursorBlink variants (non-dot special effects) |
-| `Themes/DaisyLoading/DaisyLoading.Business.axaml` | DocumentFlipOn, DocumentFlipOff, MailSend, CloudUpload, CloudDownload, DocumentStamp, DocumentReject, ChartPulse, CalendarTick, ApprovalFlow, BriefcaseSpin variants (professional/enterprise animations) |
+| `Themes/DaisyLoading/DaisyLoading.Business.axaml` | DocumentFlipOn, DocumentFlipOff, MailSend, CloudUpload, CloudDownload, DocumentStamp, DocumentReject, ChartPulse, CalendarTick, ApprovalFlow, BriefcaseSpin, BatteryCharging, BatteryEmptying, and TrafficLight variants (professional/enterprise animations) |
+| `Themes/DaisyLoading/DaisyLoading.Business2.axaml` | PrinterOutput, PaperShredder, SignaturePen, DocumentScan, FolderSync, MailReceive, PhoneRing, CoinStack, InvoicePaid, PiggyBank, PieChartFill, TrendLine, ClockSpin, CoffeeCup variants (additional professional workflow animations) |
 | `Themes/DaisyLoading/DaisyLoading.Win95.axaml` | Win95FileCopy, Win95Search, Win95Delete, Win95EmptyRecycle variants (retro Windows 95 file operation animations) |
+| `Themes/DaisyLoading/DaisyLoading.Win95B.axaml` | Win95Defrag, Win95Download, Win95Install, Win95ScanDisk, Win95Hourglass, Win95DialUp, Win95Solitaire, Win95PrintQueue, Win95FindComputer, Win95Startup, Win95StartupColor variants (additional Windows 95-inspired animations) |
 
 ### Adding New Variants
 
@@ -288,16 +315,47 @@ Use the `Color` property to apply theme colors. All variants support coloring.
 <controls:DaisyLoading Variant="CalendarTick" Color="Primary" Size="Large" />
 <controls:DaisyLoading Variant="ApprovalFlow" Color="Success" Size="Large" />
 <controls:DaisyLoading Variant="BriefcaseSpin" Color="Neutral" Size="Large" />
+<controls:DaisyLoading Variant="PrinterOutput" Color="Info" Size="Large" />
+<controls:DaisyLoading Variant="PaperShredder" Color="Error" Size="Large" />
+<controls:DaisyLoading Variant="SignaturePen" Color="Primary" Size="Large" />
+<controls:DaisyLoading Variant="DocumentScan" Color="Accent" Size="Large" />
+<controls:DaisyLoading Variant="FolderSync" Color="Success" Size="Large" />
+<controls:DaisyLoading Variant="MailReceive" Color="Info" Size="Large" />
+<controls:DaisyLoading Variant="PhoneRing" Color="Warning" Size="Large" />
+<controls:DaisyLoading Variant="CoinStack" Color="Success" Size="Large" />
+<controls:DaisyLoading Variant="InvoicePaid" Color="Success" Size="Large" />
+<controls:DaisyLoading Variant="PiggyBank" Color="Accent" Size="Large" />
+<controls:DaisyLoading Variant="PieChartFill" Color="Info" Size="Large" />
+<controls:DaisyLoading Variant="TrendLine" Color="Primary" Size="Large" />
+<controls:DaisyLoading Variant="ClockSpin" Color="Warning" Size="Large" />
+<controls:DaisyLoading Variant="CoffeeCup" Color="Neutral" Size="Large" />
 
 <!-- Windows 95 retro variants -->
 <controls:DaisyLoading Variant="Win95FileCopy" Size="ExtraLarge" />
 <controls:DaisyLoading Variant="Win95Search" Color="Info" Size="ExtraLarge" />
 <controls:DaisyLoading Variant="Win95Delete" Color="Error" Size="ExtraLarge" />
 <controls:DaisyLoading Variant="Win95EmptyRecycle" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95Defrag" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95Download" Color="Info" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95Install" Color="Neutral" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95ScanDisk" Color="Success" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95Hourglass" Color="Warning" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95DialUp" Color="Info" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95Solitaire" Color="Accent" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95PrintQueue" Color="Neutral" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95FindComputer" Color="Info" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95Startup" Color="Primary" Size="ExtraLarge" />
+<controls:DaisyLoading Variant="Win95StartupColor" Size="ExtraLarge" />
 
 <!-- With accessibility -->
 <controls:DaisyLoading Variant="Spinner" AccessibleText="Loading dashboard" />
 ```
+
+## Animation Authoring Notes
+
+- `RenderTransformOrigin` in AXAML uses Avalonia point syntax, not WPF numeric shorthand. Use `RenderTransformOrigin="50%,50%"` for an explicit center pivot, or omit the property to keep Avalonia's default center origin.
+- Do not use `RenderTransformOrigin="0.5,0.5"` in AXAML for centered loading rotations. That can pivot near the top-left corner; `ClockSpin` keeps its hand canvases centered by relying on Avalonia's default center origin.
+- In C# helper code, `new RelativePoint(0.5, 0.5, RelativeUnit.Relative)` is still the correct centered relative origin.
 
 ## Animation Timing Reference
 
@@ -341,16 +399,47 @@ Use the `Color` property to apply theme colors. All variants support coloring.
 | CalendarTick | 2.0s | Checkmark pops in with bounce |
 | ApprovalFlow | 2.4s | Sequential node highlighting (0.8s per node) |
 | BriefcaseSpin | 1.2s | Wobble rotation with bounce |
+| BatteryCharging | Varies | Battery segments fill from empty to full |
+| BatteryEmptying | Varies | Battery segments drain from full to empty |
+| TrafficLightUp | Varies | Directional traffic-light cycle upward |
+| TrafficLightRight | Varies | Directional traffic-light cycle to the right |
+| TrafficLightDown | Varies | Directional traffic-light cycle downward |
+| TrafficLightLeft | Varies | Directional traffic-light cycle to the left |
+| PrinterOutput | 1.6s | Page feeds out from printer with fade-out reset |
+| PaperShredder | 1.7s | Page enters shredder while strips fall below |
+| SignaturePen | 1.8s | Pen motion with staged signature stroke reveal |
+| DocumentScan | 1.6s | Scan beam moves down document and brightens lines |
+| FolderSync | 1.6s | Document transfers between folders while sync arrows pulse |
+| MailReceive | 1.6s | Document rises from opened envelope |
+| PhoneRing | 0.8-1.2s | Handset shakes quickly while ring waves pulse |
+| CoinStack | 1.4s | Coin drops and stack levels brighten |
+| InvoicePaid | 1.5s | PAID stamp scales down and fades |
+| PiggyBank | 1.5s | Coin drops into piggy bank with wobble |
+| PieChartFill | 1.6s | Pie segments brighten sequentially |
+| TrendLine | 1.5s | Trend segments appear from left to right |
+| ClockSpin | 1.2s / 3.6s | Minute and hour hands rotate at different speeds |
+| CoffeeCup | 1.5s | Steam trails rise with staggered delays |
 | Win95FileCopy | 1.6s | Papers fly with arc motion, 0.4s stagger |
 | Win95Search | 2.0s | Flashlight sweeps left-to-right |
 | Win95Delete | 1.6s | Papers fly down into bin, 0.2s stagger |
 | Win95EmptyRecycle | 1.6s | Papers fly up from bin, 0.2s stagger |
+| Win95Defrag | 1.4s | Block groups light in stepped sequence |
+| Win95Download | 1.5s | Paper moves from globe to folder |
+| Win95Install | 1.6s | Floppy slides into drive while LED blinks |
+| Win95ScanDisk | 1.2s | Scan boxes light left-to-right |
+| Win95Hourglass | 1.6s | Hourglass rotates around its center |
+| Win95DialUp | 1.4s | Signal dot moves between computers |
+| Win95Solitaire | 1.6s | Cards cascade with staggered delays |
+| Win95PrintQueue | 1.4s | Printer page advances in visible steps |
+| Win95FindComputer | 1.8s | Magnifying glass scans over computer icon |
+| Win95Startup | 1.2s | Four startup panes light in sequence |
+| Win95StartupColor | 1.2s | Four Windows-colored panes light in sequence |
 
 ## Property Summary
 
 | Property | Type | Default | Description |
 | -------- | ---- | ------- | ----------- |
-| `Variant` | `DaisyLoadingVariant` | `Spinner` | Animation style (42 options) |
+| `Variant` | `DaisyLoadingVariant` | `Spinner` | Animation style (72 options) |
 | `Size` | `DaisySize` | `Medium` | Control dimensions (5 options). Uses shared enum. |
 | `Color` | `DaisyColor` | `Default` | Theme color (9 options). Uses shared enum. |
 | `AccessibleText` | `string` | `"Loading"` | Screen reader announcement |
@@ -362,19 +451,20 @@ Use the `Color` property to apply theme colors. All variants support coloring.
 | General purpose | `Spinner`, `Ring`, `Dots` |
 | Form submission | `Spinner`, `Pulse`, `Hourglass`, `DocumentStamp` |
 | Data fetching | `Dots`, `Wave`, `Matrix`, `RippleMatrix` |
-| File upload/download | `Bars`, `MatrixRain`, `Hourglass`, `SignalSweep`, `CloudUpload`, `CloudDownload` |
-| File operations | `Win95FileCopy`, `Win95Search`, `Win95Delete`, `Win95EmptyRecycle` |
-| Connection/sync | `Orbit`, `Pulse`, `PacketBurst` |
+| File upload/download | `Bars`, `MatrixRain`, `Hourglass`, `SignalSweep`, `CloudUpload`, `CloudDownload`, `Win95Download` |
+| File operations | `Win95FileCopy`, `Win95Search`, `Win95Delete`, `Win95EmptyRecycle`, `Win95Defrag`, `Win95ScanDisk` |
+| Connection/sync | `Orbit`, `Pulse`, `PacketBurst`, `FolderSync`, `Win95DialUp` |
 | Terminal/developer UI | `Snake`, `Matrix`, `MatrixRain`, `CursorBlink`, `BitFlip`, `GlitchReveal` |
 | Gaming/entertainment | `Bounce`, `MatrixRain`, `CometTrail`, `TunnelZoom` |
-| Retro/nostalgic | `Hourglass`, `Matrix`, `Infinity`, `CursorBlink`, `Win95FileCopy`, `Win95Search`, `Win95Delete`, `Win95EmptyRecycle` |
+| Retro/nostalgic | `Hourglass`, `Matrix`, `Infinity`, `CursorBlink`, `Win95FileCopy`, `Win95Search`, `Win95Delete`, `Win95EmptyRecycle`, `Win95Defrag`, `Win95Install`, `Win95Hourglass`, `Win95DialUp`, `Win95Solitaire`, `Win95Startup`, `Win95StartupColor` |
 | Health/medical UI | `Heartbeat`, `Pulse` |
 | Sci-fi/futuristic | `TunnelZoom`, `SignalSweep`, `PacketBurst`, `GlitchReveal` |
-| Time-based operations | `Hourglass`, `CountdownSpinner`, `CalendarTick` |
-| Business/enterprise | `DocumentFlipOn`, `DocumentFlipOff`, `DocumentStamp`, `DocumentReject`, `BriefcaseSpin`, `ApprovalFlow` |
-| Email/messaging | `MailSend`, `Dots`, `Spinner` |
-| Analytics/reporting | `ChartPulse`, `Bars`, `Wave` |
-| Approval workflows | `DocumentStamp`, `DocumentReject`, `ApprovalFlow`, `CalendarTick` |
-| Cloud operations | `CloudUpload`, `CloudDownload`, `PacketBurst` |
-| Document processing | `DocumentFlipOn`, `DocumentFlipOff`, `DocumentStamp`, `DocumentReject` |
-| Scheduling/calendar | `CalendarTick`, `CountdownSpinner`, `Hourglass` |
+| Time-based operations | `Hourglass`, `CountdownSpinner`, `CalendarTick`, `ClockSpin`, `CoffeeCup` |
+| Business/enterprise | `DocumentFlipOn`, `DocumentFlipOff`, `DocumentStamp`, `DocumentReject`, `BriefcaseSpin`, `ApprovalFlow`, `PrinterOutput`, `InvoicePaid` |
+| Email/messaging | `MailSend`, `MailReceive`, `PhoneRing`, `Dots`, `Spinner` |
+| Analytics/reporting | `ChartPulse`, `PieChartFill`, `TrendLine`, `Bars`, `Wave` |
+| Approval workflows | `DocumentStamp`, `DocumentReject`, `ApprovalFlow`, `CalendarTick`, `SignaturePen` |
+| Cloud operations | `CloudUpload`, `CloudDownload`, `PacketBurst`, `FolderSync` |
+| Document processing | `DocumentFlipOn`, `DocumentFlipOff`, `DocumentStamp`, `DocumentReject`, `DocumentScan`, `PaperShredder`, `SignaturePen`, `PrinterOutput` |
+| Finance/billing | `CoinStack`, `InvoicePaid`, `PiggyBank` |
+| Scheduling/calendar | `CalendarTick`, `CountdownSpinner`, `Hourglass`, `ClockSpin` |

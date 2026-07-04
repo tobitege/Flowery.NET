@@ -669,7 +669,7 @@
                                 IsChecked="True" />
                             <controls:DaisyToggle Content="Secondary" Variant="Secondary"
                                 IsChecked="True" />
-                            <controls:DaisyToggle Content="Large" Size="Large" Variant="Accent"
+                            <controls:DaisyToggle Content="Accent" Variant="Accent"
                                 IsChecked="True" />
                         </StackPanel>
                         <StackPanel Spacing="10" Margin="0,0,40,20" Width="200"

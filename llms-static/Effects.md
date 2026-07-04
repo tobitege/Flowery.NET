@@ -338,10 +338,6 @@ All effects use manual `Task.Delay` + `Dispatcher.UIThread` interpolation instea
 ### The Pattern
 
 ```csharp
-// Standard Avalonia Animation - may have WASM issues
-var animation = new Animation { Duration = duration, ... };
-await animation.RunAsync(target);
-
 // WASM-compatible pattern (used by Flowery.Effects)
 for (int i = 0; i <= steps; i++)
 {
