@@ -93,5 +93,18 @@
   "Theme_Synthwave": "Synthwave",
   "Theme_Valentine": "Valentine",
   "Theme_Winter": "Winter",
-  "Theme_Wireframe": "Wireframe"
+  "Theme_Wireframe": "Wireframe",
+  "LoginButton_Email": "Mit E-Mail anmelden",
+  "LoginButton_GitHub": "Mit GitHub anmelden",
+  "LoginButton_Google": "Mit Google anmelden",
+  "LoginButton_Facebook": "Mit Facebook anmelden",
+  "LoginButton_X": "Mit X anmelden",
+  "LoginButton_Apple": "Mit Apple anmelden",
+  "LoginButton_Amazon": "Mit Amazon anmelden",
+  "LoginButton_Microsoft": "Mit Microsoft anmelden",
+  "LoginButton_Slack": "Mit Slack anmelden",
+  "LoginButton_LinkedIn": "Mit LinkedIn anmelden",
+  "LoginButton_VK": "Mit VK anmelden",
+  "LoginButton_WeChat": "Mit WeChat anmelden",
+  "LoginButton_MetaMask": "Mit MetaMask anmelden"
 }

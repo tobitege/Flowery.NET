@@ -135,6 +135,50 @@
                                                       ShadowOffsetY="5" ShadowBlur="12" ShadowColor="#5065d3da" Margin="4"/>
                             </WrapPanel>
                         </StackPanel>
+
+                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                            <TextBlock Text="Unified Icon API" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                            <WrapPanel VerticalAlignment="Center">
+                                <controls:DaisyButton Content="Add" IconSymbol="Add" Variant="Primary" Margin="4"/>
+                                <controls:DaisyButton Content="Settings" IconSymbol="Setting" Variant="Secondary" Margin="4"/>
+                                <controls:DaisyButton Content="Next" IconSymbol="Forward" IconPlacement="Right" Margin="4"/>
+                                <controls:DaisyButton Content="Custom" IconData="M12 2L15 8.5L22 9.5L17 14.5L18.2 22L12 18.5L5.8 22L7 14.5L2 9.5L9 8.5Z"
+                                                      Variant="Accent" Margin="4"/>
+                                <controls:DaisyButton IconSymbol="Favorite" Shape="Circle" Variant="Error" Margin="4"/>
+                                <controls:DaisyButton IconSymbol="Delete" Shape="Square" Variant="Warning" Margin="4"/>
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                            <TextBlock Text="DaisyIconText" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                            <WrapPanel VerticalAlignment="Center">
+                                <controls:DaisyIconText IconSymbol="Save" Text="Save" Variant="Primary" Margin="8"/>
+                                <controls:DaisyIconText IconSymbol="Share" Text="Share" IconPlacement="Right" Variant="Secondary" Margin="8"/>
+                                <controls:DaisyIconText IconSymbol="Home" Text="Home" IconPlacement="Top" Variant="Accent" Margin="8"/>
+                                <controls:DaisyIconText IconSymbol="World" Size="Large" Variant="Info" Margin="8"/>
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <StackPanel Spacing="10" Margin="0,0,40,20">
+                            <TextBlock Text="Brand Login Buttons" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                            <WrapPanel VerticalAlignment="Center">
+                                <controls:DaisyLoginButton Brand="Email" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="GitHub" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="Google" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="Facebook" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="X" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="Kakao" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="Apple" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="Amazon" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="Microsoft" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="Line" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="Slack" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="LinkedIn" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="VK" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="WeChat" Margin="4"/>
+                                <controls:DaisyLoginButton Brand="MetaMask" Margin="4"/>
+                            </WrapPanel>
+                        </StackPanel>
                     </WrapPanel>
                 </StackPanel>
 

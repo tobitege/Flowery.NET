@@ -93,5 +93,18 @@
   "Theme_Synthwave": "Synthwave",
   "Theme_Valentine": "Valentine",
   "Theme_Winter": "Winter",
-  "Theme_Wireframe": "Wireframe"
+  "Theme_Wireframe": "Wireframe",
+  "LoginButton_Email": "이메일로 로그인",
+  "LoginButton_GitHub": "GitHub로 로그인",
+  "LoginButton_Google": "Google로 로그인",
+  "LoginButton_Facebook": "Facebook로 로그인",
+  "LoginButton_X": "X로 로그인",
+  "LoginButton_Apple": "Apple로 로그인",
+  "LoginButton_Amazon": "Amazon로 로그인",
+  "LoginButton_Microsoft": "Microsoft로 로그인",
+  "LoginButton_Slack": "Slack로 로그인",
+  "LoginButton_LinkedIn": "LinkedIn로 로그인",
+  "LoginButton_VK": "VK로 로그인",
+  "LoginButton_WeChat": "WeChat로 로그인",
+  "LoginButton_MetaMask": "MetaMask로 로그인"
 }

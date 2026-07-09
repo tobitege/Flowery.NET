@@ -93,5 +93,20 @@
   "Theme_Synthwave": "Synthwave",
   "Theme_Valentine": "Valentine",
   "Theme_Winter": "Winter",
-  "Theme_Wireframe": "Wireframe"
+  "Theme_Wireframe": "Wireframe",
+  "LoginButton_Email": "Login with Email",
+  "LoginButton_GitHub": "Login with GitHub",
+  "LoginButton_Google": "Login with Google",
+  "LoginButton_Facebook": "Login with Facebook",
+  "LoginButton_X": "Login with X",
+  "LoginButton_Kakao": "카카오 로그인",
+  "LoginButton_Apple": "Login with Apple",
+  "LoginButton_Amazon": "Login with Amazon",
+  "LoginButton_Microsoft": "Login with Microsoft",
+  "LoginButton_Line": "LINEでログイン",
+  "LoginButton_Slack": "Login with Slack",
+  "LoginButton_LinkedIn": "Login with LinkedIn",
+  "LoginButton_VK": "Login with VK",
+  "LoginButton_WeChat": "Login with WeChat",
+  "LoginButton_MetaMask": "Login with MetaMask"
 }

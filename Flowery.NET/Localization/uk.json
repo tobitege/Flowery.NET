@@ -93,5 +93,18 @@
   "Theme_Synthwave": "Synthwave",
   "Theme_Valentine": "Valentine",
   "Theme_Winter": "Winter",
-  "Theme_Wireframe": "Wireframe"
+  "Theme_Wireframe": "Wireframe",
+  "LoginButton_Email": "Увійти за допомогою електронної пошти",
+  "LoginButton_GitHub": "Увійти за допомогою GitHub",
+  "LoginButton_Google": "Увійти за допомогою Google",
+  "LoginButton_Facebook": "Увійти за допомогою Facebook",
+  "LoginButton_X": "Увійти за допомогою X",
+  "LoginButton_Apple": "Увійти за допомогою Apple",
+  "LoginButton_Amazon": "Увійти за допомогою Amazon",
+  "LoginButton_Microsoft": "Увійти за допомогою Microsoft",
+  "LoginButton_Slack": "Увійти за допомогою Slack",
+  "LoginButton_LinkedIn": "Увійти за допомогою LinkedIn",
+  "LoginButton_VK": "Увійти за допомогою VK",
+  "LoginButton_WeChat": "Увійти за допомогою WeChat",
+  "LoginButton_MetaMask": "Увійти за допомогою MetaMask"
 }

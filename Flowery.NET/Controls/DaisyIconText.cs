@@ -5,6 +5,8 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Flowery.Enums;
+using Flowery.Helpers;
 using Flowery.Services;
 
 namespace Flowery.Controls
@@ -62,6 +64,18 @@ namespace Flowery.Controls
         {
             get => GetValue(IconDataProperty);
             set => SetValue(IconDataProperty, value);
+        }
+
+        public static readonly StyledProperty<DaisyIconSymbol?> IconSymbolProperty =
+            AvaloniaProperty.Register<DaisyIconText, DaisyIconSymbol?>(nameof(IconSymbol));
+
+        /// <summary>
+        /// Gets or sets a platform-neutral symbol to display when IconData is not set.
+        /// </summary>
+        public DaisyIconSymbol? IconSymbol
+        {
+            get => GetValue(IconSymbolProperty);
+            set => SetValue(IconSymbolProperty, value);
         }
 
         public static readonly StyledProperty<string?> TextProperty =
@@ -154,6 +168,22 @@ namespace Flowery.Controls
         #endregion
 
         #region Read-Only Computed Properties
+
+        public static readonly DirectProperty<DaisyIconText, StreamGeometry?> EffectiveIconDataProperty =
+            AvaloniaProperty.RegisterDirect<DaisyIconText, StreamGeometry?>(
+                nameof(EffectiveIconData),
+                o => o.EffectiveIconData);
+
+        private StreamGeometry? _effectiveIconData;
+
+        /// <summary>
+        /// Gets the resolved icon geometry from IconData or IconSymbol.
+        /// </summary>
+        public StreamGeometry? EffectiveIconData
+        {
+            get => _effectiveIconData;
+            private set => SetAndRaise(EffectiveIconDataProperty, ref _effectiveIconData, value);
+        }
 
         public static readonly DirectProperty<DaisyIconText, double> EffectiveIconSizeProperty =
             AvaloniaProperty.RegisterDirect<DaisyIconText, double>(
@@ -283,6 +313,7 @@ namespace Flowery.Controls
                 change.Property == FontSizeOverrideProperty ||
                 change.Property == SpacingProperty ||
                 change.Property == IconDataProperty ||
+                change.Property == IconSymbolProperty ||
                 change.Property == TextProperty ||
                 change.Property == IconPlacementProperty)
             {
@@ -292,6 +323,10 @@ namespace Flowery.Controls
 
         private void UpdateComputedProperties()
         {
+            EffectiveIconData = IconData;
+            if (EffectiveIconData == null && IconSymbol.HasValue)
+                EffectiveIconData = DaisyIconSymbolData.GetGeometry(IconSymbol.Value);
+
             // Compute effective icon size
             if (!double.IsNaN(IconSize))
             {
@@ -347,7 +382,7 @@ namespace Flowery.Controls
             }
 
             // Update has icon/text
-            HasIcon = IconData != null;
+            HasIcon = EffectiveIconData != null;
             HasText = !string.IsNullOrEmpty(Text);
 
             // Update orientation and order based on placement

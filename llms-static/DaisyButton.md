@@ -58,6 +58,18 @@ DaisyButton delivers DaisyUI-styled actions with **11 color variants**, **4 visu
 | `ShowShadow` | Enables box shadow; customize with `ShadowOffsetX`, `ShadowOffsetY`, `ShadowBlur`, `ShadowColor`. |
 | `IsEnabled=False` | Lowers opacity and removes hand cursor for disabled state. |
 
+## Unified Icon API
+
+Use `IconSymbol` for built-in platform-neutral symbols or `IconData` for custom path geometry. The icon automatically follows the button size and foreground color. `IconPlacement` accepts `Left`, `Right`, `Top`, and `Bottom`. Existing `IconLeft` and `IconRight` content remains supported.
+
+```xml
+<controls:DaisyButton Content="Save" IconSymbol="Save" Variant="Primary" />
+<controls:DaisyButton Content="Next" IconSymbol="Forward" IconPlacement="Right" />
+<controls:DaisyButton Shape="Circle" IconSymbol="Favorite" Variant="Error" />
+<controls:DaisyButton Content="Custom"
+                      IconData="M12 2L15 8.5L22 9.5L17 14.5L18.2 22L12 18.5L5.8 22L7 14.5L2 9.5L9 8.5Z" />
+```
+
 ## Quick Examples
 
 ```xml
@@ -74,12 +86,8 @@ DaisyButton delivers DaisyUI-styled actions with **11 color variants**, **4 visu
 
 <!-- Shapes -->
 <controls:DaisyButton Content="Wide CTA" Variant="Primary" Shape="Wide" />
-<controls:DaisyButton Shape="Square" Variant="Primary" Size="Small">
-    <PathIcon Data="{StaticResource DaisyIconSettings}" Width="16" Height="16" />
-</controls:DaisyButton>
-<controls:DaisyButton Shape="Circle" Variant="Secondary" Size="Large">
-    <PathIcon Data="{StaticResource DaisyIconPlay}" Width="18" Height="18" />
-</controls:DaisyButton>
+<controls:DaisyButton Shape="Square" Variant="Primary" Size="Small" IconSymbol="Setting" />
+<controls:DaisyButton Shape="Circle" Variant="Secondary" Size="Large" IconSymbol="Play" />
 
 <!-- Shadows and active states -->
 <controls:DaisyButton Content="With Shadow" ShowShadow="True" />

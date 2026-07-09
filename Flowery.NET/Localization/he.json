@@ -93,5 +93,18 @@
   "Theme_Synthwave": "סינתוויב",
   "Theme_Valentine": "ולנטיין",
   "Theme_Winter": "חורף",
-  "Theme_Wireframe": "מסגרת חוט"
+  "Theme_Wireframe": "מסגרת חוט",
+  "LoginButton_Email": "התחבר עם דוא\"ל",
+  "LoginButton_GitHub": "התחבר עם GitHub",
+  "LoginButton_Google": "התחבר עם Google",
+  "LoginButton_Facebook": "התחבר עם Facebook",
+  "LoginButton_X": "התחבר עם X",
+  "LoginButton_Apple": "התחבר עם Apple",
+  "LoginButton_Amazon": "התחבר עם Amazon",
+  "LoginButton_Microsoft": "התחבר עם Microsoft",
+  "LoginButton_Slack": "התחבר עם Slack",
+  "LoginButton_LinkedIn": "התחבר עם LinkedIn",
+  "LoginButton_VK": "התחבר עם VK",
+  "LoginButton_WeChat": "התחבר עם WeChat",
+  "LoginButton_MetaMask": "התחבר עם MetaMask"
 }

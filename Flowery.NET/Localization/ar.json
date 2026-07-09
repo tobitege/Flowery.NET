@@ -93,5 +93,20 @@
   "Theme_Synthwave": "Synthwave",
   "Theme_Valentine": "Valentine",
   "Theme_Winter": "Winter",
-  "Theme_Wireframe": "Wireframe"
+  "Theme_Wireframe": "Wireframe",
+  "LoginButton_Email": "تسجيل الدخول باستخدام البريد الإلكتروني",
+  "LoginButton_GitHub": "تسجيل الدخول باستخدام GitHub",
+  "LoginButton_Google": "تسجيل الدخول باستخدام Google",
+  "LoginButton_Facebook": "تسجيل الدخول باستخدام Facebook",
+  "LoginButton_X": "تسجيل الدخول باستخدام X",
+  "LoginButton_Kakao": "تسجيل الدخول باستخدام Kakao",
+  "LoginButton_Apple": "تسجيل الدخول باستخدام Apple",
+  "LoginButton_Amazon": "تسجيل الدخول باستخدام Amazon",
+  "LoginButton_Microsoft": "تسجيل الدخول باستخدام Microsoft",
+  "LoginButton_Line": "تسجيل الدخول باستخدام LINE",
+  "LoginButton_Slack": "تسجيل الدخول باستخدام Slack",
+  "LoginButton_LinkedIn": "تسجيل الدخول باستخدام LinkedIn",
+  "LoginButton_VK": "تسجيل الدخول باستخدام VK",
+  "LoginButton_WeChat": "تسجيل الدخول باستخدام WeChat",
+  "LoginButton_MetaMask": "تسجيل الدخول باستخدام MetaMask"
 }

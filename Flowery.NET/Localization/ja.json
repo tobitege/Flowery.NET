@@ -93,5 +93,18 @@
   "Theme_Synthwave": "Synthwave",
   "Theme_Valentine": "Valentine",
   "Theme_Winter": "Winter",
-  "Theme_Wireframe": "Wireframe"
+  "Theme_Wireframe": "Wireframe",
+  "LoginButton_Email": "メールでログイン",
+  "LoginButton_GitHub": "GitHubでログイン",
+  "LoginButton_Google": "Googleでログイン",
+  "LoginButton_Facebook": "Facebookでログイン",
+  "LoginButton_X": "Xでログイン",
+  "LoginButton_Apple": "Appleでログイン",
+  "LoginButton_Amazon": "Amazonでログイン",
+  "LoginButton_Microsoft": "Microsoftでログイン",
+  "LoginButton_Slack": "Slackでログイン",
+  "LoginButton_LinkedIn": "LinkedInでログイン",
+  "LoginButton_VK": "VKでログイン",
+  "LoginButton_WeChat": "WeChatでログイン",
+  "LoginButton_MetaMask": "MetaMaskでログイン"
 }

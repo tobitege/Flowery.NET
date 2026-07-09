@@ -91,12 +91,35 @@
                             Content="{TemplateBinding IconLeft}"
                             IsVisible="{TemplateBinding IconLeft, Converter={x:Static ObjectConverters.IsNotNull}}"
                             VerticalAlignment="Center" />
-                        <ContentPresenter x:Name="PART_ContentPresenter"
-                            Content="{TemplateBinding Content}"
-                            ContentTemplate="{TemplateBinding ContentTemplate}"
-                            TextElement.Foreground="{TemplateBinding Foreground}"
-                            RecognizesAccessKey="True"
-                            VerticalAlignment="Center" />
+                        <Grid x:Name="PART_UnifiedContentGrid"
+                              ColumnDefinitions="Auto,Auto"
+                              RowDefinitions="Auto,Auto"
+                              ColumnSpacing="{TemplateBinding EffectiveIconSpacing}"
+                              RowSpacing="{TemplateBinding EffectiveIconSpacing}"
+                              VerticalAlignment="Center">
+                            <Viewbox x:Name="PART_UnifiedIcon"
+                                     Grid.Row="0"
+                                     Grid.Column="0"
+                                     Width="{TemplateBinding EffectiveIconSize}"
+                                     Height="{TemplateBinding EffectiveIconSize}"
+                                     Stretch="Uniform"
+                                     IsVisible="{TemplateBinding HasUnifiedIcon}">
+                                <Path Width="24"
+                                      Height="24"
+                                      Data="{TemplateBinding EffectiveIconData}"
+                                      Fill="{TemplateBinding Foreground}"
+                                      Stretch="Fill" />
+                            </Viewbox>
+                            <ContentPresenter x:Name="PART_ContentPresenter"
+                                              Grid.Row="0"
+                                              Grid.Column="1"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              TextElement.Foreground="{TemplateBinding Foreground}"
+                                              RecognizesAccessKey="True"
+                                              IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                              VerticalAlignment="Center" />
+                        </Grid>
                         <ContentPresenter x:Name="PART_IconRight"
                             Content="{TemplateBinding IconRight}"
                             IsVisible="{TemplateBinding IconRight, Converter={x:Static ObjectConverters.IsNotNull}}"
@@ -105,6 +128,23 @@
                 </Panel>
             </ControlTemplate>
         </Setter>
+
+        <Style Selector="^[IconPlacement=Right] /template/ Viewbox#PART_UnifiedIcon">
+            <Setter Property="Grid.Column" Value="1" />
+        </Style>
+        <Style Selector="^[IconPlacement=Right] /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Grid.Column" Value="0" />
+        </Style>
+        <Style Selector="^[IconPlacement=Top] /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Grid.Row" Value="1" />
+            <Setter Property="Grid.Column" Value="0" />
+        </Style>
+        <Style Selector="^[IconPlacement=Bottom] /template/ Viewbox#PART_UnifiedIcon">
+            <Setter Property="Grid.Row" Value="1" />
+        </Style>
+        <Style Selector="^[IconPlacement=Bottom] /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Grid.Column" Value="0" />
+        </Style>
 
         <!-- Default Transitions -->
         <Style Selector="^ /template/ Border#PART_Background">

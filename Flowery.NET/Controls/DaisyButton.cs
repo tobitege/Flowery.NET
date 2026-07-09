@@ -5,6 +5,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using Flowery.Enums;
+using Flowery.Helpers;
 using Flowery.Services;
 
 namespace Flowery.Controls
@@ -116,6 +118,42 @@ namespace Flowery.Controls
         {
             get => GetValue(ShapeProperty);
             set => SetValue(ShapeProperty, value);
+        }
+
+        public static readonly StyledProperty<DaisyIconSymbol?> IconSymbolProperty =
+            AvaloniaProperty.Register<DaisyButton, DaisyIconSymbol?>(nameof(IconSymbol));
+
+        /// <summary>
+        /// Gets or sets a platform-neutral symbol displayed by the button.
+        /// </summary>
+        public DaisyIconSymbol? IconSymbol
+        {
+            get => GetValue(IconSymbolProperty);
+            set => SetValue(IconSymbolProperty, value);
+        }
+
+        public static readonly StyledProperty<StreamGeometry?> IconDataProperty =
+            AvaloniaProperty.Register<DaisyButton, StreamGeometry?>(nameof(IconData));
+
+        /// <summary>
+        /// Gets or sets custom path geometry displayed when IconSymbol is not set.
+        /// </summary>
+        public StreamGeometry? IconData
+        {
+            get => GetValue(IconDataProperty);
+            set => SetValue(IconDataProperty, value);
+        }
+
+        public static readonly StyledProperty<IconPlacement> IconPlacementProperty =
+            AvaloniaProperty.Register<DaisyButton, IconPlacement>(nameof(IconPlacement), IconPlacement.Left);
+
+        /// <summary>
+        /// Gets or sets the unified icon position relative to the button content.
+        /// </summary>
+        public IconPlacement IconPlacement
+        {
+            get => GetValue(IconPlacementProperty);
+            set => SetValue(IconPlacementProperty, value);
         }
 
         /// <summary>
@@ -255,6 +293,120 @@ namespace Flowery.Controls
         {
             get => GetValue(IconSpacingProperty);
             set => SetValue(IconSpacingProperty, value);
+        }
+
+        public static readonly DirectProperty<DaisyButton, StreamGeometry?> EffectiveIconDataProperty =
+            AvaloniaProperty.RegisterDirect<DaisyButton, StreamGeometry?>(
+                nameof(EffectiveIconData),
+                o => o.EffectiveIconData);
+
+        private StreamGeometry? _effectiveIconData;
+
+        public StreamGeometry? EffectiveIconData
+        {
+            get => _effectiveIconData;
+            private set => SetAndRaise(EffectiveIconDataProperty, ref _effectiveIconData, value);
+        }
+
+        public static readonly DirectProperty<DaisyButton, double> EffectiveIconSizeProperty =
+            AvaloniaProperty.RegisterDirect<DaisyButton, double>(
+                nameof(EffectiveIconSize),
+                o => o.EffectiveIconSize);
+
+        private double _effectiveIconSize = 16.0;
+
+        public double EffectiveIconSize
+        {
+            get => _effectiveIconSize;
+            private set => SetAndRaise(EffectiveIconSizeProperty, ref _effectiveIconSize, value);
+        }
+
+        public static readonly DirectProperty<DaisyButton, double> EffectiveIconSpacingProperty =
+            AvaloniaProperty.RegisterDirect<DaisyButton, double>(
+                nameof(EffectiveIconSpacing),
+                o => o.EffectiveIconSpacing);
+
+        private double _effectiveIconSpacing;
+
+        public double EffectiveIconSpacing
+        {
+            get => _effectiveIconSpacing;
+            private set => SetAndRaise(EffectiveIconSpacingProperty, ref _effectiveIconSpacing, value);
+        }
+
+        public static readonly DirectProperty<DaisyButton, bool> HasUnifiedIconProperty =
+            AvaloniaProperty.RegisterDirect<DaisyButton, bool>(
+                nameof(HasUnifiedIcon),
+                o => o.HasUnifiedIcon);
+
+        private bool _hasUnifiedIcon;
+
+        public bool HasUnifiedIcon
+        {
+            get => _hasUnifiedIcon;
+            private set => SetAndRaise(HasUnifiedIconProperty, ref _hasUnifiedIcon, value);
+        }
+
+        public DaisyButton()
+        {
+            UpdateUnifiedIconProperties();
+        }
+
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            base.OnPropertyChanged(change);
+
+            if (change.Property == IconSymbolProperty ||
+                change.Property == IconDataProperty ||
+                change.Property == SizeProperty ||
+                change.Property == ContentProperty)
+            {
+                UpdateUnifiedIconProperties();
+            }
+        }
+
+        private void UpdateUnifiedIconProperties()
+        {
+            EffectiveIconData = IconSymbol.HasValue
+                ? DaisyIconSymbolData.GetGeometry(IconSymbol.Value)
+                : IconData;
+            HasUnifiedIcon = EffectiveIconData != null;
+            EffectiveIconSize = GetIconSize(Size);
+            EffectiveIconSpacing = HasUnifiedIcon && Content != null
+                ? GetIconSpacing(Size)
+                : 0.0;
+        }
+
+        private static double GetIconSize(DaisySize size)
+        {
+            switch (size)
+            {
+                case DaisySize.ExtraSmall:
+                    return 12.0;
+                case DaisySize.Small:
+                    return 14.0;
+                case DaisySize.Large:
+                    return 18.0;
+                case DaisySize.ExtraLarge:
+                    return 20.0;
+                default:
+                    return 16.0;
+            }
+        }
+
+        private static double GetIconSpacing(DaisySize size)
+        {
+            switch (size)
+            {
+                case DaisySize.ExtraSmall:
+                    return 4.0;
+                case DaisySize.Small:
+                    return 6.0;
+                case DaisySize.ExtraLarge:
+                    return 10.0;
+                default:
+                    return 8.0;
+            }
         }
     }
 

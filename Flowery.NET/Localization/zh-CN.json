@@ -93,5 +93,18 @@
   "Theme_Synthwave": "Synthwave",
   "Theme_Valentine": "Valentine",
   "Theme_Winter": "Winter",
-  "Theme_Wireframe": "Wireframe"
+  "Theme_Wireframe": "Wireframe",
+  "LoginButton_Email": "使用邮箱登录",
+  "LoginButton_GitHub": "使用GitHub登录",
+  "LoginButton_Google": "使用谷歌登录",
+  "LoginButton_Facebook": "使用Facebook登录",
+  "LoginButton_X": "使用X登录",
+  "LoginButton_Apple": "使用苹果登录",
+  "LoginButton_Amazon": "使用亚马逊登录",
+  "LoginButton_Microsoft": "使用微软登录",
+  "LoginButton_Slack": "使用Slack登录",
+  "LoginButton_LinkedIn": "使用领英登录",
+  "LoginButton_VK": "使用VK登录",
+  "LoginButton_WeChat": "使用微信登录",
+  "LoginButton_MetaMask": "使用MetaMask登录"
 }

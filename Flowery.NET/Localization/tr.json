@@ -93,5 +93,18 @@
   "Theme_Synthwave": "Synthwave",
   "Theme_Valentine": "Valentine",
   "Theme_Winter": "Winter",
-  "Theme_Wireframe": "Wireframe"
+  "Theme_Wireframe": "Wireframe",
+  "LoginButton_Email": "E-posta ile giriş yap",
+  "LoginButton_GitHub": "GitHub ile giriş yap",
+  "LoginButton_Google": "Google ile giriş yap",
+  "LoginButton_Facebook": "Facebook ile giriş yap",
+  "LoginButton_X": "X ile giriş yap",
+  "LoginButton_Apple": "Apple ile giriş yap",
+  "LoginButton_Amazon": "Amazon ile giriş yap",
+  "LoginButton_Microsoft": "Microsoft ile giriş yap",
+  "LoginButton_Slack": "Slack ile giriş yap",
+  "LoginButton_LinkedIn": "LinkedIn ile giriş yap",
+  "LoginButton_VK": "VK ile giriş yap",
+  "LoginButton_WeChat": "WeChat ile giriş yap",
+  "LoginButton_MetaMask": "MetaMask ile giriş yap"
 }

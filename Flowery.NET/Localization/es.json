@@ -93,5 +93,18 @@
   "Theme_Synthwave": "Synthwave",
   "Theme_Valentine": "Valentine",
   "Theme_Winter": "Winter",
-  "Theme_Wireframe": "Wireframe"
+  "Theme_Wireframe": "Wireframe",
+  "LoginButton_Email": "Iniciar sesión con correo electrónico",
+  "LoginButton_GitHub": "Iniciar sesión con GitHub",
+  "LoginButton_Google": "Iniciar sesión con Google",
+  "LoginButton_Facebook": "Iniciar sesión con Facebook",
+  "LoginButton_X": "Iniciar sesión con X",
+  "LoginButton_Apple": "Iniciar sesión con Apple",
+  "LoginButton_Amazon": "Iniciar sesión con Amazon",
+  "LoginButton_Microsoft": "Iniciar sesión con Microsoft",
+  "LoginButton_Slack": "Iniciar sesión con Slack",
+  "LoginButton_LinkedIn": "Iniciar sesión con LinkedIn",
+  "LoginButton_VK": "Iniciar sesión con VK",
+  "LoginButton_WeChat": "Iniciar sesión con WeChat",
+  "LoginButton_MetaMask": "Iniciar sesión con MetaMask"
 }

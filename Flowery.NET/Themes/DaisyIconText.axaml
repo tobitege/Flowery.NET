@@ -21,25 +21,28 @@
 
         <Setter Property="Template">
             <ControlTemplate>
-                <StackPanel x:Name="PART_Root"
-                            Orientation="{TemplateBinding EffectiveOrientation}"
-                            Spacing="{TemplateBinding EffectiveSpacing}"
-                            HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
-                            VerticalAlignment="{TemplateBinding VerticalAlignment}">
-
-                    <!-- Icon (shown first when IconFirst=true) -->
+                <Grid x:Name="PART_Root"
+                      ColumnDefinitions="Auto,Auto"
+                      RowDefinitions="Auto,Auto"
+                      ColumnSpacing="{TemplateBinding EffectiveSpacing}"
+                      RowSpacing="{TemplateBinding EffectiveSpacing}"
+                      HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                      VerticalAlignment="{TemplateBinding VerticalAlignment}">
                     <Viewbox x:Name="PART_IconViewbox"
+                             Grid.Row="0"
+                             Grid.Column="0"
                              Width="{TemplateBinding EffectiveIconSize}"
                              Height="{TemplateBinding EffectiveIconSize}"
                              Stretch="Uniform"
                              IsVisible="{TemplateBinding HasIcon}">
-                        <Path Data="{TemplateBinding IconData}"
+                        <Path Data="{TemplateBinding EffectiveIconData}"
                               Fill="{TemplateBinding Foreground}"
                               Stretch="Uniform" />
                     </Viewbox>
 
-                    <!-- Text -->
                     <TextBlock x:Name="PART_TextBlock"
+                               Grid.Row="0"
+                               Grid.Column="1"
                                Text="{TemplateBinding Text}"
                                FontSize="{TemplateBinding EffectiveFontSize}"
                                FontWeight="{TemplateBinding FontWeight}"
@@ -47,15 +50,25 @@
                                VerticalAlignment="Center"
                                HorizontalAlignment="Center"
                                IsVisible="{TemplateBinding HasText}" />
-                </StackPanel>
+                </Grid>
             </ControlTemplate>
         </Setter>
 
-        <!-- Reorder for IconPlacement=Right or Bottom -->
-        <Style Selector="^[IconFirst=False] /template/ StackPanel#PART_Root">
-            <Style Selector="^ > Viewbox#PART_IconViewbox">
-                <Setter Property="DockPanel.Dock" Value="Right" />
-            </Style>
+        <Style Selector="^[IconPlacement=Right] /template/ Viewbox#PART_IconViewbox">
+            <Setter Property="Grid.Column" Value="1" />
+        </Style>
+        <Style Selector="^[IconPlacement=Right] /template/ TextBlock#PART_TextBlock">
+            <Setter Property="Grid.Column" Value="0" />
+        </Style>
+        <Style Selector="^[IconPlacement=Top] /template/ TextBlock#PART_TextBlock">
+            <Setter Property="Grid.Row" Value="1" />
+            <Setter Property="Grid.Column" Value="0" />
+        </Style>
+        <Style Selector="^[IconPlacement=Bottom] /template/ Viewbox#PART_IconViewbox">
+            <Setter Property="Grid.Row" Value="1" />
+        </Style>
+        <Style Selector="^[IconPlacement=Bottom] /template/ TextBlock#PART_TextBlock">
+            <Setter Property="Grid.Column" Value="0" />
         </Style>
 
         <!-- Variant: Primary -->
