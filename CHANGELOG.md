@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - DaisyButton and DaisyIconText: Added platform-neutral `IconSymbol` and custom `IconData` APIs with flexible placement and automatic sizing; added `DaisyLoginButton` with 15 localized brand presets, gallery examples, documentation, and tests.
 
+### Changed
+
+- Upgraded Avalonia package references across the library, gallery, desktop, browser, Android, iOS, capture, and test projects from `12.0.4` to `12.1.0`.
+
 ## [2.2.0] - 2026-07-04
 
 ### Added
