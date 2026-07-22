@@ -32,6 +32,7 @@
                     <Grid ColumnDefinitions="Auto,*">
                         <Border x:Name="PART_Border"
                                 Grid.Column="0"
+                                VerticalAlignment="Center"
                                 Width="{DynamicResource DaisyCheckboxMediumSize}" Height="{DynamicResource DaisyCheckboxMediumSize}"
                                 CornerRadius="{TemplateBinding CornerRadius}"
                                 BorderThickness="1"

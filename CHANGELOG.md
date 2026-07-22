@@ -6,6 +6,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.2] - 2026-07-22
+
+### Added
+
+- FlowerySizeManager: Added `GetControlHeight(DaisySize)` returning the standard single-line control height per Daisy size (24/28/32/34/36 px) as the code-side counterpart of the `DaisySize*Height` tokens, as a basis for runtime-dynamic control heights.
+
+### Changed
+
+- DaisySelect: Reduced the right padding of all three size variants (Medium/Small/ExtraSmall) from 30/26/22 to a uniform 8 px to remove dead space right of the text.
+
+### Fixed
+
+- DaisyCheckBox: The checkbox box now centers vertically within its row instead of sticking to the top.
+- DaisyTable: Star-sized columns no longer produce Infinity sizes when measured with infinite available width (e.g. inside a ScrollViewer with an Auto horizontal scrollbar), which previously invalidated the measure pass.
+- Flowery.Capture.NET: Replaced the obsolete `Bitmap.Save(Stream)` overload in `FallbackScreenCapture` with `Save(Stream, PngBitmapEncoderOptions.Default)`, resolving the CS0618 build warning without changing the PNG output.
+
 ## [2.3.1] - 2026-07-22
 
 ### Added
@@ -731,7 +747,8 @@ At least that's the plan. Happy holidays 2025!
 - Custom controls: ComponentSidebar, ModifierKeys
 - Gallery demo application
 
-[2.3.1]: https://github.com/tobitege/Flowery.NET/compare/v2.3.0...HEAD
+[2.3.2]: https://github.com/tobitege/Flowery.NET/compare/v2.3.1...HEAD
+[2.3.1]: https://github.com/tobitege/Flowery.NET/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/tobitege/Flowery.NET/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/tobitege/Flowery.NET/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/tobitege/Flowery.NET/compare/v2.0.8...v2.1.0

@@ -198,6 +198,13 @@ namespace Flowery.Controls
             double maxHeight = 0;
             int starCount = 0;
             double fixedWidth = 0;
+            var heightConstraint = double.IsFinite(availableSize.Height)
+                ? availableSize.Height
+                : double.PositiveInfinity;
+
+            // Bei unendlicher Breite (z. B. HorizontalScrollBarVisibility=Auto) dürfen
+            // Star-Spalten nicht Infinity erzeugen — Avalonia verwirft sonst das Measure.
+            var hasFiniteWidth = double.IsFinite(availableSize.Width);
 
             // First pass: measure fixed-width children and count star columns
             foreach (var child in children)
@@ -213,14 +220,18 @@ namespace Flowery.Controls
                 }
                 else // Auto
                 {
-                    child.Measure(new Size(double.PositiveInfinity, availableSize.Height));
+                    child.Measure(new Size(double.PositiveInfinity, heightConstraint));
                     fixedWidth += child.DesiredSize.Width;
                 }
             }
 
             // Calculate star width
-            double remainingWidth = Math.Max(0, availableSize.Width - fixedWidth);
-            double starWidth = starCount > 0 ? remainingWidth / starCount : 0;
+            double remainingWidth = hasFiniteWidth
+                ? Math.Max(0, availableSize.Width - fixedWidth)
+                : 0;
+            double starWidth = starCount > 0 && hasFiniteWidth
+                ? remainingWidth / starCount
+                : 0;
 
             // Second pass: measure all children with correct widths
             foreach (var child in children)
@@ -230,7 +241,15 @@ namespace Flowery.Controls
 
                 if (columnWidth.IsStar)
                 {
-                    childWidth = starWidth * columnWidth.Value;
+                    if (hasFiniteWidth)
+                    {
+                        childWidth = starWidth * columnWidth.Value;
+                    }
+                    else
+                    {
+                        child.Measure(new Size(double.PositiveInfinity, heightConstraint));
+                        childWidth = child.DesiredSize.Width;
+                    }
                 }
                 else if (columnWidth.IsAbsolute)
                 {
@@ -241,13 +260,20 @@ namespace Flowery.Controls
                     childWidth = child.DesiredSize.Width;
                 }
 
-                child.Measure(new Size(childWidth, availableSize.Height));
+                if (!(columnWidth.IsStar && !hasFiniteWidth))
+                    child.Measure(new Size(childWidth, heightConstraint));
+
                 totalWidth += childWidth;
                 maxHeight = Math.Max(maxHeight, child.DesiredSize.Height);
             }
 
+            if (!double.IsFinite(totalWidth))
+                totalWidth = 0;
+            if (!double.IsFinite(maxHeight))
+                maxHeight = 0;
+
             return new Size(
-                double.IsInfinity(availableSize.Width) ? totalWidth : availableSize.Width,
+                hasFiniteWidth ? availableSize.Width : totalWidth,
                 maxHeight);
         }
 

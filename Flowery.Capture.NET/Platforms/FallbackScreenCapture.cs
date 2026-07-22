@@ -128,7 +128,7 @@ public sealed class FallbackScreenCapture : IScreenCaptureService
             renderBitmap.Render(control);
 
             using var stream = new MemoryStream();
-            renderBitmap.Save(stream);
+            renderBitmap.Save(stream, PngBitmapEncoderOptions.Default);
             return stream.ToArray();
         }
         catch

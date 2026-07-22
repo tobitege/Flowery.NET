@@ -59,7 +59,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeMediumCornerRadius}" />
-            <Setter Property="Padding" Value="12,0,30,0" />
+            <Setter Property="Padding" Value="12,0,8,0" />
             <Setter Property="Height" Value="{DynamicResource DaisySizeMediumHeight}" />
             <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -201,13 +201,13 @@
                 <Setter Property="Height" Value="{DynamicResource DaisySizeSmallHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
                 <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
-                <Setter Property="Padding" Value="8,0,26,0" />
+                <Setter Property="Padding" Value="8,0,8,0" />
             </Style>
             <Style Selector="^[Size=ExtraSmall]">
                 <Setter Property="Height" Value="{DynamicResource DaisySizeExtraSmallHeight}" />
                 <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
                 <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraSmallCornerRadius}" />
-                <Setter Property="Padding" Value="4,2,22,2" />
+                <Setter Property="Padding" Value="4,2,8,2" />
             </Style>
 
         </ControlTheme>
