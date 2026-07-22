@@ -1241,6 +1241,35 @@
                         </StackPanel>
                     </WrapPanel>
 
+                    <!-- Keyboard Mnemonics (display only) -->
+                    <TextBlock Text="Keyboard Mnemonics" FontWeight="SemiBold" Margin="0,16,0,0" />
+                    <TextBlock Text="WinForms-style &amp; markers underline the access character; &amp;&amp; shows a literal &amp;. Display only — apps handle Alt+key themselves."
+                        Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" TextWrapping="Wrap" />
+                    <WrapPanel Orientation="Horizontal">
+                        <StackPanel Spacing="10" Margin="0,0,20,10">
+                            <TextBlock Text="Tabs" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                            <controls:DaisyTabs Variant="Boxed">
+                                <TabItem Header="&amp;Texte">
+                                    <TextBlock Text="Alt+T in your app can select this tab." Padding="10" />
+                                </TabItem>
+                                <TabItem Header="Te&amp;xt / Kalkulation">
+                                    <TextBlock Text="Alt+X in your app can select this tab." Padding="10" />
+                                </TabItem>
+                                <TabItem Header="Save &amp;&amp; Exit">
+                                    <TextBlock Text="Literal ampersand, no mnemonic." Padding="10" />
+                                </TabItem>
+                            </controls:DaisyTabs>
+                        </StackPanel>
+                        <StackPanel Spacing="10" Margin="0,0,20,10">
+                            <TextBlock Text="Menu" Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                            <controls:DaisyMenu Width="220" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="16" Padding="8">
+                                <ListBoxItem>&amp;File</ListBoxItem>
+                                <ListBoxItem>E&amp;dit</ListBoxItem>
+                                <ListBoxItem>Save &amp;&amp; Close</ListBoxItem>
+                            </controls:DaisyMenu>
+                        </StackPanel>
+                    </WrapPanel>
+
                     <!-- Tab Sizes -->
                     <TextBlock Text="Sizes" FontWeight="SemiBold" Margin="0,16,0,0" />
                     <WrapPanel Orientation="Horizontal"

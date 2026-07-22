@@ -40,6 +40,16 @@
                         </StackPanel>
 
                         <StackPanel Spacing="10" Margin="0,0,40,20">
+                            <TextBlock Text="Keyboard Mnemonics" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
+                            <TextBlock Text="&amp; marks the access character (display only)." Opacity="0.7" FontSize="12"/>
+                            <WrapPanel>
+                                <controls:DaisyButton Variant="Primary" Content="&amp;Save" Margin="4"/>
+                                <controls:DaisyButton Variant="Secondary" Content="E&amp;xit" Margin="4"/>
+                                <controls:DaisyButton Content="Save &amp;&amp; Exit" Margin="4"/>
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <StackPanel Spacing="10" Margin="0,0,40,20">
                             <TextBlock Text="Outline" FontWeight="SemiBold" FontSize="14" Opacity="0.8"/>
                             <WrapPanel>
                                 <controls:DaisyButton ButtonStyle="Outline" Content="Default" Margin="4"/>

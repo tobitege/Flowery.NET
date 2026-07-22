@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - 2026-07-22
+
+### Added
+
+- DaisyTabs, DaisyButton, DaisyMenu, and DaisyIconText: Added WinForms-style mnemonic display (`&` marks the access character with underline, `&&` is a literal `&`) via `DaisyMnemonicText` / `FloweryMnemonicHelpers`. Display only; applications handle Alt+key themselves.
+
 ## [2.3.0] - 2026-07-09
 
 ### Added
@@ -725,7 +731,10 @@ At least that's the plan. Happy holidays 2025!
 - Custom controls: ComponentSidebar, ModifierKeys
 - Gallery demo application
 
-[2.1.0]: https://github.com/tobitege/Flowery.NET/compare/v2.0.8...HEAD
+[2.3.1]: https://github.com/tobitege/Flowery.NET/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/tobitege/Flowery.NET/compare/v2.2.0...v2.3.0
+[2.2.0]: https://github.com/tobitege/Flowery.NET/compare/v2.1.0...v2.2.0
+[2.1.0]: https://github.com/tobitege/Flowery.NET/compare/v2.0.8...v2.1.0
 [2.0.8]: https://github.com/tobitege/Flowery.NET/compare/v2.0.7...v2.0.8
 [1.5.0]: https://github.com/tobitege/Flowery.NET/compare/v1.4.1...HEAD
 [1.4.1]: https://github.com/tobitege/Flowery.NET/compare/v1.4.0...v1.4.1

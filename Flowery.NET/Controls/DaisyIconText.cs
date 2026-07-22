@@ -30,6 +30,7 @@ namespace Flowery.Controls
     /// A control that displays an icon and/or text with proper scaling.
     /// Encapsulates the Viewbox-wrapping pattern for icons and FontSize for text.
     /// Can be used standalone or as content for buttons, labels, menu items, etc.
+    /// Text supports WinForms-style mnemonics (<c>&amp;</c> / <c>&amp;&amp;</c>) for display only.
     /// </summary>
     /// <remarks>
     /// Usage examples:

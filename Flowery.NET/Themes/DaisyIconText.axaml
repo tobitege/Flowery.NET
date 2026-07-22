@@ -40,7 +40,7 @@
                               Stretch="Uniform" />
                     </Viewbox>
 
-                    <TextBlock x:Name="PART_TextBlock"
+                    <controls:DaisyMnemonicText x:Name="PART_TextBlock"
                                Grid.Row="0"
                                Grid.Column="1"
                                Text="{TemplateBinding Text}"
@@ -57,17 +57,17 @@
         <Style Selector="^[IconPlacement=Right] /template/ Viewbox#PART_IconViewbox">
             <Setter Property="Grid.Column" Value="1" />
         </Style>
-        <Style Selector="^[IconPlacement=Right] /template/ TextBlock#PART_TextBlock">
+        <Style Selector="^[IconPlacement=Right] /template/ controls|DaisyMnemonicText#PART_TextBlock">
             <Setter Property="Grid.Column" Value="0" />
         </Style>
-        <Style Selector="^[IconPlacement=Top] /template/ TextBlock#PART_TextBlock">
+        <Style Selector="^[IconPlacement=Top] /template/ controls|DaisyMnemonicText#PART_TextBlock">
             <Setter Property="Grid.Row" Value="1" />
             <Setter Property="Grid.Column" Value="0" />
         </Style>
         <Style Selector="^[IconPlacement=Bottom] /template/ Viewbox#PART_IconViewbox">
             <Setter Property="Grid.Row" Value="1" />
         </Style>
-        <Style Selector="^[IconPlacement=Bottom] /template/ TextBlock#PART_TextBlock">
+        <Style Selector="^[IconPlacement=Bottom] /template/ controls|DaisyMnemonicText#PART_TextBlock">
             <Setter Property="Grid.Column" Value="0" />
         </Style>
 

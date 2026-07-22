@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Flowery.Helpers;
 using Flowery.Localization;
 using Flowery.Services;
 
@@ -129,6 +130,7 @@ namespace Flowery.Controls
     /// <summary>
     /// A styled TabControl with DaisyUI-inspired variants, sizes, and optional tab colors/context menu.
     /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// String tab headers support WinForms-style mnemonics (<c>&amp;</c> / <c>&amp;&amp;</c>) for display only.
     /// </summary>
     public class DaisyTabs : TabControl, IScalableControl
     {
@@ -142,6 +144,14 @@ namespace Flowery.Controls
         public void ApplyScaleFactor(double scaleFactor)
         {
             FontSize = Services.FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DaisyTabs"/> class.
+        /// </summary>
+        public DaisyTabs()
+        {
+            FloweryMnemonicHelpers.EnsureStringContentTemplate(this);
         }
 
         #region Attached Property: TabColor

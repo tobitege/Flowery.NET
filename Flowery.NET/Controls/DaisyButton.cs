@@ -46,6 +46,7 @@ namespace Flowery.Controls
     /// <summary>
     /// A Button control styled after DaisyUI's Button component.
     /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// String content supports WinForms-style mnemonics (<c>&amp;</c> / <c>&amp;&amp;</c>) for display only.
     /// </summary>
     public class DaisyButton : Button, IScalableControl
     {
@@ -349,6 +350,7 @@ namespace Flowery.Controls
 
         public DaisyButton()
         {
+            FloweryMnemonicHelpers.EnsureStringContentTemplate(this);
             UpdateUnifiedIconProperties();
         }
 

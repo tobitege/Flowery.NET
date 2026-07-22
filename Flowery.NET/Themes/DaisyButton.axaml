@@ -116,7 +116,7 @@
                                               Content="{TemplateBinding Content}"
                                               ContentTemplate="{TemplateBinding ContentTemplate}"
                                               TextElement.Foreground="{TemplateBinding Foreground}"
-                                              RecognizesAccessKey="True"
+                                              RecognizesAccessKey="False"
                                               IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"
                                               VerticalAlignment="Center" />
                         </Grid>

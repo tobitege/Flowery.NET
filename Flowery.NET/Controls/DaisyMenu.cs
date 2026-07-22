@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Flowery.Helpers;
 using Flowery.Services;
 
 namespace Flowery.Controls
@@ -10,6 +11,7 @@ namespace Flowery.Controls
     /// <summary>
     /// A Menu control styled after DaisyUI's Menu component.
     /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// String item content supports WinForms-style mnemonics (<c>&amp;</c> / <c>&amp;&amp;</c>) for display only.
     /// </summary>
     public class DaisyMenu : ListBox, IScalableControl
     {
@@ -21,6 +23,14 @@ namespace Flowery.Controls
         public void ApplyScaleFactor(double scaleFactor)
         {
             FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DaisyMenu"/> class.
+        /// </summary>
+        public DaisyMenu()
+        {
+            FloweryMnemonicHelpers.EnsureStringContentTemplate(this);
         }
 
         public static readonly StyledProperty<Orientation> OrientationProperty =
