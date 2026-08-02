@@ -223,7 +223,7 @@ public interface IScreenCaptureService
 ### Blurry text
 
 - You're likely using the fallback implementation
-- On Windows: Ensure `net8.0-windows` target is used
+- On Windows: Ensure the `net10.0-windows` target is used
 - On macOS: Grant Screen Recording permission
 - On Linux: Install `scrot` or `grim`
 

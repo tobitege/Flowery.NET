@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net8.0-windows</TargetFrameworks>
+    <TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <!-- Allow building net8.0-windows target on non-Windows CI (e.g., GitHub Actions on Ubuntu) -->
+    <!-- Allow building the Windows target on non-Windows CI (e.g., GitHub Actions on Ubuntu) -->
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
 
     <!-- NuGet Package Properties -->
@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <!-- Windows-specific: Enable WinForms for GDI+ screen capture -->
-  <PropertyGroup Condition="'$(TargetFramework)'=='net8.0-windows'">
+  <PropertyGroup Condition="'$(TargetFramework)'=='net10.0-windows'">
     <UseWindowsForms>true</UseWindowsForms>
     <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
   </PropertyGroup>

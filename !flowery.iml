@@ -3,7 +3,7 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/obj/Flowery.NET.Gallery.Android/Debug/net9.0-android/android/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/obj/Flowery.NET.Gallery.Android/Debug/net10.0-android/android/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
