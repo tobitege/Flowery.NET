@@ -19,10 +19,14 @@ def _repo_path(value: str) -> Path:
 
 
 def _extract_resx_keys(path: Path) -> set[str]:
+    safe_path = os.path.realpath(path)
+    if not safe_path.startswith(_REPO_ROOT + os.sep):
+        raise ValueError(f"path must stay within the repository root: {path}")
+
     try:
-        tree = ET.parse(path)
+        tree = ET.parse(safe_path)
     except ET.ParseError as e:
-        raise ValueError(f"XML parse error in {path}: {e}") from e
+        raise ValueError(f"XML parse error in {safe_path}: {e}") from e
 
     root = tree.getroot()
     keys: set[str] = set()

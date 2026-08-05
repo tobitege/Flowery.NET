@@ -191,6 +191,10 @@ def _git_files(repo_root: Path) -> list[Path]:
 
 
 def _walk_files(repo_root: Path, debug: bool = False) -> list[Path]:
+    safe_root = os.path.realpath(repo_root) + os.sep
+    if not safe_root.startswith(_REPO_ROOT + os.sep):
+        raise ValueError(f"path must stay within the repository root: {repo_root}")
+
     skip_dirs = {
         ".git",
         ".vs",
@@ -204,7 +208,7 @@ def _walk_files(repo_root: Path, debug: bool = False) -> list[Path]:
         "packages",
     }
     files: list[Path] = []
-    for root, dirs, filenames in os.walk(repo_root):
+    for root, dirs, filenames in os.walk(safe_root):
         root_path = Path(root)
         
         if debug:
