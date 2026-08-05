@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui"
+﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -23,12 +23,16 @@
                             <Border Grid.Row="0" Margin="8,8,20,8">
                                 <controls:DaisyInput x:Name="PART_SearchInput"
                                                      PlaceholderText="Search components..."
+                                                     AutomationProperties.Name="Search components"
+                                                     AutomationProperties.AutomationId="FlowerySidebar_Search"
                                                      Text="{TemplateBinding SearchText, Mode=TwoWay}"
                                                      Variant="Bordered"
                                                      Classes="sidebar-search">
                                     <controls:DaisyInput.InnerRightContent>
                                         <Button x:Name="PART_ClearButton"
                                                 Classes="sidebar-search-clear"
+                                                AutomationProperties.Name="Clear search"
+                                                AutomationProperties.AutomationId="FlowerySidebar_ClearSearch"
                                                 Background="Transparent"
                                                 BorderThickness="0"
                                                 Padding="8,0,12,0"
@@ -124,6 +128,7 @@
 
                                                             <DataTemplate x:DataType="controls:SidebarItem">
                                                                 <Button Classes="sidebar-item"
+                                                                        AutomationProperties.Name="{Binding DisplayName}"
                                                                         Classes.selected="{Binding IsSelected}"
                                                                         Tag="{Binding}"
                                                                         HorizontalAlignment="Stretch"
@@ -137,6 +142,8 @@
                                                                         <!-- Favorite Star Button -->
                                                                         <Button Grid.Column="1"
                                                                             Classes="sidebar-favorite-btn"
+                                                                            AutomationProperties.Name="{Binding DisplayName}"
+                                                                            AutomationProperties.HelpText="Toggle favorite"
                                                                             Tag="{Binding}"
                                                                             Background="Transparent"
                                                                             BorderThickness="0"

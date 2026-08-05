@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
@@ -8,6 +9,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Flowery.Enums;
 using Flowery.Helpers;
+using Flowery.Localization;
 using Flowery.Services;
 
 namespace Flowery.Controls
@@ -165,6 +167,7 @@ namespace Flowery.Controls
             _previousButton = e.NameScope.Find<Button>("PART_PreviousButton");
             _nextButton = e.NameScope.Find<Button>("PART_NextButton");
             _slideContainer = e.NameScope.Find<Panel>("PART_SlideContainer");
+            UpdateNavigationAutomationProperties();
 
             if (_previousButton != null) _previousButton.Click += OnPreviousClick;
             if (_nextButton != null) _nextButton.Click += OnNextClick;
@@ -194,6 +197,14 @@ namespace Flowery.Controls
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
+
+            if (change.Property == AutomationProperties.HelpTextProperty
+                || change.Property == AutomationProperties.LabeledByProperty
+                || change.Property == AutomationProperties.AutomationIdProperty
+                || change.Property == AutomationProperties.IsRequiredForFormProperty)
+            {
+                UpdateNavigationAutomationProperties();
+            }
 
             if (change.Property == SelectedIndexProperty)
             {
@@ -228,6 +239,31 @@ namespace Flowery.Controls
                     _slideshowController.WrapAround = WrapAround;
                 }
                 UpdateButtonVisibility();
+            }
+        }
+
+        private void UpdateNavigationAutomationProperties()
+        {
+            if (_previousButton != null)
+            {
+                DaisyAccessibility.ApplyAutomationProperties(
+                    this,
+                    _previousButton,
+                    FloweryLocalization.GetStringInternal(
+                        "Accessibility_PreviousSlide",
+                        "Previous slide"),
+                    automationIdSuffix: "previous");
+            }
+
+            if (_nextButton != null)
+            {
+                DaisyAccessibility.ApplyAutomationProperties(
+                    this,
+                    _nextButton,
+                    FloweryLocalization.GetStringInternal(
+                        "Accessibility_NextSlide",
+                        "Next slide"),
+                    automationIdSuffix: "next");
             }
         }
 

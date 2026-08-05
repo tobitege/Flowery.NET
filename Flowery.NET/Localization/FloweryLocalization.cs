@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -47,7 +47,12 @@ namespace Flowery.Localization
         };
 
         private static CultureInfo _currentCulture = CultureInfo.CurrentUICulture;
+        private static readonly object _registrationLock = new();
         private static readonly Dictionary<string, Dictionary<string, string>> _translations = new();
+        private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> _translationSnapshot =
+            new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal);
+        private static readonly HashSet<Assembly> _registeredAssemblies = new();
+        private static readonly HashSet<string> _loadedResources = new(StringComparer.Ordinal);
         private static readonly Lazy<FloweryLocalization> _instance = new(() => new FloweryLocalization());
 
         /// <summary>
@@ -67,9 +72,7 @@ namespace Flowery.Localization
 
         static FloweryLocalization()
         {
-            // Load all available translations from embedded JSON resources
-            foreach (var lang in SupportedLanguages)
-                LoadTranslation(lang);
+            RegisterAssembly(typeof(FloweryLocalization).Assembly);
         }
 
         private FloweryLocalization()
@@ -80,12 +83,12 @@ namespace Flowery.Localization
         /// <summary>
         /// Gets the current UI culture used for localization.
         /// </summary>
-        public static CultureInfo CurrentCulture => _currentCulture;
+        public static CultureInfo CurrentCulture => Volatile.Read(ref _currentCulture);
 
         /// <summary>
         /// Gets whether the current culture is Right-To-Left.
         /// </summary>
-        public bool IsRtl => _currentCulture.TextInfo.IsRightToLeft;
+        public bool IsRtl => Volatile.Read(ref _currentCulture).TextInfo.IsRightToLeft;
 
         /// <summary>
         /// Indexer to support XAML markup extension bindings.
@@ -102,15 +105,14 @@ namespace Flowery.Localization
             if (culture == null)
                 throw new ArgumentNullException(nameof(culture));
 
-            if (_currentCulture.Name == culture.Name)
+            if (Volatile.Read(ref _currentCulture).Name == culture.Name)
                 return;
 
-            _currentCulture = culture;
+            Volatile.Write(ref _currentCulture, culture);
 
-            // Set culture at multiple levels
+            // Keep CurrentCulture unchanged so regional number and date formats remain intact.
             Thread.CurrentThread.CurrentUICulture = culture;
             CultureInfo.DefaultThreadCurrentUICulture = culture;
-            CultureInfo.DefaultThreadCurrentCulture = culture;
 
             CultureChanged?.Invoke(null, culture);
 
@@ -145,28 +147,24 @@ namespace Flowery.Localization
         /// <returns>The localized string, or the key if not found.</returns>
         internal static string GetStringInternal(string key)
         {
-            try
-            {
-                // Try exact culture match first (e.g., "de-DE")
-                if (_translations.TryGetValue(_currentCulture.Name, out var exactDict) && exactDict.TryGetValue(key, out var exactValue))
-                    return exactValue;
+            var culture = Volatile.Read(ref _currentCulture);
+            var translations = Volatile.Read(ref _translationSnapshot);
 
-                // Try language-only match (e.g., "de")
-                var languageCode = _currentCulture.TwoLetterISOLanguageName;
-                if (_translations.TryGetValue(languageCode, out var langDict) && langDict.TryGetValue(key, out var langValue))
-                    return langValue;
+            // Try exact culture match first (e.g., "de-DE")
+            if (translations.TryGetValue(culture.Name, out var exactDict) && exactDict.TryGetValue(key, out var exactValue))
+                return exactValue;
 
-                // Fallback to English
-                if (_translations.TryGetValue("en", out var enDict) && enDict.TryGetValue(key, out var enValue))
-                    return enValue;
+            // Try language-only match (e.g., "de")
+            var languageCode = culture.TwoLetterISOLanguageName;
+            if (translations.TryGetValue(languageCode, out var langDict) && langDict.TryGetValue(key, out var langValue))
+                return langValue;
 
-                // Return key if not found
-                return key;
-            }
-            catch
-            {
-                return key;
-            }
+            // Fallback to English
+            if (translations.TryGetValue("en", out var enDict) && enDict.TryGetValue(key, out var enValue))
+                return enValue;
+
+            // Return key if not found
+            return key;
         }
 
         /// <summary>
@@ -189,12 +187,25 @@ namespace Flowery.Localization
         /// <returns>The localized string, or the key if not found.</returns>
         public static string GetString(string key)
         {
-            // If a custom resolver is set, use it
-            if (CustomResolver != null)
-                return CustomResolver(key);
+            if (CustomResolver?.Invoke(key) is { } customValue
+                && !string.Equals(customValue, key, StringComparison.Ordinal))
+            {
+                return customValue;
+            }
 
-            // Fall back to library's internal translations
             return GetStringInternal(key);
+        }
+
+        /// <summary>
+        /// Gets a localized string by key and returns the supplied fallback when no translation exists.
+        /// </summary>
+        /// <param name="key">The resource key.</param>
+        /// <param name="fallback">The value returned when the key cannot be resolved.</param>
+        /// <returns>The localized string, or <paramref name="fallback"/>.</returns>
+        public static string GetString(string key, string fallback)
+        {
+            var value = GetString(key);
+            return string.Equals(value, key, StringComparison.Ordinal) ? fallback : value;
         }
 
         /// <summary>
@@ -211,29 +222,73 @@ namespace Flowery.Localization
             return result == key ? themeName : result;
         }
 
-        private static void LoadTranslation(string languageCode)
+        /// <summary>
+        /// Registers an assembly whose embedded Localization/*.json resources extend the shared catalog.
+        /// </summary>
+        public static void RegisterAssembly(Assembly assembly)
         {
+            ArgumentNullException.ThrowIfNull(assembly);
+            lock (_registrationLock)
+            {
+                if (!_registeredAssemblies.Add(assembly))
+                    return;
+
+                foreach (var languageCode in SupportedLanguages)
+                    LoadTranslation(assembly, languageCode);
+
+                PublishTranslationSnapshot();
+            }
+        }
+
+        private static void PublishTranslationSnapshot()
+        {
+            var snapshot = new Dictionary<string, IReadOnlyDictionary<string, string>>(
+                _translations.Count,
+                StringComparer.Ordinal);
+            foreach (var translation in _translations)
+            {
+                snapshot[translation.Key] = new Dictionary<string, string>(
+                    translation.Value,
+                    StringComparer.Ordinal);
+            }
+
+            Volatile.Write(ref _translationSnapshot, snapshot);
+        }
+
+        private static void LoadTranslation(Assembly assembly, string languageCode)
+        {
+            var resourceName = $"{assembly.GetName().Name}.Localization.{languageCode}.json";
             try
             {
-                var assembly = typeof(FloweryLocalization).Assembly;
-                var resourceName = $"Flowery.NET.Localization.{languageCode}.json";
-                
+                if (!_loadedResources.Add(resourceName))
+                    return;
+
                 using var stream = assembly.GetManifestResourceStream(resourceName);
                 if (stream == null)
                     return;
 
                 using var reader = new StreamReader(stream);
                 var json = reader.ReadToEnd();
-                
+
                 // Use source generator for AOT compatibility
                 var dict = JsonSerializer.Deserialize(json, FloweryLocalizationJsonContext.Default.DictionaryStringString);
-                
-                if (dict != null)
+
+                if (dict == null)
+                    return;
+
+                if (!_translations.TryGetValue(languageCode, out var existing))
+                {
                     _translations[languageCode] = dict;
+                    return;
+                }
+
+                foreach (var entry in dict)
+                    existing[entry.Key] = entry.Value;
             }
-            catch
+            catch (Exception ex)
             {
-                // Silently ignore - fallback to English will be used
+                System.Diagnostics.Trace.TraceError(
+                    $"[FloweryLocalization] Failed to load '{resourceName}': {ex.GetType().Name} - {ex.Message}");
             }
         }
     }

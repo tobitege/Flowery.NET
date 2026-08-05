@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -12,6 +12,7 @@
     <PackageReference Include="Avalonia" Version="12.1.0" />
     <PackageReference Include="Avalonia.Headless" Version="12.1.0" />
     <PackageReference Include="Avalonia.Headless.XUnit" Version="12.1.0" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
     <PackageReference Include="xunit.v3" Version="3.2.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
@@ -23,6 +24,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Flowery.NET\Flowery.NET.csproj" />
+    <ProjectReference Include="..\Flowery.NET.Kanban\Flowery.NET.Kanban.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="LocalizationProbe.en.json"
+                      LogicalName="$(AssemblyName).Localization.en.json"
+                      WithCulture="false" />
+    <EmbeddedResource Include="LocalizationProbe.de.json"
+                      LogicalName="$(AssemblyName).Localization.de.json"
+                      WithCulture="false" />
   </ItemGroup>
 
 </Project>

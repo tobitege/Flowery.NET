@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -18,6 +18,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowery.NET.Gallery.iOS", "Flowery.NET.Gallery.iOS\Flowery.NET.Gallery.iOS.csproj", "{40A23985-4A0D-49D0-9313-85400E13E491}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowery.NET.Gallery.Browser", "Flowery.NET.Gallery.Browser\Flowery.NET.Gallery.Browser.csproj", "{D2D730EF-4EED-40E6-9267-F468E6456FD9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowery.NET.Kanban", "Flowery.NET.Kanban\Flowery.NET.Kanban.csproj", "{C01A89BF-A7D1-4B44-8A0D-A4D40569B7EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -125,6 +127,18 @@ Global
 		{D2D730EF-4EED-40E6-9267-F468E6456FD9}.Release|x64.Build.0 = Release|Any CPU
 		{D2D730EF-4EED-40E6-9267-F468E6456FD9}.Release|x86.ActiveCfg = Release|Any CPU
 		{D2D730EF-4EED-40E6-9267-F468E6456FD9}.Release|x86.Build.0 = Release|Any CPU
+		{C01A89BF-A7D1-4B44-8A0D-A4D40569B7EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C01A89BF-A7D1-4B44-8A0D-A4D40569B7EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C01A89BF-A7D1-4B44-8A0D-A4D40569B7EF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C01A89BF-A7D1-4B44-8A0D-A4D40569B7EF}.Debug|x64.Build.0 = Debug|Any CPU
+		{C01A89BF-A7D1-4B44-8A0D-A4D40569B7EF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C01A89BF-A7D1-4B44-8A0D-A4D40569B7EF}.Debug|x86.Build.0 = Debug|Any CPU
+		{C01A89BF-A7D1-4B44-8A0D-A4D40569B7EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C01A89BF-A7D1-4B44-8A0D-A4D40569B7EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C01A89BF-A7D1-4B44-8A0D-A4D40569B7EF}.Release|x64.ActiveCfg = Release|Any CPU
+		{C01A89BF-A7D1-4B44-8A0D-A4D40569B7EF}.Release|x64.Build.0 = Release|Any CPU
+		{C01A89BF-A7D1-4B44-8A0D-A4D40569B7EF}.Release|x86.ActiveCfg = Release|Any CPU
+		{C01A89BF-A7D1-4B44-8A0D-A4D40569B7EF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

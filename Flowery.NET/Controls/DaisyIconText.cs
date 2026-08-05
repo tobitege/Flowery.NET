@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -328,6 +328,9 @@ namespace Flowery.Controls
             if (EffectiveIconData == null && IconSymbol.HasValue)
                 EffectiveIconData = DaisyIconSymbolData.GetGeometry(IconSymbol.Value);
 
+            HasIcon = EffectiveIconData != null;
+            HasText = !string.IsNullOrEmpty(Text);
+
             // Compute effective icon size
             if (!double.IsNaN(IconSize))
             {
@@ -365,7 +368,11 @@ namespace Flowery.Controls
             }
 
             // Compute effective spacing
-            if (!double.IsNaN(Spacing))
+            if (!HasIcon || !HasText)
+            {
+                EffectiveSpacing = 0.0;
+            }
+            else if (!double.IsNaN(Spacing))
             {
                 EffectiveSpacing = Spacing;
             }
@@ -381,10 +388,6 @@ namespace Flowery.Controls
                     _ => 8.0
                 };
             }
-
-            // Update has icon/text
-            HasIcon = EffectiveIconData != null;
-            HasText = !string.IsNullOrEmpty(Text);
 
             // Update orientation and order based on placement
             EffectiveOrientation = IconPlacement switch
@@ -447,7 +450,7 @@ namespace Flowery.Controls
 
             EffectiveIconSize = ScaledIconSize;
             EffectiveFontSize = ScaledFontSize;
-            EffectiveSpacing = ScaledSpacing;
+            EffectiveSpacing = HasIcon && HasText ? ScaledSpacing : 0.0;
         }
 
         #endregion

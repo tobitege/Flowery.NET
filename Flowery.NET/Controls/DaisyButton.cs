@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Avalonia;
@@ -384,13 +384,13 @@ namespace Flowery.Controls
             switch (size)
             {
                 case DaisySize.ExtraSmall:
-                    return 12.0;
+                    return 8.0;
                 case DaisySize.Small:
-                    return 14.0;
+                    return 12.0;
                 case DaisySize.Large:
-                    return 18.0;
-                case DaisySize.ExtraLarge:
                     return 20.0;
+                case DaisySize.ExtraLarge:
+                    return 24.0;
                 default:
                     return 16.0;
             }
@@ -403,9 +403,7 @@ namespace Flowery.Controls
                 case DaisySize.ExtraSmall:
                     return 4.0;
                 case DaisySize.Small:
-                    return 6.0;
-                case DaisySize.ExtraLarge:
-                    return 10.0;
+                    return 4.0;
                 default:
                     return 8.0;
             }

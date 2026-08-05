@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -134,18 +134,20 @@ public sealed class MacOSScreenCapture : IScreenCaptureService
         try
         {
             // screencapture -R x,y,w,h <file>
-            var args = $"-R {region.X},{region.Y},{region.Width},{region.Height} \"{tempFile}\"";
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "screencapture",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardError = true
+            };
+            startInfo.ArgumentList.Add("-R");
+            startInfo.ArgumentList.Add($"{region.X},{region.Y},{region.Width},{region.Height}");
+            startInfo.ArgumentList.Add(tempFile);
 
             using var process = new Process
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "screencapture",
-                    Arguments = args,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardError = true
-                }
+                StartInfo = startInfo
             };
 
             process.Start();
@@ -170,16 +172,18 @@ public sealed class MacOSScreenCapture : IScreenCaptureService
     {
         try
         {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "which",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true
+            };
+            startInfo.ArgumentList.Add("screencapture");
+
             using var process = new Process
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "which",
-                    Arguments = "screencapture",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true
-                }
+                StartInfo = startInfo
             };
             process.Start();
             process.WaitForExit(1000);

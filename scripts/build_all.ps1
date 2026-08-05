@@ -13,6 +13,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$env:AVALONIA_TELEMETRY_OPTOUT = "1"
 $script:buildResults = @()
 $script:startTime = Get-Date
 
@@ -63,6 +64,7 @@ if ([string]::IsNullOrWhiteSpace($AndroidSdkDirectory)) {
 
 $captureProject = Join-Path $repoRoot "Flowery.Capture.NET/Flowery.Capture.NET.csproj"
 $floweryProject = Join-Path $repoRoot "Flowery.NET/Flowery.NET.csproj"
+$kanbanProject = Join-Path $repoRoot "Flowery.NET.Kanban/Flowery.NET.Kanban.csproj"
 $galleryProject = Join-Path $repoRoot "Flowery.NET.Gallery/Flowery.NET.Gallery.csproj"
 $desktopProject = Join-Path $repoRoot "Flowery.NET.Gallery.Desktop/Flowery.NET.Gallery.Desktop.csproj"
 $browserProject = Join-Path $repoRoot "Flowery.NET.Gallery.Browser/Flowery.NET.Gallery.Browser.csproj"
@@ -77,6 +79,7 @@ if ([string]::IsNullOrWhiteSpace($androidTargetFramework)) {
 
 Invoke-Step "Build: Flowery.Capture.NET" "dotnet build `"$captureProject`" -c $Configuration"
 Invoke-Step "Build: Flowery.NET" "dotnet build `"$floweryProject`" -c $Configuration"
+Invoke-Step "Build: Flowery.NET.Kanban" "dotnet build `"$kanbanProject`" -c $Configuration"
 Invoke-Step "Build: Flowery.NET.Gallery" "dotnet build `"$galleryProject`" -c $Configuration"
 Invoke-Step "Build: Flowery.NET.Gallery.Desktop" "dotnet build `"$desktopProject`" -c $Configuration"
 Invoke-Step "Build: Flowery.NET.Gallery.Browser" "dotnet build `"$browserProject`" -c $Configuration"

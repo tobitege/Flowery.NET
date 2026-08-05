@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Flowery.Services
 {
@@ -20,6 +20,20 @@ namespace Flowery.Services
         /// </summary>
         /// <param name="key">Storage key</param>
         /// <param name="lines">Lines of state data to persist</param>
+        /// <remarks>Implementations must propagate failures to the caller.</remarks>
         void SaveLines(string key, IEnumerable<string> lines);
+
+        /// <summary>Deletes the value stored under <paramref name="key"/>.</summary>
+        /// <remarks>Implementations must propagate failures to the caller.</remarks>
+        void Delete(string key);
+
+        /// <summary>Moves a stored value to a new key.</summary>
+        /// <remarks>
+        /// Implementations must propagate failures to the caller, including a missing source value.
+        /// </remarks>
+        void Rename(string sourceKey, string targetKey);
+
+        /// <summary>Returns stored keys that start with <paramref name="prefix"/>.</summary>
+        IEnumerable<string> GetKeys(string prefix);
     }
 }

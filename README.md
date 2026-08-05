@@ -36,7 +36,7 @@ This library provides native Avalonia controls that mimic the utility-first, sem
 - **Runtime Theme Switching**: Use `DaisyThemeDropdown` to switch themes at runtime.
 - **Localization Support**: Built-in i18n with **12 languages** (🇺🇸 🇩🇪 🇫🇷 🇪🇸 🇮🇹 🇨🇳 🇰🇷 🇯🇵 🇸🇦 🇹🇷 🇺🇦 🇮🇱), localizable theme names, and runtime language switching. [📖 Guide](LOCALIZATION.md)
 - **Variants**: Supports `Primary`, `Secondary`, `Accent`, `Ghost`, etc.
-- **Framework Support**: Library targets `.NET 8.0+` and Avalonia `12.0+`.
+- **Framework Support**: Libraries target `.NET 10.0+` and Avalonia `12.0+`.
 - **Gallery App**: Multi-platform demo application showcasing all controls and features (Desktop, Browser/WASM, Android, iOS).
 
 **Note:** I'm looking for feedback on iOS builds, I don't have any (physical) environment to test this!
@@ -51,7 +51,13 @@ for code examples and comments!
 1. Install the NuGet package:
 
 ```bash
-dotnet add package Flowery.NET
+dotnet add package Flowery.NET --version 3.0.0
+```
+
+For the optional Kanban board package, also install:
+
+```bash
+dotnet add package Flowery.NET.Kanban --version 3.0.0
 ```
 
 1. Add to your `App.axaml`:
@@ -188,7 +194,9 @@ Controls that convey state visually include built-in screen reader support via `
 <daisy:DaisyProgress Value="45" AccessibleText="Upload progress" />
 ```
 
-Supported: `DaisyLoading`, `DaisyProgress`, `DaisyRadialProgress`, `DaisyStatusIndicator`, `DaisyCountdown`, `DaisySkeleton`, `DaisyRating`.
+Supported custom peers: `DaisyLoading`, `DaisyProgress`, `DaisyRadialProgress`, `DaisyStatusIndicator`, `DaisyCountdown`, `DaisySkeleton`, `DaisyRating`, and `DaisyNumberFlow`.
+
+Composite inputs such as `DaisyPasswordBox`, `DaisyNumericUpDown`, and `DaisyOtpInput` forward UI Automation names, help text, labels, required state, and caller-provided automation IDs to their focusable template children. Icon-only navigation and value-action buttons also expose explicit accessible names.
 
 ### Utility Controls
 
@@ -205,6 +213,27 @@ Supported: `DaisyLoading`, `DaisyProgress`, `DaisyRadialProgress`, `DaisyStatusI
 - **OTP Input** (`DaisyOtpInput`): Multi-slot verification-code/OTP input with animated focus transitions and auto-advance.
 - **Popover** (`DaisyPopover`): Popup-based popover control for rich hover/click content.
 - **Tag Picker** (`DaisyTagPicker`): Multi-select chip/tag picker with add/remove icons.
+
+### Kanban Board
+
+`Flowery.NET.Kanban` is a separate companion package containing the complete native Avalonia Kanban project. It includes board, home, user-management, archive, statistics, filtering, swimlane, WIP-limit, bulk-edit, JSON-persistence, keyboard, zoom, and drag-and-drop workflows. Board landmarks, cards, columns, form fields, and icon-only tool buttons expose localized UI Automation names and stable IDs where the element has a durable identity.
+
+Add its styles after `DaisyUITheme`:
+
+```xml
+<Application.Styles>
+    <daisy:DaisyUITheme />
+    <StyleInclude Source="avares://Flowery.NET.Kanban/Themes/Generic.axaml" />
+</Application.Styles>
+```
+
+Then use the board control in a view:
+
+```xml
+xmlns:kanban="clr-namespace:Flowery.NET.Kanban.Controls;assembly=Flowery.NET.Kanban"
+
+<kanban:FlowKanban Board="{Binding Board}" />
+```
 
 ### Glass Effect
 
@@ -329,6 +358,7 @@ The Gallery demo application uses a **multi-platform architecture** to showcase 
 
 | Project | Description |
 | ------- | ----------- |
+| `Flowery.NET.Kanban` | Reusable Kanban controls, models, dialogs, localization, and persistence |
 | `Flowery.NET.Gallery` | Shared library containing all UI, views, and examples |
 | `Flowery.NET.Gallery.Desktop` | Desktop host for Windows, Linux, and macOS |
 | `Flowery.NET.Gallery.Browser` | WebAssembly host for running in browsers |
@@ -372,7 +402,7 @@ For details and parameters, see `scripts/README.md`.
 
 **To use the library:**
 
-- .NET 8.0 or later
+- .NET 10.0 or later
 - Avalonia UI 12.0 or later
 
 **To build from source:**

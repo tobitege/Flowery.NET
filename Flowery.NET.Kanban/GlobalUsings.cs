@@ -1,0 +1,46 @@
+﻿// Global using directives for the Kanban project
+global using System;
+global using System.Collections.Generic;
+global using System.Collections.ObjectModel;
+global using System.Collections.Specialized;
+global using System.ComponentModel;
+global using System.Globalization;
+global using System.Linq;
+global using System.Runtime.CompilerServices;
+global using System.Text.Json;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using System.Windows.Input;
+
+global using Avalonia;
+global using Avalonia.Animation;
+global using Avalonia.Automation;
+global using Avalonia.Automation.Peers;
+global using Avalonia.Automation.Provider;
+global using Avalonia.Controls;
+global using Avalonia.Controls.Presenters;
+global using Avalonia.Controls.Primitives;
+global using Avalonia.Controls.Shapes;
+global using Avalonia.Controls.Templates;
+global using Avalonia.Data;
+global using Avalonia.Data.Converters;
+global using Avalonia.Input;
+global using Avalonia.Input.Platform;
+global using Avalonia.Interactivity;
+global using Avalonia.Layout;
+global using Avalonia.Media;
+global using Avalonia.Media.Imaging;
+global using Avalonia.Platform.Storage;
+global using Avalonia.Styling;
+global using Avalonia.Threading;
+global using Avalonia.VisualTree;
+global using Color = Avalonia.Media.Color;
+global using FontWeights = Avalonia.Media.FontWeight;
+global using Orientation = Avalonia.Layout.Orientation;
+global using Path = Avalonia.Controls.Shapes.Path;
+
+global using Flowery.Controls;
+global using Flowery.Helpers;
+global using Flowery.Localization;
+global using Flowery.Services;
+global using Flowery.Theming;

@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -60,9 +60,21 @@
         <Style Selector="^[IconPlacement=Right] /template/ controls|DaisyMnemonicText#PART_TextBlock">
             <Setter Property="Grid.Column" Value="0" />
         </Style>
+        <Style Selector="^[IconPlacement=Left] /template/ Grid#PART_Root">
+            <Setter Property="RowSpacing" Value="0" />
+        </Style>
+        <Style Selector="^[IconPlacement=Right] /template/ Grid#PART_Root">
+            <Setter Property="RowSpacing" Value="0" />
+        </Style>
+        <Style Selector="^[IconPlacement=Top] /template/ Grid#PART_Root">
+            <Setter Property="ColumnSpacing" Value="0" />
+        </Style>
         <Style Selector="^[IconPlacement=Top] /template/ controls|DaisyMnemonicText#PART_TextBlock">
             <Setter Property="Grid.Row" Value="1" />
             <Setter Property="Grid.Column" Value="0" />
+        </Style>
+        <Style Selector="^[IconPlacement=Bottom] /template/ Grid#PART_Root">
+            <Setter Property="ColumnSpacing" Value="0" />
         </Style>
         <Style Selector="^[IconPlacement=Bottom] /template/ Viewbox#PART_IconViewbox">
             <Setter Property="Grid.Row" Value="1" />

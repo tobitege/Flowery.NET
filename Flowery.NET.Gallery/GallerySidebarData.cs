@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using Flowery.Controls;
 
 namespace Flowery.NET.Gallery;
@@ -200,6 +200,7 @@ public static class GallerySidebarData
                 IconKey = "DaisyIconSun",
                 Items =
                 [
+                    new SidebarItem { Id = "flow-kanban", Name = "Sidebar_FlowKanban", TabHeader = "Sidebar_FlowKanban" },
                     new SidebarItem { Id = "scaling", Name = "Sidebar_ScalingItem", TabHeader = "Sidebar_Scaling" },
                     new SidebarItem { Id = "size-dropdown", Name = "Sidebar_SizeDropdown", TabHeader = "Sidebar_CustomControls" },
                     new SidebarItem { Id = "modifier-keys", Name = "Sidebar_ModifierKeys", TabHeader = "Sidebar_CustomControls" },

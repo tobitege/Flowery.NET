@@ -142,17 +142,10 @@ function handleHashNavigation() {
             `categories/${hash}.html`
         ];
 
-        // Find matching sidebar link and click it
-        for (const path of possiblePaths) {
-            const matchingLink = document.querySelector(`.sidebar a[href="${path}"]`);
-            if (matchingLink) {
-                matchingLink.click();
-                return;
-            }
-        }
-
-        // Fallback: try to load directly
-        iframe.src = `${hash}.html`;
+        // Only navigate to a generated page that is present in the sidebar.
+        const matchingLink = Array.from(links)
+            .find(link => possiblePaths.includes(link.getAttribute('href')));
+        matchingLink?.click();
     }
 }
 

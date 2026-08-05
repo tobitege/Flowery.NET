@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Flowery.NET\Flowery.NET.csproj" />
+    <ProjectReference Include="..\Flowery.NET.Kanban\Flowery.NET.Kanban.csproj" />
     <ProjectReference Include="..\Flowery.Capture.NET\Flowery.Capture.NET.csproj" />
   </ItemGroup>
 

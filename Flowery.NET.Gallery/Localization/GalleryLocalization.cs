@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -66,7 +66,6 @@ namespace Flowery.NET.Gallery.Localization
 
             Thread.CurrentThread.CurrentUICulture = culture;
             CultureInfo.DefaultThreadCurrentUICulture = culture;
-            CultureInfo.DefaultThreadCurrentCulture = culture;
 
             CultureChanged?.Invoke(null, culture);
 

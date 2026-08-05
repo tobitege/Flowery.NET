@@ -6,6 +6,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-08-02
+
+`Flowery.NET.Kanban` is a reusable companion package for embedding complete task-board workflows in Avalonia applications. It combines the board UI, models, dialogs, persistence, localization, and accessibility semantics and integrates with the Flowery.NET theme and controls.
+
+### Kanban main features
+
+- Standard, compact, and swimlane layouts with adaptive sizing, zoom, and collapsible and resizable columns.
+- Rich task editing for priorities, assignees, tags, scheduling and due dates, progress, subtasks, blocked state, and archive history.
+- Task and column drag-and-drop and reordering, keyboard shortcuts, and optional undo/redo command history.
+- Search and advanced filters, column and swimlane WIP limits, multi-selection, bulk operations, board statistics, and automatic archiving.
+- Board home and management workflows for boards, columns, tasks, settings, users, archive, statistics, filtering, and keyboard help.
+- JSON import/export, pluggable board persistence, debounced autosave, and scoped board and per-user settings for desktop and browser hosts.
+- Localization for 12 languages and semantic UI Automation support for boards, columns, cards, tool buttons, and form controls.
+
+### Added
+
+- Added the `Flowery.NET.Kanban` companion package as a native Avalonia port of the complete `Flowery.Uno.Kanban` project.
+- Added a Gallery example and behavior coverage for Kanban defaults, filtering, selection, movement, WIP enforcement, persistence, layout, archive, drop-index behavior, and measured Uno/Avalonia control geometry.
+- Added UI Automation coverage for composite core inputs, Number Flow, icon-only navigation/value actions, Kanban board landmarks, cards, columns, tool buttons, and form inputs.
+
+### Changed
+
+- Raised every project to .NET 10 and the repository/package version to `3.0.0`.
+- Added the Kanban project to the solution, Gallery hosts, tests, and documented build entry points.
+- Disabled Avalonia build telemetry in the local build scripts via the official `AVALONIA_TELEMETRY_OPTOUT` environment variable.
+
+### Refactored
+
+- Consolidated repeated Kanban control, dialog, resource, visual-tree, dispatcher, layout, and property patterns into shared helpers and reused Flowery.NET controls and services where applicable.
+- Centralized scoped state-storage key composition in the core library for reuse by Kanban board and per-user settings persistence.
+- Centralized propagation of UI Automation name, help text, label, required state, and caller-provided IDs from composite controls to their focusable children.
+
+### Fixed
+
+- Matched Uno button heights, fonts, padding, icon metrics, and square/circle sizing in the shared core theme; runtime layout tests now measure natural text-button widths, equal Kanban tool-button sides, alignment, and icon centering.
+- Registered Kanban localization resources when the assembly loads and made unresolved application localization keys fall back to registered library resources, preventing raw `Kanban_*` keys in the Gallery.
+- Prevented board filtering from looking up template parts through a detached parent name scope while item containers are being cleared.
+- Added the missing localized `Common_*` resources used by Kanban actions so automation names and visible labels no longer expose raw keys such as `Common_Delete`.
+- Pinned workflow action references to immutable commit SHAs, reduced workflow token permissions, and added weekly Dependabot coverage for GitHub Actions.
+- Prevented release workflow command injection by validating supported inputs and passing user-provided values through environment variables instead of interpolating them into shell scripts.
+
 ## [2.3.2] - 2026-07-22
 
 ### Added
@@ -747,7 +788,8 @@ At least that's the plan. Happy holidays 2025!
 - Custom controls: ComponentSidebar, ModifierKeys
 - Gallery demo application
 
-[2.3.2]: https://github.com/tobitege/Flowery.NET/compare/v2.3.1...HEAD
+[3.0.0]: https://github.com/tobitege/Flowery.NET/compare/v2.3.2...HEAD
+[2.3.2]: https://github.com/tobitege/Flowery.NET/compare/v2.3.1...v2.3.2
 [2.3.1]: https://github.com/tobitege/Flowery.NET/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/tobitege/Flowery.NET/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/tobitege/Flowery.NET/compare/v2.1.0...v2.2.0

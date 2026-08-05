@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -37,14 +37,43 @@ namespace Flowery.Services
 
         public void SaveLines(string key, IEnumerable<string> lines)
         {
+            Directory.CreateDirectory(_baseDir);
+            var filePath = GetFilePath(key);
+            File.WriteAllLines(filePath, lines.ToArray());
+        }
+
+        public void Delete(string key)
+        {
+            File.Delete(GetFilePath(key));
+        }
+
+        public void Rename(string sourceKey, string targetKey)
+        {
+            var sourcePath = GetFilePath(sourceKey);
+            Directory.CreateDirectory(_baseDir);
+            var targetPath = GetFilePath(targetKey);
+            File.Move(sourcePath, targetPath, true);
+        }
+
+        public IEnumerable<string> GetKeys(string prefix)
+        {
             try
             {
-                Directory.CreateDirectory(_baseDir);
-                var filePath = GetFilePath(key);
-                File.WriteAllLines(filePath, lines.ToArray());
+                if (!Directory.Exists(_baseDir))
+                    return Array.Empty<string>();
+
+                var prefixValue = prefix ?? string.Empty;
+                return Directory.EnumerateFiles(_baseDir, "*.state")
+                    .Select(Path.GetFileNameWithoutExtension)
+                    .Where(key => !string.IsNullOrWhiteSpace(key)
+                        && key.StartsWith(prefixValue, StringComparison.Ordinal)
+                        && !key.EndsWith(".tmp", StringComparison.Ordinal))
+                    .Select(key => key!)
+                    .ToArray();
             }
             catch
             {
+                return Array.Empty<string>();
             }
         }
 

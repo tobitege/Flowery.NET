@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -15,6 +15,7 @@ namespace Flowery.Controls
         protected override Type StyleKeyOverride => typeof(DaisyPopover);
 
         private Control? _target;
+        private Button? _triggerButton;
 
         /// <summary>
         /// Defines the <see cref="TriggerContent"/> property.
@@ -155,16 +156,53 @@ namespace Flowery.Controls
         {
             base.OnApplyTemplate(e);
 
-            if (_target != null)
+            DetachTargetHandlers();
+            _target = e.NameScope.Find<Control>("PART_Target");
+            AttachTargetHandlers();
+        }
+
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            base.OnPropertyChanged(change);
+
+            if (change.Property == TriggerContentProperty && _target is not null)
             {
-                _target.RemoveHandler(InputElement.PointerPressedEvent, OnTargetPointerPressed);
+                DetachTargetHandlers();
+                AttachTargetHandlers();
+            }
+        }
+
+        private void AttachTargetHandlers()
+        {
+            if (_target is null) return;
+
+            if (TriggerContent is Button button)
+            {
+                _triggerButton = button;
+                _triggerButton.Click += OnTriggerButtonClick;
+                return;
             }
 
-            _target = e.NameScope.Find<Control>("PART_Target");
-            if (_target != null)
+            _target.AddHandler(InputElement.PointerPressedEvent, OnTargetPointerPressed, RoutingStrategies.Bubble,
+                handledEventsToo: true);
+        }
+
+        private void DetachTargetHandlers()
+        {
+            _target?.RemoveHandler(InputElement.PointerPressedEvent, OnTargetPointerPressed);
+
+            if (_triggerButton is not null)
             {
-                // Important: Buttons mark pointer events handled; we still want to toggle.
-                _target.AddHandler(InputElement.PointerPressedEvent, OnTargetPointerPressed, RoutingStrategies.Bubble, handledEventsToo: true);
+                _triggerButton.Click -= OnTriggerButtonClick;
+                _triggerButton = null;
+            }
+        }
+
+        private void OnTriggerButtonClick(object? sender, RoutedEventArgs e)
+        {
+            if (ToggleOnClick)
+            {
+                IsOpen = !IsOpen;
             }
         }
 

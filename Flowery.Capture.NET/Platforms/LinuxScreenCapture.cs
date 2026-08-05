@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -138,28 +138,32 @@ public sealed class LinuxScreenCapture : IScreenCaptureService
 
         try
         {
-            string args;
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = _captureTool,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardError = true
+            };
+
             if (_displayServer == DisplayServer.Wayland)
             {
                 // grim -g "x,y wxh" <file>
-                args = $"-g \"{region.X},{region.Y} {region.Width}x{region.Height}\" \"{tempFile}\"";
+                startInfo.ArgumentList.Add("-g");
+                startInfo.ArgumentList.Add($"{region.X},{region.Y} {region.Width}x{region.Height}");
             }
             else
             {
                 // scrot -a x,y,w,h <file>
-                args = $"-a {region.X},{region.Y},{region.Width},{region.Height} \"{tempFile}\"";
+                startInfo.ArgumentList.Add("-a");
+                startInfo.ArgumentList.Add($"{region.X},{region.Y},{region.Width},{region.Height}");
             }
+
+            startInfo.ArgumentList.Add(tempFile);
 
             using var process = new Process
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = _captureTool,
-                    Arguments = args,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardError = true
-                }
+                StartInfo = startInfo
             };
 
             process.Start();
@@ -221,16 +225,18 @@ public sealed class LinuxScreenCapture : IScreenCaptureService
     {
         try
         {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "which",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true
+            };
+            startInfo.ArgumentList.Add(tool);
+
             using var process = new Process
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "which",
-                    Arguments = tool,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true
-                }
+                StartInfo = startInfo
             };
             process.Start();
             process.WaitForExit(1000);

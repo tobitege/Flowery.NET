@@ -1,15 +1,25 @@
-using System;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Text.Json;
 using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Flowery.Controls;
 using Flowery.Localization;
+using Flowery.NET.Kanban.Controls;
 using Xunit;
 
 namespace Flowery.NET.Tests
 {
+    [CollectionDefinition("LocalizationTests", DisableParallelization = true)]
+    public sealed class LocalizationTestCollection
+    {
+    }
+
     // Run sequentially to avoid culture interference
     [Collection("LocalizationTests")]
     public class LocalizationTests : IDisposable
@@ -27,7 +37,7 @@ namespace Flowery.NET.Tests
             FloweryLocalization.SetCulture(_originalCulture);
         }
 
-        [Fact]
+        [AvaloniaFact]
         public void GetString_WithDefaultCulture_ReturnsEnglishValue()
         {
             // Arrange
@@ -40,7 +50,7 @@ namespace Flowery.NET.Tests
             Assert.Equal("Pick one", result);
         }
 
-        [Fact]
+        [AvaloniaFact]
         public void GetString_WithGermanCulture_ReturnsGermanValue()
         {
             // Arrange
@@ -53,7 +63,7 @@ namespace Flowery.NET.Tests
             Assert.Equal("Auswählen", result);
         }
 
-        [Fact]
+        [AvaloniaFact]
         public void GetString_WithUnknownKey_ReturnsKey()
         {
             // Arrange
@@ -66,7 +76,115 @@ namespace Flowery.NET.Tests
             Assert.Equal(key, result);
         }
 
-        [Fact]
+        [AvaloniaFact]
+        public void GetString_WithUnresolvedCustomValue_FallsBackToRegisteredAssembly()
+        {
+            FloweryLocalization.SetCulture("en-US");
+            FloweryLocalization.RegisterAssembly(typeof(FlowKanban).Assembly);
+            var originalResolver = FloweryLocalization.CustomResolver;
+
+            try
+            {
+                FloweryLocalization.CustomResolver = key => key;
+
+                var result = FloweryLocalization.GetString("Kanban_AddCard");
+
+                Assert.Equal("Add Card", result);
+            }
+            finally
+            {
+                FloweryLocalization.CustomResolver = originalResolver;
+            }
+        }
+
+        [AvaloniaFact]
+        public void KanbanLocalization_SingleUserNoticeIsPresentForEveryCulture()
+        {
+            const string key = "Kanban_Users_SingleUserNotice";
+            const string resourcePrefix = "Flowery.NET.Kanban.Localization.";
+            var assembly = typeof(FlowKanban).Assembly;
+            var resources = assembly.GetManifestResourceNames()
+                .Where(name => name.StartsWith(resourcePrefix, StringComparison.Ordinal))
+                .Where(name => name.EndsWith(".json", StringComparison.Ordinal))
+                .OrderBy(name => name, StringComparer.Ordinal)
+                .ToArray();
+
+            Assert.Equal(12, resources.Length);
+            foreach (var resourceName in resources)
+            {
+                using var stream = assembly.GetManifestResourceStream(resourceName)
+                    ?? throw new InvalidOperationException($"Missing resource stream: {resourceName}");
+                using var document = JsonDocument.Parse(stream);
+                Assert.True(
+                    document.RootElement.TryGetProperty(key, out var value),
+                    $"{resourceName} does not contain {key}.");
+                Assert.False(
+                    string.IsNullOrWhiteSpace(value.GetString()),
+                    $"{resourceName} contains an empty {key} value.");
+            }
+        }
+
+        [AvaloniaFact]
+        public void RegisterAssembly_ConcurrentCallsPublishAtomicSnapshotAndLogResourceErrors()
+        {
+            const string key = "FloweryLocalization_ConcurrentProbe";
+            const string expectedValue = "Concurrent probe";
+            const string invalidResourceName = "Flowery.NET.Tests.Localization.de.json";
+            var assembly = typeof(LocalizationTests).Assembly;
+            Assert.Contains(
+                "Flowery.NET.Tests.Localization.en.json",
+                assembly.GetManifestResourceNames());
+            Assert.Contains(invalidResourceName, assembly.GetManifestResourceNames());
+            FloweryLocalization.SetCulture("en-US");
+            var observedValues = new ConcurrentBag<string>();
+            using var diagnosticWriter = new StringWriter(CultureInfo.InvariantCulture);
+            using var diagnosticListener = new TextWriterTraceListener(diagnosticWriter);
+            Trace.Listeners.Add(diagnosticListener);
+
+            try
+            {
+                System.Threading.Tasks.Parallel.For(0, 512, index =>
+                {
+                    if (index % 8 == 0)
+                    {
+                        FloweryLocalization.RegisterAssembly(assembly);
+                    }
+                    else
+                    {
+                        observedValues.Add(FloweryLocalization.GetString(key));
+                    }
+                });
+
+                FloweryLocalization.RegisterAssembly(assembly);
+                Trace.Flush();
+                diagnosticListener.Flush();
+            }
+            finally
+            {
+                Trace.Listeners.Remove(diagnosticListener);
+            }
+
+            Assert.NotEmpty(observedValues);
+            Assert.All(
+                observedValues,
+                value => Assert.True(
+                    string.Equals(value, key, StringComparison.Ordinal) ||
+                    string.Equals(value, expectedValue, StringComparison.Ordinal)));
+            Assert.Equal(expectedValue, FloweryLocalization.GetString(key));
+
+            FloweryLocalization.SetCulture("de-DE");
+            Assert.Equal(expectedValue, FloweryLocalization.GetString(key));
+
+            var diagnostics = diagnosticWriter.ToString();
+            Assert.Contains(invalidResourceName, diagnostics, StringComparison.Ordinal);
+            Assert.Contains(nameof(JsonException), diagnostics, StringComparison.Ordinal);
+            var firstOccurrence = diagnostics.IndexOf(invalidResourceName, StringComparison.Ordinal);
+            Assert.Equal(
+                firstOccurrence,
+                diagnostics.LastIndexOf(invalidResourceName, StringComparison.Ordinal));
+        }
+
+        [AvaloniaFact]
         public void SetCulture_FiresCultureChangedEvent()
         {
             // Arrange
@@ -89,7 +207,32 @@ namespace Flowery.NET.Tests
             Assert.Equal("fr-FR", FloweryLocalization.CurrentCulture.Name);
         }
 
-        [Fact]
+        [AvaloniaFact]
+        public void SetCulture_PreservesRegionalFormattingCulture()
+        {
+            var originalFormattingCulture = CultureInfo.CurrentCulture;
+            var originalDefaultFormattingCulture = CultureInfo.DefaultThreadCurrentCulture;
+
+            try
+            {
+                FloweryLocalization.SetCulture("fr-FR");
+                var regionalCulture = new CultureInfo("de-DE");
+                CultureInfo.CurrentCulture = regionalCulture;
+                CultureInfo.DefaultThreadCurrentCulture = regionalCulture;
+
+                FloweryLocalization.SetCulture("en-US");
+
+                Assert.Equal("de-DE", CultureInfo.CurrentCulture.Name);
+                Assert.Equal("de-DE", CultureInfo.DefaultThreadCurrentCulture?.Name);
+            }
+            finally
+            {
+                CultureInfo.DefaultThreadCurrentCulture = originalDefaultFormattingCulture;
+                CultureInfo.CurrentCulture = originalFormattingCulture;
+            }
+        }
+
+        [AvaloniaFact]
         public void GetThemeDisplayName_ReturnsLocalizedThemeName()
         {
             // Arrange
@@ -101,8 +244,8 @@ namespace Flowery.NET.Tests
             // Assert
             Assert.Equal("Synthwave", result);
         }
-        
-        [Fact]
+
+        [AvaloniaFact]
         public void GetThemeDisplayName_WithMissingResource_ThrowsException()
         {
             // Note: We can't easily test this without modifying the assembly's resources
@@ -110,7 +253,7 @@ namespace Flowery.NET.Tests
             // We'll skip this negative test for now or assume if we ask for a standard theme it works.
         }
 
-        [Fact]
+        [AvaloniaFact]
         public void AccessibilityStrings_AreLocalized()
         {
             // Arrange
@@ -144,14 +287,14 @@ namespace Flowery.NET.Tests
 
             // Act - Switch to German
             FloweryLocalization.SetCulture("de");
-            
+
             // Assert - Verify German (need new peer instance as they can cache)
             var peerDe = ControlAutomationPeer.CreatePeerForElement(indicator);
             Assert.Equal("Fehler", peerDe?.GetName());
 
             // Act - Switch to Spanish
             FloweryLocalization.SetCulture("es");
-            
+
             // Assert - Verify Spanish
             var peerEs = ControlAutomationPeer.CreatePeerForElement(indicator);
             Assert.Equal("Error", peerEs?.GetName()); // Spanish uses "Error"
@@ -183,7 +326,7 @@ namespace Flowery.NET.Tests
         /// Validates that all supported languages load without errors.
         /// Catches malformed .resx files or missing resources.
         /// </summary>
-        [Theory]
+        [AvaloniaTheory]
         [InlineData("de")]
         [InlineData("fr")]
         [InlineData("es")]
@@ -208,7 +351,7 @@ namespace Flowery.NET.Tests
         /// Validates that all accessibility resource keys exist in default resources.
         /// Prevents runtime errors from missing keys.
         /// </summary>
-        [Theory]
+        [AvaloniaTheory]
         [InlineData("Accessibility_Loading")]
         [InlineData("Accessibility_Progress")]
         [InlineData("Accessibility_Rating")]
@@ -222,6 +365,20 @@ namespace Flowery.NET.Tests
         [InlineData("Accessibility_StatusSecondary")]
         [InlineData("Accessibility_StatusHighlighted")]
         [InlineData("Accessibility_Countdown")]
+        [InlineData("Accessibility_NumberFlow")]
+        [InlineData("Accessibility_NumberInput")]
+        [InlineData("Accessibility_OneTimeCode")]
+        [InlineData("Accessibility_OtpDigitPosition")]
+        [InlineData("Accessibility_Password")]
+        [InlineData("Accessibility_ShowPassword")]
+        [InlineData("Accessibility_HidePassword")]
+        [InlineData("Accessibility_IncreaseValue")]
+        [InlineData("Accessibility_DecreaseValue")]
+        [InlineData("Accessibility_ClearValue")]
+        [InlineData("Accessibility_PreviousSlide")]
+        [InlineData("Accessibility_NextSlide")]
+        [InlineData("Accessibility_PreviousItem")]
+        [InlineData("Accessibility_NextItem")]
         [InlineData("Select_Placeholder")]
         public void AllAccessibilityKeys_Should_Exist(string key)
         {
@@ -236,11 +393,35 @@ namespace Flowery.NET.Tests
             Assert.NotEmpty(result);
         }
 
+        [AvaloniaTheory]
+        [InlineData("ar")]
+        [InlineData("de")]
+        [InlineData("en")]
+        [InlineData("es")]
+        [InlineData("fr")]
+        [InlineData("he")]
+        [InlineData("it")]
+        [InlineData("ja")]
+        [InlineData("ko")]
+        [InlineData("tr")]
+        [InlineData("uk")]
+        [InlineData("zh-CN")]
+        public void Kanban_Common_Automation_Labels_Should_Be_Localized(string culture)
+        {
+            FloweryLocalization.RegisterAssembly(typeof(FlowKanban).Assembly);
+            FloweryLocalization.SetCulture(culture);
+
+            var result = FloweryLocalization.GetString("Common_Delete");
+
+            Assert.NotEqual("Common_Delete", result);
+            Assert.NotEmpty(result);
+        }
+
         /// <summary>
         /// Validates that all theme names have localization entries.
         /// Uses actual themes from FloweryStrings.resx.
         /// </summary>
-        [Theory]
+        [AvaloniaTheory]
         [InlineData("Light")]
         [InlineData("Dark")]
         [InlineData("Cupcake")]

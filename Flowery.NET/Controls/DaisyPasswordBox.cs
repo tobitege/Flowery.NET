@@ -1,11 +1,13 @@
-using System;
+﻿using System;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Flowery.Localization;
 using Flowery.Services;
 
 namespace Flowery.Controls
@@ -75,6 +77,8 @@ namespace Flowery.Controls
             {
                 _revealButton.Click += OnRevealButtonClick;
             }
+
+            UpdateAutomationProperties();
         }
 
         #region Password Property
@@ -337,8 +341,17 @@ namespace Flowery.Controls
                         _innerTextBox.RevealPassword = value;
                     }
                     PseudoClasses.Set(":password-visible", value);
+                    UpdateAutomationProperties();
                 }
             }
+        }
+
+        /// <summary>
+        /// Selects the complete password text in the inner editor.
+        /// </summary>
+        public void SelectAll()
+        {
+            _innerTextBox?.SelectAll();
         }
 
         #endregion
@@ -428,6 +441,69 @@ namespace Flowery.Controls
             else if (change.Property == SizeProperty && FloweryScaleManager.GetEnableScaling(this))
             {
                 ApplyScaleFactor(FloweryScaleManager.GetScaleFactor(this));
+            }
+            else if (change.Property == LabelProperty
+                     || change.Property == WatermarkProperty
+                     || change.Property == HelperTextProperty
+                     || change.Property == HintTextProperty
+                     || change.Property == IsRequiredProperty
+                     || change.Property == AutomationProperties.NameProperty
+                     || change.Property == AutomationProperties.HelpTextProperty
+                     || change.Property == AutomationProperties.LabeledByProperty
+                     || change.Property == AutomationProperties.AutomationIdProperty
+                     || change.Property == AutomationProperties.IsRequiredForFormProperty)
+            {
+                UpdateAutomationProperties();
+            }
+        }
+
+        private void UpdateAutomationProperties()
+        {
+            if (_innerTextBox != null)
+            {
+                var inputName = AutomationProperties.GetName(this);
+                if (string.IsNullOrWhiteSpace(inputName))
+                {
+                    inputName = !string.IsNullOrWhiteSpace(Label)
+                        ? Label
+                        : !string.IsNullOrWhiteSpace(Watermark)
+                            ? Watermark
+                            : FloweryLocalization.GetStringInternal(
+                                "Accessibility_Password",
+                                "Password");
+                }
+
+                var helpText = AutomationProperties.GetHelpText(this);
+                if (string.IsNullOrWhiteSpace(helpText))
+                {
+                    helpText = !string.IsNullOrWhiteSpace(HelperText) ? HelperText : HintText;
+                }
+
+                DaisyAccessibility.ApplyAutomationProperties(
+                    this,
+                    _innerTextBox,
+                    inputName,
+                    helpText,
+                    "input");
+                AutomationProperties.SetIsRequiredForForm(
+                    _innerTextBox,
+                    IsRequired || AutomationProperties.GetIsRequiredForForm(this));
+            }
+
+            if (_revealButton != null)
+            {
+                var key = IsPasswordVisible
+                    ? "Accessibility_HidePassword"
+                    : "Accessibility_ShowPassword";
+                var fallback = IsPasswordVisible ? "Hide password" : "Show password";
+                DaisyAccessibility.ApplyAutomationProperties(
+                    this,
+                    _revealButton,
+                    FloweryLocalization.GetStringInternal(key, fallback),
+                    string.Empty,
+                    "reveal");
+                _revealButton.ClearValue(AutomationProperties.LabeledByProperty);
+                AutomationProperties.SetIsRequiredForForm(_revealButton, false);
             }
         }
 

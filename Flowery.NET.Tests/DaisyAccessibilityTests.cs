@@ -1,9 +1,12 @@
-using System;
+﻿using System;
 using System.Globalization;
+using System.Linq;
 using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Localization;
 using Xunit;
@@ -377,6 +380,208 @@ namespace Flowery.NET.Tests
             Assert.Equal("Default", result);
         }
 
+        [AvaloniaFact]
+        public void DaisyAccessibility_ApplyAutomationProperties_Should_Forward_Form_Metadata()
+        {
+            var label = new TextBlock { Text = "Account password" };
+            var source = new Border();
+            var target = new TextBox();
+            AutomationProperties.SetName(source, "Password");
+            AutomationProperties.SetHelpText(source, "At least twelve characters");
+            AutomationProperties.SetLabeledBy(source, label);
+            AutomationProperties.SetAutomationId(source, "account-password");
+            AutomationProperties.SetIsRequiredForForm(source, true);
+
+            DaisyAccessibility.ApplyAutomationProperties(
+                source,
+                target,
+                automationIdSuffix: "input");
+
+            Assert.Equal("Password", AutomationProperties.GetName(target));
+            Assert.Equal("At least twelve characters", AutomationProperties.GetHelpText(target));
+            Assert.Same(label, AutomationProperties.GetLabeledBy(target));
+            Assert.Equal("account-password-input", AutomationProperties.GetAutomationId(target));
+            Assert.True(AutomationProperties.GetIsRequiredForForm(target));
+        }
+
+        [AvaloniaFact]
+        public void DaisyNumberFlow_AutomationPeer_Should_Expose_Formatted_Value_And_Child_Actions()
+        {
+            var numberFlow = new DaisyNumberFlow
+            {
+                Value = 12.5m,
+                FormatString = "0.0",
+                Culture = CultureInfo.InvariantCulture,
+                Prefix = "$",
+                Suffix = " kg",
+                ShowControls = true
+            };
+            AutomationProperties.SetName(numberFlow, "Quantity");
+            AutomationProperties.SetAutomationId(numberFlow, "quantity");
+            var window = new Window { Content = numberFlow };
+            window.Show();
+            numberFlow.UpdateLayout();
+
+            try
+            {
+                var peer = ControlAutomationPeer.CreatePeerForElement(numberFlow);
+                var increment = GetTemplatePart<DaisyButton>(numberFlow, "PART_IncrementButton");
+                var decrement = GetTemplatePart<DaisyButton>(numberFlow, "PART_DecrementButton");
+
+                Assert.NotNull(peer);
+                Assert.Equal(AutomationControlType.Spinner, peer.GetAutomationControlType());
+                Assert.Equal("Quantity: $12.5 kg", peer.GetName());
+                Assert.Equal("Increase Quantity", AutomationProperties.GetName(increment));
+                Assert.Equal("quantity-increment", AutomationProperties.GetAutomationId(increment));
+                Assert.Equal("Decrease Quantity", AutomationProperties.GetName(decrement));
+                Assert.Equal("quantity-decrement", AutomationProperties.GetAutomationId(decrement));
+            }
+            finally
+            {
+                window.Close();
+            }
+        }
+
+        [AvaloniaFact]
+        public void DaisyPasswordBox_Should_Expose_Inner_Input_And_Reveal_Action()
+        {
+            var label = new TextBlock { Text = "Account password" };
+            var passwordBox = new DaisyPasswordBox
+            {
+                Label = "Password",
+                HelperText = "At least twelve characters",
+                IsRequired = true
+            };
+            AutomationProperties.SetAutomationId(passwordBox, "account-password");
+            AutomationProperties.SetLabeledBy(passwordBox, label);
+            var panel = new StackPanel();
+            panel.Children.Add(label);
+            panel.Children.Add(passwordBox);
+            var window = new Window { Content = panel };
+            window.Show();
+            passwordBox.UpdateLayout();
+
+            try
+            {
+                var input = GetTemplatePart<TextBox>(passwordBox, "PART_TextBox");
+                var reveal = GetTemplatePart<Button>(passwordBox, "PART_RevealButton");
+
+                Assert.Equal("Password", AutomationProperties.GetName(input));
+                Assert.Equal("At least twelve characters", AutomationProperties.GetHelpText(input));
+                Assert.Same(label, AutomationProperties.GetLabeledBy(input));
+                Assert.Equal("account-password-input", AutomationProperties.GetAutomationId(input));
+                Assert.True(AutomationProperties.GetIsRequiredForForm(input));
+                Assert.Equal("Show password", AutomationProperties.GetName(reveal));
+                Assert.Equal("account-password-reveal", AutomationProperties.GetAutomationId(reveal));
+
+                reveal.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+                Assert.Equal("Hide password", AutomationProperties.GetName(reveal));
+            }
+            finally
+            {
+                window.Close();
+            }
+        }
+
+        [AvaloniaFact]
+        public void DaisyOtpInput_Should_Expose_Positioned_Named_Slots()
+        {
+            var input = new DaisyOtpInput { Length = 4 };
+            AutomationProperties.SetName(input, "Security code");
+            AutomationProperties.SetHelpText(input, "Enter the code from your authenticator");
+            AutomationProperties.SetAutomationId(input, "security-code");
+            var slots = input.Children.OfType<TextBox>().ToArray();
+
+            Assert.Equal(4, slots.Length);
+            for (int i = 0; i < slots.Length; i++)
+            {
+                Assert.Equal(
+                    $"Security code, digit {i + 1} of 4",
+                    AutomationProperties.GetName(slots[i]));
+                Assert.Equal(
+                    $"security-code-slot-{i + 1}",
+                    AutomationProperties.GetAutomationId(slots[i]));
+                Assert.Equal(i + 1, AutomationProperties.GetPositionInSet(slots[i]));
+                Assert.Equal(4, AutomationProperties.GetSizeOfSet(slots[i]));
+                Assert.Equal(
+                    "Enter the code from your authenticator",
+                    AutomationProperties.GetHelpText(slots[i]));
+            }
+        }
+
+        [AvaloniaFact]
+        public void DaisyNumericUpDown_Should_Expose_Editor_And_Icon_Actions()
+        {
+            var numberInput = new DaisyNumericUpDown
+            {
+                PlaceholderText = "Amount",
+                ShowClearButton = true
+            };
+            AutomationProperties.SetAutomationId(numberInput, "amount");
+            var window = new Window { Content = numberInput };
+            window.Show();
+            numberInput.UpdateLayout();
+
+            try
+            {
+                var input = GetTemplatePart<TextBox>(numberInput, "PART_DaisyTextBox");
+                var increment = GetTemplatePart<Button>(numberInput, "PART_IncreaseButton");
+                var decrement = GetTemplatePart<Button>(numberInput, "PART_DecreaseButton");
+                var clear = GetTemplatePart<Button>(numberInput, "PART_ClearButton");
+
+                Assert.Equal("Amount", AutomationProperties.GetName(input));
+                Assert.Equal("amount-input", AutomationProperties.GetAutomationId(input));
+                Assert.Equal("Increase Amount", AutomationProperties.GetName(increment));
+                Assert.Equal("amount-increment", AutomationProperties.GetAutomationId(increment));
+                Assert.Equal("Decrease Amount", AutomationProperties.GetName(decrement));
+                Assert.Equal("amount-decrement", AutomationProperties.GetAutomationId(decrement));
+                Assert.Equal("Clear Amount", AutomationProperties.GetName(clear));
+                Assert.Equal("amount-clear", AutomationProperties.GetAutomationId(clear));
+            }
+            finally
+            {
+                window.Close();
+            }
+        }
+
+        [AvaloniaFact]
+        public void Navigation_Controls_Should_Name_Icon_Only_Buttons()
+        {
+            var carousel = new DaisyCarousel();
+            AutomationProperties.SetAutomationId(carousel, "gallery");
+            var window = new Window { Content = carousel };
+            window.Show();
+            carousel.UpdateLayout();
+
+            try
+            {
+                var previousSlide = GetTemplatePart<Button>(carousel, "PART_PreviousButton");
+                var nextSlide = GetTemplatePart<Button>(carousel, "PART_NextButton");
+                Assert.Equal("Previous slide", AutomationProperties.GetName(previousSlide));
+                Assert.Equal("gallery-previous", AutomationProperties.GetAutomationId(previousSlide));
+                Assert.Equal("Next slide", AutomationProperties.GetName(nextSlide));
+                Assert.Equal("gallery-next", AutomationProperties.GetAutomationId(nextSlide));
+
+                var stack = new DaisyStack { ShowNavigation = true };
+                stack.Items.Add(new Border());
+                AutomationProperties.SetAutomationId(stack, "stack");
+                window.Content = stack;
+                stack.UpdateLayout();
+
+                var previousItem = GetTemplatePart<Button>(stack, "PART_PreviousButton");
+                var nextItem = GetTemplatePart<Button>(stack, "PART_NextButton");
+                Assert.Equal("Previous item", AutomationProperties.GetName(previousItem));
+                Assert.Equal("stack-previous", AutomationProperties.GetAutomationId(previousItem));
+                Assert.Equal("Next item", AutomationProperties.GetName(nextItem));
+                Assert.Equal("stack-next", AutomationProperties.GetAutomationId(nextItem));
+            }
+            finally
+            {
+                window.Close();
+            }
+        }
+
         #endregion
 
         #region Debug Inspection Tests
@@ -447,7 +652,14 @@ namespace Flowery.NET.Tests
             Assert.True(true); // Always passes - this is for inspection only
         }
 
-        private static void PrintPeerInfo(string label, Avalonia.Controls.Control control)
+        private static T GetTemplatePart<T>(Control owner, string name) where T : Control
+        {
+            return owner.GetVisualDescendants()
+                .OfType<T>()
+                .Single(control => string.Equals(control.Name, name, StringComparison.Ordinal));
+        }
+
+        private static void PrintPeerInfo(string label, Control control)
         {
             var peer = ControlAutomationPeer.CreatePeerForElement(control);
             var separator = new string('-', 50);

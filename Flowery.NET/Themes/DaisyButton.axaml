@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -349,37 +349,13 @@
             <Setter Property="HorizontalAlignment" Value="Stretch" />
         </Style>
         <Style Selector="^[Shape=Square]">
-            <Setter Property="Width" Value="48" />
+            <Setter Property="Width" Value="{Binding Height, RelativeSource={RelativeSource Self}}" />
             <Setter Property="Padding" Value="0" />
-        </Style>
-        <Style Selector="^[Shape=Square][Size=ExtraSmall]">
-            <Setter Property="Width" Value="24" />
-        </Style>
-        <Style Selector="^[Shape=Square][Size=Small]">
-            <Setter Property="Width" Value="32" />
-        </Style>
-        <Style Selector="^[Shape=Square][Size=Large]">
-            <Setter Property="Width" Value="64" />
-        </Style>
-        <Style Selector="^[Shape=Square][Size=ExtraLarge]">
-            <Setter Property="Width" Value="80" />
         </Style>
         <Style Selector="^[Shape=Circle]">
-            <Setter Property="Width" Value="48" />
+            <Setter Property="Width" Value="{Binding Height, RelativeSource={RelativeSource Self}}" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="CornerRadius" Value="9999" />
-        </Style>
-        <Style Selector="^[Shape=Circle][Size=ExtraSmall]">
-            <Setter Property="Width" Value="24" />
-        </Style>
-        <Style Selector="^[Shape=Circle][Size=Small]">
-            <Setter Property="Width" Value="32" />
-        </Style>
-        <Style Selector="^[Shape=Circle][Size=Large]">
-            <Setter Property="Width" Value="64" />
-        </Style>
-        <Style Selector="^[Shape=Circle][Size=ExtraLarge]">
-            <Setter Property="Width" Value="80" />
         </Style>
 
         <!-- ButtonStyle: Outline (new property-based approach) -->

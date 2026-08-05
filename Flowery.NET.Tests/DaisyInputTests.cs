@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Flowery.Controls;
@@ -38,6 +38,7 @@ namespace Flowery.NET.Tests
         }
     }
 
+    [Collection("LocalizationTests")]
     public class DaisyMaskInputTests
     {
         private static void TypeText(Window window, string text)
@@ -72,7 +73,14 @@ namespace Flowery.NET.Tests
             var window = new Window { Content = input };
             window.Show();
 
-            Assert.NotNull(input);
+            try
+            {
+                Assert.NotNull(input);
+            }
+            finally
+            {
+                window.Close();
+            }
         }
 
         [AvaloniaFact]
@@ -82,11 +90,18 @@ namespace Flowery.NET.Tests
             var window = new Window { Content = input };
             window.Show();
 
-            input.Focus();
-            TypeText(window, "123456");
+            try
+            {
+                input.Focus();
+                TypeText(window, "123456");
 
-            var digits = new string((input.Text ?? string.Empty).Where(char.IsDigit).ToArray());
-            Assert.Equal("123456", digits);
+                var digits = new string((input.Text ?? string.Empty).Where(char.IsDigit).ToArray());
+                Assert.Equal("123456", digits);
+            }
+            finally
+            {
+                window.Close();
+            }
         }
 
         [AvaloniaFact]
@@ -96,14 +111,21 @@ namespace Flowery.NET.Tests
             var window = new Window { Content = input };
             window.Show();
 
-            input.Focus();
-            TypeText(window, "12ab34");
+            try
+            {
+                input.Focus();
+                TypeText(window, "12ab34");
 
-            var text = input.Text ?? string.Empty;
-            Assert.DoesNotContain(text, c => char.IsLetter(c));
+                var text = input.Text ?? string.Empty;
+                Assert.DoesNotContain(text, c => char.IsLetter(c));
 
-            var digits = new string(text.Where(char.IsDigit).ToArray());
-            Assert.Equal("1234", digits);
+                var digits = new string(text.Where(char.IsDigit).ToArray());
+                Assert.Equal("1234", digits);
+            }
+            finally
+            {
+                window.Close();
+            }
         }
 
         [AvaloniaFact]
@@ -113,11 +135,18 @@ namespace Flowery.NET.Tests
             var window = new Window { Content = input };
             window.Show();
 
-            input.Focus();
-            TypeText(window, "1234567890123456");
+            try
+            {
+                input.Focus();
+                TypeText(window, "1234567890123456");
 
-            var digits = new string((input.Text ?? string.Empty).Where(char.IsDigit).ToArray());
-            Assert.Equal("1234567890123456", digits);
+                var digits = new string((input.Text ?? string.Empty).Where(char.IsDigit).ToArray());
+                Assert.Equal("1234567890123456", digits);
+            }
+            finally
+            {
+                window.Close();
+            }
         }
 
         [AvaloniaFact]
@@ -127,11 +156,18 @@ namespace Flowery.NET.Tests
             var window = new Window { Content = input };
             window.Show();
 
-            input.Focus();
-            TypeText(window, "12345678901234567890");
+            try
+            {
+                input.Focus();
+                TypeText(window, "12345678901234567890");
 
-            var digits = new string((input.Text ?? string.Empty).Where(char.IsDigit).ToArray());
-            Assert.Equal("1234567890123456", digits);
+                var digits = new string((input.Text ?? string.Empty).Where(char.IsDigit).ToArray());
+                Assert.Equal("1234567890123456", digits);
+            }
+            finally
+            {
+                window.Close();
+            }
         }
     }
 }

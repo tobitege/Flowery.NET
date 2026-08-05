@@ -35,16 +35,21 @@ jobs:
       branch: ${{ steps.version.outputs.branch }}
       is_prerelease: ${{ steps.version.outputs.is_prerelease }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ inputs.branch }}
           fetch-depth: 0  # Need full history for tags
 
       - name: Determine version
         id: version
+        env:
+          BRANCH: ${{ inputs.branch }}
         run: |
-          # Get branch from input
-          BRANCH="${{ inputs.branch }}"
+          case "$BRANCH" in
+            avalonia12|main|alpha) ;;
+            *) echo "::error::Unsupported release branch: $BRANCH"; exit 1 ;;
+          esac
+
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
           echo "Branch: $BRANCH"
 
@@ -122,12 +127,12 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ inputs.branch }}
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           path: ./release-artifacts
 
@@ -148,6 +153,8 @@ jobs:
           echo "Created tag: ${{ needs.prepare.outputs.tag }}"
 
       - name: Build release notes
+        env:
+          RELEASE_DESCRIPTION: ${{ inputs.description }}
         run: |
           {
             # Pre-release warning (if applicable)
@@ -160,10 +167,10 @@ jobs:
             echo ""
 
             # Optional description (if provided)
-            if [ -n "${{ inputs.description }}" ]; then
+            if [ -n "$RELEASE_DESCRIPTION" ]; then
               echo "### What's Changed"
               echo ""
-              echo "${{ inputs.description }}"
+              printf '%s\n' "$RELEASE_DESCRIPTION"
               echo ""
             fi
 
@@ -201,7 +208,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
         with:
           tag_name: ${{ needs.prepare.outputs.tag }}
           name: "Gallery ${{ needs.prepare.outputs.display_version }}"

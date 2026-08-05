@@ -1,15 +1,17 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation.Easings;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Flowery.Localization;
 
 namespace Flowery.Controls
 {
@@ -171,6 +173,7 @@ namespace Flowery.Controls
             _counterTopText = e.NameScope.Find<TextBlock>("PART_CounterTop");
             _counterStartText = e.NameScope.Find<TextBlock>("PART_CounterStart");
             _counterEndText = e.NameScope.Find<TextBlock>("PART_CounterEnd");
+            UpdateNavigationAutomationProperties();
 
 
             if (_previousButton != null)
@@ -189,6 +192,14 @@ namespace Flowery.Controls
         {
             base.OnPropertyChanged(change);
 
+            if (change.Property == AutomationProperties.HelpTextProperty
+                || change.Property == AutomationProperties.LabeledByProperty
+                || change.Property == AutomationProperties.AutomationIdProperty
+                || change.Property == AutomationProperties.IsRequiredForFormProperty)
+            {
+                UpdateNavigationAutomationProperties();
+            }
+
             if (change.Property == ShowCounterProperty || change.Property == CounterPlacementProperty)
             {
                 UpdateCounter();
@@ -196,6 +207,31 @@ namespace Flowery.Controls
             else if (change.Property == StackOpacityProperty)
             {
                 UpdateItemVisibility();
+            }
+        }
+
+        private void UpdateNavigationAutomationProperties()
+        {
+            if (_previousButton != null)
+            {
+                DaisyAccessibility.ApplyAutomationProperties(
+                    this,
+                    _previousButton,
+                    FloweryLocalization.GetStringInternal(
+                        "Accessibility_PreviousItem",
+                        "Previous item"),
+                    automationIdSuffix: "previous");
+            }
+
+            if (_nextButton != null)
+            {
+                DaisyAccessibility.ApplyAutomationProperties(
+                    this,
+                    _nextButton,
+                    FloweryLocalization.GetStringInternal(
+                        "Accessibility_NextItem",
+                        "Next item"),
+                    automationIdSuffix: "next");
             }
         }
 

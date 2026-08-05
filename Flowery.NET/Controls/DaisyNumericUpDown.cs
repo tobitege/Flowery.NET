@@ -1,12 +1,14 @@
-using System;
+﻿using System;
 using System.Globalization;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Flowery.Localization;
 using Flowery.Services;
 
 namespace Flowery.Controls
@@ -402,6 +404,7 @@ namespace Flowery.Controls
             }
 
             UpdateDisplayText();
+            UpdateAutomationProperties();
         }
 
         private void OnTextBoxGotFocus(object? sender, FocusChangedEventArgs e)
@@ -552,6 +555,16 @@ namespace Flowery.Controls
         {
             base.OnPropertyChanged(change);
 
+            if (change.Property == PlaceholderTextProperty
+                || change.Property == AutomationProperties.NameProperty
+                || change.Property == AutomationProperties.HelpTextProperty
+                || change.Property == AutomationProperties.LabeledByProperty
+                || change.Property == AutomationProperties.AutomationIdProperty
+                || change.Property == AutomationProperties.IsRequiredForFormProperty)
+            {
+                UpdateAutomationProperties();
+            }
+
             // Skip updates if we're in the middle of our own value update
             if (_isUpdatingValue)
                 return;
@@ -566,6 +579,70 @@ namespace Flowery.Controls
                 if (!_isEditing)
                     UpdateDisplayText();
             }
+        }
+
+        private void UpdateAutomationProperties()
+        {
+            var inputName = AutomationProperties.GetName(this);
+            if (string.IsNullOrWhiteSpace(inputName))
+            {
+                inputName = !string.IsNullOrWhiteSpace(PlaceholderText)
+                    ? PlaceholderText
+                    : FloweryLocalization.GetStringInternal(
+                        "Accessibility_NumberInput",
+                        "Number input");
+            }
+
+            if (_textBox != null)
+            {
+                DaisyAccessibility.ApplyAutomationProperties(
+                    this,
+                    _textBox,
+                    inputName,
+                    automationIdSuffix: "input");
+            }
+
+            ApplyActionAutomationProperties(
+                _increaseButton,
+                "Accessibility_IncreaseValue",
+                "Increase {0}",
+                inputName,
+                "increment");
+            ApplyActionAutomationProperties(
+                _decreaseButton,
+                "Accessibility_DecreaseValue",
+                "Decrease {0}",
+                inputName,
+                "decrement");
+            ApplyActionAutomationProperties(
+                _clearButton,
+                "Accessibility_ClearValue",
+                "Clear {0}",
+                inputName,
+                "clear");
+        }
+
+        private void ApplyActionAutomationProperties(
+            Control? action,
+            string resourceKey,
+            string fallback,
+            string inputName,
+            string automationIdSuffix)
+        {
+            if (action == null)
+            {
+                return;
+            }
+
+            var format = FloweryLocalization.GetStringInternal(resourceKey, fallback);
+            DaisyAccessibility.ApplyAutomationProperties(
+                this,
+                action,
+                string.Format(FloweryLocalization.CurrentCulture, format, inputName),
+                string.Empty,
+                automationIdSuffix);
+            action.ClearValue(AutomationProperties.LabeledByProperty);
+            AutomationProperties.SetIsRequiredForForm(action, false);
         }
 
         private void OnTextInput(object? sender, TextInputEventArgs e)

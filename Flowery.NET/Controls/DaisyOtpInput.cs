@@ -1,9 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Avalonia;
+using Avalonia.Automation;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Flowery.Localization;
 using Flowery.Services;
 
 namespace Flowery.Controls
@@ -159,12 +162,21 @@ namespace Flowery.Controls
             SeparatorTextProperty.Changed.AddClassHandler<DaisyOtpInput>((s, _) => s.RebuildSlots());
             AcceptsOnlyDigitsProperty.Changed.AddClassHandler<DaisyOtpInput>((s, _) => s.ApplyValueToSlots());
             ValueProperty.Changed.AddClassHandler<DaisyOtpInput>((s, _) => s.ApplyValueToSlots());
+            AutomationProperties.NameProperty.Changed.AddClassHandler<DaisyOtpInput>((s, _) => s.UpdateSlotAutomationProperties());
+            AutomationProperties.HelpTextProperty.Changed.AddClassHandler<DaisyOtpInput>((s, _) => s.UpdateSlotAutomationProperties());
+            AutomationProperties.LabeledByProperty.Changed.AddClassHandler<DaisyOtpInput>((s, _) => s.UpdateSlotAutomationProperties());
+            AutomationProperties.AutomationIdProperty.Changed.AddClassHandler<DaisyOtpInput>((s, _) => s.UpdateSlotAutomationProperties());
+            AutomationProperties.IsRequiredForFormProperty.Changed.AddClassHandler<DaisyOtpInput>((s, _) => s.UpdateSlotAutomationProperties());
         }
 
         public DaisyOtpInput()
         {
             Orientation = Avalonia.Layout.Orientation.Horizontal;
             Spacing = 6;
+            AutomationProperties.SetName(
+                this,
+                FloweryLocalization.GetStringInternal("Accessibility_OneTimeCode", "One-time code"));
+            AutomationProperties.SetControlTypeOverride(this, AutomationControlType.Group);
 
             RebuildSlots();
         }
@@ -229,8 +241,45 @@ namespace Flowery.Controls
             box.TextChanged += OnSlotTextChanged;
             box.KeyDown += OnSlotKeyDown;
             box.GotFocus += OnSlotGotFocus;
+            UpdateSlotAutomationProperties(box, index);
 
             return box;
+        }
+
+        private void UpdateSlotAutomationProperties()
+        {
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                UpdateSlotAutomationProperties(_slots[i], i);
+            }
+        }
+
+        private void UpdateSlotAutomationProperties(TextBox slot, int index)
+        {
+            var groupName = AutomationProperties.GetName(this);
+            if (string.IsNullOrWhiteSpace(groupName))
+            {
+                groupName = FloweryLocalization.GetStringInternal(
+                    "Accessibility_OneTimeCode",
+                    "One-time code");
+            }
+
+            var format = FloweryLocalization.GetStringInternal(
+                "Accessibility_OtpDigitPosition",
+                "{0}, digit {1} of {2}");
+            var name = string.Format(
+                FloweryLocalization.CurrentCulture,
+                format,
+                groupName,
+                index + 1,
+                Length);
+            DaisyAccessibility.ApplyAutomationProperties(
+                this,
+                slot,
+                name,
+                automationIdSuffix: $"slot-{index + 1}");
+            AutomationProperties.SetPositionInSet(slot, index + 1);
+            AutomationProperties.SetSizeOfSet(slot, Length);
         }
 
         private void OnSlotGotFocus(object? sender, FocusChangedEventArgs e)

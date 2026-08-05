@@ -14,6 +14,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$env:AVALONIA_TELEMETRY_OPTOUT = "1"
 $script:buildResults = @()
 $script:startTime = Get-Date
 
@@ -41,6 +42,7 @@ $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 
 $captureProject = Join-Path $repoRoot "Flowery.Capture.NET/Flowery.Capture.NET.csproj"
 $floweryProject = Join-Path $repoRoot "Flowery.NET/Flowery.NET.csproj"
+$kanbanProject = Join-Path $repoRoot "Flowery.NET.Kanban/Flowery.NET.Kanban.csproj"
 $galleryProject = Join-Path $repoRoot "Flowery.NET.Gallery/Flowery.NET.Gallery.csproj"
 $desktopProject = Join-Path $repoRoot "Flowery.NET.Gallery.Desktop/Flowery.NET.Gallery.Desktop.csproj"
 $testsProject = Join-Path $repoRoot "Flowery.NET.Tests/Flowery.NET.Tests.csproj"
@@ -49,6 +51,7 @@ $noRestoreArg = if ($NoRestore) { " --no-restore" } else { "" }
 
 Invoke-Step "Build: Flowery.Capture.NET" "dotnet build `"$captureProject`" -c $Configuration$noRestoreArg"
 Invoke-Step "Build: Flowery.NET" "dotnet build `"$floweryProject`" -c $Configuration$noRestoreArg"
+Invoke-Step "Build: Flowery.NET.Kanban" "dotnet build `"$kanbanProject`" -c $Configuration$noRestoreArg"
 Invoke-Step "Build: Flowery.NET.Gallery" "dotnet build `"$galleryProject`" -c $Configuration$noRestoreArg"
 Invoke-Step "Build: Flowery.NET.Gallery.Desktop" "dotnet build `"$desktopProject`" -c $Configuration$noRestoreArg"
 
@@ -73,5 +76,3 @@ Write-Host ("  Total time: {0:mm\:ss\.ff}" -f $totalDuration) -ForegroundColor C
 Write-Host ("  Projects built: {0}" -f $script:buildResults.Count) -ForegroundColor Cyan
 Write-Host ""
 Write-Host "All builds completed successfully." -ForegroundColor Green
-
-

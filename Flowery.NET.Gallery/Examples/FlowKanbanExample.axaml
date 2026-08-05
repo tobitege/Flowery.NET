@@ -1,0 +1,39 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:kanban="clr-namespace:Flowery.NET.Kanban.Controls;assembly=Flowery.NET.Kanban"
+             x:Class="Flowery.NET.Gallery.Examples.FlowKanbanExample">
+    <Grid Margin="24,0,24,24"
+          RowDefinitions="Auto,*,Auto"
+          RowSpacing="16">
+        <TextBlock Text="A feature-rich and flexible Kanban board for task management with drag-and-drop support, column reordering, and JSON persistence. Each task card can be styled with palette colors."
+                   Opacity="0.8"
+                   TextWrapping="Wrap"
+                   controls:FlowerySizeManager.ResponsiveFont="Primary"
+                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+
+        <Border Grid.Row="1"
+                Background="{DynamicResource DaisyBase200Brush}"
+                CornerRadius="12"
+                BorderBrush="{DynamicResource DaisyBase300Brush}"
+                BorderThickness="1"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <kanban:FlowKanban x:Name="DemoKanban" />
+        </Border>
+
+        <controls:DaisyCollapse Grid.Row="2"
+                                Variant="Arrow"
+                                IsExpanded="False">
+            <controls:DaisyCollapse.Header>
+                <TextBlock Text="Kanban Features"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+            </controls:DaisyCollapse.Header>
+            <TextBlock TextWrapping="Wrap"
+                       controls:FlowerySizeManager.ResponsiveFont="Primary"
+                       Foreground="{DynamicResource DaisyBaseContentBrush}"
+                       Text="• Drag task cards between columns (with visual drop indicator)&#10;• Inline add: Click '+ Add Card' to type a new task directly&#10;• Double-click any card to edit title, description, and color&#10;• Color-coded task cards using DaisyColor palette&#10;• JSON persistence via Save/Load buttons in sidebar&#10;• Built on FlowKanbanData, FlowKanbanColumnData, and FlowTask models" />
+        </controls:DaisyCollapse>
+    </Grid>
+</UserControl>

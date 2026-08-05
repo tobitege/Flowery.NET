@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
@@ -18,8 +18,8 @@
     <!-- ==================== CONTROL HEIGHTS ==================== -->
     <!-- Used for buttons, inputs, and other fixed-height controls -->
     <!-- Heights scale modestly to accommodate font size changes -->
-    <sys:Double x:Key="DaisySizeExtraLargeHeight">36</sys:Double>
-    <sys:Double x:Key="DaisySizeLargeHeight">34</sys:Double>
+    <sys:Double x:Key="DaisySizeExtraLargeHeight">40</sys:Double>
+    <sys:Double x:Key="DaisySizeLargeHeight">36</sys:Double>
     <sys:Double x:Key="DaisySizeMediumHeight">32</sys:Double>
     <sys:Double x:Key="DaisySizeSmallHeight">28</sys:Double>
     <sys:Double x:Key="DaisySizeExtraSmallHeight">24</sys:Double>
@@ -35,11 +35,11 @@
 
     <!-- ==================== FONT SIZES ==================== -->
     <!-- Primary font sizes for main control text -->
-    <sys:Double x:Key="DaisySizeExtraLargeFontSize">20</sys:Double>
-    <sys:Double x:Key="DaisySizeLargeFontSize">18</sys:Double>
-    <sys:Double x:Key="DaisySizeMediumFontSize">14</sys:Double>
-    <sys:Double x:Key="DaisySizeSmallFontSize">12</sys:Double>
-    <sys:Double x:Key="DaisySizeExtraSmallFontSize">10</sys:Double>
+    <sys:Double x:Key="DaisySizeExtraLargeFontSize">16</sys:Double>
+    <sys:Double x:Key="DaisySizeLargeFontSize">14</sys:Double>
+    <sys:Double x:Key="DaisySizeMediumFontSize">12</sys:Double>
+    <sys:Double x:Key="DaisySizeSmallFontSize">10</sys:Double>
+    <sys:Double x:Key="DaisySizeExtraSmallFontSize">8</sys:Double>
 
     <!-- Secondary font sizes for hint text, helper text, captions, labels -->
     <!-- These are ~0.8x of primary sizes, used for auxiliary information -->
@@ -75,9 +75,9 @@
     <!-- ==================== BUTTON PADDING ==================== -->
     <!-- Buttons use horizontal-only padding (vertical controlled by Height) -->
     <!-- Padding scales ~proportionally to font size (roughly 1.1-1.2x font) -->
-    <Thickness x:Key="DaisyButtonExtraLargePadding">18,0</Thickness>
-    <Thickness x:Key="DaisyButtonLargePadding">18,0</Thickness>
-    <Thickness x:Key="DaisyButtonMediumPadding">14,0</Thickness>
+    <Thickness x:Key="DaisyButtonExtraLargePadding">16,0</Thickness>
+    <Thickness x:Key="DaisyButtonLargePadding">16,0</Thickness>
+    <Thickness x:Key="DaisyButtonMediumPadding">12,0</Thickness>
     <Thickness x:Key="DaisyButtonSmallPadding">12,0</Thickness>
     <Thickness x:Key="DaisyButtonExtraSmallPadding">8,0</Thickness>
 

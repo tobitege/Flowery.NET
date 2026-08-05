@@ -79,6 +79,14 @@ Before making any code change, trace through the FULL execution flow. For contro
 
 - **No Flip-Flopping on Approaches**: When the user asks to try a specific approach, commit to that approach fully and let them test it. Don't second-guess midway and switch to an alternative solution. If the first approach doesn't work, the user will provide feedback and we can discuss alternatives together.
 
+### Small, Verified Patches
+
+- Split multi-file, structural, or otherwise large changes into small patches that can be applied and verified independently.
+- Before each patch, read the exact current target context again; do not reuse stale context from an earlier patch or analysis.
+- After each successful patch, inspect the affected region and verify that the intended change is present before applying the next patch.
+- Do not combine unrelated changes into one patch merely to reduce tool calls.
+- If a patch is rejected, treat the file as unchanged, identify the context mismatch, and rebuild the patch with a smaller verified context before retrying.
+
 ### Tool Usage Selection
 
 - **Favor Filesystem MCP Tools**: Use tools like `mcp_filesystem_list_directory`, `mcp_filesystem_search_files`, and `mcp_filesystem_read_file` instead of terminal commands (`ls`, `dir`, `find`, `cat`) whenever possible. These tools provide better interactivity, structured metadata, and safer operation handling.

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
@@ -15,8 +17,9 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Flowery.Services;
 using Flowery.Effects;
+using Flowery.Localization;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -97,6 +100,7 @@ namespace Flowery.Controls
             _incrementButton = e.NameScope.Find<DaisyButton>("PART_IncrementButton");
             _decrementButton = e.NameScope.Find<DaisyButton>("PART_DecrementButton");
             _partsItemsControl = e.NameScope.Find<ItemsControl>("PART_ItemsControl");
+            UpdateButtonAutomationProperties();
 
             // Attach pointer handlers - use Tunnel to fire before button's click processing
             if (_incrementButton != null)
@@ -889,6 +893,47 @@ namespace Flowery.Controls
             {
                 UpdateSelectedDigitVisuals();
             }
+            else if (change.Property == DaisyAccessibility.AccessibleTextProperty
+                     || change.Property == AutomationProperties.NameProperty
+                     || change.Property == AutomationProperties.HelpTextProperty
+                     || change.Property == AutomationProperties.LabeledByProperty
+                     || change.Property == AutomationProperties.AutomationIdProperty
+                     || change.Property == AutomationProperties.IsRequiredForFormProperty)
+            {
+                UpdateButtonAutomationProperties();
+            }
+        }
+
+        private void UpdateButtonAutomationProperties()
+        {
+            var defaultName = FloweryLocalization.GetStringInternal(
+                "Accessibility_NumberFlow",
+                DefaultAccessibleText);
+            var accessibleName = DaisyAccessibility.GetEffectiveAccessibleText(this, defaultName);
+
+            if (_incrementButton != null)
+            {
+                var format = FloweryLocalization.GetStringInternal(
+                    "Accessibility_IncreaseValue",
+                    "Increase {0}");
+                DaisyAccessibility.ApplyAutomationProperties(
+                    this,
+                    _incrementButton,
+                    string.Format(FloweryLocalization.CurrentCulture, format, accessibleName),
+                    automationIdSuffix: "increment");
+            }
+
+            if (_decrementButton != null)
+            {
+                var format = FloweryLocalization.GetStringInternal(
+                    "Accessibility_DecreaseValue",
+                    "Decrease {0}");
+                DaisyAccessibility.ApplyAutomationProperties(
+                    this,
+                    _decrementButton,
+                    string.Format(FloweryLocalization.CurrentCulture, format, accessibleName),
+                    automationIdSuffix: "decrement");
+            }
         }
 
         private void UpdateSelectedDigitVisuals()
@@ -1004,6 +1049,51 @@ namespace Flowery.Controls
             base.OnDetachedFromVisualTree(e);
             StopRepeat();
         }
+
+        protected override AutomationPeer OnCreateAutomationPeer()
+        {
+            return new DaisyNumberFlowAutomationPeer(this);
+        }
+    }
+
+    /// <summary>
+    /// Exposes <see cref="DaisyNumberFlow"/> as a numeric spinner with its formatted value.
+    /// </summary>
+    internal sealed class DaisyNumberFlowAutomationPeer : ControlAutomationPeer
+    {
+        public DaisyNumberFlowAutomationPeer(DaisyNumberFlow owner) : base(owner)
+        {
+        }
+
+        protected override AutomationControlType GetAutomationControlTypeCore()
+        {
+            return AutomationControlType.Spinner;
+        }
+
+        protected override string GetClassNameCore()
+        {
+            return nameof(DaisyNumberFlow);
+        }
+
+        protected override string? GetNameCore()
+        {
+            var numberFlow = (DaisyNumberFlow)Owner;
+            var defaultName = FloweryLocalization.GetStringInternal(
+                "Accessibility_NumberFlow",
+                "Number Flow");
+            var accessibleName = DaisyAccessibility.GetEffectiveAccessibleText(numberFlow, defaultName);
+            if (numberFlow.Value is not { } value)
+            {
+                return accessibleName;
+            }
+
+            var formattedValue = value.ToString(numberFlow.FormatString, numberFlow.Culture);
+            return $"{accessibleName}: {numberFlow.Prefix}{formattedValue}{numberFlow.Suffix}";
+        }
+
+        protected override bool IsContentElementCore() => true;
+
+        protected override bool IsControlElementCore() => true;
     }
 
     /// <summary>
