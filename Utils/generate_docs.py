@@ -658,8 +658,9 @@ class MarkdownGenerator:
         Remove HTML comments (<!-- ... -->) but preserve them inside code blocks.
         Code blocks are delimited by ``` markers.
         """
-        result = []
+        result: list[str] = []
         in_code_block = False
+        in_comment = False
         lines = content.split('\n')
 
         i = 0
@@ -667,7 +668,7 @@ class MarkdownGenerator:
             line = lines[i]
 
             # Check for code block delimiter
-            if line.strip().startswith('```'):
+            if not in_comment and line.strip().startswith('```'):
                 in_code_block = not in_code_block
                 result.append(line)
                 i += 1
@@ -678,8 +679,29 @@ class MarkdownGenerator:
                 result.append(line)
             else:
                 # Outside code block - strip HTML comments
-                # Handle single-line comments
-                cleaned = re.sub(r'<!--.*?-->', '', line)
+                cleaned_parts: list[str] = []
+                position = 0
+
+                while position < len(line):
+                    if in_comment:
+                        comment_end = line.find('-->', position)
+                        if comment_end == -1:
+                            position = len(line)
+                            continue
+                        position = comment_end + 3
+                        in_comment = False
+                        continue
+
+                    comment_start = line.find('<!--', position)
+                    if comment_start == -1:
+                        cleaned_parts.append(line[position:])
+                        break
+
+                    cleaned_parts.append(line[position:comment_start])
+                    position = comment_start + 4
+                    in_comment = True
+
+                cleaned = ''.join(cleaned_parts)
                 # Only add non-empty lines (or preserve intentional blank lines)
                 if cleaned.strip() or not line.strip():
                     result.append(cleaned)

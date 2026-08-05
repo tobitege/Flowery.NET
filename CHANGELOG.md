@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the missing localized `Common_*` resources used by Kanban actions so automation names and visible labels no longer expose raw keys such as `Common_Delete`.
 - Pinned workflow action references to immutable commit SHAs, reduced workflow token permissions, and added weekly Dependabot coverage for GitHub Actions.
 - Prevented release workflow command injection by validating supported inputs and passing user-provided values through environment variables instead of interpolating them into shell scripts.
+- Restricted Python maintenance tools to repository paths and replaced incomplete HTML-comment regular expressions with multi-line-aware scanners.
 
 ## [2.3.2] - 2026-07-22
 

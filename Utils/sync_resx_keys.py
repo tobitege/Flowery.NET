@@ -1,9 +1,21 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
+
+
+_REPO_ROOT = os.path.realpath(Path(__file__).parent.parent)
+
+
+def _repo_path(value: str) -> Path:
+    candidate = os.path.realpath(os.path.join(_REPO_ROOT, value))
+    repo_prefix = _REPO_ROOT + os.sep
+    if candidate != _REPO_ROOT and not candidate.startswith(repo_prefix):
+        raise argparse.ArgumentTypeError("path must stay within the repository root")
+    return Path(candidate)
 
 
 def _extract_resx_keys(path: Path) -> set[str]:
@@ -103,15 +115,15 @@ def main(argv: list[str]) -> int:
     )
     parser.add_argument(
         "default_resx",
-        type=Path,
-        help="Path to the default .resx file (e.g. FloweryStrings.resx)",
+        type=_repo_path,
+        help="Path within this repository to the default .resx file (e.g. FloweryStrings.resx)",
     )
     parser.add_argument(
         "directory",
-        type=Path,
+        type=_repo_path,
         nargs="?",
         default=None,
-        help="Directory containing localized .resx files (defaults to default_resx parent)",
+        help="Repository directory containing localized .resx files (defaults to default_resx parent)",
     )
     parser.add_argument(
         "--prefix",

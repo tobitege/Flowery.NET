@@ -18,6 +18,17 @@ import subprocess
 from pathlib import Path
 
 
+_REPO_ROOT = os.path.realpath(Path(__file__).parent.parent)
+
+
+def _repo_path(value: str) -> Path:
+    candidate = os.path.realpath(os.path.join(_REPO_ROOT, value))
+    repo_prefix = _REPO_ROOT + os.sep
+    if candidate != _REPO_ROOT and not candidate.startswith(repo_prefix):
+        raise argparse.ArgumentTypeError("path must stay within the repository root")
+    return Path(candidate)
+
+
 def _strip_xml_comments(text: str) -> str:
     out: list[str] = []
     i = 0
@@ -235,13 +246,19 @@ def _find_sln_root(start: Path) -> Path | None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Count total LoC (no comments) for *.cs and *.axaml.")
-    parser.add_argument("path", nargs="?", default=".", help="Repo root (defaults to current directory).")
+    parser.add_argument(
+        "path",
+        nargs="?",
+        type=_repo_path,
+        default=Path(_REPO_ROOT),
+        help="Repository path within this checkout (defaults to the checkout root).",
+    )
     parser.add_argument("--use-git", action="store_true", help="Use git ls-files instead of walking the filesystem.")
     parser.add_argument("-v", "--verbose", action="store_true", help="Print file count and repo root info.")
     parser.add_argument("--debug", action="store_true", help="Show skipped directories.")
     args = parser.parse_args()
 
-    start = Path(args.path).resolve()
+    start: Path = args.path
     
     # Try to find repo root by .sln file first, then fall back to start path
     repo_root = None
