@@ -307,7 +307,7 @@ namespace Flowery.NET.Kanban.Controls
             task.Description = SanitizeRequiredText(task.Description, MaxTaskDescriptionLength, allowLineBreaks: true);
             task.Tags = SanitizeOptionalText(task.Tags, MaxTaskTagsLength, allowLineBreaks: false);
             task.Assignee = SanitizeOptionalText(task.Assignee, MaxAssigneeLength, allowLineBreaks: false);
-            task.AssigneeId = SanitizeOptionalText(task.AssigneeId, MaxAssigneeIdLength, allowLineBreaks: false);
+            task.AssigneeId = SanitizeOpaqueId(task.AssigneeId, MaxAssigneeIdLength);
             task.BlockedReason = SanitizeOptionalText(task.BlockedReason, MaxBlockedReasonLength, allowLineBreaks: true);
             task.CustomFields = SanitizeCustomFields(task.CustomFields);
 
@@ -490,6 +490,20 @@ namespace Flowery.NET.Kanban.Controls
         {
             var sanitized = SanitizeTextCore(text, maxLength, allowLineBreaks);
             return string.IsNullOrWhiteSpace(sanitized) ? string.Empty : sanitized;
+        }
+
+        private static string? SanitizeOpaqueId(string? value, int maxLength)
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Length > maxLength)
+                return null;
+
+            foreach (var ch in value)
+            {
+                if (char.IsControl(ch))
+                    return null;
+            }
+
+            return value;
         }
 
         private static string? SanitizeOptionalText(string? text, int maxLength, bool allowLineBreaks)

@@ -4,19 +4,12 @@ namespace Flowery.NET.Kanban.Controls.Users;
 
 /// <summary>
 /// Represents a user identity in the Kanban system.
-/// Interface version: 1.0
 /// </summary>
-public interface IFlowUser
+internal interface IFlowUser
 {
     /// <summary>
-    /// Interface version for compatibility checks.
-    /// </summary>
-    static int InterfaceVersion => 1;
-
-    /// <summary>
-    /// Unique identifier. Format is provider-specific.
-    /// In multi-provider scenarios, prefer composite IDs (e.g., "aad:guid") to avoid collisions.
-    /// Consumers should accept both raw and composite forms.
+    /// Canonical unique identifier in provider:rawId format.
+    /// It must equal FlowUserIdHelper.Compose(ProviderKey, RawId).
     /// </summary>
     string Id { get; }
 
@@ -41,7 +34,9 @@ public interface IFlowUser
     string? Email { get; }
 
     /// <summary>
-    /// URL to the user's avatar/profile picture.
+    /// Provider-owned URL to the user's avatar/profile picture. The Kanban UI does
+    /// not fetch this URL directly; providers can resolve it through
+    /// <see cref="IUserAvatarStreamProvider"/>.
     /// </summary>
     string? AvatarUrl { get; }
 

@@ -272,6 +272,7 @@
   "Kanban_Users_Status_DoNotDisturb": "Rahatsız etmeyin",
   "Kanban_Users_Status_Offline": "Çevrimdışı",
   "Kanban_Users_Status_Unknown": "Bilinmiyor",
+  "Kanban_Users_Unresolved": "Kullanılamıyor",
   "Kanban_Settings_CompactColumnSizing": "Kompakt sütun boyutu",
   "Kanban_Settings_CompactColumnSizing_Adaptive": "Uyarlanabilir",
   "Kanban_Settings_CompactColumnSizing_Manual": "Manuel",

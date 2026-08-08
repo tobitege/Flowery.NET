@@ -49,7 +49,6 @@ namespace Flowery.NET.Kanban.Controls
         private bool _compactScrollRefreshPending;
         private readonly List<FlowKanbanColumn> _cachedColumnControls = new();
         private ItemsControl? _laneRowsHost;
-        private FlowKanbanUserManagement? _userManagementView;
         private readonly Dictionary<(string ColumnId, string? LaneId), FlowKanbanColumn> _columnByKey = new();
 
         #region Layout DPs
@@ -366,19 +365,6 @@ namespace Flowery.NET.Kanban.Controls
                 return columns;
             }
             private set => SetValue(BulkMoveColumnsProperty, value);
-        }
-        #endregion
-
-        #region Sidebar UI
-        public static readonly StyledProperty<bool> IsUserManagementButtonVisibleProperty =
-            AvaloniaProperty.Register<FlowKanban, bool>(
-                nameof(IsUserManagementButtonVisible),
-                false);
-
-        public bool IsUserManagementButtonVisible
-        {
-            get => (bool)GetValue(IsUserManagementButtonVisibleProperty);
-            private set => SetValue(IsUserManagementButtonVisibleProperty, value);
         }
         #endregion
 
@@ -709,11 +695,12 @@ namespace Flowery.NET.Kanban.Controls
         {
             var storageProvider = TopLevel?.StorageProvider;
             IsFilePickerAvailable = storageProvider is { CanOpen: true } or { CanSave: true };
-            ApplyDefaultUserProvider();
-            AttachUserProvider(UserProvider);
-            _ = EnsureGlobalAdminAsync();
-            _ = RefreshAdminStateAsync();
-            StartUserSettingsLoad(forceReload: false);
+            AttachAssigneeAdapter(AssigneeAdapter);
+            _ = ObserveAssigneeRefreshAsync(RefreshAssigneesAsync());
+            if (!TryLoadSettings(forceReload: false, out var settingsError) && settingsError is { } error)
+            {
+                ReportPersistenceFailure(FlowKanbanPersistenceOperation.LoadSettings, error);
+            }
             RefreshBoards();
             if (CurrentView == FlowKanbanView.Board && Boards.Count == 0)
             {
@@ -739,8 +726,7 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnKanbanUnloaded(object? sender, RoutedEventArgs e)
         {
-            CancelUserSettingsLoad();
-            if (CurrentView == FlowKanbanView.Home || CurrentView == FlowKanbanView.UserManagement)
+            if (CurrentView == FlowKanbanView.Home)
             {
                 ClearLastBoardId();
             }
@@ -765,7 +751,8 @@ namespace Flowery.NET.Kanban.Controls
             _isBoardHeaderFocused = false;
             HideColumnDropIndicator();
             DetachKeyboardSupport();
-            DetachUserProvider();
+            CancelAssigneeRefresh();
+            DetachAssigneeAdapter();
             StopDoneAgingTimer();
             DisposeDoneAgingTimer();
             _themeRefreshTimer?.Stop();
@@ -805,8 +792,8 @@ namespace Flowery.NET.Kanban.Controls
 
         // Column lookups are populated exclusively through Loaded/Unloaded
         // self-registration of FlowKanbanColumn; there is no tree-scan fallback.
-        // _laneRowsHost/_userManagementView are template parts resolved in
-        // OnApplyTemplate and stay valid across Loaded/Unloaded cycles.
+        // _laneRowsHost is a template part resolved in OnApplyTemplate and
+        // stays valid across Loaded/Unloaded cycles.
         private void ClearVisualCaches()
         {
             _cachedColumnControls.Clear();
@@ -1228,7 +1215,8 @@ namespace Flowery.NET.Kanban.Controls
 
         private void RequestCompactLayoutScrollRefresh()
         {
-            if (_compactColumnsHost == null)
+            var compactColumnsHost = _compactColumnsHost;
+            if (compactColumnsHost == null)
                 return;
 
             if (_compactScrollRefreshPending)
@@ -1239,9 +1227,12 @@ namespace Flowery.NET.Kanban.Controls
             FlowKanbanDispatcher.Post(() =>
             {
                 _compactScrollRefreshPending = false;
+                if (!IsLoaded || !ReferenceEquals(_compactColumnsHost, compactColumnsHost))
+                    return;
+
                 _compactColumnPresenter?.InvalidateMeasure();
-                _compactColumnsHost.InvalidateMeasure();
-                _compactColumnsHost.UpdateLayout();
+                compactColumnsHost.InvalidateMeasure();
+                compactColumnsHost.UpdateLayout();
                 UpdateCompactColumnSizing();
             });
         }
@@ -1703,7 +1694,6 @@ namespace Flowery.NET.Kanban.Controls
         internal void ResolveThemeRefreshTemplateParts(INameScope nameScope)
         {
             _laneRowsHost = nameScope.Find<ItemsControl>("PART_LaneRowsHost");
-            _userManagementView = nameScope.Find<FlowKanbanUserManagement>("PART_UserManagementView");
         }
 
         private void ApplySwimlaneLaneHeaderTheme()
@@ -1771,15 +1761,6 @@ namespace Flowery.NET.Kanban.Controls
         {
             _themeRefreshTimer?.Stop();
             RefreshTaskCardThemes();
-            RefreshUserManagementThemes();
-        }
-
-        private void RefreshUserManagementThemes()
-        {
-            if (_userManagementView is { IsLoaded: true } view)
-            {
-                view.RefreshTheme();
-            }
         }
 
         private void ShowBoardHeaderButtons()

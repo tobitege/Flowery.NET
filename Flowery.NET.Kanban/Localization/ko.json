@@ -272,6 +272,7 @@
   "Kanban_Users_Status_DoNotDisturb": "방해 금지",
   "Kanban_Users_Status_Offline": "오프라인",
   "Kanban_Users_Status_Unknown": "알 수 없음",
+  "Kanban_Users_Unresolved": "사용할 수 없음",
   "Kanban_Settings_CompactColumnSizing": "컴팩트 열 크기",
   "Kanban_Settings_CompactColumnSizing_Adaptive": "적응형",
   "Kanban_Settings_CompactColumnSizing_Manual": "수동",

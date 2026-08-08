@@ -5,45 +5,79 @@ namespace Flowery.NET.Kanban.Controls.Users;
 /// <summary>
 /// Static helper methods for working with composite user IDs.
 /// </summary>
-public static class FlowUserIdHelper
+internal static class FlowUserIdHelper
 {
     public const char Delimiter = ':';
 
     /// <summary>
-    /// Composes a composite ID from provider key and raw ID.
+    /// Composes the canonical ID from a provider key and raw provider ID.
     /// </summary>
     public static string Compose(string providerKey, string rawId)
     {
-        if (string.IsNullOrEmpty(providerKey))
-            return rawId;
+        var normalizedProviderKey = providerKey?.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedProviderKey))
+            throw new ArgumentException("Provider key must be provided.", nameof(providerKey));
 
-        return $"{providerKey}{Delimiter}{rawId}";
+        if (normalizedProviderKey.Contains(Delimiter, StringComparison.Ordinal))
+            throw new ArgumentException($"Provider key cannot contain '{Delimiter}'.", nameof(providerKey));
+
+        var normalizedRawId = rawId?.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedRawId))
+            throw new ArgumentException("Raw user ID must be provided.", nameof(rawId));
+
+        return $"{normalizedProviderKey}{Delimiter}{normalizedRawId}";
     }
 
     /// <summary>
-    /// Parses a composite ID into provider key and raw ID.
-    /// Returns (null, originalId) if no prefix found.
+    /// Parses a canonical ID into its provider key and raw provider ID.
     /// </summary>
-    public static (string? ProviderKey, string RawId) Parse(string compositeId)
+    public static (string ProviderKey, string RawId) Parse(string compositeId)
     {
-        if (string.IsNullOrEmpty(compositeId))
-            return (null, compositeId);
+        if (string.IsNullOrWhiteSpace(compositeId))
+            throw new ArgumentException("Canonical user ID must be provided.", nameof(compositeId));
 
         var delimiterIndex = compositeId.IndexOf(Delimiter);
-
-        if (delimiterIndex <= 0)
-            return (null, compositeId);
+        if (delimiterIndex <= 0 || delimiterIndex == compositeId.Length - 1)
+            throw new FormatException($"User ID '{compositeId}' is not in canonical provider:rawId format.");
 
         var providerKey = compositeId[..delimiterIndex];
         var rawId = compositeId[(delimiterIndex + 1)..];
+        return (providerKey, rawId.Trim());
+    }
 
-        return (providerKey, rawId);
+    /// <summary>
+    /// Resolves an identity from its provider-owned fields instead of trusting a second mutable ID representation.
+    /// </summary>
+    public static string Resolve(IFlowUser user)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        return Compose(user.ProviderKey, user.RawId);
+    }
+
+    /// <summary>
+    /// Tries to resolve a canonical identity from provider-owned fields.
+    /// </summary>
+    public static bool TryResolve(IFlowUser? user, out string canonicalId)
+    {
+        canonicalId = string.Empty;
+        if (user == null)
+            return false;
+
+        try
+        {
+            canonicalId = Resolve(user);
+            return true;
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
     }
 
     /// <summary>
     /// Extracts just the provider key from a composite ID.
     /// </summary>
-    public static string? GetProviderKey(string compositeId)
+    public static string GetProviderKey(string compositeId)
     {
         var (providerKey, _) = Parse(compositeId);
         return providerKey;
@@ -63,7 +97,7 @@ public static class FlowUserIdHelper
     /// </summary>
     public static bool IsCompositeId(string id)
     {
-        if (string.IsNullOrEmpty(id))
+        if (string.IsNullOrWhiteSpace(id))
             return false;
 
         var delimiterIndex = id.IndexOf(Delimiter);

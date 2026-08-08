@@ -3,12 +3,14 @@ using System.Threading.Tasks;
 
 namespace Flowery.NET.Kanban.Controls.Users;
 
-public interface ITokenValidationProvider
+internal interface ITokenValidationProvider
 {
-    Task<ProviderTokenValidationResult> ValidateAccessAsync(CancellationToken cancellation = default);
+    Task<ProviderTokenValidationResult> ValidateAccessAsync(
+        string token,
+        CancellationToken cancellation = default);
 }
 
-public enum ProviderTokenValidationStatus
+internal enum ProviderTokenValidationStatus
 {
     Success,
     MissingScope,
@@ -17,7 +19,7 @@ public enum ProviderTokenValidationStatus
     Error
 }
 
-public sealed class ProviderTokenValidationResult
+internal sealed class ProviderTokenValidationResult
 {
     private ProviderTokenValidationResult(ProviderTokenValidationStatus status, string? message)
     {

@@ -272,6 +272,7 @@
   "Kanban_Users_Status_DoNotDisturb": "عدم الإزعاج",
   "Kanban_Users_Status_Offline": "غير متصل",
   "Kanban_Users_Status_Unknown": "غير معروف",
+  "Kanban_Users_Unresolved": "غير متاح",
   "Kanban_Settings_CompactColumnSizing": "حجم الأعمدة المضغوطة",
   "Kanban_Settings_CompactColumnSizing_Adaptive": "تكيفي",
   "Kanban_Settings_CompactColumnSizing_Manual": "يدوي",

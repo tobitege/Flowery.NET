@@ -218,6 +218,8 @@ Composite inputs such as `DaisyPasswordBox`, `DaisyNumericUpDown`, and `DaisyOtp
 
 `Flowery.NET.Kanban` is a separate companion package containing the complete native Avalonia Kanban project. It includes board, home, user-management, archive, statistics, filtering, swimlane, WIP-limit, bulk-edit, JSON-persistence, keyboard, zoom, and drag-and-drop workflows. Board landmarks, cards, columns, form fields, and icon-only tool buttons expose localized UI Automation names and stable IDs where the element has a durable identity.
 
+The [complete Kanban feature overview](Flowery.NET.Kanban/FEATURES.md) describes all board features and gives plain guidance for the assignee API.
+
 Add its styles after `DaisyUITheme`:
 
 ```xml

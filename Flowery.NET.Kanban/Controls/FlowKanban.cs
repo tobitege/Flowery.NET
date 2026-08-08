@@ -13,7 +13,6 @@ using System.Windows.Input;
 using Flowery.Helpers;
 using Flowery.Localization;
 using Flowery.Services;
-using Flowery.NET.Kanban.Controls.Users;
 using Flowery.NET.Kanban.Interfaces;
 
 namespace Flowery.NET.Kanban.Controls
@@ -38,7 +37,7 @@ namespace Flowery.NET.Kanban.Controls
             FilterDueTodayProperty.Changed.AddClassHandler<FlowKanban>(OnFilterDueTodayChanged);
             FilterDueThisWeekProperty.Changed.AddClassHandler<FlowKanban>(OnFilterDueThisWeekChanged);
             SelectedAssigneeFilterProperty.Changed.AddClassHandler<FlowKanban>(OnSelectedAssigneeFilterChanged);
-            UserProviderProperty.Changed.AddClassHandler<FlowKanban>(OnUserProviderChanged);
+            AssigneeAdapterProperty.Changed.AddClassHandler<FlowKanban>(OnAssigneeAdapterChanged);
             IsCompactLayoutEnabledProperty.Changed.AddClassHandler<FlowKanban>(OnCompactLayoutEnabledChanged);
             CompactSelectedColumnProperty.Changed.AddClassHandler<FlowKanban>(OnCompactSelectedColumnChanged);
             BoardSizeProperty.Changed.AddClassHandler<FlowKanban>(OnBoardSizeChanged);
@@ -129,7 +128,6 @@ namespace Flowery.NET.Kanban.Controls
         internal const double DefaultMinColumnWidth = 100;
         internal const double DefaultMaxColumnWidth = 380;
         internal const string UnassignedLaneId = "__unassigned__";
-        public static bool IsUserManagementButtonEnabled { get; set; }
 
         internal void ReportPersistenceFailure(FlowKanbanPersistenceOperation operation, Exception error)
         {
@@ -208,16 +206,13 @@ namespace Flowery.NET.Kanban.Controls
             Boards = new ObservableCollection<FlowBoardMetadata>();
             SetCurrentValue(BoardProperty, new FlowKanbanData());
 
-            IsUserManagementButtonVisible = IsUserManagementButtonEnabled;
-
-            AddColumnCommand = new RelayCommand(ExecuteAddColumn);
+            AddColumnCommand = new RelayCommand(ExecuteAddColumn, CanExecuteColumnOperation);
             SaveCommand = new RelayCommand(ExecuteSave);
             LoadCommand = new RelayCommand(ExecuteLoad);
             SaveToFileCommand = new RelayCommand(ExecuteSaveToFile, CanExecuteFilePickerCommand);
             LoadFromFileCommand = new RelayCommand(ExecuteLoadFromFile, CanExecuteFilePickerCommand);
             SettingsCommand = new RelayCommand(ExecuteOpenSettings);
             ShowHomeCommand = new RelayCommand(ExecuteShowHome);
-            ShowUserManagementCommand = new RelayCommand(ExecuteShowUserManagement);
             OpenBoardCommand = new RelayCommand<FlowBoardMetadata>(ExecuteOpenBoard);
             CreateBoardCommand = new RelayCommand(ExecuteCreateBoard);
             CreateDemoBoardCommand = new RelayCommand(ExecuteCreateDemoBoard);
@@ -228,8 +223,12 @@ namespace Flowery.NET.Kanban.Controls
             AddCardCommand = new RelayCommand<FlowKanbanColumnData>(ExecuteAddCard);
             QuickAddCardCommand = new RelayCommand(ExecuteQuickAddCard);
             RemoveCardCommand = new RelayCommand<FlowTask>(ExecuteRemoveCard);
-            RemoveColumnCommand = new RelayCommand<FlowKanbanColumnData>(ExecuteRemoveColumn);
-            EditColumnCommand = new RelayCommand<FlowKanbanColumnData>(ExecuteEditColumn);
+            RemoveColumnCommand = new RelayCommand<FlowKanbanColumnData>(
+                ExecuteRemoveColumn,
+                CanExecuteColumnOperation);
+            EditColumnCommand = new RelayCommand<FlowKanbanColumnData>(
+                ExecuteEditColumn,
+                CanExecuteColumnOperation);
             ToggleColumnCollapseCommand = new RelayCommand<FlowKanbanColumnData>(ExecuteToggleColumnCollapse);
             ZoomInCommand = new RelayCommand(ExecuteZoomIn, CanZoomIn);
             ZoomOutCommand = new RelayCommand(ExecuteZoomOut, CanZoomOut);
@@ -272,6 +271,7 @@ namespace Flowery.NET.Kanban.Controls
             if (d is FlowKanban kanban)
             {
                 kanban.AttachBoardTracking(e.NewValue as FlowKanbanData);
+                _ = ObserveAssigneeRefreshAsync(kanban.RefreshAssigneesAsync());
             }
         }
         #endregion
@@ -717,20 +717,15 @@ namespace Flowery.NET.Kanban.Controls
         #endregion
 
         #region Persistence Keys
-        private const string LegacySettingsStorageKey = "kanban.settings";
-        private const string UserSettingsStorageKeyPrefix = "kanban.user.settings";
-        private const string GlobalAdminStorageKey = "kanban.admin.global";
+        private const string SettingsStorageKey = "kanban.settings";
         #endregion
 
         #region Settings
         private const int AutoSaveDebounceMilliseconds = 800;
         private const int DoneAgingCheckIntervalMinutes = 60;
 
-        private bool _userSettingsLoaded;
-        private bool _isApplyingUserSettings;
-        private string? _currentUserSettingsKey;
-        private CancellationTokenSource? _userSettingsLoadCancellation;
-        private long _userSettingsLoadVersion;
+        private bool _settingsLoaded;
+        private bool _isApplyingSettings;
         private bool _suppressAutoSave;
         private string? _lastBoardId;
         private FlowKanbanData? _trackedBoard;
@@ -1180,7 +1175,7 @@ namespace Flowery.NET.Kanban.Controls
                 _suppressAutoSave = false;
             }
 
-            _ = EnsureAssigneeIdsValidAsync();
+            _ = ObserveAssigneeRefreshAsync(RefreshAssigneesAsync());
             TrySaveBoard(out _);
             RefreshBoards();
             CurrentView = FlowKanbanView.Board;
@@ -1254,7 +1249,7 @@ namespace Flowery.NET.Kanban.Controls
             }
         }
 
-        internal sealed class FlowKanbanUserSettingsState
+        internal sealed class FlowKanbanSettingsState
         {
             public bool ConfirmColumnRemovals { get; set; } = true;
             public bool ConfirmCardRemovals { get; set; } = true;
@@ -1273,9 +1268,9 @@ namespace Flowery.NET.Kanban.Controls
             public FlowKanbanView LastView { get; set; } = FlowKanbanView.Board;
         }
 
-        private FlowKanbanUserSettingsState BuildUserSettingsState()
+        private FlowKanbanSettingsState BuildSettingsState()
         {
-            return new FlowKanbanUserSettingsState
+            return new FlowKanbanSettingsState
             {
                 ConfirmColumnRemovals = ConfirmColumnRemovals,
                 ConfirmCardRemovals = ConfirmCardRemovals,
@@ -1295,9 +1290,9 @@ namespace Flowery.NET.Kanban.Controls
             };
         }
 
-        private void ApplyUserSettingsState(FlowKanbanUserSettingsState state)
+        private void ApplySettingsState(FlowKanbanSettingsState state)
         {
-            _isApplyingUserSettings = true;
+            _isApplyingSettings = true;
             try
             {
                 ConfirmColumnRemovals = state.ConfirmColumnRemovals;
@@ -1320,7 +1315,7 @@ namespace Flowery.NET.Kanban.Controls
             }
             finally
             {
-                _isApplyingUserSettings = false;
+                _isApplyingSettings = false;
             }
         }
 
@@ -1332,7 +1327,17 @@ namespace Flowery.NET.Kanban.Controls
         /// <returns>True when the operation completed without throwing; otherwise false.</returns>
         public bool TryLoadSettings(bool forceReload, out Exception? error)
         {
-            return TryLoadUserSettings(forceReload, out error);
+            try
+            {
+                LoadSettingsCore(forceReload);
+                error = null;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                error = ex;
+                return false;
+            }
         }
 
         /// <summary>
@@ -1342,20 +1347,9 @@ namespace Flowery.NET.Kanban.Controls
         /// <returns>True when the operation completed without throwing; otherwise false.</returns>
         public bool TrySaveSettings(out Exception? error)
         {
-            return TrySaveUserSettings(out error);
-        }
-
-        /// <summary>
-        /// Loads persisted user settings if available.
-        /// </summary>
-        /// <param name="forceReload">When true, reloads even if settings were already loaded.</param>
-        /// <param name="error">Exception details when the load fails.</param>
-        /// <returns>True when the operation completed without throwing; otherwise false.</returns>
-        public bool TryLoadUserSettings(bool forceReload, out Exception? error)
-        {
             try
             {
-                LoadUserSettingsCore(forceReload);
+                SaveSettingsCore();
                 error = null;
                 return true;
             }
@@ -1366,211 +1360,32 @@ namespace Flowery.NET.Kanban.Controls
             }
         }
 
-        /// <summary>
-        /// Saves current user settings to persistent storage.
-        /// </summary>
-        /// <param name="error">Exception details when the save fails.</param>
-        /// <returns>True when the operation completed without throwing; otherwise false.</returns>
-        public bool TrySaveUserSettings(out Exception? error)
+        private void LoadSettingsCore(bool forceReload)
         {
-            try
-            {
-                SaveUserSettingsCore();
-                error = null;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                error = ex;
-                return false;
-            }
-        }
-
-        private void LoadUserSettingsCore(bool forceReload)
-        {
-            if (_userSettingsLoaded && !forceReload)
+            if (_settingsLoaded && !forceReload)
                 return;
 
-            var storageKey = GetEffectiveUserSettingsKey();
-            var json = LoadStateText(storageKey);
+            var json = LoadStateText(SettingsStorageKey);
             if (string.IsNullOrWhiteSpace(json))
             {
-                TryMigrateLegacyUserSettings(storageKey);
-                _userSettingsLoaded = true;
+                _settingsLoaded = true;
                 return;
             }
 
-            var data = JsonSerializer.Deserialize(json, FlowKanbanJsonContext.Default.FlowKanbanUserSettingsState);
+            var data = JsonSerializer.Deserialize(json, FlowKanbanJsonContext.Default.FlowKanbanSettingsState);
             if (data != null)
-                ApplyUserSettingsState(data);
+                ApplySettingsState(data);
 
-            _userSettingsLoaded = true;
+            _settingsLoaded = true;
         }
 
-        private void SaveUserSettingsCore()
+        private void SaveSettingsCore()
         {
-            if (_isApplyingUserSettings)
+            if (_isApplyingSettings)
                 return;
 
-            var json = JsonSerializer.Serialize(BuildUserSettingsState(), FlowKanbanJsonContext.Default.FlowKanbanUserSettingsState);
-            SaveStateText(GetEffectiveUserSettingsKey(), json);
-        }
-
-        /// <summary>
-        /// Resolves the current user and loads that user's persisted settings.
-        /// A newer load or an unload invalidates this operation.
-        /// </summary>
-        /// <param name="forceReload">When true, reloads even if settings were already loaded.</param>
-        /// <param name="cancellationToken">Token used to cancel the load.</param>
-        public async Task LoadUserSettingsAsync(
-            bool forceReload = false,
-            CancellationToken cancellationToken = default)
-        {
-            var provider = UserProvider;
-            var version = Interlocked.Increment(ref _userSettingsLoadVersion);
-            var cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var previousCancellation = Interlocked.Exchange(ref _userSettingsLoadCancellation, cancellation);
-            previousCancellation?.Cancel();
-
-            try
-            {
-                var resolvedKey = await ResolveUserSettingsKeyAsync(provider, cancellation.Token).ConfigureAwait(false);
-                cancellation.Token.ThrowIfCancellationRequested();
-                if (version != Volatile.Read(ref _userSettingsLoadVersion))
-                {
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(resolvedKey))
-                {
-                    resolvedKey = LegacySettingsStorageKey;
-                }
-
-                await FlowKanbanDispatcher.InvokeAsync(() =>
-                {
-                    cancellation.Token.ThrowIfCancellationRequested();
-                    if (version != Volatile.Read(ref _userSettingsLoadVersion)
-                        || !ReferenceEquals(provider, UserProvider))
-                    {
-                        return;
-                    }
-
-                    if (!string.Equals(_currentUserSettingsKey, resolvedKey, StringComparison.Ordinal))
-                    {
-                        _currentUserSettingsKey = resolvedKey;
-                        _userSettingsLoaded = false;
-                    }
-
-                    LoadUserSettingsCore(forceReload);
-                }).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                if (version == Volatile.Read(ref _userSettingsLoadVersion))
-                {
-                    await FlowKanbanDispatcher.InvokeAsync(() =>
-                    {
-                        if (version == Volatile.Read(ref _userSettingsLoadVersion)
-                            && ReferenceEquals(provider, UserProvider))
-                        {
-                            ReportPersistenceFailure(FlowKanbanPersistenceOperation.LoadSettings, ex);
-                        }
-                    }).ConfigureAwait(false);
-                }
-
-                throw;
-            }
-            finally
-            {
-                Interlocked.CompareExchange(ref _userSettingsLoadCancellation, null, cancellation);
-                cancellation.Dispose();
-            }
-        }
-
-        private void StartUserSettingsLoad(bool forceReload)
-        {
-            if (!IsLoaded)
-                return;
-
-            _ = ObserveUserSettingsLoadAsync(LoadUserSettingsAsync(forceReload));
-        }
-
-        private static async Task ObserveUserSettingsLoadAsync(Task loadTask)
-        {
-            try
-            {
-                await loadTask.ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch
-            {
-                // LoadUserSettingsAsync has already reported the current failure.
-            }
-        }
-
-        private void CancelUserSettingsLoad()
-        {
-            Interlocked.Increment(ref _userSettingsLoadVersion);
-            Interlocked.Exchange(ref _userSettingsLoadCancellation, null)?.Cancel();
-        }
-
-        private async Task<string?> ResolveUserSettingsKeyAsync(
-            IUserProvider? provider,
-            CancellationToken cancellationToken)
-        {
-            if (provider == null)
-                return _currentUserSettingsKey ?? LegacySettingsStorageKey;
-
-            var user = await provider.GetCurrentUserAsync(cancellationToken).ConfigureAwait(false);
-            var userId = ResolveUserId(user);
-            if (string.IsNullOrWhiteSpace(userId))
-                return LegacySettingsStorageKey;
-
-            return StateStorageKeyHelper.BuildScopedKey(UserSettingsStorageKeyPrefix, userId);
-        }
-
-        private static string? ResolveUserId(IFlowUser? user)
-        {
-            if (user == null)
-                return null;
-
-            if (!string.IsNullOrWhiteSpace(user.Id))
-                return user.Id;
-
-            if (!string.IsNullOrWhiteSpace(user.RawId))
-                return FlowUserIdHelper.Compose(user.ProviderKey, user.RawId);
-
-            return null;
-        }
-
-        private string GetEffectiveUserSettingsKey()
-        {
-            return string.IsNullOrWhiteSpace(_currentUserSettingsKey)
-                ? LegacySettingsStorageKey
-                : _currentUserSettingsKey;
-        }
-
-        private void TryMigrateLegacyUserSettings(string currentKey)
-        {
-            if (string.Equals(currentKey, LegacySettingsStorageKey, StringComparison.Ordinal))
-                return;
-
-            var legacyJson = LoadStateText(LegacySettingsStorageKey);
-            if (string.IsNullOrWhiteSpace(legacyJson))
-                return;
-
-            var legacyData = JsonSerializer.Deserialize(legacyJson, FlowKanbanJsonContext.Default.FlowKanbanUserSettingsState);
-            if (legacyData == null)
-                return;
-
-            ApplyUserSettingsState(legacyData);
-            SaveUserSettingsCore();
+            var json = JsonSerializer.Serialize(BuildSettingsState(), FlowKanbanJsonContext.Default.FlowKanbanSettingsState);
+            SaveStateText(SettingsStorageKey, json);
         }
 
         /// <summary>
@@ -1684,7 +1499,7 @@ namespace Flowery.NET.Kanban.Controls
             }
 
             UpdateLastBoardId(data.Id);
-            _ = EnsureAssigneeIdsValidAsync();
+            _ = ObserveAssigneeRefreshAsync(RefreshAssigneesAsync());
             return true;
         }
 
@@ -2215,6 +2030,7 @@ namespace Flowery.NET.Kanban.Controls
                 ApplySearchFilter();
                 UpdateLaneRows();
                 UpdateSelectionMetrics();
+                _ = ObserveAssigneeRefreshAsync(RefreshAssigneesAsync());
                 RequestAutoSave();
                 return;
             }
@@ -2238,6 +2054,7 @@ namespace Flowery.NET.Kanban.Controls
 
             UpdateLaneRows();
             UpdateSelectionMetrics();
+            _ = ObserveAssigneeRefreshAsync(RefreshAssigneesAsync());
             RequestAutoSave();
         }
 
@@ -2301,7 +2118,9 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnTaskPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (string.Equals(e.PropertyName, nameof(FlowTask.IsSearchMatch), StringComparison.Ordinal))
+            if (string.Equals(e.PropertyName, nameof(FlowTask.IsSearchMatch), StringComparison.Ordinal)
+                || string.Equals(e.PropertyName, nameof(FlowTask.AssigneeAvatarSource), StringComparison.Ordinal)
+                || string.Equals(e.PropertyName, nameof(FlowTask.AssigneeRoles), StringComparison.Ordinal))
                 return;
 
             if (sender is FlowTask task)
@@ -2309,6 +2128,11 @@ namespace Flowery.NET.Kanban.Controls
                 if (string.Equals(e.PropertyName, nameof(FlowTask.Subtasks), StringComparison.Ordinal))
                 {
                     AttachSubtasksCollection(task, task.Subtasks);
+                }
+
+                if (string.Equals(e.PropertyName, nameof(FlowTask.AssigneeId), StringComparison.Ordinal))
+                {
+                    _ = ObserveAssigneeRefreshAsync(RefreshAssigneesAsync());
                 }
 
                 var isSearchRelevant = IsSearchRelevantProperty(e.PropertyName)

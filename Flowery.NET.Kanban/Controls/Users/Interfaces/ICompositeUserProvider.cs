@@ -8,7 +8,7 @@ namespace Flowery.NET.Kanban.Controls.Users;
 /// Orchestrates multiple user providers with composite ID support.
 /// Interface version: 1.0
 /// </summary>
-public interface ICompositeUserProvider : IUserProvider
+internal interface ICompositeUserProvider : IUserProvider
 {
     /// <summary>
     /// Registers a provider with its key.
@@ -36,12 +36,12 @@ public interface ICompositeUserProvider : IUserProvider
     string DefaultProviderKey { get; set; }
 
     /// <summary>
-    /// True if only one provider is registered (IDs stored without prefix).
+    /// True if only one provider is registered. Canonical IDs remain provider-qualified.
     /// </summary>
     bool IsSingleProviderMode { get; }
 
     /// <summary>
-    /// Gets a user by composite ID (e.g., "aad:guid" or "guid" in single-provider mode).
+    /// Gets a user by canonical ID (e.g., "aad:guid").
     /// </summary>
     Task<IFlowUser?> GetUserByCompositeIdAsync(
         string compositeId,
@@ -54,7 +54,7 @@ public interface ICompositeUserProvider : IUserProvider
 
     /// <summary>
     /// Parses a composite ID into provider key and raw ID.
-    /// Returns (DefaultProviderKey, id) if no prefix found.
+    /// Raw IDs without a provider prefix are rejected.
     /// </summary>
     (string ProviderKey, string RawId) ParseId(string compositeId);
 

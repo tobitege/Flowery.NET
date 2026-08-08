@@ -11,7 +11,7 @@ namespace Flowery.NET.Kanban.Controls
     [JsonSerializable(typeof(FlowKanbanLane))]
     [JsonSerializable(typeof(FlowTask))]
     [JsonSerializable(typeof(FlowSubtask))]
-    [JsonSerializable(typeof(FlowKanban.FlowKanbanUserSettingsState))]
+    [JsonSerializable(typeof(FlowKanban.FlowKanbanSettingsState))]
     [JsonSerializable(typeof(FlowKanbanFilterCriteria))]
     [JsonSerializable(typeof(FlowKanbanFilterPreset))]
     [JsonSerializable(typeof(FlowKanbanFilterPresetCollection))]

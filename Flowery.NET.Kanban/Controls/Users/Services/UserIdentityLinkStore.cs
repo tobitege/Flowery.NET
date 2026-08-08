@@ -7,6 +7,7 @@ namespace Flowery.NET.Kanban.Controls.Users;
 internal sealed class UserIdentityLinkStore
 {
     private const string StorageKey = "FlowKanban.IdentityLinks";
+    private const string LocalProviderKey = "local";
     private readonly IStateStorage _stateStorage;
     private readonly List<UserIdentityLink> _links = new();
 
@@ -16,6 +17,25 @@ internal sealed class UserIdentityLinkStore
         Load();
     }
 
+    public Exception? LoadError { get; private set; }
+
+    public void Reload()
+    {
+        Load();
+    }
+
+    public string ResolveLinkedUserId(IFlowUser user)
+    {
+        var canonicalId = FlowUserIdHelper.Resolve(user);
+        if (string.Equals(user.ProviderKey, LocalProviderKey, StringComparison.Ordinal))
+            return canonicalId;
+
+        var link = FindLink(user.ProviderKey, user.RawId);
+        return link == null
+            ? canonicalId
+            : FlowUserIdHelper.Compose(LocalProviderKey, link.LocalUserId);
+    }
+
     public UserIdentityLink? FindLink(string providerKey, string subject)
     {
         if (string.IsNullOrWhiteSpace(providerKey) || string.IsNullOrWhiteSpace(subject))
@@ -23,9 +43,11 @@ internal sealed class UserIdentityLinkStore
             return null;
         }
 
+        var normalizedProviderKey = providerKey.Trim();
+        var normalizedSubject = subject.Trim();
         return _links.FirstOrDefault(link =>
-            string.Equals(link.ProviderKey, providerKey, StringComparison.Ordinal) &&
-            string.Equals(link.Subject, subject, StringComparison.Ordinal));
+            string.Equals(link.ProviderKey, normalizedProviderKey, StringComparison.Ordinal) &&
+            string.Equals(link.Subject, normalizedSubject, StringComparison.Ordinal));
     }
 
     public void SetLink(string providerKey, string subject, string localUserId, string localDisplayName)
@@ -34,27 +56,31 @@ internal sealed class UserIdentityLinkStore
             string.IsNullOrWhiteSpace(subject) ||
             string.IsNullOrWhiteSpace(localUserId))
         {
-            return;
+            throw new ArgumentException("Provider key, subject, and local user ID must be provided.");
         }
 
-        var existing = FindLink(providerKey, subject);
-        if (existing != null)
+        var normalizedProviderKey = providerKey.Trim();
+        var normalizedSubject = subject.Trim();
+        var normalizedLocalUserId = localUserId.Trim();
+        var normalizedDisplayName = localDisplayName?.Trim() ?? string.Empty;
+        MutateAndSave(() =>
         {
-            existing.LocalUserId = localUserId;
-            existing.LocalDisplayName = localDisplayName;
-            Save();
-            return;
-        }
+            var existing = FindLink(normalizedProviderKey, normalizedSubject);
+            if (existing != null)
+            {
+                existing.LocalUserId = normalizedLocalUserId;
+                existing.LocalDisplayName = normalizedDisplayName;
+                return;
+            }
 
-        _links.Add(new UserIdentityLink
-        {
-            ProviderKey = providerKey,
-            Subject = subject,
-            LocalUserId = localUserId,
-            LocalDisplayName = localDisplayName
+            _links.Add(new UserIdentityLink
+            {
+                ProviderKey = normalizedProviderKey,
+                Subject = normalizedSubject,
+                LocalUserId = normalizedLocalUserId,
+                LocalDisplayName = normalizedDisplayName
+            });
         });
-
-        Save();
     }
 
     public bool RemoveLink(string providerKey, string subject)
@@ -70,8 +96,7 @@ internal sealed class UserIdentityLinkStore
             return false;
         }
 
-        _links.Remove(existing);
-        Save();
+        MutateAndSave(() => _links.Remove(existing));
         return true;
     }
 
@@ -82,58 +107,74 @@ internal sealed class UserIdentityLinkStore
             return false;
         }
 
-        var removed = _links.RemoveAll(link =>
-            string.Equals(link.ProviderKey, providerKey, StringComparison.Ordinal));
+        var normalizedProviderKey = providerKey.Trim();
+        var removed = _links.Count(link =>
+            string.Equals(link.ProviderKey, normalizedProviderKey, StringComparison.Ordinal));
 
         if (removed <= 0)
         {
             return false;
         }
 
-        Save();
+        MutateAndSave(() => _links.RemoveAll(link =>
+            string.Equals(link.ProviderKey, normalizedProviderKey, StringComparison.Ordinal)));
         return true;
     }
 
     private void Load()
     {
         _links.Clear();
-
-        var lines = _stateStorage.LoadLines(StorageKey);
-        if (lines.Count == 0)
-        {
-            return;
-        }
-
-        var json = string.Join(string.Empty, lines);
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return;
-        }
+        LoadError = null;
 
         try
         {
+            var lines = _stateStorage.LoadLines(StorageKey);
+            if (lines.Count == 0)
+                return;
+
+            var json = string.Join(string.Empty, lines);
+            if (string.IsNullOrWhiteSpace(json))
+                return;
+
             var items = JsonSerializer.Deserialize(json, UserIdentityLinkJsonContext.Default.ListUserIdentityLink);
             if (items != null)
             {
+                if (items.Any(link => string.IsNullOrWhiteSpace(link.ProviderKey)
+                                      || string.IsNullOrWhiteSpace(link.Subject)
+                                      || string.IsNullOrWhiteSpace(link.LocalUserId)))
+                {
+                    throw new JsonException("Persisted identity links contain an invalid identity.");
+                }
+
                 _links.AddRange(items);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore invalid persisted data.
+            _links.Clear();
+            LoadError = ex;
         }
     }
 
     private void Save()
     {
+        var json = JsonSerializer.Serialize(_links, UserIdentityLinkJsonContext.Default.ListUserIdentityLink);
+        _stateStorage.SaveLines(StorageKey, [json]);
+    }
+
+    private void MutateAndSave(Action mutation)
+    {
+        var snapshot = _links.Select(link => link.Copy()).ToList();
+        mutation();
         try
         {
-            var json = JsonSerializer.Serialize(_links, UserIdentityLinkJsonContext.Default.ListUserIdentityLink);
-            _stateStorage.SaveLines(StorageKey, new[] { json });
+            Save();
         }
         catch
         {
-            // Ignore persistence failures.
+            _links.Clear();
+            _links.AddRange(snapshot);
+            throw;
         }
     }
 }
@@ -150,4 +191,15 @@ internal sealed class UserIdentityLink
     public string Subject { get; set; } = string.Empty;
     public string LocalUserId { get; set; } = string.Empty;
     public string LocalDisplayName { get; set; } = string.Empty;
+
+    public UserIdentityLink Copy()
+    {
+        return new UserIdentityLink
+        {
+            ProviderKey = ProviderKey,
+            Subject = Subject,
+            LocalUserId = LocalUserId,
+            LocalDisplayName = LocalDisplayName
+        };
+    }
 }

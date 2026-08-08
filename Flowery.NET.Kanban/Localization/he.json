@@ -272,6 +272,7 @@
   "Kanban_Users_Status_DoNotDisturb": "נא לא להפריע",
   "Kanban_Users_Status_Offline": "לא מקוון",
   "Kanban_Users_Status_Unknown": "לא ידוע",
+  "Kanban_Users_Unresolved": "לא זמין",
   "Kanban_Settings_CompactColumnSizing": "גודל עמודות קומפקטיות",
   "Kanban_Settings_CompactColumnSizing_Adaptive": "מותאם",
   "Kanban_Settings_CompactColumnSizing_Manual": "ידני",

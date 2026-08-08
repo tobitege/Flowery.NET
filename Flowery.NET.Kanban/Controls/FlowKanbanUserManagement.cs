@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Flowery.Controls;
@@ -12,7 +11,7 @@ namespace Flowery.NET.Kanban.Controls
     /// <summary>
     /// User management surface for FlowKanban.
     /// </summary>
-    public partial class FlowKanbanUserManagement : FlowKanbanContentControl
+    internal partial class FlowKanbanUserManagement : FlowKanbanContentControl
     {
         static FlowKanbanUserManagement()
         {
@@ -22,10 +21,12 @@ namespace Flowery.NET.Kanban.Controls
             SelectedUserProperty.Changed.AddClassHandler<FlowKanbanUserManagement>(OnSelectedUserChanged);
             NewUserNameProperty.Changed.AddClassHandler<FlowKanbanUserManagement>(OnNewUserFieldChanged);
             NewUserEmailProperty.Changed.AddClassHandler<FlowKanbanUserManagement>(OnNewUserFieldChanged);
-            GitHubTokenProperty.Changed.AddClassHandler<FlowKanbanUserManagement>(OnGitHubTokenChanged);
         }
 
-        private static readonly HttpClient AvatarHttpClient = new();
+        private const int MaxConcurrentAvatarLoads = 4;
+        private const int MaxAvatarEncodedBytes = 5 * 1024 * 1024;
+        private const int AvatarDecodeWidth = 256;
+        private const string LocalProviderKey = "local";
         private IUserProvider? _trackedProvider;
         private Control? _rootElement;
         private Border? _userListPanel;
@@ -33,17 +34,19 @@ namespace Flowery.NET.Kanban.Controls
         private Border? _userDetailsCard;
         private Border? _userDetailsEmptyCard;
         private CancellationTokenSource? _refreshCts;
+        private CancellationTokenSource? _providerConnectionCts;
         private bool _isLocalizationSubscribed;
-        private const string GitHubProviderKey = "github";
-        private const string LocalProviderKey = "local";
+        private bool _identityLinkLoadErrorReported;
         private readonly UserIdentityLinkStore _identityLinkStore = new(StateStorageProvider.Instance);
+
+        public event EventHandler? IdentityLinksChanged;
 
         public FlowKanbanUserManagement()
         {
             RefreshCommand = new RelayCommand(ExecuteRefreshUsers);
             AddUserCommand = new RelayCommand(ExecuteAddUser, CanExecuteAddUser);
             RemoveUserCommand = new RelayCommand(ExecuteRemoveUser, CanExecuteRemoveUser);
-            ConnectGitHubCommand = new RelayCommand<string>(ExecuteConnectGitHub, CanExecuteConnectGitHub);
+            ConnectProviderCommand = new RelayCommand<string>(ExecuteConnectProvider, CanExecuteConnectProvider);
             DisconnectProviderCommand = new RelayCommand<string>(ExecuteDisconnectProvider, CanExecuteDisconnectProvider);
             LinkLocalUserCommand = new RelayCommand(ExecuteLinkLocalUser, CanExecuteLinkLocalUser);
             UnlinkLocalUserCommand = new RelayCommand(ExecuteUnlinkLocalUser, CanExecuteUnlinkLocalUser);
@@ -101,6 +104,7 @@ namespace Flowery.NET.Kanban.Controls
         {
             if (d is FlowKanbanUserManagement view)
             {
+                view.CancelProviderConnection();
                 view.AttachProvider(e.NewValue as IUserProvider);
                 view.RefreshProviderSummaries();
                 _ = view.RefreshUsersAsync(forceReload: true);
@@ -375,16 +379,6 @@ namespace Flowery.NET.Kanban.Controls
             private set => SetValue(SupportsRealtimeProperty, value);
         }
 
-        public static readonly StyledProperty<bool> IsGitHubProviderAvailableProperty =
-            AvaloniaProperty.Register<FlowKanbanUserManagement, bool>(
-                nameof(IsGitHubProviderAvailable),
-                false);
-
-        public bool IsGitHubProviderAvailable
-        {
-            get => (bool)GetValue(IsGitHubProviderAvailableProperty);
-            private set => SetValue(IsGitHubProviderAvailableProperty, value);
-        }
         #endregion
 
         #region User Count
@@ -456,32 +450,11 @@ namespace Flowery.NET.Kanban.Controls
         }
         #endregion
 
-        #region GitHub Connect
-        public static readonly StyledProperty<string> GitHubTokenProperty =
-            AvaloniaProperty.Register<FlowKanbanUserManagement, string>(
-                                nameof(GitHubToken),
-                                string.Empty);
-
-        public string GitHubToken
-        {
-            get => (string)GetValue(GitHubTokenProperty);
-            set => SetValue(GitHubTokenProperty, value);
-        }
-
-        private static void OnGitHubTokenChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
-        {
-            if (d is FlowKanbanUserManagement view)
-            {
-                view.NotifyGitHubCommandsChanged();
-            }
-        }
-        #endregion
-
         #region Commands
         public ICommand RefreshCommand { get; }
         public ICommand AddUserCommand { get; }
         public ICommand RemoveUserCommand { get; }
-        public ICommand ConnectGitHubCommand { get; }
+        public ICommand ConnectProviderCommand { get; }
         public ICommand DisconnectProviderCommand { get; }
         public ICommand LinkLocalUserCommand { get; }
         public ICommand UnlinkLocalUserCommand { get; }
@@ -551,6 +524,14 @@ namespace Flowery.NET.Kanban.Controls
                 FloweryLocalization.CultureChanged += OnLocalizationCultureChanged;
                 _isLocalizationSubscribed = true;
             }
+
+            if (!_identityLinkLoadErrorReported
+                && _identityLinkStore.LoadError is { } loadError
+                && TopLevel is { } xamlRoot)
+            {
+                _identityLinkLoadErrorReported = true;
+                _ = ShowIdentityLinkErrorAsync(loadError, xamlRoot);
+            }
         }
 
         private void OnViewUnloaded(object? sender, RoutedEventArgs e)
@@ -558,6 +539,7 @@ namespace Flowery.NET.Kanban.Controls
             DetachProvider();
             _refreshCts?.Cancel();
             _refreshCts = null;
+            CancelProviderConnection();
 
             if (_isLocalizationSubscribed)
             {
@@ -672,7 +654,17 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnProviderUsersChanged()
         {
-            _ = RefreshUsersAsync(forceReload: true, refreshProvider: false);
+            var provider = _trackedProvider;
+            if (provider == null)
+                return;
+
+            FlowKanbanDispatcher.RunOrPost(() =>
+            {
+                if (ReferenceEquals(_trackedProvider, provider))
+                {
+                    _ = RefreshUsersAsync(forceReload: true, refreshProvider: false);
+                }
+            });
         }
 
         private async void ExecuteRefreshUsers()
@@ -682,15 +674,13 @@ namespace Flowery.NET.Kanban.Controls
 
         private bool CanExecuteAddUser()
         {
-            return IsLocalProvider && !string.IsNullOrWhiteSpace(NewUserName);
+            return ResolveLocalProvider() is LocalUserProvider
+                   && !string.IsNullOrWhiteSpace(NewUserName);
         }
 
         private void ExecuteAddUser()
         {
-            if (!IsLocalProvider)
-                return;
-
-            var provider = UserProvider as LocalUserProvider;
+            var provider = ResolveLocalProvider() as LocalUserProvider;
             if (provider == null)
                 return;
 
@@ -706,31 +696,34 @@ namespace Flowery.NET.Kanban.Controls
 
         private bool CanExecuteRemoveUser()
         {
-            return IsLocalProvider && SelectedUser != null && !SelectedUser.IsCurrentUser;
+            return ResolveLocalProvider() is LocalUserProvider
+                   && SelectedUser is { IsCurrentUser: false, ProviderKey: LocalProviderKey };
         }
 
         private void ExecuteRemoveUser()
         {
-            if (!IsLocalProvider)
-                return;
-
-            var provider = UserProvider as LocalUserProvider;
+            var provider = ResolveLocalProvider() as LocalUserProvider;
             if (provider == null)
                 return;
 
             var selected = SelectedUser;
-            if (selected == null)
+            if (selected == null
+                || !string.Equals(selected.ProviderKey, LocalProviderKey, StringComparison.Ordinal))
                 return;
 
             provider.RemoveUser(selected.RawId);
         }
 
-        private bool CanExecuteConnectGitHub(string? providerKey)
+        private bool CanExecuteConnectProvider(string? providerKey)
         {
-            return !string.IsNullOrWhiteSpace(providerKey);
+            if (string.IsNullOrWhiteSpace(providerKey))
+                return false;
+
+            var provider = ResolveProviderByKey(providerKey);
+            return provider != null && SupportsConnect(provider);
         }
 
-        private void ExecuteConnectGitHub(string? providerKey)
+        private void ExecuteConnectProvider(string? providerKey)
         {
             if (string.IsNullOrWhiteSpace(providerKey))
                 return;
@@ -764,37 +757,50 @@ namespace Flowery.NET.Kanban.Controls
 
         private async void ExecuteLinkLocalUser()
         {
-            if (TopLevel == null)
+            var xamlRoot = TopLevel;
+            if (xamlRoot == null)
                 return;
 
-            var selected = SelectedUser;
-            if (selected == null)
-                return;
+            try
+            {
+                var selected = SelectedUser;
+                if (selected == null)
+                    return;
 
-            if (string.Equals(selected.ProviderKey, LocalProviderKey, StringComparison.Ordinal))
-                return;
+                if (string.Equals(selected.ProviderKey, LocalProviderKey, StringComparison.Ordinal))
+                    return;
 
-            var localProvider = ResolveLocalProvider();
-            if (localProvider == null)
-                return;
+                var localProvider = ResolveLocalProvider();
+                if (localProvider == null)
+                    return;
 
-            var localUsers = (await localProvider.GetAllUsersAsync()).ToList();
-            if (localUsers.Count == 0)
-                return;
+                var localUsers = (await localProvider.GetAllUsersAsync()).ToList();
+                if (localUsers.Count == 0)
+                    return;
 
-            var message = FloweryLocalization.GetString("Kanban_Users_LinkLocal_Message");
-            var buttonText = FloweryLocalization.GetString("Kanban_Users_LinkLocal_Button");
-            var linkedUser = await LinkLocalUserDialog.ShowAsync(message, buttonText, localUsers, TopLevel);
-            if (linkedUser == null)
-                return;
+                var message = FloweryLocalization.GetString("Kanban_Users_LinkLocal_Message");
+                var buttonText = FloweryLocalization.GetString("Kanban_Users_LinkLocal_Button");
+                var linkedUser = await LinkLocalUserDialog.ShowAsync(
+                    message,
+                    buttonText,
+                    localUsers,
+                    xamlRoot);
+                if (linkedUser == null)
+                    return;
 
-            _identityLinkStore.SetLink(
-                selected.ProviderKey,
-                selected.RawId,
-                linkedUser.RawId,
-                linkedUser.DisplayName);
+                _identityLinkStore.SetLink(
+                    selected.ProviderKey,
+                    selected.RawId,
+                    linkedUser.RawId,
+                    linkedUser.DisplayName);
 
-            UpdateSelectedUserLinkState();
+                UpdateSelectedUserLinkState();
+                RaiseIdentityLinksChanged();
+            }
+            catch (Exception ex)
+            {
+                await ShowIdentityLinkErrorAsync(ex, xamlRoot);
+            }
         }
 
         private bool CanExecuteUnlinkLocalUser()
@@ -802,8 +808,12 @@ namespace Flowery.NET.Kanban.Controls
             return CanLinkSelectedUser && HasLinkedLocalUser && SelectedUser != null;
         }
 
-        private void ExecuteUnlinkLocalUser()
+        private async void ExecuteUnlinkLocalUser()
         {
+            var xamlRoot = TopLevel;
+            if (xamlRoot == null)
+                return;
+
             var selected = SelectedUser;
             if (selected == null)
                 return;
@@ -811,10 +821,42 @@ namespace Flowery.NET.Kanban.Controls
             if (!CanLinkSelectedUser || !HasLinkedLocalUser)
                 return;
 
-            if (_identityLinkStore.RemoveLink(selected.ProviderKey, selected.RawId))
+            try
             {
-                UpdateSelectedUserLinkState();
+                if (_identityLinkStore.RemoveLink(selected.ProviderKey, selected.RawId))
+                {
+                    UpdateSelectedUserLinkState();
+                    RaiseIdentityLinksChanged();
+                }
             }
+            catch (Exception ex)
+            {
+                await ShowIdentityLinkErrorAsync(ex, xamlRoot);
+            }
+        }
+
+        private static async Task ShowIdentityLinkErrorAsync(Exception error, TopLevel xamlRoot)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"FlowKanban identity link persistence failed: {error.GetType().Name} - {error.Message}");
+            try
+            {
+                var title = FloweryLocalization.GetString("Kanban_Users_LinkLocal_Label");
+                var message = FloweryLocalization.GetString(
+                    "Kanban_Users_IdentityLink_Error",
+                    "The identity link could not be loaded or saved.");
+                await ProviderErrorDialog.ShowAsync(title, message, xamlRoot);
+            }
+            catch (Exception dialogError)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"FlowKanban identity link error dialog failed: {dialogError.GetType().Name} - {dialogError.Message}");
+            }
+        }
+
+        private void RaiseIdentityLinksChanged()
+        {
+            IdentityLinksChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void NotifyUserCommandsChanged()
@@ -829,10 +871,10 @@ namespace Flowery.NET.Kanban.Controls
                 unlinkLocal.RaiseCanExecuteChanged();
         }
 
-        private void NotifyGitHubCommandsChanged()
+        private void NotifyProviderCommandsChanged()
         {
-            if (ConnectGitHubCommand is RelayCommand<string> connectGitHub)
-                connectGitHub.RaiseCanExecuteChanged();
+            if (ConnectProviderCommand is RelayCommand<string> connectProvider)
+                connectProvider.RaiseCanExecuteChanged();
             if (DisconnectProviderCommand is RelayCommand<string> disconnectProvider)
                 disconnectProvider.RaiseCanExecuteChanged();
         }
@@ -1011,12 +1053,11 @@ namespace Flowery.NET.Kanban.Controls
             providers.Clear();
 
             var provider = UserProvider;
-            IsLocalProvider = provider is LocalUserProvider;
+            IsLocalProvider = ResolveLocalProvider() is LocalUserProvider;
             IsCompositeProvider = provider is ICompositeUserProvider;
             SupportsAvatars = provider?.SupportsAvatars ?? false;
             SupportsPresence = provider?.SupportsPresence ?? false;
             SupportsRealtime = provider?.SupportsRealtime ?? false;
-            IsGitHubProviderAvailable = ResolveGitHubProvider() != null;
 
             if (provider is ICompositeUserProvider composite)
             {
@@ -1062,7 +1103,7 @@ namespace Flowery.NET.Kanban.Controls
 
             UpdateProviderState();
             NotifyUserCommandsChanged();
-            NotifyGitHubCommandsChanged();
+            NotifyProviderCommandsChanged();
         }
 
         private static bool TryGetProviderHasToken(IUserProvider provider)
@@ -1072,7 +1113,35 @@ namespace Flowery.NET.Kanban.Controls
 
         private static bool SupportsConnect(IUserProvider provider)
         {
-            return provider is IInteractiveAuthProvider || provider is ITokenSaveProvider;
+            return provider is IInteractiveAuthProvider || ProviderTokenConnection.CanConnect(provider);
+        }
+
+        private CancellationTokenSource BeginProviderConnection()
+        {
+            var cancellation = new CancellationTokenSource();
+            Interlocked.Exchange(ref _providerConnectionCts, cancellation)?.Cancel();
+            return cancellation;
+        }
+
+        private void CancelProviderConnection()
+        {
+            Interlocked.Exchange(ref _providerConnectionCts, null)?.Cancel();
+        }
+
+        private bool IsProviderConnectionCurrent(
+            CancellationTokenSource cancellation,
+            string providerKey,
+            IUserProvider provider)
+        {
+            return !cancellation.IsCancellationRequested
+                   && ReferenceEquals(Volatile.Read(ref _providerConnectionCts), cancellation)
+                   && ReferenceEquals(ResolveProviderByKey(providerKey), provider);
+        }
+
+        private void CompleteProviderConnection(CancellationTokenSource cancellation)
+        {
+            _ = Interlocked.CompareExchange(ref _providerConnectionCts, null, cancellation);
+            cancellation.Dispose();
         }
 
         private void UpdateProviderState()
@@ -1086,22 +1155,66 @@ namespace Flowery.NET.Kanban.Controls
             IFlowUser? currentUser,
             CancellationToken token)
         {
-            var currentId = currentUser?.Id;
+            var currentId = FlowUserIdHelper.TryResolve(currentUser, out var resolvedCurrentId)
+                ? resolvedCurrentId
+                : null;
             var userList = users?.Where(u => u != null).ToList() ?? new List<IFlowUser>();
             var providerNameMap = BuildProviderNameMap(provider);
+            if (userList.Count == 0)
+                return Array.Empty<FlowKanbanUserItem>();
 
-            var itemTasks = new List<Task<FlowKanbanUserItem?>>();
-            foreach (var user in userList)
+            var workerCount = Math.Min(MaxConcurrentAvatarLoads, userList.Count);
+            var workerTasks = new Task<List<FlowKanbanUserItem>>[workerCount];
+            for (var workerIndex = 0; workerIndex < workerCount; workerIndex++)
             {
-                var displayName = ResolveProviderDisplayName(provider, providerNameMap, user.ProviderKey);
-                itemTasks.Add(CreateUserItemAsync(user, provider, displayName, currentId, token));
+                workerTasks[workerIndex] = BuildUserItemsPartitionAsync(
+                    userList,
+                    workerIndex,
+                    workerCount,
+                    provider,
+                    providerNameMap,
+                    currentId,
+                    token);
             }
-            var items = await Task.WhenAll(itemTasks);
-            return items
-                .Where(item => item != null)
-                .Select(item => item!)
+
+            var partitions = await Task.WhenAll(workerTasks);
+            return partitions
+                .SelectMany(items => items)
                 .OrderBy(item => item.DisplayName, StringComparer.OrdinalIgnoreCase)
                 .ToList();
+        }
+
+        private async Task<List<FlowKanbanUserItem>> BuildUserItemsPartitionAsync(
+            IReadOnlyList<IFlowUser> users,
+            int startIndex,
+            int stride,
+            IUserProvider provider,
+            IReadOnlyDictionary<string, string> providerNameMap,
+            string? currentUserId,
+            CancellationToken token)
+        {
+            var items = new List<FlowKanbanUserItem>((users.Count + stride - 1) / stride);
+            for (var index = startIndex; index < users.Count; index += stride)
+            {
+                token.ThrowIfCancellationRequested();
+                var user = users[index];
+                var displayName = ResolveProviderDisplayName(
+                    provider,
+                    providerNameMap,
+                    user.ProviderKey);
+                var item = await CreateUserItemAsync(
+                    user,
+                    provider,
+                    displayName,
+                    currentUserId,
+                    token);
+                if (item != null)
+                {
+                    items.Add(item);
+                }
+            }
+
+            return items;
         }
 
         private static Dictionary<string, string> BuildProviderNameMap(IUserProvider provider)
@@ -1141,23 +1254,6 @@ namespace Flowery.NET.Kanban.Controls
             return provider.DisplayName;
         }
 
-        private IUserProvider? ResolveGitHubProvider()
-        {
-            var provider = UserProvider;
-            if (provider == null)
-                return null;
-
-            if (string.Equals(provider.ProviderKey, GitHubProviderKey, StringComparison.Ordinal))
-                return provider;
-
-            if (provider is ICompositeUserProvider composite)
-            {
-                return composite.GetProviderByKey(GitHubProviderKey);
-            }
-
-            return null;
-        }
-
         private IUserProvider? ResolveLocalProvider()
         {
             var provider = UserProvider;
@@ -1175,92 +1271,112 @@ namespace Flowery.NET.Kanban.Controls
             return null;
         }
 
-        private static bool TryInvokeSaveToken(IUserProvider provider, string token)
-        {
-            if (provider is ITokenSaveProvider tokenProvider)
-            {
-                tokenProvider.SaveToken(token);
-                return true;
-            }
-
-            return false;
-        }
-
         private async Task ConnectProviderAsync(string providerKey)
         {
+            var xamlRoot = TopLevel;
+            var provider = ResolveProviderByKey(providerKey);
+            if (xamlRoot == null || provider == null)
+                return;
+
+            var cancellation = BeginProviderConnection();
             try
             {
-                if (TopLevel == null)
-                    return;
-
-                var provider = ResolveProviderByKey(providerKey);
-                if (provider == null)
-                    return;
-
                 if (provider is IInteractiveAuthProvider interactive)
                 {
-                    var success = await interactive.AuthenticateAsync();
-                    if (success)
+                    var success = await interactive.AuthenticateAsync(cancellation.Token);
+                    if (success && IsProviderConnectionCurrent(cancellation, providerKey, provider))
                     {
                         RefreshProviderSummaries();
                     }
                     return;
                 }
 
-                var title = FloweryLocalization.GetString("Kanban_Users_GitHub_Title");
-                var message = FloweryLocalization.GetString("Kanban_Users_GitHub_Message");
-                var placeholder = FloweryLocalization.GetString("Kanban_Users_GitHub_Placeholder");
-                var connectText = FloweryLocalization.GetString("Kanban_Users_GitHub_Button");
+                var title = provider.DisplayName;
+                var message = FloweryLocalization.GetString(
+                    "Kanban_Users_ProviderToken_Message",
+                    "Enter the access token issued by this provider.");
+                var placeholder = FloweryLocalization.GetString(
+                    "Kanban_Users_ProviderToken_Placeholder",
+                    "Access token");
+                var hint = FloweryLocalization.GetString(
+                    "Kanban_Users_ProviderToken_Hint",
+                    "Use a token with only the access required by this provider.");
+                var connectText = FloweryLocalization.GetString("Common_Connect");
 
-                var token = await GitHubConnectDialog.ShowAsync(title, message, placeholder, connectText, TopLevel);
-                if (string.IsNullOrWhiteSpace(token))
-                    return;
-
-                if (!TryInvokeSaveToken(provider, token))
-                    return;
-
-                if (provider is ITokenValidationProvider validator &&
-                    string.Equals(provider.ProviderKey, GitHubProviderKey, StringComparison.Ordinal))
+                var token = await ProviderTokenDialog.ShowAsync(
+                    title,
+                    message,
+                    hint,
+                    placeholder,
+                    connectText,
+                    xamlRoot);
+                if (string.IsNullOrWhiteSpace(token)
+                    || !IsProviderConnectionCurrent(cancellation, providerKey, provider))
                 {
-                    var validation = await validator.ValidateAccessAsync();
-                    if (!validation.IsSuccess)
-                    {
-                        _ = TryInvokeSaveToken(provider, string.Empty);
-                        GitHubToken = string.Empty;
-                        RefreshProviderSummaries();
-
-                        var errorTitle = FloweryLocalization.GetString("Kanban_Users_GitHub_Error_Title");
-                        var errorMessage = validation.IsMissingScope
-                            ? FloweryLocalization.GetString("Kanban_Users_GitHub_Error_Scopes")
-                            : FloweryLocalization.GetString("Kanban_Users_GitHub_Error_Generic");
-
-                        await ProviderErrorDialog.ShowAsync(errorTitle, errorMessage, TopLevel);
-                        return;
-                    }
+                    return;
                 }
 
-                GitHubToken = string.Empty;
+                var validation = await ProviderTokenConnection.ValidateAndSaveAsync(
+                    provider,
+                    token,
+                    cancellation.Token);
+                if (!IsProviderConnectionCurrent(cancellation, providerKey, provider))
+                    return;
+
+                if (!validation.IsSuccess)
+                {
+                    var errorMessage = validation.Message;
+                    if (string.IsNullOrWhiteSpace(errorMessage))
+                    {
+                        errorMessage = validation.IsMissingScope
+                            ? FloweryLocalization.GetString(
+                                "Kanban_Users_ProviderToken_Error_Access",
+                                "The token does not grant the required access.")
+                            : FloweryLocalization.GetString(
+                                "Kanban_Users_ProviderToken_Error_Generic",
+                                "The token could not be validated.");
+                    }
+
+                    await ProviderErrorDialog.ShowAsync(title, errorMessage, xamlRoot);
+                    return;
+                }
+
                 RefreshProviderSummaries();
+            }
+            catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+            {
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"FlowKanban connect failed: {ex.GetType().Name} - {ex.Message}");
+                if (IsProviderConnectionCurrent(cancellation, providerKey, provider))
+                {
+                    var errorMessage = FloweryLocalization.GetString(
+                        "Kanban_Users_ProviderToken_Error_Generic",
+                        "The provider connection failed.");
+                    await ProviderErrorDialog.ShowAsync(provider.DisplayName, errorMessage, xamlRoot);
+                }
+            }
+            finally
+            {
+                CompleteProviderConnection(cancellation);
             }
         }
 
         private async Task DisconnectProviderAsync(string providerKey)
         {
+            CancelProviderConnection();
+            var xamlRoot = TopLevel;
+            var provider = ResolveProviderByKey(providerKey);
+            if (xamlRoot == null || provider == null)
+                return;
+
             try
             {
                 if (!string.Equals(providerKey, LocalProviderKey, StringComparison.Ordinal))
                 {
                     var title = FloweryLocalization.GetString("Kanban_Users_Disconnect_Title");
                     var message = FloweryLocalization.GetString("Kanban_Users_Disconnect_Message");
-                    var xamlRoot = TopLevel;
-                    if (xamlRoot == null)
-                    {
-                        return;
-                    }
                     var confirmed = await ProviderConfirmDialog.ShowAsync(
                         title,
                         message,
@@ -1272,19 +1388,13 @@ namespace Flowery.NET.Kanban.Controls
                     }
                 }
 
-                var provider = ResolveProviderByKey(providerKey);
-                if (provider == null)
-                {
+                if (!ReferenceEquals(ResolveProviderByKey(providerKey), provider))
                     return;
-                }
 
-                if (!TryInvokeSaveToken(provider, string.Empty))
-                {
-                    return;
-                }
+                ProviderTokenConnection.Disconnect(provider);
 
-                GitHubToken = string.Empty;
-                _identityLinkStore.RemoveLinksForProvider(providerKey);
+                if (_identityLinkStore.RemoveLinksForProvider(providerKey))
+                    RaiseIdentityLinksChanged();
                 if (SelectedUser != null &&
                     string.Equals(SelectedUser.ProviderKey, providerKey, StringComparison.Ordinal))
                 {
@@ -1297,6 +1407,10 @@ namespace Flowery.NET.Kanban.Controls
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"FlowKanban disconnect failed: {ex.GetType().Name} - {ex.Message}");
+                var errorMessage = FloweryLocalization.GetString(
+                    "Kanban_Users_ProviderToken_Error_Generic",
+                    "The provider connection failed.");
+                await ProviderErrorDialog.ShowAsync(provider.DisplayName, errorMessage, xamlRoot);
             }
         }
 
@@ -1327,12 +1441,15 @@ namespace Flowery.NET.Kanban.Controls
             if (token.IsCancellationRequested)
                 return null;
 
+            if (!FlowUserIdHelper.TryResolve(user, out var userId))
+                return null;
+
             var initials = BuildInitials(user.DisplayName);
             var statusLabel = GetStatusLabel(user.Status);
             var avatarStatus = provider.SupportsPresence ? MapStatus(user.Status) : DaisyStatus.None;
             var avatarSource = await LoadAvatarSourceAsync(user, provider, token);
             var isCurrent = !string.IsNullOrWhiteSpace(currentUserId)
-                            && string.Equals(user.Id, currentUserId, StringComparison.Ordinal);
+                            && string.Equals(userId, currentUserId, StringComparison.Ordinal);
 
             return new FlowKanbanUserItem(
                 user,
@@ -1399,20 +1516,20 @@ namespace Flowery.NET.Kanban.Controls
 
             try
             {
-                if (user.AvatarBytes is { Length: > 0 })
+                if (user.AvatarBytes is { Length: > 0 } embeddedAvatar)
                 {
-                    using var stream = new MemoryStream(user.AvatarBytes, writable: false);
-                    return new Bitmap(stream);
+                    return DecodeAvatar(embeddedAvatar);
                 }
 
-                if (!string.IsNullOrWhiteSpace(user.AvatarUrl) &&
-                    Uri.TryCreate(user.AvatarUrl, UriKind.Absolute, out var uri))
-                {
-                    using var stream = await AvatarHttpClient.GetStreamAsync(uri, token);
-                    return new Bitmap(stream);
-                }
+                if (provider is not IUserAvatarStreamProvider avatarProvider)
+                    return null;
 
-                return null;
+                using var stream = await avatarProvider.OpenAvatarStreamAsync(user, token);
+                if (stream == null)
+                    return null;
+
+                var avatarBytes = await ReadAvatarBytesAsync(stream, token);
+                return avatarBytes == null ? null : DecodeAvatar(avatarBytes);
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
@@ -1424,8 +1541,48 @@ namespace Flowery.NET.Kanban.Controls
                 return null;
             }
         }
+
+        private static async Task<byte[]?> ReadAvatarBytesAsync(
+            Stream source,
+            CancellationToken token)
+        {
+            if (source.CanSeek)
+            {
+                var remainingLength = source.Length - source.Position;
+                if (remainingLength is <= 0 or > MaxAvatarEncodedBytes)
+                    return null;
+            }
+
+            using var destination = new MemoryStream();
+            var buffer = new byte[81920];
+            while (true)
+            {
+                var remainingCapacity = MaxAvatarEncodedBytes - (int)destination.Length;
+                var readLength = Math.Min(buffer.Length, remainingCapacity + 1);
+                var read = await source.ReadAsync(buffer.AsMemory(0, readLength), token);
+                if (read == 0)
+                    return destination.Length == 0 ? null : destination.ToArray();
+
+                if (read > remainingCapacity)
+                    return null;
+
+                await destination.WriteAsync(buffer.AsMemory(0, read), token);
+            }
+        }
+
+        private static IImage? DecodeAvatar(byte[] bytes)
+        {
+            if (bytes.Length is 0 or > MaxAvatarEncodedBytes)
+                return null;
+
+            using var stream = new MemoryStream(bytes, writable: false);
+            return Bitmap.DecodeToWidth(
+                stream,
+                AvatarDecodeWidth,
+                BitmapInterpolationMode.HighQuality);
+        }
     }
-    public sealed class FlowKanbanProviderSummary
+    internal sealed class FlowKanbanProviderSummary
     {
         public FlowKanbanProviderSummary(
             string displayName,
@@ -1467,7 +1624,7 @@ namespace Flowery.NET.Kanban.Controls
         public bool ShouldShowDisconnect => SupportsDisconnect && HasToken;
     }
 
-    internal sealed partial class GitHubConnectDialog : FlowKanbanDialogBase
+    internal sealed partial class ProviderTokenDialog : FlowKanbanDialogBase
     {
         private readonly TaskCompletionSource<string?> _tcs = new();
         private readonly TopLevel _xamlRoot;
@@ -1478,9 +1635,10 @@ namespace Flowery.NET.Kanban.Controls
         private readonly DaisyButton _cancelButton;
         private const double CompactDialogMaxWidth = 300;
 
-        private GitHubConnectDialog(
+        private ProviderTokenDialog(
             string title,
             string message,
+            string hint,
             string placeholder,
             string connectText,
             TopLevel xamlRoot)
@@ -1539,7 +1697,7 @@ namespace Flowery.NET.Kanban.Controls
             contentStack.Children.Add(FlowKanbanControlFactory.CreateTextBlock(title, FlowKanbanTextRole.Title));
             contentStack.Children.Add(FlowKanbanControlFactory.CreateTextBlock(message, FlowKanbanTextRole.Body));
             contentStack.Children.Add(FlowKanbanControlFactory.CreateTextBlock(
-                FloweryLocalization.GetString("Kanban_Users_GitHub_Hint"),
+                hint,
                 FlowKanbanTextRole.Caption));
             contentStack.Children.Add(fieldCard);
             contentStack.Children.Add(footerCard);
@@ -1555,6 +1713,7 @@ namespace Flowery.NET.Kanban.Controls
         public static Task<string?> ShowAsync(
             string title,
             string message,
+            string hint,
             string placeholder,
             string connectText,
             TopLevel xamlRoot)
@@ -1562,7 +1721,7 @@ namespace Flowery.NET.Kanban.Controls
             if (xamlRoot == null)
                 return Task.FromResult<string?>(null);
 
-            var dialog = new GitHubConnectDialog(title, message, placeholder, connectText, xamlRoot);
+            var dialog = new ProviderTokenDialog(title, message, hint, placeholder, connectText, xamlRoot);
             return dialog.ShowInternalAsync();
         }
 
@@ -1975,7 +2134,7 @@ namespace Flowery.NET.Kanban.Controls
         }
     }
 
-    public sealed class FlowKanbanUserItem
+    internal sealed class FlowKanbanUserItem
     {
         public FlowKanbanUserItem(
             IFlowUser user,
@@ -1994,7 +2153,7 @@ namespace Flowery.NET.Kanban.Controls
             AvatarSource = avatarSource;
             IsCurrentUser = isCurrentUser;
 
-            Id = user.Id;
+            Id = FlowUserIdHelper.Resolve(user);
             RawId = user.RawId;
             ProviderKey = user.ProviderKey;
             DisplayName = user.DisplayName;

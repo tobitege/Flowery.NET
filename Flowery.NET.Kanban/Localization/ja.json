@@ -272,6 +272,7 @@
   "Kanban_Users_Status_DoNotDisturb": "応答不可",
   "Kanban_Users_Status_Offline": "オフライン",
   "Kanban_Users_Status_Unknown": "不明",
+  "Kanban_Users_Unresolved": "利用不可",
   "Kanban_Settings_CompactColumnSizing": "コンパクト列サイズ",
   "Kanban_Settings_CompactColumnSizing_Adaptive": "自動調整",
   "Kanban_Settings_CompactColumnSizing_Manual": "手動",

@@ -7,23 +7,22 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Flowery.Controls;
 using Flowery.NET.Kanban.Controls;
-using Flowery.NET.Kanban.Controls.Users;
 using Flowery.Services;
 
 namespace Flowery.NET.Gallery.Examples;
 
 public partial class FlowKanbanExample : UserControl
 {
-    private readonly IUserProvider _userProvider;
+    private readonly FlowKanbanAssigneeAdapter _assigneeAdapter;
     private FlowKanbanManager? _kanbanManager;
 
     public FlowKanbanExample()
     {
         InitializeComponent();
 
-        _userProvider = new LocalUserProvider(includeDemoUsers: true);
+        _assigneeAdapter = new FlowKanbanAssigneeAdapter(CreateAssignees());
 
-        DemoKanban.UserProvider = _userProvider;
+        DemoKanban.AssigneeAdapter = _assigneeAdapter;
         DemoKanban.EditCardCommand = new SimpleCommand(OnEditCardRequested);
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
@@ -77,7 +76,7 @@ public partial class FlowKanbanExample : UserControl
             return;
         }
 
-        var assignees = await GetAssigneeOptionsAsync(_userProvider);
+        var assignees = await GetAssigneeOptionsAsync(_assigneeAdapter);
         await FlowTaskEditorDialog.ShowAsyncWithAssignees(
             task,
             topLevel,
@@ -87,28 +86,31 @@ public partial class FlowKanbanExample : UserControl
     }
 
     private static async Task<IReadOnlyList<FlowTaskAssigneeOption>> GetAssigneeOptionsAsync(
-        IUserProvider provider)
+        IFlowKanbanAssigneeAdapter adapter)
     {
-        var users = await provider.GetAllUsersAsync();
-        var optionsById = new Dictionary<string, FlowTaskAssigneeOption>(StringComparer.Ordinal);
-
-        foreach (var user in users)
-        {
-            var id = user.Id.Trim();
-            var displayName = string.IsNullOrWhiteSpace(user.DisplayName)
-                ? user.RawId.Trim()
-                : user.DisplayName.Trim();
-            if (id.Length == 0 || displayName.Length == 0)
-            {
-                continue;
-            }
-
-            optionsById.TryAdd(id, new FlowTaskAssigneeOption(id, displayName));
-        }
-
-        return optionsById.Values
+        var assignees = await adapter.GetAssigneesAsync();
+        return assignees
+            .Select(assignee => new FlowTaskAssigneeOption(assignee.Id, assignee.DisplayName))
             .OrderBy(option => option.DisplayName, StringComparer.OrdinalIgnoreCase)
             .ToArray();
+    }
+
+    private static IReadOnlyList<FlowKanbanAssignee> CreateAssignees()
+    {
+        string[] names = ["Sam", "Dario", "Max", "Demis", "Adam", "Lucy", "Anita", "Sue", "Eric", "Forrest"];
+        return names.Select((name, index) =>
+        {
+            string[] roles = index switch
+            {
+                0 => ["Administrator"],
+                1 => ["Product owner"],
+                _ => ["Contributor"]
+            };
+            return new FlowKanbanAssignee(
+                $"demo-{name.ToLowerInvariant()}",
+                name,
+                roles: roles);
+        }).ToArray();
     }
 
     private static FlowKanbanData CreateSampleBoard()

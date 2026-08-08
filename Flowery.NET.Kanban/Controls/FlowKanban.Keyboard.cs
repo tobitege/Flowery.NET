@@ -104,8 +104,7 @@ namespace Flowery.NET.Kanban.Controls
 
         private bool TryHandleControlShortcut(Key key, bool isAltDown, bool isShiftDown)
         {
-            // Admin-only column operations.
-            if (!isAltDown && !isShiftDown && _isCurrentUserGlobalAdmin)
+            if (!isAltDown && !isShiftDown)
             {
                 switch (key)
                 {
@@ -120,26 +119,18 @@ namespace Flowery.NET.Kanban.Controls
                         }
                         break;
                     case Key.T:
-                        var column = GetActiveColumnData();
-                        if (column != null)
+                        var targetColumn = GetActiveColumnData();
+                        if (targetColumn != null)
                         {
-                            ExecuteEditColumn(column);
+                            ExecuteEditColumn(targetColumn);
                             return true;
                         }
                         break;
-                }
-            }
-
-            // Everyone shortcuts.
-            if (!isAltDown && !isShiftDown)
-            {
-                switch (key)
-                {
                     case Key.N:
-                        var column = GetActiveColumnData();
-                        if (column != null)
+                        var activeColumn = GetActiveColumnData();
+                        if (activeColumn != null)
                         {
-                            BeginInlineAddCard(column);
+                            BeginInlineAddCard(activeColumn);
                             return true;
                         }
                         break;

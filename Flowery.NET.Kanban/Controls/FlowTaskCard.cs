@@ -164,6 +164,52 @@ namespace Flowery.NET.Kanban.Controls
         }
         #endregion
 
+        #region Assignee metadata
+        public static readonly StyledProperty<IImage?> AssigneeAvatarSourceProperty =
+            AvaloniaProperty.Register<FlowTaskCard, IImage?>(
+                nameof(AssigneeAvatarSource),
+                default!);
+
+        public IImage? AssigneeAvatarSource
+        {
+            get => (IImage?)GetValue(AssigneeAvatarSourceProperty);
+            set => SetValue(AssigneeAvatarSourceProperty, value);
+        }
+
+        public static readonly StyledProperty<bool> HasAssigneeAvatarProperty =
+            AvaloniaProperty.Register<FlowTaskCard, bool>(
+                nameof(HasAssigneeAvatar),
+                false);
+
+        public bool HasAssigneeAvatar
+        {
+            get => (bool)GetValue(HasAssigneeAvatarProperty);
+            set => SetValue(HasAssigneeAvatarProperty, value);
+        }
+
+        public static readonly StyledProperty<string> AssigneeRolesTextProperty =
+            AvaloniaProperty.Register<FlowTaskCard, string>(
+                nameof(AssigneeRolesText),
+                string.Empty);
+
+        public string AssigneeRolesText
+        {
+            get => (string)GetValue(AssigneeRolesTextProperty);
+            set => SetValue(AssigneeRolesTextProperty, value);
+        }
+
+        public static readonly StyledProperty<bool> HasAssigneeRolesProperty =
+            AvaloniaProperty.Register<FlowTaskCard, bool>(
+                nameof(HasAssigneeRoles),
+                false);
+
+        public bool HasAssigneeRoles
+        {
+            get => (bool)GetValue(HasAssigneeRolesProperty);
+            set => SetValue(HasAssigneeRolesProperty, value);
+        }
+        #endregion
+
         #region HasAssignee
         public static readonly StyledProperty<bool> HasAssigneeProperty =
             AvaloniaProperty.Register<FlowTaskCard, bool>(
@@ -862,7 +908,9 @@ namespace Flowery.NET.Kanban.Controls
             {
                 UpdateWorkItemNumber();
             }
-            else if (string.Equals(e.PropertyName, nameof(FlowTask.Assignee), StringComparison.Ordinal))
+            else if (string.Equals(e.PropertyName, nameof(FlowTask.Assignee), StringComparison.Ordinal)
+                     || string.Equals(e.PropertyName, nameof(FlowTask.AssigneeAvatarSource), StringComparison.Ordinal)
+                     || string.Equals(e.PropertyName, nameof(FlowTask.AssigneeRoles), StringComparison.Ordinal))
             {
                 UpdateAssignee();
             }
@@ -993,12 +1041,22 @@ namespace Flowery.NET.Kanban.Controls
                 HasAssignee = false;
                 AssigneeText = string.Empty;
                 AssigneeInitials = string.Empty;
+                AssigneeAvatarSource = null;
+                HasAssigneeAvatar = false;
+                AssigneeRolesText = string.Empty;
+                HasAssigneeRoles = false;
             }
             else
             {
                 HasAssignee = true;
                 AssigneeText = assignee;
                 AssigneeInitials = BuildInitials(assignee);
+                AssigneeAvatarSource = task?.AssigneeAvatarSource;
+                HasAssigneeAvatar = AssigneeAvatarSource is not null;
+                AssigneeRolesText = task?.AssigneeRoles is { Count: > 0 } roles
+                    ? string.Join(", ", roles)
+                    : string.Empty;
+                HasAssigneeRoles = AssigneeRolesText.Length > 0;
             }
 
             UpdateFooterVisibility();

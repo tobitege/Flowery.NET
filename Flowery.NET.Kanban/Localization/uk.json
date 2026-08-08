@@ -272,6 +272,7 @@
   "Kanban_Users_Status_DoNotDisturb": "Не турбувати",
   "Kanban_Users_Status_Offline": "Офлайн",
   "Kanban_Users_Status_Unknown": "Невідомо",
+  "Kanban_Users_Unresolved": "Недоступний",
   "Kanban_Settings_CompactColumnSizing": "Розмір компактних стовпців",
   "Kanban_Settings_CompactColumnSizing_Adaptive": "Адаптивний",
   "Kanban_Settings_CompactColumnSizing_Manual": "Ручний",

@@ -229,12 +229,24 @@
                                                       Grid.RowSpan="2"
                                                       Grid.Column="0"
                                                       Size="ExtraSmall"
-                                                      IsPlaceholder="True"
+                                                      IsPlaceholder="{Binding HasAssigneeAvatar, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static BoolConverters.Not}}"
                                                       VerticalAlignment="Center"
                                                       IsVisible="{Binding HasAssignee, RelativeSource={RelativeSource TemplatedParent}}">
-                                    <TextBlock Text="{TemplateBinding AssigneeInitials}"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center" />
+                                    <Grid>
+                                        <Image Source="{TemplateBinding AssigneeAvatarSource}"
+                                               Stretch="UniformToFill"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Stretch"
+                                               IsVisible="{Binding HasAssigneeAvatar, RelativeSource={RelativeSource TemplatedParent}}" />
+                                        <TextBlock Text="{TemplateBinding AssigneeInitials}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   IsVisible="{Binding HasAssigneeAvatar, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static BoolConverters.Not}}" />
+                                    </Grid>
+                                    <ToolTip.Tip>
+                                        <ToolTip Content="{TemplateBinding AssigneeRolesText}"
+                                                 IsVisible="{Binding HasAssigneeRoles, RelativeSource={RelativeSource TemplatedParent}}" />
+                                    </ToolTip.Tip>
                                 </controls:DaisyAvatar>
                                 <StackPanel Grid.Row="0"
                                             Grid.Column="1"
@@ -969,7 +981,7 @@
                                                                                       Size="Small"
                                                                                       HorizontalAlignment="Left"
                                                                                       IsVisible="{Binding ShouldShowConnect}"
-                                                                                      Command="{Binding Tag.ConnectGitHubCommand, ElementName=PART_UsersRoot}"
+                                                                                      Command="{Binding Tag.ConnectProviderCommand, ElementName=PART_UsersRoot}"
                                                                                       CommandParameter="{Binding ProviderKey}"
                                                                                       Content="{Binding DataContext[Common_Connect], ElementName=PART_UsersRoot}"
                                                                                       AutomationProperties.Name="{Binding DataContext[Common_Connect], ElementName=PART_UsersRoot}" />
@@ -980,7 +992,7 @@
                                                                     <controls:DaisyButton
                                                                                           Variant="Neutral"
                                                                                           Size="Small"
-                                                                                          Command="{Binding Tag.ConnectGitHubCommand, ElementName=PART_UsersRoot}"
+                                                                                          Command="{Binding Tag.ConnectProviderCommand, ElementName=PART_UsersRoot}"
                                                                                           CommandParameter="{Binding ProviderKey}"
                                                                                           Content="{Binding DataContext[Kanban_Users_Reconnect_Button], ElementName=PART_UsersRoot}"
                                                                                           AutomationProperties.Name="{Binding DataContext[Kanban_Users_Reconnect_Button], ElementName=PART_UsersRoot}" />
@@ -1752,14 +1764,6 @@
                                                ShowWelcomeMessage="{Binding ShowWelcomeMessage, RelativeSource={RelativeSource TemplatedParent}}"
                                                WelcomeMessageTitle="{Binding WelcomeMessageTitle, RelativeSource={RelativeSource TemplatedParent}}"
                                                WelcomeMessageSubtitle="{Binding WelcomeMessageSubtitle, RelativeSource={RelativeSource TemplatedParent}}" />
-                        <kanban:FlowKanbanUserManagement x:Name="PART_UserManagementView"
-                                                         Grid.Row="0"
-                                                         Grid.RowSpan="4"
-                                                         Grid.Column="0"
-                                                         IsVisible="{Binding IsUserManagementViewActive, RelativeSource={RelativeSource TemplatedParent}}"
-                                                         IsActive="{Binding IsUserManagementViewActive, RelativeSource={RelativeSource TemplatedParent}}"
-                                                         UserProvider="{Binding UserProvider, RelativeSource={RelativeSource TemplatedParent}}"
-                                                         Localization="{Binding Localization, RelativeSource={RelativeSource TemplatedParent}}" />
                         <Grid x:Name="PART_BoardContentHost"
                               Grid.Row="2"
                               Grid.Column="0"
@@ -2014,20 +2018,6 @@
                                             <ToolTip Content="{Binding [Kanban_Home]}" />
                                         </ToolTip.Tip>
                                         <controls:DaisyIconText IconData="{StaticResource DaisyIconHome}"
-                                                                IconSize="14" />
-                                    </controls:DaisyButton>
-                                    <controls:DaisyButton
-                                                          Command="{TemplateBinding ShowUserManagementCommand}"
-                                                          AutomationProperties.Name="{Binding [Kanban_Users_Title]}"
-                                                          AutomationProperties.AutomationId="Kanban_Users"
-                                                          Variant="Neutral"
-                                                          Shape="Square"
-                                                          Size="Small"
-                                                          IsVisible="{Binding IsUserManagementButtonVisible, RelativeSource={RelativeSource TemplatedParent}}">
-                                        <ToolTip.Tip>
-                                            <ToolTip Content="{Binding [Kanban_Users_Title]}" />
-                                        </ToolTip.Tip>
-                                        <controls:DaisyIconText IconData="{StaticResource DaisyIconUser}"
                                                                 IconSize="14" />
                                     </controls:DaisyButton>
                                     <controls:DaisyButton

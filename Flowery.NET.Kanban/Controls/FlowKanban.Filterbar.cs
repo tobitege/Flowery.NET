@@ -9,7 +9,6 @@ using System.Windows.Input;
 using Flowery.Controls;
 using Flowery.Localization;
 using Flowery.Services;
-using Flowery.NET.Kanban.Controls.Users;
 
 namespace Flowery.NET.Kanban.Controls
 {
@@ -26,7 +25,6 @@ namespace Flowery.NET.Kanban.Controls
         private bool _isSyncingFilterDates;
         private bool _isSyncingSearchText;
         private bool _isSyncingAssigneeFilter;
-        private int _assigneeFilterRefreshVersion;
 
         #region Filter DPs
 
@@ -859,14 +857,9 @@ namespace Flowery.NET.Kanban.Controls
             }
         }
 
-        private void UpdateAssigneeFilterOptionsFromUsers(IEnumerable<IFlowUser> users)
+        private void UpdateAssigneeFilterOptions(IReadOnlyList<FlowTaskAssigneeOption> resolvedOptions)
         {
-            var options = BuildAssigneeFilterOptions(users);
-            UpdateAssigneeFilterOptions(options);
-        }
-
-        private void UpdateAssigneeFilterOptions(IReadOnlyList<FlowTaskAssigneeOption> options)
-        {
+            var options = BuildAssigneeFilterOptions(resolvedOptions);
             var items = AssigneeFilterOptions;
             items.Clear();
 
@@ -879,29 +872,43 @@ namespace Flowery.NET.Kanban.Controls
             SyncSelectedAssigneeFromCriteria();
         }
 
-        private void ClearAssigneeFilterOptions()
-        {
-            AssigneeFilterOptions.Clear();
-            HasAssigneeOptions = false;
-            SyncSelectedAssigneeFromCriteria();
-        }
-
-        private static List<FlowTaskAssigneeOption> BuildAssigneeFilterOptions(IEnumerable<IFlowUser> users)
+        private List<FlowTaskAssigneeOption> BuildAssigneeFilterOptions(
+            IEnumerable<FlowTaskAssigneeOption> resolvedOptions)
         {
             var options = new List<FlowTaskAssigneeOption>();
             var seenIds = new HashSet<string>(StringComparer.Ordinal);
 
-            foreach (var user in users ?? Array.Empty<IFlowUser>())
+            foreach (var option in resolvedOptions ?? Array.Empty<FlowTaskAssigneeOption>())
             {
-                if (user == null)
+                if (option?.Id is not { } id || string.IsNullOrWhiteSpace(id))
                     continue;
 
-                var id = user.Id?.Trim();
-                if (string.IsNullOrWhiteSpace(id) || !seenIds.Add(id))
+                if (!seenIds.Add(id))
                     continue;
 
-                var displayName = string.IsNullOrWhiteSpace(user.DisplayName) ? id : user.DisplayName.Trim();
+                var displayName = string.IsNullOrWhiteSpace(option.DisplayName)
+                    ? id
+                    : option.DisplayName.Trim();
                 options.Add(new FlowTaskAssigneeOption(id, displayName));
+            }
+
+            var unresolvedLabel = FloweryLocalization.GetString("Kanban_Users_Unresolved", "Unavailable");
+            foreach (var column in Board.Columns)
+            {
+                foreach (var task in column.Tasks)
+                {
+                    var id = task.AssigneeId;
+                    if (string.IsNullOrWhiteSpace(id) || !seenIds.Add(id))
+                        continue;
+
+                    var displayName = string.IsNullOrWhiteSpace(task.Assignee)
+                        ? id
+                        : task.Assignee.Trim();
+                    options.Add(new FlowTaskAssigneeOption(
+                        id,
+                        $"{displayName} ({unresolvedLabel})",
+                        isResolved: false));
+                }
             }
 
             options.Sort((left, right) =>

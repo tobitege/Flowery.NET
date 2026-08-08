@@ -9,7 +9,7 @@ namespace Flowery.NET.Kanban.Controls.Users;
 /// Optional caching layer for user data.
 /// Interface version: 1.0
 /// </summary>
-public interface IUserCacheService
+internal interface IUserCacheService
 {
     /// <summary>
     /// Cache TTL in seconds.

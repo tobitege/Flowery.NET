@@ -3,7 +3,7 @@
 /// <summary>
 /// User presence status.
 /// </summary>
-public enum FlowUserStatus
+internal enum FlowUserStatus
 {
     Unknown = 0,
     Online = 1,

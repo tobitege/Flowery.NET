@@ -6,11 +6,11 @@ namespace Flowery.NET.Kanban.Controls.Users;
 /// <summary>
 /// Default implementation of IFlowUser.
 /// </summary>
-public class FlowUser : IFlowUser
+internal sealed class FlowUser : IFlowUser
 {
-    public string Id { get; set; } = string.Empty;
-    public string ProviderKey { get; set; } = "local";
-    public string RawId { get; set; } = string.Empty;
+    public string Id { get; }
+    public string ProviderKey { get; }
+    public string RawId { get; }
     public string DisplayName { get; set; } = string.Empty;
     public string? Email { get; set; }
     public string? AvatarUrl { get; set; }
@@ -20,13 +20,15 @@ public class FlowUser : IFlowUser
     public string? Title { get; set; }
     public IReadOnlyDictionary<string, object>? CustomData { get; set; }
 
-    public FlowUser() { }
-
     public FlowUser(string id, string displayName, string providerKey = "local")
     {
-        RawId = id;
-        ProviderKey = providerKey;
+        var normalizedDisplayName = displayName?.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedDisplayName))
+            throw new ArgumentException("Display name must be provided.", nameof(displayName));
+
         Id = FlowUserIdHelper.Compose(providerKey, id);
-        DisplayName = displayName;
+        ProviderKey = FlowUserIdHelper.GetProviderKey(Id);
+        RawId = FlowUserIdHelper.GetRawId(Id);
+        DisplayName = normalizedDisplayName;
     }
 }

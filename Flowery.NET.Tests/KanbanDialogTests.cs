@@ -279,6 +279,50 @@ public class KanbanDialogTests
     }
 
     [AvaloniaFact]
+    public async Task When_TaskEditorUsesOpaqueAssigneeId_IdIsNotNormalized()
+    {
+        const string assigneeId = " external:user-42 ";
+        var option = new FlowTaskAssigneeOption(assigneeId, "External User");
+        var task = new FlowTask
+        {
+            Title = "Assigned task",
+            Assignee = option.DisplayName,
+            AssigneeId = assigneeId
+        };
+        var window = CreateWindow(new Border());
+        FlowTaskEditorDialog? dialog = null;
+
+        try
+        {
+            Assert.Equal(assigneeId, option.Id);
+            var showTask = FlowTaskEditorDialog.ShowAsyncWithAssignees(
+                task,
+                window,
+                availableTags: null,
+                availableAssignees: [option]);
+            FlushLayout(window);
+            dialog = window.GetVisualDescendants().OfType<FlowTaskEditorDialog>().Single();
+
+            var assigneeSelect = dialog.GetVisualDescendants()
+                .OfType<DaisySelect>()
+                .Single(select => select.ItemsSource?.Cast<object>()
+                    .Any(item => item is FlowTaskAssigneeOption) == true);
+            var selected = Assert.IsType<FlowTaskAssigneeOption>(assigneeSelect.SelectedItem);
+            Assert.Equal(assigneeId, selected.Id);
+
+            Invoke(FindActionButton(dialog, "Common_Save"));
+
+            Assert.True(await showTask);
+            Assert.Equal(assigneeId, task.AssigneeId);
+        }
+        finally
+        {
+            CloseDialog(dialog);
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public async Task When_BoardEditorCancelsAndSaves_ChangesRemainIsolatedUntilSave()
     {
         var board = new FlowKanbanData
@@ -585,16 +629,17 @@ public class KanbanDialogTests
 
         try
         {
-            const string connectTitle = "Connect GitHub";
+            const string connectTitle = "Connect Provider";
             const string connectText = "Connect";
-            var tokenTask = GitHubConnectDialog.ShowAsync(
+            var tokenTask = ProviderTokenDialog.ShowAsync(
                 connectTitle,
                 "Enter a token",
-                "GitHub token",
+                "Use the required scopes only",
+                "Access token",
                 connectText,
                 window);
             FlushLayout(window);
-            var connectDialog = window.GetVisualDescendants().OfType<GitHubConnectDialog>().Single();
+            var connectDialog = window.GetVisualDescendants().OfType<ProviderTokenDialog>().Single();
             AssertDialogContract(connectDialog, window, connectTitle);
             Assert.Equal(300, connectDialog.DialogWidth);
             var tokenInput = connectDialog.GetVisualDescendants().OfType<DaisyPasswordBox>().Single();

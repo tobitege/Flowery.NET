@@ -15,6 +15,9 @@ namespace Flowery.NET.Kanban.Controls
 
         private async void ExecuteAddColumn()
         {
+            if (!CanExecuteColumnOperation())
+                return;
+
             var result = await ShowInputDialogAsync(
                 FloweryLocalization.GetString("Kanban_AddSection"),
                 string.Empty,
@@ -32,7 +35,8 @@ namespace Flowery.NET.Kanban.Controls
 
         private async void ExecuteRemoveColumn(FlowKanbanColumnData? column)
         {
-            if (column == null) return;
+            if (column == null || !CanExecuteColumnOperation(column))
+                return;
 
             if (!ConfirmColumnRemovals)
             {
@@ -53,7 +57,8 @@ namespace Flowery.NET.Kanban.Controls
 
         private async void ExecuteEditColumn(FlowKanbanColumnData? column)
         {
-            if (column == null) return;
+            if (column == null || !CanExecuteColumnOperation(column))
+                return;
 
             var xamlRoot = TopLevel;
             if (xamlRoot == null)
@@ -131,8 +136,7 @@ namespace Flowery.NET.Kanban.Controls
         private async void ExecuteShowKeyboardHelp()
         {
             if (TopLevel == null) return;
-            var showAdminShortcuts = await IsCurrentUserGlobalAdminAsync();
-            await FlowKanbanKeyboardHelpDialog.ShowAsync(TopLevel, showAdminShortcuts);
+            await FlowKanbanKeyboardHelpDialog.ShowAsync(TopLevel);
         }
 
         #endregion
@@ -596,26 +600,26 @@ namespace Flowery.NET.Kanban.Controls
 
             private readonly DaisyButton _closeButton;
 
-            private FlowKanbanKeyboardHelpDialog(TopLevel xamlRoot, bool showAdminShortcuts)
+            private FlowKanbanKeyboardHelpDialog(TopLevel xamlRoot)
             {
                 AutomationProperties.SetName(
                     this,
                     FloweryLocalization.GetString("Kanban_KeyboardHelp_Title"));
                 _xamlRoot = xamlRoot;
 
-                Content = CreateDialogLayout(xamlRoot, showAdminShortcuts, out _closeButton);
+                Content = CreateDialogLayout(xamlRoot, out _closeButton);
                 IsDraggable = true;
                 ApplySmartSizingWithAutoHeight(xamlRoot);
 
                 _closeButton.Click += OnCloseClicked;
             }
 
-            public static Task ShowAsync(TopLevel xamlRoot, bool showAdminShortcuts)
+            public static Task ShowAsync(TopLevel xamlRoot)
             {
                 if (xamlRoot == null)
                     return Task.CompletedTask;
 
-                var dialog = new FlowKanbanKeyboardHelpDialog(xamlRoot, showAdminShortcuts);
+                var dialog = new FlowKanbanKeyboardHelpDialog(xamlRoot);
                 return dialog.ShowInternalAsync();
             }
 
@@ -654,7 +658,7 @@ namespace Flowery.NET.Kanban.Controls
                 _tcs.TrySetResult(true);
             }
 
-            private static Control CreateDialogLayout(TopLevel xamlRoot, bool showAdminShortcuts, out DaisyButton closeButton)
+            private static Control CreateDialogLayout(TopLevel xamlRoot, out DaisyButton closeButton)
             {
                 var header = new StackPanel
                 {
@@ -682,12 +686,9 @@ namespace Flowery.NET.Kanban.Controls
 
                 shortcuts.Children.Add(CreateShortcutRow("Tab / Shift+Tab", "Kanban_KeyboardHelp_Tab"));
                 shortcuts.Children.Add(CreateShortcutRow("Arrow keys", "Kanban_KeyboardHelp_Arrows"));
-                if (showAdminShortcuts)
-                {
-                    shortcuts.Children.Add(CreateShortcutRow("Ctrl + B", "Kanban_KeyboardHelp_AddSection"));
-                    shortcuts.Children.Add(CreateShortcutRow("Ctrl + D", "Kanban_KeyboardHelp_DeleteSection"));
-                    shortcuts.Children.Add(CreateShortcutRow("Ctrl + T", "Kanban_KeyboardHelp_RenameSection"));
-                }
+                shortcuts.Children.Add(CreateShortcutRow("Ctrl + B", "Kanban_KeyboardHelp_AddSection"));
+                shortcuts.Children.Add(CreateShortcutRow("Ctrl + D", "Kanban_KeyboardHelp_DeleteSection"));
+                shortcuts.Children.Add(CreateShortcutRow("Ctrl + T", "Kanban_KeyboardHelp_RenameSection"));
                 shortcuts.Children.Add(CreateShortcutRow("Ctrl + N", "Kanban_KeyboardHelp_AddCard"));
                 shortcuts.Children.Add(CreateShortcutRow("Ctrl + F", "Kanban_KeyboardHelp_Search"));
                 shortcuts.Children.Add(CreateShortcutRow("Ctrl + Shift + Arrow", "Kanban_KeyboardHelp_MoveCard"));

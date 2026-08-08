@@ -272,6 +272,7 @@
   "Kanban_Users_Status_DoNotDisturb": "Ne pas déranger",
   "Kanban_Users_Status_Offline": "Hors ligne",
   "Kanban_Users_Status_Unknown": "Inconnu",
+  "Kanban_Users_Unresolved": "Indisponible",
   "Kanban_Settings_CompactColumnSizing": "Dimensionnement des colonnes compactes",
   "Kanban_Settings_CompactColumnSizing_Adaptive": "Adaptatif",
   "Kanban_Settings_CompactColumnSizing_Manual": "Manuel",

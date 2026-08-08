@@ -7,15 +7,9 @@ namespace Flowery.NET.Kanban.Controls.Users;
 
 /// <summary>
 /// Abstraction for user data sources.
-/// Interface version: 1.0
 /// </summary>
-public interface IUserProvider
+internal interface IUserProvider
 {
-    /// <summary>
-    /// Interface version for compatibility checks.
-    /// </summary>
-    static int InterfaceVersion => 1;
-
     /// <summary>
     /// Unique key identifying this provider (e.g., "aad", "auth0", "local").
     /// Used as prefix in composite IDs.
@@ -77,6 +71,8 @@ public interface IUserProvider
 
     /// <summary>
     /// Event raised when the user list changes.
+    /// Providers may raise this event from any thread. UI consumers must marshal
+    /// resulting UI work to their dispatcher and ignore notifications after detach.
     /// </summary>
     event Action? UsersChanged;
 }

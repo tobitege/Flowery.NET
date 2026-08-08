@@ -3,7 +3,7 @@
 /// <summary>
 /// Optional interface for providers that expose token state.
 /// </summary>
-public interface ITokenStateProvider
+internal interface ITokenStateProvider
 {
     /// <summary>
     /// True when a token is currently available.

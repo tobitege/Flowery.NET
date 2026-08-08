@@ -904,9 +904,6 @@ namespace Flowery.NET.Kanban.Controls
 
             contentStack.Children.Add(assigneeRow);
 
-            var addUserLabel = CreateSectionLabel(FloweryLocalization.GetString("Kanban_Users_AddLocal_Button"));
-            contentStack.Children.Add(addUserLabel);
-
             var assigneeOptions = BuildAvailableAssignees(availableAssignees);
             var assigneeSelect = new DaisySelect
             {
@@ -917,7 +914,7 @@ namespace Flowery.NET.Kanban.Controls
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 IsEnabled = assigneeOptions.Count > 0
             };
-            AutomationProperties.SetLabeledBy(assigneeSelect, addUserLabel);
+            AutomationProperties.SetLabeledBy(assigneeSelect, assigneeLabel);
             contentStack.Children.Add(assigneeSelect);
 
             void SetAssignee(FlowTaskAssigneeOption? option)
@@ -999,7 +996,7 @@ namespace Flowery.NET.Kanban.Controls
                     continue;
 
                 var name = assignee.DisplayName?.Trim();
-                var id = assignee.Id?.Trim();
+                var id = assignee.Id;
 
                 if (string.IsNullOrWhiteSpace(name))
                 {
@@ -1371,14 +1368,16 @@ namespace Flowery.NET.Kanban.Controls
 
     public sealed class FlowTaskAssigneeOption
     {
-        public FlowTaskAssigneeOption(string? id, string displayName)
+        public FlowTaskAssigneeOption(string? id, string displayName, bool isResolved = true)
         {
-            Id = string.IsNullOrWhiteSpace(id) ? null : id.Trim();
+            Id = string.IsNullOrWhiteSpace(id) ? null : id;
             DisplayName = displayName ?? string.Empty;
+            IsResolved = isResolved;
         }
 
         public string? Id { get; }
         public string DisplayName { get; }
+        public bool IsResolved { get; }
 
         public override string ToString() => DisplayName;
     }

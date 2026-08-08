@@ -16,12 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rich task editing for priorities, assignees, tags, scheduling and due dates, progress, subtasks, blocked state, and archive history.
 - Task and column drag-and-drop and reordering, keyboard shortcuts, and optional undo/redo command history.
 - Search and advanced filters, column and swimlane WIP limits, multi-selection, bulk operations, board statistics, and automatic archiving.
-- Board home and management workflows for boards, columns, tasks, settings, users, archive, statistics, filtering, and keyboard help.
-- JSON import/export, pluggable board persistence, debounced autosave, and scoped board and per-user settings for desktop and browser hosts.
+- Board home and management workflows for boards, columns, tasks, settings, archive, statistics, filtering, and keyboard help.
+- JSON import/export, pluggable board persistence, debounced autosave, and board settings for desktop and browser hosts.
+- A host-supplied assignee adapter for stable IDs, display names, avatars, and descriptive roles; FlowKanban neither authenticates users nor stores third-party tokens.
 - Localization for 12 languages and semantic UI Automation support for boards, columns, cards, tool buttons, and form controls.
 
 ### Added
 
+- Added the [complete Kanban feature overview](Flowery.NET.Kanban/FEATURES.md) with all board features and plain guidance for the assignee API.
 - Added the `Flowery.NET.Kanban` companion package as a native Avalonia port of the complete `Flowery.Uno.Kanban` project.
 - Added a Gallery example and behavior coverage for Kanban defaults, filtering, selection, movement, WIP enforcement, persistence, layout, archive, drop-index behavior, and measured Uno/Avalonia control geometry.
 - Added UI Automation coverage for composite core inputs, Number Flow, icon-only navigation/value actions, Kanban board landmarks, cards, columns, tool buttons, and form inputs.
@@ -31,15 +33,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Raised every project to .NET 10 and the repository/package version to `3.0.0`.
 - Added the Kanban project to the solution, Gallery hosts, tests, and documented build entry points.
 - Disabled Avalonia build telemetry in the local build scripts via the official `AVALONIA_TELEMETRY_OPTOUT` environment variable.
+- Replaced the board-facing user-provider surface with host-provided assignee metadata; host applications own third-party identity, authentication, authorization, and token storage.
 
 ### Refactored
 
 - Consolidated repeated Kanban control, dialog, resource, visual-tree, dispatcher, layout, and property patterns into shared helpers and reused Flowery.NET controls and services where applicable.
-- Centralized scoped state-storage key composition in the core library for reuse by Kanban board and per-user settings persistence.
+- Centralized scoped state-storage key composition in the core library for Kanban board persistence.
 - Centralized propagation of UI Automation name, help text, label, required state, and caller-provided IDs from composite controls to their focusable children.
 
 ### Fixed
 
+- Made `DaisyCollapse` headers toggle on pointer press so expansion no longer depends on release timing.
+- Preserved host-supplied assignee IDs without normalization in the adapter, filters, and task editor.
+- Delayed adapter loads and deferred layout callbacks no longer replace current state after a newer load or unload.
 - Matched Uno button heights, fonts, padding, icon metrics, and square/circle sizing in the shared core theme; runtime layout tests now measure natural text-button widths, equal Kanban tool-button sides, alignment, and icon centering.
 - Registered Kanban localization resources when the assembly loads and made unresolved application localization keys fall back to registered library resources, preventing raw `Kanban_*` keys in the Gallery.
 - Prevented board filtering from looking up template parts through a detached parent name scope while item containers are being cleared.
