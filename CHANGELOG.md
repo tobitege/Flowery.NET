@@ -6,6 +6,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-08-08
+
+This release completes the Kanban review and moves assignee data ownership to host applications.
+
+### Added
+
+- Added `FlowKanbanAssignee`, `IFlowKanbanAssigneeAdapter`, and `FlowKanbanAssigneeAdapter` for direct data, asynchronous callbacks, and single-ID resolution.
+- Added `AssigneeAdapterFailed` reports for assignee load and resolution errors.
+- Added the [complete Kanban feature overview](Flowery.NET.Kanban/FEATURES.md) with plain guidance for the assignee API.
+
+### Changed
+
+- Replaced the board-facing user-provider API with `AssigneeAdapter`. Host applications must supply assignee metadata and own external account integration.
+- Host applications now own external identity, authentication, authorization, account mapping, and token storage.
+- Preserved case-sensitive assignee IDs exactly in filters, task editing, resolution, and persisted board data.
+- Kept avatars and roles as display metadata. Roles do not grant authorization in FlowKanban.
+- Consolidated repeated column surfaces and shared layout behavior across standard, compact, and swimlane templates.
+
+### Fixed
+
+- Prevented older assignee loads and delayed layout work from replacing newer state after refresh, adapter replacement, or control unload.
+- Reported adapter exceptions without removing saved assignments or current display metadata.
+- Returned storage errors for board settings, local users, identity links, and token operations. Failed mutations now restore their previous state.
+- Centered toolbar icons and aligned equal-sized buttons with the section, zoom, and archive controls.
+- Collapsed columns release their content area, resize handles keep correct geometry, and dialog scrollbars do not cover controls.
+- Removed the extra Scheduling divider and made date fields follow the Windows regional order.
+- Made `DaisyCollapse` headers toggle on pointer press so the release interval no longer affects expansion.
+- Improved semantic UI Automation patterns and values for Kanban controls and dialogs.
+
 ## [3.0.0] - 2026-08-02
 
 `Flowery.NET.Kanban` is a reusable companion package for embedding complete task-board workflows in Avalonia applications. It combines the board UI, models, dialogs, persistence, localization, and accessibility semantics and integrates with the Flowery.NET theme and controls.
@@ -16,14 +45,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rich task editing for priorities, assignees, tags, scheduling and due dates, progress, subtasks, blocked state, and archive history.
 - Task and column drag-and-drop and reordering, keyboard shortcuts, and optional undo/redo command history.
 - Search and advanced filters, column and swimlane WIP limits, multi-selection, bulk operations, board statistics, and automatic archiving.
-- Board home and management workflows for boards, columns, tasks, settings, archive, statistics, filtering, and keyboard help.
-- JSON import/export, pluggable board persistence, debounced autosave, and board settings for desktop and browser hosts.
-- A host-supplied assignee adapter for stable IDs, display names, avatars, and descriptive roles; FlowKanban neither authenticates users nor stores third-party tokens.
+- Board home and management workflows for boards, columns, tasks, settings, users, archive, statistics, filtering, and keyboard help.
+- JSON import/export, pluggable board persistence, debounced autosave, and scoped board and per-user settings for desktop and browser hosts.
 - Localization for 12 languages and semantic UI Automation support for boards, columns, cards, tool buttons, and form controls.
 
 ### Added
 
-- Added the [complete Kanban feature overview](Flowery.NET.Kanban/FEATURES.md) with all board features and plain guidance for the assignee API.
 - Added the `Flowery.NET.Kanban` companion package as a native Avalonia port of the complete `Flowery.Uno.Kanban` project.
 - Added a Gallery example and behavior coverage for Kanban defaults, filtering, selection, movement, WIP enforcement, persistence, layout, archive, drop-index behavior, and measured Uno/Avalonia control geometry.
 - Added UI Automation coverage for composite core inputs, Number Flow, icon-only navigation/value actions, Kanban board landmarks, cards, columns, tool buttons, and form inputs.
@@ -33,19 +60,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Raised every project to .NET 10 and the repository/package version to `3.0.0`.
 - Added the Kanban project to the solution, Gallery hosts, tests, and documented build entry points.
 - Disabled Avalonia build telemetry in the local build scripts via the official `AVALONIA_TELEMETRY_OPTOUT` environment variable.
-- Replaced the board-facing user-provider surface with host-provided assignee metadata; host applications own third-party identity, authentication, authorization, and token storage.
 
 ### Refactored
 
 - Consolidated repeated Kanban control, dialog, resource, visual-tree, dispatcher, layout, and property patterns into shared helpers and reused Flowery.NET controls and services where applicable.
-- Centralized scoped state-storage key composition in the core library for Kanban board persistence.
+- Centralized scoped state-storage key composition in the core library for reuse by Kanban board and per-user settings persistence.
 - Centralized propagation of UI Automation name, help text, label, required state, and caller-provided IDs from composite controls to their focusable children.
 
 ### Fixed
 
-- Made `DaisyCollapse` headers toggle on pointer press so expansion no longer depends on release timing.
-- Preserved host-supplied assignee IDs without normalization in the adapter, filters, and task editor.
-- Delayed adapter loads and deferred layout callbacks no longer replace current state after a newer load or unload.
 - Matched Uno button heights, fonts, padding, icon metrics, and square/circle sizing in the shared core theme; runtime layout tests now measure natural text-button widths, equal Kanban tool-button sides, alignment, and icon centering.
 - Registered Kanban localization resources when the assembly loads and made unresolved application localization keys fall back to registered library resources, preventing raw `Kanban_*` keys in the Gallery.
 - Prevented board filtering from looking up template parts through a detached parent name scope while item containers are being cleared.
@@ -795,7 +818,8 @@ At least that's the plan. Happy holidays 2025!
 - Custom controls: ComponentSidebar, ModifierKeys
 - Gallery demo application
 
-[3.0.0]: https://github.com/tobitege/Flowery.NET/compare/v2.3.2...HEAD
+[3.1.0]: https://github.com/tobitege/Flowery.NET/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/tobitege/Flowery.NET/compare/v2.3.2...v3.0.0
 [2.3.2]: https://github.com/tobitege/Flowery.NET/compare/v2.3.1...v2.3.2
 [2.3.1]: https://github.com/tobitege/Flowery.NET/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/tobitege/Flowery.NET/compare/v2.2.0...v2.3.0
