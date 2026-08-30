@@ -126,6 +126,7 @@ grep_search(Query="Style", SearchPath="d:/github/Project/Themes", Includes=["Fil
 
 ### PowerShell Best Practices (Windows)
 
+- **PowerShell Runtime**: Use `C:\Program Files\PowerShell\7\pwsh.exe` or a native PowerShell 7 runtime provided by Codex.
 - **Encoding Discipline**: Always pass `-Encoding utf8` and prefer `-Raw` when you need exact file content; this avoids cp1252 output errors and line-splitting surprises.
 - **Python Unicode Output**: If a Python script prints Unicode, use `python -X utf8` or set `$env:PYTHONIOENCODING = "utf-8"` before running it.
 - **ASCII-Only Checks**: Scan for both non-ASCII (>0x7F) and control chars (<0x20 excluding tab/CR/LF); a simple `[^\x00-\x7F]` regex is not enough.

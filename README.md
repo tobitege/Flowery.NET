@@ -51,13 +51,13 @@ for code examples and comments!
 1. Install the NuGet package:
 
 ```bash
-dotnet add package Flowery.NET --version 3.1.0
+dotnet add package Flowery.NET --version 3.1.1
 ```
 
 For the optional Kanban board package, also install:
 
 ```bash
-dotnet add package Flowery.NET.Kanban --version 3.1.0
+dotnet add package Flowery.NET.Kanban --version 3.1.1
 ```
 
 1. Add to your `App.axaml`:
@@ -250,7 +250,7 @@ A complete suite rebuilt natively for Avalonia with DaisyUI styling, inspired by
 - **Color Slider** (`DaisyColorSlider`): Channel-specific sliders (R/G/B/A/H/S/L).
 - **Color Editor** (`DaisyColorEditor`): Comprehensive RGB/HSL editor.
 - **Screen Color Picker** (`DaisyScreenColorPicker`): Eyedropper tool (Windows only).
-- **Color Picker Dialog** (`DaisyColorPickerDialog`): Full-featured modal dialog.
+- **Color Picker Dialog** (`DaisyColorPickerDialog`): Full-featured modal dialog with Undo and Redo for the latest 50 color values.
 
 ### Date Timeline
 

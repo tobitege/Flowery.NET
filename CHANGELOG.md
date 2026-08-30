@@ -6,6 +6,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.1] - 2026-08-30
+
+### Added
+
+- Added Undo and Redo buttons to `DaisyColorPickerDialog`.
+- Added a dialog-local history that stores the latest 50 color values.
+
+### Fixed
+
+- Color slider and hexadecimal input changes now update the new-color preview and the value returned by OK.
+
 ## [3.1.0] - 2026-08-08
 
 This release completes the Kanban review and moves assignee data ownership to host applications.
@@ -818,7 +829,8 @@ At least that's the plan. Happy holidays 2025!
 - Custom controls: ComponentSidebar, ModifierKeys
 - Gallery demo application
 
-[3.1.0]: https://github.com/tobitege/Flowery.NET/compare/v3.0.0...HEAD
+[3.1.1]: https://github.com/tobitege/Flowery.NET/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/tobitege/Flowery.NET/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/tobitege/Flowery.NET/compare/v2.3.2...v3.0.0
 [2.3.2]: https://github.com/tobitege/Flowery.NET/compare/v2.3.1...v2.3.2
 [2.3.1]: https://github.com/tobitege/Flowery.NET/compare/v2.3.0...v2.3.1

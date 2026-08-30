@@ -1,5 +1,7 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
@@ -37,6 +39,9 @@ namespace Flowery.Controls.ColorPicker
         internal const int SmallFontSize = 10;
 
         internal const int ColorGridColumns = 16;
+        internal const int ColorHistoryCapacity = 50;
+        internal const string UndoButtonName = "PART_UndoButton";
+        internal const string RedoButtonName = "PART_RedoButton";
         internal const double ColorGridCellSize = 12;
         internal const double ColorGridSpacing = 2;
 
@@ -44,7 +49,98 @@ namespace Flowery.Controls.ColorPicker
 
         #endregion
 
+        internal sealed class DialogColorHistory
+        {
+            private readonly List<Color> _colors = new(ColorHistoryCapacity);
+            private int _index = -1;
+
+            public bool CanUndo => _index > 0;
+            public bool CanRedo => _index >= 0 && _index < _colors.Count - 1;
+
+            public void Reset(Color color)
+            {
+                _colors.Clear();
+                _colors.Add(color);
+                _index = 0;
+            }
+
+            public void Record(Color color)
+            {
+                if (_index >= 0 && _colors[_index].Equals(color)) return;
+
+                if (_index < _colors.Count - 1)
+                {
+                    _colors.RemoveRange(_index + 1, _colors.Count - _index - 1);
+                }
+
+                _colors.Add(color);
+                if (_colors.Count > ColorHistoryCapacity)
+                {
+                    _colors.RemoveAt(0);
+                }
+
+                _index = _colors.Count - 1;
+            }
+
+            public bool TryUndo(out Color color)
+            {
+                if (!CanUndo)
+                {
+                    color = default;
+                    return false;
+                }
+
+                color = _colors[--_index];
+                return true;
+            }
+
+            public bool TryRedo(out Color color)
+            {
+                if (!CanRedo)
+                {
+                    color = default;
+                    return false;
+                }
+
+                color = _colors[++_index];
+                return true;
+            }
+        }
+
+        internal static Button CreateHistoryButton(string name, string label, bool mirrorIcon)
+        {
+            var iconData = Application.Current?.FindResource("DaisyIconRefresh") as Geometry
+                ?? throw new InvalidOperationException("DaisyIconRefresh resource not found.");
+            var icon = new PathIcon
+            {
+                Data = iconData,
+                Width = 16,
+                Height = 16
+            };
+            if (mirrorIcon)
+            {
+                icon.RenderTransform = new ScaleTransform(-1, 1);
+                icon.RenderTransformOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative);
+            }
+
+            var button = new Button
+            {
+                Name = name,
+                Content = icon,
+                Padding = new Thickness(0),
+                Width = 36,
+                IsEnabled = false
+            };
+            ToolTip.SetTip(button, label);
+            AutomationProperties.SetName(button, label);
+            AutomationProperties.SetAutomationId(button, name);
+            return button;
+        }
+
+        private readonly DialogColorHistory _colorHistory = new();
         private bool _lockUpdates;
+        private bool _isApplyingColorHistory;
+        private bool _isColorHistoryInitialized;
 
         // Template parts
         private DaisyColorWheel? _colorWheel;
@@ -55,6 +151,8 @@ namespace Flowery.Controls.ColorPicker
         private Border? _colorPreview;
         private Border? _originalColorPreview;
         private TextBlock? _originalColorHexText;
+        private Button? _undoButton;
+        private Button? _redoButton;
         private DaisyButton? _okButton;
         private DaisyButton? _cancelButton;
 
@@ -193,6 +291,7 @@ namespace Flowery.Controls.ColorPicker
             CustomColors = ColorPalettes.CreateCustom(ColorGridColumns);
 
             InitializeComponent();
+            Opened += OnDialogOpened;
         }
 
         private void InitializeComponent()
@@ -342,6 +441,19 @@ namespace Flowery.Controls.ColorPicker
                 Margin = new Thickness(0, SmallSpacing, 0, 0)
             };
 
+            var historyButtonGroup = new DaisyButtonGroup
+            {
+                Size = DaisySize.Small,
+                Margin = new Thickness(0, 0, SmallSpacing, 0)
+            };
+            _undoButton = CreateHistoryButton(UndoButtonName, "Undo", mirrorIcon: true);
+            _undoButton.Click += OnUndoButtonClick;
+            historyButtonGroup.Items.Add(_undoButton);
+            _redoButton = CreateHistoryButton(RedoButtonName, "Redo", mirrorIcon: false);
+            _redoButton.Click += OnRedoButtonClick;
+            historyButtonGroup.Items.Add(_redoButton);
+            buttonPanel.Children.Add(historyButtonGroup);
+
             _okButton = new DaisyButton
             {
                 Content = "OK",
@@ -376,8 +488,15 @@ namespace Flowery.Controls.ColorPicker
         {
             if (_lockUpdates) return;
 
+            var color = (Color)e.NewValue!;
+            if (_isColorHistoryInitialized && !_isApplyingColorHistory)
+            {
+                _colorHistory.Record(color);
+            }
+
+            UpdateHistoryButtonStates();
             UpdateAllControls();
-            OnPreviewColorChanged(new ColorChangedEventArgs((Color)e.NewValue!));
+            OnPreviewColorChanged(new ColorChangedEventArgs(color));
         }
 
         private void UpdateAllControls()
@@ -471,6 +590,55 @@ namespace Flowery.Controls.ColorPicker
         {
             if (_lockUpdates) return;
             Color = e.Color;
+        }
+
+        private void OnDialogOpened(object? sender, EventArgs e)
+        {
+            InitializeColorHistory();
+        }
+
+        private void InitializeColorHistory()
+        {
+            _colorHistory.Reset(Color);
+            _isColorHistoryInitialized = true;
+            UpdateHistoryButtonStates();
+        }
+
+        private void OnUndoButtonClick(object? sender, RoutedEventArgs e)
+        {
+            if (_colorHistory.TryUndo(out var color))
+            {
+                ApplyHistoryColor(color);
+            }
+        }
+
+        private void OnRedoButtonClick(object? sender, RoutedEventArgs e)
+        {
+            if (_colorHistory.TryRedo(out var color))
+            {
+                ApplyHistoryColor(color);
+            }
+        }
+
+        private void ApplyHistoryColor(Color color)
+        {
+            _isApplyingColorHistory = true;
+            try
+            {
+                Color = color;
+            }
+            finally
+            {
+                _isApplyingColorHistory = false;
+            }
+
+            UpdateHistoryButtonStates();
+        }
+
+        private void UpdateHistoryButtonStates()
+        {
+            if (_undoButton is { } undoButton) undoButton.IsEnabled = _colorHistory.CanUndo;
+            if (_redoButton is { } redoButton) redoButton.IsEnabled = _colorHistory.CanRedo;
         }
 
         private void OnOkButtonClick(object? sender, RoutedEventArgs e)
@@ -568,6 +736,7 @@ namespace Flowery.Controls.ColorPicker
                 Color = initialColor,
                 OriginalColor = initialColor
             };
+            picker.InitializeColorHistory();
 
             // Create modal overlay - use same dimensions as Windows dialog
             // OverlayLayer is a Canvas, so we need to size backdrop to fill it
@@ -651,7 +820,10 @@ namespace Flowery.Controls.ColorPicker
         private static double ColorGridSpacing => DaisyColorPickerDialog.ColorGridSpacing;
         private static Color BorderColor => DaisyColorPickerDialog.BorderColor;
 
+        private readonly DaisyColorPickerDialog.DialogColorHistory _colorHistory = new();
         private bool _lockUpdates;
+        private bool _isApplyingColorHistory;
+        private bool _isColorHistoryInitialized;
         private DaisyColorWheel? _colorWheel;
         private DaisyColorGrid? _colorGrid;
         private DaisyColorEditor? _colorEditor;
@@ -660,6 +832,8 @@ namespace Flowery.Controls.ColorPicker
         private Border? _colorPreview;
         private Border? _originalColorPreview;
         private TextBlock? _originalColorHexText;
+        private Button? _undoButton;
+        private Button? _redoButton;
 
         public event EventHandler? OkClicked;
         public event EventHandler? CancelClicked;
@@ -791,6 +965,19 @@ namespace Flowery.Controls.ColorPicker
             // Buttons
             var buttonPanel = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right, Spacing = PanelSpacing, Margin = new Thickness(0, SmallSpacing, 0, 0) };
 
+            var historyButtonGroup = new DaisyButtonGroup
+            {
+                Size = DaisySize.Small,
+                Margin = new Thickness(0, 0, SmallSpacing, 0)
+            };
+            _undoButton = DaisyColorPickerDialog.CreateHistoryButton(DaisyColorPickerDialog.UndoButtonName, "Undo", mirrorIcon: true);
+            _undoButton.Click += OnUndoButtonClick;
+            historyButtonGroup.Items.Add(_undoButton);
+            _redoButton = DaisyColorPickerDialog.CreateHistoryButton(DaisyColorPickerDialog.RedoButtonName, "Redo", mirrorIcon: false);
+            _redoButton.Click += OnRedoButtonClick;
+            historyButtonGroup.Items.Add(_redoButton);
+            buttonPanel.Children.Add(historyButtonGroup);
+
             var okButton = new DaisyButton { Content = "OK", Variant = DaisyButtonVariant.Primary, Size = DaisySize.Small, MinWidth = ButtonWidth };
             okButton.Click += (s, e) => OkClicked?.Invoke(this, EventArgs.Empty);
             buttonPanel.Children.Add(okButton);
@@ -810,7 +997,58 @@ namespace Flowery.Controls.ColorPicker
         private void OnColorPropertyChanged(AvaloniaPropertyChangedEventArgs e)
         {
             if (_lockUpdates) return;
+
+            if (_isColorHistoryInitialized && !_isApplyingColorHistory)
+            {
+                _colorHistory.Record((Color)e.NewValue!);
+            }
+
+            UpdateHistoryButtonStates();
             UpdateAllControls();
+        }
+
+        internal void InitializeColorHistory()
+        {
+            _colorHistory.Reset(Color);
+            _isColorHistoryInitialized = true;
+            UpdateHistoryButtonStates();
+        }
+
+        private void OnUndoButtonClick(object? sender, RoutedEventArgs e)
+        {
+            if (_colorHistory.TryUndo(out var color))
+            {
+                ApplyHistoryColor(color);
+            }
+        }
+
+        private void OnRedoButtonClick(object? sender, RoutedEventArgs e)
+        {
+            if (_colorHistory.TryRedo(out var color))
+            {
+                ApplyHistoryColor(color);
+            }
+        }
+
+        private void ApplyHistoryColor(Color color)
+        {
+            _isApplyingColorHistory = true;
+            try
+            {
+                Color = color;
+            }
+            finally
+            {
+                _isApplyingColorHistory = false;
+            }
+
+            UpdateHistoryButtonStates();
+        }
+
+        private void UpdateHistoryButtonStates()
+        {
+            if (_undoButton is { } undoButton) undoButton.IsEnabled = _colorHistory.CanUndo;
+            if (_redoButton is { } redoButton) redoButton.IsEnabled = _colorHistory.CanRedo;
         }
 
         private void UpdateAllControls()

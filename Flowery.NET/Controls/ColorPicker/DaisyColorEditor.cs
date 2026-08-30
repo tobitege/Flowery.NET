@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -451,17 +451,7 @@ namespace Flowery.Controls.ColorPicker
                     return;
                 }
 
-                _lockUpdates = true;
-                try
-                {
-                    Color = color;
-                    UpdateRgbFromColor(color);
-                    UpdateHslFromRgb(color);
-                }
-                finally
-                {
-                    _lockUpdates = false;
-                }
+                Color = color;
             }
             catch
             {
@@ -606,16 +596,7 @@ namespace Flowery.Controls.ColorPicker
         {
             if (_lockUpdates) return;
 
-            _lockUpdates = true;
-            try
-            {
-                Color = e.Color;
-                UpdateComponentsFromColor(e.Color);
-            }
-            finally
-            {
-                _lockUpdates = false;
-            }
+            Color = e.Color;
         }
 
         private void OnNumericValueChanged(object? sender, NumericUpDownValueChangedEventArgs e)
