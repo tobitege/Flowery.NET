@@ -3,7 +3,7 @@
 
 # Overview
 
-DaisyThemeDropdown is a ComboBox listing available themes from `DaisyThemeManager`. It previews theme colors in a 2×2 dot grid and applies the selected theme. It syncs selection with the current theme when themes change externally.
+DaisyThemeDropdown is a ComboBox listing available themes from `DaisyThemeManager`. It previews theme colors in a 2×2 dot grid and applies the selected theme. It syncs selection with the current theme when themes change externally. Preview brushes come from `DaisyThemeManager.TryCreatePalette`, including themes registered at runtime.
 
 ## How Theming Works
 
@@ -11,7 +11,8 @@ This control uses `DaisyThemeManager` internally, which works with Avalonia's `T
 
 - Setting `RequestedThemeVariant` triggers Avalonia's built-in resource refresh
 - Each of the 35 built-in themes is mapped to either `Light` or `Dark` variant with its unique color palette
-- For custom themes beyond the built-in set, use `DaisyThemeLoader.ApplyThemeToApplication()` instead
+- Themes added with `DaisyThemeManager.RegisterTheme` appear in the list and use that factory for preview swatches
+- For custom CSS themes loaded at runtime, use `DaisyThemeLoader.ApplyThemeToApplication()`
 
 ## Size Options
 
@@ -32,8 +33,8 @@ DaisyThemeDropdown supports all standard Flowery.NET sizes:
 | `Size` | `DaisySize` preset controlling height and font size (see table above). |
 | `SelectedTheme` | Name of the currently selected theme. Setting this applies the theme. |
 | `IsCurrentThemeDark` | Read-only flag returning `DaisyThemeManager.IsCurrentThemeDark`. |
-| ItemsSource | Auto-populated from `DaisyThemeManager.AvailableThemes` with preview brushes. |
-| Sync | Subscribes to `ThemeChanged` to update selection when themes change elsewhere. |
+| ItemsSource | Auto-populated from `DaisyThemeManager.AvailableThemes` with preview brushes from `TryCreatePalette`. |
+| Sync | Subscribes to `ThemeChanged` and `AvailableThemesChanged` so selection and the theme list stay current. |
 
 ## Initialization Behavior
 

@@ -35,6 +35,9 @@ namespace Flowery.Controls
         private static readonly Dictionary<string, ThemeDefinition> ThemesByName =
             new(StringComparer.OrdinalIgnoreCase);
 
+        private static readonly HashSet<string> InternalThemeNames =
+            new(StringComparer.OrdinalIgnoreCase);
+
         private static ResourceDictionary? _currentPalette;
         private static string? _currentThemeName;
         private static string _baseThemeName = "Dark";
@@ -43,6 +46,12 @@ namespace Flowery.Controls
         /// When true, ApplyTheme calls only update internal state without actually applying the theme.
         /// </summary>
         public static bool SuppressThemeApplication { get; set; }
+
+        /// <summary>
+        /// When true, <see cref="RegisterTheme"/> also raises <see cref="AvailableThemesChanged"/>
+        /// for built-in themes. Default is false.
+        /// </summary>
+        public static bool NotifyForInternalThemesChanged { get; set; }
 
         /// <summary>
         /// Optional custom theme applicator. When set, this delegate is called
@@ -101,6 +110,7 @@ namespace Flowery.Controls
 
             foreach (var info in standardThemes)
             {
+                InternalThemeNames.Add(info.Name);
                 RegisterTheme(info, () => LoadAxamlPalette(info.Name));
             }
         }
@@ -115,6 +125,12 @@ namespace Flowery.Controls
         /// Event raised when the theme changes.
         /// </summary>
         public static event EventHandler<string>? ThemeChanged;
+
+        /// <summary>
+        /// Event raised when <see cref="RegisterTheme"/> adds a new theme name.
+        /// Built-in themes raise this event only when <see cref="NotifyForInternalThemesChanged"/> is true.
+        /// </summary>
+        public static event EventHandler? AvailableThemesChanged;
 
         /// <summary>
         /// Gets the currently active theme name.
@@ -170,8 +186,17 @@ namespace Flowery.Controls
             if (string.IsNullOrWhiteSpace(info.Name))
                 throw new ArgumentException("Theme name cannot be empty.", nameof(info));
 
+            var isNewTheme = !ThemesByName.ContainsKey(info.Name);
+            var isInternalTheme = InternalThemeNames.Contains(info.Name);
             ThemesByName[info.Name] = new ThemeDefinition(info, paletteFactory);
             RebuildThemeList();
+
+            var notifyInternal = isInternalTheme && NotifyForInternalThemesChanged;
+            var notifyNew = isNewTheme && !isInternalTheme;
+            if (notifyInternal || notifyNew)
+            {
+                AvailableThemesChanged?.Invoke(null, EventArgs.Empty);
+            }
         }
 
         private static void RebuildThemeList()
@@ -189,6 +214,43 @@ namespace Flowery.Controls
                 return null;
 
             return ThemesByName.TryGetValue(themeName, out var def) ? def.Info : null;
+        }
+
+        /// <summary>
+        /// Gets the palette factory registered for a theme, or null if the theme is unknown.
+        /// </summary>
+        public static Func<ResourceDictionary>? GetPaletteFactory(string themeName)
+        {
+            if (string.IsNullOrWhiteSpace(themeName))
+                return null;
+
+            return ThemesByName.TryGetValue(themeName, out var def) ? def.PaletteFactory : null;
+        }
+
+        /// <summary>
+        /// Creates a palette <see cref="ResourceDictionary"/> from the factory registered for a theme.
+        /// </summary>
+        /// <param name="themeName">The registered theme name.</param>
+        /// <param name="palette">The created palette when the method returns true.</param>
+        /// <returns>True when a palette was created; otherwise false.</returns>
+        public static bool TryCreatePalette(string themeName, out ResourceDictionary? palette)
+        {
+            palette = null;
+            var factory = GetPaletteFactory(themeName);
+            if (factory == null)
+                return false;
+
+            try
+            {
+                palette = factory();
+                return palette != null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"TryCreatePalette: failed for '{themeName}': {ex.Message}");
+                palette = null;
+                return false;
+            }
         }
 
         /// <summary>

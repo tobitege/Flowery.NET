@@ -98,6 +98,12 @@ DaisyThemeManager.RegisterTheme(myTheme, () =>
 
 // Apply it
 DaisyThemeManager.ApplyTheme("MyCustomTheme");
+
+// Preview swatches in DaisyThemeDropdown use the same factory
+if (DaisyThemeManager.TryCreatePalette("MyCustomTheme", out var palette) && palette != null)
+{
+    // palette contains DaisyPrimaryBrush, DaisyBase100Brush, ...
+}
 ```
 
 
@@ -212,9 +218,14 @@ bool isDark = DaisyThemeManager.IsDarkTheme("Dracula");
 | Member | Description |
 | ------ | ----------- |
 | `ApplyTheme(string)` | Loads and applies a theme by name |
+| `RegisterTheme(info, factory)` | Adds or replaces a theme. Raises `AvailableThemesChanged` for new names; built-in names only when `NotifyForInternalThemesChanged` is true |
+| `TryCreatePalette(name, out palette)` | Creates a palette from the registered factory |
+| `GetPaletteFactory(name)` | Returns the factory passed to `RegisterTheme` |
 | `CurrentThemeName` | Currently applied theme name |
 | `AvailableThemes` | Read-only list of all theme info |
 | `ThemeChanged` | Event fired after theme changes |
+| `AvailableThemesChanged` | Event fired when `RegisterTheme` adds a new theme name |
+| `NotifyForInternalThemesChanged` | When true, `RegisterTheme` also raises `AvailableThemesChanged` for built-in themes |
 | `SuppressThemeApplication` | When true, `ApplyTheme` only updates internal state (for initialization) |
 | `CustomThemeApplicator` | Optional delegate to override default theme application |
 | `IsDarkTheme(string)` | Returns whether a theme is dark |

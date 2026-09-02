@@ -38,8 +38,13 @@ DaisyThemeLoader.ApplyThemeToApplication(theme);
 
 | Member | Description |
 | ------ | ----------- |
-| `AvailableThemes` | Read-only list of `DaisyThemeInfo` (Name, IsDark) for all bundled themes. |
-| `ApplyTheme(string name)` | Loads `Themes/Palettes/Daisy{name}.axaml`, swaps the palette, updates `RequestedThemeVariant`, and raises `ThemeChanged`. Uses `CustomThemeApplicator` if set. |
+| `AvailableThemes` | Read-only list of `DaisyThemeInfo` (Name, IsDark) for bundled and registered themes. |
+| `RegisterTheme(info, paletteFactory)` | Adds or replaces a theme. Raises `AvailableThemesChanged` for new names; built-in names only when `NotifyForInternalThemesChanged` is true. |
+| `GetPaletteFactory(string name)` | Returns the factory passed to `RegisterTheme`, or null if the theme is unknown. |
+| `TryCreatePalette(string name, out palette)` | Creates a palette from the registered factory. Used by theme previews. |
+| `AvailableThemesChanged` | Event fired when `RegisterTheme` adds a new theme name. Built-in themes raise it only when `NotifyForInternalThemesChanged` is true. |
+| `NotifyForInternalThemesChanged` | When true, `RegisterTheme` also raises `AvailableThemesChanged` for built-in themes. Default is false. |
+| `ApplyTheme(string name)` | Loads the registered palette factory, swaps the palette, updates `RequestedThemeVariant`, and raises `ThemeChanged`. Uses `CustomThemeApplicator` if set. |
 | `SuppressThemeApplication` | When true, `ApplyTheme` only updates internal state without actually applying. Use during initialization. |
 | `CustomThemeApplicator` | Optional `Func<string, bool>` delegate. When set, called instead of the default MergedDictionaries approach. |
 | `SetCurrentTheme(string name)` | Updates internal state and fires `ThemeChanged`. Used by custom applicators after applying a theme. |
