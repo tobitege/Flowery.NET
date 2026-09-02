@@ -6,6 +6,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [3.2.0] - 2026-09-02
+
+### Added
+
+- `DaisyThemeManager.TryCreatePalette` and `GetPaletteFactory` expose the factory passed to `RegisterTheme`.
+- `DaisyThemeManager.AvailableThemesChanged` fires when `RegisterTheme` adds a new theme name. Built-in themes raise it only when `NotifyForInternalThemesChanged` is true (default false).
+- Added a runtime test that registers a Corporate copy with `Base200`/`Base100` set to `#F0F0F0`.
+- The test asserts `AvailableThemesChanged` fires and the dropdown swatch shows the new color.
+
+### Fixed
+
+- `DaisyThemeDropdown` preview swatches now use the registered palette factory instead of a built-in AXAML URI, so custom themes show the correct colors.
+- Themes registered after the first dropdown is created now appear in existing dropdowns.
+
 ## [3.1.1] - 2026-08-30
 
 ### Added
@@ -829,7 +845,8 @@ At least that's the plan. Happy holidays 2025!
 - Custom controls: ComponentSidebar, ModifierKeys
 - Gallery demo application
 
-[3.1.1]: https://github.com/tobitege/Flowery.NET/compare/v3.1.0...HEAD
+[3.2.0]: https://github.com/tobitege/Flowery.NET/compare/v3.1.1...HEAD
+[3.1.1]: https://github.com/tobitege/Flowery.NET/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/tobitege/Flowery.NET/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/tobitege/Flowery.NET/compare/v2.3.2...v3.0.0
 [2.3.2]: https://github.com/tobitege/Flowery.NET/compare/v2.3.1...v2.3.2

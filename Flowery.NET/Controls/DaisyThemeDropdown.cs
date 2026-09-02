@@ -6,7 +6,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Flowery.Localization;
@@ -83,6 +82,19 @@ namespace Flowery.Controls
 
         public bool IsCurrentThemeDark => DaisyThemeManager.IsCurrentThemeDark;
 
+        static DaisyThemeDropdown()
+        {
+            DaisyThemeManager.AvailableThemesChanged += (_, _) => InvalidateThemeCache();
+        }
+
+        /// <summary>
+        /// Clears cached preview entries so they are rebuilt on the next read.
+        /// </summary>
+        public static void InvalidateThemeCache()
+        {
+            _cachedThemes = null;
+        }
+
         public DaisyThemeDropdown()
         {
             // Enable keyboard navigation by DisplayName (e.g., press 'S' to jump to "Synthwave")
@@ -141,31 +153,41 @@ namespace Flowery.Controls
             {
                 var preview = new ThemePreviewInfo { Name = themeInfo.Name, IsDark = themeInfo.IsDark };
 
-                try
+                if (DaisyThemeManager.TryCreatePalette(themeInfo.Name, out var palette) && palette != null)
                 {
-                    var paletteUri = new Uri($"avares://Flowery.NET/Themes/Palettes/Daisy{themeInfo.Name}.axaml");
-                    var palette = (ResourceDictionary)AvaloniaXamlLoader.Load(paletteUri);
-
-                    if (palette.TryGetResource("DaisyBase100Brush", null, out var base100) && base100 is IBrush b100)
-                        preview.Base100 = b100;
-                    if (palette.TryGetResource("DaisyBaseContentBrush", null, out var baseContent) && baseContent is IBrush bcb)
-                        preview.BaseContent = bcb;
-                    if (palette.TryGetResource("DaisyPrimaryBrush", null, out var primary) && primary is IBrush pb)
-                        preview.Primary = pb;
-                    if (palette.TryGetResource("DaisySecondaryBrush", null, out var secondary) && secondary is IBrush sb)
-                        preview.Secondary = sb;
-                    if (palette.TryGetResource("DaisyAccentBrush", null, out var accent) && accent is IBrush ab)
-                        preview.Accent = ab;
-                }
-                catch
-                {
-                    // Use defaults
+                    ApplyPreviewBrushes(preview, palette);
                 }
 
                 _cachedThemes.Add(preview);
             }
 
             return _cachedThemes;
+        }
+
+        private static void ApplyPreviewBrushes(ThemePreviewInfo preview, ResourceDictionary palette)
+        {
+            if (TryGetBrush(palette, "DaisyBase100Brush", out var base100))
+                preview.Base100 = base100;
+            if (TryGetBrush(palette, "DaisyBaseContentBrush", out var baseContent))
+                preview.BaseContent = baseContent;
+            if (TryGetBrush(palette, "DaisyPrimaryBrush", out var primary))
+                preview.Primary = primary;
+            if (TryGetBrush(palette, "DaisySecondaryBrush", out var secondary))
+                preview.Secondary = secondary;
+            if (TryGetBrush(palette, "DaisyAccentBrush", out var accent))
+                preview.Accent = accent;
+        }
+
+        private static bool TryGetBrush(ResourceDictionary palette, string key, out IBrush brush)
+        {
+            if (palette.TryGetResource(key, null, out var value) && value is IBrush found)
+            {
+                brush = found;
+                return true;
+            }
+
+            brush = Brushes.Gray;
+            return false;
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -191,7 +213,9 @@ namespace Flowery.Controls
         {
             base.OnAttachedToVisualTree(e);
             DaisyThemeManager.ThemeChanged += OnThemeChanged;
+            DaisyThemeManager.AvailableThemesChanged += OnAvailableThemesChanged;
             FloweryLocalization.CultureChanged += OnCultureChanged;
+            EnsureItemsSourceCurrent();
             SyncWithCurrentTheme();
         }
 
@@ -199,6 +223,7 @@ namespace Flowery.Controls
         {
             base.OnDetachedFromVisualTree(e);
             DaisyThemeManager.ThemeChanged -= OnThemeChanged;
+            DaisyThemeManager.AvailableThemesChanged -= OnAvailableThemesChanged;
             FloweryLocalization.CultureChanged -= OnCultureChanged;
         }
 
@@ -216,7 +241,29 @@ namespace Flowery.Controls
 
         private void OnThemeChanged(object? sender, string themeName)
         {
+            EnsureItemsSourceCurrent();
             SyncWithCurrentTheme();
+        }
+
+        private void OnAvailableThemesChanged(object? sender, EventArgs e)
+        {
+            if (!Dispatcher.UIThread.CheckAccess())
+            {
+                Dispatcher.UIThread.Post(() => OnAvailableThemesChanged(sender, e));
+                return;
+            }
+
+            EnsureItemsSourceCurrent();
+            SyncWithCurrentTheme();
+        }
+
+        private void EnsureItemsSourceCurrent()
+        {
+            var themes = GetThemeInfos();
+            if (!ReferenceEquals(ItemsSource, themes))
+            {
+                ItemsSource = themes;
+            }
         }
 
         private void SyncWithCurrentTheme()
