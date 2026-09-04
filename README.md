@@ -51,13 +51,13 @@ for code examples and comments!
 1. Install the NuGet package:
 
 ```bash
-dotnet add package Flowery.NET --version 3.2.0
+dotnet add package Flowery.NET --version 3.2.1
 ```
 
 For the optional Kanban board package, also install:
 
 ```bash
-dotnet add package Flowery.NET.Kanban --version 3.2.0
+dotnet add package Flowery.NET.Kanban --version 3.2.1
 ```
 
 1. Add to your `App.axaml`:

@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.1] - 2026-09-04
+
+### Fixed
+
+- Disabled checked `DaisyCheckBox` controls now retain their variant fill so the check mark remains visible; only disabled unchecked boxes use the grey background.
+
 ## [3.2.0] - 2026-09-02
 
 ### Added
@@ -845,7 +851,8 @@ At least that's the plan. Happy holidays 2025!
 - Custom controls: ComponentSidebar, ModifierKeys
 - Gallery demo application
 
-[3.2.0]: https://github.com/tobitege/Flowery.NET/compare/v3.1.1...HEAD
+[3.2.1]: https://github.com/tobitege/Flowery.NET/compare/v3.2.0...HEAD
+[3.2.0]: https://github.com/tobitege/Flowery.NET/compare/v3.1.1...v3.2.0
 [3.1.1]: https://github.com/tobitege/Flowery.NET/compare/v3.1.0...v3.1.1
 [3.1.0]: https://github.com/tobitege/Flowery.NET/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/tobitege/Flowery.NET/compare/v2.3.2...v3.0.0

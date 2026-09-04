@@ -178,7 +178,9 @@
         <Style Selector="^:disabled">
             <Setter Property="Opacity" Value="0.5" />
         </Style>
-        <Style Selector="^:disabled /template/ Border#PART_Border">
+        <!-- Only the unchecked box turns grey: a checked box keeps its (variant) fill so the
+             check mark stays visible when disabled. -->
+        <Style Selector="^:disabled:not(:checked) /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
         </Style>
 
