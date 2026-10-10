@@ -29,12 +29,71 @@ namespace Flowery.Controls
     {
         protected override Type StyleKeyOverride => typeof(DaisyStat);
 
-        private const double BaseTextFontSize = 14.0;
-
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
         {
-            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+            FontSize = FloweryScaleManager.ApplyScale(FlowerySizeManager.GetFontSizeForTier(ResponsiveFontTier.Primary, Size), 10.0, scaleFactor);
+            LabelFontSize = FloweryScaleManager.ApplyScale(FlowerySizeManager.GetFontSizeForTier(ResponsiveFontTier.Secondary, Size), 9.0, scaleFactor);
+            ValueFontSize = FloweryScaleManager.ApplyScale(GetValueFontSize(Size), 14.0, scaleFactor);
+        }
+
+        /// <summary>
+        /// Code-side counterpart of the DaisyStat*ValueFontSize tokens.
+        /// </summary>
+        private static double GetValueFontSize(DaisySize size) => size switch
+        {
+            DaisySize.ExtraSmall => 18,
+            DaisySize.Small => 20,
+            DaisySize.Medium => 24,
+            DaisySize.Large => 28,
+            DaisySize.ExtraLarge => 32,
+            _ => 24
+        };
+
+        /// <summary>
+        /// Defines the <see cref="Size"/> property.
+        /// </summary>
+        public static readonly StyledProperty<DaisySize> SizeProperty =
+            AvaloniaProperty.Register<DaisyStat, DaisySize>(nameof(Size), DaisySize.Medium);
+
+        /// <summary>
+        /// Gets or sets the size tier. Drives <see cref="ValueFontSize"/>, <see cref="LabelFontSize"/>
+        /// and the control font through the theme.
+        /// </summary>
+        public DaisySize Size
+        {
+            get => GetValue(SizeProperty);
+            set => SetValue(SizeProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="ValueFontSize"/> property.
+        /// </summary>
+        public static readonly StyledProperty<double> ValueFontSizeProperty =
+            AvaloniaProperty.Register<DaisyStat, double>(nameof(ValueFontSize), 24.0);
+
+        /// <summary>
+        /// Gets or sets the font size of the value text. Set by the theme per <see cref="Size"/>.
+        /// </summary>
+        public double ValueFontSize
+        {
+            get => GetValue(ValueFontSizeProperty);
+            set => SetValue(ValueFontSizeProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="LabelFontSize"/> property.
+        /// </summary>
+        public static readonly StyledProperty<double> LabelFontSizeProperty =
+            AvaloniaProperty.Register<DaisyStat, double>(nameof(LabelFontSize), 12.0);
+
+        /// <summary>
+        /// Gets or sets the font size of the title and description. Set by the theme per <see cref="Size"/>.
+        /// </summary>
+        public double LabelFontSize
+        {
+            get => GetValue(LabelFontSizeProperty);
+            set => SetValue(LabelFontSizeProperty, value);
         }
 
         public static readonly StyledProperty<string> TitleProperty =

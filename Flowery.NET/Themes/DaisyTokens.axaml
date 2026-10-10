@@ -180,6 +180,13 @@
     <Thickness x:Key="DaisyCollapseLargePadding">6</Thickness>
     <Thickness x:Key="DaisyCollapseExtraLargePadding">7</Thickness>
 
+    <!-- ==================== STAT ==================== -->
+    <sys:Double x:Key="DaisyStatExtraLargeValueFontSize">32</sys:Double>
+    <sys:Double x:Key="DaisyStatLargeValueFontSize">28</sys:Double>
+    <sys:Double x:Key="DaisyStatMediumValueFontSize">24</sys:Double>
+    <sys:Double x:Key="DaisyStatSmallValueFontSize">20</sys:Double>
+    <sys:Double x:Key="DaisyStatExtraSmallValueFontSize">18</sys:Double>
+
     <!-- ==================== ACCORDION ==================== -->
     <Thickness x:Key="DaisyAccordionExtraLargePadding">24</Thickness>
     <Thickness x:Key="DaisyAccordionLargePadding">20</Thickness>

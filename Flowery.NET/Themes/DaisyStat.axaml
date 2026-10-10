@@ -51,6 +51,9 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="Padding" Value="16 12" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
+        <Setter Property="LabelFontSize" Value="{DynamicResource DaisySizeMediumSecondaryFontSize}" />
+        <Setter Property="ValueFontSize" Value="{DynamicResource DaisyStatMediumValueFontSize}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Border Background="{TemplateBinding Background}"
@@ -62,7 +65,7 @@
                                     HorizontalAlignment="{Binding IsCentered, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static controls:StatConverters.CenteredToAlignment}}">
                             <!-- Title -->
                             <TextBlock Text="{TemplateBinding Title}"
-                                FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                                FontSize="{TemplateBinding LabelFontSize}"
                                 Opacity="0.6"
                                 Margin="0,0,0,4"
                                 IsVisible="{TemplateBinding Title, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
@@ -71,7 +74,7 @@
                             <!-- Value -->
                             <TextBlock x:Name="ValueText"
                                        Text="{TemplateBinding Value}"
-                                       FontSize="24"
+                                       FontSize="{TemplateBinding ValueFontSize}"
                                        FontWeight="Bold"
                                        Foreground="{DynamicResource DaisyBaseContentBrush}"
                                        HorizontalAlignment="{Binding IsCentered, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static controls:StatConverters.CenteredToAlignment}}" />
@@ -79,7 +82,7 @@
                             <!-- Description -->
                             <TextBlock x:Name="DescriptionText"
                                 Text="{TemplateBinding Description}"
-                                FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
+                                FontSize="{TemplateBinding LabelFontSize}"
                                 Opacity="0.6"
                                 Margin="0,4,0,0"
                                 IsVisible="{TemplateBinding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
@@ -102,6 +105,28 @@
                 </Border>
             </ControlTemplate>
         </Setter>
+
+        <!-- Sizes -->
+        <Style Selector="^[Size=ExtraSmall]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+            <Setter Property="LabelFontSize" Value="{DynamicResource DaisySizeExtraSmallSecondaryFontSize}" />
+            <Setter Property="ValueFontSize" Value="{DynamicResource DaisyStatExtraSmallValueFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Small]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
+            <Setter Property="LabelFontSize" Value="{DynamicResource DaisySizeSmallSecondaryFontSize}" />
+            <Setter Property="ValueFontSize" Value="{DynamicResource DaisyStatSmallValueFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Large]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
+            <Setter Property="LabelFontSize" Value="{DynamicResource DaisySizeLargeSecondaryFontSize}" />
+            <Setter Property="ValueFontSize" Value="{DynamicResource DaisyStatLargeValueFontSize}" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+            <Setter Property="LabelFontSize" Value="{DynamicResource DaisySizeExtraLargeSecondaryFontSize}" />
+            <Setter Property="ValueFontSize" Value="{DynamicResource DaisyStatExtraLargeValueFontSize}" />
+        </Style>
 
         <!-- Variant styles for Value text color -->
         <Style Selector="^[Variant=Primary] /template/ TextBlock#ValueText">
