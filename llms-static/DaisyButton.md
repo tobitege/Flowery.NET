@@ -24,7 +24,7 @@ DaisyButton delivers DaisyUI-styled actions with **11 color variants**, **4 visu
 | Default | Solid fill (or transparent for Ghost/Link) with hover transitions. |
 | Outline | Transparent background with colored border/text; fills with the variant color on hover. |
 | Dash | Dashed stroke around the button (shown via a dashed rectangle) with transparent fill until hover. |
-| Soft | Tinted background with colored text; hover deepens the tint. |
+| Soft | Tinted background with a translucent border and colored text; hover deepens the tint. Brushes: `DaisyButton<Variant>SoftBrush`, `DaisyButton<Variant>SoftBorderBrush`, `DaisyButton<Variant>SoftHoverBrush` (palettes may override them). |
 | `IsOutline` (obsolete) | Legacy flag; prefer `ButtonStyle="Outline"`. |
 
 ## Shape Options
