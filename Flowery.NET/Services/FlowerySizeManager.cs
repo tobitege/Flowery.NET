@@ -39,9 +39,9 @@ namespace Flowery.Controls
     /// <remarks>
     /// This service enables a "global size override" feature for applications that want
     /// consistent sizing across all DaisyUI controls. When <see cref="EnableGlobalAutoSize"/> is true,
-    /// size changes propagate to all controls with a Size property in the visual tree.
-    /// Controls with explicitly-set Size values (in XAML or code) are respected and not overwritten.
-    /// Use <see cref="IgnoreGlobalSizeProperty"/> to opt-out entire branches of the visual tree.
+    /// every loaded control that declares a StyledProperty&lt;DaisySize&gt; named SizeProperty receives
+    /// the current size as its current value. A Size set in XAML, code, a style or a binding is
+    /// never overwritten. Use <see cref="IgnoreGlobalSizeProperty"/> to opt-out entire branches of the visual tree.
     /// </remarks>
     /// <example>
     /// <code>
@@ -559,11 +559,11 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Resets the global size to Small (the default).
+        /// Resets the global size to Medium (the default).
         /// </summary>
         public static void Reset()
         {
-            ApplySize(DaisySize.Small);
+            ApplySize(DaisySize.Medium);
         }
     }
 }
