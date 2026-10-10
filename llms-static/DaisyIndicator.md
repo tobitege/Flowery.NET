@@ -11,7 +11,7 @@ DaisyIndicator overlays a marker on top of any content (icon, button, card, avat
 | --- | --- |
 | `Marker` | The overlay content. Can be any control: `DaisyBadge`, `Border`, `Image`, etc. Hidden when null. |
 | `MarkerPosition` | Where the marker appears. Enum: `TopLeft`, `TopCenter`, `TopRight`, `CenterLeft`, `Center`, `CenterRight`, `BottomLeft`, `BottomCenter`, `BottomRight`. Default: `TopRight`. |
-| `MarkerAlignment` | How the marker aligns to the corner. Enum: `Inside` (fully inside content bounds), `Edge` (straddles the corner, half in/half out), `Outside` (mostly outside). Default: `Inside`. |
+| `MarkerAlignment` | How the marker aligns to the corner. Enum: `Inside` (fully inside content bounds), `Edge` (straddles the corner, half in/half out), `Outside` (fully outside, touching the corner at one point). Default: `Inside`. |
 | `Badge` | Legacy alias for `Marker`. Prefer `Marker` for new usage. |
 | `BadgeHorizontalAlignment` | Legacy alignment (maps to `MarkerPosition`). Prefer `MarkerPosition`. |
 | `BadgeVerticalAlignment` | Legacy alignment (maps to `MarkerPosition`). Prefer `MarkerPosition`. |
@@ -63,7 +63,7 @@ DaisyIndicator overlays a marker on top of any content (icon, button, card, avat
 | --- | --- | --- |
 | `Inside` | Marker sits within content bounds (3px inset from edge) | Product labels (NEW, SALE) on cards |
 | `Edge` | Marker straddles the corner (half in, half out) | Notification counts, status dots |
-| `Outside` | Marker sits mostly outside, touching corner | Floating action indicators |
+| `Outside` | Marker sits fully outside; its bounding box touches the corner at one point, so round markers show a small gap | Floating action indicators |
 
 ## Notes
 
