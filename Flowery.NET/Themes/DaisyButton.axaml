@@ -94,14 +94,13 @@
                         <Grid x:Name="PART_UnifiedContentGrid"
                               ColumnDefinitions="Auto,Auto"
                               RowDefinitions="Auto,Auto"
-                              ColumnSpacing="{TemplateBinding EffectiveIconSpacing}"
-                              RowSpacing="{TemplateBinding EffectiveIconSpacing}"
                               VerticalAlignment="Center">
                             <Viewbox x:Name="PART_UnifiedIcon"
                                      Grid.Row="0"
                                      Grid.Column="0"
                                      Width="{TemplateBinding EffectiveIconSize}"
                                      Height="{TemplateBinding EffectiveIconSize}"
+                                     Margin="{TemplateBinding EffectiveIconMargin}"
                                      Stretch="Uniform"
                                      IsVisible="{TemplateBinding HasUnifiedIcon}">
                                 <Path Width="24"

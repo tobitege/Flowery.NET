@@ -335,6 +335,23 @@ namespace Flowery.Controls
             private set => SetAndRaise(EffectiveIconSpacingProperty, ref _effectiveIconSpacing, value);
         }
 
+        /// <summary>
+        /// Defines the <see cref="EffectiveIconMargin"/> property. The margin sits on the side of the
+        /// icon that faces the content, so only the gap between icon and text adds space.
+        /// </summary>
+        public static readonly DirectProperty<DaisyButton, Thickness> EffectiveIconMarginProperty =
+            AvaloniaProperty.RegisterDirect<DaisyButton, Thickness>(
+                nameof(EffectiveIconMargin),
+                o => o.EffectiveIconMargin);
+
+        private Thickness _effectiveIconMargin;
+
+        public Thickness EffectiveIconMargin
+        {
+            get => _effectiveIconMargin;
+            private set => SetAndRaise(EffectiveIconMarginProperty, ref _effectiveIconMargin, value);
+        }
+
         public static readonly DirectProperty<DaisyButton, bool> HasUnifiedIconProperty =
             AvaloniaProperty.RegisterDirect<DaisyButton, bool>(
                 nameof(HasUnifiedIcon),
@@ -360,6 +377,7 @@ namespace Flowery.Controls
 
             if (change.Property == IconSymbolProperty ||
                 change.Property == IconDataProperty ||
+                change.Property == IconPlacementProperty ||
                 change.Property == SizeProperty ||
                 change.Property == ContentProperty)
             {
@@ -377,6 +395,13 @@ namespace Flowery.Controls
             EffectiveIconSpacing = HasUnifiedIcon && Content != null
                 ? GetIconSpacing(Size)
                 : 0.0;
+            EffectiveIconMargin = IconPlacement switch
+            {
+                IconPlacement.Right => new Thickness(EffectiveIconSpacing, 0, 0, 0),
+                IconPlacement.Top => new Thickness(0, 0, 0, EffectiveIconSpacing),
+                IconPlacement.Bottom => new Thickness(0, EffectiveIconSpacing, 0, 0),
+                _ => new Thickness(0, 0, EffectiveIconSpacing, 0)
+            };
         }
 
         private static double GetIconSize(DaisySize size)
