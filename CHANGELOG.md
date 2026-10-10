@@ -8,6 +8,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-10-10
+
+### Breaking Changes
+
+- **Global size reaches every control:** `FlowerySizeManager` now tracks every loaded control that declares a `StyledProperty<DaisySize>` named `SizeProperty` and supplies the current tier to it. Previously only a handful of controls subscribed. Controls that were sized by the one-shot visual-tree walk, or not at all, now follow `ApplySize()` as well. A `Size` set in XAML, code, a style or a binding is never overwritten; use `IgnoreGlobalSize` to opt a subtree out.
+- **`FlowerySizeManager.CurrentSize` defaults to `Medium`** (was `Small`) so that applications which never call `ApplySize()` keep the class defaults. `Reset()` resets to `Medium`. Applications that relied on the implicit `Small` default must call `ApplySize(DaisySize.Small)` on startup.
+- **Visual-tree propagation no longer creates local values:** the walk uses `SetCurrentValue` and skips controls with a base value. Code that relied on `IsSet(SizeProperty)` being `true` after propagation must use `GetBaseValue` instead. Plain CLR `Size` properties without a `StyledProperty` are no longer propagated.
+- **One font-size ladder:** the `DaisySize*FontSize` tokens are now 10/12/14/18/20 (were 8/10/12/14/16) and mirror `FlowerySizeManager.GetFontSizeForTier`. `DaisyKbd*FontSize`, `DaisyMenu*FontSize` and `DaisyBadge*FontSize` use the same values; badge heights grew to 16/20/24/28/32. Every control that uses these tokens renders larger text at the same tier. Override the tokens in `Application.Resources` to restore the previous values.
+- **`DaisyControlLifecycle` handles themes only:** the constructor parameters `getSize`, `setSize` and `subscribeSizeChanges` were removed. Update custom controls that used the helper for size changes; global size is supplied by the manager.
+- **`DaisyGlobalSizeSubscription` was removed.** Its behaviour is now part of `FlowerySizeManager`.
+- **Dimmed text uses brushes instead of `Opacity`:** `DaisyStat` titles and descriptions, disabled `DaisyMenu` items, breadcrumb separators and last items, and the labels, hints, helper texts, counters and watermarks of `DaisyInput`, `DaisyTextArea` and `DaisyPasswordBox` are colored with `DaisyBaseContentMutedBrush`, `DaisyBaseContentSubtleBrush` and `DaisyBaseContentDisabledBrush`. `DaisyBreadcrumbs.SeparatorOpacity` now defaults to `1`. Styles that overrode the previous `Opacity` setters need to set the new brushes instead.
+- **Soft buttons changed their look:** every variant now draws a tinted surface and a translucent border from `DaisyButton<Variant>SoftBrush`, `SoftBorderBrush` and `SoftHoverBrush`; the Primary soft brush tints with the primary color instead of `DaisyBase200`. Palettes that override `DaisyButtonPrimarySoftBrush` keep working; add the new brushes to customize the other variants.
+- **Menu titles are styled differently:** `Classes="menu-title"` renders in the primary brush, bold, with a bottom divider, at the secondary font size of the menu's `Size`, instead of a 40% opaque 12 px label.
+
+### Added
+
+- `DaisyAccordion` and `DaisyAccordionItem` got a `Size` property with `DaisyAccordion*Padding` and `DaisyAccordion*HeaderMinHeight` tokens; the accordion forwards its size to items that have no explicit `Size`.
+- `DaisyStat` got `Size`, `ValueFontSize` and `LabelFontSize` with `DaisyStat*ValueFontSize` tokens; the template binds its text to these properties so styles can override them.
+- `DaisyBreadcrumbs` got `Size` and `SeparatorBrush`; separators and icons follow the control font size.
+- `DaisyBadge` got an `ExtraLarge` size with `DaisyBadgeExtraLarge*` tokens.
+- `DaisyButton.EffectiveIconMargin` places the icon-to-text gap on the icon side that faces the content.
+- Muted text brushes are documented in `THEMING.md`; `FlowerySizeManager.md` describes the registry, `DesignTokens.md` lists the new token values.
+
+### Changed
+
+- `DaisyInput` takes its text and label sizes from the Primary and Secondary tiers of `FlowerySizeManager.GetFontSizeForTier` instead of private values.
+- `RefreshAllSizes()` walks every open top-level window (desktop lifetime windows, single-view main view and `MainWindow`) instead of `MainWindow.Content` only; setting `MainWindow` is optional.
+- The Gallery no longer applies the global size itself; its sidebar width follows the size tier via `FlowerySizeManager.GetSidebarWidth`.
+
+### Fixed
+
+- An explicit `Size` on `DaisyCard`, `DaisyPagination` and `DaisyButtonGroup` survived start-up but was overwritten by the first global tier change.
+- The global size could get stuck after the first `ApplySize()` because propagated values counted as explicit.
+- Buttons with a unified icon and text sat above the vertical center because the content grid applied its row spacing to the unused second row.
+- The Gallery overwrote sizes set explicitly in example XAML, such as the ExtraSmall badge.
+- `DaisyNumberFlow` digits were invisible inside the neutral digit boxes in themes with a dark neutral and dark base content color; the new `DigitForeground` property uses the neutral content brush while `ShowDigitBoxes` is on.
+- `DaisyMenu.md` explains that item content with its own `Foreground` does not follow the selection color.
+
 ## [3.4.0] - 2026-09-14
 
 ### Added
