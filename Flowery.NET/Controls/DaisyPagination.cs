@@ -323,8 +323,6 @@ namespace Flowery.Controls
             _lifecycle = new DaisyControlLifecycle(
                 this,
                 ApplyAll,
-                () => Size,
-                s => Size = s,
                 handleLifecycleEvents: false);
 
             AddHandler(Button.ClickEvent, OnItemClicked);

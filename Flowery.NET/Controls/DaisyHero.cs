@@ -30,10 +30,7 @@ namespace Flowery.Controls
         {
             _lifecycle = new DaisyControlLifecycle(
                 this,
-                ApplyAll,
-                () => DaisySize.Medium,
-                _ => { },
-                subscribeSizeChanges: false);
+                ApplyAll);
 
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;

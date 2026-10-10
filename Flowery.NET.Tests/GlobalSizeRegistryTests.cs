@@ -109,6 +109,27 @@ public class GlobalSizeRegistryTests
         Assert.Equal(DaisySize.ExtraSmall, local.Size);
     }
 
+    [AvaloniaFact]
+    public void Lifecycle_Controls_Keep_Explicit_Size_Across_Tier_Changes()
+    {
+        using var scope = new SizeScope();
+        var card = new DaisyCard();
+        var fixedCard = new DaisyCard { Size = DaisySize.Small };
+        var pagination = new DaisyPagination();
+        var fixedPagination = new DaisyPagination { Size = DaisySize.Small };
+        scope.Show(new StackPanel { Children = { card, fixedCard, pagination, fixedPagination } });
+
+        foreach (var size in new[] { DaisySize.ExtraLarge, DaisySize.Large, DaisySize.ExtraSmall })
+        {
+            FlowerySizeManager.ApplySize(size);
+            scope.Layout();
+            Assert.Equal(size, card.Size);
+            Assert.Equal(size, pagination.Size);
+            Assert.Equal(DaisySize.Small, fixedCard.Size);
+            Assert.Equal(DaisySize.Small, fixedPagination.Size);
+        }
+    }
+
     private sealed class SizeScope : IDisposable
     {
         private readonly Window? _previousWindow = FlowerySizeManager.MainWindow;

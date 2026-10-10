@@ -64,10 +64,7 @@ namespace Flowery.Controls.Custom.Weather
         {
             _lifecycle = new DaisyControlLifecycle(
                 this,
-                ApplyAll,
-                () => DaisySize.Medium,
-                _ => { },
-                subscribeSizeChanges: false);
+                ApplyAll);
         }
 
         static DaisyWeatherIcon()

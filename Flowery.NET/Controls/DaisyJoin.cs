@@ -79,10 +79,7 @@ namespace Flowery.Controls
             _lifecycle = new DaisyControlLifecycle(
                 this,
                 ApplyAll,
-                () => DaisySize.Medium,
-                _ => { },
-                handleLifecycleEvents: false,
-                subscribeSizeChanges: false);
+                handleLifecycleEvents: false);
 
             AttachedToVisualTree += OnAttachedToVisualTree;
             DetachedFromVisualTree += OnDetachedFromVisualTree;
