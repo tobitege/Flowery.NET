@@ -180,6 +180,19 @@
     <Thickness x:Key="DaisyCollapseLargePadding">6</Thickness>
     <Thickness x:Key="DaisyCollapseExtraLargePadding">7</Thickness>
 
+    <!-- ==================== ACCORDION ==================== -->
+    <Thickness x:Key="DaisyAccordionExtraLargePadding">24</Thickness>
+    <Thickness x:Key="DaisyAccordionLargePadding">20</Thickness>
+    <Thickness x:Key="DaisyAccordionMediumPadding">16</Thickness>
+    <Thickness x:Key="DaisyAccordionSmallPadding">12</Thickness>
+    <Thickness x:Key="DaisyAccordionExtraSmallPadding">8</Thickness>
+
+    <sys:Double x:Key="DaisyAccordionExtraLargeHeaderMinHeight">64</sys:Double>
+    <sys:Double x:Key="DaisyAccordionLargeHeaderMinHeight">56</sys:Double>
+    <sys:Double x:Key="DaisyAccordionMediumHeaderMinHeight">48</sys:Double>
+    <sys:Double x:Key="DaisyAccordionSmallHeaderMinHeight">40</sys:Double>
+    <sys:Double x:Key="DaisyAccordionExtraSmallHeaderMinHeight">32</sys:Double>
+
     <!-- ==================== SPACING ==================== -->
     <!-- General spacing values for layouts -->
     <sys:Double x:Key="DaisySpacingXL">24</sys:Double>

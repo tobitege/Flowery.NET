@@ -59,7 +59,8 @@
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Padding" Value="16" />
+        <Setter Property="Padding" Value="{DynamicResource DaisyAccordionMediumPadding}" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
 
         <Setter Property="Template">
             <ControlTemplate>
@@ -71,7 +72,7 @@
                         <ToggleButton Name="PART_HeaderButton"
                                       Grid.Row="0"
                                       Padding="{TemplateBinding Padding}"
-                                      MinHeight="48"
+                                      MinHeight="{DynamicResource DaisyAccordionMediumHeaderMinHeight}"
                                       HorizontalAlignment="Stretch"
                                       Background="Transparent"
                                       BorderThickness="0"
@@ -130,6 +131,36 @@
                 </Border>
             </ControlTemplate>
         </Setter>
+
+        <!-- Sizes -->
+        <Style Selector="^[Size=ExtraSmall]">
+            <Setter Property="Padding" Value="{DynamicResource DaisyAccordionExtraSmallPadding}" />
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+        </Style>
+        <Style Selector="^[Size=ExtraSmall] /template/ ToggleButton#PART_HeaderButton">
+            <Setter Property="MinHeight" Value="{DynamicResource DaisyAccordionExtraSmallHeaderMinHeight}" />
+        </Style>
+        <Style Selector="^[Size=Small]">
+            <Setter Property="Padding" Value="{DynamicResource DaisyAccordionSmallPadding}" />
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Small] /template/ ToggleButton#PART_HeaderButton">
+            <Setter Property="MinHeight" Value="{DynamicResource DaisyAccordionSmallHeaderMinHeight}" />
+        </Style>
+        <Style Selector="^[Size=Large]">
+            <Setter Property="Padding" Value="{DynamicResource DaisyAccordionLargePadding}" />
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Large] /template/ ToggleButton#PART_HeaderButton">
+            <Setter Property="MinHeight" Value="{DynamicResource DaisyAccordionLargeHeaderMinHeight}" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge]">
+            <Setter Property="Padding" Value="{DynamicResource DaisyAccordionExtraLargePadding}" />
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge] /template/ ToggleButton#PART_HeaderButton">
+            <Setter Property="MinHeight" Value="{DynamicResource DaisyAccordionExtraLargeHeaderMinHeight}" />
+        </Style>
 
         <!-- Expanded State Animations -->
         <Style Selector="^[IsExpanded=True] /template/ Path#Arrow">

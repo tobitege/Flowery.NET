@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -17,16 +18,23 @@ namespace Flowery.Controls
     {
         protected override Type StyleKeyOverride => typeof(DaisyAccordion);
 
-        private const double BaseTextFontSize = 14.0;
+        private readonly Dictionary<DaisyAccordionItem, IDisposable> _itemSizeBindings = new();
 
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
         {
-            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+            var baseFontSize = FlowerySizeManager.GetFontSizeForTier(ResponsiveFontTier.Primary, Size);
+            FontSize = FloweryScaleManager.ApplyScale(baseFontSize, 10.0, scaleFactor);
         }
 
         public static readonly StyledProperty<DaisyCollapseVariant> VariantProperty =
             AvaloniaProperty.Register<DaisyAccordion, DaisyCollapseVariant>(nameof(Variant), DaisyCollapseVariant.Arrow);
+
+        /// <summary>
+        /// Defines the <see cref="Size"/> property. The size is forwarded to every item.
+        /// </summary>
+        public static readonly StyledProperty<DaisySize> SizeProperty =
+            AvaloniaProperty.Register<DaisyAccordion, DaisySize>(nameof(Size), DaisySize.Medium);
 
         public static readonly StyledProperty<int> ExpandedIndexProperty =
             AvaloniaProperty.Register<DaisyAccordion, int>(nameof(ExpandedIndex), -1);
@@ -43,6 +51,15 @@ namespace Flowery.Controls
             set => SetValue(ExpandedIndexProperty, value);
         }
 
+        /// <summary>
+        /// Gets or sets the size tier of the accordion headers and content padding.
+        /// </summary>
+        public DaisySize Size
+        {
+            get => GetValue(SizeProperty);
+            set => SetValue(SizeProperty, value);
+        }
+
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
@@ -51,16 +68,16 @@ namespace Flowery.Controls
             {
                 UpdateExpandedStates();
             }
-            else if (change.Property == ItemCountProperty)
+            else if (change.Property == ItemCountProperty || change.Property == VariantProperty || change.Property == SizeProperty)
             {
-                SyncItemVariants();
+                SyncItems();
             }
         }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
-            SyncItemVariants();
+            SyncItems();
             UpdateExpandedStates();
         }
 
@@ -91,16 +108,30 @@ namespace Flowery.Controls
             }
         }
 
-        private void SyncItemVariants()
+        private void SyncItems()
         {
-            foreach (var item in this.GetLogicalChildren().OfType<DaisyAccordionItem>())
+            var items = this.GetLogicalChildren().OfType<DaisyAccordionItem>().ToList();
+            foreach (var item in items)
             {
                 item.SetCurrentValue(DaisyAccordionItem.VariantProperty, Variant);
+
+                // Items without their own Size follow the accordion through a binding, so an
+                // explicit item Size and the global size registry both keep working.
+                if (!_itemSizeBindings.ContainsKey(item) && !item.GetBaseValue(DaisyAccordionItem.SizeProperty).HasValue)
+                {
+                    _itemSizeBindings[item] = item.Bind(DaisyAccordionItem.SizeProperty, this.GetObservable(SizeProperty));
+                }
+            }
+
+            foreach (var removed in _itemSizeBindings.Keys.Where(item => !items.Contains(item)).ToList())
+            {
+                _itemSizeBindings[removed].Dispose();
+                _itemSizeBindings.Remove(removed);
             }
         }
     }
 
-    public class DaisyAccordionItem : HeaderedContentControl
+    public class DaisyAccordionItem : HeaderedContentControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyAccordionItem);
 
@@ -112,6 +143,12 @@ namespace Flowery.Controls
         public static readonly StyledProperty<DaisyCollapseVariant> VariantProperty =
             AvaloniaProperty.Register<DaisyAccordionItem, DaisyCollapseVariant>(nameof(Variant), DaisyCollapseVariant.Arrow);
 
+        /// <summary>
+        /// Defines the <see cref="Size"/> property. Set by the parent accordion unless set explicitly.
+        /// </summary>
+        public static readonly StyledProperty<DaisySize> SizeProperty =
+            AvaloniaProperty.Register<DaisyAccordionItem, DaisySize>(nameof(Size), DaisySize.Medium);
+
         public bool IsExpanded
         {
             get => GetValue(IsExpandedProperty);
@@ -122,6 +159,22 @@ namespace Flowery.Controls
         {
             get => GetValue(VariantProperty);
             set => SetValue(VariantProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the size tier of the header and content padding.
+        /// </summary>
+        public DaisySize Size
+        {
+            get => GetValue(SizeProperty);
+            set => SetValue(SizeProperty, value);
+        }
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            var baseFontSize = FlowerySizeManager.GetFontSizeForTier(ResponsiveFontTier.Primary, Size);
+            FontSize = FloweryScaleManager.ApplyScale(baseFontSize, 10.0, scaleFactor);
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
