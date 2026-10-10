@@ -18,15 +18,8 @@ namespace Flowery.NET.Tests
             _ => 32
         };
 
-        internal static double GetUnoButtonFontSize(DaisySize size) => size switch
-        {
-            DaisySize.ExtraSmall => 8,
-            DaisySize.Small => 10,
-            DaisySize.Medium => 12,
-            DaisySize.Large => 14,
-            DaisySize.ExtraLarge => 16,
-            _ => 12
-        };
+        internal static double GetButtonFontSize(DaisySize size) =>
+            FlowerySizeManager.GetFontSizeForTier(ResponsiveFontTier.Primary, size);
 
         internal static Thickness GetUnoButtonPadding(DaisySize size) => size switch
         {

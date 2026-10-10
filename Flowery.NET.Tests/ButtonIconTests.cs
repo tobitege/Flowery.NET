@@ -106,7 +106,7 @@ namespace Flowery.NET.Tests
                     var (standard, square, circle) = controls[index];
 
                     Assert.Equal(expectedHeight, standard.Bounds.Height, precision: 3);
-                    Assert.Equal(LayoutTestAssertions.GetUnoButtonFontSize(size), standard.FontSize);
+                    Assert.Equal(LayoutTestAssertions.GetButtonFontSize(size), standard.FontSize);
                     Assert.Equal(LayoutTestAssertions.GetUnoButtonPadding(size), standard.Padding);
                     Assert.Equal(expectedIconSize, standard.EffectiveIconSize);
                     Assert.Equal(LayoutTestAssertions.GetUnoButtonIconSpacing(size), standard.EffectiveIconSpacing);

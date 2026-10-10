@@ -259,7 +259,7 @@ namespace Flowery.NET.Tests
                 host.Settle();
                 Assert.All(host.Control.GetVisualDescendants().OfType<DaisyButton>(), button => Assert.Equal(size, button.Size));
                 Assert.All(host.Control.GetVisualDescendants().OfType<DaisyIconText>(), icon => Assert.Equal(size, icon.Size));
-                Assert.Equal(LayoutTestAssertions.GetUnoButtonFontSize(size), host.Control.FontSize);
+                Assert.Equal(LayoutTestAssertions.GetButtonFontSize(size), host.Control.FontSize);
                 Assert.All(host.Control.GetVisualDescendants().OfType<DaisyIconText>(), icon => Assert.Equal(host.Control.FontSize, icon.IconSize));
             }
             host.Control.ApplyScaleFactor(0.8);

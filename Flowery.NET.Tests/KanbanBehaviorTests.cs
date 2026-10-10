@@ -925,7 +925,7 @@ namespace Flowery.NET.Tests
                         LayoutTestAssertions.GetUnoButtonHeight(DaisySize.Small),
                         button.Bounds.Height,
                         precision: 3);
-                    Assert.Equal(LayoutTestAssertions.GetUnoButtonFontSize(DaisySize.Small), button.FontSize);
+                    Assert.Equal(LayoutTestAssertions.GetButtonFontSize(DaisySize.Small), button.FontSize);
                     Assert.Equal(LayoutTestAssertions.GetUnoButtonPadding(DaisySize.Small), button.Padding);
                     Assert.True(button.Bounds.Width > button.Bounds.Height);
                     LayoutTestAssertions.HasHorizontalPadding(button);

@@ -468,7 +468,8 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Gets the font size for a given tier and size.
+        /// Gets the font size for a given tier and size. This is the single source for the
+        /// font-size ladders; the DaisySize*FontSize resource tokens mirror these values.
         /// </summary>
         public static double GetFontSizeForTier(ResponsiveFontTier tier, DaisySize size)
         {

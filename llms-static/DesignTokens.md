@@ -252,14 +252,14 @@ Badges use a separate, more compact scale.
 
 | Token | Default |
 | ----- | ------- |
-| `DaisyBadgeLargeHeight` | 24 |
-| `DaisyBadgeMediumHeight` | 20 |
-| `DaisyBadgeSmallHeight` | 16 |
-| `DaisyBadgeExtraSmallHeight` | 12 |
-| `DaisyBadgeLargeFontSize` | 14 |
-| `DaisyBadgeMediumFontSize` | 12 |
-| `DaisyBadgeSmallFontSize` | 10 |
-| `DaisyBadgeExtraSmallFontSize` | 8 |
+| `DaisyBadgeLargeHeight` | 28 |
+| `DaisyBadgeMediumHeight` | 24 |
+| `DaisyBadgeSmallHeight` | 20 |
+| `DaisyBadgeExtraSmallHeight` | 16 |
+| `DaisyBadgeLargeFontSize` | 18 |
+| `DaisyBadgeMediumFontSize` | 14 |
+| `DaisyBadgeSmallFontSize` | 12 |
+| `DaisyBadgeExtraSmallFontSize` | 10 |
 | `DaisyBadgeLargePadding` | 12,0 |
 | `DaisyBadgeMediumPadding` | 8,0 |
 | `DaisyBadgeSmallPadding` | 6,0 |
@@ -427,11 +427,11 @@ Outer border size for checkboxes and radio buttons.
 
 | Token | Default |
 | ----- | ------- |
-| `DaisyMenuExtraLargeFontSize` | 18 |
-| `DaisyMenuLargeFontSize` | 16 |
+| `DaisyMenuExtraLargeFontSize` | 20 |
+| `DaisyMenuLargeFontSize` | 18 |
 | `DaisyMenuMediumFontSize` | 14 |
 | `DaisyMenuSmallFontSize` | 12 |
-| `DaisyMenuExtraSmallFontSize` | 11 |
+| `DaisyMenuExtraSmallFontSize` | 10 |
 
 ---
 
@@ -459,10 +459,10 @@ Outer border size for checkboxes and radio buttons.
 
 | Token | Default |
 | ----- | ------- |
-| `DaisyKbdExtraLargeFontSize` | 16 |
-| `DaisyKbdLargeFontSize` | 14 |
-| `DaisyKbdMediumFontSize` | 12 |
-| `DaisyKbdSmallFontSize` | 11 |
+| `DaisyKbdExtraLargeFontSize` | 20 |
+| `DaisyKbdLargeFontSize` | 18 |
+| `DaisyKbdMediumFontSize` | 14 |
+| `DaisyKbdSmallFontSize` | 12 |
 | `DaisyKbdExtraSmallFontSize` | 10 |
 
 ### Kbd Corner Radius
