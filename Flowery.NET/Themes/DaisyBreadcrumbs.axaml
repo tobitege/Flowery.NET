@@ -42,6 +42,7 @@
     <ControlTheme x:Key="DaisyBreadcrumbItemTheme" TargetType="controls:DaisyBreadcrumbItem">
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="SeparatorBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
@@ -50,8 +51,8 @@
                     <TextBlock Text="{TemplateBinding Separator}"
                                Margin="8,0"
                                Opacity="{TemplateBinding SeparatorOpacity}"
-                               FontSize="14"
-                               Foreground="{TemplateBinding Foreground}"
+                               FontSize="{TemplateBinding FontSize}"
+                               Foreground="{TemplateBinding SeparatorBrush}"
                                VerticalAlignment="Center"
                                IsVisible="{TemplateBinding IsFirst, Converter={x:Static BoolConverters.Not}}"
                                Name="PART_Separator"/>
@@ -61,8 +62,8 @@
                                 VerticalAlignment="Center"
                                 Name="PART_Content">
                         <PathIcon Data="{TemplateBinding Icon}"
-                                  Width="16"
-                                  Height="16"
+                                  Width="{TemplateBinding FontSize}"
+                                  Height="{TemplateBinding FontSize}"
                                   IsVisible="{TemplateBinding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"
                                   Foreground="{TemplateBinding Foreground}"
                                   VerticalAlignment="Center"/>
@@ -94,8 +95,9 @@
     </ControlTheme>
 
     <ControlTheme x:Key="{x:Type controls:DaisyBreadcrumbs}" TargetType="controls:DaisyBreadcrumbs">
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="SeparatorBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="ItemsPanel">
             <Setter.Value>
                 <ItemsPanelTemplate>
@@ -118,5 +120,19 @@
                 </Border>
             </ControlTemplate>
         </Setter>
+
+        <!-- Sizes: items and separators inherit the font size -->
+        <Style Selector="^[Size=ExtraSmall]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Small]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Large]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+        </Style>
     </ControlTheme>
 </ResourceDictionary>
