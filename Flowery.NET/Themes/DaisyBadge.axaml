@@ -18,7 +18,7 @@
         <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="Padding" Value="{DynamicResource DaisyBadgeMediumPadding}" />
-        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Height" Value="{DynamicResource DaisyBadgeMediumHeight}" />
         <Setter Property="FontSize" Value="{DynamicResource DaisyBadgeMediumFontSize}" />
         <Setter Property="FontWeight" Value="SemiBold" />
@@ -109,23 +109,29 @@
             <Setter Property="Foreground" Value="{DynamicResource DaisyAccentBrush}" />
         </Style>
 
-        <!-- Sizes -->
+        <!-- Sizes: corner radius is half the height so badges stay pill-shaped -->
+        <Style Selector="^[Size=ExtraLarge]">
+            <Setter Property="Height" Value="{DynamicResource DaisyBadgeExtraLargeHeight}" />
+            <Setter Property="FontSize" Value="{DynamicResource DaisyBadgeExtraLargeFontSize}" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="Padding" Value="{DynamicResource DaisyBadgeExtraLargePadding}" />
+        </Style>
         <Style Selector="^[Size=Large]">
             <Setter Property="Height" Value="{DynamicResource DaisyBadgeLargeHeight}" />
             <Setter Property="FontSize" Value="{DynamicResource DaisyBadgeLargeFontSize}" />
-            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="CornerRadius" Value="14" />
             <Setter Property="Padding" Value="{DynamicResource DaisyBadgeLargePadding}" />
         </Style>
         <Style Selector="^[Size=Small]">
             <Setter Property="Height" Value="{DynamicResource DaisyBadgeSmallHeight}" />
             <Setter Property="FontSize" Value="{DynamicResource DaisyBadgeSmallFontSize}" />
-            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="CornerRadius" Value="10" />
             <Setter Property="Padding" Value="{DynamicResource DaisyBadgeSmallPadding}" />
         </Style>
         <Style Selector="^[Size=ExtraSmall]">
             <Setter Property="Height" Value="{DynamicResource DaisyBadgeExtraSmallHeight}" />
             <Setter Property="FontSize" Value="{DynamicResource DaisyBadgeExtraSmallFontSize}" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="{DynamicResource DaisyBadgeExtraSmallPadding}" />
         </Style>
 

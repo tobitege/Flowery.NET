@@ -252,14 +252,17 @@ Badges use a separate, more compact scale.
 
 | Token | Default |
 | ----- | ------- |
+| `DaisyBadgeExtraLargeHeight` | 32 |
 | `DaisyBadgeLargeHeight` | 28 |
 | `DaisyBadgeMediumHeight` | 24 |
 | `DaisyBadgeSmallHeight` | 20 |
 | `DaisyBadgeExtraSmallHeight` | 16 |
+| `DaisyBadgeExtraLargeFontSize` | 20 |
 | `DaisyBadgeLargeFontSize` | 18 |
 | `DaisyBadgeMediumFontSize` | 14 |
 | `DaisyBadgeSmallFontSize` | 12 |
 | `DaisyBadgeExtraSmallFontSize` | 10 |
+| `DaisyBadgeExtraLargePadding` | 14,0 |
 | `DaisyBadgeLargePadding` | 12,0 |
 | `DaisyBadgeMediumPadding` | 8,0 |
 | `DaisyBadgeSmallPadding` | 6,0 |

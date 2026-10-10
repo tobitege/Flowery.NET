@@ -145,6 +145,7 @@
     <sys:Double x:Key="DaisyStepsExtraSmallContentFontSize">10</sys:Double>
 
     <!-- ==================== BADGE PADDING ==================== -->
+    <Thickness x:Key="DaisyBadgeExtraLargePadding">14,0</Thickness>
     <Thickness x:Key="DaisyBadgeLargePadding">12,0</Thickness>
     <Thickness x:Key="DaisyBadgeMediumPadding">8,0</Thickness>
     <Thickness x:Key="DaisyBadgeSmallPadding">6,0</Thickness>
@@ -152,12 +153,14 @@
 
     <!-- ==================== BADGE HEIGHTS ==================== -->
     <!-- Badges are compact inline elements; heights leave room for the primary font ladder -->
+    <sys:Double x:Key="DaisyBadgeExtraLargeHeight">32</sys:Double>
     <sys:Double x:Key="DaisyBadgeLargeHeight">28</sys:Double>
     <sys:Double x:Key="DaisyBadgeMediumHeight">24</sys:Double>
     <sys:Double x:Key="DaisyBadgeSmallHeight">20</sys:Double>
     <sys:Double x:Key="DaisyBadgeExtraSmallHeight">16</sys:Double>
 
     <!-- ==================== BADGE FONT SIZES ==================== -->
+    <sys:Double x:Key="DaisyBadgeExtraLargeFontSize">20</sys:Double>
     <sys:Double x:Key="DaisyBadgeLargeFontSize">18</sys:Double>
     <sys:Double x:Key="DaisyBadgeMediumFontSize">14</sys:Double>
     <sys:Double x:Key="DaisyBadgeSmallFontSize">12</sys:Double>
