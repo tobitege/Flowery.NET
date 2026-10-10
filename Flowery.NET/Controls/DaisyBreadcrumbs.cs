@@ -49,7 +49,7 @@ namespace Flowery.Controls
         /// Gets or sets the opacity of the separator.
         /// </summary>
         public static readonly StyledProperty<double> SeparatorOpacityProperty =
-            AvaloniaProperty.Register<DaisyBreadcrumbs, double>(nameof(SeparatorOpacity), 0.5);
+            AvaloniaProperty.Register<DaisyBreadcrumbs, double>(nameof(SeparatorOpacity), 1.0);
 
         /// <summary>
         /// Gets or sets the brush of the separator. The theme supplies the default.
@@ -178,7 +178,7 @@ namespace Flowery.Controls
         /// Gets or sets the opacity of the separator.
         /// </summary>
         public static readonly StyledProperty<double> SeparatorOpacityProperty =
-            AvaloniaProperty.Register<DaisyBreadcrumbItem, double>(nameof(SeparatorOpacity), 0.5);
+            AvaloniaProperty.Register<DaisyBreadcrumbItem, double>(nameof(SeparatorOpacity), 1.0);
 
         public static readonly StyledProperty<IBrush?> SeparatorBrushProperty =
             AvaloniaProperty.Register<DaisyBreadcrumbItem, IBrush?>(nameof(SeparatorBrush));

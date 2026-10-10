@@ -66,7 +66,7 @@
                             <!-- Title -->
                             <TextBlock Text="{TemplateBinding Title}"
                                 FontSize="{TemplateBinding LabelFontSize}"
-                                Opacity="0.6"
+                                Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
                                 Margin="0,0,0,4"
                                 IsVisible="{TemplateBinding Title, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                 HorizontalAlignment="{Binding IsCentered, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static controls:StatConverters.CenteredToAlignment}}" />
@@ -83,7 +83,7 @@
                             <TextBlock x:Name="DescriptionText"
                                 Text="{TemplateBinding Description}"
                                 FontSize="{TemplateBinding LabelFontSize}"
-                                Opacity="0.6"
+                                Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
                                 Margin="0,4,0,0"
                                 IsVisible="{TemplateBinding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                 HorizontalAlignment="{Binding IsCentered, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static controls:StatConverters.CenteredToAlignment}}" />
@@ -154,31 +154,24 @@
         <!-- DescriptionVariant styles for Description text color -->
         <Style Selector="^[DescriptionVariant=Primary] /template/ TextBlock#DescriptionText">
             <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryBrush}" />
-            <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[DescriptionVariant=Secondary] /template/ TextBlock#DescriptionText">
             <Setter Property="Foreground" Value="{DynamicResource DaisySecondaryBrush}" />
-            <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[DescriptionVariant=Accent] /template/ TextBlock#DescriptionText">
             <Setter Property="Foreground" Value="{DynamicResource DaisyAccentBrush}" />
-            <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[DescriptionVariant=Info] /template/ TextBlock#DescriptionText">
             <Setter Property="Foreground" Value="{DynamicResource DaisyInfoBrush}" />
-            <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[DescriptionVariant=Success] /template/ TextBlock#DescriptionText">
             <Setter Property="Foreground" Value="{DynamicResource DaisySuccessBrush}" />
-            <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[DescriptionVariant=Warning] /template/ TextBlock#DescriptionText">
             <Setter Property="Foreground" Value="{DynamicResource DaisyWarningBrush}" />
-            <Setter Property="Opacity" Value="1" />
         </Style>
         <Style Selector="^[DescriptionVariant=Error] /template/ TextBlock#DescriptionText">
             <Setter Property="Foreground" Value="{DynamicResource DaisyErrorBrush}" />
-            <Setter Property="Opacity" Value="1" />
         </Style>
     </ControlTheme>
 

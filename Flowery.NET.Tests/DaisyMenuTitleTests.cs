@@ -22,9 +22,11 @@ public class DaisyMenuTitleTests
             window.Show();
             Layout(window);
             Assert.Equal(1.0, title.Opacity);
-            Assert.Equal(0.5, disabled.Opacity);
+            Assert.Equal(1.0, disabled.Opacity);
             Assert.True(menu.TryFindResource("DaisyPrimaryBrush", menu.ActualThemeVariant, out var primary));
             Assert.Same(primary, title.Foreground);
+            Assert.True(menu.TryFindResource("DaisyBaseContentDisabledBrush", menu.ActualThemeVariant, out var disabledBrush));
+            Assert.Same(disabledBrush, disabled.Foreground);
             Assert.NotEqual(title.Foreground, disabled.Foreground);
             Assert.Equal(new Avalonia.Thickness(0, 0, 0, 1), title.BorderThickness);
             Assert.Equal(Token(menu, "DaisySizeMediumSecondaryFontSize"), title.FontSize);

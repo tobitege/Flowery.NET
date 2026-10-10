@@ -50,7 +50,7 @@
 
             <!-- Disabled State -->
             <Style Selector="^:disabled">
-                <Setter Property="Opacity" Value="0.5" />
+                <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentDisabledBrush}" />
             </Style>
 
             <!-- Selected State (Active) - uses ListBoxItem properties so code-behind can override -->

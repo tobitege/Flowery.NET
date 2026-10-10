@@ -42,7 +42,7 @@
     <ControlTheme x:Key="DaisyBreadcrumbItemTheme" TargetType="controls:DaisyBreadcrumbItem">
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
-        <Setter Property="SeparatorBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="SeparatorBrush" Value="{DynamicResource DaisyBaseContentSubtleBrush}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
@@ -77,27 +77,21 @@
         </Setter>
 
         <!-- Hover style for clickable items (not last) -->
-        <Style Selector="^:not(:disabled) /template/ StackPanel#PART_Content">
-            <Setter Property="Opacity" Value="1" />
-        </Style>
-        <Style Selector="^:pointerover:not(:disabled) /template/ StackPanel#PART_Content">
-            <Setter Property="Opacity" Value="0.7" />
+        <Style Selector="^:pointerover:not(:disabled)">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentMutedBrush}" />
         </Style>
 
-        <!-- Last item style - no hover effect, slightly different appearance -->
+        <!-- Last item style - no hover effect, muted like a current-page marker -->
         <Style Selector="^[IsLast=True]">
             <Setter Property="Cursor" Value="Arrow" />
-            <Setter Property="Opacity" Value="0.7" />
-        </Style>
-        <Style Selector="^[IsLast=True]:pointerover /template/ StackPanel#PART_Content">
-            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentMutedBrush}" />
         </Style>
     </ControlTheme>
 
     <ControlTheme x:Key="{x:Type controls:DaisyBreadcrumbs}" TargetType="controls:DaisyBreadcrumbs">
         <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
-        <Setter Property="SeparatorBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="SeparatorBrush" Value="{DynamicResource DaisyBaseContentSubtleBrush}" />
         <Setter Property="ItemsPanel">
             <Setter.Value>
                 <ItemsPanelTemplate>
