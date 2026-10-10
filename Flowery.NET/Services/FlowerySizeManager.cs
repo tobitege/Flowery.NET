@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
@@ -58,10 +59,18 @@ namespace Flowery.Controls
     /// </example>
     public static class FlowerySizeManager
     {
-        private static DaisySize _currentSize = DaisySize.Small;
+        private static DaisySize _currentSize = DaisySize.Medium;
 
         // Cache for the DaisySize SizeProperty by control type (null when the type has none).
         private static readonly Dictionary<Type, StyledProperty<DaisySize>?> _sizePropertyCache = [];
+
+        // Loaded controls that declare a StyledProperty<DaisySize> named SizeProperty.
+        private static readonly HashSet<Control> _sizedControls = [];
+
+        // Subset of _sizedControls whose current Size value was supplied by this manager.
+        private static readonly HashSet<Control> _providedDefaults = [];
+
+        private static bool _applying;
 
         /// <summary>
         /// Attached property to mark a control as ignoring global size changes.
@@ -130,6 +139,76 @@ namespace Flowery.Controls
         static FlowerySizeManager()
         {
             ResponsiveFontProperty.Changed.AddClassHandler<Control>(OnResponsiveFontChanged);
+            Control.LoadedEvent.AddClassHandler<Control>(OnControlLoaded);
+            Control.UnloadedEvent.AddClassHandler<Control>(OnControlUnloaded);
+        }
+
+        private static void OnControlLoaded(Control control, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            var property = GetSizeProperty(control.GetType());
+            if (property == null)
+                return;
+
+            if (_sizedControls.Add(control))
+                control.PropertyChanged += OnSizedControlPropertyChanged;
+
+            ApplyGlobalSize(control, property);
+        }
+
+        private static void OnControlUnloaded(Control control, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            if (_sizedControls.Remove(control))
+                control.PropertyChanged -= OnSizedControlPropertyChanged;
+        }
+
+        private static void OnSizedControlPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+        {
+            if (_applying || sender is not Control control)
+                return;
+
+            var property = GetSizeProperty(control.GetType());
+            if (property != null && e.Property == property)
+                ApplyGlobalSize(control, property);
+        }
+
+        /// <summary>
+        /// Supplies the global size as the control's current value when nothing else provides one.
+        /// A base value (XAML, code, style or binding) always wins, and the supplied value keeps
+        /// default priority so such a value can still take over later. When the control opts out
+        /// or global sizing is disabled, a previously supplied value is cleared again.
+        /// </summary>
+        private static void ApplyGlobalSize(Control control, StyledProperty<DaisySize> property)
+        {
+            if (_applying || control.GetBaseValue(property).HasValue || control.IsAnimating(property))
+                return;
+
+            _applying = true;
+            try
+            {
+                if (EnableGlobalAutoSize && UseGlobalSizeByDefault && !ShouldIgnoreGlobalSize(control))
+                {
+                    _providedDefaults.Add(control);
+                    control.SetCurrentValue(property, _currentSize);
+                }
+                else if (_providedDefaults.Remove(control))
+                {
+                    control.ClearValue(property);
+                }
+            }
+            finally
+            {
+                _applying = false;
+            }
+        }
+
+        private static void ApplyGlobalSizeToLoadedControls()
+        {
+            foreach (var control in _sizedControls.ToArray())
+            {
+                var property = GetSizeProperty(control.GetType());
+                if (property != null)
+                    ApplyGlobalSize(control, property);
+            }
         }
 
         private static void OnResponsiveFontChanged(Control control, AvaloniaPropertyChangedEventArgs e)
@@ -235,6 +314,7 @@ namespace Flowery.Controls
             _currentSize = size;
             UpdateResponsiveTextBlocks(size);
             SizeChanged?.Invoke(null, size);
+            ApplyGlobalSizeToLoadedControls();
 
             if (EnableGlobalAutoSize)
             {
@@ -312,7 +392,7 @@ namespace Flowery.Controls
                     continue;
                 }
 
-                TrySetSizeProperty(element, size);
+                TrySetSizeProperty(element);
 
                 // Add children to queue
                 foreach (var child in element.GetVisualChildren())
@@ -343,19 +423,19 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Supplies the global size as the current value of a control's Size property.
-        /// A base value (XAML, code, style or binding) always wins. The supplied value keeps
-        /// default priority, so a later propagation can replace it and a style can still take over.
+        /// Supplies the global size to a control reached by the tree walk. Controls that are
+        /// loaded are also tracked by the registry; the walk covers controls that were created
+        /// before the global size handlers were registered.
         /// </summary>
-        private static void TrySetSizeProperty(Control element, DaisySize size)
+        private static void TrySetSizeProperty(Control element)
         {
             var property = GetSizeProperty(element.GetType());
-            if (property == null || element.GetBaseValue(property).HasValue || element.IsAnimating(property))
+            if (property == null)
                 return;
 
             try
             {
-                element.SetCurrentValue(property, size);
+                ApplyGlobalSize(element, property);
             }
             catch
             {

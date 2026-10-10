@@ -29,11 +29,6 @@ namespace Flowery.Controls
         protected override Type StyleKeyOverride => typeof(DaisyToggle);
 
 
-        public DaisyToggle()
-        {
-            _ = new DaisyGlobalSizeSubscription(this, SizeProperty);
-        }
-
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
         {

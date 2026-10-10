@@ -63,7 +63,7 @@ public partial class App : Application
         // Save theme whenever it changes
         DaisyThemeManager.ThemeChanged += (_, name) => GallerySettings.Save(name);
 
-        // Restore saved global size (if any). FlowerySizeManager defaults to Small.
+        // Restore saved global size (if any). FlowerySizeManager defaults to Medium.
         var savedGlobalSize = GallerySettings.LoadGlobalSize();
         if (savedGlobalSize != null)
             FlowerySizeManager.ApplySize(savedGlobalSize.Value);

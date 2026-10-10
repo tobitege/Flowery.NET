@@ -176,7 +176,6 @@ namespace Flowery.Controls
         public DaisyTabsHeaderButtons()
         {
             _viewMenu = new ViewMenuFlyout(this) { ItemsSource = _viewMenuItems };
-            _ = new DaisyGlobalSizeSubscription(this, SizeProperty);
         }
 
         /// <inheritdoc/>

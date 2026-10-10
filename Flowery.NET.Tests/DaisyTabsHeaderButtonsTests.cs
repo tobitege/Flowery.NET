@@ -26,11 +26,11 @@ namespace Flowery.NET.Tests
             Assert.False(host.Next.IsVisible);
             Assert.False(host.ViewMenuButton.IsVisible);
             Assert.True(host.Control.ShowManageViewsEntry);
-            Assert.Equal(DaisySize.Small, host.Control.Size);
+            Assert.Equal(FlowerySizeManager.CurrentSize, host.Control.Size);
             Assert.All(host.Control.GetVisualDescendants().OfType<DaisyButton>(), button =>
             {
                 Assert.Equal(DaisyButtonVariant.Default, button.Variant);
-                Assert.Equal(DaisySize.Small, button.Size);
+                Assert.Equal(host.Control.Size, button.Size);
                 Assert.Equal(DaisyButtonShape.Square, button.Shape);
             });
             Assert.Null(host.Control.Views);
