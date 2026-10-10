@@ -102,7 +102,7 @@
             <!-- Indicator -->
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="indicator" Title="Indicator" />
-                <TextBlock Text="Badge overlay that can be aligned to any corner/edge."
+                <TextBlock Text="Badge overlay that can be aligned to any corner/edge. MarkerAlignment controls the overlap: Inside keeps the marker within the content, Edge straddles the corner, Outside places it fully outside so it touches the corner only at one point."
                            Opacity="0.7"
                            TextWrapping="Wrap"
                            Foreground="{DynamicResource DaisyBaseContentBrush}" />
@@ -192,6 +192,9 @@
                             </controls:DaisyIndicator.Marker>
                             <controls:DaisyButton Content="Device" ButtonStyle="Outline" Size="Large" />
                         </controls:DaisyIndicator>
+                        <TextBlock Text="Outside: touches the corner only, so round markers show a small gap"
+                                   Opacity="0.6" TextWrapping="Wrap" MaxWidth="200"
+                                   controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                     </StackPanel>
 
                     <StackPanel Spacing="10" Margin="0,0,24,16">

@@ -42,6 +42,7 @@
     <ControlTheme x:Key="DaisyBreadcrumbItemTheme" TargetType="controls:DaisyBreadcrumbItem">
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="SeparatorBrush" Value="{DynamicResource DaisyBaseContentSubtleBrush}" />
         <Setter Property="Template">
             <ControlTemplate>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
@@ -50,8 +51,8 @@
                     <TextBlock Text="{TemplateBinding Separator}"
                                Margin="8,0"
                                Opacity="{TemplateBinding SeparatorOpacity}"
-                               FontSize="14"
-                               Foreground="{TemplateBinding Foreground}"
+                               FontSize="{TemplateBinding FontSize}"
+                               Foreground="{TemplateBinding SeparatorBrush}"
                                VerticalAlignment="Center"
                                IsVisible="{TemplateBinding IsFirst, Converter={x:Static BoolConverters.Not}}"
                                Name="PART_Separator"/>
@@ -61,8 +62,8 @@
                                 VerticalAlignment="Center"
                                 Name="PART_Content">
                         <PathIcon Data="{TemplateBinding Icon}"
-                                  Width="16"
-                                  Height="16"
+                                  Width="{TemplateBinding FontSize}"
+                                  Height="{TemplateBinding FontSize}"
                                   IsVisible="{TemplateBinding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"
                                   Foreground="{TemplateBinding Foreground}"
                                   VerticalAlignment="Center"/>
@@ -76,26 +77,21 @@
         </Setter>
 
         <!-- Hover style for clickable items (not last) -->
-        <Style Selector="^:not(:disabled) /template/ StackPanel#PART_Content">
-            <Setter Property="Opacity" Value="1" />
-        </Style>
-        <Style Selector="^:pointerover:not(:disabled) /template/ StackPanel#PART_Content">
-            <Setter Property="Opacity" Value="0.7" />
+        <Style Selector="^:pointerover:not(:disabled)">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentMutedBrush}" />
         </Style>
 
-        <!-- Last item style - no hover effect, slightly different appearance -->
+        <!-- Last item style - no hover effect, muted like a current-page marker -->
         <Style Selector="^[IsLast=True]">
             <Setter Property="Cursor" Value="Arrow" />
-            <Setter Property="Opacity" Value="0.7" />
-        </Style>
-        <Style Selector="^[IsLast=True]:pointerover /template/ StackPanel#PART_Content">
-            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentMutedBrush}" />
         </Style>
     </ControlTheme>
 
     <ControlTheme x:Key="{x:Type controls:DaisyBreadcrumbs}" TargetType="controls:DaisyBreadcrumbs">
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="SeparatorBrush" Value="{DynamicResource DaisyBaseContentSubtleBrush}" />
         <Setter Property="ItemsPanel">
             <Setter.Value>
                 <ItemsPanelTemplate>
@@ -118,5 +114,19 @@
                 </Border>
             </ControlTemplate>
         </Setter>
+
+        <!-- Sizes: items and separators inherit the font size -->
+        <Style Selector="^[Size=ExtraSmall]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Small]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Large]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+        </Style>
     </ControlTheme>
 </ResourceDictionary>

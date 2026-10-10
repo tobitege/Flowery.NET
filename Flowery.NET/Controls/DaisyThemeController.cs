@@ -24,11 +24,6 @@ namespace Flowery.Controls
 
         private const double BaseTextFontSize = 14.0;
 
-        public DaisyThemeController()
-        {
-            _ = new DaisyGlobalSizeSubscription(this, SizeProperty);
-        }
-
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
         {

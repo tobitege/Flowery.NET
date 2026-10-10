@@ -10,7 +10,9 @@ DaisyBreadcrumbs shows a horizontal trail of navigation steps. It auto-builds `D
 | Property | Description |
 | -------- | ----------- |
 | `Separator` (string, default "/") | Text used between items. Accepts any string (e.g., `›`, `»`, `>`). |
-| `SeparatorOpacity` (double, default 0.5) | Controls the visual weight of the separator glyph. |
+| `SeparatorOpacity` (double, default 1) | Extra dimming of the separator glyph; the default relies on `SeparatorBrush` instead. |
+| `SeparatorBrush` (IBrush) | Brush of the separator glyph; defaults to `DaisyBaseContentSubtleBrush`. |
+| `Size` (`DaisySize`, default Medium) | Size tier; items, icons and separators inherit the resulting font size from the `DaisySize*FontSize` tokens. Follows the global size when not set. |
 | `Items` | Supply `DaisyBreadcrumbItem` children directly or bind an `ItemsSource`; containers are created automatically. |
 
 ## Item Properties
@@ -22,7 +24,7 @@ DaisyBreadcrumbs shows a horizontal trail of navigation steps. It auto-builds `D
 | `Command` / `CommandParameter` | Invoked on click for non-last items when `IsClickable=True`. |
 | `IsClickable` (bool) | Toggle interactivity; still respects `IsLast` (last item never executes commands). |
 | `IsFirst` / `IsLast` / `Index` | Set by the parent for styling and interaction; not usually set manually. |
-| `Separator` / `SeparatorOpacity` | Inherited from the parent; override per item if needed. |
+| `Separator` / `SeparatorOpacity` / `SeparatorBrush` | Inherited from the parent; override per item if needed. |
 
 ## Quick Examples
 

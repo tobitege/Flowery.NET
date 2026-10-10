@@ -18,6 +18,7 @@ DaisyMenu is a styled `ListBox` for navigation menus. It supports vertical or ho
 | -------- | ----------- |
 | `ActiveForeground` / `ActiveBackground` | Colors applied to selected items; defaults to Neutral theme colors. |
 | Selection | Inherits ListBox selection; `SelectedItem`/`SelectedIndex` works as usual. |
+| Content colors | The selected item sets `Foreground` on the `ListBoxItem` and text inherits it. Content that sets its own `Foreground` (for example a `TextBlock Foreground="..."`) keeps that brush and does not follow the selection; leave `Foreground` unset or bind it to `ActiveForeground` of the menu. |
 
 ## Quick Examples
 
@@ -54,5 +55,5 @@ DaisyMenu is a styled `ListBox` for navigation menus. It supports vertical or ho
 >- Use size presets to match surrounding controls; Small/ExtraSmall pair well with toolbars.
 - Set `ActiveForeground/ActiveBackground` to align with your brand colors if Neutral isn't desired.
 - For horizontal menus, ensure there's enough padding/margin in the parent to avoid crowding.
-- Use `Classes="menu-title"` for non-interactive section headers inside the menu.
+- Use `Classes="menu-title"` for non-interactive section headers inside the menu. Titles render in the primary color, bold, with a divider underneath, at the secondary font size of the menu's `Size`, so they stay distinguishable from disabled items.
 - Nest DaisyMenu or use `Expander` for collapsible submenus; adjust margins for indentation as needed.

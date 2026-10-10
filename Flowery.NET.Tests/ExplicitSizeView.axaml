@@ -1,0 +1,10 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             x:Class="Flowery.NET.Tests.ExplicitSizeView">
+    <StackPanel>
+        <controls:DaisyBadge Name="Tiny" Content="Tiny" Size="ExtraSmall" />
+        <controls:DaisyBadge Name="Auto" Content="Auto" />
+        <controls:DaisyButton Name="Large" Content="Large" Size="Large" />
+    </StackPanel>
+</UserControl>

@@ -7,9 +7,37 @@
 
     <!-- Button defaults follow the active palette; individual palettes can override them. -->
     <SolidColorBrush x:Key="DaisyButtonPrimaryForegroundBrush" Color="{DynamicResource DaisyPrimaryColor}" />
-    <SolidColorBrush x:Key="DaisyButtonPrimarySoftBrush" Color="{DynamicResource DaisyBase200Color}" />
+    <SolidColorBrush x:Key="DaisyButtonPrimarySoftBrush" Color="{DynamicResource DaisyPrimaryColor}" Opacity="0.15" />
     <SolidColorBrush x:Key="DaisyButtonPrimaryDisabledBrush" Color="{DynamicResource DaisyPrimaryColor}" />
     <x:Double x:Key="DaisyButtonPrimaryDisabledOpacity">0.5</x:Double>
+
+    <!-- Soft button style: tinted surface, stronger tint on hover and a translucent border in the variant color. -->
+    <SolidColorBrush x:Key="DaisyButtonPrimarySoftHoverBrush" Color="{DynamicResource DaisyPrimaryColor}" Opacity="0.3" />
+    <SolidColorBrush x:Key="DaisyButtonPrimarySoftBorderBrush" Color="{DynamicResource DaisyPrimaryColor}" Opacity="0.45" />
+    <SolidColorBrush x:Key="DaisyButtonSecondarySoftBrush" Color="{DynamicResource DaisySecondaryColor}" Opacity="0.15" />
+    <SolidColorBrush x:Key="DaisyButtonSecondarySoftHoverBrush" Color="{DynamicResource DaisySecondaryColor}" Opacity="0.3" />
+    <SolidColorBrush x:Key="DaisyButtonSecondarySoftBorderBrush" Color="{DynamicResource DaisySecondaryColor}" Opacity="0.45" />
+    <SolidColorBrush x:Key="DaisyButtonAccentSoftBrush" Color="{DynamicResource DaisyAccentColor}" Opacity="0.15" />
+    <SolidColorBrush x:Key="DaisyButtonAccentSoftHoverBrush" Color="{DynamicResource DaisyAccentColor}" Opacity="0.3" />
+    <SolidColorBrush x:Key="DaisyButtonAccentSoftBorderBrush" Color="{DynamicResource DaisyAccentColor}" Opacity="0.45" />
+    <SolidColorBrush x:Key="DaisyButtonInfoSoftBrush" Color="{DynamicResource DaisyInfoColor}" Opacity="0.15" />
+    <SolidColorBrush x:Key="DaisyButtonInfoSoftHoverBrush" Color="{DynamicResource DaisyInfoColor}" Opacity="0.3" />
+    <SolidColorBrush x:Key="DaisyButtonInfoSoftBorderBrush" Color="{DynamicResource DaisyInfoColor}" Opacity="0.45" />
+    <SolidColorBrush x:Key="DaisyButtonSuccessSoftBrush" Color="{DynamicResource DaisySuccessColor}" Opacity="0.15" />
+    <SolidColorBrush x:Key="DaisyButtonSuccessSoftHoverBrush" Color="{DynamicResource DaisySuccessColor}" Opacity="0.3" />
+    <SolidColorBrush x:Key="DaisyButtonSuccessSoftBorderBrush" Color="{DynamicResource DaisySuccessColor}" Opacity="0.45" />
+    <SolidColorBrush x:Key="DaisyButtonWarningSoftBrush" Color="{DynamicResource DaisyWarningColor}" Opacity="0.15" />
+    <SolidColorBrush x:Key="DaisyButtonWarningSoftHoverBrush" Color="{DynamicResource DaisyWarningColor}" Opacity="0.3" />
+    <SolidColorBrush x:Key="DaisyButtonWarningSoftBorderBrush" Color="{DynamicResource DaisyWarningColor}" Opacity="0.45" />
+    <SolidColorBrush x:Key="DaisyButtonErrorSoftBrush" Color="{DynamicResource DaisyErrorColor}" Opacity="0.15" />
+    <SolidColorBrush x:Key="DaisyButtonErrorSoftHoverBrush" Color="{DynamicResource DaisyErrorColor}" Opacity="0.3" />
+    <SolidColorBrush x:Key="DaisyButtonErrorSoftBorderBrush" Color="{DynamicResource DaisyErrorColor}" Opacity="0.45" />
+
+    <!-- Muted text: captions, hints, separators and disabled items use these instead of Opacity,
+         so palettes can tune the contrast. -->
+    <SolidColorBrush x:Key="DaisyBaseContentMutedBrush" Color="{DynamicResource DaisyBaseContentColor}" Opacity="0.7" />
+    <SolidColorBrush x:Key="DaisyBaseContentSubtleBrush" Color="{DynamicResource DaisyBaseContentColor}" Opacity="0.5" />
+    <SolidColorBrush x:Key="DaisyBaseContentDisabledBrush" Color="{DynamicResource DaisyBaseContentColor}" Opacity="0.5" />
 
     <!-- Match Fluent's normal tree foreground outside palettes with a selection override. -->
     <SolidColorBrush x:Key="DaisyTreeSelectedForegroundBrush" Color="{DynamicResource SystemBaseHighColor}" />

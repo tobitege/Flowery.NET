@@ -50,7 +50,8 @@ public class BusinessThemeContrastTests
             else if (style == DaisyButtonStyle.Soft)
             {
                 AssertColor("#1C4E80", background.Background);
-                Assert.Equal(0.2, background.Opacity);
+                Assert.InRange(Assert.IsAssignableFrom<ISolidColorBrush>(background.Background).Opacity, 0.2, 0.5);
+                Assert.Equal(1, background.Opacity);
             }
 
             window.MouseDown(point, MouseButton.Left);

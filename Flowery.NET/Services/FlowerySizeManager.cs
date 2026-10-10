@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.VisualTree;
 
 namespace Flowery.Controls
@@ -37,9 +39,9 @@ namespace Flowery.Controls
     /// <remarks>
     /// This service enables a "global size override" feature for applications that want
     /// consistent sizing across all DaisyUI controls. When <see cref="EnableGlobalAutoSize"/> is true,
-    /// size changes propagate to all controls with a Size property in the visual tree.
-    /// Controls with explicitly-set Size values (in XAML or code) are respected and not overwritten.
-    /// Use <see cref="IgnoreGlobalSizeProperty"/> to opt-out entire branches of the visual tree.
+    /// every loaded control that declares a StyledProperty&lt;DaisySize&gt; named SizeProperty receives
+    /// the current size as its current value. A Size set in XAML, code, a style or a binding is
+    /// never overwritten. Use <see cref="IgnoreGlobalSizeProperty"/> to opt-out entire branches of the visual tree.
     /// </remarks>
     /// <example>
     /// <code>
@@ -57,13 +59,18 @@ namespace Flowery.Controls
     /// </example>
     public static class FlowerySizeManager
     {
-        private static DaisySize _currentSize = DaisySize.Small;
+        private static DaisySize _currentSize = DaisySize.Medium;
 
-        // Cache for SizeProperty StyledProperty by type
-        private static readonly Dictionary<Type, AvaloniaProperty?> _sizeDPCache = [];
+        // Cache for the DaisySize SizeProperty by control type (null when the type has none).
+        private static readonly Dictionary<Type, StyledProperty<DaisySize>?> _sizePropertyCache = [];
 
-        // Cache for Size property reflection lookup
-        private static readonly Dictionary<Type, PropertyInfo?> _sizePropertyCache = [];
+        // Loaded controls that declare a StyledProperty<DaisySize> named SizeProperty.
+        private static readonly HashSet<Control> _sizedControls = [];
+
+        // Subset of _sizedControls whose current Size value was supplied by this manager.
+        private static readonly HashSet<Control> _providedDefaults = [];
+
+        private static bool _applying;
 
         /// <summary>
         /// Attached property to mark a control as ignoring global size changes.
@@ -132,6 +139,76 @@ namespace Flowery.Controls
         static FlowerySizeManager()
         {
             ResponsiveFontProperty.Changed.AddClassHandler<Control>(OnResponsiveFontChanged);
+            Control.LoadedEvent.AddClassHandler<Control>(OnControlLoaded);
+            Control.UnloadedEvent.AddClassHandler<Control>(OnControlUnloaded);
+        }
+
+        private static void OnControlLoaded(Control control, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            var property = GetSizeProperty(control.GetType());
+            if (property == null)
+                return;
+
+            if (_sizedControls.Add(control))
+                control.PropertyChanged += OnSizedControlPropertyChanged;
+
+            ApplyGlobalSize(control, property);
+        }
+
+        private static void OnControlUnloaded(Control control, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            if (_sizedControls.Remove(control))
+                control.PropertyChanged -= OnSizedControlPropertyChanged;
+        }
+
+        private static void OnSizedControlPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+        {
+            if (_applying || sender is not Control control)
+                return;
+
+            var property = GetSizeProperty(control.GetType());
+            if (property != null && e.Property == property)
+                ApplyGlobalSize(control, property);
+        }
+
+        /// <summary>
+        /// Supplies the global size as the control's current value when nothing else provides one.
+        /// A base value (XAML, code, style or binding) always wins, and the supplied value keeps
+        /// default priority so such a value can still take over later. When the control opts out
+        /// or global sizing is disabled, a previously supplied value is cleared again.
+        /// </summary>
+        private static void ApplyGlobalSize(Control control, StyledProperty<DaisySize> property)
+        {
+            if (_applying || control.GetBaseValue(property).HasValue || control.IsAnimating(property))
+                return;
+
+            _applying = true;
+            try
+            {
+                if (EnableGlobalAutoSize && UseGlobalSizeByDefault && !ShouldIgnoreGlobalSize(control))
+                {
+                    _providedDefaults.Add(control);
+                    control.SetCurrentValue(property, _currentSize);
+                }
+                else if (_providedDefaults.Remove(control))
+                {
+                    control.ClearValue(property);
+                }
+            }
+            finally
+            {
+                _applying = false;
+            }
+        }
+
+        private static void ApplyGlobalSizeToLoadedControls()
+        {
+            foreach (var control in _sizedControls.ToArray())
+            {
+                var property = GetSizeProperty(control.GetType());
+                if (property != null)
+                    ApplyGlobalSize(control, property);
+            }
         }
 
         private static void OnResponsiveFontChanged(Control control, AvaloniaPropertyChangedEventArgs e)
@@ -218,8 +295,8 @@ namespace Flowery.Controls
         public static bool EnableGlobalAutoSize { get; set; } = true;
 
         /// <summary>
-        /// The main window reference for visual tree propagation.
-        /// Set this in your App.axaml.cs after creating the window.
+        /// Optional root for visual tree propagation. Windows of a desktop lifetime and the main
+        /// view of a single-view lifetime are found automatically; set this for other hosts.
         /// </summary>
         public static Window? MainWindow { get; set; }
 
@@ -237,6 +314,7 @@ namespace Flowery.Controls
             _currentSize = size;
             UpdateResponsiveTextBlocks(size);
             SizeChanged?.Invoke(null, size);
+            ApplyGlobalSizeToLoadedControls();
 
             if (EnableGlobalAutoSize)
             {
@@ -257,14 +335,14 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Propagates the current size to all controls with a Size property
-        /// in the visual tree.
+        /// Propagates the current size to every control with a Size property in all open
+        /// top-level windows (desktop lifetime windows, single-view main view, <see cref="MainWindow"/>).
         /// </summary>
         private static void PropagateToVisualTree()
         {
             try
             {
-                if (MainWindow?.Content is Control root)
+                foreach (var root in GetPropagationRoots())
                 {
                     PropagateSize(root, _currentSize);
                 }
@@ -272,6 +350,27 @@ namespace Flowery.Controls
             catch
             {
                 // Silently ignore errors during propagation
+            }
+        }
+
+        private static IEnumerable<Control> GetPropagationRoots()
+        {
+            var seen = new HashSet<Control>();
+            if (MainWindow != null && seen.Add(MainWindow))
+                yield return MainWindow;
+
+            switch (Application.Current?.ApplicationLifetime)
+            {
+                case IClassicDesktopStyleApplicationLifetime desktop:
+                    foreach (var window in desktop.Windows)
+                    {
+                        if (seen.Add(window))
+                            yield return window;
+                    }
+                    break;
+                case ISingleViewApplicationLifetime { MainView: Control view } when seen.Add(view):
+                    yield return view;
+                    break;
             }
         }
 
@@ -293,7 +392,7 @@ namespace Flowery.Controls
                     continue;
                 }
 
-                TrySetSizeProperty(element, size);
+                TrySetSizeProperty(element);
 
                 // Add children to queue
                 foreach (var child in element.GetVisualChildren())
@@ -307,63 +406,40 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Attempts to set the Size property on a control if it exists and is DaisySize.
-        /// Respects explicitly-set local values (from XAML or code) by not overwriting them.
-        /// Uses reflection with caching for performance.
+        /// Returns the <c>SizeProperty</c> of a control type when it is a <see cref="StyledProperty{T}"/>
+        /// of <see cref="DaisySize"/>; otherwise null. Results are cached per type.
         /// </summary>
-        private static void TrySetSizeProperty(Control element, DaisySize size)
+        private static StyledProperty<DaisySize>? GetSizeProperty(Type type)
         {
-            var type = element.GetType();
-
-            // First try to find the SizeProperty StyledProperty (preferred for Avalonia)
-            if (!_sizeDPCache.TryGetValue(type, out var dp))
+            if (!_sizePropertyCache.TryGetValue(type, out var property))
             {
-                var sizeField = type.GetField("SizeProperty", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
-                dp = sizeField?.GetValue(null) as AvaloniaProperty;
-                _sizeDPCache[type] = dp;
+                property = type
+                    .GetField("SizeProperty", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                    ?.GetValue(null) as StyledProperty<DaisySize>;
+                _sizePropertyCache[type] = property;
             }
 
-            if (dp != null)
-            {
-                // Check if a local value was set (in XAML or code) and respect it
-                if (element.IsSet(dp))
-                {
-                    // Control has an explicit Size set - don't override
-                    return;
-                }
+            return property;
+        }
 
-                try
-                {
-                    element.SetValue(dp, size);
-                }
-                catch
-                {
-                    // Silently ignore errors setting property
-                }
+        /// <summary>
+        /// Supplies the global size to a control reached by the tree walk. Controls that are
+        /// loaded are also tracked by the registry; the walk covers controls that were created
+        /// before the global size handlers were registered.
+        /// </summary>
+        private static void TrySetSizeProperty(Control element)
+        {
+            var property = GetSizeProperty(element.GetType());
+            if (property == null)
                 return;
-            }
 
-            // Fallback to reflection for non-AvaloniaProperty Size properties (rare)
-            if (!_sizePropertyCache.TryGetValue(type, out var sizeProp))
+            try
             {
-                sizeProp = type.GetProperty("Size", BindingFlags.Public | BindingFlags.Instance);
-                if (sizeProp?.PropertyType != typeof(DaisySize) || !sizeProp.CanWrite)
-                {
-                    sizeProp = null;
-                }
-                _sizePropertyCache[type] = sizeProp;
+                ApplyGlobalSize(element, property);
             }
-
-            if (sizeProp != null)
+            catch
             {
-                try
-                {
-                    sizeProp.SetValue(element, size);
-                }
-                catch
-                {
-                    // Silently ignore errors setting property
-                }
+                // Silently ignore errors setting property
             }
         }
 
@@ -392,7 +468,8 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Gets the font size for a given tier and size.
+        /// Gets the font size for a given tier and size. This is the single source for the
+        /// font-size ladders; the DaisySize*FontSize resource tokens mirror these values.
         /// </summary>
         public static double GetFontSizeForTier(ResponsiveFontTier tier, DaisySize size)
         {
@@ -483,11 +560,11 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Resets the global size to Small (the default).
+        /// Resets the global size to Medium (the default).
         /// </summary>
         public static void Reset()
         {
-            ApplySize(DaisySize.Small);
+            ApplySize(DaisySize.Medium);
         }
     }
 }

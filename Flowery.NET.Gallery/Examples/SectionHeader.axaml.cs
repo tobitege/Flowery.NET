@@ -401,10 +401,10 @@ public partial class SectionHeader : UserControl
             var button = this.FindControl<Flowery.Controls.DaisyButton>("ScreenshotButton");
             if (button != null)
             {
-                var originalContent = button.Content;
-                button.Content = "✓";
+                var originalIcon = button.IconSymbol;
+                button.IconSymbol = Flowery.Enums.DaisyIconSymbol.Accept;
                 await Task.Delay(1000);
-                button.Content = originalContent;
+                button.IconSymbol = originalIcon;
             }
         }
         catch

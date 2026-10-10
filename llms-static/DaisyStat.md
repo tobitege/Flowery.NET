@@ -17,6 +17,8 @@ DaisyStat displays a metric with title, value, optional description, figure (ico
 | `IsCentered` | Centers text and actions within the stat. |
 | `Variant` | Colors value text (Default/Primary/Secondary/Accent/Info/Success/Warning/Error). |
 | `DescriptionVariant` | Colors description text using the same variant set. |
+| `Size` (`DaisySize`) | Size tier; scales the value, title and description through `DaisyStat*ValueFontSize` and `DaisySize*SecondaryFontSize` tokens. Follows the global size when not set. |
+| `ValueFontSize` / `LabelFontSize` | Font sizes used by the template for the value and for title/description; set by the theme per `Size`, overridable per control or style. |
 
 ## DaisyStats Container
 

@@ -56,8 +56,7 @@
                                 IsVisible="{TemplateBinding IsRequired}" />
                             <TextBlock Text="Optional field"
                                 FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
-                                Opacity="0.7"
-                                Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
                                 IsVisible="{TemplateBinding IsOptional}" />
                         </StackPanel>
 
@@ -65,9 +64,8 @@
                         <TextBlock Grid.Row="1"
                             Text="{TemplateBinding HintText}"
                             FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}"
-                            Opacity="0.7"
                             Margin="0,0,0,4"
-                            Foreground="{DynamicResource DaisyBaseContentBrush}"
+                            Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
                             IsVisible="{TemplateBinding HintText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
                         <!-- Row 2: Main textarea area -->
@@ -99,7 +97,7 @@
                                     VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
                                     <Panel>
                                         <TextBlock Name="PART_Watermark"
-                                            Opacity="0.5"
+                                            Foreground="{DynamicResource DaisyBaseContentSubtleBrush}"
                                             Text="{TemplateBinding Watermark}"
                                             TextAlignment="{TemplateBinding TextAlignment}"
                                             TextWrapping="{TemplateBinding TextWrapping}"
@@ -142,8 +140,7 @@
                                 Text="{TemplateBinding HelperText}"
                                 HorizontalAlignment="Left"
                                 FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
-                                Opacity="0.7"
-                                Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
                                 IsVisible="{TemplateBinding HelperText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
                             <!-- Character counter (right-aligned) -->
@@ -152,19 +149,16 @@
                                 IsVisible="{TemplateBinding ShowCharacterCount}">
                                 <TextBlock
                                     FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
-                                    Opacity="0.7"
-                                    Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                    Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
                                     Text="{Binding CharacterCount, RelativeSource={RelativeSource TemplatedParent}}" />
                                 <TextBlock
                                     FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
-                                    Opacity="0.7"
-                                    Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                    Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
                                     Text=" characters"
                                     IsVisible="{TemplateBinding MaxLength, Converter={x:Static ObjectConverters.IsNull}}" />
                                 <TextBlock
                                     FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
-                                    Opacity="0.7"
-                                    Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                    Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
                                     IsVisible="{TemplateBinding MaxLength, Converter={x:Static ObjectConverters.IsNotNull}}">
                                     <Run Text=" / " />
                                     <Run Text="{TemplateBinding MaxLength}" />

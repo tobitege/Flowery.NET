@@ -18,6 +18,7 @@
 
     <ControlTheme x:Key="{x:Type controls:DaisyNumberFlow}" TargetType="controls:DaisyNumberFlow">
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="DigitForeground" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="FontSize" Value="{DynamicResource LargeDisplayFontSize}" />
         <Setter Property="FontFamily" Value="Consolas, 'Cascadia Mono', 'SF Mono', 'JetBrains Mono', monospace" />
         <Setter Property="Template">
@@ -100,7 +101,7 @@
                                                                FontSize="{Binding $parent[controls:DaisyNumberFlow].FontSize}"
                                                                FontWeight="{Binding $parent[controls:DaisyNumberFlow].FontWeight}"
                                                                FontFamily="{Binding $parent[controls:DaisyNumberFlow].FontFamily}"
-                                                               Foreground="{Binding $parent[controls:DaisyNumberFlow].Foreground}"
+                                                               Foreground="{Binding $parent[controls:DaisyNumberFlow].DigitForeground}"
                                                                TextAlignment="Center"
                                                                HorizontalAlignment="Center"
                                                                VerticalAlignment="Center">
@@ -117,7 +118,7 @@
                                                                FontSize="{Binding $parent[controls:DaisyNumberFlow].FontSize}"
                                                                FontWeight="{Binding $parent[controls:DaisyNumberFlow].FontWeight}"
                                                                FontFamily="{Binding $parent[controls:DaisyNumberFlow].FontFamily}"
-                                                               Foreground="{Binding $parent[controls:DaisyNumberFlow].Foreground}"
+                                                               Foreground="{Binding $parent[controls:DaisyNumberFlow].DigitForeground}"
                                                                TextAlignment="Center"
                                                                HorizontalAlignment="Center"
                                                                VerticalAlignment="Center">
@@ -136,7 +137,7 @@
                                                            FontSize="{Binding $parent[controls:DaisyNumberFlow].FontSize}"
                                                            FontWeight="{Binding $parent[controls:DaisyNumberFlow].FontWeight}"
                                                            FontFamily="{Binding $parent[controls:DaisyNumberFlow].FontFamily}"
-                                                           Foreground="{Binding $parent[controls:DaisyNumberFlow].Foreground}"
+                                                           Foreground="{Binding $parent[controls:DaisyNumberFlow].DigitForeground}"
                                                            TextAlignment="Center"
                                                            HorizontalAlignment="Center"
                                                            VerticalAlignment="Center" />
@@ -179,6 +180,11 @@
                 </Border>
             </ControlTemplate>
         </Setter>
+
+        <!-- Digit boxes are painted with the neutral brush, so their digits need the neutral content brush -->
+        <Style Selector="^[ShowDigitBoxes=True]">
+            <Setter Property="DigitForeground" Value="{DynamicResource DaisyNeutralContentBrush}" />
+        </Style>
 
         <!-- When ShowControls=False, hide the outer container styling -->
         <Style Selector="^[ShowControls=False] /template/ Border#OuterContainer">

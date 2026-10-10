@@ -26,11 +26,6 @@ namespace Flowery.Controls
     {
         protected override Type StyleKeyOverride => typeof(DaisyCheckBox);
 
-        public DaisyCheckBox()
-        {
-            _ = new DaisyGlobalSizeSubscription(this, SizeProperty);
-        }
-
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
         {

@@ -306,6 +306,18 @@ All built-in theme controls (`DaisyThemeDropdown`, `DaisyThemeController`, `Dais
 
 ---
 
+## Muted Text Brushes
+
+Captions, hints, watermarks, breadcrumb separators and disabled menu items are colored with dedicated brushes instead of `Opacity`, so a palette can tune their contrast:
+
+| Brush | Default | Used for |
+| ----- | ------- | -------- |
+| `DaisyBaseContentMutedBrush` | base content color at 70% | stat titles and descriptions, input labels and helper text, breadcrumb hover and last item |
+| `DaisyBaseContentSubtleBrush` | base content color at 50% | watermarks, breadcrumb separators |
+| `DaisyBaseContentDisabledBrush` | base content color at 50% | disabled menu items |
+
+Override any of them in a palette dictionary to change the look for that theme only.
+
 ## How Theming Works
 
 Flowery.NET uses Avalonia's `ThemeDictionaries` architecture:

@@ -16,12 +16,26 @@ namespace Flowery.Controls
     {
         protected override Type StyleKeyOverride => typeof(DaisyBreadcrumbs);
 
-        private const double BaseTextFontSize = 14.0;
-
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
         {
-            FontSize = FloweryScaleManager.ApplyScale(BaseTextFontSize, 11.0, scaleFactor);
+            var baseFontSize = FlowerySizeManager.GetFontSizeForTier(ResponsiveFontTier.Primary, Size);
+            FontSize = FloweryScaleManager.ApplyScale(baseFontSize, 10.0, scaleFactor);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="Size"/> property.
+        /// </summary>
+        public static readonly StyledProperty<DaisySize> SizeProperty =
+            AvaloniaProperty.Register<DaisyBreadcrumbs, DaisySize>(nameof(Size), DaisySize.Medium);
+
+        /// <summary>
+        /// Gets or sets the size tier. Items and separators inherit the resulting font size.
+        /// </summary>
+        public DaisySize Size
+        {
+            get => GetValue(SizeProperty);
+            set => SetValue(SizeProperty, value);
         }
 
         /// <summary>
@@ -35,7 +49,13 @@ namespace Flowery.Controls
         /// Gets or sets the opacity of the separator.
         /// </summary>
         public static readonly StyledProperty<double> SeparatorOpacityProperty =
-            AvaloniaProperty.Register<DaisyBreadcrumbs, double>(nameof(SeparatorOpacity), 0.5);
+            AvaloniaProperty.Register<DaisyBreadcrumbs, double>(nameof(SeparatorOpacity), 1.0);
+
+        /// <summary>
+        /// Gets or sets the brush of the separator. The theme supplies the default.
+        /// </summary>
+        public static readonly StyledProperty<IBrush?> SeparatorBrushProperty =
+            AvaloniaProperty.Register<DaisyBreadcrumbs, IBrush?>(nameof(SeparatorBrush));
 
         public string Separator
         {
@@ -47,6 +67,12 @@ namespace Flowery.Controls
         {
             get => GetValue(SeparatorOpacityProperty);
             set => SetValue(SeparatorOpacityProperty, value);
+        }
+
+        public IBrush? SeparatorBrush
+        {
+            get => GetValue(SeparatorBrushProperty);
+            set => SetValue(SeparatorBrushProperty, value);
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -78,6 +104,7 @@ namespace Flowery.Controls
                     item.SetCurrentValue(DaisyBreadcrumbItem.IndexProperty, i);
                     item.SetCurrentValue(DaisyBreadcrumbItem.SeparatorProperty, Separator);
                     item.SetCurrentValue(DaisyBreadcrumbItem.SeparatorOpacityProperty, SeparatorOpacity);
+                    item.SetCurrentValue(DaisyBreadcrumbItem.SeparatorBrushProperty, SeparatorBrush);
                 }
             }
         }
@@ -105,6 +132,7 @@ namespace Flowery.Controls
                 breadcrumbItem.SetCurrentValue(DaisyBreadcrumbItem.IndexProperty, index);
                 breadcrumbItem.SetCurrentValue(DaisyBreadcrumbItem.SeparatorProperty, Separator);
                 breadcrumbItem.SetCurrentValue(DaisyBreadcrumbItem.SeparatorOpacityProperty, SeparatorOpacity);
+                breadcrumbItem.SetCurrentValue(DaisyBreadcrumbItem.SeparatorBrushProperty, SeparatorBrush);
             }
         }
     }
@@ -150,7 +178,10 @@ namespace Flowery.Controls
         /// Gets or sets the opacity of the separator.
         /// </summary>
         public static readonly StyledProperty<double> SeparatorOpacityProperty =
-            AvaloniaProperty.Register<DaisyBreadcrumbItem, double>(nameof(SeparatorOpacity), 0.5);
+            AvaloniaProperty.Register<DaisyBreadcrumbItem, double>(nameof(SeparatorOpacity), 1.0);
+
+        public static readonly StyledProperty<IBrush?> SeparatorBrushProperty =
+            AvaloniaProperty.Register<DaisyBreadcrumbItem, IBrush?>(nameof(SeparatorBrush));
 
         /// <summary>
         /// Gets or sets the command to execute when the breadcrumb item is clicked.
@@ -205,6 +236,12 @@ namespace Flowery.Controls
         {
             get => GetValue(SeparatorOpacityProperty);
             set => SetValue(SeparatorOpacityProperty, value);
+        }
+
+        public IBrush? SeparatorBrush
+        {
+            get => GetValue(SeparatorBrushProperty);
+            set => SetValue(SeparatorBrushProperty, value);
         }
 
         public ICommand? Command

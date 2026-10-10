@@ -1,17 +1,15 @@
 # FlowerySizeManager
 
-Static service for global size management across all Daisy controls. Provides discrete size tiers (ExtraSmall to ExtraLarge) that all controls respond to simultaneously via automatic visual tree propagation.
+Static service for global size management across all Daisy controls. Provides discrete size tiers (ExtraSmall to ExtraLarge). Every loaded control that declares a `StyledProperty<DaisySize>` named `SizeProperty` follows the current tier unless a `Size` value was set explicitly.
 
 ## Quick Start
 
 ```csharp
 using Flowery.Controls;
 
-// Set the main window for visual tree propagation (in App.axaml.cs)
-FlowerySizeManager.MainWindow = MainWindow;
-
-// Apply a global size - automatically propagates to all controls
-FlowerySizeManager.ApplySize(DaisySize.Medium);
+// Apply a global size - every control with a Size property follows,
+// including controls created later and controls in other windows
+FlowerySizeManager.ApplySize(DaisySize.Large);
 
 // Or use a built-in dropdown
 ```
@@ -25,10 +23,10 @@ FlowerySizeManager.ApplySize(DaisySize.Medium);
 | Size | Typical Use Case | Height | Font Size |
 | ---- | ---------------- | ------ | --------- |
 | `ExtraSmall` | High-density UIs, data tables | 24px | 10px |
-| `Small` | **Default** - Desktop apps | 32px | 12px |
-| `Medium` | Touch-friendly, accessibility | 48px | 14px |
-| `Large` | Larger screens, presentations | 64px | 18px |
-| `ExtraLarge` | Maximum readability, kiosk | 80px | 20px |
+| `Small` | Dense desktop apps | 28px | 12px |
+| `Medium` | **Default** - matches the class defaults | 32px | 14px |
+| `Large` | Larger screens, presentations | 36px | 18px |
+| `ExtraLarge` | Maximum readability, kiosk | 40px | 20px |
 
 ## API Reference
 
@@ -38,29 +36,30 @@ FlowerySizeManager.ApplySize(DaisySize.Medium);
 // Get the current global size
 DaisySize currentSize = FlowerySizeManager.CurrentSize;
 
-// Enable/disable automatic visual tree propagation (default: true)
+// Enable/disable supplying the global size to controls (default: true)
 FlowerySizeManager.EnableGlobalAutoSize = true;
 
 // Auto-apply global size to new controls (default: true)
 FlowerySizeManager.UseGlobalSizeByDefault = true;
 
-// Set the main window for visual tree propagation
+// Optional extra root for RefreshAllSizes(); desktop windows are found automatically
 FlowerySizeManager.MainWindow = myWindow;
 ```
 
 ### Methods
 
 ```csharp
-// Apply by enum - automatically propagates to all controls in visual tree
+// Apply by enum - every loaded control with a Size property follows
 FlowerySizeManager.ApplySize(DaisySize.Large);
 
 // Apply by name (returns true if successful)
 bool success = FlowerySizeManager.ApplySize("Large");
 
-// Force refresh all sizes (call after window fully loads)
+// Re-apply the current size to all open windows (only needed for controls
+// that were created before DaisyUITheme was loaded)
 FlowerySizeManager.RefreshAllSizes();
 
-// Reset to default (Small)
+// Reset to default (Medium)
 FlowerySizeManager.Reset();
 
 // Get sidebar width for a given size
@@ -76,14 +75,17 @@ FlowerySizeManager.SizeChanged += (sender, size) =>
 };
 ```
 
-## Visual Tree Propagation
+## How Controls Follow the Global Size
 
-When `EnableGlobalAutoSize` is `true` (default), calling `ApplySize()` automatically:
+`DaisyUITheme` registers `FlowerySizeManager` when it is loaded. From then on the manager:
 
-1. Walks the entire visual tree starting from `MainWindow.Content`
-2. Finds all controls with a `Size` property of type `DaisySize`
-3. Sets the size **only if not explicitly set** in XAML or code
-4. Respects `IgnoreGlobalSize` to skip entire branches
+1. Tracks every control whose type declares a `StyledProperty<DaisySize>` named `SizeProperty` when the control raises `Loaded`, in any window or popup
+2. Supplies the current tier with `SetCurrentValue` on load, on every `ApplySize()` call and whenever the control's `Size` value changes (for example when a style is added or removed)
+3. Skips controls that have a base value for `Size` (XAML, code, style or binding) - those are never overwritten
+4. Respects `IgnoreGlobalSize` and clears a value it supplied earlier when a control opts out
+5. Stops tracking the control on `Unloaded`
+
+`RefreshAllSizes()` additionally walks all open top-level windows (desktop lifetime windows, the single-view main view and `MainWindow`). It is only needed for controls that were created before `DaisyUITheme` was loaded.
 
 ### Respecting Explicit Values
 
@@ -97,26 +99,18 @@ Controls with **explicitly-set `Size` properties** are never overwritten:
 <controls:DaisyButton Size="Large" Content="Always Large" />
 ```
 
-This uses Avalonia's `IsSet()` to detect locally-set values vs. defaults.
+A `Size` setter in a style also wins. Removing the style hands the control back to the global size. The check uses Avalonia's `GetBaseValue()`, so a value supplied by the manager is never mistaken for an explicit value.
 
 ### Setup in App.axaml.cs
+
+No setup is required beyond adding `DaisyUITheme` to `Application.Styles`. Apply a size whenever you like:
 
 ```csharp
 public partial class App : Application
 {
     public override void OnFrameworkInitializationCompleted()
     {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            var mainWindow = new MainWindow();
-            desktop.MainWindow = mainWindow;
-            
-            // Enable visual tree propagation
-            FlowerySizeManager.MainWindow = mainWindow;
-            
-            // Refresh after window loads to catch all controls
-            mainWindow.Opened += (_, _) => FlowerySizeManager.RefreshAllSizes();
-        }
+        FlowerySizeManager.ApplySize(DaisySize.Large);
         base.OnFrameworkInitializationCompleted();
     }
 }
@@ -209,7 +203,7 @@ Makes TextBlock font sizes respond to global size changes:
 
 ## Supported Controls
 
-All Daisy controls with a `Size` property respond to global size changes automatically via visual tree propagation:
+Every Daisy control that declares a `StyledProperty<DaisySize>` named `SizeProperty` responds to global size changes automatically:
 
 - `DaisyButton`, `DaisyInput`, `DaisyTextArea`
 - `DaisySelect`, `DaisyCheckBox`, `DaisyRadio`, `DaisyToggle`
@@ -224,7 +218,7 @@ All Daisy controls with a `Size` property respond to global size changes automat
 
 ### Automatic (Recommended)
 
-If your control has a `Size` property of type `DaisySize`, it will **automatically** respond to global size changes via visual tree propagation. No manual subscription needed!
+If your control declares a public static `StyledProperty<DaisySize>` named `SizeProperty`, it will **automatically** respond to global size changes once it is loaded. No manual subscription needed!
 
 ```csharp
 public class MyDaisyControl : TemplatedControl
@@ -331,10 +325,10 @@ Each size tier maps to specific [Design Tokens](DesignTokens.md):
 | Size | Height Token | Font Size Token |
 | ---- | ------------ | --------------- |
 | ExtraSmall | `DaisySizeExtraSmallHeight` (24) | `DaisySizeExtraSmallFontSize` (10) |
-| Small | `DaisySizeSmallHeight` (32) | `DaisySizeSmallFontSize` (12) |
-| Medium | `DaisySizeMediumHeight` (48) | `DaisySizeMediumFontSize` (14) |
-| Large | `DaisySizeLargeHeight` (64) | `DaisySizeLargeFontSize` (18) |
-| ExtraLarge | `DaisySizeExtraLargeHeight` (80) | `DaisySizeExtraLargeFontSize` (20) |
+| Small | `DaisySizeSmallHeight` (28) | `DaisySizeSmallFontSize` (12) |
+| Medium | `DaisySizeMediumHeight` (32) | `DaisySizeMediumFontSize` (14) |
+| Large | `DaisySizeLargeHeight` (36) | `DaisySizeLargeFontSize` (18) |
+| ExtraLarge | `DaisySizeExtraLargeHeight` (40) | `DaisySizeExtraLargeFontSize` (20) |
 
 ## Comparison: FlowerySizeManager vs FloweryScaleManager
 
@@ -344,7 +338,7 @@ Each size tier maps to specific [Design Tokens](DesignTokens.md):
 | **Scope** | Entire app (global) | Only `EnableScaling="True"` containers |
 | **Scaling** | Discrete tiers (XS, S, M, L, XL) | Continuous (0.5× to 1.0×) |
 | **Trigger** | User selection | Automatic (window resize) |
-| **Propagation** | Automatic visual tree walk | Manual container opt-in |
+| **Propagation** | Automatic, per loaded control | Manual container opt-in |
 | **Best For** | Desktop apps, accessibility | Data forms, dashboards |
 
 > **Most apps should use FlowerySizeManager only.** FloweryScaleManager is an advanced feature for specific responsive scenarios.
@@ -371,13 +365,13 @@ This is a platform rendering characteristic, not a bug. If visual consistency is
 
 ## Best Practices
 
-1. **Set MainWindow early** - Configure `FlowerySizeManager.MainWindow` in App initialization
-2. **Call RefreshAllSizes after load** - Ensures all controls get sized after visual tree is built
-3. **Start with Small** - Default size works well for most desktop apps
+1. **Load DaisyUITheme first** - The theme registers the size manager; no `MainWindow` setup is needed
+2. **Call RefreshAllSizes only for early controls** - Controls created before the theme was loaded are picked up by the window walk
+3. **Start with Medium** - The default matches the class defaults; use `Small` for dense desktop apps
 4. **Provide a size picker** - Use `DaisySizeDropdown` for user control
 5. **Test all sizes** - Ensure layouts work at ExtraSmall and ExtraLarge
 6. **Use design tokens** - Not hardcoded values
 7. **Use ResponsiveFont for TextBlocks** - Not DynamicResource
-8. **Don't subscribe to SizeChanged for sizing** - Visual tree propagation handles it automatically
+8. **Don't subscribe to SizeChanged for sizing** - Controls with a `Size` property are handled automatically
 9. **Use explicit Size for demos** - Gallery size examples should set `Size="Large"` etc. directly
 10. **Use IgnoreGlobalSize for size demo containers** - Prevents demo controls from responding to global changes

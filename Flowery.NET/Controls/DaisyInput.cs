@@ -118,27 +118,11 @@ namespace Flowery.Controls
             FontSize = ScaledTextFontSize;
         }
 
-        private static double GetTextFontSize(DaisySize size)
-        {
-            switch (size)
-            {
-                case DaisySize.ExtraSmall:
-                    return 10.0;
-                case DaisySize.Small:
-                    return 12.0;
-                case DaisySize.Large:
-                    return 18.0;
-                case DaisySize.ExtraLarge:
-                    return 20.0;
-                default:
-                    return BaseTextFontSize;
-            }
-        }
+        private static double GetTextFontSize(DaisySize size) =>
+            FlowerySizeManager.GetFontSizeForTier(ResponsiveFontTier.Primary, size);
 
-        private static double GetLabelFontSize(DaisySize size)
-        {
-            return Math.Max(10.0, GetTextFontSize(size) - 2.0);
-        }
+        private static double GetLabelFontSize(DaisySize size) =>
+            FlowerySizeManager.GetFontSizeForTier(ResponsiveFontTier.Secondary, size);
 
         /// <summary>
         /// Defines the <see cref="Variant"/> property.

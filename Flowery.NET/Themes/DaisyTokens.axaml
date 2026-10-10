@@ -34,12 +34,15 @@
     <sys:Double x:Key="DaisyInputFloatingExtraSmallHeight">36</sys:Double>
 
     <!-- ==================== FONT SIZES ==================== -->
-    <!-- Primary font sizes for main control text -->
-    <sys:Double x:Key="DaisySizeExtraLargeFontSize">16</sys:Double>
-    <sys:Double x:Key="DaisySizeLargeFontSize">14</sys:Double>
-    <sys:Double x:Key="DaisySizeMediumFontSize">12</sys:Double>
-    <sys:Double x:Key="DaisySizeSmallFontSize">10</sys:Double>
-    <sys:Double x:Key="DaisySizeExtraSmallFontSize">8</sys:Double>
+    <!-- Primary font sizes for main control text.
+         The Primary/Secondary/Tertiary/Header ladders mirror FlowerySizeManager.GetFontSizeForTier,
+         which is the single source for code-side font sizes. Per-control *FontSize tokens
+         (DaisyKbd*, DaisyMenu*, DaisyBadge*, DaisyCheckbox*, ...) use the same Primary ladder. -->
+    <sys:Double x:Key="DaisySizeExtraLargeFontSize">20</sys:Double>
+    <sys:Double x:Key="DaisySizeLargeFontSize">18</sys:Double>
+    <sys:Double x:Key="DaisySizeMediumFontSize">14</sys:Double>
+    <sys:Double x:Key="DaisySizeSmallFontSize">12</sys:Double>
+    <sys:Double x:Key="DaisySizeExtraSmallFontSize">10</sys:Double>
 
     <!-- Secondary font sizes for hint text, helper text, captions, labels -->
     <!-- These are ~0.8x of primary sizes, used for auxiliary information -->
@@ -142,23 +145,26 @@
     <sys:Double x:Key="DaisyStepsExtraSmallContentFontSize">10</sys:Double>
 
     <!-- ==================== BADGE PADDING ==================== -->
+    <Thickness x:Key="DaisyBadgeExtraLargePadding">14,0</Thickness>
     <Thickness x:Key="DaisyBadgeLargePadding">12,0</Thickness>
     <Thickness x:Key="DaisyBadgeMediumPadding">8,0</Thickness>
     <Thickness x:Key="DaisyBadgeSmallPadding">6,0</Thickness>
     <Thickness x:Key="DaisyBadgeExtraSmallPadding">4,0</Thickness>
 
     <!-- ==================== BADGE HEIGHTS ==================== -->
-    <!-- Badges are compact inline elements with their own scale -->
-    <sys:Double x:Key="DaisyBadgeLargeHeight">24</sys:Double>
-    <sys:Double x:Key="DaisyBadgeMediumHeight">20</sys:Double>
-    <sys:Double x:Key="DaisyBadgeSmallHeight">16</sys:Double>
-    <sys:Double x:Key="DaisyBadgeExtraSmallHeight">12</sys:Double>
+    <!-- Badges are compact inline elements; heights leave room for the primary font ladder -->
+    <sys:Double x:Key="DaisyBadgeExtraLargeHeight">32</sys:Double>
+    <sys:Double x:Key="DaisyBadgeLargeHeight">28</sys:Double>
+    <sys:Double x:Key="DaisyBadgeMediumHeight">24</sys:Double>
+    <sys:Double x:Key="DaisyBadgeSmallHeight">20</sys:Double>
+    <sys:Double x:Key="DaisyBadgeExtraSmallHeight">16</sys:Double>
 
     <!-- ==================== BADGE FONT SIZES ==================== -->
-    <sys:Double x:Key="DaisyBadgeLargeFontSize">14</sys:Double>
-    <sys:Double x:Key="DaisyBadgeMediumFontSize">12</sys:Double>
-    <sys:Double x:Key="DaisyBadgeSmallFontSize">10</sys:Double>
-    <sys:Double x:Key="DaisyBadgeExtraSmallFontSize">8</sys:Double>
+    <sys:Double x:Key="DaisyBadgeExtraLargeFontSize">20</sys:Double>
+    <sys:Double x:Key="DaisyBadgeLargeFontSize">18</sys:Double>
+    <sys:Double x:Key="DaisyBadgeMediumFontSize">14</sys:Double>
+    <sys:Double x:Key="DaisyBadgeSmallFontSize">12</sys:Double>
+    <sys:Double x:Key="DaisyBadgeExtraSmallFontSize">10</sys:Double>
 
     <!-- ==================== CARD PADDING ==================== -->
     <Thickness x:Key="DaisyCardLargePadding">32</Thickness>
@@ -173,6 +179,26 @@
     <Thickness x:Key="DaisyCollapseMediumPadding">5</Thickness>
     <Thickness x:Key="DaisyCollapseLargePadding">6</Thickness>
     <Thickness x:Key="DaisyCollapseExtraLargePadding">7</Thickness>
+
+    <!-- ==================== STAT ==================== -->
+    <sys:Double x:Key="DaisyStatExtraLargeValueFontSize">32</sys:Double>
+    <sys:Double x:Key="DaisyStatLargeValueFontSize">28</sys:Double>
+    <sys:Double x:Key="DaisyStatMediumValueFontSize">24</sys:Double>
+    <sys:Double x:Key="DaisyStatSmallValueFontSize">20</sys:Double>
+    <sys:Double x:Key="DaisyStatExtraSmallValueFontSize">18</sys:Double>
+
+    <!-- ==================== ACCORDION ==================== -->
+    <Thickness x:Key="DaisyAccordionExtraLargePadding">24</Thickness>
+    <Thickness x:Key="DaisyAccordionLargePadding">20</Thickness>
+    <Thickness x:Key="DaisyAccordionMediumPadding">16</Thickness>
+    <Thickness x:Key="DaisyAccordionSmallPadding">12</Thickness>
+    <Thickness x:Key="DaisyAccordionExtraSmallPadding">8</Thickness>
+
+    <sys:Double x:Key="DaisyAccordionExtraLargeHeaderMinHeight">64</sys:Double>
+    <sys:Double x:Key="DaisyAccordionLargeHeaderMinHeight">56</sys:Double>
+    <sys:Double x:Key="DaisyAccordionMediumHeaderMinHeight">48</sys:Double>
+    <sys:Double x:Key="DaisyAccordionSmallHeaderMinHeight">40</sys:Double>
+    <sys:Double x:Key="DaisyAccordionExtraSmallHeaderMinHeight">32</sys:Double>
 
     <!-- ==================== SPACING ==================== -->
     <!-- General spacing values for layouts -->
@@ -282,11 +308,11 @@
     <Thickness x:Key="DaisyMenuSmallPadding">10,6</Thickness>
     <Thickness x:Key="DaisyMenuExtraSmallPadding">8,4</Thickness>
 
-    <sys:Double x:Key="DaisyMenuExtraLargeFontSize">18</sys:Double>
-    <sys:Double x:Key="DaisyMenuLargeFontSize">16</sys:Double>
+    <sys:Double x:Key="DaisyMenuExtraLargeFontSize">20</sys:Double>
+    <sys:Double x:Key="DaisyMenuLargeFontSize">18</sys:Double>
     <sys:Double x:Key="DaisyMenuMediumFontSize">14</sys:Double>
     <sys:Double x:Key="DaisyMenuSmallFontSize">12</sys:Double>
-    <sys:Double x:Key="DaisyMenuExtraSmallFontSize">11</sys:Double>
+    <sys:Double x:Key="DaisyMenuExtraSmallFontSize">10</sys:Double>
 
     <!-- ==================== FLOWERY COMPONENT SIDEBAR ITEM PADDING ==================== -->
     <!-- Sidebar items should be more compact than generic buttons; vertical padding scales 1..5 across XS..XL -->
@@ -309,10 +335,10 @@
     <Thickness x:Key="DaisyKbdSmallPadding">3,0</Thickness>
     <Thickness x:Key="DaisyKbdExtraSmallPadding">2,0</Thickness>
 
-    <sys:Double x:Key="DaisyKbdExtraLargeFontSize">16</sys:Double>
-    <sys:Double x:Key="DaisyKbdLargeFontSize">14</sys:Double>
-    <sys:Double x:Key="DaisyKbdMediumFontSize">12</sys:Double>
-    <sys:Double x:Key="DaisyKbdSmallFontSize">11</sys:Double>
+    <sys:Double x:Key="DaisyKbdExtraLargeFontSize">20</sys:Double>
+    <sys:Double x:Key="DaisyKbdLargeFontSize">18</sys:Double>
+    <sys:Double x:Key="DaisyKbdMediumFontSize">14</sys:Double>
+    <sys:Double x:Key="DaisyKbdSmallFontSize">12</sys:Double>
     <sys:Double x:Key="DaisyKbdExtraSmallFontSize">10</sys:Double>
 
     <CornerRadius x:Key="DaisyKbdExtraLargeCornerRadius">6</CornerRadius>

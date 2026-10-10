@@ -23,9 +23,7 @@ namespace Flowery.Controls
         {
             _lifecycle = new DaisyControlLifecycle(
                 this,
-                ApplyAll,
-                () => Size,
-                s => Size = s);
+                ApplyAll);
         }
 
         private void ApplyAll()

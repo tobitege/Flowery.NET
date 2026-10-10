@@ -50,7 +50,7 @@
 
             <!-- Disabled State -->
             <Style Selector="^:disabled">
-                <Setter Property="Opacity" Value="0.5" />
+                <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentDisabledBrush}" />
             </Style>
 
             <!-- Selected State (Active) - uses ListBoxItem properties so code-behind can override -->
@@ -59,15 +59,18 @@
                 <Setter Property="Foreground" Value="{DynamicResource DaisyNeutralContentBrush}" />
             </Style>
 
-            <!-- Menu Title Style -->
+            <!-- Menu Title Style: primary-colored bold heading with a divider.
+                 Font size comes from the size styles below (secondary tier). -->
             <Style Selector="^.menu-title">
-                <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
-                <Setter Property="Opacity" Value="0.4" />
+                <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryBrush}" />
                 <Setter Property="FontWeight" Value="Bold" />
-                <Setter Property="FontSize" Value="12" />
                 <Setter Property="IsHitTestVisible" Value="False" />
-                <Setter Property="Padding" Value="12,4" />
+                <Setter Property="Padding" Value="12,6,12,4" />
+                <Setter Property="Margin" Value="0,4,0,2" />
                 <Setter Property="MinHeight" Value="0" />
+                <Setter Property="CornerRadius" Value="0" />
+                <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
+                <Setter Property="BorderThickness" Value="0,0,0,1" />
             </Style>
 
             <!-- Active Class Style (manual via Classes="menu-active") -->
@@ -156,6 +159,32 @@
     <Style Selector="controls|DaisyMenu[Size=ExtraLarge] ListBoxItem">
         <Setter Property="Padding" Value="{DynamicResource DaisyMenuExtraLargePadding}" />
         <Setter Property="FontSize" Value="{DynamicResource DaisyMenuExtraLargeFontSize}" />
+    </Style>
+
+    <!-- Menu titles use the secondary tier of the menu size and keep their own padding -->
+    <Style Selector="controls|DaisyMenu ListBoxItem.menu-title">
+        <Setter Property="Padding" Value="12,6,12,4" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumSecondaryFontSize}" />
+    </Style>
+    <Style Selector="controls|DaisyMenu[Size=ExtraSmall] ListBoxItem.menu-title">
+        <Setter Property="Padding" Value="8,4,8,2" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallSecondaryFontSize}" />
+    </Style>
+    <Style Selector="controls|DaisyMenu[Size=Small] ListBoxItem.menu-title">
+        <Setter Property="Padding" Value="10,5,10,3" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallSecondaryFontSize}" />
+    </Style>
+    <Style Selector="controls|DaisyMenu[Size=Medium] ListBoxItem.menu-title">
+        <Setter Property="Padding" Value="12,6,12,4" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumSecondaryFontSize}" />
+    </Style>
+    <Style Selector="controls|DaisyMenu[Size=Large] ListBoxItem.menu-title">
+        <Setter Property="Padding" Value="12,8,12,4" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeSecondaryFontSize}" />
+    </Style>
+    <Style Selector="controls|DaisyMenu[Size=ExtraLarge] ListBoxItem.menu-title">
+        <Setter Property="Padding" Value="12,8,12,4" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeSecondaryFontSize}" />
     </Style>
 
     <!-- Nested DaisyMenu (Submenu) -->

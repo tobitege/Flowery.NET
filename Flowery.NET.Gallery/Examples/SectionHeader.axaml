@@ -11,7 +11,7 @@
         </Border>
         <!-- Screenshot button as overlay (doesn't affect layout) -->
         <controls:DaisyButton x:Name="ScreenshotButton"
-                              Content="📷" Size="Small" Variant="Ghost"
+                              IconSymbol="Camera" Size="Medium" Variant="Ghost"
                               ToolTip.Tip="Copy section screenshot to clipboard"
                               Padding="6,2"
                               HorizontalAlignment="Right"

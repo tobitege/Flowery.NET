@@ -1407,11 +1407,12 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <!-- Status Glyph Variants -->
-                        <StackPanel Spacing="10" Margin="0,0,40,20">
-                            <TextBlock Text="Status Glyph Variants" FontWeight="SemiBold" Opacity="0.7" />
+                    </WrapPanel>
 
-                            <!-- Battery Indicator -->
+                    <!-- Status Glyph Variants: own row, examples side by side and wrapping -->
+                    <TextBlock Text="Status Glyph Variants" FontWeight="SemiBold" Opacity="0.7" Margin="0,0,0,10" />
+                    <WrapPanel Orientation="Horizontal">
+                        <StackPanel Spacing="8" Margin="0,0,40,20">
                             <TextBlock Text="Battery" FontSize="12" Opacity="0.6" />
                             <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
                                 <StackPanel Spacing="4" HorizontalAlignment="Center">
@@ -1433,7 +1434,9 @@
                             </StackPanel>
 
                             <!-- Traffic Lights -->
-                            <TextBlock Text="Traffic Lights" FontSize="12" Opacity="0.6" Margin="0,8,0,0" />
+                        </StackPanel>
+                        <StackPanel Spacing="8" Margin="0,0,40,20">
+                            <TextBlock Text="Traffic Lights" FontSize="12" Opacity="0.6" />
                             <StackPanel Orientation="Horizontal" Spacing="24" VerticalAlignment="Center">
                                 <StackPanel Spacing="4" HorizontalAlignment="Center">
                                     <controls:DaisyStatusIndicator Variant="TrafficLightVertical" TrafficLightActive="Green" />
@@ -1458,7 +1461,9 @@
                             </StackPanel>
 
                             <!-- WiFi Signal -->
-                            <TextBlock Text="WiFi Signal" FontSize="12" Opacity="0.6" Margin="0,8,0,0" />
+                        </StackPanel>
+                        <StackPanel Spacing="8" Margin="0,0,40,20">
+                            <TextBlock Text="WiFi Signal" FontSize="12" Opacity="0.6" />
                             <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
                                 <StackPanel Spacing="4" HorizontalAlignment="Center">
                                     <controls:DaisyStatusIndicator Variant="WifiSignal" SignalStrength="0" Color="Error" />
@@ -1479,7 +1484,9 @@
                             </StackPanel>
 
                             <!-- Cellular Signal -->
-                            <TextBlock Text="Cellular Signal" FontSize="12" Opacity="0.6" Margin="0,8,0,0" />
+                        </StackPanel>
+                        <StackPanel Spacing="8" Margin="0,0,40,20">
+                            <TextBlock Text="Cellular Signal" FontSize="12" Opacity="0.6" />
                             <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
                                 <StackPanel Spacing="4" HorizontalAlignment="Center">
                                     <controls:DaisyStatusIndicator Variant="CellularSignal" SignalStrength="0" Color="Error" />
@@ -1508,7 +1515,9 @@
                             </StackPanel>
 
                             <!-- Glyph Size Variants -->
-                            <TextBlock Text="Sizes" FontSize="12" Opacity="0.6" Margin="0,8,0,0" />
+                        </StackPanel>
+                        <StackPanel Spacing="8" Margin="0,0,40,20">
+                            <TextBlock Text="Sizes" FontSize="12" Opacity="0.6" />
                             <StackPanel Orientation="Horizontal" Spacing="24" VerticalAlignment="Bottom"
                                 controls:FlowerySizeManager.IgnoreGlobalSize="True">
                                 <StackPanel Spacing="4" HorizontalAlignment="Center">

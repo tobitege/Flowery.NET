@@ -18,7 +18,8 @@ namespace Flowery.Enums
         Edge,
 
         /// <summary>
-        /// Badge sits mostly outside, just touching the corner.
+        /// Badge sits fully outside the content bounds; its bounding box touches the
+        /// content only at the corner point, so a round badge shows a small gap.
         /// Good for floating action indicators.
         /// </summary>
         Outside
