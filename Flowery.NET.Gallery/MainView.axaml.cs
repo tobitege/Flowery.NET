@@ -24,7 +24,7 @@ public partial class MainView : UserControl
     /// <summary>
     /// The width of the sidebar when open.
     /// </summary>
-    private const double SidebarWidth = 220;
+    private double SidebarWidth => FlowerySizeManager.GetSidebarWidth(FlowerySizeManager.CurrentSize);
 
     /// <summary>
     /// Minimum width the content area needs to be usable.
@@ -133,15 +133,18 @@ public partial class MainView : UserControl
 
     private void OnGlobalSizeChanged(object? sender, DaisySize newSize)
     {
-        // Apply the new size to all Daisy controls in the visual tree
-        ApplyGlobalSizeToControls(this, newSize);
-
-        // Apply size to Gallery-specific elements (CategoryTitle, etc.)
+        // Daisy controls follow FlowerySizeManager on their own; only Gallery-specific elements need updating.
         ApplySizeToGalleryElements(newSize);
     }
 
     private void ApplySizeToGalleryElements(DaisySize size)
     {
+        var sidebarWidth = FlowerySizeManager.GetSidebarWidth(size);
+        if (ComponentSidebar != null)
+            ComponentSidebar.SidebarWidth = sidebarWidth;
+        if (MainSplitView != null)
+            MainSplitView.OpenPaneLength = sidebarWidth;
+
         // Update CategoryTitle font size
         if (CategoryTitle != null)
         {
@@ -188,45 +191,6 @@ public partial class MainView : UserControl
         }
     }
 
-    private static void ApplyGlobalSizeToControls(Control root, DaisySize size)
-    {
-        foreach (var control in root.GetVisualDescendants().OfType<Control>())
-        {
-            // Skip controls marked as ignoring global size (check self and ancestors)
-            if (ShouldIgnoreGlobalSize(control))
-                continue;
-
-            // Check if control has a Size property of type DaisySize
-            var sizeProperty = control.GetType().GetProperty("Size");
-            if (sizeProperty != null && sizeProperty.PropertyType == typeof(DaisySize) && sizeProperty.CanWrite)
-            {
-                try
-                {
-                    sizeProperty.SetValue(control, size);
-                }
-                catch
-                {
-                    // Ignore controls that can't be sized
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Checks if a control or any of its ancestors has IgnoreGlobalSize set to true.
-    /// </summary>
-    private static bool ShouldIgnoreGlobalSize(Control control)
-    {
-        Visual? current = control;
-        while (current != null)
-        {
-            if (current is Control c && FlowerySizeManager.GetIgnoreGlobalSize(c))
-                return true;
-            current = current.GetVisualParent();
-        }
-        return false;
-    }
-
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         // Hide screenshot button on mobile (desktop-only feature)
@@ -249,8 +213,7 @@ public partial class MainView : UserControl
                 AttachScrollHandler(_activeCategoryContent);
         }
 
-        // Apply the current global size on startup (controls default to Medium otherwise)
-        ApplyGlobalSizeToControls(this, FlowerySizeManager.CurrentSize);
+        ApplySizeToGalleryElements(FlowerySizeManager.CurrentSize);
     }
 
     private bool _isLandscape;
@@ -373,15 +336,6 @@ public partial class MainView : UserControl
                 global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 {
                     AttachScrollHandler(newContent);
-                }, global::Avalonia.Threading.DispatcherPriority.Loaded);
-            }
-
-            // Apply global size to newly shown content (controls default to Medium otherwise)
-            if (contentChanged)
-            {
-                global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                {
-                    ApplyGlobalSizeToControls(newContent, FlowerySizeManager.CurrentSize);
                 }, global::Avalonia.Threading.DispatcherPriority.Loaded);
             }
         }
