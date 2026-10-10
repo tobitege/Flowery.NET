@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.VisualTree;
 
 namespace Flowery.Controls
@@ -59,11 +60,8 @@ namespace Flowery.Controls
     {
         private static DaisySize _currentSize = DaisySize.Small;
 
-        // Cache for SizeProperty StyledProperty by type
-        private static readonly Dictionary<Type, AvaloniaProperty?> _sizeDPCache = [];
-
-        // Cache for Size property reflection lookup
-        private static readonly Dictionary<Type, PropertyInfo?> _sizePropertyCache = [];
+        // Cache for the DaisySize SizeProperty by control type (null when the type has none).
+        private static readonly Dictionary<Type, StyledProperty<DaisySize>?> _sizePropertyCache = [];
 
         /// <summary>
         /// Attached property to mark a control as ignoring global size changes.
@@ -218,8 +216,8 @@ namespace Flowery.Controls
         public static bool EnableGlobalAutoSize { get; set; } = true;
 
         /// <summary>
-        /// The main window reference for visual tree propagation.
-        /// Set this in your App.axaml.cs after creating the window.
+        /// Optional root for visual tree propagation. Windows of a desktop lifetime and the main
+        /// view of a single-view lifetime are found automatically; set this for other hosts.
         /// </summary>
         public static Window? MainWindow { get; set; }
 
@@ -257,14 +255,14 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Propagates the current size to all controls with a Size property
-        /// in the visual tree.
+        /// Propagates the current size to every control with a Size property in all open
+        /// top-level windows (desktop lifetime windows, single-view main view, <see cref="MainWindow"/>).
         /// </summary>
         private static void PropagateToVisualTree()
         {
             try
             {
-                if (MainWindow?.Content is Control root)
+                foreach (var root in GetPropagationRoots())
                 {
                     PropagateSize(root, _currentSize);
                 }
@@ -272,6 +270,27 @@ namespace Flowery.Controls
             catch
             {
                 // Silently ignore errors during propagation
+            }
+        }
+
+        private static IEnumerable<Control> GetPropagationRoots()
+        {
+            var seen = new HashSet<Control>();
+            if (MainWindow != null && seen.Add(MainWindow))
+                yield return MainWindow;
+
+            switch (Application.Current?.ApplicationLifetime)
+            {
+                case IClassicDesktopStyleApplicationLifetime desktop:
+                    foreach (var window in desktop.Windows)
+                    {
+                        if (seen.Add(window))
+                            yield return window;
+                    }
+                    break;
+                case ISingleViewApplicationLifetime { MainView: Control view } when seen.Add(view):
+                    yield return view;
+                    break;
             }
         }
 
@@ -307,63 +326,40 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Attempts to set the Size property on a control if it exists and is DaisySize.
-        /// Respects explicitly-set local values (from XAML or code) by not overwriting them.
-        /// Uses reflection with caching for performance.
+        /// Returns the <c>SizeProperty</c> of a control type when it is a <see cref="StyledProperty{T}"/>
+        /// of <see cref="DaisySize"/>; otherwise null. Results are cached per type.
+        /// </summary>
+        private static StyledProperty<DaisySize>? GetSizeProperty(Type type)
+        {
+            if (!_sizePropertyCache.TryGetValue(type, out var property))
+            {
+                property = type
+                    .GetField("SizeProperty", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                    ?.GetValue(null) as StyledProperty<DaisySize>;
+                _sizePropertyCache[type] = property;
+            }
+
+            return property;
+        }
+
+        /// <summary>
+        /// Supplies the global size as the current value of a control's Size property.
+        /// A base value (XAML, code, style or binding) always wins. The supplied value keeps
+        /// default priority, so a later propagation can replace it and a style can still take over.
         /// </summary>
         private static void TrySetSizeProperty(Control element, DaisySize size)
         {
-            var type = element.GetType();
-
-            // First try to find the SizeProperty StyledProperty (preferred for Avalonia)
-            if (!_sizeDPCache.TryGetValue(type, out var dp))
-            {
-                var sizeField = type.GetField("SizeProperty", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
-                dp = sizeField?.GetValue(null) as AvaloniaProperty;
-                _sizeDPCache[type] = dp;
-            }
-
-            if (dp != null)
-            {
-                // Check if a local value was set (in XAML or code) and respect it
-                if (element.IsSet(dp))
-                {
-                    // Control has an explicit Size set - don't override
-                    return;
-                }
-
-                try
-                {
-                    element.SetValue(dp, size);
-                }
-                catch
-                {
-                    // Silently ignore errors setting property
-                }
+            var property = GetSizeProperty(element.GetType());
+            if (property == null || element.GetBaseValue(property).HasValue || element.IsAnimating(property))
                 return;
-            }
 
-            // Fallback to reflection for non-AvaloniaProperty Size properties (rare)
-            if (!_sizePropertyCache.TryGetValue(type, out var sizeProp))
+            try
             {
-                sizeProp = type.GetProperty("Size", BindingFlags.Public | BindingFlags.Instance);
-                if (sizeProp?.PropertyType != typeof(DaisySize) || !sizeProp.CanWrite)
-                {
-                    sizeProp = null;
-                }
-                _sizePropertyCache[type] = sizeProp;
+                element.SetCurrentValue(property, size);
             }
-
-            if (sizeProp != null)
+            catch
             {
-                try
-                {
-                    sizeProp.SetValue(element, size);
-                }
-                catch
-                {
-                    // Silently ignore errors setting property
-                }
+                // Silently ignore errors setting property
             }
         }
 
