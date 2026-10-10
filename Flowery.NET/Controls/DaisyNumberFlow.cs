@@ -437,6 +437,13 @@ namespace Flowery.Controls
             AvaloniaProperty.Register<DaisyNumberFlow, CultureInfo>(nameof(Culture), CultureInfo.InvariantCulture);
 
         /// <summary>
+        /// Gets or sets the brush of the digits. The theme switches it to the neutral content
+        /// brush while <see cref="ShowDigitBoxes"/> paints neutral boxes behind the digits.
+        /// </summary>
+        public static readonly StyledProperty<IBrush?> DigitForegroundProperty =
+            AvaloniaProperty.Register<DaisyNumberFlow, IBrush?>(nameof(DigitForeground));
+
+        /// <summary>
         /// Gets or sets whether to show individual boxes around each digit.
         /// </summary>
         public static readonly StyledProperty<bool> ShowDigitBoxesProperty =
@@ -545,6 +552,12 @@ namespace Flowery.Controls
         {
             get => GetValue(ShowDigitBoxesProperty);
             set => SetValue(ShowDigitBoxesProperty, value);
+        }
+
+        public IBrush? DigitForeground
+        {
+            get => GetValue(DigitForegroundProperty);
+            set => SetValue(DigitForegroundProperty, value);
         }
 
         public bool ShowControls

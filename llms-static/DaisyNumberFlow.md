@@ -118,6 +118,7 @@ The control shows an accent border when focused via keyboard (`:focus-visible`).
 | Property | Type | Default | Description |
 | -------- | ---- | ------- | ----------- |
 | `ShowDigitBoxes` | bool | False | Displays styled boxes behind each digit |
+| `DigitForeground` | IBrush | theme | Brush of the digits; the theme uses the base content brush and switches to the neutral content brush while `ShowDigitBoxes` is on |
 
 When `ShowDigitBoxes="True"`, each digit gets a rounded box with an inset shadow, creating a dashboard/counter aesthetic similar to SmoothUI's NumberFlow component.
 
