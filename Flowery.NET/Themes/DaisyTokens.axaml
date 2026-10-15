@@ -424,6 +424,24 @@
     <sys:Double x:Key="DaisyDateTimelineSmallHeaderFontSize">14</sys:Double>
     <sys:Double x:Key="DaisyDateTimelineExtraSmallHeaderFontSize">12</sys:Double>
 
+    <!-- ==================== SCHEDULER ==================== -->
+    <!-- Fonts, chip heights, row heights, spacing and borders reuse the shared size tokens. -->
+    <sys:Double x:Key="DaisySchedulerTimelineMinimumHourWidth">96</sys:Double>
+    <sys:Double x:Key="DaisySchedulerPlannerPixelsPerMinute">0.35</sys:Double>
+    <sys:Double x:Key="DaisySchedulerTimelineResourceWidth">220</sys:Double>
+    <sys:Double x:Key="DaisySchedulerPlannerResourceWidth">150</sys:Double>
+    <sys:Double x:Key="DaisySchedulerMonthMinimumWidth">560</sys:Double>
+    <sys:Double x:Key="DaisySchedulerMonthMinimumCellHeight">106</sys:Double>
+    <sys:Double x:Key="DaisySchedulerTimeGutterMinimumWidth">56</sys:Double>
+    <sys:Double x:Key="DaisySchedulerColumnMinimumWidth">100</sys:Double>
+    <sys:Double x:Key="DaisySchedulerAgendaTimeWidth">130</sys:Double>
+    <sys:Double x:Key="DaisySchedulerTooltipMaximumWidth">360</sys:Double>
+    <sys:Double x:Key="DaisySchedulerSettingsMinimumWidth">230</sys:Double>
+    <sys:Double x:Key="DaisySchedulerSettingsMaximumHeight">600</sys:Double>
+    <Thickness x:Key="DaisySchedulerToolbarMargin">8</Thickness>
+    <Thickness x:Key="DaisySchedulerToolbarItemMargin">2</Thickness>
+    <Thickness x:Key="DaisySchedulerViewButtonsMargin">8,0</Thickness>
+
     <!-- ==================== LARGE DISPLAY CONTROL SIZES ==================== -->
     <!-- Used for dashboard-style display controls like NumberFlow, counters, stats -->
     <!-- These are "bigger than normal" controls meant for prominent numeric displays -->

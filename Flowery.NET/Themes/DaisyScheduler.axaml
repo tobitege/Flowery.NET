@@ -1,0 +1,51 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls">
+    <SolidColorBrush x:Key="DaisySchedulerTodayBrush" Color="{DynamicResource DaisyPrimaryColor}" Opacity="0.08" />
+    <SolidColorBrush x:Key="DaisySchedulerEventBackgroundBrush" Color="{DynamicResource DaisyBase200Color}" />
+
+    <ControlTheme x:Key="{x:Type controls:DaisyScheduler}" TargetType="controls:DaisyScheduler">
+        <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyBorderThicknessThin}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeMediumCornerRadius}" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}" Padding="{TemplateBinding Padding}">
+                    <Grid RowDefinitions="Auto,*">
+                        <WrapPanel x:Name="PART_Toolbar" Margin="{DynamicResource DaisySchedulerToolbarMargin}" Orientation="Horizontal">
+                            <controls:DaisyButton Tag="Previous" Content="‹" Variant="Ghost" Margin="{DynamicResource DaisySchedulerToolbarItemMargin}" />
+                            <controls:DaisyButton x:Name="PART_Date" Tag="Date" Variant="Ghost" Margin="{DynamicResource DaisySchedulerToolbarItemMargin}" />
+                            <controls:DaisyButton Tag="Next" Content="›" Variant="Ghost" Margin="{DynamicResource DaisySchedulerToolbarItemMargin}" />
+                            <controls:DaisyButton Tag="Today" Variant="Ghost" Margin="{DynamicResource DaisySchedulerToolbarItemMargin}" />
+                            <WrapPanel x:Name="PART_Views" Orientation="Horizontal" Margin="{DynamicResource DaisySchedulerViewButtonsMargin}" />
+                            <WrapPanel x:Name="PART_CustomButtons" Orientation="Horizontal" />
+                            <controls:DaisyButton Tag="Settings" Variant="Ghost" Margin="{DynamicResource DaisySchedulerToolbarItemMargin}" />
+                        </WrapPanel>
+                        <Border x:Name="PART_ViewHost" Grid.Row="1" ClipToBounds="True" />
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^[Size=ExtraSmall]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraSmallCornerRadius}" />
+        </Style>
+        <Style Selector="^[Size=Small]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
+        </Style>
+        <Style Selector="^[Size=Large]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeLargeCornerRadius}" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraLargeCornerRadius}" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

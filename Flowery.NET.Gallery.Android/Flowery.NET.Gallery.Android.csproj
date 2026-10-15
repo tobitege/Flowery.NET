@@ -5,8 +5,8 @@
         <SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
         <Nullable>enable</Nullable>
         <ApplicationId>com.CompanyName.Flowery.NET.Gallery</ApplicationId>
-        <ApplicationVersion>340</ApplicationVersion>
-        <ApplicationDisplayVersion>3.5.0</ApplicationDisplayVersion>
+        <ApplicationVersion>360</ApplicationVersion>
+        <ApplicationDisplayVersion>3.6.0</ApplicationDisplayVersion>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
         <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
         <AcceptAndroidSDKLicenses>true</AcceptAndroidSDKLicenses>

@@ -1019,6 +1019,7 @@ class DocumentationGenerator:
             "NavigationExamples": "Navigation",
             "ThemingExamples": "Theming",
             "CustomControls": "Custom",
+            "SchedulerExamples": "Custom",
             "ColorPickerExamples": "Color Picker"
         }
 
@@ -1094,7 +1095,7 @@ class DocumentationGenerator:
             if "Converter" in filepath.name:
                 continue
             control = self.csharp_parser.parse_file(filepath)
-            if control:
+            if control and control.name == filepath.stem:
                 controls.append(control)
         return controls
 
@@ -1195,6 +1196,7 @@ class DocumentationGenerator:
             'colorpickerdialog': 'DaisyColorPickerDialog',
             'colorpicker': 'DaisyColorPickerDialog',
             # Custom controls (from CustomControls.axaml)
+            'scheduler': 'DaisyScheduler',
             'modifierkeys': 'DaisyModifierKeys',
             'weathericon': 'DaisyWeatherIcon',
             'weathercard': 'DaisyWeatherCard',
@@ -1218,6 +1220,12 @@ class DocumentationGenerator:
                 continue
 
             snippets = self.axaml_parser.parse_file(filepath)
+
+            # Dedicated example pages can omit SectionHeader because the Gallery supplies it.
+            if not snippets:
+                control_name = self._section_to_control(stem.removesuffix('Examples'))
+                if control_name and any(control.name == control_name for control in controls):
+                    categories.setdefault(cat_name, []).append(control_name)
 
             for snippet in snippets:
                 control_name = self._section_to_control(snippet.section_id)

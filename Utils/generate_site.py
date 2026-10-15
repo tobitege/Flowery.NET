@@ -299,6 +299,7 @@ class SiteGenerator:
         'OtpInput',
         'Popover',
         'ScreenColorPicker',
+        'Scheduler',
         'TagPicker',
         'Weather',
     )

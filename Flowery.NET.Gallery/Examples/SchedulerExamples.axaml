@@ -1,0 +1,79 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:loc="clr-namespace:Flowery.NET.Gallery.Localization"
+             xmlns:flowloc="clr-namespace:Flowery.Localization;assembly=Flowery.NET"
+             x:Class="Flowery.NET.Gallery.Examples.SchedulerExamples">
+    <Grid Margin="24,0,24,16" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12">
+        <TextBlock Text="{loc:Localize Scheduler_Description}" TextWrapping="Wrap"
+                   controls:FlowerySizeManager.ResponsiveFont="Primary"
+                   Foreground="{DynamicResource DaisyBaseContentMutedBrush}" />
+        <WrapPanel Grid.Row="1" Orientation="Horizontal">
+            <controls:DaisyCheckBox x:Name="ResourcesOption" Content="{loc:Localize Scheduler_Resources}" Margin="0,0,16,8" />
+            <controls:DaisyCheckBox x:Name="TilesOption" Content="{loc:Localize Scheduler_Tiles}" IsChecked="True" Margin="0,0,16,8" />
+            <controls:DaisyCheckBox x:Name="IconsOption" Content="{loc:Localize Scheduler_Icons}" IsChecked="True" Margin="0,0,16,8" />
+            <controls:DaisyCheckBox x:Name="AdornmentsOption" Content="{loc:Localize Scheduler_Adornments}" IsChecked="True" Margin="0,0,16,8" />
+            <controls:DaisyCheckBox x:Name="DetailsOption" Content="{loc:Localize Scheduler_Details}" IsChecked="True" Margin="0,0,16,8" />
+            <controls:DaisyCheckBox x:Name="ReadOnlyOption" Content="{loc:Localize Scheduler_ReadOnly}" Margin="0,0,16,8" />
+            <controls:DaisyButton Content="{loc:Localize Scheduler_Reset}" Variant="Ghost" Click="OnReset" />
+            <StackPanel Spacing="4" Margin="12,0,12,8">
+                <TextBlock Text="{flowloc:Localize Scheduler_DateTimeFormat}" Foreground="{DynamicResource DaisyBaseContentBrush}"
+                           controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                <controls:DaisySelect x:Name="DateTimeFormatOption" MinWidth="190" SelectionChanged="OnDateTimeFormatChanged"
+                                      AutomationProperties.Name="{flowloc:Localize Scheduler_DateTimeFormat}" />
+            </StackPanel>
+            <StackPanel Spacing="4" Margin="0,0,12,8">
+                <TextBlock Text="{flowloc:Localize Scheduler_ClockFormat}" Foreground="{DynamicResource DaisyBaseContentBrush}"
+                           controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                <controls:DaisySelect x:Name="ClockFormatOption" MinWidth="160" SelectionChanged="OnClockFormatChanged"
+                                      AutomationProperties.Name="{flowloc:Localize Scheduler_ClockFormat}" />
+            </StackPanel>
+        </WrapPanel>
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <controls:DaisyScheduler x:Name="DemoScheduler" CurrentView="Month" MinHeight="400" />
+            <Border x:Name="EditorPanel" Grid.Column="1" IsVisible="False" Width="280"
+                    Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"
+                    BorderThickness="1" CornerRadius="8" Padding="16">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="{loc:Localize Scheduler_Editor}" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                   controls:FlowerySizeManager.ResponsiveFont="SectionHeader" />
+                        <controls:DaisyInput x:Name="SubjectInput" Label="{loc:Localize Scheduler_Subject}" />
+                        <controls:DaisyInput x:Name="StartInput" Label="{loc:Localize Scheduler_Start}" />
+                        <controls:DaisySelect x:Name="StartTimeInput" AutomationProperties.Name="{loc:Localize Scheduler_StartTime}" />
+                        <controls:DaisyInput x:Name="EndInput" Label="{loc:Localize Scheduler_End}" />
+                        <controls:DaisySelect x:Name="EndTimeInput" AutomationProperties.Name="{loc:Localize Scheduler_EndTime}" />
+                        <controls:DaisySelect x:Name="SpanModeInput" AutomationProperties.Name="{loc:Localize Scheduler_SpanMode}" />
+                        <TextBlock Text="{loc:Localize Scheduler_SpanHelp}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
+                                   controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                        <TextBlock Text="{loc:Localize Scheduler_Note}" Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                   controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                        <controls:DaisyTextArea x:Name="DescriptionInput" MinHeight="80" />
+                        <controls:DaisyCheckBox x:Name="AllDayInput" Content="{loc:Localize Scheduler_AllDay}" IsCheckedChanged="OnAllDayChanged" />
+                        <controls:DaisySelect x:Name="ResourceInput" AutomationProperties.Name="{loc:Localize Scheduler_Resource}" />
+                        <StackPanel x:Name="ColorPanel" Spacing="6">
+                            <TextBlock Text="{loc:Localize Scheduler_Color}" Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                       controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                            <controls:DaisySelect x:Name="ColorInput" AutomationProperties.Name="{loc:Localize Scheduler_Color}" />
+                        </StackPanel>
+                        <TextBlock x:Name="EditorError" TextWrapping="Wrap" Foreground="{DynamicResource DaisyErrorForegroundBrush}"
+                                   controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                        <TextBlock x:Name="OverlapWarning" TextWrapping="Wrap" Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                   controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                        <controls:DaisyButton x:Name="SaveAnywayButton" IsVisible="False" Content="{loc:Localize Scheduler_SaveAnyway}"
+                                              Variant="Warning" Click="OnSaveAnyway" />
+                        <WrapPanel Orientation="Horizontal">
+                            <controls:DaisyButton Content="{loc:Localize Scheduler_Save}" Variant="Primary" Click="OnSave" Margin="0,0,8,0" />
+                            <controls:DaisyButton Content="{loc:Localize Scheduler_Cancel}" Variant="Ghost" Click="OnCancel" />
+                        </WrapPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+        <TextBlock x:Name="StatusText" Grid.Row="3" Text="{loc:Localize Scheduler_Help}" TextWrapping="Wrap"
+                   Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
+                   controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+    </Grid>
+</UserControl>

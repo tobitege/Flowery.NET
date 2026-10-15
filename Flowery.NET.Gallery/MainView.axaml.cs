@@ -102,6 +102,7 @@ public partial class MainView : UserControl
             ["Sidebar_Scaling"] = () => new ScalingExamples(),
             ["Sidebar_CustomControls"] = () => new CustomControls(),
             ["Sidebar_FlowKanban"] = () => new FlowKanbanExample(),
+            ["Sidebar_Scheduler"] = () => new SchedulerExamples(),
             ["Sidebar_ColorPicker"] = () => new ColorPickerExamples(),
             ["Sidebar_Showcase"] = () => new ShowcaseExamples(),
         };

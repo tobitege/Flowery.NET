@@ -34,6 +34,7 @@ This library provides native Avalonia controls that mimic the utility-first, sem
 - **80+ Controls**: C# classes inheriting from Avalonia primitives (e.g., `DaisyButton : Button`).
 - **35 DaisyUI Themes**: All official DaisyUI themes included (Light, Dark, Cupcake, Dracula, Nord, Synthwave, and more).
 - **Runtime Theme Switching**: Use `DaisyThemeDropdown` to switch themes at runtime.
+- **Scheduler**: `DaisyScheduler` provides Day, Week, Month, Agenda, resource Planner, and horizontal Timeline day views, with Flowery themes, five sizes, and twelve languages. [Usage guide](llms-static/DaisyScheduler.md)
 - **Localization Support**: Built-in i18n with **12 languages** (🇺🇸 🇩🇪 🇫🇷 🇪🇸 🇮🇹 🇨🇳 🇰🇷 🇯🇵 🇸🇦 🇹🇷 🇺🇦 🇮🇱), localizable theme names, and runtime language switching. [📖 Guide](LOCALIZATION.md)
 - **Variants**: Supports `Primary`, `Secondary`, `Accent`, `Ghost`, etc.
 - **Framework Support**: Libraries target `.NET 10.0+` and Avalonia `12.0+`.
@@ -51,13 +52,13 @@ for code examples and comments!
 1. Install the NuGet package:
 
 ```bash
-dotnet add package Flowery.NET --version 3.5.0
+dotnet add package Flowery.NET --version 3.6.0
 ```
 
 For the optional Kanban board package, also install:
 
 ```bash
-dotnet add package Flowery.NET.Kanban --version 3.5.0
+dotnet add package Flowery.NET.Kanban --version 3.6.0
 ```
 
 1. Add to your `App.axaml`:
@@ -212,6 +213,7 @@ Composite inputs such as `DaisyPasswordBox`, `DaisyNumericUpDown`, and `DaisyOtp
 - **Number Flow** (`DaisyNumberFlow`): High-quality numeric display with individual digit scrolling animations. Inspired by SmoothUI.
 - **OTP Input** (`DaisyOtpInput`): Multi-slot verification-code/OTP input with animated focus transitions and auto-advance.
 - **Popover** (`DaisyPopover`): Popup-based popover control for rich hover/click content.
+- **Scheduler** (`DaisyScheduler`): Calendar and resource planning with six views, appointment editing requests, tooltips, and data tiles. [Documentation](llms-static/DaisyScheduler.md)
 - **Tag Picker** (`DaisyTagPicker`): Multi-select chip/tag picker with add/remove icons.
 
 ### Kanban Board
@@ -258,6 +260,26 @@ A horizontal scrollable date picker inspired by FadyFayezYounan's `easy_date_tim
 
 - **Date Timeline** (`DaisyDateTimeline`): Scrollable date picker with selectable date items. Supports multiple header types (MonthYear, Switcher, None), sizes, disable strategies, and marked dates with tooltips.
 - **Date Timeline Item** (`DaisyDateTimelineItem`): Individual date cell with day name, date number, and month. Supports selection, disable states, and marker highlights.
+
+### Scheduler
+
+`DaisyScheduler` provides Day, Week, Month, Agenda, resource Planner, and horizontal Timeline day views with Flowery themes and size tiers.
+The control reports move, resize, creation, and deletion requests to the host.
+The Gallery demo is available under **Custom Controls → Scheduler**.
+Navigation, settings, empty states, and accessible names follow the selected language at runtime.
+Typed resources support occupancy queries by week or time range.
+The Timeline supports named, collapsible groups with kind filters and host-defined criteria such as departments.
+The editor supports continuous or daily spans, overlap confirmation, and an optional color palette.
+Week rules, editor time intervals, regional conventions, and 12/24-hour clocks are configurable.
+
+```xml
+<controls:DaisyScheduler CurrentView="Month" Size="Medium" />
+<controls:DaisyScheduler CurrentView="Planner"
+                         Appointments="{Binding Appointments}"
+                         SchedulerResources="{Binding Resources}" />
+```
+
+See [DaisyScheduler](llms-static/DaisyScheduler.md) for usage and the MIT source attribution.
 
 ### DaisyTabs Color Features
 
@@ -442,6 +464,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
 - [**Avalonia.Fonts.Inter**](https://www.nuget.org/packages/Avalonia.Fonts.Inter) - The font used in the gallery.
 - [**Cyotek ColorPicker**](https://github.com/cyotek/Cyotek.Windows.Forms.ColorPicker) - Inspiration for color picker controls.
 - [**Easy Date Timeline**](https://github.com/FadyFayezYounan/easy_date_timeline) - Inspiration for date timeline controls.
+- [**XtremeCRM/Xtreme.Components**](https://github.com/XtremeCRM/Xtreme.Components) by [**russshumate**](https://github.com/russshumate) - MIT-licensed source of the scheduler adapted as `DaisyScheduler`.
 - [**smoothui**](https://github.com/educlopez/smoothui) - Inspiration for visual effects (React/Tailwind/Framer Motion).
 - [**liquid-glass**](https://github.com/samasante/liquid-glass) - Kudos to Sam Asante for the Liquid Glass optics reference that inspired the DaisyGlass SkiaSharp lens parameters.
 - [**@frandelfo**](https://github.com/frandelfo) - Multi-platform Gallery architecture (Desktop, Browser, Android, iOS).

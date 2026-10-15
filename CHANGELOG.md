@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-10-14
+
+### Added
+
+- Added `DaisyScheduler`, adapted from the MIT-licensed Xtreme.Components scheduler, with Day, Week, Month, Agenda, resource Planner, and horizontal Timeline day views.
+- The scheduler uses Flowery themes, design tokens, all five size tiers, and all twelve supported languages. It supports selection, move, resize, creation, deletion, tooltips, decorations, templates, and external drops through host events.
+- Added a Scheduler Gallery page with sample appointments, resource grouping, an appointment editor, a context menu, and read-only mode.
+- Added resource kinds, occupancy queries, and named, collapsible Timeline groups with host-defined criteria such as departments.
+- Added configurable week rules, editor time intervals, regional date/time conventions, and 12/24-hour clocks, with format selectors above the Gallery demo.
+- Added continuous and daily appointment spans, separate appointment rows, overlap confirmation, and an optional editor color palette.
+- Included the upstream copyright and MIT license in the library output and NuGet package.
+- Added Scheduler usage, API, and localization documentation, with Custom Controls entries in the generated help and `llms.txt` indexes.
+
 ## [3.5.0] - 2026-10-10
 
 ### Breaking Changes

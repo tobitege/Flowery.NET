@@ -201,6 +201,7 @@ public static class GallerySidebarData
                 Items =
                 [
                     new SidebarItem { Id = "flow-kanban", Name = "Sidebar_FlowKanban", TabHeader = "Sidebar_FlowKanban" },
+                    new SidebarItem { Id = "scheduler", Name = "Sidebar_Scheduler", TabHeader = "Sidebar_Scheduler" },
                     new SidebarItem { Id = "scaling", Name = "Sidebar_ScalingItem", TabHeader = "Sidebar_Scaling" },
                     new SidebarItem { Id = "size-dropdown", Name = "Sidebar_SizeDropdown", TabHeader = "Sidebar_CustomControls" },
                     new SidebarItem { Id = "modifier-keys", Name = "Sidebar_ModifierKeys", TabHeader = "Sidebar_CustomControls" },
