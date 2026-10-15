@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The Calendar month navigator highlights days with appointments, including daily and continuous spans, and respects the resource-kind filter.
 - Scheduler settings use compact row spacing, share the tooltip surface colors, and reserve space for the vertical scrollbar.
 - The Gallery Scheduler demo fits shorter windows without covering its options or help text.
+- Scheduler multi-selection moves use the selected visible resource columns, preserve other resource assignments, and retain column selection after host data refreshes.
+- Scheduler move and resize requests reject invalid daily time windows, including midnight crossings. Group edits are rejected together if any selected appointment would become invalid.
+- Scheduler clicks, drags, and external drops reject nonexistent local times during daylight-saving changes without throwing or publishing changes.
+- Hiding idle Scheduler resources uses the displayed time basis: stored times in Day and Week, and resource-local times in Planner and Timeline.
 
 ## [3.6.0] - 2026-10-15
 

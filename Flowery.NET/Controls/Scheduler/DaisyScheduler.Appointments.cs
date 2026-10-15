@@ -15,7 +15,8 @@ namespace Flowery.Controls;
 
 public partial class DaisyScheduler
 {
-    private Border CreateAppointment(AppointmentModel appointment, AppointmentSurface surface, Lane? lane = null, AppointmentModel? displayed = null)
+    private Border CreateAppointment(AppointmentModel appointment, AppointmentSurface surface, Lane? lane = null,
+        AppointmentModel? displayed = null, object? resourceId = null)
     {
         var shown = displayed ?? appointment;
         if (_occurrenceSources.TryGetValue(appointment, out var source))
@@ -41,7 +42,7 @@ public partial class DaisyScheduler
             CornerRadius = new CornerRadius(EventCornerRadius),
             Child = content,
             MinHeight = ChipHeight,
-            Tag = new AppointmentTarget(appointment, lane, shown),
+            Tag = new AppointmentTarget(appointment, lane, shown, lane?.Resource?.Id ?? resourceId),
             DataContext = context,
             Focusable = true
         };

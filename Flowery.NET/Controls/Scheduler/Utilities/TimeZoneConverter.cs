@@ -44,18 +44,24 @@ public static class TimeZoneConverter
     /// </summary>
     public static DateTime FromZone(DateTime zoned, string? ianaId)
     {
-        if (string.IsNullOrWhiteSpace(ianaId))
-        {
-            return zoned;
-        }
+        if (!TryFromZone(zoned, ianaId, out var utc))
+            throw new ArgumentException("The supplied local time is in a daylight-saving gap.", nameof(zoned));
+        return utc;
+    }
 
-        var tz = Resolve(ianaId);
+    /// <summary>Rejects nonexistent wall-clock times so input handlers can cancel without throwing.</summary>
+    internal static bool TryFromZone(DateTime zoned, string? ianaId, out DateTime utc)
+    {
+        utc = zoned;
+        var tz = string.IsNullOrWhiteSpace(ianaId) ? null : Resolve(ianaId);
         if (tz is null)
-        {
-            return zoned;
-        }
+            return true;
 
-        return TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(zoned, DateTimeKind.Unspecified), tz);
+        var local = DateTime.SpecifyKind(zoned, DateTimeKind.Unspecified);
+        if (tz.IsInvalidTime(local))
+            return false;
+        utc = TimeZoneInfo.ConvertTimeToUtc(local, tz);
+        return true;
     }
 
     /// <summary>

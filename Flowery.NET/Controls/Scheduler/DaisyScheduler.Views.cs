@@ -30,8 +30,15 @@ public partial class DaisyScheduler
             .Where(resource => ResourceKindFilter is null || resource.Kind == ResourceKindFilter).ToArray();
         if (!HideIdleResources)
             return resources;
-        var occupied = GetOccupiedResources(start, end, ResourceKindFilter);
-        return resources.Where(occupied.Contains).ToArray();
+        if (CurrentView is SchedulerView.Planner or SchedulerView.Timeline)
+        {
+            var occupied = GetOccupiedResources(start, end, ResourceKindFilter);
+            return resources.Where(occupied.Contains).ToArray();
+        }
+        // Day/Week draw stored times unchanged, including for resources with a time zone.
+        var dates = VisibleDates();
+        return resources.Where(resource => Items.Any(appointment => !appointment.IsCancelled &&
+            MatchesResource(appointment, resource) && dates.Any(date => OnDate(appointment, date)))).ToArray();
     }
 
     private Border Cell(Control child, bool header = false, bool today = false) => new()
@@ -171,7 +178,7 @@ public partial class DaisyScheduler
                 heading.Children.Add(Label(resource.Name, true));
             var banners = new StackPanel { Spacing = 2, MinHeight = ChipHeight };
             foreach (var appointment in Items.Where(appointment => IsBanner(appointment) && OnDate(appointment, date) && MatchesResource(appointment, resource)))
-                banners.Children.Add(CreateAppointment(appointment, AppointmentSurface.Chip));
+                banners.Children.Add(CreateAppointment(appointment, AppointmentSurface.Chip, resourceId: resource?.Id));
             var allDay = new Border { Background = Brushes.Transparent, Child = banners };
             AttachEmptyDay(allDay, date, resource);
             heading.Children.Add(allDay);
@@ -294,7 +301,7 @@ public partial class DaisyScheduler
                 {
                     var original = OriginalAppointment(originals[layout.Appointment]);
                     var block = CreateAppointment(originals[layout.Appointment], AppointmentSurface.Bar,
-                        original.IsAllDay ? null : lane, layout.Appointment);
+                        original.IsAllDay ? null : lane, layout.Appointment, resource.Id);
                     block.Width = Math.Max(ChipHeight, (layout.EndMinutes - layout.StartMinutes) * ppm - 2);
                     block.Height = ChipHeight;
                     Canvas.SetLeft(block, layout.StartMinutes * ppm);

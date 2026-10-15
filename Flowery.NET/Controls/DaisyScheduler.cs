@@ -292,6 +292,7 @@ public partial class DaisyScheduler : TemplatedControl
     private WrapPanel? _customButtons;
     private DaisyButton? _dateButton;
     private readonly List<AppointmentModel> _selection = new();
+    private readonly Dictionary<AppointmentModel, object> _selectionResourceIds = new();
     private readonly List<(Border Frame, AppointmentModel Appointment)> _frames = new();
     private bool _selectionSyncing;
     private bool _renderPending;
@@ -531,6 +532,16 @@ public partial class DaisyScheduler : TemplatedControl
 
     private void CommitSelection()
     {
+        // Retain the clicked lane across host model replacement, and release deselected models.
+        foreach (var (appointment, resourceId) in _selectionResourceIds.ToArray())
+        {
+            var selected = _selection.FirstOrDefault(item => Same(item, appointment));
+            if (ReferenceEquals(selected, appointment))
+                continue;
+            _selectionResourceIds.Remove(appointment);
+            if (selected is not null)
+                _selectionResourceIds[selected] = resourceId;
+        }
         _selectionSyncing = true;
         SetAndRaise(SelectedAppointmentsProperty, ref _selectedAppointments, _selection.ToArray());
         SetCurrentValue(SelectedAppointmentProperty, _selection.Count == 1 ? _selection[0] : null);

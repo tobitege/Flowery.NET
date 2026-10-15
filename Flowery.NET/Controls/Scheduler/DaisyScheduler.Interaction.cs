@@ -13,7 +13,7 @@ namespace Flowery.Controls;
 
 public partial class DaisyScheduler
 {
-    private sealed record AppointmentTarget(AppointmentModel Appointment, Lane? Lane, AppointmentModel Displayed);
+    private sealed record AppointmentTarget(AppointmentModel Appointment, Lane? Lane, AppointmentModel Displayed, object? ResourceId);
     private sealed record DayTarget(DateTime Date, ResourceModel? Resource);
     private enum GestureKind { Create, Move, ResizeStart, ResizeEnd }
 
@@ -46,6 +46,8 @@ public partial class DaisyScheduler
         var selectedBefore = _selection.Any(selected => Same(selected, appointment));
         if (point.Properties.IsRightButtonPressed)
         {
+            if (!appointment.IsLocked)
+                RememberSelectionResource(target);
             if (!appointment.IsLocked && !selectedBefore)
                 SelectAppointment(appointment, false);
             AppointmentContextRequested?.Invoke(this, new AppointmentContextRequestedArgs { Appointment = appointment, Position = e.GetPosition(TopLevel.GetTopLevel(this)) });
@@ -57,6 +59,7 @@ public partial class DaisyScheduler
         e.Handled = true;
         if (appointment.IsLocked)
             return;
+        RememberSelectionResource(target);
         var multiple = (e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Meta)) != 0;
         if (multiple || !selectedBefore)
             SelectAppointment(appointment, multiple);
@@ -86,10 +89,19 @@ public partial class DaisyScheduler
     {
         if (sender is Border { Tag: AppointmentTarget { Appointment.IsLocked: false } target } && e.Key == Key.Enter)
         {
+            RememberSelectionResource(target);
             SelectAppointment(target.Appointment, false);
             AppointmentEditRequested?.Invoke(this, new AppointmentEditRequestedArgs { Appointment = target.Appointment });
             e.Handled = true;
         }
+    }
+
+    private void RememberSelectionResource(AppointmentTarget target)
+    {
+        if (target.ResourceId is { } resourceId)
+            _selectionResourceIds[target.Appointment] = resourceId;
+        else
+            _selectionResourceIds.Remove(target.Appointment);
     }
 
     private void AttachEmptyDay(Control control, DateTime date, ResourceModel? resource)
@@ -223,22 +235,25 @@ public partial class DaisyScheduler
             return;
         e.Handled = true;
         var lane = gesture.Target ?? gesture.Source;
-        var start = StoredTime(gesture.Start, lane);
-        var end = StoredTime(gesture.End, lane);
         if (!gesture.Started)
         {
-            if (gesture.Kind == GestureKind.Create)
-                SelectSlot(StoredTime(gesture.PressTime, lane), lane.Resource, false, gesture.ClickCount, e.GetPosition(TopLevel.GetTopLevel(this)));
+            if (gesture.Kind == GestureKind.Create && TryStoredTime(gesture.PressTime, lane, out var slot))
+                SelectSlot(slot, lane.Resource, false, gesture.ClickCount, e.GetPosition(TopLevel.GetTopLevel(this)));
             return;
         }
+        if (!TryStoredTime(gesture.Start, lane, out var start) || !TryStoredTime(gesture.End, lane, out var end) || end <= start)
+            return;
         if (gesture.Kind == GestureKind.Create)
             AppointmentCreateRequested?.Invoke(this, new AppointmentCreateArgs { Start = start, End = end, ResourceId = lane.Resource?.Id, Position = e.GetPosition(TopLevel.GetTopLevel(this)) });
         else if (gesture.Appointment is { } appointment)
         {
             if (appointment.SpanMode == AppointmentSpanMode.Daily)
             {
-                start = appointment.Start + (start - StoredTime(gesture.OriginalStart, gesture.Source));
-                end = appointment.End + (end - StoredTime(gesture.OriginalEnd, gesture.Source));
+                if (!TryStoredTime(gesture.OriginalStart, gesture.Source, out var originalStart) ||
+                    !TryStoredTime(gesture.OriginalEnd, gesture.Source, out var originalEnd))
+                    return;
+                start = appointment.Start + (start - originalStart);
+                end = appointment.End + (end - originalEnd);
             }
             RaiseEditGesture(gesture, appointment, lane, start, end, e.KeyModifiers);
         }
@@ -246,6 +261,8 @@ public partial class DaisyScheduler
 
     private void RaiseEditGesture(Gesture gesture, AppointmentModel appointment, Lane lane, DateTime start, DateTime end, KeyModifiers modifiers)
     {
+        if (!IsValidGestureRange(appointment, start, end, gesture.Kind != GestureKind.Move))
+            return;
         var withShift = modifiers.HasFlag(KeyModifiers.Shift);
         var copy = (modifiers & (KeyModifiers.Control | KeyModifiers.Meta)) != 0;
         var multi = !lane.Horizontal && _selection.Count > 1;
@@ -256,7 +273,8 @@ public partial class DaisyScheduler
             {
                 var items = _selection.Where(static selected => !selected.IsLocked)
                     .Select(selected => GroupMoveItem(selected, gesture.Source, lane, delta)).ToArray();
-                AppointmentsMoveRequested?.Invoke(this, new AppointmentsMoveArgs { Items = items, IsCopy = copy, WithShift = withShift });
+                if (items.All(item => IsValidGestureRange(item.Appointment, item.NewStart, item.NewEnd, false)))
+                    AppointmentsMoveRequested?.Invoke(this, new AppointmentsMoveArgs { Items = items, IsCopy = copy, WithShift = withShift });
             }
             else
                 AppointmentMoveRequested?.Invoke(this, new AppointmentMoveArgs
@@ -275,22 +293,35 @@ public partial class DaisyScheduler
                 NewStart = selected.Start + startDelta,
                 NewEnd = selected.End + endDelta
             }).ToArray();
-            if (items.All(item => item.NewEnd - item.NewStart >= TimeSpan.FromMinutes(SnapMinutes)))
+            if (items.All(item => IsValidGestureRange(item.Appointment, item.NewStart, item.NewEnd, true)))
                 AppointmentsResizeRequested?.Invoke(this, new AppointmentsResizeArgs { Items = items, WithShift = withShift });
         }
         else
             AppointmentResizeRequested?.Invoke(this, new AppointmentResizeArgs { Appointment = appointment, NewStart = start, NewEnd = end, WithShift = withShift });
     }
 
+    private bool IsValidGestureRange(AppointmentModel appointment, DateTime start, DateTime end, bool resizing)
+    {
+        var duration = appointment is { SpanMode: AppointmentSpanMode.Daily, IsAllDay: false }
+            ? end.TimeOfDay - start.TimeOfDay : end - start;
+        return end > start && duration > TimeSpan.Zero &&
+            (!resizing || duration >= TimeSpan.FromMinutes(SnapMinutes));
+    }
+
     private AppointmentMoveItem GroupMoveItem(AppointmentModel appointment, Lane source, Lane target, TimeSpan delta)
     {
-        var resources = SchedulerResources ?? Array.Empty<ResourceModel>();
-        var sourceIndex = Array.FindIndex(resources.ToArray(), resource => Equals(resource.Id, source.Resource?.Id));
-        var targetIndex = Array.FindIndex(resources.ToArray(), resource => Equals(resource.Id, target.Resource?.Id));
-        var itemIndex = Array.FindIndex(resources.ToArray(), resource => appointment.ResourceIds.Contains(resource.Id));
+        var resources = _lanes.Select(static lane => lane.Resource).OfType<ResourceModel>()
+            .DistinctBy(static resource => resource.Id).ToArray();
+        var sourceIndex = Array.FindIndex(resources, resource => Equals(resource.Id, source.Resource?.Id));
+        var targetIndex = Array.FindIndex(resources, resource => Equals(resource.Id, target.Resource?.Id));
+        var itemIndex = _selectionResourceIds.TryGetValue(appointment, out var selectedResourceId)
+            ? Array.FindIndex(resources, resource => Equals(resource.Id, selectedResourceId) && appointment.ResourceIds.Contains(resource.Id))
+            : -1;
+        if (itemIndex < 0)
+            itemIndex = Array.FindIndex(resources, resource => appointment.ResourceIds.Contains(resource.Id));
         var movedIndex = itemIndex + targetIndex - sourceIndex;
         var from = itemIndex >= 0 ? resources[itemIndex].Id : null;
-        var to = sourceIndex >= 0 && targetIndex >= 0 && movedIndex >= 0 && movedIndex < resources.Count ? resources[movedIndex].Id : from;
+        var to = itemIndex >= 0 && sourceIndex >= 0 && targetIndex >= 0 && movedIndex >= 0 && movedIndex < resources.Length ? resources[movedIndex].Id : from;
         return new AppointmentMoveItem
         {
             Appointment = appointment, NewStart = appointment.Start + delta, NewEnd = appointment.End + delta,
@@ -299,7 +330,11 @@ public partial class DaisyScheduler
     }
 
     private DateTime ShownTime(DateTime time, Lane lane) => lane.Horizontal ? TimeZoneConverter.ToZone(time, lane.Resource?.TimeZoneId) : time;
-    private DateTime StoredTime(DateTime time, Lane lane) => lane.Horizontal ? TimeZoneConverter.FromZone(time, lane.Resource?.TimeZoneId) : time;
+    private static bool TryStoredTime(DateTime time, Lane lane, out DateTime stored)
+    {
+        stored = time;
+        return !lane.Horizontal || TimeZoneConverter.TryFromZone(time, lane.Resource?.TimeZoneId, out stored);
+    }
 
     private void SelectSlot(DateTime start, ResourceModel? resource, bool allDay, int clicks, Point position)
     {
@@ -333,7 +368,10 @@ public partial class DaisyScheduler
 
     private void OnLaneDragOver(object? sender, DragEventArgs e)
     {
-        e.DragEffects = !IsReadOnly && e.DataTransfer.TryGetValue(ExternalDropHandler.Format) is not null ? DragDropEffects.Copy : DragDropEffects.None;
+        e.DragEffects = !IsReadOnly && sender is Canvas { Tag: Lane lane } &&
+            e.DataTransfer.TryGetValue(ExternalDropHandler.Format) is not null &&
+            TryStoredTime(SlotTime(lane, e.GetPosition(lane.Surface)), lane, out _)
+            ? DragDropEffects.Copy : DragDropEffects.None;
         e.Handled = true;
     }
 
@@ -341,8 +379,12 @@ public partial class DaisyScheduler
     {
         if (IsReadOnly || sender is not Canvas { Tag: Lane lane } || e.DataTransfer.TryGetValue(ExternalDropHandler.Format) is not { } item)
             return;
-        var start = StoredTime(SlotTime(lane, e.GetPosition(lane.Surface)), lane);
-        ExternalAppointmentDropped?.Invoke(this, new ExternalDropArgs { Item = item, Start = start, End = start + item.DefaultDuration, ResourceId = lane.Resource?.Id });
         e.Handled = true;
+        if (!TryStoredTime(SlotTime(lane, e.GetPosition(lane.Surface)), lane, out var start))
+        {
+            e.DragEffects = DragDropEffects.None;
+            return;
+        }
+        ExternalAppointmentDropped?.Invoke(this, new ExternalDropArgs { Item = item, Start = start, End = start + item.DefaultDuration, ResourceId = lane.Resource?.Id });
     }
 }
