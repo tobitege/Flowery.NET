@@ -10,6 +10,7 @@ using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Flowery.Helpers;
 using Flowery.Services;
 using SkiaSharp;
 
@@ -55,6 +56,7 @@ namespace Flowery.Controls
 
         private bool _isCapturing;
         private IImage? _capturedBitmap;
+        private Image? _blurImage;
         private bool _needsUpdate = true;
         private bool _captureScheduled;
         private int _captureGeneration;
@@ -273,6 +275,23 @@ namespace Flowery.Controls
                 GlassDispersionProperty);
         }
 
+        protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+        {
+            base.OnApplyTemplate(e);
+            _blurImage = e.NameScope.Find<Image>("PART_BlurImage");
+            UpdateBackdropImageBounds();
+        }
+
+        private void UpdateBackdropImageBounds()
+        {
+            if (_blurImage == null) return;
+            var displayBounds = _capturedBitmap is BackdropBitmap bitmap
+                ? bitmap.DisplayBounds : new Rect(Bounds.Size);
+            _blurImage.Width = displayBounds.Width;
+            _blurImage.Height = displayBounds.Height;
+            _blurImage.Margin = new Thickness(displayBounds.X, displayBounds.Y, 0, 0);
+        }
+
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
@@ -381,6 +400,7 @@ namespace Flowery.Controls
                     }
                     var oldBitmap = _capturedBitmap;
                     _capturedBitmap = blurredBitmap;
+                    UpdateBackdropImageBounds();
                     BlurredBackground = blurredBitmap;
                     (oldBitmap as IDisposable)?.Dispose();
                 }
@@ -436,51 +456,53 @@ namespace Flowery.Controls
 
             var topLeft = transform.Value.Transform(new Point(0, 0));
 
-            // Calculate capture area with some padding for blur edge
-            var blurPadding = Math.Min(GlassBlur, 20);
-            var captureX = Math.Max(0, topLeft.X - blurPadding);
-            var captureY = Math.Max(0, topLeft.Y - blurPadding);
-            var captureWidth = Math.Min(bounds.Width + blurPadding * 2, backgroundSource.Bounds.Width - captureX);
-            var captureHeight = Math.Min(bounds.Height + blurPadding * 2, backgroundSource.Bounds.Height - captureY);
+            // Keep the available blur padding outside the glass, including at the source edges.
+            var blurPadding = Math.Clamp(GlassBlur, 0, 20);
+            var capture = new Rect(topLeft, bounds.Size).Inflate(blurPadding)
+                .Intersect(new Rect(backgroundSource.Bounds.Size));
 
-            if (captureWidth <= 0 || captureHeight <= 0)
+            if (capture.Width <= 0 || capture.Height <= 0)
                 return null;
 
             // Render at reduced resolution for performance (0.75 = good quality/performance balance)
             var scale = 0.75;
-            var pixelWidth = (int)Math.Ceiling(captureWidth * scale);
-            var pixelHeight = (int)Math.Ceiling(captureHeight * scale);
+            var pixelWidth = (int)Math.Ceiling(capture.Width * scale);
+            var pixelHeight = (int)Math.Ceiling(capture.Height * scale);
 
             if (pixelWidth <= 0 || pixelHeight <= 0)
                 return null;
 
-            // Temporarily hide this control during capture
-            var originalOpacity = Opacity;
-            Opacity = 0;
+            RenderTargetBitmap? bitmap = null;
 
             try
             {
-                var bitmap = new RenderTargetBitmap(new PixelSize(pixelWidth, pixelHeight), new Vector(96 * scale, 96 * scale));
+                var displayBounds = new Rect(capture.X - topLeft.X, capture.Y - topLeft.Y, capture.Width, capture.Height);
+                var dpi = new Vector(96 * pixelWidth / capture.Width, 96 * pixelHeight / capture.Height);
+                bitmap = new BackdropBitmap(new PixelSize(pixelWidth, pixelHeight), dpi, displayBounds);
 
                 using (var ctx = bitmap.CreateDrawingContext())
                 {
-                    // Apply transform to capture the correct region
-                    ctx.PushTransform(Matrix.CreateTranslation(-captureX, -captureY) * Matrix.CreateScale(scale, scale));
-
-                    // Render the background source
-                    backgroundSource.Render(ctx);
+                    BackdropRenderer.Render(ctx, backgroundSource, this, capture);
                 }
 
                 return bitmap;
             }
             catch
             {
+                bitmap?.Dispose();
                 return null;
             }
-            finally
-            {
-                Opacity = originalOpacity;
-            }
+        }
+
+        // The display rectangle travels with the owned bitmap and is applied only after capture validation.
+        private sealed class BackdropBitmap(PixelSize pixelSize, Vector dpi, Rect displayBounds)
+            : RenderTargetBitmap(pixelSize, dpi), IImage
+        {
+            public Rect DisplayBounds { get; } = displayBounds;
+
+            // Bitmap.Draw uses pixel source coordinates. Image must see the same units,
+            // while the render target retains its DPI for drawing shadows and effects.
+            Size IImage.Size => new(PixelSize.Width, PixelSize.Height);
         }
 
         private Visual? FindBackgroundSource()
@@ -614,6 +636,9 @@ namespace Flowery.Controls
         {
             return other is SkiaGlassDrawOperation op &&
                    op._bounds == _bounds &&
+                   op._tintColor == _tintColor &&
+                   op._cornerRadius == _cornerRadius &&
+                   op._sheenAngle == _sheenAngle &&
                    Math.Abs(op._blurSigma - _blurSigma) < 0.1f &&
                    Math.Abs(op._saturation - _saturation) < 0.01f &&
                    Math.Abs(op._reflectOpacity - _reflectOpacity) < 0.01f &&

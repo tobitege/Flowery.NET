@@ -1,6 +1,7 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+        xmlns:helpers="clr-namespace:Flowery.Helpers;assembly=Flowery.NET">
 
     <Design.PreviewWith>
         <Border Padding="20" Background="{DynamicResource DaisyBase200Brush}" Height="400">
@@ -11,6 +12,7 @@
     </Design.PreviewWith>
 
     <Styles.Resources>
+        <helpers:ContrastingBrushConverter x:Key="ThemeSelectionContrast" />
         <!-- Item template for theme preview (5 dots: bg indicator + 4 colors) -->
         <DataTemplate x:Key="ThemeItemTemplate" DataType="controls:ThemePreviewInfo">
             <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
@@ -38,7 +40,6 @@
                 <!-- Theme name (localized) - inherits FontSize from parent -->
                 <TextBlock Grid.Row="1" Grid.Column="1"
                     Text="{Binding DisplayName}"
-                    Foreground="{DynamicResource DaisyBaseContentBrush}"
                     VerticalAlignment="Center"
                     Margin="10,0,0,0" />
             </Grid>
@@ -201,6 +202,18 @@
     <Style Selector="controls|DaisyThemeDropdown ComboBoxItem:selected">
         <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryContentBrush}" />
+    </Style>
+
+    <Style Selector="controls|DaisyThemeDropdown ComboBoxItem:selected /template/ ContentPresenter,
+                     controls|DaisyProductThemeDropdown ComboBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource ThemeSelectionContrast}}" />
+    </Style>
+
+    <Style Selector="controls|DaisyThemeDropdown ComboBoxItem:pointerover:not(:selected) /template/ ContentPresenter,
+                     controls|DaisyProductThemeDropdown ComboBoxItem:pointerover:not(:selected) /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
+        <Setter Property="Foreground" Value="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource ThemeSelectionContrast}}" />
     </Style>
 
 </Styles>

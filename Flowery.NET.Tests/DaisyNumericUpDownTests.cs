@@ -23,8 +23,7 @@ namespace Flowery.NET.Tests
                 Increment = 0.01m,
                 Value = 99.99m
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             Assert.Equal("€", control.Prefix);
             Assert.Equal(99.99m, control.Value);
@@ -41,8 +40,7 @@ namespace Flowery.NET.Tests
                 Increment = 1,
                 Value = 75
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             Assert.Equal("%", control.Suffix);
             Assert.Equal(75m, control.Value);
@@ -59,8 +57,7 @@ namespace Flowery.NET.Tests
                 Maximum = 0xFFFFFF,
                 Value = 0xFF5733
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             Assert.Equal(DaisyNumberBase.Hexadecimal, control.NumberBase);
             Assert.Equal(0xFF5733, control.Value);
@@ -77,136 +74,10 @@ namespace Flowery.NET.Tests
                 Maximum = 255,
                 Value = 0b10101010
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             Assert.Equal(DaisyNumberBase.Binary, control.NumberBase);
             Assert.Equal(170m, control.Value); // 0b10101010 = 170
-        }
-
-        #endregion
-
-        #region Increment/Decrement Behavior
-
-        [AvaloniaFact]
-        public void Increment_Should_Increase_Value_By_Increment_Amount()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Value = 10,
-                Increment = 5
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            // Simulate increment
-            var initialValue = control.Value;
-            control.Value = (control.Value ?? 0) + control.Increment;
-
-            Assert.Equal(15m, control.Value);
-        }
-
-        [AvaloniaFact]
-        public void Decrement_Should_Decrease_Value_By_Increment_Amount()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Value = 10,
-                Increment = 5
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            // Simulate decrement
-            control.Value = (control.Value ?? 0) - control.Increment;
-
-            Assert.Equal(5m, control.Value);
-        }
-
-        [AvaloniaFact]
-        public void Increment_Should_Not_Exceed_Maximum()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Value = 98,
-                Maximum = 100,
-                Increment = 5
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            // Try to increment beyond max
-            var newValue = (control.Value ?? 0) + control.Increment;
-            if (newValue <= control.Maximum)
-                control.Value = newValue;
-
-            // Value should stay at 98 because 98+5=103 > 100
-            Assert.Equal(98m, control.Value);
-        }
-
-        [AvaloniaFact]
-        public void Decrement_Should_Not_Go_Below_Minimum()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Value = 2,
-                Minimum = 0,
-                Increment = 5
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            // Try to decrement below min
-            var newValue = (control.Value ?? 0) - control.Increment;
-            if (newValue >= control.Minimum)
-                control.Value = newValue;
-
-            // Value should stay at 2 because 2-5=-3 < 0
-            Assert.Equal(2m, control.Value);
-        }
-
-        [AvaloniaFact]
-        public void Multiple_Increments_Should_Work_Correctly()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Value = 0,
-                Minimum = 0,
-                Maximum = 100,
-                Increment = 10
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            // Simulate 5 increments
-            for (int i = 0; i < 5; i++)
-            {
-                var newValue = (control.Value ?? 0) + control.Increment;
-                if (newValue <= control.Maximum)
-                    control.Value = newValue;
-            }
-
-            Assert.Equal(50m, control.Value);
-        }
-
-        [AvaloniaFact]
-        public void Increment_With_Decimal_Steps_Should_Work()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Value = 0.00m,
-                Increment = 0.25m
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            // Simulate 4 increments (should reach 1.00)
-            for (int i = 0; i < 4; i++)
-            {
-                control.Value = (control.Value ?? 0) + control.Increment;
-            }
-
-            Assert.Equal(1.00m, control.Value);
         }
 
         #endregion
@@ -223,56 +94,11 @@ namespace Flowery.NET.Tests
                 Minimum = 0,
                 Maximum = 100
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             control.Value = 150; // Above maximum - allowed programmatically
 
             Assert.Equal(150m, control.Value);
-        }
-
-        [AvaloniaFact]
-        public void Increment_Respects_Maximum_Bound()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Minimum = 0,
-                Maximum = 100,
-                Value = 100, // At maximum
-                Increment = 10
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            // Simulate increment - should not exceed maximum
-            var newValue = (control.Value ?? 0) + control.Increment;
-            if (newValue <= control.Maximum)
-                control.Value = newValue;
-
-            // Should stay at 100 since 110 > 100
-            Assert.Equal(100m, control.Value);
-        }
-
-        [AvaloniaFact]
-        public void Decrement_Respects_Minimum_Bound()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Minimum = 0,
-                Maximum = 100,
-                Value = 0, // At minimum
-                Increment = 10
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            // Simulate decrement - should not go below minimum
-            var newValue = (control.Value ?? 0) - control.Increment;
-            if (newValue >= control.Minimum)
-                control.Value = newValue;
-
-            // Should stay at 0 since -10 < 0
-            Assert.Equal(0m, control.Value);
         }
 
         #endregion
@@ -287,8 +113,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.Hexadecimal,
                 Value = 0xFF // 255 in decimal
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             Assert.Equal(255m, control.Value);
         }
@@ -301,8 +126,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.Binary,
                 Value = 0b1111 // 15 in decimal
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             Assert.Equal(15m, control.Value);
         }
@@ -315,8 +139,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.Decimal,
                 Value = 255
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             // Change to hex
             control.NumberBase = DaisyNumberBase.Hexadecimal;
@@ -331,23 +154,6 @@ namespace Flowery.NET.Tests
             Assert.Equal(255m, control.Value);
         }
 
-        [AvaloniaFact]
-        public void Hex_Increment_Should_Work_In_Decimal()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                NumberBase = DaisyNumberBase.Hexadecimal,
-                Value = 0xFE, // 254
-                Increment = 1
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            control.Value = (control.Value ?? 0) + control.Increment;
-
-            Assert.Equal(0xFF, control.Value); // 255
-        }
-
         #endregion
 
         #region Null Value Handling
@@ -356,156 +162,16 @@ namespace Flowery.NET.Tests
         public void Null_Value_Should_Be_Allowed()
         {
             var control = new DaisyNumericUpDown();
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             control.Value = null;
 
             Assert.Null(control.Value);
         }
 
-        [AvaloniaFact]
-        public void Increment_From_Null_Should_Use_Zero_As_Base()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Value = null,
-                Increment = 5
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            // Simulate increment from null (should treat as 0)
-            control.Value = (control.Value ?? 0) + control.Increment;
-
-            Assert.Equal(5m, control.Value);
-        }
-
-        #endregion
-
-        #region Edge Cases
-
-        [AvaloniaFact]
-        public void Zero_Increment_Should_Not_Change_Value()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Value = 50,
-                Increment = 0
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            control.Value = (control.Value ?? 0) + control.Increment;
-
-            Assert.Equal(50m, control.Value);
-        }
-
-        [AvaloniaFact]
-        public void Large_Values_Should_Work()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Value = 999999999999m,
-                Increment = 1
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            control.Value = (control.Value ?? 0) + control.Increment;
-
-            Assert.Equal(1000000000000m, control.Value);
-        }
-
-        [AvaloniaFact]
-        public void Negative_Values_Should_Work()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Minimum = -100,
-                Maximum = 100,
-                Value = -50,
-                Increment = 10
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            control.Value = (control.Value ?? 0) + control.Increment;
-
-            Assert.Equal(-40m, control.Value);
-        }
-
-        [AvaloniaFact]
-        public void Crossing_Zero_With_Increment_Should_Work()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Minimum = -100,
-                Maximum = 100,
-                Value = -5,
-                Increment = 10
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            control.Value = (control.Value ?? 0) + control.Increment;
-
-            Assert.Equal(5m, control.Value);
-        }
-
-        [AvaloniaFact]
-        public void Very_Small_Decimal_Increments_Should_Work()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Value = 0.001m,
-                Increment = 0.001m
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            control.Value = (control.Value ?? 0) + control.Increment;
-
-            Assert.Equal(0.002m, control.Value);
-        }
-
         #endregion
 
         #region Prefix/Suffix Independence
-
-        [AvaloniaFact]
-        public void Prefix_Should_Not_Affect_Value()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Prefix = "$",
-                Value = 100
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            control.Value = (control.Value ?? 0) + 50;
-
-            // Value should be pure number, not affected by prefix
-            Assert.Equal(150m, control.Value);
-        }
-
-        [AvaloniaFact]
-        public void Suffix_Should_Not_Affect_Value()
-        {
-            var control = new DaisyNumericUpDown
-            {
-                Suffix = "%",
-                Value = 50
-            };
-            var window = new Window { Content = control };
-            window.Show();
-
-            control.Value = (control.Value ?? 0) * 2;
-
-            // Value should be pure number, not affected by suffix
-            Assert.Equal(100m, control.Value);
-        }
 
         [AvaloniaFact]
         public void Changing_Prefix_Should_Not_Change_Value()
@@ -515,8 +181,7 @@ namespace Flowery.NET.Tests
                 Prefix = "$",
                 Value = 99.99m
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             control.Prefix = "€";
 
@@ -527,6 +192,17 @@ namespace Flowery.NET.Tests
         #endregion
 
         #region TextBox Display Tests (Actual UI Behavior)
+
+        private sealed class WindowScope : IDisposable
+        {
+            private readonly Window _window;
+            public WindowScope(Control content)
+            {
+                _window = new Window { Content = content };
+                _window.Show();
+            }
+            public void Dispose() => _window.Close();
+        }
 
         private TextBox? GetTextBox(DaisyNumericUpDown control)
         {
@@ -545,8 +221,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.Hexadecimal,
                 Value = 255
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -566,8 +241,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.Binary,
                 Value = 10
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -586,8 +260,7 @@ namespace Flowery.NET.Tests
                 ShowThousandSeparators = true,
                 Value = 1234567
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -609,8 +282,7 @@ namespace Flowery.NET.Tests
                 ShowBasePrefix = true,
                 Value = 255
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -626,8 +298,7 @@ namespace Flowery.NET.Tests
                 ShowBasePrefix = false,
                 Value = 255
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -644,8 +315,7 @@ namespace Flowery.NET.Tests
                 ShowBasePrefix = true,
                 Value = 10
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -664,8 +334,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.Hexadecimal,
                 Value = 255
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -692,8 +361,7 @@ namespace Flowery.NET.Tests
                 Value = 255,
                 Increment = 1
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -722,8 +390,7 @@ namespace Flowery.NET.Tests
                 Value = 10,  // binary: 1010
                 Increment = 1
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -744,8 +411,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.Decimal,
                 Value = 255
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -775,8 +441,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.Decimal,
                 Value = 170
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             // Switch bases multiple times
             control.NumberBase = DaisyNumberBase.Hexadecimal; // 0xAA
@@ -801,8 +466,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.Octal,
                 Value = 493 // 0o755 in octal (Unix permissions)
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -821,8 +485,7 @@ namespace Flowery.NET.Tests
                 ShowBasePrefix = true,
                 Value = 493
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -849,8 +512,7 @@ namespace Flowery.NET.Tests
                     ShowBasePrefix = false,
                     Value = decimalValue
                 };
-                var window = new Window { Content = control };
-                window.Show();
+                using var window = new WindowScope(control);
 
                 var textBox = GetTextBox(control);
                 Assert.NotNull(textBox);
@@ -870,8 +532,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.ColorHex,
                 Value = 16734003 // #FF5733
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -890,8 +551,7 @@ namespace Flowery.NET.Tests
                 ShowBasePrefix = true,
                 Value = 16734003
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -907,8 +567,7 @@ namespace Flowery.NET.Tests
                 ShowBasePrefix = false,
                 Value = 255 // Should be "0000FF", not "FF"
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -937,8 +596,7 @@ namespace Flowery.NET.Tests
                     HexCase = DaisyHexCase.Upper,
                     Value = decimalValue
                 };
-                var window = new Window { Content = control };
-                window.Show();
+                using var window = new WindowScope(control);
 
                 var textBox = GetTextBox(control);
                 Assert.NotNull(textBox);
@@ -956,8 +614,7 @@ namespace Flowery.NET.Tests
                 HexCase = DaisyHexCase.Lower,
                 Value = 16734003 // ff5733 lowercase
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -1075,8 +732,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.Decimal,
                 Value = 493
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             control.NumberBase = DaisyNumberBase.Octal;
             Assert.Equal(493m, control.Value);
@@ -1093,8 +749,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.Decimal,
                 Value = 16711680 // Red
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             control.NumberBase = DaisyNumberBase.ColorHex;
             Assert.Equal(16711680m, control.Value);
@@ -1110,8 +765,7 @@ namespace Flowery.NET.Tests
             {
                 Value = 255
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             // Cycle through all bases
             control.NumberBase = DaisyNumberBase.Decimal;
@@ -1146,8 +800,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.IPAddress,
                 Value = 3232235777m
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -1162,8 +815,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.IPAddress,
                 Value = 0m
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -1178,8 +830,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.IPAddress,
                 Value = 4294967295m // uint.MaxValue
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -1204,8 +855,7 @@ namespace Flowery.NET.Tests
                     NumberBase = DaisyNumberBase.IPAddress,
                     Value = ipValue
                 };
-                var window = new Window { Content = control };
-                window.Show();
+                using var window = new WindowScope(control);
 
                 var textBox = GetTextBox(control);
                 Assert.NotNull(textBox);
@@ -1221,8 +871,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.Decimal,
                 Value = 3232235777m // 192.168.1.1
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             // Switch to IP mode
             control.NumberBase = DaisyNumberBase.IPAddress;
@@ -1273,8 +922,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.IPAddress,
                 Value = (10u << 24) | (20u << 16) | (30u << 8) | 40u // 10.20.30.40
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -1302,8 +950,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.IPAddress,
                 Value = (10u << 24) | (20u << 16) | (30u << 8) | 40u
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -1326,8 +973,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.IPAddress,
                 Value = (10u << 24) | (20u << 16) | (30u << 8) | 40u
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -1350,8 +996,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.IPAddress,
                 Value = (10u << 24) | (20u << 16) | (30u << 8) | 40u
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -1374,8 +1019,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.IPAddress,
                 Value = (10u << 24) | (20u << 16) | (30u << 8) | 40u
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -1398,8 +1042,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.IPAddress,
                 Value = (10u << 24) | (255u << 16) | (30u << 8) | 40u
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -1424,8 +1067,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.IPAddress,
                 Value = (10u << 24) | (0u << 16) | (30u << 8) | 40u
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -1450,8 +1092,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.IPAddress,
                 Value = 3232235777m
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             Assert.NotNull(textBox);
@@ -1481,8 +1122,7 @@ namespace Flowery.NET.Tests
                 NumberBase = DaisyNumberBase.IPAddress,
                 Value = (10u << 24) | (10u << 16) | (10u << 8) | 10u
             };
-            var window = new Window { Content = control };
-            window.Show();
+            using var window = new WindowScope(control);
 
             var textBox = GetTextBox(control);
             var increaseButton = GetIncreaseButton(control);

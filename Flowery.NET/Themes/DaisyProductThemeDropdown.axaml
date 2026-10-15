@@ -38,7 +38,6 @@
                 <!-- Theme name -->
                 <TextBlock Grid.Row="1" Grid.Column="1"
                     Text="{Binding DisplayName}"
-                    Foreground="{DynamicResource DaisyBaseContentBrush}"
                     VerticalAlignment="Center"
                     Margin="10,0,0,0" />
             </Grid>

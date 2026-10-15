@@ -246,14 +246,6 @@ namespace Flowery.NET.Tests
         }
 
         [AvaloniaFact]
-        public void GetThemeDisplayName_WithMissingResource_ThrowsException()
-        {
-            // Note: We can't easily test this without modifying the assembly's resources
-            // or mocking the ResourceManager (which FloweryLocalization doesn't currently support).
-            // We'll skip this negative test for now or assume if we ask for a standard theme it works.
-        }
-
-        [AvaloniaFact]
         public void AccessibilityStrings_AreLocalized()
         {
             // Arrange

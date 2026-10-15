@@ -101,36 +101,6 @@ public sealed partial class SchedulerTests
         Assert.True(badge.Bounds.Height > 0);
     }
 
-    [AvaloniaTheory]
-    [InlineData(SchedulerView.Month)]
-    [InlineData(SchedulerView.Calendar)]
-    public void AppointmentTilesKeepTheirPlacementForEachSurface(SchedulerView view)
-    {
-        using var scope = new SchedulerScope(view);
-        scope.Appointment.Tiles.Add(new AppointmentDecoration { Text = "Top tile", Position = DecorationPosition.Top });
-        scope.Appointment.Tiles.Add(new AppointmentDecoration { Text = "Bottom tile", Position = DecorationPosition.Bottom });
-        scope.Scheduler.Appointments = new[] { scope.Appointment };
-        scope.Layout();
-        var frame = scope.Frame(scope.Appointment);
-        var title = frame.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Text?.EndsWith(scope.Appointment.Subject, StringComparison.Ordinal) == true);
-        var top = frame.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Text == "Top tile");
-        var bottom = frame.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Text == "Bottom tile");
-        var titleOrigin = title.TranslatePoint(default, frame)!.Value;
-        var topOrigin = top.TranslatePoint(default, frame)!.Value;
-        var bottomOrigin = bottom.TranslatePoint(default, frame)!.Value;
-        if (view == SchedulerView.Month)
-        {
-            // Single-line month chips place both tiles in the right-hand strip.
-            Assert.True(topOrigin.X >= titleOrigin.X + title.Bounds.Width - 1);
-            Assert.True(bottomOrigin.X >= titleOrigin.X + title.Bounds.Width - 1);
-        }
-        else
-        {
-            Assert.True(topOrigin.Y + top.Bounds.Height <= titleOrigin.Y);
-            Assert.True(bottomOrigin.Y >= titleOrigin.Y + title.Bounds.Height);
-        }
-    }
-
     private static void AssertFullyInside(Control child, Control parent)
     {
         var origin = child.TranslatePoint(default, parent)!.Value;

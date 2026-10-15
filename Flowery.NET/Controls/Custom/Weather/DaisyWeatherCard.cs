@@ -311,10 +311,13 @@ namespace Flowery.Controls.Custom.Weather
 
         private void OnServiceOrLocationChanged()
         {
+            _loadingCts?.Cancel();
+            _loadingCts = null;
+            IsLoading = false;
+            OnAutoRefreshChanged();
             if (WeatherService != null && !string.IsNullOrWhiteSpace(Location))
             {
                 _ = LoadWeatherDataAsync();
-                OnAutoRefreshChanged();
             }
         }
 
@@ -397,7 +400,9 @@ namespace Flowery.Controls.Custom.Weather
                 ErrorMessage = null;
 
                 var current = await service.GetCurrentWeatherAsync(location, token);
+                token.ThrowIfCancellationRequested();
                 IEnumerable<ForecastDay>? forecast = ShowForecast ? await service.GetForecastAsync(location, ForecastDays, token) : null;
+                token.ThrowIfCancellationRequested();
                 WeatherMetrics? metrics = ShowMetrics ? await service.GetMetricsAsync(location, token) : null;
 
                 if (token.IsCancellationRequested) return;

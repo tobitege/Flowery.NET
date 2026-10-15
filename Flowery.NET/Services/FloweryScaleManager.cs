@@ -254,23 +254,20 @@ namespace Flowery.Services
                 tracker = new TopLevelScaleTracker(topLevel);
                 _topLevelTrackers[topLevel] = tracker;
 
-                // Clean up when window closes
-                if (topLevel is Window window)
-                {
-                    window.Closed += (s, e) =>
-                    {
-                        if (s is Window w && _topLevelTrackers.ContainsKey(w))
-                        {
-                            _topLevelTrackers[w].Dispose();
-                            _topLevelTrackers.Remove(w);
-                        }
-                    };
-                }
+                topLevel.Closed += OnTrackedTopLevelClosed;
             }
 
             // Apply initial scale factor to this control and all its children
             var scaleFactor = tracker.CurrentScaleFactor;
             ApplyScaleToControlTree(control, scaleFactor);
+        }
+
+        private static void OnTrackedTopLevelClosed(object? sender, EventArgs e)
+        {
+            if (sender is not TopLevel topLevel) return;
+            topLevel.Closed -= OnTrackedTopLevelClosed;
+            if (_topLevelTrackers.Remove(topLevel, out var tracker))
+                tracker.Dispose();
         }
 
         /// <summary>
@@ -520,6 +517,7 @@ namespace Flowery.Services
                     // Update all controls with EnableScaling in this window
                     Dispatcher.UIThread.Post(() =>
                     {
+                        if (_isDisposed) return;
                         PropagateScaleFactor(_topLevel, newFactor);
                         if (_topLevel is Window window)
                         {

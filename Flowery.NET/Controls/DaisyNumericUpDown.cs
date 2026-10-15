@@ -66,6 +66,7 @@ namespace Flowery.Controls
         private bool _isEditing;
         private bool _isUpdatingValue;
         private DispatcherTimer? _errorFlashTimer;
+        private int _pasteVersion;
 
         /// <summary>
         /// Defines the <see cref="ShowInputError"/> property.
@@ -364,6 +365,7 @@ namespace Flowery.Controls
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
+            _pasteVersion++;
             base.OnApplyTemplate(e);
 
             // Unsubscribe from old controls
@@ -554,6 +556,8 @@ namespace Flowery.Controls
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
+            if (change.Property == IsReadOnlyProperty || change.Property == IsEnabledProperty)
+                _pasteVersion++;
 
             if (change.Property == PlaceholderTextProperty
                 || change.Property == AutomationProperties.NameProperty
@@ -699,51 +703,47 @@ namespace Flowery.Controls
 
         private async void OnPastingFromClipboard(object? sender, RoutedEventArgs e)
         {
-            if (_textBox == null) return;
-
-            // Get clipboard text
-            var clipboard = TopLevel.GetTopLevel(_textBox)?.Clipboard;
-            if (clipboard == null) return;
-
-            var pastedText = await clipboard.TryGetTextAsync();
-            if (string.IsNullOrEmpty(pastedText)) return;
-
-            // Filter or validate the pasted text
-            var filteredText = FilterPastedText(pastedText!);
-
-            if (string.IsNullOrEmpty(filteredText))
+            // Claim the operation before awaiting: TextBox must not start a second paste.
+            e.Handled = true;
+            if (_textBox is not { } target || IsReadOnly || !IsEffectivelyEnabled) return;
+            var host = TopLevel.GetTopLevel(target);
+            if (host?.Clipboard is not { } clipboard) return;
+            var version = ++_pasteVersion;
+            var original = target.Text;
+            var start = target.SelectionStart;
+            var end = target.SelectionEnd;
+            var numberBase = NumberBase;
+            try
             {
-                // Reject paste entirely if nothing valid
-                e.Handled = true;
-                FlashInputError();
-                return;
-            }
+                var pastedText = await clipboard.TryGetTextAsync();
+                if (string.IsNullOrEmpty(pastedText) || version != _pasteVersion ||
+                    !ReferenceEquals(target, _textBox) || !ReferenceEquals(host, TopLevel.GetTopLevel(target)) ||
+                    IsReadOnly || !IsEffectivelyEnabled || target.IsReadOnly || NumberBase != numberBase ||
+                    target.Text != original || target.SelectionStart != start || target.SelectionEnd != end)
+                    return;
 
-            if (filteredText != pastedText)
-            {
-                // Replace paste with filtered version - flash to indicate some chars were removed
-                e.Handled = true;
-                FlashInputError();
-
-                var currentText = _textBox.Text ?? "";
-                var caretIndex = _textBox.CaretIndex;
-                var selectionLength = _textBox.SelectedText?.Length ?? 0;
-
-                var newText = currentText.Substring(0, caretIndex) + filteredText +
-                              currentText.Substring(caretIndex + selectionLength);
-
-                // Check max length constraints
-                if (!IsWithinMaxLength(newText))
+                var filteredText = FilterPastedText(pastedText);
+                var maxLength = GetMaxLength();
+                var newLength = (original?.Length ?? 0) - Math.Abs(end - start) + filteredText.Length;
+                if (maxLength > 0 && newLength > maxLength)
                 {
-                    // Truncate if necessary
-                    var maxLen = GetMaxLength();
-                    if (maxLen > 0 && newText.Length > maxLen)
-                        newText = newText.Substring(0, maxLen);
+                    FlashInputError();
+                    return;
                 }
-
-                _textBox.Text = newText;
-                _textBox.CaretIndex = Math.Min(caretIndex + filteredText.Length, newText.Length);
+                if (filteredText != pastedText) FlashInputError();
+                if (filteredText.Length > 0) target.SelectedText = filteredText;
             }
+            catch (Exception)
+            {
+                if (version == _pasteVersion && TopLevel.GetTopLevel(target) == host)
+                    FlashInputError();
+            }
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            _pasteVersion++;
+            base.OnDetachedFromVisualTree(e);
         }
 
         private string FilterPastedText(string text)
@@ -795,12 +795,6 @@ namespace Flowery.Controls
             }
         }
 
-        private bool IsWithinMaxLength(string text)
-        {
-            var maxLen = GetMaxLength();
-            return maxLen <= 0 || text.Length <= maxLen;
-        }
-
         private int GetMaxLength()
         {
             return NumberBase switch
@@ -817,11 +811,11 @@ namespace Flowery.Controls
 
         private int GetDecimalMaxLength()
         {
-            // Calculate max length based on constraints or use practical defaults
-            var intDigits = MaxIntegerDigits >= 0 ? MaxIntegerDigits : 15; // Quadrillions is plenty
-            var decDigits = MaxDecimalPlaces >= 0 ? MaxDecimalPlaces : 6;  // 6 decimal places is typical max
+            // An unlimited part cannot impose a total text-length limit.
+            if (MaxIntegerDigits < 0 || MaxDecimalPlaces < 0)
+                return 0;
             // +1 for decimal separator, +1 for negative sign, +4 for exponent (e+XX)
-            return intDigits + decDigits + 6; // Max ~27 chars with defaults
+            return MaxIntegerDigits + MaxDecimalPlaces + 6;
         }
 
         private bool IsValidNumericChar(char c, string currentText, int caretIndex)

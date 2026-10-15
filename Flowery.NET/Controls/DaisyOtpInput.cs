@@ -7,6 +7,8 @@ using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Flowery.Localization;
@@ -25,6 +27,7 @@ namespace Flowery.Controls
 
         private readonly List<TextBox> _slots = new();
         private bool _isUpdating;
+        private int _pasteVersion;
 
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
@@ -191,6 +194,7 @@ namespace Flowery.Controls
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
+            _pasteVersion++;
             FloweryLocalization.CultureChanged -= OnCultureChanged;
             base.OnDetachedFromVisualTree(e);
         }
@@ -214,6 +218,7 @@ namespace Flowery.Controls
 
         private void RebuildSlots()
         {
+            _pasteVersion++;
             _isUpdating = true;
             try
             {
@@ -222,6 +227,7 @@ namespace Flowery.Controls
                 foreach (var slot in _slots)
                 {
                     slot.TextChanged -= OnSlotTextChanged;
+                    slot.PastingFromClipboard -= OnSlotPastingFromClipboard;
                     slot.KeyDown -= OnSlotKeyDown;
                     slot.GotFocus -= OnSlotGotFocus;
                 }
@@ -263,13 +269,13 @@ namespace Flowery.Controls
             {
                 Tag = index,
                 TextAlignment = TextAlignment.Center,
-                CaretIndex = 0,
-                MaxLength = Length
+                CaretIndex = 0
             };
 
             box.Classes.Add("otp-slot");
 
             box.TextChanged += OnSlotTextChanged;
+            box.PastingFromClipboard += OnSlotPastingFromClipboard;
             box.KeyDown += OnSlotKeyDown;
             box.GotFocus += OnSlotGotFocus;
             UpdateSlotAutomationProperties(box, index);
@@ -324,6 +330,7 @@ namespace Flowery.Controls
 
         private void ApplyValueToSlots()
         {
+            _pasteVersion++;
             if (_isUpdating) return;
 
             _isUpdating = true;
@@ -398,9 +405,38 @@ namespace Flowery.Controls
             }
         }
 
+        private async void OnSlotPastingFromClipboard(object? sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            if (sender is not TextBox box || box.Tag is not int index ||
+                box.IsReadOnly || !box.IsEffectivelyEnabled)
+                return;
+            var host = TopLevel.GetTopLevel(box);
+            if (host?.Clipboard is not { } clipboard) return;
+            var version = ++_pasteVersion;
+            var original = box.Text;
+            var start = box.SelectionStart;
+            var end = box.SelectionEnd;
+            try
+            {
+                var text = await clipboard.TryGetTextAsync();
+                if (string.IsNullOrEmpty(text) || version != _pasteVersion ||
+                    !ReferenceEquals(host, TopLevel.GetTopLevel(box)) ||
+                    index >= _slots.Count || !ReferenceEquals(box, _slots[index]) ||
+                    box.IsReadOnly || !box.IsEffectivelyEnabled || box.Text != original ||
+                    box.SelectionStart != start || box.SelectionEnd != end)
+                    return;
+                box.SelectedText = text;
+            }
+            catch (Exception)
+            {
+                // A failed clipboard read must leave both the slots and Value unchanged.
+            }
+        }
+
         private void OnSlotTextChanged(object? sender, TextChangedEventArgs e)
         {
-            if (_isUpdating) return;
+            if (_isUpdating || TopLevel.GetTopLevel(this) is null) return;
             if (sender is not TextBox box) return;
             if (box.Tag is not int index) return;
 

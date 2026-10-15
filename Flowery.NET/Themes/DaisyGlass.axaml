@@ -52,6 +52,8 @@
                         <Panel x:Name="PART_BackdropBlurPanel" IsVisible="False">
                             <Image x:Name="PART_BlurImage"
                                    Source="{TemplateBinding BlurredBackground}"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Top"
                                    Stretch="Fill">
                                 <Image.Effect>
                                     <BlurEffect Radius="{Binding GlassBlur, RelativeSource={RelativeSource TemplatedParent}}" />

@@ -240,6 +240,14 @@ pwsh ./scripts/run_browser.ps1
 
 ---
 
+## Native review checks
+
+Run `./scripts/test_review_native.ps1 -Configuration Release` on Windows to build and run the focused desktop checks in `Flowery.NET.Tests.Native`.
+
+The runner opens its own temporary window, tests native popup placement and slider automation, captures glass rendering, and checks embedded top-level cleanup. It closes the window when finished. It does not access the clipboard or move other application windows.
+
+The script prints the temporary evidence directory. It contains `results.json`, the captured backdrop, and the rendered glass image. A nonzero exit code indicates a failed check. These checks supplement the headless tests; they do not test screenreader speech or other operating systems.
+
 ## Troubleshooting
 
 ### Android SDK not found

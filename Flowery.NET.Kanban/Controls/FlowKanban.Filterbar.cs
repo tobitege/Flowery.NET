@@ -889,14 +889,16 @@ namespace Flowery.NET.Kanban.Controls
         {
             var options = BuildAssigneeFilterOptions(resolvedOptions);
             var items = AssigneeFilterOptions;
-            items.Clear();
-
-            foreach (var option in options)
+            var wasSyncing = _isSyncingAssigneeFilter;
+            _isSyncingAssigneeFilter = true;
+            try
             {
-                items.Add(option);
+                items.Clear();
+                foreach (var option in options)
+                    items.Add(option);
+                HasAssigneeOptions = items.Count > 0;
             }
-
-            HasAssigneeOptions = items.Count > 0;
+            finally { _isSyncingAssigneeFilter = wasSyncing; }
             SyncSelectedAssigneeFromCriteria();
         }
 

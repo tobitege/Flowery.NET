@@ -584,74 +584,6 @@ namespace Flowery.NET.Tests
 
         #endregion
 
-        #region Debug Inspection Tests
-
-        /// <summary>
-        /// Debug test to inspect what screen readers would see for each control.
-        /// Run with debugger attached and check the Output window (Debug.WriteLine).
-        /// This test always passes - it's for manual inspection only.
-        /// </summary>
-        [AvaloniaFact]
-        public void Debug_Inspect_All_Accessible_Controls()
-        {
-            var window = new Window();
-            window.Show();
-
-            // DaisyLoading
-            var loading = new DaisyLoading { AccessibleText = "Loading your data" };
-            window.Content = loading;
-            PrintPeerInfo("DaisyLoading", loading);
-
-            // DaisyStatusIndicator - various colors
-            foreach (var color in new[] { DaisyColor.Success, DaisyColor.Error, DaisyColor.Warning })
-            {
-                var indicator = new DaisyStatusIndicator { Color = color };
-                window.Content = indicator;
-                PrintPeerInfo($"DaisyStatusIndicator ({color})", indicator);
-            }
-
-            // DaisyStatusIndicator with custom text
-            var customIndicator = new DaisyStatusIndicator { Color = DaisyColor.Success, AccessibleText = "User is online" };
-            window.Content = customIndicator;
-            PrintPeerInfo("DaisyStatusIndicator (custom)", customIndicator);
-
-            // DaisyProgress
-            var progress = new DaisyProgress { Value = 65, AccessibleText = "Uploading file" };
-            window.Content = progress;
-            PrintPeerInfo("DaisyProgress", progress);
-
-            // DaisyRadialProgress
-            var radial = new DaisyRadialProgress { Value = 80, AccessibleText = "Battery level" };
-            window.Content = radial;
-            PrintPeerInfo("DaisyRadialProgress", radial);
-
-            // DaisyCountdown - with unit
-            var countdown = new DaisyCountdown { Value = 45, ClockUnit = CountdownClockUnit.Seconds, AccessibleText = "Time remaining" };
-            window.Content = countdown;
-            PrintPeerInfo("DaisyCountdown (seconds)", countdown);
-
-            // DaisyCountdown - without unit
-            var countdownNoUnit = new DaisyCountdown { Value = 10, AccessibleText = "Countdown" };
-            window.Content = countdownNoUnit;
-            PrintPeerInfo("DaisyCountdown (no unit)", countdownNoUnit);
-
-            // DaisySkeleton
-            var skeleton = new DaisySkeleton { AccessibleText = "Loading user profile" };
-            window.Content = skeleton;
-            PrintPeerInfo("DaisySkeleton", skeleton);
-
-            // DaisyRating - various values
-            var rating = new DaisyRating { Value = 3.5, Maximum = 5, Precision = RatingPrecision.Half, AccessibleText = "Movie rating" };
-            window.Content = rating;
-            PrintPeerInfo("DaisyRating (3.5/5)", rating);
-
-            var ratingFull = new DaisyRating { Value = 4, Maximum = 5, Precision = RatingPrecision.Full, AccessibleText = "Product rating" };
-            window.Content = ratingFull;
-            PrintPeerInfo("DaisyRating (4/5)", ratingFull);
-
-            Assert.True(true); // Always passes - this is for inspection only
-        }
-
         private static T GetTemplatePart<T>(Control owner, string name) where T : Control
         {
             return owner.GetVisualDescendants()
@@ -659,29 +591,5 @@ namespace Flowery.NET.Tests
                 .Single(control => string.Equals(control.Name, name, StringComparison.Ordinal));
         }
 
-        private static void PrintPeerInfo(string label, Control control)
-        {
-            var peer = ControlAutomationPeer.CreatePeerForElement(control);
-            var separator = new string('-', 50);
-
-            System.Diagnostics.Debug.WriteLine(separator);
-            System.Diagnostics.Debug.WriteLine($"Control: {label}");
-            System.Diagnostics.Debug.WriteLine($"  Name (announced): {peer?.GetName() ?? "(null)"}");
-            System.Diagnostics.Debug.WriteLine($"  ControlType:      {peer?.GetAutomationControlType()}");
-            System.Diagnostics.Debug.WriteLine($"  ClassName:        {peer?.GetClassName() ?? "(null)"}");
-            System.Diagnostics.Debug.WriteLine($"  AutomationId:     {peer?.GetAutomationId() ?? "(null)"}");
-            System.Diagnostics.Debug.WriteLine($"  IsContentElement: {peer?.IsContentElement()}");
-            System.Diagnostics.Debug.WriteLine($"  IsControlElement: {peer?.IsControlElement()}");
-
-            // Also check AutomationProperties directly
-            System.Diagnostics.Debug.WriteLine($"  [Direct] AutomationProperties.Name: {AutomationProperties.GetName(control)}");
-
-            if (control is DaisyCountdown cd)
-            {
-                System.Diagnostics.Debug.WriteLine($"  [Direct] LiveSetting: {AutomationProperties.GetLiveSetting(cd)}");
-            }
-        }
-
-        #endregion
     }
 }

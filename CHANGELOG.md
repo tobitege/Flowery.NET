@@ -6,12 +6,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
 ## [3.6.1] - 2026-10-15
 
 ### Fixed
 
+- OTP paste normalizes separators before applying the code length. Delayed paste cannot change slot text or the value after removal, slot replacement, or reattachment.
+- Numeric paste filters and replaces the selection once. Pending clipboard reads cannot modify a detached, read-only, or replaced editor. Unlimited decimal digits are preserved; input exceeding a length limit is rejected without truncating the number.
+- Refreshing Kanban assignee options preserves the selected filter and its criteria.
+- Clearing the weather service or location cancels the current load. Detached cards do not publish old results or request forecast and metrics data afterward.
+- Per-character WaveText preserves text changes made during animation when stopped or reattached.
+- Glass backdrop capture includes only content behind the glass, respects paint order and ZIndex, and renders directly into the required capture area. Large parent containers no longer require a full-size intermediate bitmap. Skia redraws changed tint, corner radius, and lighting.
+- Glass backdrop capture preserves shadows from borders and content presenters whose layout bounds lie outside the capture area.
+- Glass backdrop clipping preserves template content at the corners and applies rounded clips only to borders that request them.
+- Glass backdrops retain their original position and size on screen. Reduced capture resolution and blur padding no longer shrink or shift the background, including near container edges.
+- Scaling releases trackers when an embedded, non-window top-level is disposed.
+- Theme dropdown selection and hover labels use a contrasting foreground derived from the active background.
 - Scheduler views now resize existing appointment controls and preserve their scroll position without rebuilding the view.
 - Day and Week appointments reserve enough width for overlapping time ranges and show optional details only when complete rows fit. Duplicate status indicators are removed.
 - Scheduler tooltips use theme surface colors, a visible border, and design-token padding.

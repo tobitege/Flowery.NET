@@ -215,12 +215,12 @@ namespace Flowery.NET.Tests
 
                 var newColumns = new ObservableCollection<FlowKanbanColumnData>();
                 board.Columns = newColumns;
-                await WaitForAutoSaveAsync();
+                await WaitForAutoSaveAsync(kanban);
                 store.Reset();
 
                 var detachedTask = CreateTask("detached");
                 oldColumns.Add(CreateColumn("Detached", detachedTask));
-                await WaitForAutoSaveAsync();
+                await WaitForAutoSaveAsync(kanban);
 
                 Assert.Equal(0, store.SaveCount);
                 Assert.True(detachedTask.IsSearchMatch);
@@ -230,7 +230,7 @@ namespace Flowery.NET.Tests
                 var currentTask = CreateTask("current");
                 var currentColumn = CreateColumn("Current", currentTask);
                 newColumns.Add(currentColumn);
-                await WaitForAutoSaveAsync();
+                await WaitForAutoSaveAsync(kanban);
 
                 Assert.Equal(1, store.SaveCount);
                 Assert.False(currentTask.IsSearchMatch);
@@ -263,12 +263,12 @@ namespace Flowery.NET.Tests
             {
                 var newTasks = new ObservableCollection<FlowTask>();
                 column.Tasks = newTasks;
-                await WaitForAutoSaveAsync();
+                await WaitForAutoSaveAsync(kanban);
                 store.Reset();
 
                 var detachedTask = new FlowTask { Title = "detached", IsSelected = true };
                 oldTasks.Add(detachedTask);
-                await WaitForAutoSaveAsync();
+                await WaitForAutoSaveAsync(kanban);
 
                 Assert.Equal(0, store.SaveCount);
                 Assert.True(detachedTask.IsSearchMatch);
@@ -277,7 +277,7 @@ namespace Flowery.NET.Tests
 
                 var currentTask = new FlowTask { Title = "current", IsSelected = true };
                 newTasks.Add(currentTask);
-                await WaitForAutoSaveAsync();
+                await WaitForAutoSaveAsync(kanban);
 
                 Assert.Equal(1, store.SaveCount);
                 Assert.False(currentTask.IsSearchMatch);
@@ -1228,17 +1228,17 @@ namespace Flowery.NET.Tests
             {
                 var newSubtasks = new ObservableCollection<FlowSubtask>();
                 task.Subtasks = newSubtasks;
-                await WaitForAutoSaveAsync();
+                await WaitForAutoSaveAsync(kanban);
                 store.Reset();
 
                 oldSubtasks.Add(new FlowSubtask { Title = "Detached" });
-                await WaitForAutoSaveAsync();
+                await WaitForAutoSaveAsync(kanban);
 
                 Assert.Equal(0, store.SaveCount);
                 Assert.False(card.HasSubtaskSummary);
 
                 newSubtasks.Add(new FlowSubtask { Title = "Current", IsCompleted = true });
-                await WaitForAutoSaveAsync();
+                await WaitForAutoSaveAsync(kanban);
 
                 Assert.Equal(1, store.SaveCount);
                 Assert.True(card.HasSubtaskSummary);
@@ -1670,7 +1670,7 @@ namespace Flowery.NET.Tests
                     transfer,
                     DragDropEffects.Move,
                     RawInputModifiers.None);
-                await WaitForAutoSaveAsync();
+                await WaitForAutoSaveAsync(kanban);
                 dropDuration.Stop();
 
                 Assert.Equal(sourceCountBeforeDrop - 1, sourceColumn.Tasks.Count);
@@ -2769,9 +2769,17 @@ namespace Flowery.NET.Tests
 
         private static FlowTask CreateTask(string title) => new() { Title = title };
 
-        private static async Task WaitForAutoSaveAsync()
+        private static async Task WaitForAutoSaveAsync(FlowKanban kanban)
         {
-            await Task.Delay(900);
+            Dispatcher.UIThread.RunJobs();
+            var timer = (DispatcherTimer?)typeof(FlowKanban).GetField("_autoSaveTimer",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(kanban);
+            if (timer?.IsEnabled != true) return;
+            var completed = new TaskCompletionSource();
+            EventHandler tick = (_, _) => completed.TrySetResult();
+            timer.Tick += tick;
+            try { await completed.Task.WaitAsync(TimeSpan.FromSeconds(5)); }
+            finally { timer.Tick -= tick; }
             Dispatcher.UIThread.RunJobs();
         }
 

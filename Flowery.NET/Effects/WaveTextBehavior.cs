@@ -58,6 +58,8 @@ namespace Flowery.Effects
                 "WasPerCharacterApplied", typeof(WaveTextBehavior), false);
         private static readonly AttachedProperty<string?> OriginalTextProperty =
             AvaloniaProperty.RegisterAttached<TextBlock, string?>("OriginalText", typeof(WaveTextBehavior));
+        private static readonly AttachedProperty<bool> UpdatingTextProperty =
+            AvaloniaProperty.RegisterAttached<TextBlock, bool>("UpdatingText", typeof(WaveTextBehavior));
 
         #endregion
 
@@ -83,6 +85,14 @@ namespace Flowery.Effects
         static WaveTextBehavior()
         {
             IsEnabledProperty.Changed.AddClassHandler<TextBlock>(OnIsEnabledChanged);
+            TextBlock.TextProperty.Changed.AddClassHandler<TextBlock>((text, change) =>
+            {
+                if (!GetIsEnabled(text) || text.GetValue(UpdatingTextProperty)) return;
+                if (text.GetValue(WasPerCharacterAppliedProperty))
+                    text.SetValue(OriginalTextProperty, change.NewValue as string);
+                if (TopLevel.GetTopLevel(text) != null)
+                    StartWaveAnimation(text);
+            });
         }
 
         private static void OnIsEnabledChanged(TextBlock element, AvaloniaPropertyChangedEventArgs e)
@@ -158,26 +168,30 @@ namespace Flowery.Effects
                     textBlock.SetValue(WasPerCharacterAppliedProperty, true);
                     textBlock.SetValue(OriginalTextProperty, text);
                     var inlines = textBlock.Inlines!;
-                    inlines.Clear();
-
                     var charBlocks = new List<TextBlock>(text.Length);
-                    for (var i = 0; i < text.Length; i++)
+                    textBlock.SetValue(UpdatingTextProperty, true);
+                    try
                     {
-                        var c = text[i];
-                        var charBlock = new TextBlock
+                        inlines.Clear();
+                        for (var i = 0; i < text.Length; i++)
                         {
-                            Text = c == ' ' ? "\u00A0" : c.ToString(),
-                            FontSize = textBlock.FontSize,
-                            FontFamily = textBlock.FontFamily,
-                            FontStyle = textBlock.FontStyle,
-                            FontWeight = textBlock.FontWeight,
-                            Foreground = textBlock.Foreground,
-                            RenderTransform = new TranslateTransform()
-                        };
+                            var c = text[i];
+                            var charBlock = new TextBlock
+                            {
+                                Text = c == ' ' ? "\u00A0" : c.ToString(),
+                                FontSize = textBlock.FontSize,
+                                FontFamily = textBlock.FontFamily,
+                                FontStyle = textBlock.FontStyle,
+                                FontWeight = textBlock.FontWeight,
+                                Foreground = textBlock.Foreground,
+                                RenderTransform = new TranslateTransform()
+                            };
 
-                        inlines.Add(new InlineUIContainer { Child = charBlock });
-                        charBlocks.Add(charBlock);
+                            inlines.Add(new InlineUIContainer { Child = charBlock });
+                            charBlocks.Add(charBlock);
+                        }
                     }
+                    finally { textBlock.SetValue(UpdatingTextProperty, false); }
 
                     var tasks = new List<Task>(charBlocks.Count);
                     for (var i = 0; i < charBlocks.Count; i++)
@@ -273,9 +287,14 @@ namespace Flowery.Effects
             if (textBlock.GetValue(WasPerCharacterAppliedProperty))
             {
                 textBlock.SetValue(WasPerCharacterAppliedProperty, false);
-                textBlock.Inlines!.Clear();
-                textBlock.SetCurrentValue(TextBlock.TextProperty, textBlock.GetValue(OriginalTextProperty));
-                textBlock.ClearValue(OriginalTextProperty);
+                textBlock.SetValue(UpdatingTextProperty, true);
+                try
+                {
+                    textBlock.Inlines!.Clear();
+                    textBlock.SetCurrentValue(TextBlock.TextProperty, textBlock.GetValue(OriginalTextProperty));
+                    textBlock.ClearValue(OriginalTextProperty);
+                }
+                finally { textBlock.SetValue(UpdatingTextProperty, false); }
             }
         }
     }
