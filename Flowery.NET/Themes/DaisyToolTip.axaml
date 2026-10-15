@@ -13,6 +13,15 @@
         <Setter Property="Opacity" Value="1" />
     </Style>
 
+    <Style Selector="ToolTip.daisy-scheduler, FlyoutPresenter.daisy-scheduler">
+        <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyBaseContentMutedBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource DaisyBorderThicknessThin}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
+        <Setter Property="Padding" Value="{DynamicResource DaisySchedulerTooltipPadding}" />
+    </Style>
+
     <!-- DaisyUI Tooltips have arrows (triangle) usually.
          Avalonia ToolTip has placement logic but arrow rendering depends on template.
          Default Fluent theme has no arrow.

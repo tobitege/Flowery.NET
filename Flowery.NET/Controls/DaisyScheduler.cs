@@ -367,8 +367,7 @@ public partial class DaisyScheduler : TemplatedControl
         }
         if (change.Property.OwnerType == typeof(DaisyScheduler) ||
             change.Property == FontSizeProperty ||
-            change.Property == ThemeVariantScope.ActualThemeVariantProperty ||
-            change.Property == BoundsProperty && change.GetOldValue<Rect>().Size != change.GetNewValue<Rect>().Size)
+            change.Property == ThemeVariantScope.ActualThemeVariantProperty)
             RequestRender();
     }
 
@@ -395,6 +394,10 @@ public partial class DaisyScheduler : TemplatedControl
         else
             _savedOffset = null;
         _bodyScroll = null;
+        _headerScroll = null;
+        _gutterScroll = null;
+        _monthGrid = null;
+        _timeColumns.Clear();
         _frames.Clear();
         _occurrenceSources.Clear();
         _lanes.Clear();

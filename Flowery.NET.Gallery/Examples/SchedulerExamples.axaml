@@ -36,7 +36,7 @@
             </StackPanel>
         </WrapPanel>
         <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
-            <controls:DaisyScheduler x:Name="DemoScheduler" CurrentView="Month" MinHeight="400" />
+            <controls:DaisyScheduler x:Name="DemoScheduler" CurrentView="Month" />
             <Border x:Name="EditorPanel" Grid.Column="1" IsVisible="False" Width="280"
                     Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"
                     BorderThickness="1" CornerRadius="8" Padding="16">

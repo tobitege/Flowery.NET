@@ -65,7 +65,7 @@ public partial class DaisyScheduler
             Variant = model.IsToggle && model.IsChecked ? DaisyButtonVariant.Primary : DaisyButtonVariant.Ghost,
             Tag = new ToolbarAction(model, adornment), Margin = new Thickness(2)
         };
-        ToolTip.SetTip(button, model.Tooltip);
+        SetSchedulerTooltip(button, model.Tooltip);
         AutomationProperties.SetName(button, model.Label ?? model.Tooltip ?? model.Id ?? string.Empty);
         if (model.MenuItems is { Count: > 0 } entries)
         {
@@ -128,7 +128,7 @@ public partial class DaisyScheduler
                 new Flyout { Content = calendar }.ShowAt(button);
                 break;
             case "Settings":
-                new Flyout { Content = BuildSettings() }.ShowAt(button);
+                new Flyout { Content = BuildSettings(), FlyoutPresenterClasses = { "daisy-scheduler" } }.ShowAt(button);
                 break;
         }
     }
@@ -144,7 +144,7 @@ public partial class DaisyScheduler
 
     private Control BuildSettings()
     {
-        var settings = new StackPanel { Spacing = SpacingMedium, MinWidth = Token<double>("DaisySchedulerSettingsMinimumWidth") };
+        var settings = new StackPanel { Spacing = SpacingXS, MinWidth = Token<double>("DaisySchedulerSettingsMinimumWidth") };
         settings.Children.Add(SettingCheckBox("ShowTiles", ShowTiles));
         settings.Children.Add(SettingCheckBox("HideIdleResources", HideIdleResources));
         settings.Children.Add(SettingCheckBox("GroupByDay", GroupMode == SchedulerGroupMode.ByDay));
@@ -165,7 +165,12 @@ public partial class DaisyScheduler
             check.IsCheckedChanged += OnTileOptionChanged;
             settings.Children.Add(check);
         }
-        return new ScrollViewer { Content = settings, MaxHeight = Token<double>("DaisySchedulerSettingsMaximumHeight"), VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+        return new ScrollViewer
+        {
+            Content = settings, MaxHeight = Token<double>("DaisySchedulerSettingsMaximumHeight"),
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto, AllowAutoHide = false
+        };
     }
 
     private DaisyCheckBox SettingCheckBox(string key, bool value)

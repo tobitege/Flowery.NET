@@ -48,16 +48,18 @@ public partial class DaisyScheduler
         var month = new DateTime(SelectedDate.Year, SelectedDate.Month, 1);
         var start = WeekStart(month, FirstDayOfWeek);
         var maxAppointments = Enumerable.Range(0, 42).Max(day => Items.Count(appointment => OnDate(appointment, start.AddDays(day))));
+        var minimumHeight = 6 * Math.Max(Token<double>("DaisySchedulerMonthMinimumCellHeight") * Scale,
+            Token<double>($"DaisySize{Size}Height") + maxAppointments * (ChipHeight + SpacingXS / 2)) + ChipHeight;
         var grid = new Grid
         {
             ColumnDefinitions = new ColumnDefinitions("*,*,*,*,*,*,*"),
             RowDefinitions = new RowDefinitions("Auto,*,*,*,*,*,*"),
             MinWidth = Token<double>("DaisySchedulerMonthMinimumWidth") * Scale,
             Width = Math.Max(Token<double>("DaisySchedulerMonthMinimumWidth") * Scale, Bounds.Width - BorderThickness.Left - BorderThickness.Right - Padding.Left - Padding.Right - SpacingLarge),
-            Height = Math.Max(6 * Math.Max(Token<double>("DaisySchedulerMonthMinimumCellHeight") * Scale,
-                Token<double>($"DaisySize{Size}Height") + maxAppointments * (ChipHeight + SpacingXS / 2)) + ChipHeight,
-                (_viewHost?.Bounds.Height ?? 0) - SpacingLarge)
+            MinHeight = minimumHeight,
+            Height = minimumHeight
         };
+        _monthGrid = grid;
         for (var column = 0; column < 7; column++)
         {
             var text = Label(start.AddDays(column).ToString("ddd", Culture), true);
@@ -192,14 +194,18 @@ public partial class DaisyScheduler
                 AddRectangle(canvas, 0, minute * PixelsPerMinute, width, 1, Brush("DaisyBase300Brush"));
             var timed = Items.Where(appointment => !IsBanner(appointment) && MatchesResource(appointment, resource));
             var layouts = EventBlockLayout.Layout(date, timed, Math.Max(15, ChipHeight / PixelsPerMinute));
+            var blocks = new List<(Border Frame, EventLayout Layout)>();
+            var minimumWidth = (ColumnMinWidth ?? Token<double>("DaisySchedulerColumnMinimumWidth")) * Scale;
             foreach (var layout in layouts)
             {
+                minimumWidth = Math.Max(minimumWidth, layout.ColumnCount * TimedAppointmentMinimumWidth(layout.Appointment));
                 var block = CreateAppointment(layout.Appointment, AppointmentSurface.Timed, lane);
                 block.Width = Math.Max(1, width / layout.ColumnCount - 4);
                 block.Height = Math.Max(ChipHeight, (layout.EndMinutes - layout.StartMinutes) * PixelsPerMinute - 2);
                 Canvas.SetLeft(block, layout.ColumnIndex * width / layout.ColumnCount + 2);
                 Canvas.SetTop(block, layout.StartMinutes * PixelsPerMinute);
                 canvas.Children.Add(block);
+                blocks.Add((block, layout));
             }
             if (date == DateTime.Today)
                 AddRectangle(canvas, 0, DateTime.Now.TimeOfDay.TotalMinutes * PixelsPerMinute, width, 2, Brush("DaisyPrimaryBrush"));
@@ -207,6 +213,8 @@ public partial class DaisyScheduler
             var wrapper = new Border { Child = canvas, BorderBrush = Brush("DaisyBase300Brush"), BorderThickness = new Thickness(0, 0, 1, 0) };
             Grid.SetColumn(wrapper, index);
             body.Children.Add(wrapper);
+            _timeColumns.Add(new TimeColumn(header.ColumnDefinitions[index], body.ColumnDefinitions[index], canvas,
+                blocks, canvas.Children.OfType<Border>().Where(static child => !child.IsHitTestVisible).ToArray(), minimumWidth));
         }
         return FrozenGrid(header, gutter, body, gutterWidth);
     }
@@ -332,6 +340,7 @@ public partial class DaisyScheduler
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto
         };
         _bodyScroll.Loaded += OnBodyLoaded;
+        _bodyScroll.ScrollChanged += OnBodyScrolled;
         return _bodyScroll;
     }
 
@@ -341,7 +350,6 @@ public partial class DaisyScheduler
         _headerScroll = new ScrollViewer { Content = header, HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled };
         _gutterScroll = new ScrollViewer { Content = gutter, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Hidden };
         var scroll = CreateScroll(body);
-        scroll.ScrollChanged += OnBodyScrolled;
         var corner = Cell(Label(CurrentView is SchedulerView.Planner or SchedulerView.Timeline ? Text("Resources") : Text("AllDay"), true), header: true);
         corner.Width = gutterWidth;
         root.Children.Add(corner);
@@ -359,6 +367,8 @@ public partial class DaisyScheduler
     {
         if (ReferenceEquals(sender, _bodyScroll) && _bodyScroll is { } body)
         {
+            if (e.ViewportDelta != default)
+                UpdateViewGeometry();
             if (_headerScroll is not null)
                 _headerScroll.Offset = new Vector(body.Offset.X, 0);
             if (_gutterScroll is not null)
@@ -371,6 +381,7 @@ public partial class DaisyScheduler
         if (!ReferenceEquals(sender, _bodyScroll) || _bodyScroll is null)
             return;
         _bodyScroll.Loaded -= OnBodyLoaded;
+        UpdateViewGeometry();
         var initial = CurrentView switch
         {
             SchedulerView.Day or SchedulerView.Week => new Vector(0, 7 * 60 * PixelsPerMinute),

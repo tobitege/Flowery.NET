@@ -307,6 +307,7 @@ public sealed partial class SchedulerTests
     [InlineData("Corporate")]
     [InlineData("Light")]
     [InlineData("Dark")]
+    [InlineData("Coffee")]
     public void HoverTooltipTextInheritsTheTooltipPalette(string theme)
     {
         var previous = DaisyThemeManager.CurrentThemeName;
@@ -320,7 +321,8 @@ public sealed partial class SchedulerTests
             scope.Scheduler.Appointments = new[] { scope.Appointment };
             scope.Layout();
             var frame = scope.Frame(scope.Appointment);
-            var content = Assert.IsType<StackPanel>(ToolTip.GetTip(frame));
+            var tooltip = Assert.IsType<ToolTip>(ToolTip.GetTip(frame));
+            var content = Assert.IsType<StackPanel>(tooltip.Content);
             ToolTip.SetIsOpen(frame, true);
             scope.Layout();
             try
@@ -328,6 +330,11 @@ public sealed partial class SchedulerTests
                 var popup = content.GetVisualAncestors().OfType<ToolTip>().Single();
                 var foreground = Assert.IsAssignableFrom<ISolidColorBrush>(popup.Foreground).Color;
                 var background = Assert.IsAssignableFrom<ISolidColorBrush>(popup.Background).Color;
+                Assert.True(scope.Scheduler.TryFindResource("DaisyBase200Brush", scope.Scheduler.ActualThemeVariant, out var backgroundResource));
+                Assert.Equal(Assert.IsAssignableFrom<ISolidColorBrush>(backgroundResource).Color, background);
+                var border = Assert.IsAssignableFrom<ISolidColorBrush>(popup.BorderBrush).Color;
+                Assert.NotEqual(background, border);
+                Assert.True(popup.BorderThickness.Left > 0);
                 Assert.NotEqual(background, foreground);
                 Assert.All(content.Children.OfType<TextBlock>(), label =>
                     Assert.Equal(foreground, Assert.IsAssignableFrom<ISolidColorBrush>(label.Foreground).Color));

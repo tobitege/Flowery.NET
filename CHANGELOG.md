@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.1] - 2026-10-15
+
+### Fixed
+
+- Scheduler views now resize existing appointment controls and preserve their scroll position without rebuilding the view.
+- Day and Week appointments reserve enough width for overlapping time ranges and show optional details only when complete rows fit. Duplicate status indicators are removed.
+- Scheduler tooltips use theme surface colors, a visible border, and design-token padding.
+- The Calendar month navigator highlights days with appointments, including daily and continuous spans, and respects the resource-kind filter.
+- Scheduler settings use compact row spacing, share the tooltip surface colors, and reserve space for the vertical scrollbar.
+- The Gallery Scheduler demo fits shorter windows without covering its options or help text.
+
 ## [3.6.0] - 2026-10-15
 
 ### Added

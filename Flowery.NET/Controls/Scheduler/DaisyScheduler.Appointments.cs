@@ -50,7 +50,7 @@ public partial class DaisyScheduler
         frame.KeyDown += OnAppointmentKeyDown;
         var tooltip = AppointmentTooltipRenderer?.Invoke(context) ?? AppointmentTooltipTemplate?.Build(context) ?? BuildTooltip(context);
         tooltip.DataContext = context;
-        ToolTip.SetTip(frame, tooltip);
+        SetSchedulerTooltip(frame, tooltip);
         _frames.Add((frame, appointment));
         return frame;
     }
@@ -59,7 +59,7 @@ public partial class DaisyScheduler
     {
         var main = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,*,Auto"), RowDefinitions = new RowDefinitions("Auto,*,Auto"), Margin = new Thickness(SpacingXS + LineThickness, SpacingXS / 2) };
         var multiline = context.Surface == AppointmentSurface.Timed;
-        var text = new StackPanel { Spacing = SpacingXS / 2, ClipToBounds = true };
+        var text = new AppointmentTextPanel(SpacingXS / 2) { ClipToBounds = true };
         var title = Label(context.Subject);
         title.Foreground = context.Foreground;
         title.FontWeight = FontWeight.SemiBold;
@@ -68,12 +68,12 @@ public partial class DaisyScheduler
             title.TextWrapping = TextWrapping.Wrap;
             title.TextTrimming = TextTrimming.None;
         }
-        text.Children.Add(title);
+        text.Add(title, 0);
         if (multiline)
         {
             var time = Label(context.TimeRange, true);
             time.Foreground = context.Foreground;
-            text.Children.Add(time);
+            text.Add(time, 1);
             if (!string.IsNullOrWhiteSpace(context.Note))
             {
                 var note = Label(context.Note, true);
@@ -83,7 +83,7 @@ public partial class DaisyScheduler
                     note.TextWrapping = TextWrapping.Wrap;
                     note.TextTrimming = TextTrimming.None;
                 }
-                text.Children.Add(note);
+                text.Add(note, 4);
             }
         }
         else if (!context.IsAllDay)
@@ -92,10 +92,8 @@ public partial class DaisyScheduler
         Grid.SetRow(text, 1);
         main.Children.Add(text);
 
-        var status = new StackPanel { Spacing = 2, Margin = new Thickness(0, 0, 4, 0), Orientation = multiline ? Orientation.Vertical : Orientation.Horizontal };
-        var flags = (context.IsLocked ? "🔒" : "") + (context.IsComplete ? "✓" : "") +
-            (context.IsCancelled ? "×" : "") + (context.IsTentative ? "?" : "") +
-            (context.IsConfirmed ? "✓" : "") + (context.IsRecurring ? "↻" : "");
+        var status = new StackPanel { Spacing = SpacingXS / 2, Margin = new Thickness(0, 0, SpacingXS, 0), Orientation = multiline ? Orientation.Vertical : Orientation.Horizontal };
+        var flags = AppointmentFlags(context.Appointment);
         if (flags.Length > 0)
         {
             var label = Label(flags, true);
@@ -108,7 +106,7 @@ public partial class DaisyScheduler
             if (indicator.FontFamily is { } family)
                 glyph.FontFamily = family;
             glyph.Foreground = indicator.Color is { } color ? new SolidColorBrush(color) : context.Foreground;
-            ToolTip.SetTip(glyph, indicator.Tooltip);
+            SetSchedulerTooltip(glyph, indicator.Tooltip);
             status.Children.Add(glyph);
         }
         Grid.SetRow(status, 1);
@@ -128,13 +126,22 @@ public partial class DaisyScheduler
                         group.Children.Add(CreateDecoration(tile, context, true));
                     strip.Children.Add(group);
                 }
-                Grid.SetColumn(strip, side switch { TileSide.Left => 1, TileSide.Right => 3, _ => 2 });
-                Grid.SetRow(strip, side switch { TileSide.Top => 0, TileSide.Bottom => 2, _ => 1 });
-                main.Children.Add(strip);
+                if (multiline && side is TileSide.Top or TileSide.Bottom)
+                {
+                    text.Add(strip, side == TileSide.Top ? 2 : 3, first: side == TileSide.Top);
+                    if (side == TileSide.Bottom)
+                        text.Bottom = strip;
+                }
+                else
+                {
+                    Grid.SetColumn(strip, side switch { TileSide.Left => 1, TileSide.Right => 3, _ => 2 });
+                    Grid.SetRow(strip, side switch { TileSide.Top => 0, TileSide.Bottom => 2, _ => 1 });
+                    main.Children.Add(strip);
+                }
             }
         }
         var root = new Grid { ClipToBounds = true };
-        root.Children.Add(new Border { BorderBrush = context.BarBrush, BorderThickness = new Thickness(4, 0, 0, 0), Child = main });
+        root.Children.Add(new Border { BorderBrush = context.BarBrush, BorderThickness = new Thickness(SpacingXS, 0, 0, 0), Child = main });
         foreach (var adornment in context.Adornments)
         {
             var decoration = CreateDecoration(adornment, context, false);
@@ -153,6 +160,17 @@ public partial class DaisyScheduler
             root.Children.Add(decoration);
         }
         return root;
+    }
+
+    private static string AppointmentFlags(AppointmentModel appointment)
+    {
+        var flags = (appointment.IsLocked ? "🔒" : "") + (appointment.IsComplete ? "✓" : "") +
+            (appointment.IsCancelled ? "×" : "") + (appointment.IsTentative ? "?" : "") +
+            (appointment.IsConfirmed ? "✓" : "") + (appointment.IsRecurring ? "↻" : "");
+        foreach (var indicator in appointment.Indicators)
+            if (!string.IsNullOrEmpty(indicator.Glyph))
+                flags = flags.Replace(indicator.Glyph, string.Empty, StringComparison.Ordinal);
+        return flags;
     }
 
     private Border CreateDecoration(AppointmentDecoration decoration, AppointmentContext context, bool tile)
@@ -196,7 +214,7 @@ public partial class DaisyScheduler
             BorderThickness = new Thickness(decoration.BorderColor is null ? 0 : LineThickness),
             RenderTransform = new TranslateTransform(decoration.OffsetX, decoration.OffsetY)
         };
-        ToolTip.SetTip(border, decoration.Tooltip);
+        SetSchedulerTooltip(border, decoration.Tooltip);
         return border;
     }
 
@@ -223,9 +241,21 @@ public partial class DaisyScheduler
     private TextBlock TooltipLabel(string text, bool secondary = false)
     {
         var label = Label(text, secondary);
-        // The popup's neutral background uses ToolTip.Foreground, not the calendar surface color.
+        // Inherit the scheduler tooltip palette, including for custom appointment fills.
         label.ClearValue(TextBlock.ForegroundProperty);
         return label;
+    }
+
+    private void SetSchedulerTooltip(Control target, object? content)
+    {
+        if (content is null)
+            return;
+        var tooltip = content as ToolTip ?? new ToolTip { Content = content };
+        tooltip.Classes.Add("daisy-scheduler");
+        tooltip.FontFamily = FontFamily;
+        tooltip.FontSize = Token<double>($"DaisySize{Size}SecondaryFontSize");
+        tooltip.MaxWidth = Token<double>("DaisySchedulerTooltipMaximumWidth");
+        ToolTip.SetTip(target, tooltip);
     }
 
     private static IBrush Contrast(Color color)

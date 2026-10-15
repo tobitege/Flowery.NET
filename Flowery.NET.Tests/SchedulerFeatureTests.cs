@@ -35,7 +35,7 @@ public sealed partial class SchedulerTests
         Assert.Equal(time, context.StartTime);
         Assert.Equal(time, scope.Scheduler.FormatTime(Monday.AddHours(9)));
         Assert.Equal(date, scope.Scheduler.FormatDate(Monday));
-        var tooltip = Assert.IsType<StackPanel>(ToolTip.GetTip(frame));
+        var tooltip = Assert.IsType<StackPanel>(Assert.IsType<ToolTip>(ToolTip.GetTip(frame)).Content);
         Assert.Contains(tooltip.Children.OfType<TextBlock>(), label => label.Text?.Contains(date, StringComparison.Ordinal) == true);
         Assert.Equal(previousCulture, FloweryLocalization.CurrentCulture);
         Assert.Equal(Monday.AddHours(9), scope.Appointment.Start);

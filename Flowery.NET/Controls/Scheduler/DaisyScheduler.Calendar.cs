@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
@@ -9,6 +10,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Flowery.Controls.Scheduler.Models;
 using Flowery.Controls.Scheduler.Rendering;
+using Flowery.Controls.Scheduler.Utilities;
 
 namespace Flowery.Controls;
 
@@ -21,6 +23,20 @@ public partial class DaisyScheduler
         var root = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*"), ColumnSpacing = SpacingMedium };
         var month = new DateTime(SelectedDate.Year, SelectedDate.Month, 1);
         var start = WeekStart(month, FirstDayOfWeek);
+        var resourceIds = (SchedulerResources ?? Array.Empty<ResourceModel>())
+            .Where(resource => ResourceKindFilter is null || resource.Kind == ResourceKindFilter)
+            .Select(static resource => resource.Id).ToHashSet();
+        var occupiedDays = new HashSet<DateTime>();
+        var end = start.AddDays(42);
+        foreach (var appointment in Appointments ?? Array.Empty<AppointmentModel>())
+        {
+            if (ResourceKindFilter is not null && !appointment.ResourceIds.Any(resourceIds.Contains))
+                continue;
+            foreach (var occurrence in AppointmentOccurrences.InRange(appointment, start, end))
+                for (var day = occurrence.Start.Date < start ? start : occurrence.Start.Date;
+                     day < end && day < occurrence.End; day = day.AddDays(1))
+                    occupiedDays.Add(day);
+        }
         var calendar = new Grid
         {
             Name = "PART_MonthNavigator", Width = Token<double>("DaisySchedulerCalendarWidth") * Scale,
@@ -64,11 +80,14 @@ public partial class DaisyScheduler
             for (var column = 0; column < 7; column++)
             {
                 var date = weekStart.AddDays(column);
+                var selected = date == SelectedDate.Date;
+                var occupied = occupiedDays.Contains(date);
                 var button = new DaisyButton
                 {
                     Content = date.Day.ToString(Culture), Tag = new CalendarDate(date), Size = Size,
-                    Variant = date == SelectedDate.Date ? DaisyButtonVariant.Primary : DaisyButtonVariant.Ghost,
-                    FontWeight = date == DateTime.Today ? FontWeight.Bold : FontWeight.Normal,
+                    Variant = selected || occupied ? DaisyButtonVariant.Primary : DaisyButtonVariant.Ghost,
+                    ButtonStyle = occupied && !selected ? DaisyButtonStyle.Soft : DaisyButtonStyle.Default,
+                    FontWeight = date == DateTime.Today || occupied ? FontWeight.Bold : FontWeight.Normal,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     MinWidth = 0, Padding = new Thickness(SpacingXS)
                 };
@@ -92,9 +111,6 @@ public partial class DaisyScheduler
         var detail = new Grid { RowDefinitions = new RowDefinitions("Auto,*"), RowSpacing = SpacingSmall };
         detail.Children.Add(Label(SelectedDate.ToString("D", Culture)));
         var entries = new StackPanel { Name = "PART_CalendarAppointments", Spacing = SpacingSmall };
-        var resourceIds = (SchedulerResources ?? Array.Empty<ResourceModel>())
-            .Where(resource => ResourceKindFilter is null || resource.Kind == ResourceKindFilter)
-            .Select(static resource => resource.Id).ToHashSet();
         var appointments = Items.Where(appointment => OnDate(appointment, SelectedDate.Date) &&
             (ResourceKindFilter is null || appointment.ResourceIds.Any(resourceIds.Contains)))
             .OrderByDescending(static appointment => appointment.IsAllDay).ThenBy(static appointment => appointment.Start).ToArray();

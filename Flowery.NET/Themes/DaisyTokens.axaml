@@ -437,6 +437,7 @@
     <sys:Double x:Key="DaisySchedulerAgendaTimeWidth">130</sys:Double>
     <sys:Double x:Key="DaisySchedulerCalendarWidth">300</sys:Double>
     <sys:Double x:Key="DaisySchedulerTooltipMaximumWidth">360</sys:Double>
+    <Thickness x:Key="DaisySchedulerTooltipPadding">12,8</Thickness>
     <sys:Double x:Key="DaisySchedulerSettingsMinimumWidth">230</sys:Double>
     <sys:Double x:Key="DaisySchedulerSettingsMaximumHeight">600</sys:Double>
     <Thickness x:Key="DaisySchedulerToolbarMargin">8</Thickness>

@@ -61,6 +61,8 @@ Set CurrentView=Calendar and ResourceKindFilter=Person or Room to show appointme
 Null includes every kind and unassigned appointments. An appointment with multiple matching resources appears once.
 Up/down buttons browse months; selecting a date updates SelectedDate and the right-hand list.
 FirstDayOfWeek and WeekRule determine calendar columns and week numbers, including year boundaries.
+Days with appointments use the primary soft color. The selected day uses the primary filled color.
+The month navigator includes appointments across the visible month and applies the same resource-kind filter as the daily list.
 The daily list orders all-day entries before timed entries and uses the existing date/time overrides.
 Subjects and descriptions wrap. Each entry uses its required height; the list scrolls when it exceeds the available height.
 Give the scheduler a constrained height, such as a star-sized Grid row, to enable scrolling.
@@ -105,6 +107,9 @@ Name tags use this token unless `AppointmentDecoration.FontSize` supplies an exp
 Row heights, chip heights, spacing, borders, and radii use the shared design tokens.
 Scheduler widths and time-axis metrics use the `DaisyScheduler*` tokens in `Themes/DaisyTokens.axaml`.
 Hosts can override these resources. `ColumnMinWidth` and `AppointmentCornerRadius` override their token defaults when set.
+Day and Week columns reserve space for complete time ranges, status icons, and overlapping appointments.
+Short appointments give priority to the subject and time. Optional notes and tiles appear only when complete rows fit.
+Window resizing keeps the existing appointment controls, selection, and scroll position.
 
 The control uses the active Flowery palette.
 `DaisySchedulerTodayBrush` controls the current-day highlight.
@@ -114,6 +119,8 @@ Appointments can override their background and accent through `BackColor` and `B
 The control chooses black or white text for a custom background.
 Data tiles and filled decorations also select text colors from their own background.
 Set `AppointmentDecoration.ForeColor` to override this choice.
+Scheduler tooltips use `DaisyBase200Brush`, `DaisyBaseContentBrush`, and a border from `DaisyBaseContentMutedBrush`.
+`DaisySchedulerTooltipPadding` controls their padding (default: `12,8`). Tooltip borders use `DaisyBorderThicknessThin`.
 
 ## Data and customization
 
