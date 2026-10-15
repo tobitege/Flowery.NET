@@ -8,10 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.7.0] - 2026-10-15
+## [3.6.0] - 2026-10-15
 
 ### Added
 
+- Added `DaisyScheduler`, adapted from the MIT-licensed Xtreme.Components scheduler, with Day, Week, Month, Agenda, resource Planner, and horizontal Timeline day views.
+- The scheduler uses Flowery themes, design tokens, all five size tiers, and all twelve supported languages. It supports selection, move, resize, creation, deletion, tooltips, decorations, templates, and external drops through host events.
+- Added a Scheduler Gallery page with sample appointments, resource grouping, an appointment editor, a context menu, and read-only mode.
+- Added resource kinds, occupancy queries, and named, collapsible Timeline groups with host-defined criteria such as departments.
+- Added configurable week rules, editor time intervals, regional date/time conventions, and 12/24-hour clocks, with format selectors above the Gallery demo.
+- Added continuous and daily appointment spans, separate appointment rows, overlap confirmation, and an optional editor color palette.
+- Included the upstream copyright and MIT license in the library output and NuGet package.
+- Added Scheduler usage, API, and localization documentation, with Custom Controls entries in the generated help and `llms.txt` indexes.
 - Added a Scheduler Calendar view with week numbers, month navigation, resource-kind filtering, and a scrollable daily list with wrapped appointment text.
 - Added a resource-kind selector to the Scheduler Gallery demo and translated the new calendar labels in all twelve languages.
 - Added shared system-contrast and reduced-motion preferences, application overrides, and custom contrast application support.
@@ -29,19 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed input accessibility metadata, localized password/OTP actions, Kanban dialog focus, editor color choices, and subtask renaming.
 - Fixed forecast unit and precipitation labels, shared table column widths, and animated text image fills.
 - Corrected API and design-token documentation. Documentation generation now merges partial APIs, includes Kanban/helpers/guides, and resolves local links and fragments consistently.
-
-## [3.6.0] - 2026-10-14
-
-### Added
-
-- Added `DaisyScheduler`, adapted from the MIT-licensed Xtreme.Components scheduler, with Day, Week, Month, Agenda, resource Planner, and horizontal Timeline day views.
-- The scheduler uses Flowery themes, design tokens, all five size tiers, and all twelve supported languages. It supports selection, move, resize, creation, deletion, tooltips, decorations, templates, and external drops through host events.
-- Added a Scheduler Gallery page with sample appointments, resource grouping, an appointment editor, a context menu, and read-only mode.
-- Added resource kinds, occupancy queries, and named, collapsible Timeline groups with host-defined criteria such as departments.
-- Added configurable week rules, editor time intervals, regional date/time conventions, and 12/24-hour clocks, with format selectors above the Gallery demo.
-- Added continuous and daily appointment spans, separate appointment rows, overlap confirmation, and an optional editor color palette.
-- Included the upstream copyright and MIT license in the library output and NuGet package.
-- Added Scheduler usage, API, and localization documentation, with Custom Controls entries in the generated help and `llms.txt` indexes.
 
 ## [3.5.0] - 2026-10-10
 
