@@ -7,6 +7,11 @@ DaisyCard provides a panel for grouping content with padding, rounded corners, a
 
 ## Variant Options
 
+IsGlass uses DaisyGlass for simulated, bitmap, and Skia blur modes.
+DaisyPatternedCard and DaisyExpandableCard share this material behavior.
+High contrast supplies an opaque surface and disables capture.
+See [DaisyGlass](DaisyGlass.md) and [accessibility preferences](DaisyAccessibility.md#system-contrast-and-reduced-motion).
+
 | Variant | Description |
 | ------- | ----------- |
 | Normal (default) | Standard padding (32) and 16px corner radius. |

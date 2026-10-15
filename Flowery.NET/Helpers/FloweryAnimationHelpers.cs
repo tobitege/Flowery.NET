@@ -1,4 +1,6 @@
-using System;
+﻿using System;
+using Flowery.Controls;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Animation.Easings;
@@ -18,6 +20,33 @@ namespace Flowery.Helpers
     public static class FloweryAnimationHelpers
     {
         private static readonly Random _random = new();
+        private static readonly ConditionalWeakTable<Control, TimedAnimationState> _timedAnimations = new();
+
+        private sealed class TimedAnimationState
+        {
+            public int Generation { get; set; }
+            public List<DispatcherTimer> Timers { get; } = [];
+        }
+
+        /// <summary>Stops the control's active and queued effects, including looping pan and zoom.</summary>
+        public static void StopAnimations(Control target)
+        {
+            StopPanAndZoom(target);
+            target.DetachedFromVisualTree -= OnAnimationTargetDetached;
+        }
+
+        private static void StopTimedAnimations(Control target)
+        {
+            if (!_timedAnimations.TryGetValue(target, out var state)) return;
+            state.Generation++;
+            foreach (var timer in state.Timers) timer.Stop();
+            state.Timers.Clear();
+        }
+
+        private static void OnAnimationTargetDetached(object? sender, VisualTreeAttachmentEventArgs e)
+        {
+            if (sender is Control target) StopAnimations(target);
+        }
         private static readonly ConditionalWeakTable<Control, PanAndZoomState> _PanAndZoomStates = new();
         private static readonly ConditionalWeakTable<Control, PanAndZoomSizingSnapshot> _PanAndZoomSizingSnapshots = new();
 
@@ -40,6 +69,14 @@ namespace Flowery.Helpers
             Action? onComplete = null)
         {
             @params ??= new FlowerySlideEffectParams();
+            StopAnimations(target);
+            DaisyAccessibility.RegisterMotionHandler(target, OnMotionChanged);
+            if (DaisyAccessibility.IsReducedMotion)
+            {
+                ResetTransform(target);
+                onComplete?.Invoke();
+                return FlowerySlideEffect.None;
+            }
 
             // Ensure transform is set up
             EnsureTransformBuilder(target);
@@ -277,6 +314,7 @@ namespace Flowery.Helpers
 
         internal static void StopPanAndZoom(Control target, bool preserveSizing = false)
         {
+            StopTimedAnimations(target);
             if (_PanAndZoomStates.TryGetValue(target, out PanAndZoomState? state))
             {
                 state.Deactivate();
@@ -461,6 +499,7 @@ namespace Flowery.Helpers
             Easing? easing = null)
         {
             RunTimedAnimation(
+                target,
                 duration,
                 easing ?? new QuadraticEaseInOut(),
                 progress =>
@@ -483,6 +522,7 @@ namespace Flowery.Helpers
             Easing? easing = null)
         {
             RunTimedAnimation(
+                target,
                 duration,
                 easing ?? new QuadraticEaseInOut(),
                 progress =>
@@ -510,6 +550,7 @@ namespace Flowery.Helpers
             Easing? easing = null)
         {
             RunTimedAnimation(
+                target,
                 duration,
                 easing ?? new QuadraticEaseInOut(),
                 progress =>
@@ -536,6 +577,7 @@ namespace Flowery.Helpers
             Easing? easing = null)
         {
             RunTimedAnimation(
+                target,
                 duration,
                 easing ?? new QuadraticEaseInOut(),
                 progress =>
@@ -561,6 +603,7 @@ namespace Flowery.Helpers
             Easing? easing = null)
         {
             RunTimedAnimation(
+                target,
                 duration,
                 easing ?? new QuadraticEaseInOut(),
                 progress =>
@@ -597,6 +640,7 @@ namespace Flowery.Helpers
             Action? onComplete)
         {
             RunTimedAnimation(
+                target,
                 duration,
                 new QuadraticEaseInOut(),
                 progress =>
@@ -611,13 +655,26 @@ namespace Flowery.Helpers
         #region Animation Runner
 
         private static void RunTimedAnimation(
+            Control target,
             TimeSpan duration,
             Easing easing,
             Action<double> applyFrame,
             Action? onComplete)
         {
+            DaisyAccessibility.RegisterMotionHandler(target, OnMotionChanged);
+            var state = _timedAnimations.GetValue(target, static _ => new TimedAnimationState());
+            var generation = state.Generation;
             Dispatcher.UIThread.Post(() =>
             {
+                if (generation != state.Generation) return;
+                if (DaisyAccessibility.IsReducedMotion)
+                {
+                    applyFrame(1);
+                    onComplete?.Invoke();
+                    return;
+                }
+                target.DetachedFromVisualTree -= OnAnimationTargetDetached;
+                target.DetachedFromVisualTree += OnAnimationTargetDetached;
                 var durationMilliseconds = Math.Max(1.0, duration.TotalMilliseconds);
                 var startedAt = DateTime.UtcNow;
 
@@ -632,8 +689,15 @@ namespace Flowery.Helpers
                 {
                     Interval = TimeSpan.FromMilliseconds(16)
                 };
+                state.Timers.Add(timer);
                 timer.Tick += (_, _) =>
                 {
+                    if (generation != state.Generation)
+                    {
+                        timer.Stop();
+                        state.Timers.Remove(timer);
+                        return;
+                    }
                     var elapsedMilliseconds = (DateTime.UtcNow - startedAt).TotalMilliseconds;
                     var progress = elapsedMilliseconds / durationMilliseconds;
 
@@ -641,6 +705,7 @@ namespace Flowery.Helpers
                     {
                         ApplyProgress(1.0);
                         timer.Stop();
+                        state.Timers.Remove(timer);
                         onComplete?.Invoke();
                         return;
                     }
@@ -649,6 +714,13 @@ namespace Flowery.Helpers
                 };
                 timer.Start();
             });
+        }
+
+        private static void OnMotionChanged(Control target)
+        {
+            if (!DaisyAccessibility.IsReducedMotion) return;
+            StopAnimations(target);
+            ResetTransform(target);
         }
 
         private static double Interpolate(double from, double to, double progress)

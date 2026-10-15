@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Threading;
+using Flowery.Controls;
 using Avalonia.VisualTree;
 
 namespace Flowery.Effects
@@ -164,6 +165,7 @@ namespace Flowery.Effects
                 element.PointerExited += OnPointerExited;
                 element.PointerPressed += OnPointerPressed;
                 element.AttachedToVisualTree += OnAttachedToVisualTree;
+                element.DetachedFromVisualTree += OnDetachedFromVisualTree;
 
                 // If already attached, initialize now
                 if (TopLevel.GetTopLevel(element) != null)
@@ -177,6 +179,7 @@ namespace Flowery.Effects
                 element.PointerExited -= OnPointerExited;
                 element.PointerPressed -= OnPointerPressed;
                 element.AttachedToVisualTree -= OnAttachedToVisualTree;
+                element.DetachedFromVisualTree -= OnDetachedFromVisualTree;
                 StopAnimation(element);
                 RestoreOriginalText(element);
             }
@@ -188,6 +191,13 @@ namespace Flowery.Effects
             {
                 InitializeText(textBlock);
             }
+        }
+
+        private static void OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+        {
+            if (sender is not TextBlock text) return;
+            StopAnimation(text);
+            RestoreOriginalText(text);
         }
 
         private static void InitializeText(TextBlock textBlock)
@@ -251,6 +261,14 @@ namespace Flowery.Effects
 
         private static void StartAnimation(TextBlock textBlock)
         {
+            DaisyAccessibility.RegisterMotionHandler(textBlock, static control =>
+            {
+                if (!DaisyAccessibility.IsReducedMotion) return;
+                var text = (TextBlock)control;
+                StopAnimation(text);
+                RestoreOriginalText(text);
+            });
+            if (DaisyAccessibility.IsReducedMotion) return;
             // If already running, don't restart
             var existingTimer = textBlock.GetValue(TimerProperty);
             if (existingTimer != null) return;

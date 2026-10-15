@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -19,6 +19,15 @@ namespace Flowery.Effects
         private static readonly AttachedProperty<bool> WasTriggeredProperty =
             AvaloniaProperty.RegisterAttached<Control, bool>("WasTriggered", typeof(ScrollRevealBehavior), false);
 
+        private static readonly AttachedProperty<ScrollSubscription?> SubscriptionProperty =
+            AvaloniaProperty.RegisterAttached<Control, ScrollSubscription?>("Subscription", typeof(ScrollRevealBehavior));
+
+        private sealed class ScrollSubscription(Control element, ScrollViewer viewer)
+        {
+            public ScrollViewer Viewer { get; } = viewer;
+            public void OnScrollChanged(object? sender, ScrollChangedEventArgs e) => CheckVisibility(element, Viewer);
+        }
+
         public static bool GetIsEnabled(Control element) => element.GetValue(IsEnabledProperty);
         public static void SetIsEnabled(Control element, bool value) => element.SetValue(IsEnabledProperty, value);
 
@@ -34,8 +43,8 @@ namespace Flowery.Effects
         {
             if (e.NewValue is true)
             {
-                element.AttachedToVisualTree += (s, ev) => AttachToScroll(element);
-                element.DetachedFromVisualTree += (s, ev) => DetachFromScroll(element);
+                element.AttachedToVisualTree += OnAttached;
+                element.DetachedFromVisualTree += OnDetached;
 
                 if (TopLevel.GetTopLevel(element) != null)
                 {
@@ -44,23 +53,34 @@ namespace Flowery.Effects
             }
             else
             {
+                element.AttachedToVisualTree -= OnAttached;
+                element.DetachedFromVisualTree -= OnDetached;
                 DetachFromScroll(element);
                 SetWasTriggered(element, false);
             }
         }
 
+        private static void OnAttached(object? sender, VisualTreeAttachmentEventArgs e)
+        {
+            if (sender is Control control) AttachToScroll(control);
+        }
+
+        private static void OnDetached(object? sender, VisualTreeAttachmentEventArgs e)
+        {
+            if (sender is Control control) DetachFromScroll(control);
+        }
+
         private static void AttachToScroll(Control element)
         {
-            // Hide element initially if RevealBehavior is configured
-            if (RevealBehavior.GetIsEnabled(element) && RevealBehavior.GetManualTriggerOnly(element))
-            {
-                element.Opacity = 0;
-            }
+            DetachFromScroll(element);
+            if (!GetIsEnabled(element) || GetWasTriggered(element)) return;
 
             var scrollViewer = element.GetVisualAncestors().OfType<ScrollViewer>().FirstOrDefault();
             if (scrollViewer != null)
             {
-                scrollViewer.ScrollChanged += (s, e) => CheckVisibility(element, scrollViewer);
+                var subscription = new ScrollSubscription(element, scrollViewer);
+                element.SetValue(SubscriptionProperty, subscription);
+                scrollViewer.ScrollChanged += subscription.OnScrollChanged;
                 // Small delay before first check to ensure layout is ready
                 Avalonia.Threading.Dispatcher.UIThread.Post(() => CheckVisibility(element, scrollViewer), Avalonia.Threading.DispatcherPriority.Loaded);
             }
@@ -68,8 +88,11 @@ namespace Flowery.Effects
 
         private static void DetachFromScroll(Control element)
         {
-            // Reset triggered state on detach so it can re-trigger next time it's shown if desired
-            // though typically we only want once per "session"
+            if (element.GetValue(SubscriptionProperty) is { } subscription)
+            {
+                subscription.Viewer.ScrollChanged -= subscription.OnScrollChanged;
+                element.SetValue(SubscriptionProperty, null);
+            }
         }
 
         private static void CheckVisibility(Control element, ScrollViewer scrollViewer)
@@ -80,7 +103,7 @@ namespace Flowery.Effects
             var transform = element.TransformToVisual(scrollViewer);
             if (transform == null) return;
 
-            var relativePos = new Rect(transform.Value.Transform(elementBounds.Position), elementBounds.Size);
+            var relativePos = new Rect(transform.Value.Transform(new Point()), elementBounds.Size);
             var viewport = new Rect(0, 0, scrollViewer.Bounds.Width, scrollViewer.Bounds.Height);
 
             if (viewport.Intersects(relativePos))

@@ -53,6 +53,24 @@ Scheduler.AppointmentMoveRequested += (_, request) =>
 | Agenda | Appointments grouped by date | Edit and context requests |
 | Planner | A week on a horizontal axis, with resource lanes | Move between lanes, resize, create, external drop |
 | Timeline | One day on a horizontal axis, with named, collapsible resource groups | Move between lanes, resize, create, external drop |
+| Calendar | Month navigator with week numbers beside a daily appointment list | Edit and context requests |
+
+### Calendar navigator and daily list
+
+Set CurrentView=Calendar and ResourceKindFilter=Person or Room to show appointments assigned to that resource kind.
+Null includes every kind and unassigned appointments. An appointment with multiple matching resources appears once.
+Up/down buttons browse months; selecting a date updates SelectedDate and the right-hand list.
+FirstDayOfWeek and WeekRule determine calendar columns and week numbers, including year boundaries.
+The daily list orders all-day entries before timed entries and uses the existing date/time overrides.
+Subjects and descriptions wrap. Each entry uses its required height; the list scrolls when it exceeds the available height.
+Give the scheduler a constrained height, such as a star-sized Grid row, to enable scrolling.
+Like Agenda, this view displays supplied appointment times without per-resource time zone conversion.
+Override DaisySchedulerCalendarWidth to change the left column width; spacing and fonts use the existing size tokens.
+
+```xml
+<controls:DaisyScheduler CurrentView="Calendar" ResourceKindFilter="Room"
+                         FirstDayOfWeek="Monday" ClockFormat="TwentyFourHour" />
+```
 
 Horizontal views give each appointment a separate row, including appointments that do not overlap.
 Daily occurrences of the same appointment use the same row.

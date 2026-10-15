@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -30,65 +30,13 @@
                     </Border>
 
                     <!-- Glass effect background -->
-                    <Panel x:Name="PART_GlassPanel" IsVisible="False" ClipToBounds="True">
-                        <!-- Base tinted background -->
-                        <Border CornerRadius="{TemplateBinding CornerRadius}">
-                            <Border.Background>
-                                <SolidColorBrush Color="{TemplateBinding GlassTint}"
-                                                 Opacity="{TemplateBinding GlassOpacity}" />
-                            </Border.Background>
-                        </Border>
-
-                        <!-- Frosted/matte overlay -->
-                        <Border CornerRadius="{TemplateBinding CornerRadius}">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%" Opacity="0.4">
-                                    <GradientStop Offset="0" Color="#E8E8E8" />
-                                    <GradientStop Offset="0.25" Color="#F0F0F0" />
-                                    <GradientStop Offset="0.5" Color="#E5E5E5" />
-                                    <GradientStop Offset="0.75" Color="#EBEBEB" />
-                                    <GradientStop Offset="1" Color="#E0E0E0" />
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-
-                        <!-- Secondary texture layer -->
-                        <Border CornerRadius="{TemplateBinding CornerRadius}">
-                            <Border.Background>
-                                <RadialGradientBrush Center="30%,30%" GradientOrigin="20%,20%" Opacity="0.15">
-                                    <GradientStop Offset="0" Color="#FFFFFF" />
-                                    <GradientStop Offset="0.5" Color="#C0C0C0" />
-                                    <GradientStop Offset="1" Color="#00FFFFFF" />
-                                </RadialGradientBrush>
-                            </Border.Background>
-                        </Border>
-
-                        <!-- Top shine -->
-                        <Border CornerRadius="{TemplateBinding CornerRadius}"
-                                VerticalAlignment="Top"
-                                Height="50">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                                    <GradientStop Offset="0" Color="#40FFFFFF" />
-                                    <GradientStop Offset="0.5" Color="#15FFFFFF" />
-                                    <GradientStop Offset="1" Color="#00FFFFFF" />
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
-
-                        <!-- Inner highlight border -->
-                        <Border CornerRadius="{TemplateBinding CornerRadius}"
-                                BorderThickness="1"
-                                Margin="1">
-                            <Border.BorderBrush>
-                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                                    <GradientStop Offset="0" Color="#50FFFFFF" />
-                                    <GradientStop Offset="0.3" Color="#25FFFFFF" />
-                                    <GradientStop Offset="1" Color="#10FFFFFF" />
-                                </LinearGradientBrush>
-                            </Border.BorderBrush>
-                        </Border>
-
+                    <controls:DaisyGlass x:Name="PART_GlassPanel"
+                                         IsVisible="{TemplateBinding IsGlass}" EnableBackdropBlur="{TemplateBinding IsGlass}"
+                                         Padding="0" CornerRadius="{TemplateBinding CornerRadius}"
+                                         Foreground="{TemplateBinding Foreground}"
+                                         GlassBlur="{TemplateBinding GlassBlur}" GlassOpacity="{TemplateBinding GlassOpacity}"
+                                         GlassTint="{TemplateBinding GlassTint}" GlassTintOpacity="{TemplateBinding GlassTintOpacity}"
+                                         GlassBorderOpacity="{TemplateBinding GlassBorderOpacity}">
                         <!-- Content -->
                         <Border Padding="{TemplateBinding BodyPadding}"
                                 TextElement.FontSize="{TemplateBinding BodyFontSize}">
@@ -96,15 +44,7 @@
                                               Content="{TemplateBinding Content}"
                                               ContentTemplate="{TemplateBinding ContentTemplate}" />
                         </Border>
-
-                        <!-- Outer border -->
-                        <Border CornerRadius="{TemplateBinding CornerRadius}"
-                                BorderThickness="1">
-                            <Border.BorderBrush>
-                                <SolidColorBrush Color="#000000" Opacity="0.08" />
-                            </Border.BorderBrush>
-                        </Border>
-                    </Panel>
+                    </controls:DaisyGlass>
                 </Panel>
             </ControlTemplate>
         </Setter>

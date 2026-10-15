@@ -1,6 +1,8 @@
-using System;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
@@ -10,6 +12,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Flowery.Services;
+using Flowery.Helpers;
 
 namespace Flowery.Controls
 {
@@ -316,7 +319,35 @@ namespace Flowery.Controls
 
         public DaisySlideToConfirm()
         {
+            Focusable = true;
             UpdateSizing();
+        }
+
+        private CancellationTokenSource? _resetRequest;
+
+        protected override AutomationPeer OnCreateAutomationPeer() =>
+            new DaisyActionAutomationPeer(this, static control => ((DaisySlideToConfirm)control).Confirm());
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (e.Handled || e.Key is not (Key.Space or Key.Enter) || !IsEffectivelyEnabled) return;
+            Confirm();
+            e.Handled = true;
+        }
+
+        private void Confirm()
+        {
+            if (IsEffectivelyEnabled) _ = CompleteSlideAsync(GetMaxLeft());
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            _resetRequest?.Cancel();
+            _resetRequest = null;
+            _isDragging = false;
+            ReleaseCapture();
+            base.OnDetachedFromVisualTree(e);
         }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -570,8 +601,20 @@ namespace Flowery.Controls
 
             if (AutoReset)
             {
-                await Task.Delay(ResetDelay);
-                Reset();
+                var request = new CancellationTokenSource();
+                _resetRequest?.Cancel();
+                _resetRequest = request;
+                try
+                {
+                    await Task.Delay(ResetDelay, request.Token);
+                    if (ReferenceEquals(_resetRequest, request)) Reset();
+                }
+                catch (OperationCanceledException) { }
+                finally
+                {
+                    if (ReferenceEquals(_resetRequest, request)) _resetRequest = null;
+                    request.Dispose();
+                }
             }
         }
 
@@ -580,6 +623,8 @@ namespace Flowery.Controls
         /// </summary>
         public void Reset()
         {
+            _resetRequest?.Cancel();
+            _resetRequest = null;
             if (_label != null)
                 _label.Text = Text;
 

@@ -17,15 +17,15 @@ DaisyInput is a styled TextBox with **10 variants** and **4 size presets**. It s
 
 ## Size Options
 
-DaisyInput uses **fixed heights** for consistent sizing across all Flowery.NET controls.
+DaisyInput supports five sizes with fixed heights from the shared DaisySize*Height design tokens.
 
 | Size | Height | Font Size | Floating Height | Use Case |
 | ---- | ------ | --------- | --------------- | -------- |
 | ExtraSmall | 24 | 10 | 36 | Dense tables/toolbars. |
 | Small | 28 | 12 | 40 | Compact forms. |
 | Medium (default) | 32 | 14 | 44 | General usage. |
-| Large | 34 | 18 | 48 | Prominent inputs. |
-| ExtraLarge | 36 | 20 | 50 | Hero sections/dashboards. |
+| Large | 36 | 18 | 48 | Prominent inputs. |
+| ExtraLarge | 40 | 20 | 50 | Hero sections/dashboards. |
 
 > [!TIP]
 > The heights for `LabelPosition="Floating"` are slightly larger to provide vertical headroom for the label. See `DaisyInputFloating*Height` tokens in Design Tokens documentation.

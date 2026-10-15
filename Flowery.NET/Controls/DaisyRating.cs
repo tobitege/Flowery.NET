@@ -1,10 +1,11 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Flowery.Localization;
+using Flowery.Helpers;
 using Flowery.Services;
 
 namespace Flowery.Controls
@@ -55,6 +56,7 @@ namespace Flowery.Controls
             Minimum = 0;
             Maximum = 5;
             Value = 0;
+            Focusable = true;
             Cursor = Cursor.Parse("Hand");
         }
 
@@ -211,6 +213,24 @@ namespace Flowery.Controls
             SetCurrentValue(ValueProperty, newValue);
         }
 
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (e.Handled || IsReadOnly || !IsEffectivelyEnabled) return;
+            var step = Precision switch { RatingPrecision.Half => .5, RatingPrecision.Precise => .1, _ => 1 };
+            double? next = e.Key switch
+            {
+                Key.Left or Key.Down => Value - step,
+                Key.Right or Key.Up => Value + step,
+                Key.Home => Minimum,
+                Key.End => Maximum,
+                _ => null
+            };
+            if (next == null) return;
+            SetCurrentValue(ValueProperty, Math.Clamp(next.Value, Minimum, Maximum));
+            e.Handled = true;
+        }
+
         private double SnapValue(double rawValue)
         {
             switch (Precision)
@@ -237,7 +257,7 @@ namespace Flowery.Controls
     /// AutomationPeer for DaisyRating that exposes it as a slider to assistive technologies.
     /// Announces the current star count out of the maximum.
     /// </summary>
-    internal class DaisyRatingAutomationPeer : ControlAutomationPeer
+    internal class DaisyRatingAutomationPeer : DaisyRangeAutomationPeer
     {
         private const string DefaultAccessibleText = "Rating";
 

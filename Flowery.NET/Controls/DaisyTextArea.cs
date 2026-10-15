@@ -1,11 +1,13 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Interactivity;
+using Avalonia.Input;
 using Avalonia.Media;
+using Flowery.Localization;
 
 namespace Flowery.Controls
 {
@@ -26,10 +28,35 @@ namespace Flowery.Controls
         }
 
         private DaisyButton? _actionButton;
+        private Border? _resizeGrip;
+        private IPointer? _resizePointer;
+        private Point _resizeStart;
+        private double _resizeStartHeight;
 
         protected override void OnApplyTemplate(Avalonia.Controls.Primitives.TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
+
+            if (_resizeGrip != null)
+            {
+                _resizeGrip.PointerPressed -= OnResizePressed;
+                _resizeGrip.PointerMoved -= OnResizeMoved;
+                _resizeGrip.PointerReleased -= OnResizeReleased;
+                _resizeGrip.PointerCaptureLost -= OnResizeCaptureLost;
+                _resizeGrip.KeyDown -= OnResizeKeyDown;
+            }
+            EndResize();
+            _resizeGrip = e.NameScope.Find<Border>("PART_ResizeGrip");
+            if (_resizeGrip != null)
+            {
+                Avalonia.Automation.AutomationProperties.SetName(_resizeGrip,
+                    FloweryLocalization.GetStringInternal("Accessibility_ResizeTextArea", "Resize text area"));
+                _resizeGrip.PointerPressed += OnResizePressed;
+                _resizeGrip.PointerMoved += OnResizeMoved;
+                _resizeGrip.PointerReleased += OnResizeReleased;
+                _resizeGrip.PointerCaptureLost += OnResizeCaptureLost;
+                _resizeGrip.KeyDown += OnResizeKeyDown;
+            }
 
             // Unsubscribe from previous button if any
             if (_actionButton != null)
@@ -48,6 +75,51 @@ namespace Flowery.Controls
         private void OnActionButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
             OnActionButtonClicked();
+        }
+
+        private void OnResizePressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (!CanResize || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+            _resizeStart = e.GetPosition(TopLevel.GetTopLevel(this));
+            _resizeStartHeight = MinHeight;
+            _resizePointer = e.Pointer;
+            e.Pointer.Capture(_resizeGrip);
+            _resizeGrip?.Focus();
+            e.Handled = true;
+        }
+
+        private void OnResizeMoved(object? sender, PointerEventArgs e)
+        {
+            if (_resizePointer != e.Pointer || !CanResize) return;
+            var delta = e.GetPosition(TopLevel.GetTopLevel(this)).Y - _resizeStart.Y;
+            ResizeTo(_resizeStartHeight + delta);
+            e.Handled = true;
+        }
+
+        private void OnResizeReleased(object? sender, PointerReleasedEventArgs e) => EndResize();
+        private void OnResizeCaptureLost(object? sender, PointerCaptureLostEventArgs e) => _resizePointer = null;
+
+        private void EndResize()
+        {
+            var pointer = _resizePointer;
+            _resizePointer = null;
+            pointer?.Capture(null);
+        }
+
+        private void OnResizeKeyDown(object? sender, KeyEventArgs e)
+        {
+            if (!CanResize || e.Key is not (Key.Up or Key.Down)) return;
+            ResizeTo(MinHeight + (e.Key == Key.Up ? -FontSize : FontSize));
+            e.Handled = true;
+        }
+
+        private void ResizeTo(double height) =>
+            SetCurrentValue(MinHeightProperty, Math.Clamp(height, Math.Min(FontSize + Padding.Top + Padding.Bottom, MaxHeight), MaxHeight));
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            EndResize();
+            base.OnDetachedFromVisualTree(e);
         }
 
         #region Character Counter Properties
@@ -196,6 +268,7 @@ namespace Flowery.Controls
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
+            if (change.Property == CanResizeProperty && !CanResize) EndResize();
 
             // Handle Text property changes for character count and auto-grow
             if (change.Property == TextProperty)

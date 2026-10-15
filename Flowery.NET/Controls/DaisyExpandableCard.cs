@@ -1,6 +1,5 @@
-using System;
+﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Animation.Easings;
@@ -10,7 +9,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Presenters;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
+using Flowery.Effects;
 using Flowery.Services;
 
 namespace Flowery.Controls
@@ -255,6 +254,7 @@ namespace Flowery.Controls
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
+            _animationCts?.Cancel();
             base.OnApplyTemplate(e);
 
             _solidBackground = e.NameScope.Find<Border>("PART_SolidBackground");
@@ -448,7 +448,21 @@ namespace Flowery.Controls
             }
         }
 
-        private void UpdateState(bool animate)
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            UpdateState(false);
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            _animationCts?.Cancel();
+            _animationCts = null;
+            base.OnDetachedFromVisualTree(e);
+            UpdateState(false);
+        }
+
+        private async void UpdateState(bool animate)
         {
             var isExpanded = IsExpanded;
             var wrapper = IsGlass ? _glassExpandedWrapper : _solidExpandedWrapper;
@@ -461,10 +475,9 @@ namespace Flowery.Controls
 
             // Cancel any running animation
             _animationCts?.Cancel();
-            _animationCts = new CancellationTokenSource();
-            var token = _animationCts.Token;
+            _animationCts = null;
 
-            if (!animate)
+            if (!animate || TopLevel.GetTopLevel(this) == null)
             {
                 // Instant update
                 if (isExpanded)
@@ -504,37 +517,22 @@ namespace Flowery.Controls
             // If start width is NaN (Auto), treat as 0
             if (double.IsNaN(startWidth)) startWidth = 0;
 
-            // Run animation loop
-            Dispatcher.UIThread.InvokeAsync(async () =>
+            var request = new CancellationTokenSource();
+            _animationCts = request;
+            try
             {
-                var duration = AnimationDuration;
-                var easing = new CubicEaseOut();
-                var startTime = DateTime.Now;
-
-                while (DateTime.Now - startTime < duration)
+                await AnimationHelper.AnimateAsync(t =>
                 {
-                    if (token.IsCancellationRequested) return;
-
-                    var elapsed = (DateTime.Now - startTime).TotalMilliseconds;
-                    var t = Math.Min(1.0, elapsed / duration.TotalMilliseconds);
-                    var easedT = easing.Ease(t);
-
-                    var currentWidth = startWidth + (targetWidth - startWidth) * easedT;
-                    var currentOpacity = startOpacity + (targetOpacity - startOpacity) * easedT;
-
-                    wrapper.Width = currentWidth;
-                    wrapper.Opacity = currentOpacity;
-
-                    await Task.Delay(16); // ~60fps
-                }
-
-                // Final state
-                if (!token.IsCancellationRequested)
-                {
-                    wrapper.Width = targetWidth;
-                    wrapper.Opacity = targetOpacity;
-                }
-            });
+                    wrapper.Width = startWidth + (targetWidth - startWidth) * t;
+                    wrapper.Opacity = startOpacity + (targetOpacity - startOpacity) * t;
+                }, AnimationDuration, new CubicEaseOut(), ct: request.Token);
+            }
+            catch (OperationCanceledException) { }
+            finally
+            {
+                if (ReferenceEquals(_animationCts, request)) _animationCts = null;
+                request.Dispose();
+            }
         }
     }
 }

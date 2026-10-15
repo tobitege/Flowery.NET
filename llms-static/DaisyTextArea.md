@@ -32,13 +32,18 @@ DaisyTextArea inherits all properties from DaisyInput. Key ones for textarea usa
 | -------- | ---- | ------- | ----------- |
 | `ShowCharacterCount` | `bool` | `false` | Displays character count below textarea (e.g., "42 / 200"). |
 | `IsAutoGrow` | `bool` | `false` | Automatically expands height based on content. |
-| `CanResize` | `bool` | `true` | Whether the textarea can be resized by the user. |
+| `CanResize` | `bool` | `true` | Shows a vertical resize grip. Drag it, or focus it and press Up/Down. |
 | `ActionButtonContent` | `object?` | `null` | Content for action button below textarea (e.g., "Submit Feedback"). |
 | `ActionButtonCommand` | `ICommand?` | `null` | Command executed when action button is clicked (MVVM). |
 | `ActionButtonCommandParameter` | `object?` | `null` | Parameter passed to the action button command. |
 | `ActionButtonClicked` | `event` | - | Event raised when action button is clicked (code-behind). |
 
 ## Quick Examples
+
+The grip adjusts MinHeight from its current value and respects MaxHeight.
+The minimum grip size fits one text line and the input padding.
+Up/Down changes the requested height by one FontSize unit.
+CanResize=False hides the grip and cancels an active drag.
 
 ```xml
 <!-- Basic textarea -->

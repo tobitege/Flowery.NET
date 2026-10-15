@@ -7,6 +7,8 @@ DaisyTabs is a styled `TabControl` with four header variants (None, Bordered, Li
 
 ## Variant Options
 
+Tab headers retain native context-menu keyboard handling: use Shift+F10 or the Menu key on a focused header.
+
 | Variant | Description |
 | ------- | ----------- |
 | None | Text-only tabs; selected text is bold; no underline/box. |

@@ -31,6 +31,7 @@ namespace Flowery.NET.Kanban.Controls
                 kanban.UpdateViewState();
                 if (kanban.CurrentView == FlowKanbanView.Home)
                 {
+                    kanban._boardLoadGeneration++;
                     kanban.RefreshBoards();
                 }
 
@@ -433,6 +434,7 @@ namespace Flowery.NET.Kanban.Controls
 
         private void ExecuteShowHome()
         {
+            _boardLoadGeneration++;
             CurrentView = FlowKanbanView.Home;
         }
 
@@ -454,17 +456,21 @@ namespace Flowery.NET.Kanban.Controls
             }
         }
 
-        private async Task<(bool loaded, Exception? error)> TryLoadBoardAsync(string boardId)
+        private int _boardLoadGeneration;
+
+        internal async Task<(bool loaded, Exception? error)> TryLoadBoardAsync(string boardId)
         {
             if (string.IsNullOrWhiteSpace(boardId))
                 return (false, null);
 
             FlowKanbanData? data = null;
             Exception? error = null;
+            var generation = ++_boardLoadGeneration;
+            var store = BoardStore;
 
             await Task.Run(() =>
             {
-                if (!BoardStore.TryLoadBoard(boardId, out var loadedData, out var loadError))
+                if (!store.TryLoadBoard(boardId, out var loadedData, out var loadError))
                 {
                     error = loadError;
                     return;
@@ -476,13 +482,14 @@ namespace Flowery.NET.Kanban.Controls
             if (data == null)
                 return (false, error);
 
-            await ApplyLoadedBoardAsync(data, boardId);
-            return (true, null);
-        }
-
-        private Task ApplyLoadedBoardAsync(FlowKanbanData data, string boardId)
-        {
-            return FlowKanbanDispatcher.InvokeAsync(() => ApplyLoadedBoard(data, boardId));
+            var applied = false;
+            await FlowKanbanDispatcher.InvokeAsync(() =>
+            {
+                if (generation != _boardLoadGeneration || !ReferenceEquals(store, BoardStore)) return;
+                ApplyLoadedBoard(data, boardId);
+                applied = true;
+            });
+            return (applied, null);
         }
 
         private void ApplyLoadedBoard(FlowKanbanData data, string boardId)

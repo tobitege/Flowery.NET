@@ -115,6 +115,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
+from docs_manifest import GUIDE_FILES, NON_API_FILES
 
 
 # =============================================================================
@@ -168,6 +169,7 @@ class ControlInfo:
     description: str
     properties: list[PropertyInfo] = field(default_factory=list)
     enums: list[EnumInfo] = field(default_factory=list)
+    methods: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -183,240 +185,137 @@ class ExampleSnippet:
 # =============================================================================
 
 class CSharpParser:
-    """Parses C# control files to extract metadata."""
+    """Extract public source API. External base classes remain linked by name."""
+
+    @staticmethod
+    def _mask(content: str) -> str:
+        pattern = r'//[^\n]*|/\*.*?\*/|@"(?:[^"]|"")*"|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\''
+        return re.sub(pattern, lambda m: re.sub(r'[^\n]', ' ', m.group()), content, flags=re.DOTALL)
+
+    @staticmethod
+    def _end(mask: str, start: int, opening: str, closing: str) -> int:
+        depth = 0
+        for index in range(start, len(mask)):
+            if mask[index] == opening:
+                depth += 1
+            elif mask[index] == closing:
+                depth -= 1
+                if depth == 0:
+                    return index
+        raise ValueError("Unbalanced C# declaration")
+
+    @staticmethod
+    def _arguments(text: str) -> list[str]:
+        mask = CSharpParser._mask(text)
+        depths = dict.fromkeys('({[<', 0)
+        closing = dict(zip(')}]>', '({[<'))
+        result, start = [], 0
+        for index, char in enumerate(mask):
+            if char in depths:
+                depths[char] += 1
+            elif char in closing:
+                key = closing[char]
+                depths[key] = max(0, depths[key] - 1)
+            elif char == ',' and not any(depths.values()):
+                result.append(text[start:index].strip())
+                start = index + 1
+        result.append(text[start:].strip())
+        return result
+
+    @staticmethod
+    def _summary(content: str, position: int) -> str:
+        before = content[:position]
+        match = re.search(r'((?:[ \t]*///[^\n]*\n)+)\s*(?:\[[^\]]+\]\s*)*$', before)
+        if not match:
+            return ""
+        summary = re.search(r'<summary>(.*?)</summary>', match.group(1), re.DOTALL)
+        if not summary:
+            return ""
+        text = re.sub(r'///\s*|<[^>]+>', '', summary.group(1))
+        return ' '.join(text.split())
 
     def parse_file(self, filepath: Path) -> Optional[ControlInfo]:
-        """Parse a C# control file and extract metadata."""
-        content = filepath.read_text(encoding='utf-8')
-
-        # Extract enums
-        enums = self._extract_enums(content)
-
-        # Extract class info
-        target_name = filepath.stem
-        class_info = self._extract_class(content, target_name)
-        if not class_info:
+        content = filepath.read_text(encoding='utf-8-sig')
+        mask = self._mask(content)
+        name = filepath.name.split('.')[0]
+        declaration = re.search(
+            rf'public\s+(?:(?:static|sealed|abstract|partial)\s+)*class\s+{re.escape(name)}\b'
+            r'(?:\s*\([^)]*\))?'
+            r'(?:\s*:\s*([\w.]+))?', mask)
+        if not declaration:
             return None
-
-        class_name, base_class, description = class_info
-
-        # Extract properties
-        properties = self._extract_properties(content)
-
-        return ControlInfo(
-            name=class_name,
-            base_class=base_class,
-            description=description,
-            properties=properties,
-            enums=enums
-        )
-
-    def _extract_enums(self, content: str) -> list[EnumInfo]:
-        """Extract all enum definitions from the file."""
+        start = mask.index('{', declaration.end())
+        end = self._end(mask, start, '{', '}')
+        body, body_mask = content[start + 1:end], mask[start + 1:end]
+        depths, depth = [], 0
+        for char in body_mask:
+            depths.append(depth)
+            if char == '{': depth += 1
+            if char == '}': depth -= 1
+        properties = self._extract_properties(body, body_mask, depths)
+        methods = []
+        method_pattern = re.compile(
+            r'public\s+(?:(?:static|virtual|override|abstract|async|new|sealed)\s+)*'
+            r'[\w.<>,?\[\] ]+\s+(\w+)(?:<[^()\n]+>)?\s*\(', re.MULTILINE)
+        for match in method_pattern.finditer(body_mask):
+            if depths[match.start()] != 0:
+                continue
+            opening = body_mask.index('(', match.start())
+            closing = self._end(body_mask, opening, '(', ')')
+            signature = ' '.join(body[match.start():closing + 1].split())
+            methods.append(signature)
         enums = []
-        enum_pattern = re.compile(
-            r'public\s+enum\s+(\w+)\s*\{([^}]+)\}',
-            re.DOTALL
-        )
-        for match in enum_pattern.finditer(content):
-            enum_name = match.group(1)
-            enum_body = match.group(2)
-            values = []
-            for line in enum_body.split('\n'):
-                line = line.strip()
-                if not line or line.startswith('//'):
-                    continue
-                value_match = re.match(r'(\w+)', line)
-                if value_match:
-                    values.append(value_match.group(1))
-            enums.append(EnumInfo(name=enum_name, values=values))
-        return enums
+        for match in re.finditer(r'public\s+enum\s+(\w+)\s*\{([^}]+)\}', content, re.DOTALL):
+            enum_body = re.sub(r'//[^\n]*', '', match.group(2))
+            values = [part.strip().split('=')[0].strip() for part in enum_body.split(',') if part.strip()]
+            enums.append(EnumInfo(match.group(1), values))
+        return ControlInfo(name, declaration.group(1) or "Object",
+                           self._summary(content, declaration.start()), properties, enums, methods)
 
-    def _extract_class(self, content: str, target_name: str) -> Optional[tuple[str, str, str]]:
-        """
-        Extract class info for the target class name.
-        Returns (class_name, base_class, description).
-        """
-        # Regex to match class definition:
-        # public [static] [sealed|partial] class Name [: Base]
-        class_pattern = re.compile(
-            r'public\s+(?:static\s+|sealed\s+|partial\s+)*class\s+(\w+)(?:\s*:\s*([\w\.]+))?',
-            re.MULTILINE
-        )
-
-        # Find all classes
-        matches = list(class_pattern.finditer(content))
-
-        selected_match = None
-
-        # 1. Try to find exact match with filename
-        for m in matches:
-            if m.group(1) == target_name:
-                selected_match = m
-                break
-
-        # 2. Fallback: Find first class starting with "Daisy"
-        if not selected_match:
-            for m in matches:
-                if m.group(1).startswith("Daisy"):
-                    selected_match = m
-                    break
-
-        if not selected_match:
-            return None
-
-        class_name = selected_match.group(1)
-        base_class = selected_match.group(2) or "Object" # Handle no base class (static)
-
-        # Find the summary comment immediately before the class
-        class_start = selected_match.start()
-        before_class = content[:class_start]
-
-        # Look for the last summary comment before class definition
-        summary_pattern = re.compile(
-            r'///\s*<summary>\s*(.*?)\s*</summary>',
-            re.DOTALL
-        )
-
-        summaries = list(summary_pattern.finditer(before_class))
-        description = ""
-        if summaries:
-            last_summary = summaries[-1]
-            # Check if summary is close to class definition (within 300 chars to be safe)
-            if class_start - last_summary.end() < SUMMARY_PROXIMITY_CHARS:
-                raw_desc = last_summary.group(1)
-                # Clean the description
-                description = self._clean_summary(raw_desc)
-
-        return class_name, base_class, description
-
-    def _extract_properties(self, content: str) -> list[PropertyInfo]:
-        """Extract all StyledProperty definitions."""
-        properties = []
-        seen = set()
-
-        # Split content into property blocks
-        lines = content.split('\n')
-        i = 0
-        while i < len(lines):
-            line = lines[i]
-
-            # Look for StyledProperty definition
-            prop_match = re.search(
-                r'public\s+static\s+readonly\s+StyledProperty<([^>]+)>\s+(\w+)Property',
-                line
-            )
-            if prop_match:
-                prop_type = prop_match.group(1).strip()
-                prop_name_with_property = prop_match.group(2)
-                prop_name = prop_name_with_property  # Will extract actual name from nameof
-
-                # Find the nameof and default value
-                block = line
-                j = i + 1
-                paren_count = line.count('(') - line.count(')')
-                while paren_count > 0 and j < len(lines):
-                    block += '\n' + lines[j]
-                    paren_count += lines[j].count('(') - lines[j].count(')')
-                    j += 1
-
-                # Extract nameof
-                nameof_match = re.search(r'nameof\((\w+)\)', block)
-                if nameof_match:
-                    prop_name = nameof_match.group(1)
-
-                # Extract default value
-                default = self._extract_default(block, prop_type)
-
-                # Look for summary comment above
-                description = ""
-                k = i - 1
-                while k >= 0 and k >= i - SUMMARY_LOOKBACK_LINES:
-                    if '/// <summary>' in lines[k]:
-                        # Gather the summary
-                        summary_lines = []
-                        for m in range(k, min(k + 5, len(lines))):
-                            summary_lines.append(lines[m])
-                            if '</summary>' in lines[m]:
-                                break
-                        summary_text = '\n'.join(summary_lines)
-                        desc_match = re.search(r'<summary>\s*(.*?)\s*</summary>', summary_text, re.DOTALL)
-                        if desc_match:
-                            description = self._clean_summary(desc_match.group(1))
-                        break
-                    k -= 1
-
-                if prop_name not in seen:
-                    seen.add(prop_name)
-                    properties.append(PropertyInfo(
-                        name=prop_name,
-                        prop_type=prop_type,
-                        default=default,
-                        description=description
-                    ))
-
-            i += 1
-
-        return properties
-
-    def _extract_default(self, block: str, prop_type: str) -> str:
-        """Extract default value from property registration block."""
-        # Look for the default value after nameof - handle nested parentheses
-        # Pattern: nameof(X), DefaultValue)
-        match = re.search(r'nameof\(\w+\)\s*,\s*(.+?)\)\s*;', block, re.DOTALL)
-        if match:
-            default_raw = match.group(1).strip()
-            # Handle nested constructor calls like new Thickness(32)
-            paren_count = 0
-            result = []
-            for char in default_raw:
-                if char == '(':
-                    paren_count += 1
-                    result.append(char)
-                elif char == ')':
-                    if paren_count > 0:
-                        paren_count -= 1
-                        result.append(char)
-                    else:
-                        break  # End of default value
+    def _extract_properties(self, body: str, mask: str, depths: list[int]) -> list[PropertyInfo]:
+        properties = {}
+        field_pattern = re.compile(
+            r'public\s+static\s+readonly\s+(Styled|Attached|Direct)Property<([^\n]+)>\s+(\w+)Property\s*=')
+        for match in field_pattern.finditer(mask):
+            if depths[match.start()] != 0:
+                continue
+            end = mask.index(';', match.end())
+            block = body[match.end():end]
+            registration = re.search(r'\b(?:Register|RegisterAttached|RegisterDirect|AddOwner)\s*<', block)
+            default = "-"
+            kind, type_args, name = match.groups()
+            prop_type = self._arguments(type_args)[-1]
+            if registration:
+                block_mask = self._mask(block)
+                generic_start = block_mask.index('<', registration.start())
+                generic_end = self._end(block_mask, generic_start, '<', '>')
+                opening = block_mask.index('(', generic_end)
+                closing = self._end(block_mask, opening, '(', ')')
+                arguments = self._arguments(block[opening + 1:closing])
+                if kind == 'Direct':
+                    default = next((arg.split(':', 1)[1].strip() for arg in arguments if arg.startswith('unsetValue:')), "read-only" if len(arguments) < 3 else "-")
+                elif len(arguments) > 1:
+                    default_index = 2 if kind == 'Attached' and arguments[1].startswith('typeof(') else 1
+                    candidate = arguments[default_index] if len(arguments) > default_index else 'default'
+                    default = candidate.split(':', 1)[1].strip() if candidate.startswith('defaultValue:') else candidate if not re.match(r'\w+\s*:', candidate) else "default"
                 else:
-                    result.append(char)
-            default_raw = ''.join(result).strip()
-            if default_raw:
-                return self._clean_default(default_raw, prop_type)
-        return "-"
-
-    def _clean_summary(self, text: str) -> str:
-        """Clean XML documentation text."""
-        if not text:
-            return ""
-        # Remove /// markers
-        text = re.sub(r'^\s*///\s*', '', text, flags=re.MULTILINE)
-        # Remove XML tags
-        text = re.sub(r'<[^>]+>', '', text)
-        # Collapse whitespace
-        text = ' '.join(text.split())
-        return text.strip()
-
-    def _clean_default(self, default: str, prop_type: str) -> str:
-        """Clean and simplify default value representation."""
-        if not default:
-            return "null" if "?" in prop_type else "-"
-        default = default.strip().rstrip(',')
-        # Simplify common patterns
-        if 'new Thickness(' in default:
-            match = re.search(r'Thickness\((\d+)\)', default)
-            if match:
-                return f"Thickness({match.group(1)})"
-            return "Thickness"
-        if 'Color.FromArgb' in default:
-            return "Color(semitransparent)"
-        if 'Colors.' in default:
-            return default.replace('Colors.', '')
-        # Enum defaults
-        if '.' in default:
-            return default.split('.')[-1]
-        return default
+                    default = "default"
+            description = self._summary(body, match.start())
+            if kind != 'Styled':
+                description = (kind + " property. " + description).strip()
+            properties[name] = PropertyInfo(name, prop_type, default, description)
+        # Public CLR properties include computed and collection APIs, without invented defaults.
+        clr_pattern = re.compile(
+            r'public\s+(?:(?:static|virtual|override|new|abstract)\s+)*'
+            r'([\w.<>,?\[\] ]+?)\s+(\w+)\s*(?=\{|=>)')
+        for match in clr_pattern.finditer(mask):
+            if depths[match.start()] != 0 or match.group(2) in properties:
+                continue
+            prop_type, name = match.groups()
+            if prop_type.strip().startswith(('class ', 'enum ', 'event ', 'record ')):
+                continue
+            properties[name] = PropertyInfo(name, prop_type.strip(), "-", self._summary(body, match.start()))
+        return list(properties.values())
 
 
 # =============================================================================
@@ -808,6 +707,9 @@ class MarkdownGenerator:
                     lines.append(f"| {prop.name} | `{prop.prop_type}` | {prop.default} | {desc} |")
                 lines.append("")
 
+            if control.methods:
+                lines.extend(["## Public Methods", "", "```csharp", *control.methods, "```", ""])
+
             # Enums
             if control.enums:
                 lines.append("## Enum Values")
@@ -918,9 +820,6 @@ class MarkdownGenerator:
         lines.append("|---------|-------------|----------------|")
 
         for control in sorted(controls, key=lambda c: c.name):
-            # Skip non-Daisy classes
-            if not control.name.startswith('Daisy'):
-                continue
             desc = control.description
             if not desc:
                 desc = f"{control.name.replace('Daisy', '')} control"
@@ -970,7 +869,7 @@ class MarkdownGenerator:
         lines.append("### Theming")
         lines.append("Use `DaisyThemeManager` to switch themes programmatically:")
         lines.append("```csharp")
-        lines.append('DaisyThemeManager.Instance.CurrentTheme = "dracula";')
+        lines.append('DaisyThemeManager.ApplyTheme("dracula");')
         lines.append("```")
         lines.append("")
         lines.append("Or use theme controls:")
@@ -1081,6 +980,12 @@ class DocumentationGenerator:
 
         # Generate master index
         master_doc = self.md_generator.generate_master_index(controls, categories)
+        master_doc += '\n## Guides\n\n'
+        for name in GUIDE_FILES:
+            guide = self.supplementary_dir / name
+            if guide.exists():
+                (self.output_dir / name).write_text(guide.read_text(encoding='utf-8'), encoding='utf-8')
+                master_doc += f'- [{guide.stem}]({guide.stem}.html)\n'
         (self.output_dir / "llms.txt").write_text(master_doc, encoding='utf-8')
 
         print("\n" + "=" * 40)
@@ -1088,16 +993,43 @@ class DocumentationGenerator:
         print(f"Output directory: {self.output_dir}")
 
     def _parse_all_controls(self) -> list[ControlInfo]:
-        """Parse all C# control files, including those in subfolders."""
-        controls = []
-        # Search recursively in Controls folder and all subfolders
-        for filepath in self.controls_dir.glob("**/Daisy*.cs"):
-            if "Converter" in filepath.name:
-                continue
-            control = self.csharp_parser.parse_file(filepath)
-            if control and control.name == filepath.stem:
-                controls.append(control)
-        return controls
+        """Merge partials and public members inherited from source base classes."""
+        controls = {}
+        curated_names = {path.stem for path in self.supplementary_dir.glob('*.md') if path.name not in NON_API_FILES}
+        for project in ('Flowery.NET', 'Flowery.NET.Kanban'):
+            for filepath in sorted((self.root_dir / project).rglob('*.cs')):
+                if {'obj', 'bin'} & set(filepath.parts):
+                    continue
+                name = filepath.name.split('.')[0]
+                if not (name.startswith(('Daisy', 'Flowery', 'FlowKanban', 'FlowTask', 'Localize')) or name in curated_names):
+                    continue
+                parsed = self.csharp_parser.parse_file(filepath)
+                if not parsed:
+                    continue
+                if name not in controls:
+                    controls[name] = parsed
+                    continue
+                target = controls[name]
+                if parsed.base_class != 'Object': target.base_class = parsed.base_class
+                if parsed.description: target.description = parsed.description
+                properties = {prop.name: prop for prop in target.properties}
+                properties.update({prop.name: prop for prop in parsed.properties})
+                target.properties = list(properties.values())
+                target.methods = list(dict.fromkeys(target.methods + parsed.methods))
+                target.enums = list({enum.name: enum for enum in target.enums + parsed.enums}.values())
+        for name in curated_names - controls.keys():
+            controls[name] = ControlInfo(name, 'Object', '')
+        def inherit(control, seen):
+            if control.base_class in seen or control.base_class not in controls:
+                return
+            base = controls[control.base_class]
+            inherit(base, seen | {control.name})
+            own = {prop.name for prop in control.properties}
+            control.properties.extend(PropertyInfo(prop.name, prop.prop_type, prop.default,
+                f'Inherited from {base.name}. {prop.description}') for prop in base.properties if prop.name not in own)
+            control.methods = list(dict.fromkeys(control.methods + base.methods))
+        for control in controls.values(): inherit(control, set())
+        return sorted(controls.values(), key=lambda control: control.name)
 
     def _parse_all_examples(self) -> dict[str, list[ExampleSnippet]]:
         """Parse all AXAML example files and map to controls."""

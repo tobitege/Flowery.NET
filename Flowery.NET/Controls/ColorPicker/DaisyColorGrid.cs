@@ -1,11 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Media;
 using Flowery.Services;
+using Flowery.Helpers;
 
 namespace Flowery.Controls.ColorPicker
 {
@@ -214,6 +216,30 @@ namespace Flowery.Controls.ColorPicker
             Palette = ColorPalettes.Paint;
             CustomColors = ColorPalettes.CreateCustom(16);
             Cursor = new Cursor(StandardCursorType.Hand);
+            Focusable = true;
+        }
+
+        protected override AutomationPeer OnCreateAutomationPeer() => new DaisyColorAutomationPeer(this, ColorProperty);
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (e.Handled || !IsEffectivelyEnabled) return;
+            var count = GetTotalColorCount();
+            if (count == 0) return;
+            int? index = e.Key switch
+            {
+                Key.Left => ColorIndex - 1,
+                Key.Right => ColorIndex + 1,
+                Key.Up => ColorIndex - Math.Max(1, Columns),
+                Key.Down => ColorIndex + Math.Max(1, Columns),
+                Key.Home => 0,
+                Key.End => count - 1,
+                _ => null
+            };
+            if (index == null) return;
+            SetCurrentValue(ColorIndexProperty, Math.Clamp(index.Value, 0, count - 1));
+            e.Handled = true;
         }
 
         private void OnColorPropertyChanged(AvaloniaPropertyChangedEventArgs e)

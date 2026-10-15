@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -131,6 +131,16 @@
                                     VerticalAlignment="Top"
                                     IsVisible="{TemplateBinding EndIcon, Converter={x:Static ObjectConverters.IsNotNull}}" />
                             </Grid>
+                            <Border Name="PART_ResizeGrip"
+                                    Width="{DynamicResource DaisySizeMediumFontSize}"
+                                    Height="{DynamicResource DaisySizeMediumFontSize}"
+                                    HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                    Background="Transparent" Cursor="SizeNorthSouth" Focusable="True"
+                                    IsVisible="{TemplateBinding CanResize}">
+                                <Path Data="M3,12 L12,3 M7,12 L12,7" Stretch="Uniform"
+                                      Stroke="{DynamicResource DaisyBaseContentBrush}" StrokeThickness="1"
+                                      Margin="2" IsHitTestVisible="False" />
+                            </Border>
                         </Panel>
 
                         <!-- Row 3: Helper text + Character counter row -->

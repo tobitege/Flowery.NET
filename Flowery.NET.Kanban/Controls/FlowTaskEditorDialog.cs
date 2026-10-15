@@ -461,13 +461,11 @@ namespace Flowery.NET.Kanban.Controls
             };
             AutomationProperties.SetLabeledBy(tagPicker, tagsLabel);
 
-            void SyncTagsFromSelection()
+            tagPicker.SelectionChanged += (_, selection) =>
             {
-                var tagText = BuildTagText(selectedTags);
+                var tagText = BuildTagText(selection);
                 editState.Tags = string.IsNullOrWhiteSpace(tagText) ? null : tagText;
-            }
-
-            tagPicker.SelectionChanged += (s, e) => SyncTagsFromSelection();
+            };
             contentStack.Children.Add(tagPicker);
 
             var statusRow = new Grid
@@ -1167,10 +1165,14 @@ namespace Flowery.NET.Kanban.Controls
             foreach (var color in ColorSwatches)
             {
                 var colorCopy = color;
-                var swatch = new Border
+                var swatch = new RadioButton
                 {
+                    GroupName = "TaskPalette" + panel.GetHashCode().ToString(CultureInfo.InvariantCulture),
+                    Tag = color,
+                    IsChecked = color == editState.Palette,
                     Width = 28,
                     Height = 28,
+                    Padding = new Thickness(0),
                     CornerRadius = new CornerRadius(14),
                     Background = GetColorBrush(color),
                     BorderBrush = color == editState.Palette
@@ -1178,16 +1180,24 @@ namespace Flowery.NET.Kanban.Controls
                         : new SolidColorBrush(Colors.Transparent),
                     BorderThickness = new Thickness(2)
                 };
+                AutomationProperties.SetName(swatch, color.ToString());
 
                 if (color == editState.Palette)
                 {
-                    swatch.Child = CreateIconPath("DaisyIconCheck", new SolidColorBrush(Colors.White), 12);
+                    swatch.Content = CreateIconPath("DaisyIconCheck", DaisyResourceLookup.GetBrush("DaisyBaseContentBrush")!, 12);
                 }
 
-                swatch.PointerPressed += (s, e) =>
+                swatch.IsCheckedChanged += (s, e) =>
                 {
+                    if (swatch.IsChecked != true) return;
                     editState.Palette = colorCopy;
-                    BuildColorSwatches(panel, editState);
+                    foreach (var button in panel.Children.OfType<ToggleButton>())
+                    {
+                        var selected = Equals(button.Tag, colorCopy);
+                        button.SetCurrentValue(ToggleButton.IsCheckedProperty, selected);
+                        button.BorderBrush = selected ? DaisyResourceLookup.GetBrush("DaisyBaseContentBrush") : Brushes.Transparent;
+                        button.Content = selected ? CreateIconPath("DaisyIconCheck", DaisyResourceLookup.GetBrush("DaisyBaseContentBrush")!, 12) : null;
+                    }
                 };
 
                 panel.Children.Add(swatch);
@@ -1217,6 +1227,7 @@ namespace Flowery.NET.Kanban.Controls
                     VerticalAlignment = VerticalAlignment.Center,
                     Size = DaisySize.Small
                 };
+                AutomationProperties.SetName(checkbox, subtask.Title);
                 checkbox.IsCheckedChanged += (s, e) => subtaskCopy.IsCompleted = checkbox.IsChecked == true;
                 Grid.SetColumn(checkbox, 0);
                 row.Children.Add(checkbox);
@@ -1234,8 +1245,11 @@ namespace Flowery.NET.Kanban.Controls
                         editBox,
                         FloweryLocalization.GetString("Kanban_Editor_Subtasks"));
                     editBox.Loaded += (s, e) => editBox.Focus();
+                    var finished = false;
                     editBox.LostFocus += (s, e) =>
                     {
+                        if (finished) return;
+                        finished = true;
                         subtaskCopy.Title = editBox.Text?.Trim() ?? subtaskCopy.Title;
                         RefreshSubtasksList(panel, subtasks);
                     };
@@ -1243,12 +1257,14 @@ namespace Flowery.NET.Kanban.Controls
                     {
                         if (e.Key == Key.Enter)
                         {
+                            finished = true;
                             e.Handled = true;
                             subtaskCopy.Title = editBox.Text?.Trim() ?? subtaskCopy.Title;
                             RefreshSubtasksList(panel, subtasks);
                         }
                         else if (e.Key == Key.Escape)
                         {
+                            finished = true;
                             e.Handled = true;
                             RefreshSubtasksList(panel, subtasks);
                         }
@@ -1265,12 +1281,20 @@ namespace Flowery.NET.Kanban.Controls
                         Foreground = DaisyResourceLookup.GetBrush("DaisyBaseContentBrush"),
                         Margin = new Thickness(4, 0, 0, 0)
                     };
-                    titleText.Tapped += (s, e) =>
+                    var renameButton = new DaisyButton
+                    {
+                        Content = titleText,
+                        Variant = DaisyButtonVariant.Ghost,
+                        Size = DaisySize.Small,
+                        HorizontalContentAlignment = HorizontalAlignment.Left
+                    };
+                    AutomationProperties.SetName(renameButton, subtask.Title);
+                    renameButton.Click += (s, e) =>
                     {
                         RefreshSubtasksList(panel, subtasks, index);
                     };
-                    Grid.SetColumn(titleText, 1);
-                    row.Children.Add(titleText);
+                    Grid.SetColumn(renameButton, 1);
+                    row.Children.Add(renameButton);
                 }
 
                 var deleteBtn = new DaisyButton

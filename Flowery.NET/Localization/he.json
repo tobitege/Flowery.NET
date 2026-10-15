@@ -1,4 +1,12 @@
 {
+  "Accessibility_OneTimeCode": "קוד חד פעמי",
+  "Accessibility_OtpDigitPosition": "{0}, ספרה {1} מתוך {2}",
+  "Scheduler_Calendar": "לוח שנה",
+  "Scheduler_WeekNumber": "שבוע",
+  "Accessibility_Password": "סיסמה",
+  "Accessibility_ShowPassword": "הצג סיסמה",
+  "Accessibility_HidePassword": "הסתר סיסמה",
+  "Accessibility_ResizeTextArea": "שנה את גודל אזור הטקסט",
   "Scheduler_Timeline": "תכנון יומי",
   "Scheduler_ResourceKind": "סוג משאב",
   "Scheduler_AllKinds": "כל הסוגים",

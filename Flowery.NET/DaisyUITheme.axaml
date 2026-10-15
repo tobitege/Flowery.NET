@@ -1,6 +1,22 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
         x:Class="Flowery.DaisyUITheme">
+    <Style Selector=":is(Control)">
+        <Setter Property="controls:DaisyAccessibility.MotionEnabled"
+                Value="{Binding MotionEnabled, Source={x:Static controls:DaisyAccessibility.Preferences}}" />
+        <Setter Property="controls:DaisyAccessibility.HighContrastEnabled"
+                Value="{Binding IsHighContrast, Source={x:Static controls:DaisyAccessibility.Preferences}}" />
+    </Style>
+    <Style Selector=":is(Control)[(controls|DaisyAccessibility.MotionEnabled)=False]">
+        <Setter Property="Transitions" Value="{x:Null}" />
+    </Style>
+    <Style Selector=":is(Control)[(controls|DaisyAccessibility.HighContrastEnabled)=True]">
+        <Setter Property="Effect" Value="{x:Null}" />
+    </Style>
+    <Style Selector=":is(Border)[(controls|DaisyAccessibility.HighContrastEnabled)=True]">
+        <Setter Property="BoxShadow" Value="0 0 0 0 Transparent" />
+    </Style>
     <Styles.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

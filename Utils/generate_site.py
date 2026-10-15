@@ -38,6 +38,7 @@ import re
 import shutil
 from pathlib import Path
 from typing import Optional
+from docs_manifest import GUIDE_FILES, NON_API_FILES, page_manifest
 
 
 def strip_html_comments_outside_code(content: str) -> str:
@@ -95,6 +96,9 @@ def strip_html_comments_outside_code(content: str) -> str:
 class MarkdownToHtml:
     """Simple markdown to HTML converter."""
 
+    def __init__(self):
+        self.pages = {}
+
     def convert(self, markdown: str, depth: int = 1) -> str:
         """Convert markdown to HTML.
         
@@ -133,8 +137,13 @@ class MarkdownToHtml:
             text = m.group(1)
             url = m.group(2)
             # Convert .md to .html for local links (not http/https)
-            if not url.startswith(('http://', 'https://')) and url.endswith('.md'):
-                url = url[:-3] + '.html'
+            if not url.startswith(('http://', 'https://', '#')):
+                path, separator, fragment = url.partition('#')
+                name = Path(path).stem
+                if name in self.pages:
+                    url = path_prefix + self.pages[name] + (separator + fragment if separator else '')
+                elif path.endswith('.md'):
+                    url = path[:-3] + '.html' + (separator + fragment if separator else '')
                 return f'<a href="{url}">{text}</a>'
             # External links open in new tab
             if url.startswith(('http://', 'https://')):
@@ -146,9 +155,11 @@ class MarkdownToHtml:
         html = re.sub(r'^[\s]*[-*_]{3,}[\s]*$', r'<hr>', html, flags=re.MULTILINE)
 
         # Headers
-        html = re.sub(r'^### (.+)$', r'<h3>\1</h3>', html, flags=re.MULTILINE)
-        html = re.sub(r'^## (.+)$', r'<h2>\1</h2>', html, flags=re.MULTILINE)
-        html = re.sub(r'^# (.+)$', r'<h1>\1</h1>', html, flags=re.MULTILINE)
+        def heading(match):
+            level, title = len(match.group(1)), match.group(2)
+            slug = re.sub(r'[^\w -]', '', re.sub(r'<[^>]+>', '', title)).strip().lower().replace(' ', '-')
+            return f'<h{level} id="{slug}">{title}</h{level}>'
+        html = re.sub(r'^(#{1,6}) (.+)$', heading, html, flags=re.MULTILINE)
 
         # Bold and italic
         html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', html)
@@ -305,7 +316,7 @@ class SiteGenerator:
     )
 
     # Standalone guide files (not control docs) to include in the sidebar
-    GUIDE_FILES = ['MigrationExample.md', 'DesignTokens.md', 'Effects.md', 'SizingScaling.md']
+    GUIDE_FILES = GUIDE_FILES
 
     # Helper/internal classes shown in a separate 'Helpers' section
     HELPER_CONTROL_NAMES = {
@@ -319,16 +330,18 @@ class SiteGenerator:
         'FloweryScaleManager',  # Opt-in automatic font scaling
         'FloweryScaleConverter',  # Window-based proportional scaling converter
         'FlowerySizeManager',  # Global discrete size tiers (XS-XL)
+        'LocalizeExtensionBase',
     }
 
-    def __init__(self, docs_dir: Path, output_dir: Path, curated_dir: Path | None = None):
+    def __init__(self, docs_dir: Path, output_dir: Path, curated_dir: Path | None = None, use_generated: bool = False):
         self.docs_dir = docs_dir
         self.output_dir = output_dir
-        self.curated_dir = curated_dir  # llms-static/ for curated-only mode
+        self.curated_dir = curated_dir if curated_dir is not None else docs_dir.parent / 'llms-static'
         self.converter = MarkdownToHtml()
         self.controls: list[dict] = []
         self.categories: list[dict] = []
-        self.use_curated_only = curated_dir is not None
+        self.use_curated_only = not use_generated
+        self.guides = [name for name in GUIDE_FILES if (self.curated_dir / name).exists()]
 
     def generate(self):
         """Generate the complete static site."""
@@ -349,58 +362,20 @@ class SiteGenerator:
         print("\n[1/5] Scanning control docs...")
         seen_controls = set()
 
+        sources = [self.docs_dir / "controls"]
         if self.use_curated_only:
-            # First, read curated docs from llms-static/
-            for md_file in sorted(self.curated_dir.glob("Daisy*.md")):
+            sources.insert(0, self.curated_dir)
+        for source in sources:
+            for md_file in sorted(source.glob("*.md")):
                 name = md_file.stem
+                if md_file.name in NON_API_FILES or name in seen_controls:
+                    continue
                 self.controls.append({
-                    'name': name,
-                    'file': md_file,
-                    'html_name': f"{name}.html",
+                    'name': name, 'file': md_file, 'html_name': f'{name}.html',
                     'is_helper': name in self.HELPER_CONTROL_NAMES
                 })
                 seen_controls.add(name)
-
-            # Also include non-Daisy helper files (e.g., HslColor.md)
-            for helper_name in self.HELPER_CONTROL_NAMES:
-                if helper_name not in seen_controls:
-                    helper_file = self.curated_dir / f"{helper_name}.md"
-                    if helper_file.exists():
-                        self.controls.append({
-                            'name': helper_name,
-                            'file': helper_file,
-                            'html_name': f"{helper_name}.html",
-                            'is_helper': True
-                        })
-                        seen_controls.add(helper_name)
-
-            # Then, also include auto-generated docs from llms/controls/ for controls
-            # that don't have curated docs (e.g., weather controls, custom controls)
-            controls_dir = self.docs_dir / "controls"
-            if controls_dir.exists():
-                for md_file in sorted(controls_dir.glob("*.md")):
-                    name = md_file.stem
-                    if name.startswith("Daisy") and name not in seen_controls:
-                        entry = {
-                            'name': name,
-                            'file': md_file,
-                            'html_name': f"{name}.html",
-                            'is_helper': name in self.HELPER_CONTROL_NAMES
-                        }
-                        self.controls.append(entry)
-                        seen_controls.add(name)
-        else:
-            # Read from llms/controls/
-            controls_dir = self.docs_dir / "controls"
-            for md_file in sorted(controls_dir.glob("*.md")):
-                name = md_file.stem
-                if name.startswith("Daisy"):
-                    self.controls.append({
-                        'name': name,
-                        'file': md_file,
-                        'html_name': f"{name}.html",
-                        'is_helper': name in self.HELPER_CONTROL_NAMES
-                    })
+        self.converter.pages = page_manifest(seen_controls, self.guides)
 
         # Sort all controls alphabetically by name
         self.controls.sort(key=lambda c: c['name'])
@@ -478,7 +453,7 @@ class SiteGenerator:
         # List of standalone guide files to copy (not control docs)
         copied = 0
 
-        for guide_name in self.GUIDE_FILES:
+        for guide_name in self.guides:
             guide_file = self.curated_dir / guide_name
             if guide_file.exists():
                 # Read and convert to HTML
@@ -539,7 +514,7 @@ class SiteGenerator:
         sidebar_items.append('<li><a href="home.html" target="viewer" class="active">Home</a></li>')
 
         # Guides section
-        existing_guides = [g for g in self.GUIDE_FILES if (self.curated_dir / g).exists()] if self.curated_dir else []
+        existing_guides = self.guides
         if existing_guides:
             sidebar_items.append('<li><h2>Guides</h2></li>')
             for guide in existing_guides:
@@ -646,16 +621,13 @@ class SiteGenerator:
     def _generate_home(self):
         """Generate the home content page (home.html)."""
         # Generate llms.txt for AI assistants (combine all curated docs)
-        if self.use_curated_only:
-            llms_content = self._generate_llms_txt_from_curated()
-        else:
-            llms_content = (self.docs_dir / "llms.txt").read_text(encoding='utf-8')
+        llms_content = self._generate_llms_txt_from_curated()
 
         # Write llms.txt to output directory for AI assistants
         (self.output_dir / "llms.txt").write_text(llms_content, encoding='utf-8')
 
         # Convert to HTML
-        html_content = self.converter.convert(llms_content)
+        html_content = self.converter.convert(llms_content, depth=0)
 
         # Insert LLM documentation link after Quick Start section
         llm_link_html = '''<div class="llm-link">
@@ -716,6 +688,9 @@ class SiteGenerator:
         lines.append("")
 
         # Controls Overview (main controls only)
+        lines.extend(["## Guides", ""])
+        lines.extend(f'- [{Path(name).stem}]({self.converter.pages[Path(name).stem]})' for name in self.guides)
+        lines.append("")
         lines.append("## Controls Overview")
         lines.append("")
         lines.append("| Control | Description |")
@@ -1081,7 +1056,7 @@ Examples:
         if not llms_dir.exists():
             print("Error: llms/ folder not found. Run generate_docs.py --auto-parse first.")
             return
-        generator = SiteGenerator(llms_dir, docs_dir, curated_dir=None)
+        generator = SiteGenerator(llms_dir, docs_dir, curated_dir=curated_dir, use_generated=True)
     else:
         # Use curated llms-static/ folder (default)
         if not curated_dir.exists():

@@ -21,11 +21,14 @@ public class ForecastDay
     public WeatherCondition Condition { get; set; }
     public double HighTemperature { get; set; }
     public double LowTemperature { get; set; }
-    public int PrecipitationChance { get; set; }  // 0-100
+    public int ChanceOfPrecipitation { get; set; }  // 0-100
 }
 ```
 
 ## Quick Examples
+
+TemperatureUnit selects the displayed suffix. Supply temperatures in that unit; the control does not convert their values.
+ShowPrecipitation displays ChanceOfPrecipitation with a percent suffix.
 
 ```xml
 <!-- Basic forecast strip -->

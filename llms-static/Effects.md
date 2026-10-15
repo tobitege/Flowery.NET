@@ -9,6 +9,10 @@ A collection of pluggable visual effects for Avalonia controls (namespace: Flowe
 
 ## Installation
 
+Flowery effects follow [the shared reduced-motion preference](DaisyAccessibility.md#system-contrast-and-reduced-motion).
+Finite animations finish in a readable state; decorative timers stop.
+After motion is restored, only requested, attached effects resume. Explicit Stop and disabled behaviors remain stopped.
+
 Add the namespace to your AXAML:
 
 ```xml

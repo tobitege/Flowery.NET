@@ -1,7 +1,8 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using Avalonia.Metadata;
+using Avalonia.Threading;
 using System;
 using System.Globalization;
 
@@ -91,10 +92,17 @@ namespace Flowery.Localization
             {
                 var initialValue = GetLocalizedString(Key);
 
-                // Subscribe to culture changes to update the property
+                var targetReference = new WeakReference<AvaloniaObject>(targetObject);
+                // The event source must not keep the localized view alive.
                 SubscribeToCultureChanged((s, culture) =>
                 {
-                    targetObject.SetValue(targetProperty, GetLocalizedString(Key));
+                    void UpdateTarget()
+                    {
+                        if (targetReference.TryGetTarget(out var target))
+                            target.SetCurrentValue(targetProperty, GetLocalizedString(Key));
+                    }
+                    if (Dispatcher.UIThread.CheckAccess()) UpdateTarget();
+                    else Dispatcher.UIThread.Post(UpdateTarget);
                 });
 
                 return initialValue;

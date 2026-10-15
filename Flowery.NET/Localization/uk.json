@@ -1,4 +1,12 @@
 {
+  "Accessibility_OneTimeCode": "Одноразовий код",
+  "Accessibility_OtpDigitPosition": "{0}, цифра {1} із {2}",
+  "Scheduler_Calendar": "Календар",
+  "Scheduler_WeekNumber": "Тиж",
+  "Accessibility_Password": "Пароль",
+  "Accessibility_ShowPassword": "Показати пароль",
+  "Accessibility_HidePassword": "Приховати пароль",
+  "Accessibility_ResizeTextArea": "Змінити розмір текстового поля",
   "Scheduler_Timeline": "Денний план",
   "Scheduler_ResourceKind": "Тип ресурсу",
   "Scheduler_AllKinds": "Усі типи",

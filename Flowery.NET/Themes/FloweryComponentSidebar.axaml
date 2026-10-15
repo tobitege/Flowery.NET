@@ -140,8 +140,9 @@
                                                                             Text="{Binding DisplayName}"
                                                                             VerticalAlignment="Center" />
                                                                         <!-- Favorite Star Button -->
-                                                                        <Button Grid.Column="1"
+                                                                        <controls:SidebarFavoriteButton Grid.Column="1"
                                                                             Classes="sidebar-favorite-btn"
+                                                                            IsChecked="{Binding IsFavorite, Mode=OneWay}"
                                                                             AutomationProperties.Name="{Binding DisplayName}"
                                                                             AutomationProperties.HelpText="Toggle favorite"
                                                                             Tag="{Binding}"
@@ -168,7 +169,7 @@
                                                                                     IsVisible="{Binding !IsFavorite}"
                                                                                     Data="{StaticResource DaisyIconStarOutline}" />
                                                                             </Panel>
-                                                                        </Button>
+                                                                        </controls:SidebarFavoriteButton>
                                                                         <controls:DaisyBadge
                                                                             Grid.Column="2"
                                                                             Variant="Neutral"
@@ -326,13 +327,13 @@
     </Style>
 
     <!-- Sidebar favorite button styles -->
-    <Style Selector="Button.sidebar-favorite-btn">
+    <Style Selector="controls|SidebarFavoriteButton.sidebar-favorite-btn">
         <Setter Property="Opacity" Value="0.6" />
     </Style>
-    <Style Selector="Button.sidebar-favorite-btn:pointerover">
+    <Style Selector="controls|SidebarFavoriteButton.sidebar-favorite-btn:pointerover">
         <Setter Property="Opacity" Value="1" />
     </Style>
-    <Style Selector="Button.sidebar-favorite-btn:pointerover /template/ ContentPresenter">
+    <Style Selector="controls|SidebarFavoriteButton.sidebar-favorite-btn:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
     </Style>
 

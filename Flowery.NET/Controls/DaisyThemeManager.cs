@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using Flowery.Helpers;
@@ -40,6 +41,8 @@ namespace Flowery.Controls
             new(StringComparer.OrdinalIgnoreCase);
 
         private static ResourceDictionary? _currentPalette;
+        private static ResourceDictionary? _contrastPalette;
+        private static bool _contrastDark;
         private static string? _currentThemeName;
         private static string _baseThemeName = "Dark";
         private static HashSet<string> _excludedThemes = new(StringComparer.OrdinalIgnoreCase);
@@ -183,6 +186,7 @@ namespace Flowery.Controls
         /// When true, ApplyTheme calls only update internal state without actually applying the theme.
         /// </summary>
         public static bool SuppressThemeApplication { get; set; }
+        private static bool _themeApplicationPending;
 
         /// <summary>
         /// When true, <see cref="RegisterTheme"/> also raises <see cref="AvailableThemesChanged"/>
@@ -432,13 +436,14 @@ namespace Flowery.Controls
             }
 
             // Skip if already applied
-            if (string.Equals(_currentThemeName, def.Info.Name, StringComparison.OrdinalIgnoreCase))
+            if (!_themeApplicationPending && string.Equals(_currentThemeName, def.Info.Name, StringComparison.OrdinalIgnoreCase))
                 return true;
 
             // When suppressed, only update internal state without applying
             if (SuppressThemeApplication)
             {
                 _currentThemeName = def.Info.Name;
+                _themeApplicationPending = true;
                 return true;
             }
 
@@ -468,10 +473,12 @@ namespace Flowery.Controls
                 app.Resources.MergedDictionaries.Add(newPalette);
                 _currentPalette = newPalette;
                 _currentThemeName = def.Info.Name;
+                _themeApplicationPending = false;
 
                 // Set light/dark variant for system controls
                 app.RequestedThemeVariant = def.Info.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
 
+                DaisyAccessibility.RefreshContrastPalette();
                 ThemeChanged?.Invoke(null, def.Info.Name);
 
                 return true;
@@ -489,11 +496,67 @@ namespace Flowery.Controls
         /// </summary>
         public static void SetCurrentTheme(string themeName)
         {
-            if (string.Equals(_currentThemeName, themeName, StringComparison.OrdinalIgnoreCase))
+            if (!_themeApplicationPending && string.Equals(_currentThemeName, themeName, StringComparison.OrdinalIgnoreCase))
                 return;
 
             _currentThemeName = themeName;
+            _themeApplicationPending = false;
+            DaisyAccessibility.RefreshContrastPalette();
             ThemeChanged?.Invoke(null, themeName);
+        }
+
+        internal static void ApplyContrastResources(bool enabled, bool dark)
+        {
+            if (Application.Current is not { } app) return;
+            var dictionaries = app.Resources.MergedDictionaries;
+            if (DaisyAccessibility.CustomContrastApplicator?.Invoke(enabled) == true || !enabled)
+            {
+                if (_contrastPalette != null) dictionaries.Remove(_contrastPalette);
+                _contrastPalette = null;
+                return;
+            }
+            if (_contrastPalette == null || _contrastDark != dark)
+            {
+                if (_contrastPalette != null) dictionaries.Remove(_contrastPalette);
+                _contrastPalette = CreateContrastPalette(dark);
+                _contrastDark = dark;
+            }
+            if (dictionaries.LastOrDefault() == _contrastPalette) return;
+            dictionaries.Remove(_contrastPalette);
+            dictionaries.Add(_contrastPalette);
+        }
+
+        private static ResourceDictionary CreateContrastPalette(bool dark)
+        {
+            var palette = new ResourceDictionary();
+            var background = dark ? Colors.Black : Colors.White;
+            var foreground = dark ? Colors.White : Colors.Black;
+            var accent = dark ? Colors.Yellow : Colors.Blue;
+            foreach (var name in new[] { "Base100", "Base200", "Base300" }) AddContrastColor(palette, name, background);
+            AddContrastColor(palette, "Base300", foreground);
+            foreach (var name in new[] { "BaseContent", "BaseContentMuted", "BaseContentSubtle", "BaseContentDisabled" })
+                AddContrastColor(palette, name, foreground);
+            foreach (var name in new[] { "Primary", "Secondary", "Accent", "Neutral", "Info", "Success", "Warning", "Error" })
+            {
+                AddContrastColor(palette, name, accent);
+                AddContrastColor(palette, name + "Focus", accent);
+                AddContrastColor(palette, name + "Foreground", accent);
+                AddContrastColor(palette, name + "Content", background);
+                AddContrastColor(palette, "Button" + name + "Foreground", accent);
+                AddContrastColor(palette, "Button" + name + "Soft", background);
+                AddContrastColor(palette, "Button" + name + "SoftHover", background);
+                AddContrastColor(palette, "Button" + name + "SoftBorder", accent);
+                AddContrastColor(palette, "Button" + name + "Disabled", foreground);
+                palette["DaisyButton" + name + "DisabledOpacity"] = 1d;
+            }
+            AddContrastColor(palette, "TreeSelectedForeground", foreground);
+            return palette;
+        }
+
+        private static void AddContrastColor(ResourceDictionary palette, string name, Color color)
+        {
+            palette["Daisy" + name + "Color"] = color;
+            palette["Daisy" + name + "Brush"] = new SolidColorBrush(color);
         }
 
         /// <summary>

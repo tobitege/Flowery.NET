@@ -1,4 +1,12 @@
 {
+  "Accessibility_OneTimeCode": "رمز لمرة واحدة",
+  "Accessibility_OtpDigitPosition": "{0}، الرقم {1} من {2}",
+  "Scheduler_Calendar": "التقويم",
+  "Scheduler_WeekNumber": "أسبوع",
+  "Accessibility_Password": "كلمة المرور",
+  "Accessibility_ShowPassword": "إظهار كلمة المرور",
+  "Accessibility_HidePassword": "إخفاء كلمة المرور",
+  "Accessibility_ResizeTextArea": "تغيير حجم حقل النص",
   "Scheduler_Timeline": "مخطط يومي",
   "Scheduler_ResourceKind": "نوع المورد",
   "Scheduler_AllKinds": "جميع الأنواع",

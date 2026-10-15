@@ -1,6 +1,9 @@
-using System;
+﻿using System;
 using System.Globalization;
 using Avalonia;
+using Avalonia.Automation;
+using Avalonia.Automation.Peers;
+using Avalonia.Data;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -8,6 +11,7 @@ using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Localization;
 using Flowery.Services;
+using Flowery.Helpers;
 
 namespace Flowery.Controls.Custom
 {
@@ -73,6 +77,14 @@ namespace Flowery.Controls.Custom
             ModeProperty.Changed.AddClassHandler<DaisyMaskInput>((s, _) => s.ApplyMode(forceWatermarkUpdate: s._isAutoWatermark));
             ExpiryYearDigitsProperty.Changed.AddClassHandler<DaisyMaskInput>((s, _) => s.ApplyMode(forceWatermarkUpdate: s._isAutoWatermark));
         }
+
+        public DaisyMaskInput()
+        {
+            Bind(AutomationProperties.IsRequiredForFormProperty,
+                new Binding(nameof(IsRequired)) { Source = this, Priority = BindingPriority.Style });
+        }
+
+        protected override AutomationPeer OnCreateAutomationPeer() => new DaisyInputAutomationPeer(this);
 
         #region Mode Property
         /// <summary>

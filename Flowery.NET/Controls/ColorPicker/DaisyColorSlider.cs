@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
@@ -8,6 +9,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Flowery.Services;
+using Flowery.Helpers;
 
 namespace Flowery.Controls.ColorPicker
 {
@@ -148,6 +150,28 @@ namespace Flowery.Controls.ColorPicker
             UpdateMaximum();
             Value = 0;
             Cursor = new Cursor(StandardCursorType.Hand);
+            Focusable = true;
+        }
+
+        protected override AutomationPeer OnCreateAutomationPeer() => new DaisyRangeAutomationPeer(this);
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (e.Handled || !IsEffectivelyEnabled) return;
+            double? value = e.Key switch
+            {
+                Key.Left or Key.Down => Value - SmallChange,
+                Key.Right or Key.Up => Value + SmallChange,
+                Key.PageDown => Value - LargeChange,
+                Key.PageUp => Value + LargeChange,
+                Key.Home => Minimum,
+                Key.End => Maximum,
+                _ => null
+            };
+            if (value == null) return;
+            SetCurrentValue(ValueProperty, Math.Clamp(value.Value, Minimum, Maximum));
+            e.Handled = true;
         }
 
         private void UpdateMaximum()
@@ -451,8 +475,9 @@ namespace Flowery.Controls.ColorPicker
             var trackLength = isHorizontal ? Bounds.Width : Bounds.Height;
             var position = isHorizontal ? point.X : point.Y;
 
+            if (trackLength <= 0 || Maximum <= Minimum) return;
             var ratio = Clamp(position / trackLength, 0, 1);
-            Value = Minimum + ratio * (Maximum - Minimum);
+            SetCurrentValue(ValueProperty, Minimum + ratio * (Maximum - Minimum));
         }
 
         protected virtual void OnColorChangedRaised(ColorChangedEventArgs e)

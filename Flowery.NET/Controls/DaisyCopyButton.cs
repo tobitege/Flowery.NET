@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -13,7 +13,8 @@ namespace Flowery.Controls
     public class DaisyCopyButton : DaisyButton
     {
         private bool _isBusy;
-        private object? _idleContent;
+        /// <summary>Raised when clipboard access fails. No success state is shown.</summary>
+        public event EventHandler<Exception>? CopyFailed;
 
         /// <summary>
         /// Defines the <see cref="CopyText"/> property.
@@ -76,26 +77,29 @@ namespace Flowery.Controls
 
             _isBusy = true;
 
-            _idleContent ??= Content;
-            var idleEnabled = IsEnabled;
+            var idleContent = Content;
+            var successContent = SuccessContent;
+            var showingSuccess = false;
 
             try
             {
                 var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-                if (clipboard != null)
-                {
-                    await clipboard.SetTextAsync(CopyText ?? string.Empty);
-                }
+                if (clipboard == null) return;
+                await clipboard.SetTextAsync(CopyText ?? string.Empty);
 
-                Content = SuccessContent;
-                IsEnabled = false;
+                SetCurrentValue(ContentProperty, successContent);
+                showingSuccess = true;
 
                 await Task.Delay(SuccessDuration);
             }
+            catch (Exception exception)
+            {
+                CopyFailed?.Invoke(this, exception);
+            }
             finally
             {
-                Content = _idleContent;
-                IsEnabled = idleEnabled;
+                if (showingSuccess && Equals(Content, successContent))
+                    SetCurrentValue(ContentProperty, idleContent);
                 _isBusy = false;
             }
         }

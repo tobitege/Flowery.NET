@@ -1,4 +1,12 @@
 {
+  "Accessibility_OneTimeCode": "일회용 코드",
+  "Accessibility_OtpDigitPosition": "{0}, {2}자리 중 {1}번째",
+  "Scheduler_Calendar": "달력",
+  "Scheduler_WeekNumber": "주",
+  "Accessibility_Password": "비밀번호",
+  "Accessibility_ShowPassword": "비밀번호 표시",
+  "Accessibility_HidePassword": "비밀번호 숨기기",
+  "Accessibility_ResizeTextArea": "텍스트 영역 크기 조정",
   "Scheduler_Timeline": "일별 계획",
   "Scheduler_ResourceKind": "리소스 유형",
   "Scheduler_AllKinds": "모든 유형",

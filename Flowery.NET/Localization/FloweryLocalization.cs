@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
+using Avalonia.Threading;
 
 #nullable enable
 
@@ -64,6 +65,39 @@ namespace Flowery.Localization
         /// Event fired when the culture is changed. Subscribe to this to refresh UI bindings.
         /// </summary>
         public static event EventHandler<CultureInfo>? CultureChanged;
+
+        internal static void AddWeakCultureObserver<T>(T target, Action<T, CultureInfo> callback) where T : class
+        {
+            _ = new WeakCultureObserver<T>(target, callback);
+        }
+
+        private sealed class WeakCultureObserver<T> where T : class
+        {
+            private readonly WeakReference<T> _target;
+            private readonly Action<T, CultureInfo> _callback;
+
+            public WeakCultureObserver(T target, Action<T, CultureInfo> callback)
+            {
+                _target = new WeakReference<T>(target);
+                _callback = callback;
+                CultureChanged += OnChanged;
+            }
+
+            private void OnChanged(object? sender, CultureInfo culture)
+            {
+                if (!_target.TryGetTarget(out _))
+                {
+                    CultureChanged -= OnChanged;
+                    return;
+                }
+                void Notify()
+                {
+                    if (_target.TryGetTarget(out var target)) _callback(target, culture);
+                }
+                if (Dispatcher.UIThread.CheckAccess()) Notify();
+                else Dispatcher.UIThread.Post(Notify);
+            }
+        }
 
         /// <summary>
         /// PropertyChanged event for INotifyPropertyChanged interface (used by XAML bindings).

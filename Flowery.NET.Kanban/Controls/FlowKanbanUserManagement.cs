@@ -262,7 +262,24 @@ namespace Flowery.NET.Kanban.Controls
         public bool IsLoading
         {
             get => (bool)GetValue(IsLoadingProperty);
-            private set => SetValue(IsLoadingProperty, value);
+            private set
+            {
+                SetValue(IsLoadingProperty, value);
+                UpdateUserVisibilityState();
+            }
+        }
+        public static readonly StyledProperty<string> LoadErrorMessageProperty =
+            AvaloniaProperty.Register<FlowKanbanUserManagement, string>(nameof(LoadErrorMessage), string.Empty);
+
+        /// <summary>Gets the visible error from the current user load, or an empty string.</summary>
+        public string LoadErrorMessage
+        {
+            get => GetValue(LoadErrorMessageProperty);
+            private set
+            {
+                SetValue(LoadErrorMessageProperty, value);
+                UpdateUserVisibilityState();
+            }
         }
         #endregion
 
@@ -537,8 +554,7 @@ namespace Flowery.NET.Kanban.Controls
         private void OnViewUnloaded(object? sender, RoutedEventArgs e)
         {
             DetachProvider();
-            _refreshCts?.Cancel();
-            _refreshCts = null;
+            CancelUserRefresh();
             CancelProviderConnection();
 
             if (_isLocalizationSubscribed)
@@ -913,6 +929,8 @@ namespace Flowery.NET.Kanban.Controls
 
         private async Task RefreshUsersAsync(bool forceReload, bool refreshProvider = true)
         {
+            CancelUserRefresh();
+            LoadErrorMessage = string.Empty;
             var provider = UserProvider;
             if (provider == null)
             {
@@ -926,7 +944,6 @@ namespace Flowery.NET.Kanban.Controls
                 return;
             }
 
-            _refreshCts?.Cancel();
             var refreshCts = new CancellationTokenSource();
             _refreshCts = refreshCts;
             var token = refreshCts.Token;
@@ -958,6 +975,9 @@ namespace Flowery.NET.Kanban.Controls
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"FlowKanban user refresh failed: {ex.GetType().Name} - {ex.Message}");
+                if (!token.IsCancellationRequested && ReferenceEquals(_refreshCts, refreshCts))
+                    LoadErrorMessage = FloweryLocalization.GetString(
+                        "Kanban_Users_LoadFailed", "Users could not be loaded. Try again.");
             }
             finally
             {
@@ -966,7 +986,16 @@ namespace Flowery.NET.Kanban.Controls
                     _refreshCts = null;
                     IsLoading = false;
                 }
+                refreshCts.Dispose();
             }
+        }
+
+        private void CancelUserRefresh()
+        {
+            var request = _refreshCts;
+            _refreshCts = null;
+            request?.Cancel();
+            IsLoading = false;
         }
 
         private void UpdateUsers(IReadOnlyList<FlowKanbanUserItem> items)
@@ -1043,8 +1072,9 @@ namespace Flowery.NET.Kanban.Controls
             var hasFiltered = FilteredUsers.Count > 0;
             HasAnyUsers = hasAny;
             HasFilteredUsers = hasFiltered;
-            IsEmptyStateVisible = !hasAny && string.IsNullOrWhiteSpace(SearchText);
-            IsSearchEmptyStateVisible = !hasFiltered && !string.IsNullOrWhiteSpace(SearchText);
+            var showEmpty = !IsLoading && string.IsNullOrEmpty(LoadErrorMessage);
+            IsEmptyStateVisible = showEmpty && !hasAny && string.IsNullOrWhiteSpace(SearchText);
+            IsSearchEmptyStateVisible = showEmpty && !hasFiltered && !string.IsNullOrWhiteSpace(SearchText);
         }
 
         private void RefreshProviderSummaries()

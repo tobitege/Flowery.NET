@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:weather="clr-namespace:Flowery.Controls.Custom.Weather;assembly=Flowery.NET"
                     xmlns:models="clr-namespace:Flowery.Controls.Custom.Weather.Models;assembly=Flowery.NET">
@@ -45,19 +45,39 @@
 
                         <!-- High/Low Temperature -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="2">
-                            <TextBlock Text="{Binding HighTemperature, StringFormat={}{0:0}°}"
+                            <TextBlock Name="HighTemperatureText"
                                 FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
                                 FontWeight="SemiBold"
-                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                Foreground="{DynamicResource DaisyBaseContentBrush}">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0:0}°{1}">
+                                        <Binding Path="HighTemperature" />
+                                        <Binding Path="TemperatureUnit" RelativeSource="{RelativeSource AncestorType=weather:DaisyWeatherForecast}" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
                             <TextBlock Text="|"
                                 FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
                                 Opacity="0.4"
                                 Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                            <TextBlock Text="{Binding LowTemperature, StringFormat={}{0:0}°}"
+                            <TextBlock Name="LowTemperatureText"
                                 FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
                                 Opacity="0.6"
-                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                Foreground="{DynamicResource DaisyBaseContentBrush}">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0:0}°{1}">
+                                        <Binding Path="LowTemperature" />
+                                        <Binding Path="TemperatureUnit" RelativeSource="{RelativeSource AncestorType=weather:DaisyWeatherForecast}" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
                         </StackPanel>
+                        <TextBlock Name="PrecipitationText"
+                                   Text="{Binding ChanceOfPrecipitation, StringFormat={}{0:0}%}"
+                                   IsVisible="{Binding $parent[weather:DaisyWeatherForecast].ShowPrecipitation}"
+                                   FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                   HorizontalAlignment="Center" />
                     </StackPanel>
                 </Border>
             </DataTemplate>

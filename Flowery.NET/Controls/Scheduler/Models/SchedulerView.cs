@@ -23,4 +23,7 @@ public enum SchedulerView
 
     /// <summary>One horizontal day, with named, collapsible resource groups.</summary>
     Timeline,
+
+    /// <summary>Month navigator with week numbers and a scrollable daily appointment list.</summary>
+    Calendar,
 }

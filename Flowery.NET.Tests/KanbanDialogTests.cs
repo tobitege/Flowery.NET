@@ -749,19 +749,9 @@ public class KanbanDialogTests
                     textBlock.Text,
                     "Editable subtask",
                     StringComparison.Ordinal));
-            var subtaskRow = Assert.IsType<Grid>(subtaskTitle.GetVisualParent());
-            var subtaskPanel = Assert.IsType<StackPanel>(subtaskRow.GetVisualParent());
-            var editSubtasksField = typeof(FlowTaskEditorDialog).GetField(
-                "_editSubtasks",
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            Assert.NotNull(editSubtasksField);
-            var editSubtasks = Assert.IsType<List<FlowSubtask>>(
-                editSubtasksField!.GetValue(dialog));
-            var refreshMethod = typeof(FlowTaskEditorDialog).GetMethod(
-                "RefreshSubtasksList",
-                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-            Assert.NotNull(refreshMethod);
-            refreshMethod!.Invoke(null, [subtaskPanel, editSubtasks, 0]);
+            var renameButton = subtaskTitle.FindAncestorOfType<DaisyButton>();
+            Assert.NotNull(renameButton);
+            Invoke(renameButton);
             Dispatcher.UIThread.RunJobs();
 
             var editInput = FindInput(dialog, "Editable subtask");

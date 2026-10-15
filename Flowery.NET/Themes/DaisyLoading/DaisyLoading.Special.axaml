@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui"
+﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -39,7 +39,7 @@
     </Style>
 
     <!-- Hourglass Animations -->
-    <Style Selector="controls|DaisyLoading[Variant=Hourglass] /template/ Path.sand-top">
+    <Style Selector="controls|DaisyLoading[Variant=Hourglass] /template/ Path.sand-top[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
@@ -49,7 +49,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Hourglass] /template/ Border.sand-stream">
+    <Style Selector="controls|DaisyLoading[Variant=Hourglass] /template/ Border.sand-stream[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
@@ -59,7 +59,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Hourglass] /template/ Path.sand-bottom">
+    <Style Selector="controls|DaisyLoading[Variant=Hourglass] /template/ Path.sand-bottom[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="7"/></KeyFrame>
@@ -99,7 +99,7 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=SignalSweep] /template/ Border.sweep-bar">
+    <Style Selector="controls|DaisyLoading[Variant=SignalSweep] /template/ Border.sweep-bar[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="-2"/></KeyFrame>
@@ -108,7 +108,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=SignalSweep] /template/ Border.sweep-trail">
+    <Style Selector="controls|DaisyLoading[Variant=SignalSweep] /template/ Border.sweep-trail[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="-8"/></KeyFrame>
@@ -138,7 +138,7 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=Heartbeat] /template/ Path.heartbeat-line">
+    <Style Selector="controls|DaisyLoading[Variant=Heartbeat] /template/ Path.heartbeat-line[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame>
@@ -161,7 +161,7 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=TunnelZoom] /template/ Ellipse.ring1">
+    <Style Selector="controls|DaisyLoading[Variant=TunnelZoom] /template/ Ellipse.ring1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -177,7 +177,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=TunnelZoom] /template/ Ellipse.ring2">
+    <Style Selector="controls|DaisyLoading[Variant=TunnelZoom] /template/ Ellipse.ring2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:0.5">
                 <KeyFrame KeyTime="0:0:0">
@@ -193,7 +193,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=TunnelZoom] /template/ Ellipse.ring3">
+    <Style Selector="controls|DaisyLoading[Variant=TunnelZoom] /template/ Ellipse.ring3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:1">
                 <KeyFrame KeyTime="0:0:0">
@@ -236,7 +236,7 @@
     </Style>
 
     <!-- GlitchReveal Animations - pseudo-random glitch pattern -->
-    <Style Selector="controls|DaisyLoading[Variant=GlitchReveal] /template/ Border.glitch1">
+    <Style Selector="controls|DaisyLoading[Variant=GlitchReveal] /template/ Border.glitch1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -249,7 +249,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=GlitchReveal] /template/ Border.glitch2">
+    <Style Selector="controls|DaisyLoading[Variant=GlitchReveal] /template/ Border.glitch2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -264,7 +264,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=GlitchReveal] /template/ Border.glitch3">
+    <Style Selector="controls|DaisyLoading[Variant=GlitchReveal] /template/ Border.glitch3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -279,7 +279,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=GlitchReveal] /template/ Border.glitch4">
+    <Style Selector="controls|DaisyLoading[Variant=GlitchReveal] /template/ Border.glitch4[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -295,7 +295,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=GlitchReveal] /template/ Border.glitch5">
+    <Style Selector="controls|DaisyLoading[Variant=GlitchReveal] /template/ Border.glitch5[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -310,7 +310,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=GlitchReveal] /template/ Border.glitch6">
+    <Style Selector="controls|DaisyLoading[Variant=GlitchReveal] /template/ Border.glitch6[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -350,7 +350,7 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=CursorBlink] /template/ Border.cursor-block">
+    <Style Selector="controls|DaisyLoading[Variant=CursorBlink] /template/ Border.cursor-block[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>

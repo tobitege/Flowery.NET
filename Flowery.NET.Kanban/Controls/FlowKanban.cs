@@ -196,7 +196,13 @@ namespace Flowery.NET.Kanban.Controls
         public IBoardStore BoardStore
         {
             get => _boardStore;
-            set => _boardStore = value ?? throw new ArgumentNullException(nameof(value));
+            set
+            {
+                ArgumentNullException.ThrowIfNull(value);
+                if (ReferenceEquals(_boardStore, value)) return;
+                _boardLoadGeneration++;
+                _boardStore = value;
+            }
         }
         internal bool IsLaneGroupingEnabled => Board.GroupBy == FlowKanbanGroupBy.Lane && Board.Lanes.Count > 0;
 
@@ -270,6 +276,7 @@ namespace Flowery.NET.Kanban.Controls
         {
             if (d is FlowKanban kanban)
             {
+                kanban._boardLoadGeneration++;
                 kanban.AttachBoardTracking(e.NewValue as FlowKanbanData);
                 _ = ObserveAssigneeRefreshAsync(kanban.RefreshAssigneesAsync());
             }
@@ -2156,6 +2163,7 @@ namespace Flowery.NET.Kanban.Controls
             if (string.Equals(e.PropertyName, nameof(FlowTask.IsSelected), StringComparison.Ordinal))
             {
                 UpdateSelectionMetrics();
+                (ControlAutomationPeer.FromElement(this) as FlowKanbanAutomationPeer)?.SelectionChanged(sender as FlowTask);
             }
 
             RequestAutoSave();

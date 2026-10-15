@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Avalonia;
@@ -15,7 +15,12 @@ namespace Flowery.Controls
     {
         protected override Type StyleKeyOverride => typeof(DaisyContributionGraph);
 
-        private const int WeeksInYear = 53;
+        private int _weekCount = 53;
+        public static readonly DirectProperty<DaisyContributionGraph, int> WeekCountProperty =
+            AvaloniaProperty.RegisterDirect<DaisyContributionGraph, int>(nameof(WeekCount), o => o.WeekCount);
+
+        /// <summary>Gets the number of week columns needed to display the complete year.</summary>
+        public int WeekCount => _weekCount;
         private const int DaysInWeek = 7;
         private const double BaseTextFontSize = 12.0;
 
@@ -47,7 +52,7 @@ namespace Flowery.Controls
         public double CellStepY => _cellStepY;
 
         /// <summary>
-        /// Gets the total width of the 53-week grid in pixels.
+        /// Gets the total width of the year grid in pixels.
         /// </summary>
         public double GridWidth => _gridWidth;
 
@@ -233,7 +238,7 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Cells displayed by the graph (7 rows x 53 weeks).
+        /// Cells displayed by the graph (7 rows and enough columns for the complete year).
         /// </summary>
         public AvaloniaList<DaisyContributionGraphCell> Cells { get; } = new();
 
@@ -266,6 +271,10 @@ namespace Flowery.Controls
 
         private void Rebuild()
         {
+            var year = Year > 0 ? Year : DateTime.Today.Year;
+            var first = GetFirstGridDate(new DateTime(year, 1, 1));
+            var weeks = (new DateTime(year, 12, 31) - first).Days / DaysInWeek + 1;
+            SetAndRaise(WeekCountProperty, ref _weekCount, weeks);
             UpdateCellSteps();
             RebuildDayLabels();
             RebuildMonthHeaders();
@@ -281,7 +290,7 @@ namespace Flowery.Controls
             SetAndRaise(CellStepXProperty, ref _cellStepX, stepX);
             SetAndRaise(CellStepYProperty, ref _cellStepY, stepY);
 
-            var gridWidth = WeeksInYear * stepX;
+            var gridWidth = WeekCount * stepX;
             var gridHeight = DaysInWeek * stepY;
             SetAndRaise(GridWidthProperty, ref _gridWidth, gridWidth);
             SetAndRaise(GridHeightProperty, ref _gridHeight, gridHeight);
@@ -311,7 +320,6 @@ namespace Flowery.Controls
             var first = GetFirstGridDate(startDate);
 
             // Place each month label at the week-column that contains the 1st of that month.
-            // With GridWidth locked to 53 * CellStepX, this is stable and matches GitHub-style placement.
             var lastWeekIndex = -1;
 
             for (int month = 1; month <= 12; month++)
@@ -319,7 +327,7 @@ namespace Flowery.Controls
                 var firstOfMonth = new DateTime(year, month, 1);
                 var weekIndex = (int)((firstOfMonth.Date - first.Date).TotalDays / DaysInWeek);
 
-                if (weekIndex < 0 || weekIndex >= WeeksInYear)
+                if (weekIndex < 0 || weekIndex >= WeekCount)
                     continue;
 
                 if (weekIndex == lastWeekIndex)
@@ -361,7 +369,7 @@ namespace Flowery.Controls
             // We want rows = day-of-week, columns = week-of-year, so generate in day-major order.
             for (int day = 0; day < DaysInWeek; day++)
             {
-                for (int week = 0; week < WeeksInYear; week++)
+                for (int week = 0; week < WeekCount; week++)
                 {
                     var currentDate = first.AddDays(week * DaysInWeek + day);
 

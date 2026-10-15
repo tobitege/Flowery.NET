@@ -1,10 +1,13 @@
-using System;
+﻿using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Flowery.Controls;
 
 namespace Flowery.Helpers
 {
@@ -16,6 +19,11 @@ namespace Flowery.Helpers
     {
         private static readonly ConditionalWeakTable<TextBlock, ImageBrush> _brushes = new();
         private static readonly ConditionalWeakTable<TextBlock, IBrush> _originalForegrounds = new();
+        private static readonly ConditionalWeakTable<TextBlock, PanAnimation> _animations = new();
+        private static readonly AttachedProperty<bool> StoppedProperty =
+            AvaloniaProperty.RegisterAttached<TextBlock, bool>("Stopped", typeof(FloweryTextFillEffects));
+        private static readonly AttachedProperty<bool> ManualRequestProperty =
+            AvaloniaProperty.RegisterAttached<TextBlock, bool>("ManualRequest", typeof(FloweryTextFillEffects));
 
         #region ImageSource Attached Property
 
@@ -28,6 +36,17 @@ namespace Flowery.Helpers
         static FloweryTextFillEffects()
         {
             ImageSourceProperty.Changed.AddClassHandler<TextBlock>(OnImageSourceChanged);
+            AnimateProperty.Changed.AddClassHandler<TextBlock>(OnConfigurationChanged);
+            AutoStartProperty.Changed.AddClassHandler<TextBlock>(OnConfigurationChanged);
+            DurationProperty.Changed.AddClassHandler<TextBlock>(OnConfigurationChanged);
+            PanXProperty.Changed.AddClassHandler<TextBlock>(OnConfigurationChanged);
+        }
+
+        private static void OnConfigurationChanged(TextBlock target, AvaloniaPropertyChangedEventArgs e)
+        {
+            target.SetValue(StoppedProperty, false);
+            if (e.Property == AnimateProperty || e.Property == AutoStartProperty) target.SetValue(ManualRequestProperty, false);
+            StartIfConfigured(target);
         }
 
         public static IImage? GetImageSource(TextBlock element)
@@ -49,6 +68,7 @@ namespace Flowery.Helpers
                 return;
             }
 
+            textBlock.SetValue(StoppedProperty, false);
             if (ApplyImageBrush(textBlock, source))
             {
                 StartIfConfigured(textBlock);
@@ -141,27 +161,34 @@ namespace Flowery.Helpers
 
         #endregion
 
+        private static void OnMotionChanged(Control control) => StartIfConfigured((TextBlock)control);
+
         private static void StartIfConfigured(TextBlock textBlock)
         {
+            DaisyAccessibility.RegisterMotionHandler(textBlock, OnMotionChanged);
+            textBlock.AttachedToVisualTree -= OnElementAttached;
+            textBlock.DetachedFromVisualTree -= OnElementDetached;
             if (GetImageSource(textBlock) == null)
             {
-                StopEffect(textBlock);
+                StopCurrentEffect(textBlock);
                 return;
             }
 
-            if (!GetAnimate(textBlock) || !GetAutoStart(textBlock))
+            if ((!GetAnimate(textBlock) || !GetAutoStart(textBlock)) && !textBlock.GetValue(ManualRequestProperty)
+                || textBlock.GetValue(StoppedProperty) || DaisyAccessibility.IsReducedMotion)
             {
-                StopEffect(textBlock);
+                StopCurrentEffect(textBlock);
+                textBlock.AttachedToVisualTree += OnElementAttached;
+                textBlock.DetachedFromVisualTree += OnElementDetached;
                 return;
             }
+
+            textBlock.AttachedToVisualTree += OnElementAttached;
+            textBlock.DetachedFromVisualTree += OnElementDetached;
 
             if (textBlock.IsAttachedToVisualTree())
             {
-                StartEffect(textBlock);
-            }
-            else
-            {
-                textBlock.AttachedToVisualTree += OnElementAttached;
+                StartCurrentEffect(textBlock);
             }
         }
 
@@ -169,9 +196,7 @@ namespace Flowery.Helpers
         {
             if (sender is TextBlock textBlock)
             {
-                textBlock.AttachedToVisualTree -= OnElementAttached;
-                StartEffect(textBlock);
-                textBlock.DetachedFromVisualTree += OnElementDetached;
+                StartIfConfigured(textBlock);
             }
         }
 
@@ -179,8 +204,7 @@ namespace Flowery.Helpers
         {
             if (sender is TextBlock textBlock)
             {
-                textBlock.DetachedFromVisualTree -= OnElementDetached;
-                StopEffect(textBlock);
+                StopCurrentEffect(textBlock);
             }
         }
 
@@ -194,7 +218,7 @@ namespace Flowery.Helpers
             {
                 // Assign using SetValue to bypass potential interface type mismatches in different build targets (IImage vs IImageBrushSource)
                 brush.SetValue(ImageBrush.SourceProperty, source);
-                textBlock.Foreground = brush;
+                textBlock.SetCurrentValue(TextBlock.ForegroundProperty, brush);
                 return true;
             }
             catch
@@ -239,25 +263,87 @@ namespace Flowery.Helpers
         {
             if (_originalForegrounds.TryGetValue(textBlock, out var original))
             {
-                textBlock.Foreground = original;
+                textBlock.SetCurrentValue(TextBlock.ForegroundProperty, original);
                 _originalForegrounds.Remove(textBlock);
             }
         }
 
         public static void StartEffect(TextBlock textBlock)
         {
-            // Animation of brushes is complex in Avalonia via attached properties without a custom shader or behavior.
-            // For now, we just set the static brush. Full pan animation would require a custom control or shader.
+            textBlock.SetValue(StoppedProperty, false);
+            textBlock.SetValue(ManualRequestProperty, true);
+            DaisyAccessibility.RegisterMotionHandler(textBlock, OnMotionChanged);
+            textBlock.AttachedToVisualTree -= OnElementAttached;
+            textBlock.AttachedToVisualTree += OnElementAttached;
+            StartCurrentEffect(textBlock);
+        }
+
+        private static void StartCurrentEffect(TextBlock textBlock)
+        {
+            StopCurrentEffect(textBlock);
+            if (DaisyAccessibility.IsReducedMotion) return;
             var source = GetImageSource(textBlock);
-            if (source != null)
-            {
-                ApplyImageBrush(textBlock, source);
-            }
+            if (source == null || !ApplyImageBrush(textBlock, source) || !textBlock.IsAttachedToVisualTree()) return;
+            textBlock.DetachedFromVisualTree -= OnElementDetached;
+            textBlock.DetachedFromVisualTree += OnElementDetached;
+            var animation = new PanAnimation(textBlock, GetOrCreateBrush(textBlock));
+            _animations.Add(textBlock, animation);
+            animation.Start();
         }
 
         public static void StopEffect(TextBlock textBlock)
         {
-            // Cleanup logic if we had active animations
+            textBlock.SetValue(StoppedProperty, true);
+            textBlock.SetValue(ManualRequestProperty, false);
+            StopCurrentEffect(textBlock);
+        }
+
+        private static void StopCurrentEffect(TextBlock textBlock)
+        {
+            if (!_animations.TryGetValue(textBlock, out var animation)) return;
+            animation.Stop();
+            _animations.Remove(textBlock);
+        }
+
+        private sealed class PanAnimation
+        {
+            private readonly TextBlock _target;
+            private readonly ImageBrush _brush;
+            private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(16) };
+            private readonly Stopwatch _clock = new();
+            private readonly TranslateTransform _translation = new();
+            private readonly ITransform? _originalTransform;
+
+            public PanAnimation(TextBlock target, ImageBrush brush)
+            {
+                _target = target;
+                _brush = brush;
+                _originalTransform = brush.Transform;
+                var transforms = new TransformGroup();
+                if (_originalTransform != null) transforms.Children.Add(new MatrixTransform(_originalTransform.Value));
+                transforms.Children.Add(_translation);
+                brush.Transform = transforms;
+                _timer.Tick += OnTick;
+            }
+
+            public void Start() { _clock.Start(); _timer.Start(); }
+
+            private void OnTick(object? sender, EventArgs e)
+            {
+                var duration = GetDuration(_target);
+                if (!double.IsFinite(duration) || duration <= 0) duration = .2;
+                var phase = _clock.Elapsed.TotalSeconds / duration * Math.PI * 2;
+                var pan = GetPanX(_target);
+                _translation.X = double.IsFinite(pan) ? Math.Sin(phase) * pan * _target.Bounds.Width : 0;
+            }
+
+            public void Stop()
+            {
+                _timer.Stop();
+                _timer.Tick -= OnTick;
+                _clock.Stop();
+                _brush.Transform = _originalTransform;
+            }
         }
 
         public static void TryStartEffect(Control element)

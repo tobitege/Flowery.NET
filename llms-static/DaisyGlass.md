@@ -7,6 +7,10 @@ DaisyGlass is a frosted-glass container with multiple blur strategies: simulated
 
 ## Blur Modes
 
+High contrast replaces the material with an opaque semantic surface and stops backdrop capture.
+Capture requests belong to the current host and generation; detached or superseded requests cannot publish their images.
+See [accessibility preferences](DaisyAccessibility.md#system-contrast-and-reduced-motion).
+
 | Mode | Description |
 | ---- | ----------- |
 | `Simulated` | No real blur; uses layered gradients/textures for a lightweight glass look. |

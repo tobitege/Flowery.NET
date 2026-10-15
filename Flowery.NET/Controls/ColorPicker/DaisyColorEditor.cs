@@ -316,17 +316,8 @@ namespace Flowery.Controls.ColorPicker
         private void OnHslColorPropertyChanged(AvaloniaPropertyChangedEventArgs e)
         {
             if (_lockUpdates) return;
-
-            _lockUpdates = true;
-            try
-            {
-                var hsl = (HslColor)e.NewValue!;
-                Color = hsl.ToRgbColor();
-            }
-            finally
-            {
-                _lockUpdates = false;
-            }
+            var hsl = (HslColor)e.NewValue!;
+            SetCurrentValue(ColorProperty, hsl.ToRgbColor());
         }
 
         private void UpdateComponentsFromColor(Color color)
@@ -429,6 +420,8 @@ namespace Flowery.Controls.ColorPicker
             try
             {
                 var hex = _hexValue!.TrimStart('#');
+                if (hex.Length is 3 or 4)
+                    hex = string.Concat(hex.Select(character => new string(character, 2)));
                 Color color;
 
                 if (hex.Length == 6)

@@ -3,7 +3,9 @@
 
 # Overview
 
-DaisyContributionGraph is a GitHub-style contribution heatmap graph (7 rows × 53 weeks). Provide day entries via `Contributions`, and the control renders a compact year overview with optional month/day labels, hover tooltips, and a “Less/More” legend.
+DaisyContributionGraph displays a year in seven weekday rows. WeekCount follows the year and FirstDayOfWeek, including every date.
+Most years need 53 columns; some alignments need 54, such as leap year 2000 with a Sunday start.
+Provide day entries through Contributions. Optional month/day labels, tooltips, and a legend explain the values.
 
 ## Data Model
 

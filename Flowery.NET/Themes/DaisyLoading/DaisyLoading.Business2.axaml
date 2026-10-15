@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui"
+﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -32,7 +32,7 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=PrinterOutput] /template/ Border.printer-page">
+    <Style Selector="controls|DaisyLoading[Variant=PrinterOutput] /template/ Border.printer-page[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="-26"/><Setter Property="Opacity" Value="0"/></KeyFrame>
@@ -72,7 +72,7 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=PaperShredder] /template/ Border.shredder-page">
+    <Style Selector="controls|DaisyLoading[Variant=PaperShredder] /template/ Border.shredder-page[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.7" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="-20"/><Setter Property="Opacity" Value="1"/></KeyFrame>
@@ -83,7 +83,7 @@
         </Style.Animations>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=PaperShredder] /template/ Border.strip1">
+    <Style Selector="controls|DaisyLoading[Variant=PaperShredder] /template/ Border.strip1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.7" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0.45"><Setter Property="TranslateTransform.Y" Value="-12"/><Setter Property="Opacity" Value="0"/></KeyFrame>
@@ -92,7 +92,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PaperShredder] /template/ Border.strip2">
+    <Style Selector="controls|DaisyLoading[Variant=PaperShredder] /template/ Border.strip2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.7" IterationCount="Infinite" Delay="0:0:0.12">
                 <KeyFrame KeyTime="0:0:0.45"><Setter Property="TranslateTransform.Y" Value="-12"/><Setter Property="Opacity" Value="0"/></KeyFrame>
@@ -101,7 +101,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PaperShredder] /template/ Border.strip3">
+    <Style Selector="controls|DaisyLoading[Variant=PaperShredder] /template/ Border.strip3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.7" IterationCount="Infinite" Delay="0:0:0.24">
                 <KeyFrame KeyTime="0:0:0.45"><Setter Property="TranslateTransform.Y" Value="-12"/><Setter Property="Opacity" Value="0"/></KeyFrame>
@@ -141,7 +141,7 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=SignaturePen] /template/ Path.pen">
+    <Style Selector="controls|DaisyLoading[Variant=SignaturePen] /template/ Path.pen[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.8" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="-38"/><Setter Property="TranslateTransform.Y" Value="18"/></KeyFrame>
@@ -151,7 +151,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=SignaturePen] /template/ Path.pen-tip">
+    <Style Selector="controls|DaisyLoading[Variant=SignaturePen] /template/ Path.pen-tip[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.8" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="-38"/><Setter Property="TranslateTransform.Y" Value="18"/></KeyFrame>
@@ -161,13 +161,13 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=SignaturePen] /template/ Path.signature-line1">
+    <Style Selector="controls|DaisyLoading[Variant=SignaturePen] /template/ Path.signature-line1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.8" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.55"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=SignaturePen] /template/ Path.signature-line2">
+    <Style Selector="controls|DaisyLoading[Variant=SignaturePen] /template/ Path.signature-line2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.8" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.55"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.95"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=SignaturePen] /template/ Path.signature-line3">
+    <Style Selector="controls|DaisyLoading[Variant=SignaturePen] /template/ Path.signature-line3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.8" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.25"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -196,7 +196,7 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=DocumentScan] /template/ Border.scan-beam">
+    <Style Selector="controls|DaisyLoading[Variant=DocumentScan] /template/ Border.scan-beam[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="0.15"/></KeyFrame>
@@ -206,16 +206,16 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=DocumentScan] /template/ Border.scan-line1">
+    <Style Selector="controls|DaisyLoading[Variant=DocumentScan] /template/ Border.scan-line1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="0.15"/></KeyFrame><KeyFrame KeyTime="0:0:0.45"><Setter Property="Opacity" Value="0.55"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.15"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=DocumentScan] /template/ Border.scan-line2">
+    <Style Selector="controls|DaisyLoading[Variant=DocumentScan] /template/ Border.scan-line2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.45"><Setter Property="Opacity" Value="0.15"/></KeyFrame><KeyFrame KeyTime="0:0:0.7"><Setter Property="Opacity" Value="0.55"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.15"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=DocumentScan] /template/ Border.scan-line3">
+    <Style Selector="controls|DaisyLoading[Variant=DocumentScan] /template/ Border.scan-line3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.7"><Setter Property="Opacity" Value="0.15"/></KeyFrame><KeyFrame KeyTime="0:0:0.95"><Setter Property="Opacity" Value="0.55"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.15"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=DocumentScan] /template/ Border.scan-line4">
+    <Style Selector="controls|DaisyLoading[Variant=DocumentScan] /template/ Border.scan-line4[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.95"><Setter Property="Opacity" Value="0.15"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.55"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.15"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -244,7 +244,7 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=FolderSync] /template/ Border.sync-page">
+    <Style Selector="controls|DaisyLoading[Variant=FolderSync] /template/ Border.sync-page[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="Opacity" Value="0"/></KeyFrame>
@@ -255,10 +255,10 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=FolderSync] /template/ Path.sync-arrow-a">
+    <Style Selector="controls|DaisyLoading[Variant=FolderSync] /template/ Path.sync-arrow-a[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.45"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=FolderSync] /template/ Path.sync-arrow-b">
+    <Style Selector="controls|DaisyLoading[Variant=FolderSync] /template/ Path.sync-arrow-b[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:0.8"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="1"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -289,7 +289,7 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=MailReceive] /template/ Border.received-paper">
+    <Style Selector="controls|DaisyLoading[Variant=MailReceive] /template/ Border.received-paper[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="34"/><Setter Property="Opacity" Value="0"/></KeyFrame>
@@ -299,7 +299,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=MailReceive] /template/ Path.mail-flap">
+    <Style Selector="controls|DaisyLoading[Variant=MailReceive] /template/ Path.mail-flap[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame><KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0.8"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.2"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -319,13 +319,13 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PhoneRing] /template/ Path.phone">
+    <Style Selector="controls|DaisyLoading[Variant=PhoneRing] /template/ Path.phone[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:0.8" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="RotateTransform.Angle" Value="-5"/></KeyFrame><KeyFrame KeyTime="0:0:0.2"><Setter Property="RotateTransform.Angle" Value="5"/></KeyFrame><KeyFrame KeyTime="0:0:0.4"><Setter Property="RotateTransform.Angle" Value="-5"/></KeyFrame><KeyFrame KeyTime="0:0:0.6"><Setter Property="RotateTransform.Angle" Value="5"/></KeyFrame><KeyFrame KeyTime="0:0:0.8"><Setter Property="RotateTransform.Angle" Value="-5"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PhoneRing] /template/ Path.ring1">
+    <Style Selector="controls|DaisyLoading[Variant=PhoneRing] /template/ Path.ring1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.35"><Setter Property="Opacity" Value="0.75"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PhoneRing] /template/ Path.ring2">
+    <Style Selector="controls|DaisyLoading[Variant=PhoneRing] /template/ Path.ring2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.2"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.35"><Setter Property="Opacity" Value="0.55"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -351,17 +351,17 @@
         </Setter>
     </Style>
     <!-- Falling coin: three drops per cycle, each landing on the growing stack (68/59/50), then pause -->
-    <Style Selector="controls|DaisyLoading[Variant=CoinStack] /template/ Ellipse.coin-drop">
+    <Style Selector="controls|DaisyLoading[Variant=CoinStack] /template/ Ellipse.coin-drop[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.8" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.05"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:0.4"><Setter Property="TranslateTransform.Y" Value="60"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:0.45"><Setter Property="TranslateTransform.Y" Value="60"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.5"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.55"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:0.9"><Setter Property="TranslateTransform.Y" Value="51"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:0.95"><Setter Property="TranslateTransform.Y" Value="51"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.0"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.05"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="TranslateTransform.Y" Value="42"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.45"><Setter Property="TranslateTransform.Y" Value="42"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.8"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
     <!-- Stack coins become visible exactly when the falling coin lands, stay until cycle end -->
-    <Style Selector="controls|DaisyLoading[Variant=CoinStack] /template/ Ellipse.coin1">
+    <Style Selector="controls|DaisyLoading[Variant=CoinStack] /template/ Ellipse.coin1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.8" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.45"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.75"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CoinStack] /template/ Ellipse.coin2">
+    <Style Selector="controls|DaisyLoading[Variant=CoinStack] /template/ Ellipse.coin2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.8" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.95"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.75"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CoinStack] /template/ Ellipse.coin3">
+    <Style Selector="controls|DaisyLoading[Variant=CoinStack] /template/ Ellipse.coin3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.8" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.45"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.75"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -393,7 +393,7 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=InvoicePaid] /template/ Border.paid-stamp">
+    <Style Selector="controls|DaisyLoading[Variant=InvoicePaid] /template/ Border.paid-stamp[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0"/><Setter Property="ScaleTransform.ScaleX" Value="1.5"/><Setter Property="ScaleTransform.ScaleY" Value="1.5"/><Setter Property="RotateTransform.Angle" Value="-12"/></KeyFrame><KeyFrame KeyTime="0:0:0.35"><Setter Property="Opacity" Value="1"/><Setter Property="ScaleTransform.ScaleX" Value="1"/><Setter Property="ScaleTransform.ScaleY" Value="1"/><Setter Property="RotateTransform.Angle" Value="-12"/></KeyFrame><KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -431,10 +431,10 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PiggyBank] /template/ Ellipse.pig-coin">
+    <Style Selector="controls|DaisyLoading[Variant=PiggyBank] /template/ Ellipse.pig-coin[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="-6"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:0.65"><Setter Property="TranslateTransform.Y" Value="20"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:0.78"><Setter Property="TranslateTransform.Y" Value="28"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.5"><Setter Property="TranslateTransform.Y" Value="-6"/><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PiggyBank] /template/ Canvas.pig">
+    <Style Selector="controls|DaisyLoading[Variant=PiggyBank] /template/ Canvas.pig[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.78"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.92"><Setter Property="TranslateTransform.X" Value="-2"/></KeyFrame><KeyFrame KeyTime="0:0:1.06"><Setter Property="TranslateTransform.X" Value="2"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -455,16 +455,16 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PieChartFill] /template/ Path.pie1">
+    <Style Selector="controls|DaisyLoading[Variant=PieChartFill] /template/ Path.pie1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame><KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="0.85"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.2"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PieChartFill] /template/ Path.pie2">
+    <Style Selector="controls|DaisyLoading[Variant=PieChartFill] /template/ Path.pie2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="0.2"/></KeyFrame><KeyFrame KeyTime="0:0:0.55"><Setter Property="Opacity" Value="0.75"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.2"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PieChartFill] /template/ Path.pie3">
+    <Style Selector="controls|DaisyLoading[Variant=PieChartFill] /template/ Path.pie3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.55"><Setter Property="Opacity" Value="0.2"/></KeyFrame><KeyFrame KeyTime="0:0:0.85"><Setter Property="Opacity" Value="0.65"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.2"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PieChartFill] /template/ Path.pie4">
+    <Style Selector="controls|DaisyLoading[Variant=PieChartFill] /template/ Path.pie4[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.85"><Setter Property="Opacity" Value="0.2"/></KeyFrame><KeyFrame KeyTime="0:0:1.15"><Setter Property="Opacity" Value="0.55"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0.2"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -484,16 +484,16 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=TrendLine] /template/ Path.trend1">
+    <Style Selector="controls|DaisyLoading[Variant=TrendLine] /template/ Path.trend1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=TrendLine] /template/ Path.trend2">
+    <Style Selector="controls|DaisyLoading[Variant=TrendLine] /template/ Path.trend2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=TrendLine] /template/ Path.trend3">
+    <Style Selector="controls|DaisyLoading[Variant=TrendLine] /template/ Path.trend3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.8"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=TrendLine] /template/ Path.trend4">
+    <Style Selector="controls|DaisyLoading[Variant=TrendLine] /template/ Path.trend4[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.8"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -516,10 +516,10 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=ClockSpin] /template/ Canvas.minute-hand">
+    <Style Selector="controls|DaisyLoading[Variant=ClockSpin] /template/ Canvas.minute-hand[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="RotateTransform.Angle" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="RotateTransform.Angle" Value="360"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=ClockSpin] /template/ Canvas.hour-hand">
+    <Style Selector="controls|DaisyLoading[Variant=ClockSpin] /template/ Canvas.hour-hand[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:3.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="RotateTransform.Angle" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:3.6"><Setter Property="RotateTransform.Angle" Value="360"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -542,13 +542,13 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CoffeeCup] /template/ Path.steam1">
+    <Style Selector="controls|DaisyLoading[Variant=CoffeeCup] /template/ Path.steam1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="8"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0.65"/></KeyFrame><KeyFrame KeyTime="0:0:1.5"><Setter Property="TranslateTransform.Y" Value="-8"/><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CoffeeCup] /template/ Path.steam2">
+    <Style Selector="controls|DaisyLoading[Variant=CoffeeCup] /template/ Path.steam2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:0.25"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="8"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0.65"/></KeyFrame><KeyFrame KeyTime="0:0:1.5"><Setter Property="TranslateTransform.Y" Value="-8"/><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CoffeeCup] /template/ Path.steam3">
+    <Style Selector="controls|DaisyLoading[Variant=CoffeeCup] /template/ Path.steam3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:0.5"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="8"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0.65"/></KeyFrame><KeyFrame KeyTime="0:0:1.5"><Setter Property="TranslateTransform.Y" Value="-8"/><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
 

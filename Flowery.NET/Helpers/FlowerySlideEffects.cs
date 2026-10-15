@@ -1,10 +1,11 @@
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.VisualTree;
 using Flowery.Enums;
+using Flowery.Controls;
 
 namespace Flowery.Helpers
 {
@@ -15,6 +16,8 @@ namespace Flowery.Helpers
     public static class FlowerySlideEffects
     {
         private static readonly ConditionalWeakTable<Control, Control> _effectTargets = new();
+        private static readonly ConditionalWeakTable<Control, RunRequest> _requests = new();
+        private sealed class RunRequest { public bool Requested { get; set; } }
 
         #region Effect Attached Property
 
@@ -27,6 +30,7 @@ namespace Flowery.Helpers
         static FlowerySlideEffects()
         {
             EffectProperty.Changed.AddClassHandler<Control>(OnEffectChanged);
+            AutoStartProperty.Changed.AddClassHandler<Control>(OnEffectChanged);
         }
 
         public static FlowerySlideEffect GetEffect(Control element)
@@ -41,23 +45,26 @@ namespace Flowery.Helpers
 
         private static void OnEffectChanged(Control element, AvaloniaPropertyChangedEventArgs e)
         {
-            StopEffect(element);
+            StopCurrentEffect(element);
+            var request = _requests.GetValue(element, static _ => new RunRequest());
+            request.Requested = GetAutoStart(element) && GetEffect(element) != FlowerySlideEffect.None;
+            DaisyAccessibility.RegisterMotionHandler(element, OnMotionChanged);
+            element.AttachedToVisualTree -= OnElementAttached;
+            element.DetachedFromVisualTree -= OnElementDetached;
 
-            var effect = (FlowerySlideEffect)e.NewValue!;
+            var effect = GetEffect(element);
             if (effect == FlowerySlideEffect.None)
             {
                 return;
             }
 
-            if (GetAutoStart(element))
+            if (effect != FlowerySlideEffect.None)
             {
-                if (element.IsAttachedToVisualTree())
+                element.AttachedToVisualTree += OnElementAttached;
+                element.DetachedFromVisualTree += OnElementDetached;
+                if (request.Requested && element.IsAttachedToVisualTree())
                 {
                     StartEffect(element);
-                }
-                else
-                {
-                    element.AttachedToVisualTree += OnElementAttached;
                 }
             }
         }
@@ -168,9 +175,7 @@ namespace Flowery.Helpers
         {
             if (sender is Control element)
             {
-                element.AttachedToVisualTree -= OnElementAttached;
-                StartEffect(element);
-                element.DetachedFromVisualTree += OnElementDetached;
+                if (_requests.TryGetValue(element, out var request) && request.Requested) StartCurrentEffect(element);
             }
         }
 
@@ -178,13 +183,31 @@ namespace Flowery.Helpers
         {
             if (sender is Control element)
             {
-                element.DetachedFromVisualTree -= OnElementDetached;
-                StopEffect(element);
+                StopCurrentEffect(element);
             }
         }
 
         public static void StartEffect(Control element)
         {
+            _requests.GetValue(element, static _ => new RunRequest()).Requested = true;
+            DaisyAccessibility.RegisterMotionHandler(element, OnMotionChanged);
+            element.AttachedToVisualTree -= OnElementAttached;
+            element.AttachedToVisualTree += OnElementAttached;
+            StartCurrentEffect(element);
+        }
+
+        private static void OnMotionChanged(Control element)
+        {
+            if (DaisyAccessibility.IsReducedMotion) StopCurrentEffect(element);
+            else if (_requests.TryGetValue(element, out var request) && request.Requested) StartCurrentEffect(element);
+        }
+
+        private static void StartCurrentEffect(Control element)
+        {
+            StopCurrentEffect(element);
+            if (DaisyAccessibility.IsReducedMotion || !element.IsAttachedToVisualTree()) return;
+            element.DetachedFromVisualTree -= OnElementDetached;
+            element.DetachedFromVisualTree += OnElementDetached;
             var effect = GetEffect(element);
             if (effect == FlowerySlideEffect.None) return;
 
@@ -204,9 +227,15 @@ namespace Flowery.Helpers
 
         public static void StopEffect(Control element)
         {
+            _requests.GetValue(element, static _ => new RunRequest()).Requested = false;
+            StopCurrentEffect(element);
+        }
+
+        private static void StopCurrentEffect(Control element)
+        {
             if (_effectTargets.TryGetValue(element, out var target))
             {
-                FloweryAnimationHelpers.StopPanAndZoom(target);
+                FloweryAnimationHelpers.StopAnimations(target);
                 FloweryAnimationHelpers.ResetTransform(target);
                 _effectTargets.Remove(element);
             }

@@ -16,6 +16,8 @@ public class FlowKanbanDialogBase : DaisyModal
     public const double DialogMargin = 40;
     public const double OverlayChromePadding = 48;
     private const double VerticalScrollBarContentClearance = 24;
+    private static readonly AttachedProperty<bool> IsDialogBodyProperty =
+        AvaloniaProperty.RegisterAttached<Control, bool>("IsDialogBody", typeof(FlowKanbanDialogBase));
 
     public static readonly StyledProperty<double> DialogWidthProperty =
         AvaloniaProperty.Register<FlowKanbanDialogBase, double>(nameof(DialogWidth), PreferredWidth);
@@ -252,6 +254,7 @@ public class FlowKanbanDialogBase : DaisyModal
             container.Children.Add(headerContent);
         }
 
+        mainContent.SetValue(IsDialogBodyProperty, true);
         var scrollViewer = new ScrollViewer
         {
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -419,6 +422,27 @@ public class FlowKanbanDialogBase : DaisyModal
         _overlayLayer.Children.Add(_backdrop);
         ApplyTheming();
         Focus();
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (!IsOpen || !this.IsAttachedToVisualTree()) return;
+            _topLevel?.UpdateLayout();
+            if (_topLevel?.FocusManager?.GetFocusedElement() is Visual focused
+                && !ReferenceEquals(focused, this) && this.IsVisualAncestorOf(focused)) return;
+            GetInitialFocusTarget()?.Focus(NavigationMethod.Tab);
+        }, DispatcherPriority.Loaded);
+    }
+
+    /// <summary>Returns the first available tab stop in the dialog body. Override to select a specific initial field.</summary>
+    protected virtual Control? GetInitialFocusTarget()
+    {
+        var root = Content as Control ?? this;
+        root = root.GetVisualDescendants().OfType<Control>().Prepend(root)
+            .FirstOrDefault(control => control.GetValue(IsDialogBodyProperty)) ?? root;
+        return root.GetVisualDescendants().OfType<Control>().Prepend(root)
+            .Where(control => !ReferenceEquals(control, this) && control.Focusable && control.IsTabStop
+                && control.IsEffectivelyEnabled && control.IsEffectivelyVisible)
+            .OrderBy(KeyboardNavigation.GetTabIndex)
+            .FirstOrDefault();
     }
 
     private void HideOverlay()

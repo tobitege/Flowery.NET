@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
@@ -7,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Flowery.Services;
+using Flowery.Helpers;
 
 namespace Flowery.Controls.ColorPicker
 {
@@ -158,6 +160,28 @@ namespace Flowery.Controls.ColorPicker
         public DaisyColorWheel()
         {
             ClipToBounds = true;
+            Focusable = true;
+        }
+
+        protected override AutomationPeer OnCreateAutomationPeer() => new DaisyColorAutomationPeer(this, ColorProperty);
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (e.Handled || !IsEffectivelyEnabled) return;
+            var hsl = HslColor;
+            switch (e.Key)
+            {
+                case Key.Left: hsl.H = (hsl.H + 359) % 360; break;
+                case Key.Right: hsl.H = (hsl.H + 1) % 360; break;
+                case Key.Up: hsl.S = Math.Min(1, hsl.S + .01); break;
+                case Key.Down: hsl.S = Math.Max(0, hsl.S - .01); break;
+                case Key.Home: hsl.H = 0; hsl.S = 0; break;
+                case Key.End: hsl.S = 1; break;
+                default: return;
+            }
+            SetCurrentValue(ColorProperty, hsl.ToRgbColor(Color.A));
+            e.Handled = true;
         }
 
         private void OnColorPropertyChanged(AvaloniaPropertyChangedEventArgs e)

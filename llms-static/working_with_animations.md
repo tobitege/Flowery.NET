@@ -4,6 +4,12 @@ You are working in the Flowery.NET repository, an Avalonia control library style
 
 ## DaisyLoading Variant Architecture
 
+Animation styles must include the DaisyAccessibility.MotionEnabled=True selector.
+Use AnimationHelper for finite code animations so reduced motion applies their final state.
+Own and stop decorative timers on detach, disable, and reduced-motion changes.
+Keep clock and countdown timing functional.
+See [accessibility preferences](DaisyAccessibility.md#system-contrast-and-reduced-motion).
+
 For DaisyLoading variants, every change must respect the existing architecture:
 
 1. Update the enum in `Flowery.NET/Controls/DaisyLoading.cs` when adding a new variant. Add an XML doc comment directly above the enum member:

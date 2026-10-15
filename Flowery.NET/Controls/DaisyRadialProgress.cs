@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Automation.Peers;
 using Flowery.Localization;
 using Flowery.Services;
 
@@ -83,7 +84,7 @@ namespace Flowery.Controls
     /// <summary>
     /// AutomationPeer for DaisyRadialProgress that exposes it as a ProgressBar to assistive technologies.
     /// </summary>
-    internal class DaisyRadialProgressAutomationPeer : ControlAutomationPeer
+    internal class DaisyRadialProgressAutomationPeer : ProgressBarAutomationPeer
     {
         private const string DefaultAccessibleText = "Progress";
 

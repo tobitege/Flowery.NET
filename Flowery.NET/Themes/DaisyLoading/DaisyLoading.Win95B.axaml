@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui"
+﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -53,16 +53,16 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-a, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-f, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-m">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-a[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-f[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-m[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-b, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-g, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-n">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-b[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-g[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-n[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-c, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-k, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-q">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-c[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-k[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-q[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.5"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-d, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-r, controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-u">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-d[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-r[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=Win95Defrag] /template/ Border.defrag-u[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:1.0"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -88,10 +88,10 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Download] /template/ Border.download-page">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Download] /template/ Border.download-page[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:0.95"><Setter Property="TranslateTransform.X" Value="34"/><Setter Property="TranslateTransform.Y" Value="38"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.15"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.5"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Download] /template/ Path.download-arrow">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Download] /template/ Path.download-arrow[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame><KeyFrame KeyTime="0:0:0.45"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.2"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -121,10 +121,10 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Install] /template/ Border.floppy">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Install] /template/ Border.floppy[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.12"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.05"><Setter Property="TranslateTransform.Y" Value="50"/></KeyFrame><KeyFrame KeyTime="0:0:1.3"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.34"><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.35"><Setter Property="TranslateTransform.Y" Value="50"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Install] /template/ Border.install-led">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Install] /template/ Border.install-led[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:0.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.2"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -150,22 +150,22 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox1">
+    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.3"/></KeyFrame><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox2">
+    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame><KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox3">
+    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.3"/></KeyFrame><KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox4">
+    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox4[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="0.3"/></KeyFrame><KeyFrame KeyTime="0:0:0.8"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox5">
+    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox5[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.8"><Setter Property="Opacity" Value="0.3"/></KeyFrame><KeyFrame KeyTime="0:0:1.0"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox6">
+    <Style Selector="controls|DaisyLoading[Variant=Win95ScanDisk] /template/ Border.scanbox6[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:1.0"><Setter Property="Opacity" Value="0.3"/></KeyFrame><KeyFrame KeyTime="0:0:1.15"><Setter Property="Opacity" Value="0.9"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.3"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -188,7 +188,7 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Hourglass] /template/ Canvas.hourglass">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Hourglass] /template/ Canvas.hourglass[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="RotateTransform.Angle" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.4"><Setter Property="RotateTransform.Angle" Value="90"/></KeyFrame><KeyFrame KeyTime="0:0:0.8"><Setter Property="RotateTransform.Angle" Value="180"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="RotateTransform.Angle" Value="270"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="RotateTransform.Angle" Value="360"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -214,13 +214,13 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95DialUp] /template/ Ellipse.dial-dot">
+    <Style Selector="controls|DaisyLoading[Variant=Win95DialUp] /template/ Ellipse.dial-dot[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="-18"/></KeyFrame><KeyFrame KeyTime="0:0:0.35"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.7"><Setter Property="TranslateTransform.X" Value="18"/></KeyFrame><KeyFrame KeyTime="0:0:1.05"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="TranslateTransform.X" Value="-18"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95DialUp] /template/ Border.dial-screen-left">
+    <Style Selector="controls|DaisyLoading[Variant=Win95DialUp] /template/ Border.dial-screen-left[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame><KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="0.75"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0.2"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95DialUp] /template/ Border.dial-screen-right">
+    <Style Selector="controls|DaisyLoading[Variant=Win95DialUp] /template/ Border.dial-screen-right[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.65"><Setter Property="Opacity" Value="0.2"/></KeyFrame><KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.75"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="Opacity" Value="0.2"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -239,16 +239,16 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Solitaire] /template/ Border.card1">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Solitaire] /template/ Border.card1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.0"><Setter Property="TranslateTransform.X" Value="12"/><Setter Property="TranslateTransform.Y" Value="33"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Solitaire] /template/ Border.card2">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Solitaire] /template/ Border.card2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.15"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.0"><Setter Property="TranslateTransform.X" Value="25"/><Setter Property="TranslateTransform.Y" Value="38"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Solitaire] /template/ Border.card3">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Solitaire] /template/ Border.card3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.3"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.0"><Setter Property="TranslateTransform.X" Value="39"/><Setter Property="TranslateTransform.Y" Value="31"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Solitaire] /template/ Border.card4">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Solitaire] /template/ Border.card4[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.45"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:1.0"><Setter Property="TranslateTransform.X" Value="52"/><Setter Property="TranslateTransform.Y" Value="21"/></KeyFrame><KeyFrame KeyTime="0:0:1.6"><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -272,7 +272,7 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95PrintQueue] /template/ Border.queue-page">
+    <Style Selector="controls|DaisyLoading[Variant=Win95PrintQueue] /template/ Border.queue-page[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.4" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="-16"/><Setter Property="Opacity" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="1"/></KeyFrame><KeyFrame KeyTime="0:0:0.45"><Setter Property="TranslateTransform.Y" Value="-6"/></KeyFrame><KeyFrame KeyTime="0:0:0.7"><Setter Property="TranslateTransform.Y" Value="4"/></KeyFrame><KeyFrame KeyTime="0:0:0.95"><Setter Property="TranslateTransform.Y" Value="14"/></KeyFrame><KeyFrame KeyTime="0:0:1.4"><Setter Property="TranslateTransform.Y" Value="24"/><Setter Property="Opacity" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -296,7 +296,7 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95FindComputer] /template/ Canvas.computer-lens">
+    <Style Selector="controls|DaisyLoading[Variant=Win95FindComputer] /template/ Canvas.computer-lens[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.8" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame><KeyFrame KeyTime="0:0:0.45"><Setter Property="TranslateTransform.X" Value="34"/><Setter Property="TranslateTransform.Y" Value="4"/></KeyFrame><KeyFrame KeyTime="0:0:0.9"><Setter Property="TranslateTransform.X" Value="24"/><Setter Property="TranslateTransform.Y" Value="30"/></KeyFrame><KeyFrame KeyTime="0:0:1.35"><Setter Property="TranslateTransform.X" Value="-3"/><Setter Property="TranslateTransform.Y" Value="24"/></KeyFrame><KeyFrame KeyTime="0:0:1.8"><Setter Property="TranslateTransform.X" Value="0"/><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame></Animation></Style.Animations>
     </Style>
 
@@ -316,16 +316,16 @@
             </ControlTemplate>
         </Setter>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Startup] /template/ Border.startup1, controls|DaisyLoading[Variant=Win95StartupColor] /template/ Border.startup1">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Startup] /template/ Border.startup1[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=Win95StartupColor] /template/ Border.startup1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Startup] /template/ Border.startup2, controls|DaisyLoading[Variant=Win95StartupColor] /template/ Border.startup2">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Startup] /template/ Border.startup2[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=Win95StartupColor] /template/ Border.startup2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.2"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Startup] /template/ Border.startup3, controls|DaisyLoading[Variant=Win95StartupColor] /template/ Border.startup3">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Startup] /template/ Border.startup3[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=Win95StartupColor] /template/ Border.startup3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Win95Startup] /template/ Border.startup4, controls|DaisyLoading[Variant=Win95StartupColor] /template/ Border.startup4">
+    <Style Selector="controls|DaisyLoading[Variant=Win95Startup] /template/ Border.startup4[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=Win95StartupColor] /template/ Border.startup4[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations><Animation Duration="0:0:1.2" IterationCount="Infinite"><KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="0.25"/></KeyFrame><KeyFrame KeyTime="0:0:0.8"><Setter Property="Opacity" Value="0.95"/></KeyFrame><KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.25"/></KeyFrame></Animation></Style.Animations>
     </Style>
 

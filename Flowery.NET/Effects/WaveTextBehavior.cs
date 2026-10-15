@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using Flowery.Controls;
 
 namespace Flowery.Effects
 {
@@ -55,6 +56,8 @@ namespace Flowery.Effects
         private static readonly AttachedProperty<bool> WasPerCharacterAppliedProperty =
             AvaloniaProperty.RegisterAttached<TextBlock, bool>(
                 "WasPerCharacterApplied", typeof(WaveTextBehavior), false);
+        private static readonly AttachedProperty<string?> OriginalTextProperty =
+            AvaloniaProperty.RegisterAttached<TextBlock, string?>("OriginalText", typeof(WaveTextBehavior));
 
         #endregion
 
@@ -84,6 +87,12 @@ namespace Flowery.Effects
 
         private static void OnIsEnabledChanged(TextBlock element, AvaloniaPropertyChangedEventArgs e)
         {
+            DaisyAccessibility.RegisterMotionHandler(element, static control =>
+            {
+                var text = (TextBlock)control;
+                if (GetIsEnabled(text) && !DaisyAccessibility.IsReducedMotion) StartWaveAnimation(text);
+                else StopWaveAnimation(text);
+            });
             if (e.NewValue is true)
             {
                 element.AttachedToVisualTree += OnAttachedToVisualTree;
@@ -122,6 +131,7 @@ namespace Flowery.Effects
         private static async void StartWaveAnimation(TextBlock textBlock)
         {
             StopWaveAnimation(textBlock);
+            if (DaisyAccessibility.IsReducedMotion) return;
 
             var text = textBlock.Text;
             if (text == null || text.Length == 0) return;
@@ -146,6 +156,7 @@ namespace Flowery.Effects
                 if (isPerCharacter)
                 {
                     textBlock.SetValue(WasPerCharacterAppliedProperty, true);
+                    textBlock.SetValue(OriginalTextProperty, text);
                     var inlines = textBlock.Inlines!;
                     inlines.Clear();
 
@@ -181,7 +192,7 @@ namespace Flowery.Effects
                 }
 
                 // Infinite wave loop
-                while (!ct.IsCancellationRequested)
+                while (!ct.IsCancellationRequested && !DaisyAccessibility.IsReducedMotion)
                 {
                     // Animate up
                     await AnimationHelper.AnimateAsync(
@@ -223,7 +234,7 @@ namespace Flowery.Effects
                 await Task.Delay(initialDelay, ct);
             }
 
-            while (!ct.IsCancellationRequested)
+            while (!ct.IsCancellationRequested && !DaisyAccessibility.IsReducedMotion)
             {
                 await AnimationHelper.AnimateAsync(
                     t => transform.Y = -amplitude * Math.Sin(t * Math.PI),
@@ -263,6 +274,8 @@ namespace Flowery.Effects
             {
                 textBlock.SetValue(WasPerCharacterAppliedProperty, false);
                 textBlock.Inlines!.Clear();
+                textBlock.SetCurrentValue(TextBlock.TextProperty, textBlock.GetValue(OriginalTextProperty));
+                textBlock.ClearValue(OriginalTextProperty);
             }
         }
     }

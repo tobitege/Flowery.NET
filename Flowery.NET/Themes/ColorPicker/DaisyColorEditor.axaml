@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Flowery.Controls.ColorPicker;assembly=Flowery.NET">
 
@@ -15,7 +15,7 @@
         <Setter Property="ShowHslSliders" Value="True" />
         <Setter Property="Template">
             <ControlTemplate>
-                <StackPanel Spacing="6" Margin="0,0,0,10">
+                <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="6" Margin="0,0,0,10">
                     <!-- Hex Input -->
                     <Grid ColumnDefinitions="50,100" IsVisible="{TemplateBinding ShowHexInput}">
                         <TextBlock Text="Hex:" VerticalAlignment="Center"
@@ -26,7 +26,7 @@
                     </Grid>
 
                     <!-- RGB Sliders -->
-                    <StackPanel Spacing="3" IsVisible="{TemplateBinding ShowRgbSliders}">
+                    <StackPanel Name="PART_RgbSection" Grid.Row="1" Spacing="3" IsVisible="{TemplateBinding ShowRgbSliders}">
                         <TextBlock Text="RGB" FontWeight="SemiBold"
                             FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
                             Opacity="0.8" />
@@ -69,7 +69,7 @@
                     </StackPanel>
 
                     <!-- HSL Sliders -->
-                    <StackPanel Spacing="3" IsVisible="{TemplateBinding ShowHslSliders}">
+                    <StackPanel Name="PART_HslSection" Grid.Row="2" Spacing="3" IsVisible="{TemplateBinding ShowHslSliders}">
                         <TextBlock Text="HSL" FontWeight="SemiBold"
                             FontSize="{DynamicResource DaisySizeMediumTertiaryFontSize}"
                             Opacity="0.8" />
@@ -101,9 +101,15 @@
                                 FontSize="{DynamicResource DaisySizeMediumSecondaryFontSize}" />
                         </Grid>
                     </StackPanel>
-                </StackPanel>
+                </Grid>
             </ControlTemplate>
         </Setter>
+        <Style Selector="^[EditingMode=Hsl] /template/ StackPanel#PART_HslSection">
+            <Setter Property="Grid.Row" Value="1" />
+        </Style>
+        <Style Selector="^[EditingMode=Hsl] /template/ StackPanel#PART_RgbSection">
+            <Setter Property="Grid.Row" Value="2" />
+        </Style>
     </ControlTheme>
 
 </ResourceDictionary>

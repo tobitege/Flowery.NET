@@ -74,6 +74,11 @@
         <Style Selector="^:checked /template/ Path#CheckMark">
             <Setter Property="IsVisible" Value="True" />
         </Style>
+        <Style Selector="^:indeterminate /template/ Path#CheckMark">
+            <Setter Property="IsVisible" Value="True" />
+            <Setter Property="Data" Value="M3,10 L21,10 L21,14 L3,14 Z" />
+            <Setter Property="Fill" Value="{DynamicResource DaisyBaseContentBrush}" />
+        </Style>
         <Style Selector="^:checked /template/ Border#PART_Border">
             <Setter Property="Background" Value="{DynamicResource DaisyBaseContentBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource DaisyBaseContentBrush}" />

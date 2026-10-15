@@ -1,4 +1,12 @@
 {
+  "Accessibility_OneTimeCode": "ワンタイムコード",
+  "Accessibility_OtpDigitPosition": "{0}、{2}桁中の{1}桁目",
+  "Scheduler_Calendar": "カレンダー",
+  "Scheduler_WeekNumber": "週",
+  "Accessibility_Password": "パスワード",
+  "Accessibility_ShowPassword": "パスワードを表示",
+  "Accessibility_HidePassword": "パスワードを非表示",
+  "Accessibility_ResizeTextArea": "テキスト領域のサイズを変更",
   "Scheduler_Timeline": "日別プランナー",
   "Scheduler_ResourceKind": "リソースの種類",
   "Scheduler_AllKinds": "すべての種類",

@@ -40,6 +40,8 @@ DaisyModal is an overlay dialog container with backdrop and configurable corner 
 
 ## Tips & Best Practices
 
+Kanban overlay dialogs use [FlowKanbanDialogBase](FlowKanbanDialogBase.md) for initial focus, cyclic tab navigation, and focus restoration.
+
 - Bind `IsOpen` to view state and close on ESC or backdrop click in your view logic.
 - Keep modal content concise; if you need long forms, add a `ScrollViewer` inside to avoid overflow.
 - Adjust individual corner radii to match brand shapes or align with other components.

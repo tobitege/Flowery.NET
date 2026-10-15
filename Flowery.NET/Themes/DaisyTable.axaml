@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -105,7 +105,8 @@
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Padding="{Binding $parent[controls:DaisyTable].Size, Converter={StaticResource TableSizeToPaddingConverter}}">
+                <Border Background="{TemplateBinding Background}"
+                        Padding="{Binding $parent[controls:DaisyTable].Size, Converter={StaticResource TableSizeToPaddingConverter}}">
                     <ContentPresenter Content="{TemplateBinding Content}"
                                       ContentTemplate="{TemplateBinding ContentTemplate}"
                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -126,7 +127,7 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Border Padding="{Binding $parent[controls:DaisyTable].Size, Converter={StaticResource TableSizeToPaddingConverter}}"
-                        Background="Transparent">
+                        Background="{TemplateBinding Background}">
                     <ContentPresenter Content="{TemplateBinding Content}"
                                       ContentTemplate="{TemplateBinding ContentTemplate}"
                                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -239,7 +240,7 @@
         <Setter Property="ItemsPanel">
             <Setter.Value>
                 <ItemsPanelTemplate>
-                    <StackPanel />
+                    <controls:DaisyTableSectionsPanel />
                 </ItemsPanelTemplate>
             </Setter.Value>
         </Setter>

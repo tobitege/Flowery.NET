@@ -79,6 +79,44 @@ This:
     controls:DaisyAccessibility.AccessibleText="Rating: 4 out of 5 stars" />
 ```
 
+## System contrast and reduced motion
+
+DaisyUITheme observes supported Avalonia platform contrast settings while windows are open.
+High contrast overlays opaque semantic brushes without changing CurrentThemeName.
+Glass surfaces stop backdrop capture and display an opaque surface. Cards use the same DaisyGlass material implementation.
+Shared styles suppress decorative effects and border shadows during high contrast.
+Restoring normal contrast reapplies the currently selected palette and permits requested material captures.
+
+Windows motion detection reads the client-area animation setting. Other hosts can supply an explicit override.
+Set these values on the UI thread:
+
+```csharp
+DaisyAccessibility.HighContrastOverride = true;
+DaisyAccessibility.ReducedMotionOverride = true;
+// Return to supported system preferences:
+DaisyAccessibility.HighContrastOverride = null;
+DaisyAccessibility.ReducedMotionOverride = null;
+```
+
+Preferences exposes observable IsHighContrast and MotionEnabled values; PreferencesChanged runs on the UI thread.
+Reduced motion stops decorative timers, native loading/status animations, text effects, and automatic slideshows.
+Finite animations set their final state. Clock, countdown, and other functional timekeeping continue.
+Only requested, attached effects resume; Stop, Dispose, and disabled behavior settings prevent automatic restart.
+
+For a custom contrast strategy, set CustomContrastApplicator to a Func<bool, bool>.
+Return true when the host handles the requested contrast state, including restoration when the argument is false.
+ObservePlatformSettings returns a disposable subscription for hosts that supply their own IPlatformSettings source.
+Dispose it when that source is no longer used.
+
+## Control automation
+
+Rating, progress, radial progress, and color sliders expose RangeValue providers.
+Color grids and wheels expose readable/writable color values and keyboard navigation.
+Read-only ratings and progress indicators reject changes.
+Breadcrumb actions, slide confirmation, and sidebar favorite toggles support keyboard and automation actions.
+Input Label, HelperText, HintText, and required state reach the focused text box peer.
+Explicit automation names and help text take precedence. Password and OTP names follow live culture changes.
+
 ## Best Practices
 
 1. **Always set AccessibleText for icon-only controls** - Screen readers can't interpret icons

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -323,15 +323,35 @@ namespace Flowery.Controls.Custom.Weather
             _autoRefreshCts?.Cancel();
             _autoRefreshCts = null;
 
-            if (AutoRefresh && WeatherService != null && !string.IsNullOrWhiteSpace(Location))
+            if (AutoRefresh && WeatherService != null && !string.IsNullOrWhiteSpace(Location)
+                && TopLevel.GetTopLevel(this) != null)
             {
                 _autoRefreshCts = new CancellationTokenSource();
-                _ = RunAutoRefreshLoop(_autoRefreshCts.Token);
+                _ = RunAutoRefreshLoop(_autoRefreshCts);
             }
         }
 
-        private async Task RunAutoRefreshLoop(CancellationToken token)
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
+            base.OnAttachedToVisualTree(e);
+            OnAutoRefreshChanged();
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            _autoRefreshCts?.Cancel();
+            _autoRefreshCts = null;
+            _loadingCts?.Cancel();
+            _loadingCts = null;
+            IsLoading = false;
+            base.OnDetachedFromVisualTree(e);
+        }
+
+        private async Task RunAutoRefreshLoop(CancellationTokenSource request)
+        {
+            var token = request.Token;
+            try
+            {
             while (!token.IsCancellationRequested)
             {
                 try
@@ -347,6 +367,8 @@ namespace Flowery.Controls.Custom.Weather
                     break;
                 }
             }
+            }
+            finally { request.Dispose(); }
         }
 
         /// <summary>
@@ -363,22 +385,26 @@ namespace Flowery.Controls.Custom.Weather
                 return;
 
             _loadingCts?.Cancel();
-            _loadingCts = new CancellationTokenSource();
-            var token = _loadingCts.Token;
+            var request = new CancellationTokenSource();
+            _loadingCts = request;
+            var token = request.Token;
+            var service = WeatherService;
+            var location = Location;
 
             try
             {
                 IsLoading = true;
                 ErrorMessage = null;
 
-                var current = await WeatherService.GetCurrentWeatherAsync(Location, token);
-                IEnumerable<ForecastDay>? forecast = ShowForecast ? await WeatherService.GetForecastAsync(Location, ForecastDays, token) : null;
-                WeatherMetrics? metrics = ShowMetrics ? await WeatherService.GetMetricsAsync(Location, token) : null;
+                var current = await service.GetCurrentWeatherAsync(location, token);
+                IEnumerable<ForecastDay>? forecast = ShowForecast ? await service.GetForecastAsync(location, ForecastDays, token) : null;
+                WeatherMetrics? metrics = ShowMetrics ? await service.GetMetricsAsync(location, token) : null;
 
                 if (token.IsCancellationRequested) return;
 
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
+                    if (token.IsCancellationRequested || !ReferenceEquals(_loadingCts, request)) return;
                     Temperature = current.Temperature;
                     FeelsLike = current.FeelsLike;
                     Condition = current.Condition;
@@ -409,11 +435,16 @@ namespace Flowery.Controls.Custom.Weather
             }
             catch (Exception ex)
             {
-                ErrorMessage = ex.Message;
+                if (!token.IsCancellationRequested && ReferenceEquals(_loadingCts, request)) ErrorMessage = ex.Message;
             }
             finally
             {
-                IsLoading = false;
+                if (ReferenceEquals(_loadingCts, request))
+                {
+                    _loadingCts = null;
+                    IsLoading = false;
+                }
+                request.Dispose();
             }
         }
 

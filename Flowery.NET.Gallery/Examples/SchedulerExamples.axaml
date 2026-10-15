@@ -16,6 +16,12 @@
             <controls:DaisyCheckBox x:Name="DetailsOption" Content="{loc:Localize Scheduler_Details}" IsChecked="True" Margin="0,0,16,8" />
             <controls:DaisyCheckBox x:Name="ReadOnlyOption" Content="{loc:Localize Scheduler_ReadOnly}" Margin="0,0,16,8" />
             <controls:DaisyButton Content="{loc:Localize Scheduler_Reset}" Variant="Ghost" Click="OnReset" />
+            <StackPanel Spacing="4" Margin="12,0,0,8">
+                <TextBlock Text="{flowloc:Localize Scheduler_ResourceKind}" Foreground="{DynamicResource DaisyBaseContentBrush}"
+                           controls:FlowerySizeManager.ResponsiveFont="Secondary" />
+                <controls:DaisySelect x:Name="ResourceKindOption" MinWidth="160" SelectionChanged="OnResourceKindChanged"
+                                      AutomationProperties.Name="{flowloc:Localize Scheduler_ResourceKind}" />
+            </StackPanel>
             <StackPanel Spacing="4" Margin="12,0,12,8">
                 <TextBlock Text="{flowloc:Localize Scheduler_DateTimeFormat}" Foreground="{DynamicResource DaisyBaseContentBrush}"
                            controls:FlowerySizeManager.ResponsiveFont="Secondary" />

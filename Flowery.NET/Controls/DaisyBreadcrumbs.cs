@@ -1,10 +1,13 @@
-using System;
+﻿using System;
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation.Peers;
+using Avalonia.Input;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Flowery.Services;
+using Flowery.Helpers;
 
 namespace Flowery.Controls
 {
@@ -144,6 +147,25 @@ namespace Flowery.Controls
     {
         protected override Type StyleKeyOverride => typeof(DaisyBreadcrumbItem);
 
+        public DaisyBreadcrumbItem() => Focusable = true;
+
+        protected override AutomationPeer OnCreateAutomationPeer() =>
+            new DaisyActionAutomationPeer(this, static control => ((DaisyBreadcrumbItem)control).InvokeCommand());
+
+        private void InvokeCommand()
+        {
+            if (IsEffectivelyEnabled && IsClickable && !IsLast && Command?.CanExecute(CommandParameter) == true)
+                Command.Execute(CommandParameter);
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (e.Handled || e.Key is not (Key.Enter or Key.Space)) return;
+            InvokeCommand();
+            e.Handled = true;
+        }
+
         /// <summary>
         /// Gets or sets whether this is the first item (hides separator).
         /// </summary>
@@ -266,13 +288,7 @@ namespace Flowery.Controls
         {
             base.OnPointerPressed(e);
 
-            if (IsClickable && !IsLast && Command != null)
-            {
-                if (Command.CanExecute(CommandParameter))
-                {
-                    Command.Execute(CommandParameter);
-                }
-            }
+            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) InvokeCommand();
         }
     }
 }

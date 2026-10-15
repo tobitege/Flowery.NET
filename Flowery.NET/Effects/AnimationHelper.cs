@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Animation.Easings;
 using Avalonia.Threading;
+using Flowery.Controls;
 
 namespace Flowery.Effects
 {
@@ -67,14 +68,21 @@ namespace Flowery.Effects
 
             for (int i = 0; i <= steps; i++)
             {
-                if (ct.IsCancellationRequested) break;
+                ct.ThrowIfCancellationRequested();
 
                 var t = (double)i / steps;
                 var easedT = easing.Ease(t);
                 var value = from + (to - from) * easedT;
 
-                await Dispatcher.UIThread.InvokeAsync(() => applyValue(value));
+                var completed = false;
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    ct.ThrowIfCancellationRequested();
+                    completed = DaisyAccessibility.IsReducedMotion || duration <= TimeSpan.Zero;
+                    applyValue(completed ? to : value);
+                });
 
+                if (completed) return;
                 if (i < steps)
                     await Task.Delay((int)stepDuration, ct);
             }
@@ -101,13 +109,20 @@ namespace Flowery.Effects
 
             for (int i = 0; i <= steps; i++)
             {
-                if (ct.IsCancellationRequested) break;
+                ct.ThrowIfCancellationRequested();
 
                 var t = (double)i / steps;
                 var easedT = easing.Ease(t);
 
-                await Dispatcher.UIThread.InvokeAsync(() => applyValues(easedT));
+                var completed = false;
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    ct.ThrowIfCancellationRequested();
+                    completed = DaisyAccessibility.IsReducedMotion || duration <= TimeSpan.Zero;
+                    applyValues(completed ? 1 : easedT);
+                });
 
+                if (completed) return;
                 if (i < steps)
                     await Task.Delay((int)stepDuration, ct);
             }

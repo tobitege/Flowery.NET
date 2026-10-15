@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -45,7 +45,7 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
                         <Border.Styles>
-                            <Style Selector="Border#PART_BackgroundBorder">
+                            <Style Selector="Border#PART_BackgroundBorder[(controls|DaisyAccessibility.MotionEnabled)=True]">
                                 <Style.Animations>
                                     <Animation Duration="0:0:1.5" IterationCount="Infinite">
                                         <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
@@ -78,7 +78,7 @@
             <Setter Property="IsVisible" Value="False" />
         </Style>
 
-        <Style Selector="^[IsTextMode=True] /template/ ContentPresenter#PART_ContentPresenter">
+        <Style Selector="^[IsTextMode=True] /template/ ContentPresenter#PART_ContentPresenter[(controls|DaisyAccessibility.MotionEnabled)=True]">
             <Setter Property="IsVisible" Value="True" />
             <Style.Animations>
                 <Animation Duration="0:0:1.5" IterationCount="Infinite">

@@ -18,6 +18,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Effects;
+using Flowery.Helpers;
 using Flowery.Localization;
 using Flowery.Services;
 
@@ -167,7 +168,19 @@ namespace Flowery.Controls
             base.OnKeyDown(e);
             if (e.Handled) return;
 
-            // Only handle keys when AllowDigitSelection is enabled
+            if (e.Key == Key.Up && CanIncrement)
+            {
+                IncrementSelected();
+                e.Handled = true;
+                return;
+            }
+            if (e.Key == Key.Down && CanDecrement)
+            {
+                DecrementSelected();
+                e.Handled = true;
+                return;
+            }
+
             if (!AllowDigitSelection) return;
 
             switch (e.Key)
@@ -182,24 +195,6 @@ namespace Flowery.Controls
                     // Move selection to lower digit (right = lower position)
                     MoveDigitSelection(-1);
                     e.Handled = true;
-                    break;
-
-                case Key.Up:
-                    // Increment the selected digit
-                    if (SelectedDigitIndex.HasValue && CanIncrement)
-                    {
-                        IncrementDigitAtPosition(SelectedDigitIndex.Value);
-                        e.Handled = true;
-                    }
-                    break;
-
-                case Key.Down:
-                    // Decrement the selected digit
-                    if (SelectedDigitIndex.HasValue && CanDecrement)
-                    {
-                        DecrementDigitAtPosition(SelectedDigitIndex.Value);
-                        e.Handled = true;
-                    }
                     break;
 
                 // Numeric keys 0-9
@@ -292,30 +287,21 @@ namespace Flowery.Controls
             if (!SelectedDigitIndex.HasValue) return;
             if (newDigitValue < 0 || newDigitValue > 9) return;
 
-            int position = SelectedDigitIndex.Value;
-            int currentDigitValue = GetDigitValueAtPosition(position);
-
-            if (currentDigitValue == newDigitValue) return;
-
-            // Calculate delta to change just this digit
-            int delta = newDigitValue - currentDigitValue;
-            var multiplier = (decimal)Math.Pow(10, position);
-            var newValue = (Value ?? 0) + (delta * multiplier);
-
-            // Apply bounds (this respects the existing wrap logic)
-            newValue = ApplyBoundsWithWrap(newValue, delta > 0);
-            Value = newValue;
+            if (!NumberFlowDigitMap.TryGetDigit(Value ?? 0, FormatString, Culture,
+                    SelectedDigitIndex.Value, out var currentDigitValue, out var placeValue)) return;
+            var direction = (Value ?? 0) < 0 ? -1 : 1;
+            ApplyDigitDelta((newDigitValue - currentDigitValue) * direction, placeValue);
         }
 
         /// <summary>
-        /// Gets the current digit value at the specified position (0 = rightmost).
+        /// Applies a displayed digit change while preserving bounds and value bindings.
         /// </summary>
-        private int GetDigitValueAtPosition(int position)
+        private void ApplyDigitDelta(int digits, decimal placeValue)
         {
-            var currentValue = Math.Abs(Value ?? 0);
-            var divisor = (decimal)Math.Pow(10, position);
-            // Extract the digit at this position
-            return (int)(Math.Floor(currentValue / divisor) % 10);
+            decimal newValue;
+            try { newValue = (Value ?? 0) + digits * placeValue; }
+            catch (OverflowException) { newValue = digits > 0 ? decimal.MaxValue : decimal.MinValue; }
+            SetCurrentValue(ValueProperty, ApplyBoundsWithWrap(newValue, digits > 0));
         }
 
         private void OnIncrementPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -796,33 +782,21 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Increments the digit at the given position (0 = rightmost/ones place).
-        /// Always adds 10^position - when digit is 9, this naturally wraps to 0 and carries.
+        /// Increments the displayed digit at the given position (0 = rightmost).
         /// </summary>
         private void IncrementDigitAtPosition(int position)
         {
-            var currentValue = Value ?? 0;
-            var divisor = (decimal)Math.Pow(10, position);
-            // Always increment by divisor - this handles both normal case and 9→0 wrap with carry
-            var newValue = currentValue + divisor;
-
-            newValue = ApplyBoundsWithWrap(newValue, isIncrement: true);
-            Value = newValue;
+            if (NumberFlowDigitMap.TryGetDigit(Value ?? 0, FormatString, Culture,
+                    position, out _, out var placeValue)) ApplyDigitDelta(1, placeValue);
         }
 
         /// <summary>
-        /// Decrements the digit at the given position (0 = rightmost/ones place).
-        /// Always subtracts 10^position - when digit is 0, this naturally wraps to 9 and borrows from higher digit.
+        /// Decrements the displayed digit at the given position (0 = rightmost).
         /// </summary>
         private void DecrementDigitAtPosition(int position)
         {
-            var currentValue = Value ?? 0;
-            var divisor = (decimal)Math.Pow(10, position);
-            // Always decrement by divisor - this handles both normal case and 0→9 wrap with borrow
-            var newValue = currentValue - divisor;
-
-            newValue = ApplyBoundsWithWrap(newValue, isIncrement: false);
-            Value = newValue;
+            if (NumberFlowDigitMap.TryGetDigit(Value ?? 0, FormatString, Culture,
+                    position, out _, out var placeValue)) ApplyDigitDelta(-1, placeValue);
         }
 
         /// <summary>
@@ -856,7 +830,7 @@ namespace Flowery.Controls
         {
             var newValue = (Value ?? 0) + Step;
             newValue = ApplyBoundsWithWrap(newValue, isIncrement: true);
-            Value = newValue;
+            SetCurrentValue(ValueProperty, newValue);
         }
 
         /// <summary>
@@ -866,7 +840,7 @@ namespace Flowery.Controls
         {
             var newValue = (Value ?? 0) - Step;
             newValue = ApplyBoundsWithWrap(newValue, isIncrement: false);
-            Value = newValue;
+            SetCurrentValue(ValueProperty, newValue);
         }
 
         // Internal property to hold the formatted parts for the template
@@ -975,17 +949,17 @@ namespace Flowery.Controls
             {
                 _previousFormatted = "";
                 _previousValue = null;
-                Parts.Clear();
+                ClearParts();
                 return;
             }
 
             string newFormatted = Value.Value.ToString(FormatString, Culture);
             bool isIncreasing = _previousValue.HasValue && Value.Value > _previousValue.Value;
 
-            if (forceReset || _previousFormatted.Length == 0)
+            if (forceReset || _previousFormatted.Length == 0 || TopLevel.GetTopLevel(this) == null)
             {
                 // Initial population or format change - no animation
-                Parts.Clear();
+                ClearParts();
                 foreach (char c in newFormatted)
                 {
                     Parts.Add(new NumberFlowPartViewModel(c, char.IsDigit(c)));
@@ -1047,7 +1021,7 @@ namespace Flowery.Controls
             // For new digits, fade them in; for removed digits, fade them out
 
             // Simple approach: if structure changed significantly, rebuild with fade
-            Parts.Clear();
+            ClearParts();
             foreach (char c in newStr)
             {
                 var part = new NumberFlowPartViewModel(c, char.IsDigit(c));
@@ -1061,6 +1035,13 @@ namespace Flowery.Controls
         {
             base.OnDetachedFromVisualTree(e);
             StopRepeat();
+            foreach (var part in Parts) part.StopAnimation();
+        }
+
+        private void ClearParts()
+        {
+            foreach (var part in Parts) part.StopAnimation();
+            Parts.Clear();
         }
 
         protected override AutomationPeer OnCreateAutomationPeer()
@@ -1228,6 +1209,18 @@ namespace Flowery.Controls
 
         private CancellationTokenSource? _cts;
 
+        internal void StopAnimation()
+        {
+            var request = _cts;
+            _cts = null;
+            request?.Cancel();
+            request?.Dispose();
+            CurrentOffset = 0;
+            PreviousOffset = -1;
+            IsCurrentlyAnimating = false;
+            Opacity = 1;
+        }
+
         public NumberFlowPartViewModel(char initialChar, bool isDigit)
         {
             _character = initialChar;
@@ -1245,9 +1238,7 @@ namespace Flowery.Controls
         {
             if (Character == newChar) return;
 
-            // Cancel any ongoing animation and dispose the old CTS
-            _cts?.Cancel();
-            _cts?.Dispose();
+            StopAnimation();
             _cts = new CancellationTokenSource();
 
             PreviousCharacter = Character;
@@ -1272,8 +1263,7 @@ namespace Flowery.Controls
         /// </summary>
         public void StartFadeIn(TimeSpan duration, Easing easing)
         {
-            _cts?.Cancel();
-            _cts?.Dispose();
+            StopAnimation();
             _cts = new CancellationTokenSource();
 
             Opacity = 0;
@@ -1312,12 +1302,7 @@ namespace Flowery.Controls
             }
             catch (OperationCanceledException)
             {
-                // Animation was cancelled, expected when value changes mid-animation
-                // Ensure we leave the part in a stable, non-animating state to avoid visual glitches
-                // when updates arrive faster than the animation can complete (common on Browser/WASM).
-                PreviousOffset = isIncreasing ? -1 : 1;
-                CurrentOffset = 0;
-                IsCurrentlyAnimating = false;
+                // The replacement animation owns the current offsets.
             }
         }
 
@@ -1339,7 +1324,7 @@ namespace Flowery.Controls
             }
             catch (OperationCanceledException)
             {
-                Opacity = 1.0;
+                // The replacement animation owns the current opacity.
             }
         }
     }

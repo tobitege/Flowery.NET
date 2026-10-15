@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -23,8 +23,8 @@ namespace Flowery.Controls
 
         public SidebarCategory()
         {
-            FloweryLocalization.CultureChanged += (_, _) =>
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
+            FloweryLocalization.AddWeakCultureObserver(this, static (target, _) =>
+                target.PropertyChanged?.Invoke(target, new PropertyChangedEventArgs(nameof(DisplayName))));
         }
 
         public string Name
@@ -62,8 +62,8 @@ namespace Flowery.Controls
 
         public SidebarItem()
         {
-            FloweryLocalization.CultureChanged += (_, _) =>
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
+            FloweryLocalization.AddWeakCultureObserver(this, static (target, _) =>
+                target.PropertyChanged?.Invoke(target, new PropertyChangedEventArgs(nameof(DisplayName))));
         }
 
         public string Id { get; set; } = string.Empty;
@@ -389,8 +389,31 @@ namespace Flowery.Controls
         {
             // Initialize with empty collections - caller should set Categories and AvailableLanguages
             _allCategories = new ObservableCollection<SidebarCategory>();
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
             FloweryLocalization.CultureChanged += OnLocalizationCultureChanged;
             Flowery.Services.FloweryScaleManager.IsEnabledChanged += OnScalingEnabledChanged;
+            foreach (var category in _allCategories)
+                category.PropertyChanged += OnCategoryPropertyChanged;
+            OnScalingEnabledChanged(this, Flowery.Services.FloweryScaleManager.IsEnabled);
+            UpdateSelectedLanguageFromCulture(FloweryLocalization.CurrentCulture);
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            FloweryLocalization.CultureChanged -= OnLocalizationCultureChanged;
+            Flowery.Services.FloweryScaleManager.IsEnabledChanged -= OnScalingEnabledChanged;
+            foreach (var category in _allCategories)
+                category.PropertyChanged -= OnCategoryPropertyChanged;
+            base.OnDetachedFromVisualTree(e);
+        }
+
+        private void OnCategoryPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SidebarCategory.IsExpanded)) SaveState(SelectedItem?.Id);
         }
 
         private void OnScalingEnabledChanged(object? sender, bool isEnabled)
@@ -410,23 +433,30 @@ namespace Flowery.Controls
                 return;
 
             var newCategories = Categories;
-            if (newCategories == null || newCategories.Count == 0)
+            if (newCategories == null)
                 return;
 
+            foreach (var category in _allCategories)
+                category.PropertyChanged -= OnCategoryPropertyChanged;
             _allCategories = newCategories;
             LoadState();
 
             // Wire up property changed handlers for expand/collapse state persistence
-            foreach (var cat in _allCategories)
-                cat.PropertyChanged += (s, e) =>
-                {
-                    if (e.PropertyName == nameof(SidebarCategory.IsExpanded))
-                        SaveState(SelectedItem?.Id);
-                };
+            if (this.IsAttachedToVisualTree())
+                foreach (var category in _allCategories)
+                    category.PropertyChanged += OnCategoryPropertyChanged;
         }
 
         private void OnLocalizationCultureChanged(object? sender, CultureInfo culture)
         {
+            if (!Avalonia.Threading.Dispatcher.UIThread.CheckAccess())
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    if (this.IsAttachedToVisualTree()) OnLocalizationCultureChanged(sender, culture);
+                });
+                return;
+            }
             if (_updatingLanguage)
                 return;
 
@@ -532,6 +562,7 @@ namespace Flowery.Controls
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
+            RemoveHandler(Button.ClickEvent, OnSidebarButtonClick);
             AddHandler(Button.ClickEvent, OnSidebarButtonClick);
 
             // Wire up clear button

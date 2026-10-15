@@ -69,15 +69,6 @@ namespace Flowery.NET.Kanban.Controls
                 return;
             }
 
-            if (e.Key == Key.Up || e.Key == Key.Down)
-            {
-                if (!isControlDown && !isShiftDown && !isAltDown)
-                {
-                    e.Handled = true;
-                    return;
-                }
-            }
-
             if (!IsDirectionalKey(e.Key))
                 return;
 

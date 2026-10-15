@@ -79,6 +79,9 @@ namespace Flowery.NET.Kanban.Controls
                 _isLocalizationSubscribed = true;
             }
 
+            if (_titleTextBlock == null)
+                AttachTitleTextBlock(this.GetVisualDescendants().OfType<TextBlock>()
+                    .FirstOrDefault(text => text.Name == "PART_TitleText"));
             UpdateFocusVisualState();
             UpdateSelectionBadgePlacement();
         }
@@ -672,12 +675,15 @@ namespace Flowery.NET.Kanban.Controls
                 _closeButton.GotFocus += OnCardGotFocus;
                 _closeButton.LostFocus += OnCardLostFocus;
             }
-            AttachTitleTextBlock(e.NameScope);
+            AttachTitleTextBlock(e.NameScope.Find<TextBlock>("PART_TitleText"));
 
             // Enable double-tap for editing
+            DoubleTapped -= OnDoubleTapped;
             DoubleTapped += OnDoubleTapped;
 
             // Enable hover to show close button
+            PointerEntered -= OnPointerEntered;
+            PointerExited -= OnPointerExited;
             PointerEntered += OnPointerEntered;
             PointerExited += OnPointerExited;
 
@@ -749,6 +755,15 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnCardKeyDown(object? sender, KeyEventArgs e)
         {
+            if (e.Handled) return;
+            if (e.Key == Key.Space && Task is { } task)
+            {
+                var board = this.FindAncestorOfType<FlowKanban>();
+                if (board != null) board.SetTaskSelection(task, !task.IsSelected, false);
+                else task.IsSelected = !task.IsSelected;
+                e.Handled = true;
+                return;
+            }
             if (e.Key != Key.Enter)
                 return;
 
@@ -881,6 +896,7 @@ namespace Flowery.NET.Kanban.Controls
             if (string.Equals(e.PropertyName, nameof(FlowTask.PlannedEndDate), StringComparison.Ordinal))
             {
                 UpdateDueDateText();
+                UpdateDateRange();
             }
             else if (string.Equals(e.PropertyName, nameof(FlowTask.Title), StringComparison.Ordinal))
             {
@@ -914,8 +930,7 @@ namespace Flowery.NET.Kanban.Controls
             {
                 UpdateAssignee();
             }
-            else if (string.Equals(e.PropertyName, nameof(FlowTask.PlannedStartDate), StringComparison.Ordinal)
-                     || string.Equals(e.PropertyName, nameof(FlowTask.PlannedEndDate), StringComparison.Ordinal))
+            else if (string.Equals(e.PropertyName, nameof(FlowTask.PlannedStartDate), StringComparison.Ordinal))
             {
                 UpdateDateRange();
             }
@@ -1307,10 +1322,10 @@ namespace Flowery.NET.Kanban.Controls
             }
         }
 
-        private void AttachTitleTextBlock(INameScope nameScope)
+        private void AttachTitleTextBlock(TextBlock? titleTextBlock)
         {
             DetachTitleTextBlock();
-            _titleTextBlock = nameScope.Find<TextBlock>("PART_TitleText");
+            _titleTextBlock = titleTextBlock;
             if (_titleTextBlock == null)
                 return;
 
@@ -1658,18 +1673,40 @@ namespace Flowery.NET.Kanban.Controls
         }
     }
 
-    internal sealed class FlowTaskCardAutomationPeer : ControlAutomationPeer, IInvokeProvider
+    internal sealed class FlowTaskCardAutomationPeer : ControlAutomationPeer, IInvokeProvider, ISelectionItemProvider
     {
         public FlowTaskCardAutomationPeer(FlowTaskCard owner)
             : base(owner)
         {
+            owner.PropertyChanged += OnSelectionChanged;
         }
 
         private new FlowTaskCard Owner => (FlowTaskCard)base.Owner;
 
+        public bool IsSelected => Owner.Task?.IsSelected ?? Owner.IsSelected;
+        public ISelectionProvider? SelectionContainer => Owner.FindAncestorOfType<FlowKanban>() is { } board
+            ? CreatePeerForElement(board) as ISelectionProvider : null;
+        public void Select() => SetSelection(true, true);
+        public void AddToSelection() => SetSelection(true, false);
+        public void RemoveFromSelection() => SetSelection(false, false);
+
+        private void SetSelection(bool selected, bool exclusive)
+        {
+            if (!Owner.IsEffectivelyEnabled) throw new InvalidOperationException("The Kanban task card is disabled.");
+            if (Owner.Task is not { } task) throw new InvalidOperationException("The task card has no task.");
+            if (Owner.FindAncestorOfType<FlowKanban>() is { } board) board.SetTaskSelection(task, selected, exclusive);
+            else task.IsSelected = selected;
+        }
+
+        private void OnSelectionChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+        {
+            if (e.Property == FlowTaskCard.IsSelectedProperty)
+                RaisePropertyChangedEvent(SelectionItemPatternIdentifiers.IsSelectedProperty, e.OldValue, e.NewValue);
+        }
+
         public void Invoke()
         {
-            if (!Owner.IsEnabled)
+            if (!Owner.IsEffectivelyEnabled)
             {
                 throw new InvalidOperationException("The Kanban task card is disabled.");
             }

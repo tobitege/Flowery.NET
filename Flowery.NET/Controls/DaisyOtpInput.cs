@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Flowery.Localization;
 using Flowery.Services;
 
@@ -173,12 +176,40 @@ namespace Flowery.Controls
         {
             Orientation = Avalonia.Layout.Orientation.Horizontal;
             Spacing = 6;
-            AutomationProperties.SetName(
-                this,
-                FloweryLocalization.GetStringInternal("Accessibility_OneTimeCode", "One-time code"));
+            UpdateLocalizedAutomation();
             AutomationProperties.SetControlTypeOverride(this, AutomationControlType.Group);
 
             RebuildSlots();
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            FloweryLocalization.CultureChanged += OnCultureChanged;
+            UpdateLocalizedAutomation();
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            FloweryLocalization.CultureChanged -= OnCultureChanged;
+            base.OnDetachedFromVisualTree(e);
+        }
+
+        private void OnCultureChanged(object? sender, CultureInfo culture)
+        {
+            if (!Dispatcher.UIThread.CheckAccess())
+            {
+                Dispatcher.UIThread.Post(() => { if (TopLevel.GetTopLevel(this) != null) UpdateLocalizedAutomation(); });
+                return;
+            }
+            UpdateLocalizedAutomation();
+        }
+
+        private void UpdateLocalizedAutomation()
+        {
+            SetValue(AutomationProperties.NameProperty,
+                FloweryLocalization.GetStringInternal("Accessibility_OneTimeCode", "One-time code"), BindingPriority.Style);
+            UpdateSlotAutomationProperties();
         }
 
         private void RebuildSlots()

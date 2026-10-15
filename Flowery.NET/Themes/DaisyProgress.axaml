@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -79,7 +79,7 @@
         </Style>
 
         <!-- Indeterminate State -->
-        <Style Selector="^[IsIndeterminate=True] /template/ Border#PART_Indicator">
+        <Style Selector="^[IsIndeterminate=True] /template/ Border#PART_Indicator[(controls|DaisyAccessibility.MotionEnabled)=True]">
             <!-- Use 0 width and animate visual or use standard Avalonia Indeterminate support (which swaps template).
                  Since we used a custom template without the standard IndeterminateRoot, we can just apply a simple animation
                  to the Indicator itself if we force it to be visible.

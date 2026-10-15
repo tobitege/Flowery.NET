@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -53,10 +54,13 @@ namespace Flowery.Controls
         }
 
         private bool _isCapturing;
-        private RenderTargetBitmap? _capturedBitmap;
+        private IImage? _capturedBitmap;
         private bool _needsUpdate = true;
+        private bool _captureScheduled;
+        private int _captureGeneration;
+        private CancellationTokenSource? _captureCancellation;
 
-        private bool ShouldCaptureBackdrop => EnableBackdropBlur && BlurMode == GlassBlurMode.BitmapCapture;
+        private bool ShouldCaptureBackdrop => EnableBackdropBlur && BlurMode == GlassBlurMode.BitmapCapture && !DaisyAccessibility.IsHighContrast;
 
         /// <summary>
         /// Gets or sets the blur amount for the glass effect.
@@ -272,19 +276,27 @@ namespace Flowery.Controls
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
-            _needsUpdate = true;
+            DaisyAccessibility.PreferencesChanged += OnAccessibilityChanged;
+            PseudoClasses.Set(":highcontrast", DaisyAccessibility.IsHighContrast);
             if (ShouldCaptureBackdrop)
             {
-                ScheduleBackdropCapture();
+                RequestBackdropCapture();
             }
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
+            DaisyAccessibility.PreferencesChanged -= OnAccessibilityChanged;
             base.OnDetachedFromVisualTree(e);
-            _capturedBitmap?.Dispose();
-            _capturedBitmap = null;
-            BlurredBackground = null;
+            ClearCapturedBackdrop();
+        }
+
+        private void OnAccessibilityChanged(object? sender, EventArgs e)
+        {
+            PseudoClasses.Set(":highcontrast", DaisyAccessibility.IsHighContrast);
+            if (DaisyAccessibility.IsHighContrast) ClearCapturedBackdrop();
+            else if (ShouldCaptureBackdrop) RequestBackdropCapture();
+            InvalidateVisual();
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -295,7 +307,7 @@ namespace Flowery.Controls
             {
                 if (ShouldCaptureBackdrop && TopLevel.GetTopLevel(this) != null)
                 {
-                    ScheduleBackdropCapture();
+                    RequestBackdropCapture();
                 }
                 else
                 {
@@ -306,8 +318,7 @@ namespace Flowery.Controls
             {
                 if (ShouldCaptureBackdrop && TopLevel.GetTopLevel(this) != null)
                 {
-                    _needsUpdate = true;
-                    ScheduleBackdropCapture();
+                    RequestBackdropCapture();
                 }
                 else
                 {
@@ -316,41 +327,62 @@ namespace Flowery.Controls
             }
             else if (change.Property == GlassBlurProperty && ShouldCaptureBackdrop)
             {
-                _needsUpdate = true;
-                ScheduleBackdropCapture();
+                RequestBackdropCapture();
             }
             else if (change.Property == BoundsProperty && ShouldCaptureBackdrop)
             {
-                _needsUpdate = true;
-                ScheduleBackdropCapture();
+                RequestBackdropCapture();
             }
+        }
+
+        private void RequestBackdropCapture()
+        {
+            _captureGeneration++;
+            _needsUpdate = true;
+            ScheduleBackdropCapture();
         }
 
         private void ScheduleBackdropCapture()
         {
-            if (_isCapturing || !_needsUpdate || !ShouldCaptureBackdrop)
+            if (_captureScheduled || _isCapturing || !_needsUpdate || !ShouldCaptureBackdrop
+                || TopLevel.GetTopLevel(this) == null)
                 return;
 
-            Dispatcher.UIThread.Post(CaptureAndBlurBackdrop, DispatcherPriority.Background);
+            _captureScheduled = true;
+            Dispatcher.UIThread.Post(() =>
+            {
+                _captureScheduled = false;
+                CaptureAndBlurBackdrop();
+            }, DispatcherPriority.Background);
         }
 
         private async void CaptureAndBlurBackdrop()
         {
-            if (_isCapturing || !ShouldCaptureBackdrop || TopLevel.GetTopLevel(this) == null)
+            var host = TopLevel.GetTopLevel(this);
+            if (_isCapturing || !_needsUpdate || !ShouldCaptureBackdrop || host == null)
                 return;
 
             _isCapturing = true;
             _needsUpdate = false;
+            var generation = _captureGeneration;
+            var request = new CancellationTokenSource();
+            _captureCancellation = request;
 
             try
             {
-                var blurredBitmap = await CaptureBackdropAsync();
+                var blurredBitmap = await CaptureBackdropAsync(request.Token);
                 if (blurredBitmap != null)
                 {
+                    if (request.IsCancellationRequested || generation != _captureGeneration || !ShouldCaptureBackdrop
+                        || !ReferenceEquals(host, TopLevel.GetTopLevel(this)))
+                    {
+                        (blurredBitmap as IDisposable)?.Dispose();
+                        return;
+                    }
                     var oldBitmap = _capturedBitmap;
                     _capturedBitmap = blurredBitmap;
                     BlurredBackground = blurredBitmap;
-                    oldBitmap?.Dispose();
+                    (oldBitmap as IDisposable)?.Dispose();
                 }
             }
             catch
@@ -360,22 +392,30 @@ namespace Flowery.Controls
             finally
             {
                 _isCapturing = false;
+                if (ReferenceEquals(_captureCancellation, request)) _captureCancellation = null;
+                request.Dispose();
+                ScheduleBackdropCapture();
             }
         }
 
-        private async Task<RenderTargetBitmap?> CaptureBackdropAsync()
+        /// <summary>Captures a new owned background image. Rejected and replaced images are disposed.</summary>
+        protected virtual async Task<IImage?> CaptureBackdropAsync(CancellationToken cancellationToken)
         {
-            return await Task.Run(() =>
+            return await Task.Run<IImage?>(() =>
             {
                 try
                 {
-                    return Dispatcher.UIThread.Invoke(() => CaptureBackdrop());
+                    return Dispatcher.UIThread.Invoke(() =>
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        return CaptureBackdrop();
+                    });
                 }
                 catch
                 {
                     return null;
                 }
-            });
+            }, cancellationToken);
         }
 
         private RenderTargetBitmap? CaptureBackdrop()
@@ -474,17 +514,19 @@ namespace Flowery.Controls
         {
             if (ShouldCaptureBackdrop)
             {
-                _needsUpdate = true;
-                ScheduleBackdropCapture();
+                RequestBackdropCapture();
             }
         }
 
         private void ClearCapturedBackdrop()
         {
+            _captureGeneration++;
+            _needsUpdate = false;
+            _captureCancellation?.Cancel();
             var oldBitmap = _capturedBitmap;
             _capturedBitmap = null;
             BlurredBackground = null;
-            oldBitmap?.Dispose();
+            (oldBitmap as IDisposable)?.Dispose();
         }
 
         /// <summary>
@@ -492,7 +534,7 @@ namespace Flowery.Controls
         /// </summary>
         public override void Render(DrawingContext context)
         {
-            if (EnableBackdropBlur && BlurMode == GlassBlurMode.SkiaSharp)
+            if (EnableBackdropBlur && BlurMode == GlassBlurMode.SkiaSharp && !DaisyAccessibility.IsHighContrast)
             {
                 // Use custom SkiaSharp draw operation for real-time blur
                 var operation = new SkiaGlassDrawOperation(

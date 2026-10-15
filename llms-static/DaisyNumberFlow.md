@@ -76,13 +76,23 @@ Enable digit selection for fine-grained control over individual digits:
 | Property | Type | Default | Description |
 | -------- | ---- | ------- | ----------- |
 | `AllowDigitSelection` | bool | False | Enable tapping digits to select which one to control |
-| `SelectedDigitIndex` | int? | null | Currently selected digit (0 = rightmost/ones place) |
+| `SelectedDigitIndex` | int? | null | Selected numeric digit, counted from the right; separators and symbols are excluded. |
 
 When `AllowDigitSelection="True"`:
 
 - Tap any digit to select it (cursor changes to hand)
 - The selected digit shows an accent-colored bottom border indicator
-- The +/- buttons adjust only the selected digit position (e.g., selecting digit 2 adds/subtracts 100)
+- The +/- buttons adjust the selected displayed place. With N2, index 0 changes Value by 0.01; index 2 changes it by 1.
+
+Percentage and per-mille formats include their display scale: P0 index 0 changes Value by 0.01.
+Currency symbols, culture-specific separators, and leading zeros do not change the digit index.
+Negative values keep the correct sign when a digit changes, including crossing zero.
+Minimum, Maximum, and WrapAround apply to the resulting value.
+Without a selected digit, arrows and buttons use Step.
+
+Digit editing supports N, F, C, P, non-exponent G, and numeric custom formats such as 000 and 000.00.
+Custom scaling commas and percent/per-mille symbols affect the underlying step.
+Scientific notation and ambiguous literal digits remain display-only.
 
 ### Keyboard Support
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Avalonia;
@@ -588,9 +588,12 @@ namespace Flowery.Controls
                     Avalonia.Threading.DispatcherPriority.Loaded);
             }
 
-            if (change.Property == SelectedDateProperty)
+            if (change.Property == SelectedDateProperty || change.Property == LocaleProperty)
             {
                 UpdateHeaderText();
+            }
+            if (change.Property == SelectedDateProperty)
+            {
                 UpdateSelectedStates();
                 ScrollToSelectedDate();
                 
@@ -736,15 +739,7 @@ namespace Flowery.Controls
             var current = SelectedDate ?? DateTime.Today;
             var newDate = current.AddMonths(-1);
             
-            // Clamp to valid range
-            if (newDate >= FirstDate)
-            {
-                SelectedDate = newDate;
-            }
-            else
-            {
-                SelectedDate = FirstDate;
-            }
+            SelectAvailableDate(newDate < FirstDate ? FirstDate : newDate, -1);
         }
 
         private void OnNextMonthClick(object? sender, RoutedEventArgs e)
@@ -752,15 +747,7 @@ namespace Flowery.Controls
             var current = SelectedDate ?? DateTime.Today;
             var newDate = current.AddMonths(1);
             
-            // Clamp to valid range
-            if (newDate <= LastDate)
-            {
-                SelectedDate = newDate;
-            }
-            else
-            {
-                SelectedDate = LastDate;
-            }
+            SelectAvailableDate(newDate > LastDate ? LastDate : newDate, 1);
         }
 
         /// <summary>
@@ -769,7 +756,7 @@ namespace Flowery.Controls
         /// <param name="date">The date to navigate to.</param>
         public void GoToDate(DateTime date)
         {
-            if (date >= FirstDate && date <= LastDate)
+            if (date >= FirstDate && date <= LastDate && !IsDateDisabled(date))
             {
                 SelectedDate = date;
             }
@@ -845,7 +832,8 @@ namespace Flowery.Controls
                 case Key.Enter:
                 case Key.Space:
                     // Confirm selection - fires DateConfirmed event
-                    if (SelectedDate.HasValue)
+                    if (SelectedDate is { } selected && selected >= FirstDate && selected <= LastDate
+                        && !IsDateDisabled(selected))
                     {
                         DateConfirmed?.Invoke(this, SelectedDate.Value);
                     }
@@ -870,10 +858,14 @@ namespace Flowery.Controls
             var current = SelectedDate ?? DateTime.Today;
             var newDate = current.AddDays(days);
 
-            // Skip disabled dates in the direction of navigation
+            SelectAvailableDate(newDate, days > 0 ? 1 : -1);
+        }
+
+        private void SelectAvailableDate(DateTime newDate, int direction)
+        {
             while (newDate >= FirstDate && newDate <= LastDate && IsDateDisabled(newDate))
             {
-                newDate = newDate.AddDays(days > 0 ? 1 : -1);
+                newDate = newDate.AddDays(direction);
             }
 
             // Clamp to valid range

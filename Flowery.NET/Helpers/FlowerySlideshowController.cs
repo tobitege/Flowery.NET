@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Avalonia.Threading;
 using Flowery.Enums;
+using Flowery.Controls;
 
 namespace Flowery.Helpers
 {
@@ -28,6 +29,8 @@ namespace Flowery.Helpers
 
         private FlowerySlideshowMode _mode = FlowerySlideshowMode.Manual;
         private double _interval = 3.0;
+        private bool _requested;
+        private bool _disposed;
 
         /// <summary>
         /// Gets or sets the slideshow mode. Changes take effect immediately.
@@ -75,10 +78,14 @@ namespace Flowery.Helpers
         /// </summary>
         public void Start()
         {
-            Stop();
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            StopTimer();
+            _requested = true;
+            DaisyAccessibility.PreferencesChanged -= OnPreferencesChanged;
+            DaisyAccessibility.PreferencesChanged += OnPreferencesChanged;
 
             int itemCount = _getItemCount();
-            if (_mode == FlowerySlideshowMode.Manual || itemCount <= 1)
+            if (_mode == FlowerySlideshowMode.Manual || itemCount <= 1 || DaisyAccessibility.IsReducedMotion)
             {
                 return;
             }
@@ -100,6 +107,19 @@ namespace Flowery.Helpers
         /// Stops the slideshow timer.
         /// </summary>
         public void Stop()
+        {
+            _requested = false;
+            DaisyAccessibility.PreferencesChanged -= OnPreferencesChanged;
+            StopTimer();
+        }
+
+        private void OnPreferencesChanged(object? sender, EventArgs e)
+        {
+            if (DaisyAccessibility.IsReducedMotion) StopTimer();
+            else if (_requested && !_disposed) Start();
+        }
+
+        private void StopTimer()
         {
             if (_timer is not null)
             {
@@ -297,6 +317,7 @@ namespace Flowery.Helpers
         public void Dispose()
         {
             Stop();
+            _disposed = true;
             _shuffledIndices = null;
         }
     }

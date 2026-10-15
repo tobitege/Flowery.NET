@@ -25,6 +25,7 @@ namespace Flowery.NET.Kanban.Controls
         private bool _isSyncingFilterDates;
         private bool _isSyncingSearchText;
         private bool _isSyncingAssigneeFilter;
+        private bool _isSyncingFilterBridges;
 
         #region Filter DPs
 
@@ -101,6 +102,7 @@ namespace Flowery.NET.Kanban.Controls
         private static void OnFilterShowOverdueChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
         {
             var kanban = (FlowKanban)d;
+            if (kanban._isSyncingFilterBridges) return;
             var criteria = kanban.EnsureFilterCriteria();
             criteria.ShowOnlyOverdue = e.GetNewValue<bool>();
             criteria.NotifyChanged();
@@ -123,6 +125,7 @@ namespace Flowery.NET.Kanban.Controls
         private static void OnFilterShowBlockedChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
         {
             var kanban = (FlowKanban)d;
+            if (kanban._isSyncingFilterBridges) return;
             var criteria = kanban.EnsureFilterCriteria();
             criteria.ShowOnlyBlocked = e.GetNewValue<bool>();
             criteria.NotifyChanged();
@@ -212,6 +215,7 @@ namespace Flowery.NET.Kanban.Controls
 
         private void UpdatePriorityFilter(FlowTaskPriority priority, bool isSelected)
         {
+            if (_isSyncingFilterBridges) return;
             var criteria = EnsureFilterCriteria();
             if (criteria.Priorities == null)
                 criteria.Priorities = new List<FlowTaskPriority>();
@@ -272,6 +276,7 @@ namespace Flowery.NET.Kanban.Controls
 
         private void UpdateDateRangeFilter()
         {
+            if (_isSyncingFilterBridges) return;
             var criteria = EnsureFilterCriteria();
             var from = FilterDateFrom?.DateTime;
             var to = FilterDateTo?.DateTime;
@@ -338,6 +343,7 @@ namespace Flowery.NET.Kanban.Controls
 
         private void UpdateQuickDateFilters()
         {
+            if (_isSyncingFilterBridges) return;
             var today = DateTime.Today;
             DateTime? from = null;
             DateTime? to = null;
@@ -586,6 +592,7 @@ namespace Flowery.NET.Kanban.Controls
 
                 kanban.SyncSearchTextFromCriteria();
                 kanban.SyncSelectedAssigneeFromCriteria();
+                kanban.SyncFilterBridgesFromCriteria();
                 kanban.UpdateFilterState();
                 kanban.ApplyFilter();
             }
@@ -599,6 +606,7 @@ namespace Flowery.NET.Kanban.Controls
                 SyncSearchTextFromCriteria();
             }
             SyncSelectedAssigneeFromCriteria();
+            SyncFilterBridgesFromCriteria();
             UpdateFilterState();
             ApplyFilter();
         }
@@ -608,6 +616,26 @@ namespace Flowery.NET.Kanban.Controls
             var criteria = FilterCriteria;
             IsFilterActive = criteria?.HasAnyFilter == true;
             ActiveFilterCount = CountActiveFilters(criteria);
+        }
+
+        private void SyncFilterBridgesFromCriteria()
+        {
+            if (_isSyncingFilterBridges) return;
+            _isSyncingFilterBridges = true;
+            try
+            {
+                var criteria = FilterCriteria;
+                SetCurrentValue(FilterShowOverdueProperty, criteria?.ShowOnlyOverdue == true);
+                SetCurrentValue(FilterShowBlockedProperty, criteria?.ShowOnlyBlocked == true);
+                SetCurrentValue(FilterPriorityLowProperty, criteria?.Priorities?.Contains(FlowTaskPriority.Low) == true);
+                SetCurrentValue(FilterPriorityNormalProperty, criteria?.Priorities?.Contains(FlowTaskPriority.Normal) == true);
+                SetCurrentValue(FilterPriorityHighProperty, criteria?.Priorities?.Contains(FlowTaskPriority.High) == true);
+                SetCurrentValue(FilterPriorityUrgentProperty, criteria?.Priorities?.Contains(FlowTaskPriority.Urgent) == true);
+                SetCurrentValue(FilterDateFromProperty, criteria?.PlannedEndRange?.From is { } from ? new DateTimeOffset(from) : null);
+                SetCurrentValue(FilterDateToProperty, criteria?.PlannedEndRange?.To is { } to ? new DateTimeOffset(to.Date) : null);
+                SyncFilterDatePickers();
+            }
+            finally { _isSyncingFilterBridges = false; }
         }
 
         private int CountActiveFilters(FlowKanbanFilterCriteria? criteria)

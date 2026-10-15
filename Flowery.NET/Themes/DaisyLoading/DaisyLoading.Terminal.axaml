@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui"
+﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -23,7 +23,7 @@
     </Style>
 
     <!-- Orbit Animation - moves dots around the square perimeter -->
-    <Style Selector="controls|DaisyLoading[Variant=Orbit] /template/ Ellipse.orbit1">
+    <Style Selector="controls|DaisyLoading[Variant=Orbit] /template/ Ellipse.orbit1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <!-- Top edge: left to right -->
@@ -38,7 +38,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Orbit] /template/ Ellipse.orbit2">
+    <Style Selector="controls|DaisyLoading[Variant=Orbit] /template/ Ellipse.orbit2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.15">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/><Setter Property="Canvas.Top" Value="0"/></KeyFrame>
@@ -49,7 +49,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Orbit] /template/ Ellipse.orbit3">
+    <Style Selector="controls|DaisyLoading[Variant=Orbit] /template/ Ellipse.orbit3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.3">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/><Setter Property="Canvas.Top" Value="0"/></KeyFrame>
@@ -80,7 +80,7 @@
     </Style>
 
     <!-- Snake Animation - segments follow each other back and forth -->
-    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg1">
+    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
@@ -89,7 +89,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg2">
+    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.08">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
@@ -98,7 +98,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg3">
+    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.16">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
@@ -107,7 +107,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg4">
+    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg4[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.24">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
@@ -116,7 +116,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg5">
+    <Style Selector="controls|DaisyLoading[Variant=Snake] /template/ Border.seg5[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.32">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="0"/></KeyFrame>
@@ -143,7 +143,7 @@
     </Style>
 
     <!-- Pulse Animation -->
-    <Style Selector="controls|DaisyLoading[Variant=Pulse] /template/ Ellipse.pulse-ring">
+    <Style Selector="controls|DaisyLoading[Variant=Pulse] /template/ Ellipse.pulse-ring[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -159,7 +159,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Pulse] /template/ Ellipse.pulse-ring2">
+    <Style Selector="controls|DaisyLoading[Variant=Pulse] /template/ Ellipse.pulse-ring2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:0.5">
                 <KeyFrame KeyTime="0:0:0">
@@ -175,7 +175,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Pulse] /template/ Ellipse.pulse-center">
+    <Style Selector="controls|DaisyLoading[Variant=Pulse] /template/ Ellipse.pulse-center[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -210,7 +210,7 @@
     </Style>
 
     <!-- Wave Animation - smooth sine wave motion -->
-    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave1">
+    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
@@ -221,7 +221,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave2">
+    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1" IterationCount="Infinite" Delay="0:0:0.1">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
@@ -232,7 +232,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave3">
+    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1" IterationCount="Infinite" Delay="0:0:0.2">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
@@ -243,7 +243,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave4">
+    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave4[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1" IterationCount="Infinite" Delay="0:0:0.3">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
@@ -254,7 +254,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave5">
+    <Style Selector="controls|DaisyLoading[Variant=Wave] /template/ Ellipse.wave5[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1" IterationCount="Infinite" Delay="0:0:0.4">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
@@ -293,7 +293,7 @@
     </Style>
 
     <!-- Bounce Animation - squares gently highlight in sequence (dimmed → soft highlight → dimmed) -->
-    <Style Selector="controls|DaisyLoading[Variant=Bounce] /template/ Border.bounce1">
+    <Style Selector="controls|DaisyLoading[Variant=Bounce] /template/ Border.bounce1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
@@ -303,7 +303,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Bounce] /template/ Border.bounce2">
+    <Style Selector="controls|DaisyLoading[Variant=Bounce] /template/ Border.bounce2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0.4"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
@@ -313,7 +313,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Bounce] /template/ Border.bounce3">
+    <Style Selector="controls|DaisyLoading[Variant=Bounce] /template/ Border.bounce3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0.8"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>
@@ -323,7 +323,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=Bounce] /template/ Border.bounce4">
+    <Style Selector="controls|DaisyLoading[Variant=Bounce] /template/ Border.bounce4[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.25"/><Setter Property="ScaleTransform.ScaleX" Value="0.85"/><Setter Property="ScaleTransform.ScaleY" Value="0.85"/></KeyFrame>

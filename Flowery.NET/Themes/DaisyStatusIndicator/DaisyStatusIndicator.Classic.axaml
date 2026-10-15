@@ -1,11 +1,11 @@
-<Styles xmlns="https://github.com/avaloniaui"
+﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
     <!-- ===================== PING VARIANT ===================== -->
     <!-- Expanding ring that fades out (classic online indicator) -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Ping] /template/ Ellipse#PART_AnimationEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Ping] /template/ Ellipse#PART_AnimationEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
@@ -27,7 +27,7 @@
     <!-- ===================== BOUNCE VARIANT ===================== -->
     <!-- Dot bounces up and down -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Bounce] /template/ Ellipse#PART_MainEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Bounce] /template/ Ellipse#PART_MainEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:0.5" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -46,7 +46,7 @@
     <!-- ===================== PULSE VARIANT ===================== -->
     <!-- Breathing/pulsing opacity effect -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Pulse] /template/ Ellipse#PART_MainEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Pulse] /template/ Ellipse#PART_MainEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -65,7 +65,7 @@
     <!-- ===================== BLINK VARIANT ===================== -->
     <!-- Simple on/off blinking -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Blink] /template/ Ellipse#PART_MainEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Blink] /template/ Ellipse#PART_MainEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -90,7 +90,7 @@
     <!-- ===================== RIPPLE VARIANT ===================== -->
     <!-- Multiple expanding rings -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Ripple] /template/ Ellipse#PART_AnimationEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Ripple] /template/ Ellipse#PART_AnimationEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
@@ -108,7 +108,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Ripple] /template/ Ellipse#PART_AnimationEllipse2">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Ripple] /template/ Ellipse#PART_AnimationEllipse2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
@@ -126,7 +126,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Ripple] /template/ Ellipse#PART_AnimationEllipse3">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Ripple] /template/ Ellipse#PART_AnimationEllipse3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
@@ -148,7 +148,7 @@
     <!-- ===================== HEARTBEAT VARIANT ===================== -->
     <!-- Double-pulse like a heartbeat -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Heartbeat] /template/ Ellipse#PART_MainEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Heartbeat] /template/ Ellipse#PART_MainEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1" IterationCount="Infinite">

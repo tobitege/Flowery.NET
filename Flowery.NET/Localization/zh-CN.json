@@ -1,4 +1,12 @@
 {
+  "Accessibility_OneTimeCode": "一次性验证码",
+  "Accessibility_OtpDigitPosition": "{0}，第 {1} 位，共 {2} 位",
+  "Scheduler_Calendar": "日历",
+  "Scheduler_WeekNumber": "周",
+  "Accessibility_Password": "密码",
+  "Accessibility_ShowPassword": "显示密码",
+  "Accessibility_HidePassword": "隐藏密码",
+  "Accessibility_ResizeTextArea": "调整文本区域大小",
   "Scheduler_Timeline": "每日计划",
   "Scheduler_ResourceKind": "资源类型",
   "Scheduler_AllKinds": "所有类型",

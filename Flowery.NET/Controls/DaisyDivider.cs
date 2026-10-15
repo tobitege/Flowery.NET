@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -30,6 +30,8 @@ namespace Flowery.Controls
         private DateTime _glowAnimationStartedAt;
         private Border? _glowStartTarget;
         private Border? _glowEndTarget;
+
+        public DaisyDivider() => DaisyAccessibility.RegisterMotionHandler(this, static control => ((DaisyDivider)control).UpdateGlowAnimation());
 
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
@@ -179,6 +181,12 @@ namespace Flowery.Controls
             UpdateVisuals();
         }
 
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            UpdateVisuals();
+        }
+
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnDetachedFromVisualTree(e);
@@ -272,7 +280,7 @@ namespace Flowery.Controls
 
         private void UpdateGlowAnimation()
         {
-            if (DividerStyle != DaisyDividerStyle.Glow)
+            if (DividerStyle != DaisyDividerStyle.Glow || TopLevel.GetTopLevel(this) == null || DaisyAccessibility.IsReducedMotion)
             {
                 StopGlowAnimation();
                 return;

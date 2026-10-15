@@ -1,4 +1,12 @@
 {
+  "Accessibility_OneTimeCode": "Code à usage unique",
+  "Accessibility_OtpDigitPosition": "{0}, chiffre {1} sur {2}",
+  "Scheduler_Calendar": "Calendrier",
+  "Scheduler_WeekNumber": "Sem",
+  "Accessibility_Password": "Mot de passe",
+  "Accessibility_ShowPassword": "Afficher le mot de passe",
+  "Accessibility_HidePassword": "Masquer le mot de passe",
+  "Accessibility_ResizeTextArea": "Redimensionner la zone de texte",
   "Scheduler_Timeline": "Planning journalier",
   "Scheduler_ResourceKind": "Type de ressource",
   "Scheduler_AllKinds": "Tous les types",

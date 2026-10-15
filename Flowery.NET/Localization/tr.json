@@ -1,4 +1,12 @@
 {
+  "Accessibility_OneTimeCode": "Tek kullanımlık kod",
+  "Accessibility_OtpDigitPosition": "{0}, {2} hanenin {1}. hanesi",
+  "Scheduler_Calendar": "Takvim",
+  "Scheduler_WeekNumber": "Hf",
+  "Accessibility_Password": "Parola",
+  "Accessibility_ShowPassword": "Parolayı göster",
+  "Accessibility_HidePassword": "Parolayı gizle",
+  "Accessibility_ResizeTextArea": "Metin alanını yeniden boyutlandır",
   "Scheduler_Timeline": "Günlük plan",
   "Scheduler_ResourceKind": "Kaynak türü",
   "Scheduler_AllKinds": "Tüm türler",

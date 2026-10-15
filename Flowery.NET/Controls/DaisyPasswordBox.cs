@@ -1,5 +1,6 @@
 ﻿using System;
 using Avalonia;
+using System.Globalization;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -7,6 +8,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Flowery.Localization;
 using Flowery.Services;
 
@@ -32,6 +34,29 @@ namespace Flowery.Controls
         public DaisyPasswordBox()
         {
             UpdateHasTextPseudoClass();
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            FloweryLocalization.CultureChanged += OnCultureChanged;
+            UpdateAutomationProperties();
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            FloweryLocalization.CultureChanged -= OnCultureChanged;
+            base.OnDetachedFromVisualTree(e);
+        }
+
+        private void OnCultureChanged(object? sender, CultureInfo culture)
+        {
+            if (!Dispatcher.UIThread.CheckAccess())
+            {
+                Dispatcher.UIThread.Post(() => { if (TopLevel.GetTopLevel(this) != null) UpdateAutomationProperties(); });
+                return;
+            }
+            UpdateAutomationProperties();
         }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)

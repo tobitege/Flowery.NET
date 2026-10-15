@@ -51,7 +51,7 @@ DaisyThemeLoader.ApplyThemeToApplication(theme);
 | `AvailableThemesChanged` | Raised for registration notifications and changes to excluded or preferred names. Visibility and ordering changes always notify. |
 | `NotifyForInternalThemesChanged` | When true, `RegisterTheme` also raises `AvailableThemesChanged` for built-in themes. Default is false. |
 | `ApplyTheme(string name)` | Loads the registered palette factory, swaps the palette, updates `RequestedThemeVariant`, and raises `ThemeChanged`. Uses `CustomThemeApplicator` if set. |
-| `SuppressThemeApplication` | When true, `ApplyTheme` only updates internal state without actually applying. Use during initialization. |
+| `SuppressThemeApplication` | Defers palette application during initialization. After clearing it, call ApplyTheme with the desired name, including the same name. |
 | `CustomThemeApplicator` | Optional `Func<string, bool>` delegate. When set, called instead of the default MergedDictionaries approach. |
 | `SetCurrentTheme(string name)` | Updates internal state and fires `ThemeChanged`. Used by custom applicators after applying a theme. |
 | `CurrentThemeName` | Name of the currently applied theme. |
@@ -62,6 +62,12 @@ DaisyThemeLoader.ApplyThemeToApplication(theme);
 | `IsDarkTheme(string name)` | Returns whether the theme is marked as dark. |
 
 ## Theme Visibility and Ordering
+
+System contrast is an accessibility preference separate from theme visibility and ordering.
+The contrast palette temporarily overlays the chosen theme. Clearing the preference restores the current chosen theme.
+CustomThemeApplicator continues to own normal theme changes.
+For custom contrast resources, set DaisyAccessibility.CustomContrastApplicator and return true on both activation and restoration.
+See [accessibility preferences](DaisyAccessibility.md#system-contrast-and-reduced-motion).
 
 ### Global Additions and Display Names
 

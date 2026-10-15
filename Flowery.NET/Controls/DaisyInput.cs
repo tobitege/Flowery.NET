@@ -1,9 +1,12 @@
-using System;
+﻿using System;
 using Avalonia;
+using Avalonia.Automation;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Media;
 using Flowery.Services;
+using Flowery.Helpers;
 
 namespace Flowery.Controls
 {
@@ -54,7 +57,11 @@ namespace Flowery.Controls
         public DaisyInput()
         {
             UpdateHasTextPseudoClass();
+            Bind(AutomationProperties.IsRequiredForFormProperty,
+                new Binding(nameof(IsRequired)) { Source = this, Priority = BindingPriority.Style });
         }
+
+        protected override AutomationPeer OnCreateAutomationPeer() => new DaisyInputAutomationPeer(this);
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {

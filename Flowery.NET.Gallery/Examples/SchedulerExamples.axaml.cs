@@ -95,7 +95,8 @@ public partial class SchedulerExamples : UserControl
     {
         if (e.Property == DaisyScheduler.CurrentViewProperty)
             Refresh();
-        if (e.Property == DaisyScheduler.DateTimeFormatProperty || e.Property == DaisyScheduler.ClockFormatProperty)
+        if (e.Property == DaisyScheduler.DateTimeFormatProperty || e.Property == DaisyScheduler.ClockFormatProperty ||
+            e.Property == DaisyScheduler.ResourceKindFilterProperty)
             RefreshFormatOptions();
         if (EditorPanel.IsVisible && (e.Property == DaisyScheduler.TimeSlotStartProperty ||
             e.Property == DaisyScheduler.TimeSlotEndProperty || e.Property == DaisyScheduler.TimeSlotIntervalProperty ||
@@ -159,7 +160,7 @@ public partial class SchedulerExamples : UserControl
         DemoScheduler.ShowTiles = TilesOption.IsChecked == true;
         DemoScheduler.SchedulerResources = ResourcesOption.IsChecked == true ? _resources.ToArray() : Array.Empty<ResourceModel>();
         // Horizontal views need resource lanes even if resource grouping is off in the other views.
-        if (DemoScheduler.CurrentView is SchedulerView.Planner or SchedulerView.Timeline)
+        if (DemoScheduler.CurrentView is SchedulerView.Planner or SchedulerView.Timeline or SchedulerView.Calendar)
             DemoScheduler.SchedulerResources = _resources.ToArray();
         DemoScheduler.Appointments = _appointments.ToArray();
         DemoScheduler.ToolbarButtons.Clear();

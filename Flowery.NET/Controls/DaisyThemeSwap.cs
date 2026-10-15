@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Avalonia;
 
 namespace Flowery.Controls
@@ -30,12 +30,12 @@ namespace Flowery.Controls
         public DaisyThemeSwap()
         {
             TransitionEffect = SwapEffect.Rotate;
-            DaisyThemeManager.ThemeChanged += OnThemeChanged;
         }
 
         protected override void OnAttachedToVisualTree(global::Avalonia.VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
+            DaisyThemeManager.ThemeChanged += OnThemeChanged;
             SyncState();
         }
 

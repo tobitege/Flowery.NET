@@ -413,6 +413,7 @@ public partial class DaisyScheduler : TemplatedControl
         {
             SchedulerView.Month => BuildMonth(),
             SchedulerView.Agenda => BuildAgenda(),
+            SchedulerView.Calendar => BuildCalendar(),
             SchedulerView.Planner or SchedulerView.Timeline => BuildPlanner(),
             _ => BuildTimeGrid()
         };
@@ -463,7 +464,7 @@ public partial class DaisyScheduler : TemplatedControl
             return SelectedDates.Select(static d => d.Date).Distinct().OrderBy(static d => d).ToArray();
         var start = CurrentView is SchedulerView.Week or SchedulerView.Planner
             ? WeekStart(SelectedDate.Date, FirstDayOfWeek) : SelectedDate.Date;
-        var count = CurrentView is SchedulerView.Week or SchedulerView.Planner ? 7 : VisibleDays;
+        var count = CurrentView is SchedulerView.Week or SchedulerView.Planner ? 7 : CurrentView == SchedulerView.Calendar ? 1 : VisibleDays;
         var dates = new DateTime[count];
         for (var index = 0; index < count; index++)
             dates[index] = start.AddDays(index);
@@ -485,7 +486,7 @@ public partial class DaisyScheduler : TemplatedControl
             SetCurrentValue(SelectedDateProperty, CurrentView == SchedulerView.Month
                 ? SelectedDate.AddMonths(direction)
                 : SelectedDate.AddDays(direction * (CurrentView is SchedulerView.Week or SchedulerView.Planner ? 7 :
-                    CurrentView == SchedulerView.Timeline ? 1 : VisibleDays)));
+                    CurrentView is SchedulerView.Timeline or SchedulerView.Calendar ? 1 : VisibleDays)));
     }
 
     /// <summary>Raise a deletion request without changing the host's appointment list.</summary>

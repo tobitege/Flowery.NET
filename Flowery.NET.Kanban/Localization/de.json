@@ -1,4 +1,5 @@
 {
+  "Kanban_Users_LoadFailed": "Benutzer konnten nicht geladen werden. Erneut versuchen.",
   "Common_Add": "Hinzufügen",
   "Common_Apply": "Anwenden",
   "Common_Cancel": "Abbrechen",

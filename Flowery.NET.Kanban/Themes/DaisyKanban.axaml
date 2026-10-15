@@ -1324,6 +1324,10 @@
                                                                    TextWrapping="Wrap" />
                                                     </StackPanel>
                                                 </Border>
+                                                <TextBlock Grid.Row="1" Padding="12" TextWrapping="Wrap"
+                                                           Foreground="{DynamicResource DaisyErrorBrush}"
+                                                           Text="{Binding Tag.LoadErrorMessage, ElementName=PART_UsersRoot}"
+                                                           IsVisible="{Binding Tag.LoadErrorMessage, ElementName=PART_UsersRoot, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                             </Grid>
                                         </Border>
                                     </Grid>
@@ -2365,7 +2369,7 @@
                                                         <controls:DaisyButton
                                                                               Content="{Binding DataContext[Common_Apply], ElementName=PART_BoardRoot}"
                                                                               Command="{Binding Tag.BulkSetDueDateCommand, ElementName=PART_BoardRoot}"
-                                                                              CommandParameter="{Binding Date, ElementName=PART_BulkDueDatePicker}"
+                                                                              CommandParameter="{Binding SelectedDate, ElementName=PART_BulkDueDatePicker}"
                                                                               Variant="Primary"
                                                                               Size="Small" />
                                                         <controls:DaisyButton

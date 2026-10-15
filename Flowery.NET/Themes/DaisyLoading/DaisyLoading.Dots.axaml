@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui"
+﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -28,7 +28,7 @@
     </Style>
 
     <!-- MatrixRain Animations -->
-    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop1a">
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop1a[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:0.8" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="1"/></KeyFrame>
@@ -39,7 +39,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop1b">
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop1b[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:0.8" IterationCount="Infinite" Delay="0:0:0.1">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="0.5"/></KeyFrame>
@@ -50,7 +50,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop2a">
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop2a[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.1" IterationCount="Infinite" Delay="0:0:0.2">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="1"/></KeyFrame>
@@ -61,7 +61,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop2b">
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop2b[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.1" IterationCount="Infinite" Delay="0:0:0.3">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="0.5"/></KeyFrame>
@@ -72,7 +72,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop3a">
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop3a[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:0.9" IterationCount="Infinite" Delay="0:0:0.4">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="1"/></KeyFrame>
@@ -83,7 +83,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop3b">
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop3b[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:0.9" IterationCount="Infinite" Delay="0:0:0.5">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="0.5"/></KeyFrame>
@@ -94,7 +94,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop4a">
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop4a[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:0.7" IterationCount="Infinite" Delay="0:0:0.15">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="1"/></KeyFrame>
@@ -105,7 +105,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop4b">
+    <Style Selector="controls|DaisyLoading[Variant=MatrixRain] /template/ Ellipse.drop4b[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:0.7" IterationCount="Infinite" Delay="0:0:0.25">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="-3"/><Setter Property="Opacity" Value="0.5"/></KeyFrame>
@@ -141,7 +141,7 @@
     </Style>
 
     <!-- BitFlip Animations - pseudo-random binary pattern -->
-    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit1">
+    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
@@ -152,7 +152,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit2">
+    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -163,7 +163,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit3">
+    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
@@ -175,7 +175,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit4">
+    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit4[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -187,7 +187,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit5">
+    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit5[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -199,7 +199,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit6">
+    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit6[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
@@ -211,7 +211,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit7">
+    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit7[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -223,7 +223,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit8">
+    <Style Selector="controls|DaisyLoading[Variant=BitFlip] /template/ Ellipse.bit8[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
@@ -261,7 +261,7 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=PacketBurst] /template/ Ellipse.packet-center">
+    <Style Selector="controls|DaisyLoading[Variant=PacketBurst] /template/ Ellipse.packet-center[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleX" Value="1"/><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
@@ -273,7 +273,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PacketBurst] /template/ Ellipse.packet-left">
+    <Style Selector="controls|DaisyLoading[Variant=PacketBurst] /template/ Ellipse.packet-left[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="10.5"/><Setter Property="Opacity" Value="0"/></KeyFrame>
@@ -284,7 +284,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PacketBurst] /template/ Ellipse.packet-right">
+    <Style Selector="controls|DaisyLoading[Variant=PacketBurst] /template/ Ellipse.packet-right[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="10.5"/><Setter Property="Opacity" Value="0"/></KeyFrame>
@@ -295,7 +295,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PacketBurst] /template/ Ellipse.packet-up">
+    <Style Selector="controls|DaisyLoading[Variant=PacketBurst] /template/ Ellipse.packet-up[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="10.5"/><Setter Property="Opacity" Value="0"/></KeyFrame>
@@ -306,7 +306,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=PacketBurst] /template/ Ellipse.packet-down">
+    <Style Selector="controls|DaisyLoading[Variant=PacketBurst] /template/ Ellipse.packet-down[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Top" Value="10.5"/><Setter Property="Opacity" Value="0"/></KeyFrame>
@@ -338,7 +338,7 @@
     </Style>
 
     <!-- CometTrail Animations - circular motion with trail -->
-    <Style Selector="controls|DaisyLoading[Variant=CometTrail] /template/ Ellipse.comet-head">
+    <Style Selector="controls|DaisyLoading[Variant=CometTrail] /template/ Ellipse.comet-head[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="10"/><Setter Property="Canvas.Top" Value="2"/></KeyFrame>
@@ -349,7 +349,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CometTrail] /template/ Ellipse.trail3">
+    <Style Selector="controls|DaisyLoading[Variant=CometTrail] /template/ Ellipse.trail3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:0.1">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="10.5"/><Setter Property="Canvas.Top" Value="2.5"/></KeyFrame>
@@ -360,7 +360,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CometTrail] /template/ Ellipse.trail2">
+    <Style Selector="controls|DaisyLoading[Variant=CometTrail] /template/ Ellipse.trail2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:0.2">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="10.75"/><Setter Property="Canvas.Top" Value="2.75"/></KeyFrame>
@@ -371,7 +371,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CometTrail] /template/ Ellipse.trail1">
+    <Style Selector="controls|DaisyLoading[Variant=CometTrail] /template/ Ellipse.trail1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite" Delay="0:0:0.3">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Canvas.Left" Value="11"/><Setter Property="Canvas.Top" Value="3"/></KeyFrame>
@@ -409,7 +409,7 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=RippleMatrix] /template/ Ellipse.ripple-c">
+    <Style Selector="controls|DaisyLoading[Variant=RippleMatrix] /template/ Ellipse.ripple-c[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
@@ -419,7 +419,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=RippleMatrix] /template/ Ellipse.ripple-r1">
+    <Style Selector="controls|DaisyLoading[Variant=RippleMatrix] /template/ Ellipse.ripple-r1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.3"/></KeyFrame>
@@ -430,7 +430,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=RippleMatrix] /template/ Ellipse.ripple-r2">
+    <Style Selector="controls|DaisyLoading[Variant=RippleMatrix] /template/ Ellipse.ripple-r2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.3"/></KeyFrame>
@@ -470,7 +470,7 @@
     </Style>
 
     <!-- CountdownSpinner Animations - sequential lighting like clock -->
-    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd1">
+    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
@@ -480,7 +480,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd2">
+    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -490,7 +490,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd3">
+    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -500,7 +500,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd4">
+    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd4[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -510,7 +510,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd5">
+    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd5[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -520,7 +520,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd6">
+    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd6[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -530,7 +530,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd7">
+    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd7[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -540,7 +540,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd8">
+    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd8[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -550,7 +550,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd9">
+    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd9[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -560,7 +560,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd10">
+    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd10[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -570,7 +570,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd11">
+    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd11[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>
@@ -580,7 +580,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd12">
+    <Style Selector="controls|DaisyLoading[Variant=CountdownSpinner] /template/ Ellipse.cd12[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:1.2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.2"/></KeyFrame>

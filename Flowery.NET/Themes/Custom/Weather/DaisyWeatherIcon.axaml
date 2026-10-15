@@ -1,5 +1,6 @@
-<Styles xmlns="https://github.com/avaloniaui"
+﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
         xmlns:weather="clr-namespace:Flowery.Controls.Custom.Weather;assembly=Flowery.NET">
 
     <Design.PreviewWith>
@@ -78,7 +79,7 @@
     </Style>
 
     <!-- Sunny: Rotation (Targeting PathIcon directly) -->
-    <Style Selector="weather|DaisyWeatherIcon:animated:sunny /template/ PathIcon#PART_Icon">
+    <Style Selector="weather|DaisyWeatherIcon:animated:sunny /template/ PathIcon#PART_Icon[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransform">
             <RotateTransform />
         </Setter>
@@ -95,7 +96,7 @@
     </Style>
 
     <!-- Cloudy: Horizontal Drift -->
-    <Style Selector="weather|DaisyWeatherIcon:animated:cloudy /template/ PathIcon#PART_Icon">
+    <Style Selector="weather|DaisyWeatherIcon:animated:cloudy /template/ PathIcon#PART_Icon[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransform">
             <TranslateTransform />
         </Setter>
@@ -115,7 +116,7 @@
     </Style>
 
     <!-- Rainy: Vertical Bob -->
-    <Style Selector="weather|DaisyWeatherIcon:animated:rainy /template/ PathIcon#PART_Icon">
+    <Style Selector="weather|DaisyWeatherIcon:animated:rainy /template/ PathIcon#PART_Icon[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransform">
             <TranslateTransform />
         </Setter>
@@ -135,7 +136,7 @@
     </Style>
 
     <!-- Snowy: Icon Sway -->
-    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ PathIcon#PART_Icon">
+    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ PathIcon#PART_Icon[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransform">
             <TranslateTransform />
         </Setter>
@@ -155,7 +156,7 @@
     </Style>
 
     <!-- Windy: Horizontal Sway -->
-    <Style Selector="weather|DaisyWeatherIcon:animated:windy /template/ PathIcon#PART_Icon">
+    <Style Selector="weather|DaisyWeatherIcon:animated:windy /template/ PathIcon#PART_Icon[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransform">
             <TranslateTransform />
         </Setter>
@@ -175,7 +176,7 @@
     </Style>
 
     <!-- Foggy: Opacity Fade -->
-    <Style Selector="weather|DaisyWeatherIcon:animated:foggy /template/ PathIcon#PART_Icon">
+    <Style Selector="weather|DaisyWeatherIcon:animated:foggy /template/ PathIcon#PART_Icon[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:4" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -192,7 +193,7 @@
     </Style>
 
     <!-- Stormy: Lightning Flash -->
-    <Style Selector="weather|DaisyWeatherIcon:animated:stormy /template/ PathIcon#PART_Icon">
+    <Style Selector="weather|DaisyWeatherIcon:animated:stormy /template/ PathIcon#PART_Icon[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:3" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1" /></KeyFrame>
@@ -207,7 +208,7 @@
     </Style>
 
     <!-- Stormy: Flash Overlay -->
-    <Style Selector="weather|DaisyWeatherIcon:animated:stormy /template/ Border#PART_Flash">
+    <Style Selector="weather|DaisyWeatherIcon:animated:stormy /template/ Border#PART_Flash[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:3" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0" /></KeyFrame>
@@ -222,7 +223,7 @@
     </Style>
 
     <!-- ========= Snowflake Falling Animations ========= -->
-    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ Ellipse.snow1">
+    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ Ellipse.snow1[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransform"><TranslateTransform /></Setter>
         <Style.Animations>
             <Animation Duration="0:0:1.8" IterationCount="Infinite">
@@ -234,7 +235,7 @@
         </Style.Animations>
     </Style>
 
-    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ Ellipse.snow2">
+    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ Ellipse.snow2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransform"><TranslateTransform /></Setter>
         <Style.Animations>
             <Animation Duration="0:0:2.2" IterationCount="Infinite" Delay="0:0:0.4">
@@ -246,7 +247,7 @@
         </Style.Animations>
     </Style>
 
-    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ Ellipse.snow3">
+    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ Ellipse.snow3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransform"><TranslateTransform /></Setter>
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite" Delay="0:0:0.8">
@@ -258,7 +259,7 @@
         </Style.Animations>
     </Style>
 
-    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ Ellipse.snow4">
+    <Style Selector="weather|DaisyWeatherIcon:animated:snowy /template/ Ellipse.snow4[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransform"><TranslateTransform /></Setter>
         <Style.Animations>
             <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:1.2">

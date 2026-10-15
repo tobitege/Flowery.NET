@@ -8,6 +8,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.0] - 2026-10-15
+
+### Added
+
+- Added a Scheduler Calendar view with week numbers, month navigation, resource-kind filtering, and a scrollable daily list with wrapped appointment text.
+- Added a resource-kind selector to the Scheduler Gallery demo and translated the new calendar labels in all twelve languages.
+- Added shared system-contrast and reduced-motion preferences, application overrides, and custom contrast application support.
+- Added automation providers and keyboard actions for rating, progress, color controls, breadcrumbs, slide confirmation, sidebar favorites, and Kanban selection.
+- Added a vertical resize grip with keyboard support to DaisyTextArea, and functional pinned table headers, footers, and edge columns.
+
+### Fixed
+
+- Fixed Kanban bulk date editing, saved tag selections, stale board/user loads, filter synchronization, keyboard navigation, and task date flags.
+- Fixed NumberFlow digit editing for decimal places, cultures, signs, leading zeros, percentages, scaling, bounds, and wrapping.
+- Fixed carousel content ownership and slide transitions, read-only numeric editing, repeated copy feedback, color editor synchronization, and date timeline navigation.
+- Fixed contribution graph year coverage, clock notifications, theme initialization, and programmatic theme selection.
+- Fixed timer, event, animation, and request lifetimes across detach, reattach, cancellation, and template changes.
+- Fixed stale glass captures and connected card glass settings to the shared material implementation.
+- Fixed input accessibility metadata, localized password/OTP actions, Kanban dialog focus, editor color choices, and subtask renaming.
+- Fixed forecast unit and precipitation labels, shared table column widths, and animated text image fills.
+- Corrected API and design-token documentation. Documentation generation now merges partial APIs, includes Kanban/helpers/guides, and resolves local links and fragments consistently.
+
 ## [3.6.0] - 2026-10-14
 
 ### Added

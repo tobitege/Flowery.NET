@@ -180,6 +180,7 @@ namespace Flowery.NET.Kanban.Controls
             }
             if (ParentKanban != null)
             {
+                AttachParentEvents(ParentKanban);
                 ParentKanban.RegisterColumn(this);
             }
 
@@ -424,6 +425,7 @@ namespace Flowery.NET.Kanban.Controls
                 ParentKanban.DragEnded -= OnParentDragEnded;
                 ParentKanban.LaneGroupingChanged -= OnLaneGroupingChanged;
                 ParentKanban.CompactLayoutChanged -= OnCompactLayoutChanged;
+                ParentKanban.SearchFilterChanged -= OnSearchFilterChanged;
             }
 
             if (_columnGripElement != null)
@@ -725,12 +727,7 @@ namespace Flowery.NET.Kanban.Controls
                 // Subscribe to new parent
                 if (e.NewValue is FlowKanban newKanban)
                 {
-                    newKanban.BoardSizeChanged += column.OnBoardSizeChanged;
-                    newKanban.ColumnWidthChanged += column.OnColumnWidthChanged;
-                    newKanban.DragEnded += column.OnParentDragEnded;
-                    newKanban.LaneGroupingChanged += column.OnLaneGroupingChanged;
-                    newKanban.CompactLayoutChanged += column.OnCompactLayoutChanged;
-                    newKanban.SearchFilterChanged += column.OnSearchFilterChanged;
+                    if (column._isLoaded) column.AttachParentEvents(newKanban);
                     column.ColumnSize = newKanban.BoardSize;
                     column.ApplySizing();
                     column.UpdateCollapsedState();
@@ -742,6 +739,22 @@ namespace Flowery.NET.Kanban.Controls
                     }
                 }
             }
+        }
+
+        private void AttachParentEvents(FlowKanban parent)
+        {
+            parent.BoardSizeChanged -= OnBoardSizeChanged;
+            parent.ColumnWidthChanged -= OnColumnWidthChanged;
+            parent.DragEnded -= OnParentDragEnded;
+            parent.LaneGroupingChanged -= OnLaneGroupingChanged;
+            parent.CompactLayoutChanged -= OnCompactLayoutChanged;
+            parent.SearchFilterChanged -= OnSearchFilterChanged;
+            parent.BoardSizeChanged += OnBoardSizeChanged;
+            parent.ColumnWidthChanged += OnColumnWidthChanged;
+            parent.DragEnded += OnParentDragEnded;
+            parent.LaneGroupingChanged += OnLaneGroupingChanged;
+            parent.CompactLayoutChanged += OnCompactLayoutChanged;
+            parent.SearchFilterChanged += OnSearchFilterChanged;
         }
 
         private void OnBoardSizeChanged(object? sender, DaisySize newSize)
@@ -1950,15 +1963,7 @@ namespace Flowery.NET.Kanban.Controls
                 }
             }
 
-            if (!isToggleSelection)
-            {
-                ParentKanban.DeselectAllTasks();
-                task.IsSelected = true;
-            }
-            else
-            {
-                task.IsSelected = !task.IsSelected;
-            }
+            ParentKanban.SetTaskSelection(task, !isToggleSelection || !task.IsSelected, !isToggleSelection);
 
             _lastSelectedTask = task;
             return true;

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -101,6 +101,7 @@ namespace Flowery.Controls
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
+            StopAnimation();
             base.OnApplyTemplate(e);
 
             _prevText = e.NameScope.Find<TextBlock>("PART_PreviousText");
@@ -138,8 +139,31 @@ namespace Flowery.Controls
             }
         }
 
+        private void StopAnimation()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
+            _lastValue = Value;
+            RefreshText();
+            if (_currentText != null) _currentText.Opacity = 1;
+            if (_prevTransform != null) _prevTransform.Y = 0;
+            if (_currentTransform != null) _currentTransform.Y = 0;
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            StopAnimation();
+            base.OnDetachedFromVisualTree(e);
+        }
+
         private async void OnValueChanged(AvaloniaPropertyChangedEventArgs e)
         {
+            if (TopLevel.GetTopLevel(this) == null)
+            {
+                StopAnimation();
+                return;
+            }
             if (_currentText == null || _prevText == null || _currentTransform == null || _prevTransform == null)
             {
                 _lastValue = Value;

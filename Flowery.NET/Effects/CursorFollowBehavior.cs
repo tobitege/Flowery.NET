@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -8,6 +8,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Flowery.Controls;
 using Avalonia.VisualTree;
 
 namespace Flowery.Effects
@@ -156,6 +157,11 @@ namespace Flowery.Effects
 
         private static void OnIsEnabledChanged(Control element, AvaloniaPropertyChangedEventArgs e)
         {
+            DaisyAccessibility.RegisterMotionHandler(element, static control =>
+            {
+                if (DaisyAccessibility.IsReducedMotion) CleanupFollower(control);
+                else if (GetIsEnabled(control)) SetupFollower(control);
+            });
             if (e.NewValue is true)
             {
                 element.AttachedToVisualTree += OnAttachedToVisualTree;
@@ -192,6 +198,8 @@ namespace Flowery.Effects
 
         private static void SetupFollower(Control control)
         {
+            CleanupFollower(control);
+            if (DaisyAccessibility.IsReducedMotion) return;
             // Find or create overlay panel
             var panel = control as Panel;
             if (panel == null)

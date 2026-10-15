@@ -42,6 +42,11 @@ This is a **standalone control** with its own AXAML theme (`DaisyColorEditor.axa
 
 The `ColorEditingMode` enum determines the primary editing interface:
 
+EditingMode places the preferred section first when both sections are visible.
+ShowRgbSliders and ShowHslSliders independently control visibility; hiding both allows a hex-only editor.
+Hex input accepts #RGB, #ARGB, #RRGGBB, and #AARRGGBB.
+Color and HslColor stay synchronized and raise ColorChanged.
+
 | Mode | Description |
 | ---- | ----------- |
 | `Rgb` | Red, Green, Blue sliders and inputs |

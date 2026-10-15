@@ -350,7 +350,7 @@ namespace Flowery.Controls
         {
             var items = GetStackItems();
             if (items.Count == 0 || fromIndex < 0 || fromIndex >= items.Count ||
-                toIndex < 0 || toIndex >= items.Count)
+                toIndex < 0 || toIndex >= items.Count || DaisyAccessibility.IsReducedMotion || TopLevel.GetTopLevel(this) == null)
             {
                 UpdateItemVisibility();
                 return;
@@ -390,6 +390,7 @@ namespace Flowery.Controls
 
             for (int i = 0; i <= steps; i++)
             {
+                if (DaisyAccessibility.IsReducedMotion || TopLevel.GetTopLevel(this) == null) break;
                 var t = (double)i / steps;
                 var easedT = easing.Ease(t);
 

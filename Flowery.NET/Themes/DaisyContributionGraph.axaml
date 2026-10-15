@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui"
+﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
         x:CompileBindings="False">
@@ -74,7 +74,7 @@
                               HorizontalAlignment="Left">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                      <UniformGrid Rows="7" Columns="53" />
+                      <UniformGrid Rows="7" Columns="{Binding $parent[controls:DaisyContributionGraph].WeekCount}" />
                     </ItemsPanelTemplate>
                   </ItemsControl.ItemsPanel>
                   <ItemsControl.ItemTemplate>

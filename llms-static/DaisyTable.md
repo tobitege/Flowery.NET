@@ -18,7 +18,8 @@ DaisyTable provides a styled table layout with header, body, and footer sections
 | -------- | ----------- |
 | `Size` | ExtraSmall, Small, Medium (default), Large, ExtraLarge; adjusts padding/font via converters. |
 | `Zebra` (bool) | Applies alternate row backgrounds in `DaisyTableBody`. |
-| `PinRows` / `PinCols` (bool) | Exposed for sticky headers/columns; template groundwork present. |
+| `PinRows` (bool) | Pins the header and footer inside the containing ScrollViewer. |
+| `PinCols` (bool) | Pins the first and last columns while the containing ScrollViewer scrolls horizontally. |
 
 ## Row & Cell Properties
 
@@ -66,4 +67,6 @@ DaisyTable provides a styled table layout with header, body, and footer sections
 - Enable `Zebra` for dense data tables to improve scanability.
 - Mark important rows with `IsActive=True`; combine with `HighlightOnHover` for interactivity.
 - Keep padding/font consistent by using the `Size` presets instead of manual per-cell tweaks.
-- If you need sticky headers/columns, leverage `PinRows/PinCols` alongside template adjustments for your layout.
+- Put the table inside a constrained ScrollViewer to enable PinRows and PinCols.
+- Header ColumnWidth changes update corresponding body columns. Fixed widths reserve space; star weights divide the remaining width.
+- Auto widths use each row's content measurements; they do not calculate a shared maximum across every row.

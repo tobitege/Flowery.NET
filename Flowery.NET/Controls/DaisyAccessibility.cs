@@ -9,7 +9,7 @@ namespace Flowery.Controls
     /// Use the attached <see cref="AccessibleTextProperty"/> to set screen reader text,
     /// and call <see cref="SetupAccessibility"/> in the control's static constructor.
     /// </summary>
-    public static class DaisyAccessibility
+    public static partial class DaisyAccessibility
     {
         /// <summary>
         /// Attached property for accessible text announced by screen readers.

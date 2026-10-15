@@ -7,6 +7,9 @@ DaisyThemeDropdown is a ComboBox listing available themes from `DaisyThemeManage
 
 ## How Theming Works
 
+Setting SelectedTheme selects and applies that registered theme.
+External theme changes update the selection without reapplying it.
+
 This control uses `DaisyThemeManager` internally, which works with Avalonia's `ThemeDictionaries` architecture:
 
 - Setting `RequestedThemeVariant` triggers Avalonia's built-in resource refresh

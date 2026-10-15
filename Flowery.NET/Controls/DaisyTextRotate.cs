@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -6,6 +6,7 @@ using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
+using Flowery.Effects;
 
 namespace Flowery.Controls
 {
@@ -95,6 +96,13 @@ namespace Flowery.Controls
 
         public DaisyTextRotate()
         {
+            DaisyAccessibility.RegisterMotionHandler(this, static control =>
+            {
+                var rotate = (DaisyTextRotate)control;
+                rotate.StopAnimationLoop();
+                rotate.ResetContainerOpacities();
+                rotate.StartAnimationLoop();
+            });
             PointerEntered += OnPointerEntered;
             PointerExited += OnPointerExited;
             ContainerPrepared += OnContainerPrepared;
@@ -129,6 +137,12 @@ namespace Flowery.Controls
             else if (change.Property == DurationProperty)
             {
                 RestartAnimationLoop();
+            }
+            else if (change.Property == CurrentIndexProperty)
+            {
+                _currentIndex = ItemCount == 0 ? 0 : Math.Clamp(CurrentIndex, 0, ItemCount - 1);
+                SetCurrentValue(CurrentIndexProperty, _currentIndex);
+                ResetContainerOpacities();
             }
             else if (change.Property == IsPausedProperty)
             {
@@ -174,7 +188,7 @@ namespace Flowery.Controls
         {
             StopAnimationLoop();
 
-            if (ItemCount <= 1 || IsPaused) return;
+            if (ItemCount <= 1 || IsPaused || _isPausedByHover || TopLevel.GetTopLevel(this) == null || DaisyAccessibility.IsReducedMotion) return;
 
             _animationCts = new CancellationTokenSource();
             _ = RunAnimationLoopAsync(_animationCts.Token);
@@ -256,86 +270,30 @@ namespace Flowery.Controls
             }
             catch (TaskCanceledException)
             {
-                // Animation was cancelled - set final state immediately
-                fromContainer.Opacity = 0.0;
-                toContainer.Opacity = 1.0;
+                // The owner sets the current visible item when it stops the loop.
             }
         }
 
         private static Task AnimateOpacityTransitionAsync(
-            Control fromContainer,
-            Control toContainer,
-            double durationMs,
-            Easing easing,
-            CancellationToken ct)
-        {
-            var tcs = new TaskCompletionSource<bool>();
-            var durationMilliseconds = Math.Max(1.0, durationMs);
-            var startedAt = DateTime.UtcNow;
-            DispatcherTimer? timer = null;
-
-            void StopTimer()
+            Control fromContainer, Control toContainer, double durationMs, Easing easing, CancellationToken ct) =>
+            AnimationHelper.AnimateAsync(progress =>
             {
-                if (timer != null)
-                {
-                    timer.Stop();
-                    timer = null;
-                }
-            }
-
-            void ApplyProgress(double progress)
-            {
-                var easedProgress = easing.Ease(Math.Max(0.0, Math.Min(1.0, progress)));
-                fromContainer.Opacity = 1.0 - easedProgress;
-                toContainer.Opacity = easedProgress;
-            }
-
-            if (ct.IsCancellationRequested)
-            {
-                tcs.SetCanceled();
-                return tcs.Task;
-            }
-
-            timer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(16)
-            };
-            timer.Tick += (_, _) =>
-            {
-                if (ct.IsCancellationRequested)
-                {
-                    StopTimer();
-                    tcs.TrySetCanceled();
-                    return;
-                }
-
-                var elapsedMilliseconds = (DateTime.UtcNow - startedAt).TotalMilliseconds;
-                var progress = elapsedMilliseconds / durationMilliseconds;
-
-                if (progress >= 1.0)
-                {
-                    ApplyProgress(1.0);
-                    StopTimer();
-                    tcs.TrySetResult(true);
-                    return;
-                }
-
-                ApplyProgress(progress);
-            };
-
-            ApplyProgress(0.0);
-            timer.Start();
-
-            return tcs.Task;
-        }
+                fromContainer.Opacity = 1 - progress;
+                toContainer.Opacity = progress;
+            }, TimeSpan.FromMilliseconds(Math.Max(0, durationMs)), easing, ct: ct);
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnDetachedFromVisualTree(e);
             StopAnimationLoop();
-            PointerEntered -= OnPointerEntered;
-            PointerExited -= OnPointerExited;
-            ContainerPrepared -= OnContainerPrepared;
+            _isPausedByHover = false;
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            ResetContainerOpacities();
+            StartAnimationLoop();
         }
     }
 }

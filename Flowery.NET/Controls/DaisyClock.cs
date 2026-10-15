@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
@@ -457,8 +457,7 @@ namespace Flowery.Controls
             if (Mode == ClockMode.Timer)
             {
                 _timer?.Stop();
-                _timerRemaining = TimerDuration;
-                TimerRemaining = _timerRemaining;
+                TimerRemaining = TimerDuration;
                 IsRunning = false;
                 UpdateDisplay();
             }
@@ -516,8 +515,7 @@ namespace Flowery.Controls
             }
             else if (change.Property == TimerDurationProperty && Mode == ClockMode.Timer && !IsRunning)
             {
-                _timerRemaining = TimerDuration;
-                TimerRemaining = _timerRemaining;
+                TimerRemaining = TimerDuration;
                 UpdateDisplay();
             }
             else if (change.Property == FormatProperty ||
@@ -548,8 +546,7 @@ namespace Flowery.Controls
                     StartClockTimer();
                     break;
                 case ClockMode.Timer:
-                    _timerRemaining = TimerDuration;
-                    TimerRemaining = _timerRemaining;
+                    TimerRemaining = TimerDuration;
                     break;
                 case ClockMode.Stopwatch:
                     _stopwatchPausedElapsed = TimeSpan.Zero;
@@ -611,18 +608,18 @@ namespace Flowery.Controls
 
         private void OnTimerTick(object? sender, EventArgs e)
         {
-            _timerRemaining = _timerRemaining.Subtract(TimeSpan.FromSeconds(1));
+            var remaining = TimerRemaining.Subtract(TimeSpan.FromSeconds(1));
 
-            if (_timerRemaining <= TimeSpan.Zero)
+            if (remaining <= TimeSpan.Zero)
             {
-                _timerRemaining = TimeSpan.Zero;
+                remaining = TimeSpan.Zero;
                 _timer?.Stop();
                 IsRunning = false;
                 TimerFinished?.Invoke(this, EventArgs.Empty);
             }
 
-            TimerRemaining = _timerRemaining;
-            TimerTick?.Invoke(this, _timerRemaining);
+            TimerRemaining = remaining;
+            TimerTick?.Invoke(this, remaining);
             UpdateDisplay();
         }
 

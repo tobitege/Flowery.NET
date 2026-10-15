@@ -44,10 +44,10 @@ Used for buttons, inputs, selects, and other fixed-height controls.
 
 | Token | Default | Used By |
 | ----- | ------- | ------- |
-| `DaisySizeExtraLargeHeight` | 48 | DaisyButton, DaisyInput, DaisySelect, DaisyNumericUpDown |
-| `DaisySizeLargeHeight` | 48 | " |
-| `DaisySizeMediumHeight` | 40 | " |
-| `DaisySizeSmallHeight` | 32 | " |
+| `DaisySizeExtraLargeHeight` | 40 | DaisyButton, DaisyInput, DaisySelect, DaisyNumericUpDown |
+| `DaisySizeLargeHeight` | 36 | " |
+| `DaisySizeMediumHeight` | 32 | " |
+| `DaisySizeSmallHeight` | 28 | " |
 | `DaisySizeExtraSmallHeight` | 24 | " |
 
 ### Floating Input Heights
@@ -56,11 +56,11 @@ Specific heights for `DaisyInput` with `LabelPosition="Floating"`. These add hea
 
 | Token | Default |
 | ----- | ------- |
-| `DaisyInputFloatingExtraLargeHeight` | 72 |
-| `DaisyInputFloatingLargeHeight` | 72 |
-| `DaisyInputFloatingMediumHeight` | 64 |
-| `DaisyInputFloatingSmallHeight` | 56 |
-| `DaisyInputFloatingExtraSmallHeight` | 48 |
+| `DaisyInputFloatingExtraLargeHeight` | 50 |
+| `DaisyInputFloatingLargeHeight` | 48 |
+| `DaisyInputFloatingMediumHeight` | 44 |
+| `DaisyInputFloatingSmallHeight` | 40 |
+| `DaisyInputFloatingExtraSmallHeight` | 36 |
 
 ### Font Sizes
 

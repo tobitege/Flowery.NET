@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -68,7 +69,7 @@ namespace Flowery.Controls
         private static readonly HashSet<Control> _sizedControls = [];
 
         // Subset of _sizedControls whose current Size value was supplied by this manager.
-        private static readonly HashSet<Control> _providedDefaults = [];
+        private static readonly ConditionalWeakTable<Control, object> _providedDefaults = new();
 
         private static bool _applying;
 
@@ -145,6 +146,11 @@ namespace Flowery.Controls
 
         private static void OnControlLoaded(Control control, Avalonia.Interactivity.RoutedEventArgs e)
         {
+            if (control is TextBlock text && GetResponsiveFont(text) is var tier && tier != ResponsiveFontTier.None)
+            {
+                _responsiveTextBlocks.Add(text);
+                ApplyFontSizeToControl(text, tier, _currentSize);
+            }
             var property = GetSizeProperty(control.GetType());
             if (property == null)
                 return;
@@ -157,6 +163,7 @@ namespace Flowery.Controls
 
         private static void OnControlUnloaded(Control control, Avalonia.Interactivity.RoutedEventArgs e)
         {
+            if (control is TextBlock text) _responsiveTextBlocks.Remove(text);
             if (_sizedControls.Remove(control))
                 control.PropertyChanged -= OnSizedControlPropertyChanged;
         }
@@ -187,7 +194,7 @@ namespace Flowery.Controls
             {
                 if (EnableGlobalAutoSize && UseGlobalSizeByDefault && !ShouldIgnoreGlobalSize(control))
                 {
-                    _providedDefaults.Add(control);
+                    _providedDefaults.GetValue(control, static _ => new object());
                     control.SetCurrentValue(property, _currentSize);
                 }
                 else if (_providedDefaults.Remove(control))
@@ -221,27 +228,16 @@ namespace Flowery.Controls
 
             if (newTier != ResponsiveFontTier.None && oldTier == ResponsiveFontTier.None)
             {
-                _responsiveTextBlocks.Add(textBlock);
-                textBlock.Unloaded += OnResponsiveTextBlockUnloaded;
+                if (textBlock.IsAttachedToVisualTree()) _responsiveTextBlocks.Add(textBlock);
                 ApplyFontSizeToControl(textBlock, newTier, _currentSize);
             }
             else if (newTier == ResponsiveFontTier.None && oldTier != ResponsiveFontTier.None)
             {
                 _responsiveTextBlocks.Remove(textBlock);
-                textBlock.Unloaded -= OnResponsiveTextBlockUnloaded;
             }
             else if (newTier != ResponsiveFontTier.None)
             {
                 ApplyFontSizeToControl(textBlock, newTier, _currentSize);
-            }
-        }
-
-        private static void OnResponsiveTextBlockUnloaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        {
-            if (sender is TextBlock tb)
-            {
-                _responsiveTextBlocks.Remove(tb);
-                tb.Unloaded -= OnResponsiveTextBlockUnloaded;
             }
         }
 

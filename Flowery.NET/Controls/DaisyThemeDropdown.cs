@@ -172,9 +172,16 @@ namespace Flowery.Controls
         {
             base.OnPropertyChanged(change);
 
-            if (change.Property == SelectedItemProperty && change.NewValue is ThemePreviewInfo themeInfo)
+            if (change.Property == SelectedThemeProperty && !_isSyncing && _themeSource != null)
             {
-                SetCurrentValue(SelectedThemeProperty, themeInfo.Name);
+                var name = SelectedTheme;
+                SyncToTheme(name);
+                if (SelectedItem is ThemePreviewInfo selected) ApplyTheme(selected);
+            }
+            else if (change.Property == SelectedItemProperty && change.NewValue is ThemePreviewInfo themeInfo)
+            {
+                if (!string.Equals(SelectedTheme, themeInfo.Name, StringComparison.OrdinalIgnoreCase))
+                    SyncToTheme(themeInfo.Name);
                 if (!_isSyncing)
                 {
                     ApplyTheme(themeInfo);

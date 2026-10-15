@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls.Primitives;
@@ -204,7 +205,7 @@ namespace Flowery.Controls
         {
             bool needsTimer = IsCountingDown || ClockUnit != CountdownClockUnit.None;
 
-            if (needsTimer && _timer == null)
+            if (needsTimer && _timer == null && TopLevel.GetTopLevel(this) != null)
             {
                 StartTimer();
             }
@@ -287,6 +288,12 @@ namespace Flowery.Controls
         public void Reset(int value = 59)
         {
             Value = value;
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            UpdateTimerState();
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)

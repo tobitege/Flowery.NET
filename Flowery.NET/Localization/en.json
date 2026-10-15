@@ -1,5 +1,8 @@
 {
+  "Accessibility_ResizeTextArea": "Resize text area",
   "Scheduler_Timeline": "Day planner",
+  "Scheduler_Calendar": "Calendar",
+  "Scheduler_WeekNumber": "Wk",
   "Scheduler_ResourceKind": "Resource kind",
   "Scheduler_AllKinds": "All kinds",
   "Scheduler_KindUnspecified": "Unspecified",

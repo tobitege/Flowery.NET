@@ -726,6 +726,7 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnKanbanUnloaded(object? sender, RoutedEventArgs e)
         {
+            _boardLoadGeneration++;
             if (CurrentView == FlowKanbanView.Home)
             {
                 ClearLastBoardId();

@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using Flowery.Controls;
 using Avalonia.VisualTree;
 
 namespace Flowery.Effects
@@ -41,6 +42,12 @@ namespace Flowery.Effects
 
         private static void OnIsEnabledChanged(TextBlock element, AvaloniaPropertyChangedEventArgs e)
         {
+            DaisyAccessibility.RegisterMotionHandler(element, static control =>
+            {
+                var text = (TextBlock)control;
+                if (DaisyAccessibility.IsReducedMotion) StopTypewriter(text);
+                else if (GetIsEnabled(text)) ScheduleTypewriter(text);
+            });
             if (e.NewValue is true)
             {
                 if (!element.GetValue(IsAttachedProperty))
@@ -85,7 +92,7 @@ namespace Flowery.Effects
             if (existingCts != null) return;
 
             // Check if still enabled (might have been disabled before dispatch)
-            if (!GetIsEnabled(textBlock)) return;
+            if (!GetIsEnabled(textBlock) || TopLevel.GetTopLevel(textBlock) == null || DaisyAccessibility.IsReducedMotion) return;
 
             // Get the text to animate
             var storedText = textBlock.GetValue(FullTextProperty);
@@ -120,6 +127,7 @@ namespace Flowery.Effects
                 {
                     textBlock.SetValue(CtsProperty, null);
                 }
+                cts.Dispose();
             }
         }
 

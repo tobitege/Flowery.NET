@@ -1,4 +1,4 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -23,7 +23,7 @@
         </Setter>
 
         <!-- Spinning Animation for Spinner and Ring -->
-        <Style Selector="^ /template/ Arc.spinning">
+        <Style Selector="^ /template/ Arc.spinning[(controls|DaisyAccessibility.MotionEnabled)=True]">
             <Style.Animations>
                 <Animation Duration="0:0:0.75" IterationCount="Infinite">
                     <KeyFrame KeyTime="0:0:0.75">

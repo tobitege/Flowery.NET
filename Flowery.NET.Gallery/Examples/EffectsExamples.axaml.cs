@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -92,6 +92,29 @@ public partial class EffectsExamples : UserControl, IScrollableExample
     }
 
     private CancellationTokenSource? _showcaseCts;
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        _showcaseCts?.Cancel();
+        _showcaseCts = null;
+        _showcaseRunning = false;
+        ResetShowcaseDisplay();
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    private void ResetShowcaseDisplay()
+    {
+        if (this.FindControl<Flowery.Controls.DaisyButton>("StartShowcaseBtn") is { } button)
+            button.Content = FloweryLocalization.GetString("Effects_Showcase_StartButton");
+        if (this.FindControl<TextBlock>("RevealShowcaseLabel") is { } label)
+            label.Text = FloweryLocalization.GetString("Effects_Showcase_RevealLabel");
+        if (this.FindControl<Panel>("CursorFollowShowcasePanel") is { } panel)
+            CursorFollowBehavior.HideFollower(panel);
+        if (this.FindControl<TextBlock>("CursorFollowShowcaseLabel") is { } cursorLabel)
+            cursorLabel.Text = FloweryLocalization.GetString("Effects_Showcase_CursorLabel");
+        if (this.FindControl<TextBlock>("ScrambleShowcaseDemo") is { } scramble)
+            ScrambleHoverBehavior.ResetScramble(scramble);
+    }
     private bool _showcaseRunning;
 
     public async void StartShowcase_Click(object? sender, RoutedEventArgs e)
@@ -108,6 +131,7 @@ public partial class EffectsExamples : UserControl, IScrollableExample
         if (_showcaseRunning)
         {
             _showcaseCts?.Cancel();
+            _showcaseCts = null;
             _showcaseRunning = false;
             button.Content = FloweryLocalization.GetString("Effects_Showcase_StartButton");
             label.Text = FloweryLocalization.GetString("Effects_Showcase_RevealLabel");
@@ -122,7 +146,9 @@ public partial class EffectsExamples : UserControl, IScrollableExample
         }
 
         _showcaseRunning = true;
-        _showcaseCts = new CancellationTokenSource();
+        var request = new CancellationTokenSource();
+        _showcaseCts = request;
+        var token = request.Token;
         button.Content = "⏹ Stop";
 
         // Show cursor follower
@@ -133,7 +159,7 @@ public partial class EffectsExamples : UserControl, IScrollableExample
         }
 
         // Start infinity path animation concurrently
-        _ = AnimateInfinityPath(cursorPanel, _showcaseCts.Token);
+        var infinityAnimation = AnimateInfinityPath(cursorPanel, token);
 
         var modes = new (RevealMode Mode, RevealDirection Dir, double Dist, string Name)[]
         {
@@ -148,11 +174,11 @@ public partial class EffectsExamples : UserControl, IScrollableExample
 
         try
         {
-            while (!_showcaseCts.Token.IsCancellationRequested)
+            while (!token.IsCancellationRequested)
             {
                 foreach (var (mode, dir, dist, name) in modes)
                 {
-                    if (_showcaseCts.Token.IsCancellationRequested) break;
+                    if (token.IsCancellationRequested) break;
 
                     // Update label
                     label.Text = name;
@@ -165,7 +191,7 @@ public partial class EffectsExamples : UserControl, IScrollableExample
                     
                     // Trigger reveal animation
                     RevealBehavior.SetIsEnabled(demo, false);
-                    await Task.Delay(50, _showcaseCts.Token);
+                    await Task.Delay(50, token);
                     RevealBehavior.SetIsEnabled(demo, true);
 
                     // Also trigger scramble effect
@@ -178,7 +204,7 @@ public partial class EffectsExamples : UserControl, IScrollableExample
                     }
 
                     // Wait for animation + pause
-                    await Task.Delay(1200, _showcaseCts.Token);
+                    await Task.Delay(1200, token);
                     
                     // Reset scramble label
                     if (scrambleLabel != null)
@@ -193,11 +219,18 @@ public partial class EffectsExamples : UserControl, IScrollableExample
             // Expected when stopped
         }
 
-        _showcaseRunning = false;
-        button.Content = FloweryLocalization.GetString("Effects_Showcase_StartButton");
-        label.Text = FloweryLocalization.GetString("Effects_Showcase_RevealLabel");
-        if (cursorPanel != null) CursorFollowBehavior.HideFollower(cursorPanel);
-        if (cursorLabel != null) cursorLabel.Text = FloweryLocalization.GetString("Effects_Showcase_CursorLabel");
+        finally
+        {
+            request.Cancel();
+            await infinityAnimation;
+            request.Dispose();
+            if (ReferenceEquals(_showcaseCts, request))
+            {
+                _showcaseCts = null;
+                _showcaseRunning = false;
+                ResetShowcaseDisplay();
+            }
+        }
     }
     private bool _mouseOverCursorPanel;
 
@@ -209,8 +242,8 @@ public partial class EffectsExamples : UserControl, IScrollableExample
         if (panel == null) return;
 
         // Hook up mouse events to pause animation when user hovers
-        panel.PointerEntered += (_, _) => _mouseOverCursorPanel = true;
-        panel.PointerExited += (_, _) => _mouseOverCursorPanel = false;
+        panel.PointerEntered += OnCursorPanelEntered;
+        panel.PointerExited += OnCursorPanelExited;
 
         const double speed = 0.03; // radians per frame
         double t = 0;
@@ -268,5 +301,14 @@ public partial class EffectsExamples : UserControl, IScrollableExample
         {
             // Expected when stopped
         }
+        finally
+        {
+            panel.PointerEntered -= OnCursorPanelEntered;
+            panel.PointerExited -= OnCursorPanelExited;
+            _mouseOverCursorPanel = false;
+        }
     }
+
+    private void OnCursorPanelEntered(object? sender, Avalonia.Input.PointerEventArgs e) => _mouseOverCursorPanel = true;
+    private void OnCursorPanelExited(object? sender, Avalonia.Input.PointerEventArgs e) => _mouseOverCursorPanel = false;
 }

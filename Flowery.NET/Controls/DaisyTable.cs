@@ -1,8 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -176,6 +179,14 @@ namespace Flowery.Controls
             get => GetValue(ColumnWidthProperty);
             set => SetValue(ColumnWidthProperty, value);
         }
+
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            base.OnPropertyChanged(change);
+            if (change.Property != ColumnWidthProperty) return;
+            if (this.FindAncestorOfType<DaisyTable>() is { } table)
+                foreach (var panel in table.GetVisualDescendants().OfType<DaisyTableRowPanel>()) panel.InvalidateMeasure();
+        }
     }
 
     /// <summary>
@@ -191,12 +202,20 @@ namespace Flowery.Controls
     /// </summary>
     public class DaisyTableRowPanel : Panel
     {
+        private readonly Dictionary<ContentControl, (IDisposable Background, IDisposable ZIndex)> _pinnedCells = new();
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            foreach (var entry in _pinnedCells.Values) { entry.Background.Dispose(); entry.ZIndex.Dispose(); }
+            _pinnedCells.Clear();
+            base.OnDetachedFromVisualTree(e);
+        }
         protected override Size MeasureOverride(Size availableSize)
         {
             var children = Children;
             double totalWidth = 0;
             double maxHeight = 0;
-            int starCount = 0;
+            double starWeight = 0;
             double fixedWidth = 0;
             var heightConstraint = double.IsFinite(availableSize.Height)
                 ? availableSize.Height
@@ -212,7 +231,7 @@ namespace Flowery.Controls
                 var columnWidth = GetColumnWidth(child);
                 if (columnWidth.IsStar)
                 {
-                    starCount++;
+                    starWeight += columnWidth.Value;
                 }
                 else if (columnWidth.IsAbsolute)
                 {
@@ -229,8 +248,8 @@ namespace Flowery.Controls
             double remainingWidth = hasFiniteWidth
                 ? Math.Max(0, availableSize.Width - fixedWidth)
                 : 0;
-            double starWidth = starCount > 0 && hasFiniteWidth
-                ? remainingWidth / starCount
+            double starWidth = starWeight > 0 && hasFiniteWidth
+                ? remainingWidth / starWeight
                 : 0;
 
             // Second pass: measure all children with correct widths
@@ -280,7 +299,12 @@ namespace Flowery.Controls
         protected override Size ArrangeOverride(Size finalSize)
         {
             var children = Children;
-            int starCount = 0;
+            var table = this.FindAncestorOfType<DaisyTable>();
+            var viewer = table?.FindAncestorOfType<ScrollViewer>();
+            var pinColumns = table?.PinCols == true && viewer != null;
+            var viewportLeft = viewer?.TranslatePoint(new Point(), this)?.X ?? 0;
+            var pinnedThisPass = new HashSet<ContentControl>();
+            double starWeight = 0;
             double fixedWidth = 0;
 
             // First pass: calculate fixed and star widths
@@ -289,7 +313,7 @@ namespace Flowery.Controls
                 var columnWidth = GetColumnWidth(child);
                 if (columnWidth.IsStar)
                 {
-                    starCount++;
+                    starWeight += columnWidth.Value;
                 }
                 else if (columnWidth.IsAbsolute)
                 {
@@ -302,7 +326,7 @@ namespace Flowery.Controls
             }
 
             double remainingWidth = Math.Max(0, finalSize.Width - fixedWidth);
-            double starWidth = starCount > 0 ? remainingWidth / starCount : 0;
+            double starWidth = starWeight > 0 ? remainingWidth / starWeight : 0;
 
             // Arrange children
             double x = 0;
@@ -324,8 +348,36 @@ namespace Flowery.Controls
                     childWidth = child.DesiredSize.Width;
                 }
 
-                child.Arrange(new Rect(x, 0, childWidth, finalSize.Height));
+                var left = x;
+                var index = children.IndexOf(child);
+                var pinned = pinColumns && (index == 0 || index == children.Count - 1);
+                if (pinned)
+                {
+                    left = index == 0
+                        ? Math.Clamp(viewportLeft, 0, Math.Max(0, finalSize.Width - childWidth))
+                        : Math.Clamp(viewportLeft + viewer!.Viewport.Width - childWidth, 0, x);
+                    if (child is ContentControl cell)
+                    {
+                        pinnedThisPass.Add(cell);
+                        if (!_pinnedCells.ContainsKey(cell))
+                        {
+                            var background = cell.Bind(TemplatedControl.BackgroundProperty,
+                                new Binding(nameof(DaisyTable.Background)) { Source = table, Priority = BindingPriority.Style });
+                            var zIndex = cell.Bind(ZIndexProperty, new Binding { Source = 1, Priority = BindingPriority.Style });
+                            _pinnedCells.Add(cell, (background, zIndex));
+                        }
+                    }
+                }
+                child.Arrange(new Rect(left, 0, childWidth, finalSize.Height));
                 x += childWidth;
+            }
+
+            foreach (var cell in _pinnedCells.Keys.Where(cell => !pinnedThisPass.Contains(cell)).ToArray())
+            {
+                var bindings = _pinnedCells[cell];
+                bindings.Background.Dispose();
+                bindings.ZIndex.Dispose();
+                _pinnedCells.Remove(cell);
             }
 
             return finalSize;
@@ -335,6 +387,11 @@ namespace Flowery.Controls
         {
             if (child is DaisyTableHeaderCell headerCell)
                 return headerCell.ColumnWidth;
+            var table = this.FindAncestorOfType<DaisyTable>();
+            var head = table?.GetVisualDescendants().OfType<DaisyTableHead>().FirstOrDefault();
+            var header = head?.GetVisualDescendants().OfType<DaisyTableHeaderCell>()
+                .ElementAtOrDefault(Children.IndexOf(child));
+            if (header != null) return header.ColumnWidth;
             return new GridLength(1, GridUnitType.Star);
         }
     }

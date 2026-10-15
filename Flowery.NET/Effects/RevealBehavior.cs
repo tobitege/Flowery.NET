@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using Flowery.Controls;
 
 namespace Flowery.Effects
 {
@@ -22,6 +22,37 @@ namespace Flowery.Effects
     /// </example>
     public static class RevealBehavior
     {
+        private static readonly AttachedProperty<RevealRun?> RunProperty =
+            AvaloniaProperty.RegisterAttached<Visual, RevealRun?>("Run", typeof(RevealBehavior));
+
+        private sealed class RevealRun(Visual element)
+        {
+            public CancellationTokenSource Cancellation { get; } = new();
+            public ITransform? OriginalTransform { get; } = element.RenderTransform;
+            public RelativePoint OriginalOrigin { get; } = element.RenderTransformOrigin;
+            public double OriginalOpacity { get; } = element.Opacity;
+
+            public void Restore(Visual target)
+            {
+                target.RenderTransform = OriginalTransform;
+                target.RenderTransformOrigin = OriginalOrigin;
+                target.Opacity = OriginalOpacity;
+            }
+        }
+
+        private static void StopReveal(Visual element)
+        {
+            if (element.GetValue(RunProperty) is not { } run) return;
+            element.SetValue(RunProperty, null);
+            element.DetachedFromVisualTree -= OnDetachedFromVisualTree;
+            run.Cancellation.Cancel();
+            run.Restore(element);
+        }
+
+        private static void OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+        {
+            if (sender is Visual visual) StopReveal(visual);
+        }
         #region Attached Properties
 
         public static readonly AttachedProperty<bool> IsEnabledProperty =
@@ -103,6 +134,7 @@ namespace Flowery.Effects
             else
             {
                 element.AttachedToVisualTree -= OnAttachedToVisualTree;
+                StopReveal(element);
             }
         }
 
@@ -123,6 +155,12 @@ namespace Flowery.Effects
 
         private static async void StartRevealAnimation(Visual element)
         {
+            StopReveal(element);
+            if (DaisyAccessibility.IsReducedMotion) return;
+            if (TopLevel.GetTopLevel(element) == null) return;
+            var run = new RevealRun(element);
+            element.SetValue(RunProperty, run);
+            element.DetachedFromVisualTree += OnDetachedFromVisualTree;
             var mode = GetMode(element);
             var duration = GetDuration(element);
             var direction = GetDirection(element);
@@ -177,24 +215,22 @@ namespace Flowery.Effects
                 element.Opacity = 0;
             }
 
-            // Wait for layout to complete - use 2 frames to ensure rendering
-            await Task.Delay(32);
-
-            // Time-based animation for accurate timing
-            var startTime = DateTime.UtcNow;
-            var endTime = startTime + duration;
-
-            while (DateTime.UtcNow < endTime)
+            if (element.RenderTransform is Transform effectTransform && !ReferenceEquals(effectTransform, run.OriginalTransform)
+                && run.OriginalTransform is { } originalTransform)
             {
-                var elapsed = (DateTime.UtcNow - startTime).TotalMilliseconds;
-                var rawT = Math.Min(1.0, elapsed / duration.TotalMilliseconds);
-                var easedT = easing.Ease(rawT);
-
-                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                element.RenderTransform = new TransformGroup
                 {
+                    Children = { new MatrixTransform(originalTransform.Value), effectTransform }
+                };
+            }
+            try
+            {
+                await AnimationHelper.AnimateAsync(easedT =>
+                {
+                    if (run.Cancellation.IsCancellationRequested) return;
                     if (hasFade)
                     {
-                        element.Opacity = easedT;
+                        element.Opacity = run.OriginalOpacity * easedT;
                     }
                     if (translateTransform != null)
                     {
@@ -207,22 +243,18 @@ namespace Flowery.Effects
                         scaleTransform.ScaleX = scale;
                         scaleTransform.ScaleY = scale;
                     }
-                });
-
-                await Task.Delay(16); // ~60fps
+                }, duration, easing, ct: run.Cancellation.Token);
             }
-
-            // Ensure final state
-            element.Opacity = 1;
-            if (translateTransform != null)
+            catch (OperationCanceledException) { }
+            finally
             {
-                translateTransform.X = 0;
-                translateTransform.Y = 0;
-            }
-            if (scaleTransform != null)
-            {
-                scaleTransform.ScaleX = 1;
-                scaleTransform.ScaleY = 1;
+                if (ReferenceEquals(element.GetValue(RunProperty), run))
+                {
+                    element.SetValue(RunProperty, null);
+                    element.DetachedFromVisualTree -= OnDetachedFromVisualTree;
+                    run.Restore(element);
+                }
+                run.Cancellation.Dispose();
             }
         }
     }

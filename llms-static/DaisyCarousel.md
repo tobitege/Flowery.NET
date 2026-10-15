@@ -1,52 +1,48 @@
-<!-- Supplementary documentation for DaisyCarousel -->
-<!-- This content is merged into auto-generated docs by generate_docs.py -->
-
 # Overview
 
-DaisyCarousel is a slide container with built-in previous/next buttons and directional slide transitions. It uses `TransitioningContentControl` under the hood to animate between items and flips the animation direction based on which arrow you press. Perfect for small galleries or showcasing featured items without autoplay.
+DaisyCarousel is a ContentControl that displays one slide at a time.
+Assign a Panel containing the slides to Content.
+The control transfers the panel children into its slide cache.
 
-## Behavior & Navigation
+## Navigation and animation
 
-| Feature | Description |
-| ------- | ----------- |
-| Arrow buttons | Template parts `PART_PreviousButton` and `PART_NextButton` drive navigation. |
-| Direction-aware animation | Slides enter/exit left or right depending on the last arrow clicked. |
-| Transition timing | 300ms cubic easing for both in/out motions. |
-| Content binding | Displays `SelectedItem` with `ItemTemplate` (inherits from `Carousel`). |
+| Property | Behavior |
+| --- | --- |
+| SelectedIndex | Selects a cached slide; indexes are clamped to the available range. |
+| ItemCount | Read-only number of cached slides. |
+| ShowNavigation | Shows previous/next buttons when navigation is available. |
+| WrapAround | Allows navigation between the first and last slide. |
+| Orientation | Sets the navigation arrow orientation. |
+| Mode | Manual, Slideshow, Random, or Kiosk navigation. |
+| SlideInterval | Automatic navigation interval in seconds; the controller uses a minimum of 0.5 seconds. |
+| SlideTransition | Animation between slides. None switches immediately. |
+| TransitionDuration | Transition duration in seconds. |
+| SlideEffect | Decorative motion applied to the current slide after its transition. |
 
-## Quick Examples
+Fade, SlideLeft/Right/Up/Down, PushLeft/Right/Up/Down, and ZoomIn/Out use the shared transition helper.
+Other transition values use its fade fallback.
+Reduced motion stops automatic navigation and decorative effects.
+Manual selection remains available.
+
+## Example
 
 ```xml
-<!-- Basic carousel with colored slides -->
-<controls:DaisyCarousel Width="450" Height="150">
-    <Border Background="#FF5F56" CornerRadius="8" />
-    <Border Background="#FFBD2E" CornerRadius="8" />
-    <Border Background="#27C93F" CornerRadius="8" />
-    <Border Background="#007BFF" CornerRadius="8" />
-</controls:DaisyCarousel>
-
-<!-- Carousel with templated items -->
-<controls:DaisyCarousel ItemsSource="{Binding FeaturedCards}"
-                        Width="480"
-                        Height="200">
-    <controls:DaisyCarousel.ItemTemplate>
-        <DataTemplate>
-            <controls:DaisyCard Variant="Compact" BodyPadding="16">
-                <StackPanel Spacing="6">
-                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding Subtitle}" Opacity="0.8" />
-                    <controls:DaisyButton Content="View" Variant="Primary" Size="Small" />
-                </StackPanel>
-            </controls:DaisyCard>
-        </DataTemplate>
-    </controls:DaisyCarousel.ItemTemplate>
+<controls:DaisyCarousel Width="480" Height="200"
+                       SelectedIndex="{Binding SlideIndex}"
+                       Mode="Slideshow" SlideInterval="5"
+                       WrapAround="True"
+                       SlideTransition="Fade" TransitionDuration="0.4">
+    <StackPanel>
+        <controls:DaisyCard>
+            <TextBlock Text="First slide" />
+        </controls:DaisyCard>
+        <controls:DaisyCard>
+            <TextBlock Text="Second slide" />
+        </controls:DaisyCard>
+    </StackPanel>
 </controls:DaisyCarousel>
 ```
 
-## Tips & Best Practices
-
-- Set explicit `Width`/`Height` so content clips cleanly within the rounded host.
-- Use lightweight slide content (images, simple cards) to keep transitions smooth.
-- For data-bound scenarios, use `ItemsSource` + `ItemTemplate` instead of manually adding children.
-- The control doesn't auto-advance; if you need autoplay, add a timer that calls `Next()`/`Previous()` on intervals.
-- Keep padding consistent across slides to avoid jitter during transitions.
+Use SelectedIndex for programmatic navigation.
+SlideChanged reports the old and new indexes.
+Replacing Content rebuilds the slide cache; reapplying the template preserves it.

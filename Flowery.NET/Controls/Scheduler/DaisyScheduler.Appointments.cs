@@ -63,6 +63,11 @@ public partial class DaisyScheduler
         var title = Label(context.Subject);
         title.Foreground = context.Foreground;
         title.FontWeight = FontWeight.SemiBold;
+        if (CurrentView == SchedulerView.Calendar)
+        {
+            title.TextWrapping = TextWrapping.Wrap;
+            title.TextTrimming = TextTrimming.None;
+        }
         text.Children.Add(title);
         if (multiline)
         {
@@ -73,6 +78,11 @@ public partial class DaisyScheduler
             {
                 var note = Label(context.Note, true);
                 note.Foreground = context.Foreground;
+                if (CurrentView == SchedulerView.Calendar)
+                {
+                    note.TextWrapping = TextWrapping.Wrap;
+                    note.TextTrimming = TextTrimming.None;
+                }
                 text.Children.Add(note);
             }
         }

@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui"
+﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
@@ -13,7 +13,7 @@
         <Setter Property="StrokeThickness" Value="1.5" />
     </Style>
     <!-- Sweep arm - very thin and half-height, positioned to sweep from center outward -->
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar] /template/ Ellipse#PART_AnimationEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar] /template/ Ellipse#PART_AnimationEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="Opacity" Value="0.85" />
         <Setter Property="Width" Value="2" />
@@ -33,7 +33,7 @@
         </Style.Animations>
     </Style>
     <!-- First trail element -->
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar] /template/ Ellipse#PART_AnimationEllipse2">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar] /template/ Ellipse#PART_AnimationEllipse2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="Opacity" Value="0.45" />
         <Setter Property="Width" Value="2" />
@@ -53,7 +53,7 @@
         </Style.Animations>
     </Style>
     <!-- Second trail element -->
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar] /template/ Ellipse#PART_AnimationEllipse3">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Radar] /template/ Ellipse#PART_AnimationEllipse3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="Opacity" Value="0.2" />
         <Setter Property="Width" Value="2" />
@@ -119,7 +119,7 @@
     <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar] /template/ Ellipse#PART_MainEllipse">
         <Setter Property="Opacity" Value="0.6" />
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar] /template/ Ellipse#PART_AnimationEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar] /template/ Ellipse#PART_AnimationEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="Fill" Value="Transparent" />
         <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
@@ -140,7 +140,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar] /template/ Ellipse#PART_AnimationEllipse2">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar] /template/ Ellipse#PART_AnimationEllipse2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="Fill" Value="Transparent" />
         <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
@@ -161,7 +161,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar] /template/ Ellipse#PART_AnimationEllipse3">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar] /template/ Ellipse#PART_AnimationEllipse3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="Fill" Value="Transparent" />
         <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
@@ -184,7 +184,7 @@
     </Style>
 
     <!-- Reduce max sonar ring size specifically for ExtraLarge -->
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar][Size=ExtraLarge] /template/ Ellipse#PART_AnimationEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar][Size=ExtraLarge] /template/ Ellipse#PART_AnimationEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -200,7 +200,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar][Size=ExtraLarge] /template/ Ellipse#PART_AnimationEllipse2">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar][Size=ExtraLarge] /template/ Ellipse#PART_AnimationEllipse2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite" Delay="0:0:0.66">
                 <KeyFrame KeyTime="0:0:0">
@@ -216,7 +216,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar][Size=ExtraLarge] /template/ Ellipse#PART_AnimationEllipse3">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Sonar][Size=ExtraLarge] /template/ Ellipse#PART_AnimationEllipse3[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite" Delay="0:0:1.33">
                 <KeyFrame KeyTime="0:0:0">
@@ -236,7 +236,7 @@
     <!-- ===================== BEACON VARIANT ===================== -->
     <!-- Lighthouse beacon sweep -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Beacon] /template/ Ellipse#PART_MainEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Beacon] /template/ Ellipse#PART_MainEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -254,7 +254,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Beacon] /template/ Ellipse#PART_AnimationEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Beacon] /template/ Ellipse#PART_AnimationEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
@@ -286,7 +286,7 @@
     <!-- ===================== POP VARIANT ===================== -->
     <!-- Pop in/out scale effect -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Pop] /template/ Ellipse#PART_MainEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Pop] /template/ Ellipse#PART_MainEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:0.8" IterationCount="Infinite">
@@ -317,7 +317,7 @@
     <!-- ===================== FLICKER VARIANT ===================== -->
     <!-- Random flickering effect -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Flicker] /template/ Ellipse#PART_MainEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Flicker] /template/ Ellipse#PART_MainEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Style.Animations>
             <Animation Duration="0:0:0.5" IterationCount="Infinite">
                 <KeyFrame KeyTime="0:0:0">
@@ -351,7 +351,7 @@
     <!-- ===================== BREATHE VARIANT ===================== -->
     <!-- Slow breathing scale -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Breathe] /template/ Ellipse#PART_MainEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Breathe] /template/ Ellipse#PART_MainEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:3" IterationCount="Infinite">
@@ -377,7 +377,7 @@
     <!-- ===================== RING VARIANT ===================== -->
     <!-- Expanding ring outline -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Ring] /template/ Ellipse#PART_MainEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Ring] /template/ Ellipse#PART_MainEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="Fill" Value="Transparent" />
         <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
         <Setter Property="StrokeThickness" Value="2" />
@@ -397,7 +397,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Ring] /template/ Ellipse#PART_AnimationEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Ring] /template/ Ellipse#PART_AnimationEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="Fill" Value="Transparent" />
         <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
@@ -418,7 +418,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Ring] /template/ Ellipse#PART_AnimationEllipse2">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Ring] /template/ Ellipse#PART_AnimationEllipse2[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="Fill" Value="Transparent" />
         <Setter Property="Stroke" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
@@ -443,7 +443,7 @@
     <!-- ===================== FLASH VARIANT ===================== -->
     <!-- Quick flash effect -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Flash] /template/ Ellipse#PART_MainEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Flash] /template/ Ellipse#PART_MainEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite">
@@ -474,7 +474,7 @@
     <!-- ===================== THROB VARIANT ===================== -->
     <!-- Throbbing intensity effect -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Throb] /template/ Ellipse#PART_MainEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Throb] /template/ Ellipse#PART_MainEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:0.6" IterationCount="Infinite">
@@ -505,7 +505,7 @@
     <!-- ===================== TWINKLE VARIANT ===================== -->
     <!-- Star-like twinkling -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Twinkle] /template/ Ellipse#PART_MainEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Twinkle] /template/ Ellipse#PART_MainEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:2" IterationCount="Infinite">
@@ -546,7 +546,7 @@
     <!-- ===================== SPLASH VARIANT ===================== -->
     <!-- Splash ripple effect -->
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Splash] /template/ Ellipse#PART_MainEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Splash] /template/ Ellipse#PART_MainEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>
             <Animation Duration="0:0:1.5" IterationCount="Infinite">
@@ -573,7 +573,7 @@
             </Animation>
         </Style.Animations>
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=Splash] /template/ Ellipse#PART_AnimationEllipse">
+    <Style Selector="controls|DaisyStatusIndicator[Variant=Splash] /template/ Ellipse#PART_AnimationEllipse[(controls|DaisyAccessibility.MotionEnabled)=True]">
         <Setter Property="IsVisible" Value="True" />
         <Setter Property="RenderTransformOrigin" Value="50%,50%" />
         <Style.Animations>

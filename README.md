@@ -34,7 +34,7 @@ This library provides native Avalonia controls that mimic the utility-first, sem
 - **80+ Controls**: C# classes inheriting from Avalonia primitives (e.g., `DaisyButton : Button`).
 - **35 DaisyUI Themes**: All official DaisyUI themes included (Light, Dark, Cupcake, Dracula, Nord, Synthwave, and more).
 - **Runtime Theme Switching**: Use `DaisyThemeDropdown` to switch themes at runtime.
-- **Scheduler**: `DaisyScheduler` provides Day, Week, Month, Agenda, resource Planner, and horizontal Timeline day views, with Flowery themes, five sizes, and twelve languages. [Usage guide](llms-static/DaisyScheduler.md)
+- **Scheduler**: `DaisyScheduler` provides Day, Week, Month, Agenda, resource Planner, horizontal Timeline, and a Calendar navigator with a daily appointment list. It supports Flowery themes, five sizes, and twelve languages. [Usage guide](llms-static/DaisyScheduler.md)
 - **Localization Support**: Built-in i18n with **12 languages** (🇺🇸 🇩🇪 🇫🇷 🇪🇸 🇮🇹 🇨🇳 🇰🇷 🇯🇵 🇸🇦 🇹🇷 🇺🇦 🇮🇱), localizable theme names, and runtime language switching. [📖 Guide](LOCALIZATION.md)
 - **Variants**: Supports `Primary`, `Secondary`, `Accent`, `Ghost`, etc.
 - **Framework Support**: Libraries target `.NET 10.0+` and Avalonia `12.0+`.
@@ -204,7 +204,7 @@ Composite inputs such as `DaisyPasswordBox`, `DaisyNumericUpDown`, and `DaisyOtp
 - **Animated Number** (`DaisyAnimatedNumber`): Animated numeric display with slide transitions on value changes.
 - **Button Group** (`DaisyButtonGroup`): new segmented button-group container for joined buttons and non-clickable parts.
 - **Component Sidebar** (`FloweryComponentSidebar`): Pre-built documentation/admin sidebar with categories and search.
-- **Contribution Graph** (`DaisyContributionGraph`): GitHub-style contribution heatmap (7×53 grid) with month/day labels, tooltips, and legend.
+- **Contribution Graph** (`DaisyContributionGraph`): A yearly contribution heatmap with seven weekday rows and enough week columns for every date, plus labels, tooltips, and a legend.
 - **Copy Button** (`DaisyCopyButton`): Copy-to-clipboard button with temporary success state feedback.
 - **Dropdown** (`DaisyDropdown`): Menu-style dropdown (Popup + DaisyMenu) for action menus.
 - **Expandable Card** (`DaisyExpandableCard`): Card that expands to reveal secondary content with smooth width animation.
@@ -213,7 +213,7 @@ Composite inputs such as `DaisyPasswordBox`, `DaisyNumericUpDown`, and `DaisyOtp
 - **Number Flow** (`DaisyNumberFlow`): High-quality numeric display with individual digit scrolling animations. Inspired by SmoothUI.
 - **OTP Input** (`DaisyOtpInput`): Multi-slot verification-code/OTP input with animated focus transitions and auto-advance.
 - **Popover** (`DaisyPopover`): Popup-based popover control for rich hover/click content.
-- **Scheduler** (`DaisyScheduler`): Calendar and resource planning with six views, appointment editing requests, tooltips, and data tiles. [Documentation](llms-static/DaisyScheduler.md)
+- **Scheduler** (`DaisyScheduler`): Calendar and resource planning with seven views, appointment editing requests, tooltips, and data tiles. [Documentation](llms-static/DaisyScheduler.md)
 - **Tag Picker** (`DaisyTagPicker`): Multi-select chip/tag picker with add/remove icons.
 
 ### Kanban Board
@@ -263,7 +263,8 @@ A horizontal scrollable date picker inspired by FadyFayezYounan's `easy_date_tim
 
 ### Scheduler
 
-`DaisyScheduler` provides Day, Week, Month, Agenda, resource Planner, and horizontal Timeline day views with Flowery themes and size tiers.
+`DaisyScheduler` provides Day, Week, Month, Agenda, resource Planner, horizontal Timeline, and Calendar views with Flowery themes and size tiers.
+Calendar combines a month navigator with week numbers and a scrollable daily list filtered by resource kind.
 The control reports move, resize, creation, and deletion requests to the host.
 The Gallery demo is available under **Custom Controls → Scheduler**.
 Navigation, settings, empty states, and accessible names follow the selected language at runtime.

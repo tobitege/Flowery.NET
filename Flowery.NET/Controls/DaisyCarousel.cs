@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -33,18 +34,23 @@ namespace Flowery.Controls
         private Button? _previousButton;
         private Button? _nextButton;
         private Panel? _slideContainer; // Holds slides
-
+        private readonly ContentPresenter _slidePresenter = new();
+        private readonly ContentPresenter _previousSlidePresenter = new();
+        private readonly Grid _transitionHost = new() { ClipToBounds = true };
 
         private readonly List<Control> _items = [];
         private readonly FlowerySlideshowController _slideshowController;
 
 
-        private bool _isTransitioning;
+        private int _slideGeneration;
 
         public event EventHandler<FlowerySlideChangedEventArgs>? SlideChanged;
 
         public DaisyCarousel()
         {
+            _transitionHost.Children.Add(_previousSlidePresenter);
+            _transitionHost.Children.Add(_slidePresenter);
+            DaisyAccessibility.RegisterMotionHandler(this, static control => ((DaisyCarousel)control).ShowCurrentSlide(false));
             _slideshowController = new FlowerySlideshowController(
                 index => SelectedIndex = index,
                 () => _items.Count,
@@ -160,9 +166,11 @@ namespace Flowery.Controls
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
+            StopSlideAnimation();
 
             if (_previousButton != null) _previousButton.Click -= OnPreviousClick;
             if (_nextButton != null) _nextButton.Click -= OnNextClick;
+            _slideContainer?.Children.Clear();
 
             _previousButton = e.NameScope.Find<Button>("PART_PreviousButton");
             _nextButton = e.NameScope.Find<Button>("PART_NextButton");
@@ -172,7 +180,6 @@ namespace Flowery.Controls
             if (_previousButton != null) _previousButton.Click += OnPreviousClick;
             if (_nextButton != null) _nextButton.Click += OnNextClick;
 
-            RefreshItems();
             UpdateButtonVisibility();
             ShowCurrentSlide(false);
             _slideshowController.Start();
@@ -184,6 +191,7 @@ namespace Flowery.Controls
 
             if (_slideContainer != null)
             {
+                ShowCurrentSlide(false);
                 _slideshowController.Start();
             }
         }
@@ -192,6 +200,8 @@ namespace Flowery.Controls
         {
             base.OnDetachedFromVisualTree(e);
             _slideshowController.Stop();
+            StopSlideAnimation();
+            _previousSlidePresenter.Content = null;
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -211,7 +221,7 @@ namespace Flowery.Controls
                 var oldIndex = (int)change.OldValue!;
                 var newIndex = (int)change.NewValue!;
 
-                if (oldIndex != newIndex && !_isTransitioning)
+                if (oldIndex != newIndex)
                 {
                     NavigateToSlide(newIndex, oldIndex);
                 }
@@ -269,30 +279,17 @@ namespace Flowery.Controls
 
         private void RefreshItems()
         {
+            _slidePresenter.Content = null;
             _items.Clear();
             if (Content is Panel panel)
             {
-                // We shouldn't remove children from the panel if it's the Logical Content.
-                // However, moving them to _slideContainer requires detaching them.
-                // Uno version removed them. Here we need to be careful.
-                // Ideally, user provides a collection. But if they provide Panel, we assume usage like Uno.
-
-                // Copy references first
-                var children = new List<Control>();
-                foreach (var child in panel.Children)
-                {
-                    if (child is Control c) children.Add(c);
-                }
-
-                // DO NOT clear user's panel children directly if it messes up logical tree unexpectedly?
-                // Actually, correct carousel usage with direct content implies we take ownership.
-                panel.Children.Clear(); // Detach
+                var children = new List<Control>(panel.Children);
+                panel.Children.Clear();
                 _items.AddRange(children);
             }
             else if (Content is Control c)
             {
                 _items.Add(c);
-                Content = null; // Detach content to avoid dual parent
             }
 
             // Ensure SelectedIndex is valid
@@ -300,6 +297,7 @@ namespace Flowery.Controls
                 SelectedIndex = 0;
 
             ShowCurrentSlide(false);
+            UpdateButtonVisibility();
         }
 
         private void UpdateButtonVisibility()
@@ -388,56 +386,58 @@ namespace Flowery.Controls
             if (_slideContainer == null) return;
             if (newIndex < 0 || newIndex >= _items.Count) return;
 
-            // Simple dissolve/slide fallback for now as full effect implementation is large
-            // Real implementation would use SlideTransition enum to pick animation
-
             var oldItem = oldIndex >= 0 && oldIndex < _items.Count ? _items[oldIndex] : null;
-            var newItem = _items[newIndex];
 
-            ShowCurrentSlide(true, oldItem, newItem, newIndex > oldIndex);
+            ShowCurrentSlide(true, oldItem);
         }
 
-        private async void ShowCurrentSlide(bool animate, Control? oldItem = null, Control? newItem = null, bool forward = true)
+        private void StopSlideAnimation()
         {
-            if (_slideContainer == null || _items.Count == 0) return;
-            if (!animate)
+            _slideGeneration++;
+            FloweryAnimationHelpers.StopAnimations(_slidePresenter);
+            FloweryAnimationHelpers.StopAnimations(_previousSlidePresenter);
+            FloweryAnimationHelpers.ResetTransform(_slidePresenter);
+            FloweryAnimationHelpers.ResetTransform(_previousSlidePresenter);
+        }
+
+        private void ShowCurrentSlide(bool animate, Control? oldItem = null)
+        {
+            StopSlideAnimation();
+            _slidePresenter.Content = null;
+            _previousSlidePresenter.Content = null;
+            if (_slideContainer == null) return;
+            if (_items.Count == 0)
             {
                 _slideContainer.Children.Clear();
-                var item = _items[SelectedIndex];
-                _slideContainer.Children.Add(item);
                 return;
             }
-
-            if (_isTransitioning) return;
-            _isTransitioning = true;
-
-            try
+            _slidePresenter.Content = _items[SelectedIndex];
+            if (!_slideContainer.Children.Contains(_transitionHost))
             {
-                // Basic Slide Animation fallback
-                // Remove old item after animation
-
                 _slideContainer.Children.Clear();
-                if (oldItem != null) _slideContainer.Children.Add(oldItem);
-                if (newItem != null) _slideContainer.Children.Add(newItem);
-
-                // TODO: Implement full transitions (Fade, Slide, etc.) aligned with enums
-                // For now, instant swap after small delay to simulate processing or basic transition
-                // Ideally use Avalonia.Animation.PageSlide logic here manually
-
-                if (newItem != null) newItem.Opacity = 1;
-
-                // Placeholder for 'parity': functionality exists via properties, visual parity pending full animation port
+                _slideContainer.Children.Add(_transitionHost);
             }
-            finally
+            var generation = _slideGeneration;
+            void Complete()
             {
-                _isTransitioning = false;
-                // Cleanup
-                 if (newItem != null && _slideContainer.Children.Count > 1)
-                 {
-                     _slideContainer.Children.Clear();
-                     _slideContainer.Children.Add(newItem);
-                 }
+                if (generation != _slideGeneration) return;
+                FloweryAnimationHelpers.StopAnimations(_previousSlidePresenter);
+                _previousSlidePresenter.Content = null;
+                _previousSlidePresenter.IsVisible = false;
+                if (TopLevel.GetTopLevel(this) != null && !DaisyAccessibility.IsReducedMotion)
+                    FloweryAnimationHelpers.ApplySlideEffect(_slidePresenter, SlideEffect, TimeSpan.FromSeconds(SlideInterval));
             }
+            if (!animate || oldItem == null || ReferenceEquals(oldItem, _slidePresenter.Content)
+                || SlideTransition == FlowerySlideTransition.None || DaisyAccessibility.IsReducedMotion
+                || TopLevel.GetTopLevel(this) == null)
+            {
+                Complete();
+                return;
+            }
+            _previousSlidePresenter.Content = oldItem;
+            _previousSlidePresenter.IsVisible = true;
+            FlowerySlideTransitionHelpers.ApplyTransition(_transitionHost, _previousSlidePresenter, _slidePresenter,
+                SlideTransition, new FlowerySlideTransitionParams { Duration = TimeSpan.FromSeconds(Math.Max(0, TransitionDuration)) }, Complete);
         }
     }
 }

@@ -424,7 +424,7 @@ namespace Flowery.Controls
 
         private void TryParseAndSetValue()
         {
-            if (_textBox == null || _isUpdatingValue) return;
+            if (_textBox == null || _isUpdatingValue || IsReadOnly) return;
 
             var text = _textBox.Text ?? "";
 
@@ -1078,6 +1078,7 @@ namespace Flowery.Controls
 
         private void Increase()
         {
+            if (IsReadOnly) return;
             // IP addresses: increment the octet at cursor position
             if (NumberBase == DaisyNumberBase.IPAddress)
             {
@@ -1104,6 +1105,7 @@ namespace Flowery.Controls
 
         private void Decrease()
         {
+            if (IsReadOnly) return;
             // IP addresses: decrement the octet at cursor position
             if (NumberBase == DaisyNumberBase.IPAddress)
             {
@@ -1134,6 +1136,7 @@ namespace Flowery.Controls
 
         private void OnClearClick(object? sender, RoutedEventArgs e)
         {
+            if (IsReadOnly) return;
             _isUpdatingValue = true;
             try
             {
