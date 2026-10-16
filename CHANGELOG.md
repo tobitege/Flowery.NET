@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Four controls ported from Flowery.WinUI, with the same properties and events (#57):
-  - `DaisyCalendarDatePicker`: a `CalendarDatePicker` styled like `DaisyInput` (variants, sizes, `BorderRingBrush`), with the Daisy calendar icon and a `Date`/`DateChanged` API alongside `SelectedDate`.
+  - `DaisyCalendarDatePicker`: a `CalendarDatePicker` styled like `DaisyInput` (variants, sizes, `BorderRingBrush`), with the Daisy calendar icon and a `Date`/`DateChanged` API alongside `SelectedDate`. The popup calendar uses Daisy colors, follows `Size` and highlights today.
   - `DaisyBreadcrumbBar`: a breadcrumb trail from `ItemsSource` with chevrons, the last item as the current location, and an `ItemClicked` event. Leading items collapse into an ellipsis menu when the bar is too narrow.
   - `DaisyResizableColumnsHost`: an `ItemsControl` whose columns share one `ColumnWidth`. A grip appears between columns on hover and resizes all of them; the keyboard works too. `MinColumnWidth`/`MaxColumnWidth` limit the width.
   - `DaisyTooltip`: wraps content and shows `Tip` in a Daisy tooltip with `Variant`, `Placement` and `IsOpen`.

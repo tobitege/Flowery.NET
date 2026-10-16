@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 
 namespace Flowery.Controls
@@ -39,6 +40,7 @@ namespace Flowery.Controls
         protected override Type StyleKeyOverride => typeof(DaisyCalendarDatePicker);
 
         private bool _isSyncingDate;
+        private Calendar? _calendar;
 
         /// <summary>
         /// Defines the <see cref="Date"/> property.
@@ -105,6 +107,16 @@ namespace Flowery.Controls
         /// </summary>
         public event EventHandler<DaisyCalendarDatePickerDateChangedEventArgs>? DateChanged;
 
+        protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+        {
+            base.OnApplyTemplate(e);
+
+            // The popup calendar takes the Daisy calendar styles and follows Size through these classes.
+            _calendar = e.NameScope.Find<Calendar>("PART_Calendar");
+            _calendar?.Classes.Add("daisy-calendar");
+            ApplyCalendarSize();
+        }
+
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
@@ -148,6 +160,21 @@ namespace Flowery.Controls
             {
                 PseudoClasses.Set(":ring", BorderRingBrush != null);
             }
+            else if (change.Property == SizeProperty)
+            {
+                ApplyCalendarSize();
+            }
+        }
+
+        private void ApplyCalendarSize()
+        {
+            if (_calendar == null)
+                return;
+
+            _calendar.Classes.Set("xs", Size == DaisySize.ExtraSmall);
+            _calendar.Classes.Set("sm", Size == DaisySize.Small);
+            _calendar.Classes.Set("lg", Size == DaisySize.Large);
+            _calendar.Classes.Set("xl", Size == DaisySize.ExtraLarge);
         }
 
         private static DateTimeOffset? ToDateTimeOffset(DateTime? date) =>

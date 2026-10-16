@@ -3,7 +3,7 @@
 
 # Overview
 
-DaisyCalendarDatePicker is a `CalendarDatePicker` styled like `DaisyInput`. It keeps the native calendar popup and text entry, and replaces the Fluent glyph with the Daisy calendar icon. The same control exists in Flowery.WinUI and Flowery.Uno with the same properties.
+DaisyCalendarDatePicker is a `CalendarDatePicker` styled like `DaisyInput`. It keeps the calendar popup and text entry, replaces the Fluent glyph with the Daisy calendar icon, and themes the popup calendar with Daisy colors. The popup follows `Size`: its cells use the `DaisySize*Height` tokens and its text the `DaisySize*FontSize` tokens. Today is highlighted with a primary ring. The same control exists in Flowery.WinUI and Flowery.Uno with the same properties.
 
 ## Properties
 

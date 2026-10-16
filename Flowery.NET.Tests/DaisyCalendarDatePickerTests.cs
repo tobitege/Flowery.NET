@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -64,6 +65,33 @@ public class DaisyCalendarDatePickerTests
             Assert.Equal(default, picker.BorderThickness);
             var background = picker.GetVisualDescendants().OfType<Border>().First(border => border.Name == "Background");
             Assert.Equal(Colors.Transparent, Assert.IsAssignableFrom<ISolidColorBrush>(background.Background).Color);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void Popup_Calendar_Gets_Daisy_Classes_For_The_Size()
+    {
+        var picker = new DaisyCalendarDatePicker { Size = DaisySize.Small };
+        FlowerySizeManager.SetIgnoreGlobalSize(picker, true);
+        var window = new Window { Width = 400, Height = 200, Content = picker };
+        try
+        {
+            window.Show();
+            Layout(window);
+
+            var popup = picker.GetVisualDescendants().OfType<Popup>().Single(p => p.Name == "PART_Popup");
+            var calendar = Assert.IsType<Calendar>(popup.Child);
+            Assert.Contains("daisy-calendar", calendar.Classes);
+            Assert.Contains("sm", calendar.Classes);
+            Assert.True(picker.IsTodayHighlighted);
+
+            picker.Size = DaisySize.ExtraLarge;
+            Assert.DoesNotContain("sm", calendar.Classes);
+            Assert.Contains("xl", calendar.Classes);
         }
         finally
         {
