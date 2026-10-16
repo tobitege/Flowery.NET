@@ -162,5 +162,17 @@
   "Scheduler_Previous": "Önceki dönem",
   "Scheduler_Next": "Sonraki dönem",
   "Scheduler_ChooseDate": "Tarih seç",
-  "Scheduler_Minutes": "{0} dk"
+  "Scheduler_Minutes": "{0} dk",
+  "Common_Ok": "Tamam",
+  "Common_Cancel": "İptal",
+  "ColorPicker_Title": "Renk Seçici",
+  "ColorPicker_Undo": "Geri al",
+  "ColorPicker_Redo": "Yinele",
+  "ColorPicker_Lightness": "Açıklık",
+  "ColorPicker_Original": "Orijinal",
+  "ColorPicker_New": "Yeni",
+  "ColorPicker_Palette": "Renk Paleti",
+  "ColorPicker_Values": "Renk Değerleri",
+  "ColorPicker_ClickAndDrag": "Tıklayıp sürükleyin",
+  "ColorPicker_ReleaseToPick": "Seçmek için bırakın"
 }

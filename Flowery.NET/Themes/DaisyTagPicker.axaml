@@ -60,7 +60,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <controls:DaisyButton Content="{Binding}"
-                                                          Variant="Neutral"
+                                                          Variant="Default"
                                                           ButtonStyle="Outline"
                                                           Size="{Binding $parent[controls:DaisyTagPicker].Size}"
                                                           Margin="4"

@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Flowery.Localization;
 
 namespace Flowery.Controls.ColorPicker
 {
@@ -106,6 +107,9 @@ namespace Flowery.Controls.ColorPicker
                 return true;
             }
         }
+
+        // Texts are resolved when the dialog is built, so a new dialog follows the current culture
+        internal static string L(string key) => FloweryLocalization.GetStringInternal(key);
 
         internal static Button CreateHistoryButton(string name, string label, bool mirrorIcon)
         {
@@ -280,7 +284,7 @@ namespace Flowery.Controls.ColorPicker
 
         public DaisyColorPickerDialog()
         {
-            Title = "Color Picker";
+            Title = L("ColorPicker_Title");
             Width = DialogWidth;
             MinWidth = DialogMinWidth;
             MinHeight = DialogMinHeight;
@@ -325,7 +329,7 @@ namespace Flowery.Controls.ColorPicker
 
             // Lightness slider
             var lightnessPanel = new StackPanel { Spacing = TinySpacing };
-            lightnessPanel.Children.Add(new TextBlock { Text = "Lightness", FontSize = LabelFontSize });
+            lightnessPanel.Children.Add(new TextBlock { Text = L("ColorPicker_Lightness"), FontSize = LabelFontSize });
             _lightnessSlider = new DaisyColorSlider
             {
                 Channel = ColorSliderChannel.Lightness,
@@ -359,8 +363,8 @@ namespace Flowery.Controls.ColorPicker
                 Margin = new Thickness(0, 0, 0, TinySpacing)
             };
 
-            var originalLabel = new TextBlock { Text = "Original", FontSize = SmallFontSize, Margin = new Thickness(0, 0, 0, LabelSpacing) };
-            var newLabel = new TextBlock { Text = "New", FontSize = SmallFontSize, Margin = new Thickness(0, 0, 0, LabelSpacing) };
+            var originalLabel = new TextBlock { Text = L("ColorPicker_Original"), FontSize = SmallFontSize, Margin = new Thickness(0, 0, 0, LabelSpacing) };
+            var newLabel = new TextBlock { Text = L("ColorPicker_New"), FontSize = SmallFontSize, Margin = new Thickness(0, 0, 0, LabelSpacing) };
 
             var originalStack = new StackPanel();
             originalStack.Children.Add(originalLabel);
@@ -398,7 +402,7 @@ namespace Flowery.Controls.ColorPicker
             rightPanel.Children.Add(previewPanel);
 
             // Color grid
-            var gridLabel = new TextBlock { Text = "Color Palette", FontWeight = FontWeight.SemiBold, FontSize = LabelFontSize, Margin = new Thickness(0, 0, 0, LabelSpacing) };
+            var gridLabel = new TextBlock { Text = L("ColorPicker_Palette"), FontWeight = FontWeight.SemiBold, FontSize = LabelFontSize, Margin = new Thickness(0, 0, 0, LabelSpacing) };
             rightPanel.Children.Add(gridLabel);
 
             _colorGrid = new DaisyColorGrid
@@ -414,7 +418,7 @@ namespace Flowery.Controls.ColorPicker
             rightPanel.Children.Add(_colorGrid);
 
             // Color editor
-            var editorLabel = new TextBlock { Text = "Color Values", FontWeight = FontWeight.SemiBold, FontSize = LabelFontSize, Margin = new Thickness(0, TinySpacing, 0, LabelSpacing) };
+            var editorLabel = new TextBlock { Text = L("ColorPicker_Values"), FontWeight = FontWeight.SemiBold, FontSize = LabelFontSize, Margin = new Thickness(0, TinySpacing, 0, LabelSpacing) };
             rightPanel.Children.Add(editorLabel);
 
             _colorEditor = new DaisyColorEditor
@@ -446,17 +450,17 @@ namespace Flowery.Controls.ColorPicker
                 Size = DaisySize.Small,
                 Margin = new Thickness(0, 0, SmallSpacing, 0)
             };
-            _undoButton = CreateHistoryButton(UndoButtonName, "Undo", mirrorIcon: true);
+            _undoButton = CreateHistoryButton(UndoButtonName, L("ColorPicker_Undo"), mirrorIcon: true);
             _undoButton.Click += OnUndoButtonClick;
             historyButtonGroup.Items.Add(_undoButton);
-            _redoButton = CreateHistoryButton(RedoButtonName, "Redo", mirrorIcon: false);
+            _redoButton = CreateHistoryButton(RedoButtonName, L("ColorPicker_Redo"), mirrorIcon: false);
             _redoButton.Click += OnRedoButtonClick;
             historyButtonGroup.Items.Add(_redoButton);
             buttonPanel.Children.Add(historyButtonGroup);
 
             _okButton = new DaisyButton
             {
-                Content = "OK",
+                Content = L("Common_Ok"),
                 Variant = DaisyButtonVariant.Primary,
                 Size = DaisySize.Small,
                 MinWidth = ButtonWidth
@@ -466,7 +470,7 @@ namespace Flowery.Controls.ColorPicker
 
             _cancelButton = new DaisyButton
             {
-                Content = "Cancel",
+                Content = L("Common_Cancel"),
                 Variant = DaisyButtonVariant.Primary,
                 Size = DaisySize.Small,
                 MinWidth = ButtonWidth
@@ -807,6 +811,7 @@ namespace Flowery.Controls.ColorPicker
         private static double SliderHeight => DaisyColorPickerDialog.SliderHeight;
         private static double ColorPreviewHeight => DaisyColorPickerDialog.ColorPreviewHeight;
         private static double ButtonWidth => DaisyColorPickerDialog.ButtonWidth;
+        private static string L(string key) => DaisyColorPickerDialog.L(key);
         private static double PanelSpacing => DaisyColorPickerDialog.PanelSpacing;
         private static double SmallSpacing => DaisyColorPickerDialog.SmallSpacing;
         private static double TinySpacing => DaisyColorPickerDialog.TinySpacing;
@@ -891,7 +896,7 @@ namespace Flowery.Controls.ColorPicker
             leftPanel.Children.Add(_colorWheel);
 
             var lightnessPanel = new StackPanel { Spacing = TinySpacing };
-            lightnessPanel.Children.Add(new TextBlock { Text = "Lightness", FontSize = LabelFontSize });
+            lightnessPanel.Children.Add(new TextBlock { Text = L("ColorPicker_Lightness"), FontSize = LabelFontSize });
             _lightnessSlider = new DaisyColorSlider { Channel = ColorSliderChannel.Lightness, Width = ColorWheelSize, Height = SliderHeight };
             _lightnessSlider.ColorChanged += (s, e) =>
             {
@@ -922,13 +927,13 @@ namespace Flowery.Controls.ColorPicker
             };
 
             var originalStack = new StackPanel();
-            originalStack.Children.Add(new TextBlock { Text = "Original", FontSize = SmallFontSize, Margin = new Thickness(0, 0, 0, LabelSpacing) });
+            originalStack.Children.Add(new TextBlock { Text = L("ColorPicker_Original"), FontSize = SmallFontSize, Margin = new Thickness(0, 0, 0, LabelSpacing) });
             _originalColorHexText = new TextBlock { FontSize = SmallFontSize, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
             _originalColorPreview = new Border { Height = ColorPreviewHeight, BorderBrush = borderBrush, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(2), Child = _originalColorHexText };
             originalStack.Children.Add(_originalColorPreview);
 
             var newStack = new StackPanel();
-            newStack.Children.Add(new TextBlock { Text = "New", FontSize = SmallFontSize, Margin = new Thickness(0, 0, 0, LabelSpacing) });
+            newStack.Children.Add(new TextBlock { Text = L("ColorPicker_New"), FontSize = SmallFontSize, Margin = new Thickness(0, 0, 0, LabelSpacing) });
             _colorPreview = new Border { Height = ColorPreviewHeight, BorderBrush = borderBrush, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(2) };
             newStack.Children.Add(_colorPreview);
 
@@ -938,7 +943,7 @@ namespace Flowery.Controls.ColorPicker
             previewPanel.Children.Add(newStack);
             rightPanel.Children.Add(previewPanel);
 
-            rightPanel.Children.Add(new TextBlock { Text = "Color Palette", FontWeight = FontWeight.SemiBold, FontSize = LabelFontSize, Margin = new Thickness(0, 0, 0, LabelSpacing) });
+            rightPanel.Children.Add(new TextBlock { Text = L("ColorPicker_Palette"), FontWeight = FontWeight.SemiBold, FontSize = LabelFontSize, Margin = new Thickness(0, 0, 0, LabelSpacing) });
 
             _colorGrid = new DaisyColorGrid
             {
@@ -952,7 +957,7 @@ namespace Flowery.Controls.ColorPicker
             _colorGrid.ColorChanged += (s, e) => { if (!_lockUpdates) Color = e.Color; };
             rightPanel.Children.Add(_colorGrid);
 
-            rightPanel.Children.Add(new TextBlock { Text = "Color Values", FontWeight = FontWeight.SemiBold, FontSize = LabelFontSize, Margin = new Thickness(0, TinySpacing, 0, LabelSpacing) });
+            rightPanel.Children.Add(new TextBlock { Text = L("ColorPicker_Values"), FontWeight = FontWeight.SemiBold, FontSize = LabelFontSize, Margin = new Thickness(0, TinySpacing, 0, LabelSpacing) });
 
             _colorEditor = new DaisyColorEditor { ShowAlphaChannel = true, ShowHexInput = true, ShowRgbSliders = true, ShowHslSliders = true, Margin = new Thickness(0, 0, 0, SmallSpacing) };
             _colorEditor.ColorChanged += (s, e) => { if (!_lockUpdates) Color = e.Color; };
@@ -970,19 +975,19 @@ namespace Flowery.Controls.ColorPicker
                 Size = DaisySize.Small,
                 Margin = new Thickness(0, 0, SmallSpacing, 0)
             };
-            _undoButton = DaisyColorPickerDialog.CreateHistoryButton(DaisyColorPickerDialog.UndoButtonName, "Undo", mirrorIcon: true);
+            _undoButton = DaisyColorPickerDialog.CreateHistoryButton(DaisyColorPickerDialog.UndoButtonName, L("ColorPicker_Undo"), mirrorIcon: true);
             _undoButton.Click += OnUndoButtonClick;
             historyButtonGroup.Items.Add(_undoButton);
-            _redoButton = DaisyColorPickerDialog.CreateHistoryButton(DaisyColorPickerDialog.RedoButtonName, "Redo", mirrorIcon: false);
+            _redoButton = DaisyColorPickerDialog.CreateHistoryButton(DaisyColorPickerDialog.RedoButtonName, L("ColorPicker_Redo"), mirrorIcon: false);
             _redoButton.Click += OnRedoButtonClick;
             historyButtonGroup.Items.Add(_redoButton);
             buttonPanel.Children.Add(historyButtonGroup);
 
-            var okButton = new DaisyButton { Content = "OK", Variant = DaisyButtonVariant.Primary, Size = DaisySize.Small, MinWidth = ButtonWidth };
+            var okButton = new DaisyButton { Content = L("Common_Ok"), Variant = DaisyButtonVariant.Primary, Size = DaisySize.Small, MinWidth = ButtonWidth };
             okButton.Click += (s, e) => OkClicked?.Invoke(this, EventArgs.Empty);
             buttonPanel.Children.Add(okButton);
 
-            var cancelButton = new DaisyButton { Content = "Cancel", Variant = DaisyButtonVariant.Primary, Size = DaisySize.Small, MinWidth = ButtonWidth };
+            var cancelButton = new DaisyButton { Content = L("Common_Cancel"), Variant = DaisyButtonVariant.Primary, Size = DaisySize.Small, MinWidth = ButtonWidth };
             cancelButton.Click += (s, e) => CancelClicked?.Invoke(this, EventArgs.Empty);
             buttonPanel.Children.Add(cancelButton);
 

@@ -164,5 +164,17 @@
   "Scheduler_Previous": "الفترة السابقة",
   "Scheduler_Next": "الفترة التالية",
   "Scheduler_ChooseDate": "اختيار التاريخ",
-  "Scheduler_Minutes": "{0} دقيقة"
+  "Scheduler_Minutes": "{0} دقيقة",
+  "Common_Ok": "موافق",
+  "Common_Cancel": "إلغاء",
+  "ColorPicker_Title": "منتقي الألوان",
+  "ColorPicker_Undo": "تراجع",
+  "ColorPicker_Redo": "إعادة",
+  "ColorPicker_Lightness": "الإضاءة",
+  "ColorPicker_Original": "الأصلي",
+  "ColorPicker_New": "الجديد",
+  "ColorPicker_Palette": "لوحة الألوان",
+  "ColorPicker_Values": "قيم اللون",
+  "ColorPicker_ClickAndDrag": "انقر واسحب للاختيار",
+  "ColorPicker_ReleaseToPick": "أفلت للاختيار"
 }

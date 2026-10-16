@@ -162,5 +162,17 @@
   "Scheduler_Previous": "Попередній період",
   "Scheduler_Next": "Наступний період",
   "Scheduler_ChooseDate": "Вибрати дату",
-  "Scheduler_Minutes": "{0} хв"
+  "Scheduler_Minutes": "{0} хв",
+  "Common_Ok": "OK",
+  "Common_Cancel": "Скасувати",
+  "ColorPicker_Title": "Вибір кольору",
+  "ColorPicker_Undo": "Скасувати дію",
+  "ColorPicker_Redo": "Повторити",
+  "ColorPicker_Lightness": "Світлість",
+  "ColorPicker_Original": "Оригінал",
+  "ColorPicker_New": "Новий",
+  "ColorPicker_Palette": "Палітра кольорів",
+  "ColorPicker_Values": "Значення кольору",
+  "ColorPicker_ClickAndDrag": "Натисніть і тягніть",
+  "ColorPicker_ReleaseToPick": "Відпустіть для вибору"
 }

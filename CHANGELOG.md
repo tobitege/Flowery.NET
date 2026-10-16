@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.2] - 2026-10-16
+
+### Fixed
+
+- `DaisyColorPickerDialog` and `DaisyScreenColorPicker` are localized (#53). The dialog title, labels, OK/Cancel and the Undo/Redo tooltips and automation names, and the screen picker hint were hard-coded in English; they now use new `ColorPicker_*`, `Common_Ok` and `Common_Cancel` keys in all 12 languages. The screen picker redraws its hint when the language changes.
+- `DaisyTagPicker` available tags are readable on dark themes again. They used the Neutral outline button, whose text and border nearly match the dark background; they now use the Default outline (base content text and border).
+
 ## [3.6.1] - 2026-10-15
 
 ### Fixed

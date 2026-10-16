@@ -7,6 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Flowery.Controls.ColorPicker;
+using Flowery.Localization;
 using Xunit;
 
 namespace Flowery.NET.Tests
@@ -106,8 +107,8 @@ namespace Flowery.NET.Tests
                 Assert.Equal(16d, undoIcon.Height);
                 Assert.Equal(16d, redoIcon.Width);
                 Assert.Equal(16d, redoIcon.Height);
-                Assert.Equal("Undo", AutomationProperties.GetName(undoButton));
-                Assert.Equal("Redo", AutomationProperties.GetName(redoButton));
+                Assert.Equal(FloweryLocalization.GetString("ColorPicker_Undo"), AutomationProperties.GetName(undoButton));
+                Assert.Equal(FloweryLocalization.GetString("ColorPicker_Redo"), AutomationProperties.GetName(redoButton));
                 Assert.False(undoButton.IsEnabled);
                 Assert.False(redoButton.IsEnabled);
             }

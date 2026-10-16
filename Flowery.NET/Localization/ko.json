@@ -162,5 +162,17 @@
   "Scheduler_Previous": "이전 기간",
   "Scheduler_Next": "다음 기간",
   "Scheduler_ChooseDate": "날짜 선택",
-  "Scheduler_Minutes": "{0}분"
+  "Scheduler_Minutes": "{0}분",
+  "Common_Ok": "확인",
+  "Common_Cancel": "취소",
+  "ColorPicker_Title": "색 선택기",
+  "ColorPicker_Undo": "실행 취소",
+  "ColorPicker_Redo": "다시 실행",
+  "ColorPicker_Lightness": "밝기",
+  "ColorPicker_Original": "원래 색",
+  "ColorPicker_New": "새 색",
+  "ColorPicker_Palette": "색상 팔레트",
+  "ColorPicker_Values": "색상 값",
+  "ColorPicker_ClickAndDrag": "드래그하여 선택",
+  "ColorPicker_ReleaseToPick": "놓으면 선택"
 }

@@ -162,5 +162,17 @@
   "Scheduler_Previous": "Período anterior",
   "Scheduler_Next": "Período siguiente",
   "Scheduler_ChooseDate": "Elegir fecha",
-  "Scheduler_Minutes": "{0} min"
+  "Scheduler_Minutes": "{0} min",
+  "Common_Ok": "Aceptar",
+  "Common_Cancel": "Cancelar",
+  "ColorPicker_Title": "Selector de color",
+  "ColorPicker_Undo": "Deshacer",
+  "ColorPicker_Redo": "Rehacer",
+  "ColorPicker_Lightness": "Luminosidad",
+  "ColorPicker_Original": "Original",
+  "ColorPicker_New": "Nuevo",
+  "ColorPicker_Palette": "Paleta de colores",
+  "ColorPicker_Values": "Valores de color",
+  "ColorPicker_ClickAndDrag": "Haz clic y arrastra",
+  "ColorPicker_ReleaseToPick": "Suelta para elegir"
 }

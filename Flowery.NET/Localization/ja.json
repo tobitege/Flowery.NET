@@ -162,5 +162,17 @@
   "Scheduler_Previous": "前の期間",
   "Scheduler_Next": "次の期間",
   "Scheduler_ChooseDate": "日付を選択",
-  "Scheduler_Minutes": "{0} 分"
+  "Scheduler_Minutes": "{0} 分",
+  "Common_Ok": "OK",
+  "Common_Cancel": "キャンセル",
+  "ColorPicker_Title": "カラーピッカー",
+  "ColorPicker_Undo": "元に戻す",
+  "ColorPicker_Redo": "やり直し",
+  "ColorPicker_Lightness": "明度",
+  "ColorPicker_Original": "元の色",
+  "ColorPicker_New": "新しい色",
+  "ColorPicker_Palette": "カラーパレット",
+  "ColorPicker_Values": "カラー値",
+  "ColorPicker_ClickAndDrag": "ドラッグで選択",
+  "ColorPicker_ReleaseToPick": "離すと選択"
 }

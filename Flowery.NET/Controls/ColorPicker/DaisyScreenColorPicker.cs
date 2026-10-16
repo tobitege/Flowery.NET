@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Media;
+using Flowery.Localization;
 using Flowery.Services;
 
 namespace Flowery.Controls.ColorPicker
@@ -97,6 +98,20 @@ namespace Flowery.Controls.ColorPicker
             Focusable = true;
         }
 
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            FloweryLocalization.CultureChanged += OnCultureChanged;
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnDetachedFromVisualTree(e);
+            FloweryLocalization.CultureChanged -= OnCultureChanged;
+        }
+
+        private void OnCultureChanged(object? sender, System.Globalization.CultureInfo e) => InvalidateVisual();
+
         protected override Size MeasureOverride(Size availableSize)
         {
             return new Size(
@@ -137,7 +152,7 @@ namespace Flowery.Controls.ColorPicker
             context.DrawText(rgbFormatted, new Point(66, 28));
 
             // Status/instruction text
-            var statusText = _isCapturing ? "Release to pick" : "Click & drag to pick";
+            var statusText = FloweryLocalization.GetStringInternal(_isCapturing ? "ColorPicker_ReleaseToPick" : "ColorPicker_ClickAndDrag");
             var statusTypeface = new Typeface("Segoe UI", FontStyle.Normal, FontWeight.Normal);
             var statusFormatted = new FormattedText(statusText, System.Globalization.CultureInfo.CurrentCulture, 
                 FlowDirection.LeftToRight, statusTypeface, 10, 
