@@ -173,5 +173,17 @@
   "Scheduler_Previous": "Previous period",
   "Scheduler_Next": "Next period",
   "Scheduler_ChooseDate": "Choose date",
-  "Scheduler_Minutes": "{0} min"
+  "Scheduler_Minutes": "{0} min",
+  "Common_Ok": "OK",
+  "Common_Cancel": "Cancel",
+  "ColorPicker_Title": "Color Picker",
+  "ColorPicker_Undo": "Undo",
+  "ColorPicker_Redo": "Redo",
+  "ColorPicker_Lightness": "Lightness",
+  "ColorPicker_Original": "Original",
+  "ColorPicker_New": "New",
+  "ColorPicker_Palette": "Color Palette",
+  "ColorPicker_Values": "Color Values",
+  "ColorPicker_ClickAndDrag": "Click and drag to pick",
+  "ColorPicker_ReleaseToPick": "Release to pick"
 }

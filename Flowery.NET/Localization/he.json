@@ -162,5 +162,17 @@
   "Scheduler_Previous": "התקופה הקודמת",
   "Scheduler_Next": "התקופה הבאה",
   "Scheduler_ChooseDate": "בחר תאריך",
-  "Scheduler_Minutes": "{0} דק׳"
+  "Scheduler_Minutes": "{0} דק׳",
+  "Common_Ok": "אישור",
+  "Common_Cancel": "בטל",
+  "ColorPicker_Title": "בוחר צבעים",
+  "ColorPicker_Undo": "בטל פעולה",
+  "ColorPicker_Redo": "בצע שוב",
+  "ColorPicker_Lightness": "בהירות",
+  "ColorPicker_Original": "מקורי",
+  "ColorPicker_New": "חדש",
+  "ColorPicker_Palette": "לוח צבעים",
+  "ColorPicker_Values": "ערכי צבע",
+  "ColorPicker_ClickAndDrag": "לחץ וגרור כדי לבחור",
+  "ColorPicker_ReleaseToPick": "שחרר כדי לבחור"
 }

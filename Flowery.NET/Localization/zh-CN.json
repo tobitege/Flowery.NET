@@ -162,5 +162,17 @@
   "Scheduler_Previous": "上一时间段",
   "Scheduler_Next": "下一时间段",
   "Scheduler_ChooseDate": "选择日期",
-  "Scheduler_Minutes": "{0} 分钟"
+  "Scheduler_Minutes": "{0} 分钟",
+  "Common_Ok": "确定",
+  "Common_Cancel": "取消",
+  "ColorPicker_Title": "颜色选择器",
+  "ColorPicker_Undo": "撤销",
+  "ColorPicker_Redo": "重做",
+  "ColorPicker_Lightness": "亮度",
+  "ColorPicker_Original": "原始颜色",
+  "ColorPicker_New": "新颜色",
+  "ColorPicker_Palette": "调色板",
+  "ColorPicker_Values": "颜色值",
+  "ColorPicker_ClickAndDrag": "单击并拖动以取色",
+  "ColorPicker_ReleaseToPick": "松开以取色"
 }
