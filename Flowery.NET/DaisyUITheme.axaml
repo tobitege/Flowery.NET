@@ -44,6 +44,7 @@
                 <ResourceInclude Source="/Themes/DaisyNavbar.axaml" />
                 <ResourceInclude Source="/Themes/DaisyDrawer.axaml" />
                 <ResourceInclude Source="/Themes/DaisyBreadcrumbs.axaml" />
+                <ResourceInclude Source="/Themes/DaisyBreadcrumbBar.axaml" />
                 <ResourceInclude Source="/Themes/DaisyDivider.axaml" />
                 <ResourceInclude Source="/Themes/DaisyHero.axaml" />
                 <ResourceInclude Source="/Themes/DaisyIndicator.axaml" />
@@ -82,6 +83,7 @@
                 <!-- Custom controls (non-standard DaisyUI extensions) -->
                 <ResourceInclude Source="/Themes/Custom/DaisyModifierKeys.axaml" />
                 <ResourceInclude Source="/Themes/Custom/DaisyMaskInput.axaml" />
+                <ResourceInclude Source="/Themes/Custom/DaisyResizableColumnsHost.axaml" />
                 <!-- Weather widgets -->
                 <ResourceInclude Source="/Themes/Custom/Weather/WeatherIcons.axaml" />
                 <ResourceInclude Source="/Themes/Custom/Weather/DaisyWeatherCurrent.axaml" />
@@ -100,6 +102,7 @@
     <StyleInclude Source="/Themes/DaisySteps.axaml" />
     <StyleInclude Source="/Themes/DaisyPagination.axaml" />
     <StyleInclude Source="/Themes/DaisySelect.axaml" />
+    <StyleInclude Source="/Themes/DaisyCalendarDatePicker.axaml" />
     <StyleInclude Source="/Themes/DaisyMenu.axaml" />
     <StyleInclude Source="/Themes/DaisyTabs.axaml" />
     <StyleInclude Source="/Themes/DaisyThemeDropdown.axaml" />

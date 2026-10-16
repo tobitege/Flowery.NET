@@ -1,0 +1,465 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Height="360">
+            <StackPanel Spacing="10" Width="220">
+                <controls:DaisyCalendarDatePicker PlaceholderText="Select date" />
+                <controls:DaisyCalendarDatePicker Variant="Primary" PlaceholderText="Primary" />
+                <controls:DaisyCalendarDatePicker Variant="Ghost" PlaceholderText="Ghost" />
+                <controls:DaisyCalendarDatePicker Variant="Filled" PlaceholderText="Filled" />
+                <controls:DaisyCalendarDatePicker Size="Small" PlaceholderText="Small" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <!--
+        DaisyCalendarDatePicker keeps the Fluent CalendarDatePicker template (the control theme below is
+        based on it) and restyles it with the styles that follow. Styles take precedence over control
+        themes, so the state styles replace the Fluent hover, pressed and focus colors.
+    -->
+    <Styles.Resources>
+        <ControlTheme x:Key="{x:Type controls:DaisyCalendarDatePicker}"
+                      TargetType="controls:DaisyCalendarDatePicker"
+                      BasedOn="{StaticResource {x:Type CalendarDatePicker}}" />
+
+        <!-- Popup calendar: header and navigation buttons -->
+        <ControlTheme x:Key="DaisyCalendarNavButtonTheme" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
+            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
+            </Style>
+            <Style Selector="^:disabled">
+                <Setter Property="Opacity" Value="0.4" />
+            </Style>
+        </ControlTheme>
+
+        <!-- Popup calendar: frame, header, month view (days) and year/decade view -->
+        <ControlTheme x:Key="DaisyCalendarItemTheme" TargetType="CalendarItem">
+            <Setter Property="DayTitleTemplate">
+                <Template x:DataType="x:String">
+                    <TextBlock Text="{Binding}"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontWeight="SemiBold"
+                               Opacity="0.6"
+                               Margin="0,2,0,4" />
+                </Template>
+            </Setter>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="6">
+                        <Grid RowDefinitions="Auto,*">
+                            <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,4">
+                                <Button Name="PART_HeaderButton"
+                                        Classes="daisy-calendar-nav"
+                                        Theme="{StaticResource DaisyCalendarNavButtonTheme}"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Left"
+                                        FontWeight="SemiBold" />
+                                <Button Name="PART_PreviousButton"
+                                        Grid.Column="1"
+                                        Classes="daisy-calendar-nav"
+                                        Theme="{StaticResource DaisyCalendarNavButtonTheme}">
+                                    <PathIcon Classes="daisy-calendar-chevron" Data="{StaticResource DaisyIconChevronUp}" />
+                                </Button>
+                                <Button Name="PART_NextButton"
+                                        Grid.Column="2"
+                                        Classes="daisy-calendar-nav"
+                                        Theme="{StaticResource DaisyCalendarNavButtonTheme}">
+                                    <PathIcon Classes="daisy-calendar-chevron" Data="{StaticResource DaisyIconChevronDown}" />
+                                </Button>
+                            </Grid>
+                            <Grid Name="PART_MonthView"
+                                  Grid.Row="1"
+                                  IsVisible="False"
+                                  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                                  ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" />
+                            <Grid Name="PART_YearView"
+                                  Grid.Row="1"
+                                  IsVisible="False"
+                                  RowDefinitions="*,*,*"
+                                  ColumnDefinitions="*,*,*,*" />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <!-- Popup calendar: day cells -->
+        <ControlTheme x:Key="DaisyCalendarDayButtonTheme" TargetType="CalendarDayButton">
+            <Setter Property="ClickMode" Value="Release" />
+            <Setter Property="Margin" Value="1" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Root"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                        <ContentPresenter Name="PART_ContentPresenter"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
+            </Style>
+            <Style Selector="^:today">
+                <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+            <Style Selector="^:inactive, ^:blackout, ^:disabled">
+                <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentSubtleBrush}" />
+            </Style>
+            <Style Selector="^:selected">
+                <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryContentBrush}" />
+            </Style>
+            <Style Selector="^:selected:pointerover">
+                <Setter Property="Background" Value="{DynamicResource DaisyPrimaryFocusBrush}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- Popup calendar: month and year cells -->
+        <ControlTheme x:Key="DaisyCalendarButtonTheme" TargetType="CalendarButton">
+            <Setter Property="ClickMode" Value="Release" />
+            <Setter Property="Margin" Value="1" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Root"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                        <ContentPresenter Name="PART_ContentPresenter"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
+            </Style>
+            <Style Selector="^:inactive, ^:blackout, ^:disabled">
+                <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentSubtleBrush}" />
+            </Style>
+            <Style Selector="^:selected">
+                <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryContentBrush}" />
+            </Style>
+            <Style Selector="^:selected:pointerover">
+                <Setter Property="Background" Value="{DynamicResource DaisyPrimaryFocusBrush}" />
+            </Style>
+        </ControlTheme>
+    </Styles.Resources>
+
+    <Style Selector="controls|DaisyCalendarDatePicker">
+        <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="PlaceholderForeground" Value="{DynamicResource DaisyBaseContentMutedBrush}" />
+        <Setter Property="IsTodayHighlighted" Value="True" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyNeutralBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeMediumCornerRadius}" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeMediumHeight}" />
+        <Setter Property="Padding" Value="{DynamicResource DaisyInputMediumPadding}" />
+    </Style>
+
+    <!-- Calendar button: the Daisy calendar icon instead of the Fluent glyph -->
+    <Style Selector="controls|DaisyCalendarDatePicker /template/ Button#PART_Button">
+        <Setter Property="TextElement.Foreground" Value="{Binding $parent[controls:DaisyCalendarDatePicker].Foreground}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="Transparent">
+                    <PathIcon Name="PART_CalendarIcon"
+                              Data="{StaticResource DaisyIconDateDisplay}"
+                              Width="16"
+                              Height="16"
+                              Foreground="{TemplateBinding Foreground}"
+                              Opacity="0.7"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker /template/ Button#PART_Button:pointerover /template/ PathIcon#PART_CalendarIcon">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <!-- The inner TextBox draws no hover or focus surface of its own; the outer border shows the state. -->
+    <Style Selector="controls|DaisyCalendarDatePicker /template/ TextBox#PART_TextBox:pointerover /template/ Border#PART_BorderElement, controls|DaisyCalendarDatePicker /template/ TextBox#PART_TextBox:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker /template/ TextBox#PART_TextBox:pointerover, controls|DaisyCalendarDatePicker /template/ TextBox#PART_TextBox:focus">
+        <Setter Property="Foreground" Value="{Binding $parent[controls:DaisyCalendarDatePicker].Foreground}" />
+    </Style>
+
+    <!-- Hover and pressed keep the variant colors -->
+    <Style Selector="controls|DaisyCalendarDatePicker:pointerover /template/ Border#Background, controls|DaisyCalendarDatePicker:pressed /template/ Border#Background">
+        <Setter Property="Background" Value="{Binding $parent[controls:DaisyCalendarDatePicker].Background}" />
+        <Setter Property="BorderBrush" Value="{Binding $parent[controls:DaisyCalendarDatePicker].BorderBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Bordered]:pointerover /template/ Border#Background, controls|DaisyCalendarDatePicker[Variant=Filled]:pointerover /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Filled]:pointerover /template/ Border#Background">
+        <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
+    </Style>
+
+    <!-- Disabled -->
+    <Style Selector="controls|DaisyCalendarDatePicker:disabled">
+        <Setter Property="Opacity" Value="0.5" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker:disabled /template/ Border#Background">
+        <Setter Property="Background" Value="{Binding $parent[controls:DaisyCalendarDatePicker].Background}" />
+        <Setter Property="BorderBrush" Value="{Binding $parent[controls:DaisyCalendarDatePicker].BorderBrush}" />
+    </Style>
+
+    <!-- Focus: the border takes the variant's focus color, or BorderRingBrush when set -->
+    <Style Selector="controls|DaisyCalendarDatePicker:focus-within /template/ Border#Background">
+        <Setter Property="Background" Value="{Binding $parent[controls:DaisyCalendarDatePicker].Background}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="{Binding $parent[controls:DaisyCalendarDatePicker].BorderThickness}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Ghost]:focus-within /template/ Border#Background">
+        <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Primary]:focus-within /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryFocusBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Secondary]:focus-within /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisySecondaryFocusBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Accent]:focus-within /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyAccentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Info]:focus-within /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyInfoBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Success]:focus-within /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisySuccessBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Warning]:focus-within /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyWarningBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Error]:focus-within /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyErrorBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker:ring:focus-within /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{Binding $parent[controls:DaisyCalendarDatePicker].BorderRingBrush}" />
+    </Style>
+
+    <!-- Variants -->
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Ghost]">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Filled]">
+        <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="CornerRadius" Value="8,8,0,0" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Primary]">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Secondary]">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisySecondaryBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Accent]">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyAccentBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Info]">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyInfoBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Success]">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisySuccessBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Warning]">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyWarningBrush}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Variant=Error]">
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyErrorBrush}" />
+    </Style>
+
+    <!--
+        Popup calendar. The picker adds the class daisy-calendar to its PART_Calendar, plus xs, sm, lg or xl
+        for sizes other than Medium, so the popup follows Size (and with it the global size).
+    -->
+    <Style Selector="controls|DaisyCalendarDatePicker /template/ Popup#PART_Popup">
+        <Setter Property="VerticalOffset" Value="4" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar">
+        <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeMediumCornerRadius}" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar /template/ CalendarItem#PART_CalendarItem">
+        <Setter Property="Theme" Value="{StaticResource DaisyCalendarItemTheme}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar CalendarDayButton">
+        <Setter Property="Theme" Value="{StaticResource DaisyCalendarDayButtonTheme}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar CalendarButton">
+        <Setter Property="Theme" Value="{StaticResource DaisyCalendarButtonTheme}" />
+    </Style>
+
+    <!-- Popup calendar sizes: cells use the control height tokens, text the font size tokens -->
+    <Style Selector="Calendar.daisy-calendar CalendarDayButton, Calendar.daisy-calendar Button.daisy-calendar-nav">
+        <Setter Property="MinWidth" Value="{DynamicResource DaisySizeMediumHeight}" />
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeMediumHeight}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar CalendarButton">
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeExtraLargeHeight}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar PathIcon.daisy-calendar-chevron">
+        <Setter Property="Width" Value="{DynamicResource DaisySizeMediumFontSize}" />
+        <Setter Property="Height" Value="{DynamicResource DaisySizeMediumFontSize}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.xs">
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraSmallCornerRadius}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.xs CalendarDayButton, Calendar.daisy-calendar.xs Button.daisy-calendar-nav">
+        <Setter Property="MinWidth" Value="{DynamicResource DaisySizeExtraSmallHeight}" />
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeExtraSmallHeight}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.xs CalendarButton">
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeSmallHeight}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.xs PathIcon.daisy-calendar-chevron">
+        <Setter Property="Width" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+        <Setter Property="Height" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.sm">
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.sm CalendarDayButton, Calendar.daisy-calendar.sm Button.daisy-calendar-nav">
+        <Setter Property="MinWidth" Value="{DynamicResource DaisySizeSmallHeight}" />
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeSmallHeight}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.sm CalendarButton">
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeLargeHeight}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.sm PathIcon.daisy-calendar-chevron">
+        <Setter Property="Width" Value="{DynamicResource DaisySizeSmallFontSize}" />
+        <Setter Property="Height" Value="{DynamicResource DaisySizeSmallFontSize}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.lg">
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeLargeCornerRadius}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.lg CalendarDayButton, Calendar.daisy-calendar.lg Button.daisy-calendar-nav">
+        <Setter Property="MinWidth" Value="{DynamicResource DaisySizeLargeHeight}" />
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeLargeHeight}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.lg CalendarButton">
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeExtraLargeHeight}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.lg PathIcon.daisy-calendar-chevron">
+        <Setter Property="Width" Value="{DynamicResource DaisySizeLargeFontSize}" />
+        <Setter Property="Height" Value="{DynamicResource DaisySizeLargeFontSize}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.xl">
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeExtraLargeCornerRadius}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.xl CalendarDayButton, Calendar.daisy-calendar.xl Button.daisy-calendar-nav">
+        <Setter Property="MinWidth" Value="{DynamicResource DaisySizeExtraLargeHeight}" />
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeExtraLargeHeight}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.xl CalendarButton">
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeExtraLargeHeight}" />
+    </Style>
+    <Style Selector="Calendar.daisy-calendar.xl PathIcon.daisy-calendar-chevron">
+        <Setter Property="Width" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+        <Setter Property="Height" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+    </Style>
+
+    <!-- Sizes (Medium is the default above) -->
+    <Style Selector="controls|DaisyCalendarDatePicker[Size=ExtraSmall]">
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeExtraSmallHeight}" />
+        <Setter Property="Padding" Value="{DynamicResource DaisyInputExtraSmallPadding}" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Size=Small]">
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeSmallHeight}" />
+        <Setter Property="Padding" Value="{DynamicResource DaisyInputSmallPadding}" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Size=Large]">
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeLargeHeight}" />
+        <Setter Property="Padding" Value="{DynamicResource DaisyInputLargePadding}" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
+    </Style>
+    <Style Selector="controls|DaisyCalendarDatePicker[Size=ExtraLarge]">
+        <Setter Property="MinHeight" Value="{DynamicResource DaisySizeExtraLargeHeight}" />
+        <Setter Property="Padding" Value="{DynamicResource DaisyInputExtraLargePadding}" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+    </Style>
+
+</Styles>

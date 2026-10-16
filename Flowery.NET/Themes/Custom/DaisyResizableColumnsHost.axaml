@@ -1,0 +1,94 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <controls:DaisyResizableColumnsHost x:Name="Host" ColumnWidth="160" ColumnSpacing="16" Height="160" Margin="20">
+            <Border Width="{Binding #Host.ColumnWidth}" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" />
+            <Border Width="{Binding #Host.ColumnWidth}" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" />
+            <Border Width="{Binding #Host.ColumnWidth}" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8" />
+        </controls:DaisyResizableColumnsHost>
+    </Design.PreviewWith>
+
+    <ControlTheme x:Key="{x:Type controls:DaisyResizableColumnsHost}" TargetType="controls:DaisyResizableColumnsHost">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="ItemsPanel">
+            <ItemsPanelTemplate>
+                <StackPanel Orientation="{Binding $parent[controls:DaisyResizableColumnsHost].Orientation}"
+                            Spacing="{Binding $parent[controls:DaisyResizableColumnsHost].ColumnSpacing}" />
+            </ItemsPanelTemplate>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel Name="PART_DropRoot" Background="{TemplateBinding Background}">
+                    <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" />
+                    <Border Name="PART_FocusRing"
+                            BorderThickness="2"
+                            BorderBrush="Transparent"
+                            CornerRadius="{DynamicResource DaisySizeMediumCornerRadius}"
+                            IsHitTestVisible="False" />
+                    <Canvas Name="PART_GripCanvas" IsHitTestVisible="False">
+                        <Grid Name="PART_GripVisual" Opacity="0" IsHitTestVisible="False">
+                            <Rectangle Name="PART_GripLine"
+                                       Width="2"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Stretch"
+                                       Fill="{DynamicResource DaisyPrimaryBrush}"
+                                       Opacity="0.8" />
+                            <Border Name="PART_GripHandle"
+                                    Width="12"
+                                    Height="32"
+                                    CornerRadius="6"
+                                    Background="{DynamicResource DaisyBase100Brush}"
+                                    BorderBrush="{DynamicResource DaisyBase300Brush}"
+                                    BorderThickness="1"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                <PathIcon Name="PART_GripIcon"
+                                          Data="{StaticResource DaisyIconEllipsis}"
+                                          Width="8"
+                                          Height="8"
+                                          Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                          Opacity="0.8" />
+                            </Border>
+                        </Grid>
+                        <Thumb Name="PART_GripThumb" Background="Transparent" Cursor="SizeWestEast">
+                            <Thumb.Template>
+                                <ControlTemplate>
+                                    <Border Background="{TemplateBinding Background}" />
+                                </ControlTemplate>
+                            </Thumb.Template>
+                        </Thumb>
+                    </Canvas>
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:focus-visible /template/ Border#PART_FocusRing">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
+        </Style>
+
+        <!-- Vertical stacking: the grip runs across the host -->
+        <Style Selector="^[Orientation=Vertical]">
+            <Style Selector="^ /template/ Rectangle#PART_GripLine">
+                <Setter Property="Width" Value="NaN" />
+                <Setter Property="Height" Value="2" />
+                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <Style Selector="^ /template/ Border#PART_GripHandle">
+                <Setter Property="Width" Value="32" />
+                <Setter Property="Height" Value="12" />
+            </Style>
+            <Style Selector="^ /template/ PathIcon#PART_GripIcon">
+                <Setter Property="Data" Value="{StaticResource DaisyIconDotsHorizontal}" />
+            </Style>
+            <Style Selector="^ /template/ Thumb#PART_GripThumb">
+                <Setter Property="Cursor" Value="SizeNorthSouth" />
+            </Style>
+        </Style>
+    </ControlTheme>
+
+</ResourceDictionary>
