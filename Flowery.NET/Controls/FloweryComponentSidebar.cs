@@ -87,6 +87,42 @@ namespace Flowery.Controls
         public string? Badge { get; set; }
 
         /// <summary>
+        /// Optional control class name (e.g. "DaisyTagPicker") for entries that represent a single control.
+        /// The sidebar search matches it in addition to the translated <see cref="DisplayName"/>.
+        /// </summary>
+        public string? ControlName { get; set; }
+
+        /// <summary>
+        /// Returns whether the search text matches the translated name or the control class name.
+        /// Case, spaces and punctuation are ignored, so "tag picker", "TagPicker" and "DaisyTagPicker"
+        /// all find the same item.
+        /// </summary>
+        public bool MatchesSearch(string searchText)
+        {
+            if (DisplayName.ToLowerInvariant().Contains(searchText.ToLowerInvariant()))
+                return true;
+
+            var normalizedSearch = NormalizeForSearch(searchText);
+            if (normalizedSearch.Length == 0)
+                return false;
+
+            return NormalizeForSearch(DisplayName).Contains(normalizedSearch)
+                || (ControlName is { Length: > 0 } controlName
+                    && NormalizeForSearch(controlName).Contains(normalizedSearch));
+        }
+
+        private static string NormalizeForSearch(string text)
+        {
+            var builder = new System.Text.StringBuilder(text.Length);
+            foreach (var c in text)
+            {
+                if (char.IsLetterOrDigit(c))
+                    builder.Append(char.ToLowerInvariant(c));
+            }
+            return builder.ToString();
+        }
+
+        /// <summary>
         /// Whether this item is marked as a favorite. When changed, updates the star icon state.
         /// </summary>
         public bool IsFavorite
@@ -529,7 +565,7 @@ namespace Flowery.Controls
 
                 // Filter items that match
                 var matchingItems = category.Items
-                    .Where(item => item.DisplayName.ToLowerInvariant().Contains(search))
+                    .Where(item => item.MatchesSearch(searchText))
                     .ToList();
 
                 // Include category if name matches or has matching items

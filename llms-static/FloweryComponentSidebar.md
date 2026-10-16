@@ -22,7 +22,7 @@ Similarly, set `AvailableLanguages` to enable the language selector functionalit
 ## Data Models
 
 - `SidebarCategory`: `Name`, `IconKey`, `IsExpanded`, `Items (ObservableCollection<SidebarItem>)`
-- `SidebarItem`: `Id`, `Name`, `TabHeader`, optional `Badge`
+- `SidebarItem`: `Id`, `Name`, `TabHeader`, optional `Badge`, optional `ControlName` (control class such as `DaisyTagPicker`; the search matches it in addition to the translated name, ignoring case, spaces and punctuation)
 - `SidebarLanguageSelectorItem`: Special item type that renders as a language dropdown instead of a button
 - `SidebarThemeSelectorItem`: Special item type for theme selection
 - `SidebarLanguage`: `Code` (e.g., "en", "de"), `DisplayName` (e.g., "English", "Deutsch")

@@ -8,12 +8,14 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
 using Flowery.Capture;
+using Flowery.NET.Gallery.Localization;
 
 namespace Flowery.NET.Gallery.Examples;
 
 public partial class SectionHeader : UserControl
 {
     private bool _isSizeSubscriptionActive;
+    private bool _isCultureSubscriptionActive;
 
     /// <summary>
     /// Maps SectionId to Daisy control name. Used for screenshot filenames and documentation.
@@ -197,6 +199,7 @@ public partial class SectionHeader : UserControl
         InitializeComponent();
 
         SubscribeToGlobalSizeChanges();
+        SubscribeToCultureChanges();
 
         // Apply initial size
         ApplySizeToHeader(Flowery.Controls.FlowerySizeManager.CurrentSize);
@@ -229,24 +232,51 @@ public partial class SectionHeader : UserControl
     {
         base.OnLoaded(e);
         SubscribeToGlobalSizeChanges();
+        SubscribeToCultureChanges();
         ApplySizeToHeader(Flowery.Controls.FlowerySizeManager.CurrentSize);
+        UpdateTitleText();
     }
 
     protected override void OnUnloaded(RoutedEventArgs e)
     {
         base.OnUnloaded(e);
         UnsubscribeFromGlobalSizeChanges();
+        UnsubscribeFromCultureChanges();
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property == TitleProperty)
-        {
-            var textBlock = this.FindControl<TextBlock>("TitleText");
-            if (textBlock != null)
-                textBlock.Text = Title;
-        }
+        if (change.Property == TitleProperty || change.Property == SectionIdProperty)
+            UpdateTitleText();
+    }
+
+    private void UpdateTitleText()
+    {
+        var textBlock = this.FindControl<TextBlock>("TitleText");
+        if (textBlock != null)
+            textBlock.Text = GetDisplayTitle();
+    }
+
+    /// <summary>
+    /// Sections that match a sidebar entry show its translated name, followed by the control class
+    /// in parentheses when the entry represents a single control, e.g. "Tag-Auswahl (DaisyTagPicker)".
+    /// Other sections show <see cref="Title"/> unchanged.
+    /// </summary>
+    private string GetDisplayTitle()
+    {
+        if (GallerySidebarData.FindItem(SectionId) is not { } item)
+            return Title;
+
+        var name = item.DisplayName;
+        return item.ControlName is { Length: > 0 } controlName && !name.Contains(controlName, StringComparison.Ordinal)
+            ? $"{name} ({controlName})"
+            : name;
+    }
+
+    private void OnCultureChanged(object? sender, System.Globalization.CultureInfo culture)
+    {
+        UpdateTitleText();
     }
 
     /// <summary>
@@ -464,5 +494,23 @@ public partial class SectionHeader : UserControl
 
         Flowery.Controls.FlowerySizeManager.SizeChanged -= OnGlobalSizeChanged;
         _isSizeSubscriptionActive = false;
+    }
+
+    private void SubscribeToCultureChanges()
+    {
+        if (_isCultureSubscriptionActive)
+            return;
+
+        GalleryLocalization.CultureChanged += OnCultureChanged;
+        _isCultureSubscriptionActive = true;
+    }
+
+    private void UnsubscribeFromCultureChanges()
+    {
+        if (!_isCultureSubscriptionActive)
+            return;
+
+        GalleryLocalization.CultureChanged -= OnCultureChanged;
+        _isCultureSubscriptionActive = false;
     }
 }

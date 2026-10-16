@@ -417,11 +417,16 @@ namespace Flowery.NET.Tests
         [AvaloniaFact]
         public void When_KanbanChromeRealizes_ToolButtonsShareUnoMetricsAndCenterIcons()
         {
+            // Without saved boards, loading switches to Home and hides the board buttons;
+            // in-memory storage keeps the result independent of the machine's saved boards.
+            var previousStorage = StateStorageProvider.Instance;
+            StateStorageProvider.Configure(new InMemoryStateStorage());
             var kanban = CreateKanban(CreateColumn("Todo", CreateTask("Measured card")));
             var window = ShowKanban(kanban);
 
             try
             {
+                kanban.CurrentView = FlowKanbanView.Board;
                 kanban.EnableUndoRedo = true;
                 Dispatcher.UIThread.RunJobs();
                 kanban.UpdateLayout();
@@ -513,6 +518,7 @@ namespace Flowery.NET.Tests
             finally
             {
                 window.Close();
+                StateStorageProvider.Configure(previousStorage);
             }
         }
 

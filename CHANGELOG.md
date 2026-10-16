@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.6.2] - 2026-10-16
 
+### Changed
+
+- `SidebarItem` has an optional `ControlName`, and the `FloweryComponentSidebar` search matches it in addition to the translated name, ignoring case, spaces and punctuation (#55). In the German Gallery, "Tag-Auswahl", "DaisyTagPicker", "TagPicker" and "tag picker" all find the tag picker.
+- Gallery demo section headers show the translated sidebar name followed by the control class, e.g. `Tag-Auswahl (DaisyTagPicker)`, and update when the language changes (#55).
+
 ### Fixed
 
 - `DaisyColorPickerDialog` and `DaisyScreenColorPicker` are localized (#53). The dialog title, labels, OK/Cancel and the Undo/Redo tooltips and automation names, and the screen picker hint were hard-coded in English; they now use new `ColorPicker_*`, `Common_Ok` and `Common_Cancel` keys in all 12 languages. The screen picker redraws its hint when the language changes.
