@@ -6,6 +6,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.0] - 2026-10-17
+
+### Added
+
+- Four controls ported from Flowery.WinUI, with the same properties and events (#57):
+  - `DaisyCalendarDatePicker`: a `CalendarDatePicker` styled like `DaisyInput` (variants, sizes, `BorderRingBrush`), with the Daisy calendar icon and a `Date`/`DateChanged` API alongside `SelectedDate`.
+  - `DaisyBreadcrumbBar`: a breadcrumb trail from `ItemsSource` with chevrons, the last item as the current location, and an `ItemClicked` event. Leading items collapse into an ellipsis menu when the bar is too narrow.
+  - `DaisyResizableColumnsHost`: an `ItemsControl` whose columns share one `ColumnWidth`. A grip appears between columns on hover and resizes all of them; the keyboard works too. `MinColumnWidth`/`MaxColumnWidth` limit the width.
+  - `DaisyTooltip`: wraps content and shows `Tip` in a Daisy tooltip with `Variant`, `Placement` and `IsOpen`.
+- Gallery: sections and sidebar entries for the four controls (Data Input, Navigation, Layout, Feedback), searchable by class name, with sidebar names in all 12 languages.
+- Localization: `BreadcrumbBar_More` (the ellipsis button's name) in all 12 languages.
+
 ## [3.6.2] - 2026-10-16
 
 ### Changed

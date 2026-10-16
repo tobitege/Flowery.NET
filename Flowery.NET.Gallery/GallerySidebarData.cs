@@ -124,6 +124,7 @@ public static class GallerySidebarData
                     new SidebarItem { Id = "checkbox", Name = "Sidebar_Checkbox", ControlName = "DaisyCheckBox", TabHeader = "Sidebar_DataInput" },
                     new SidebarItem { Id = "file-input", Name = "Sidebar_FileInput", ControlName = "DaisyFileInput", TabHeader = "Sidebar_DataInput" },
                     new SidebarItem { Id = "input", Name = "Sidebar_Input", ControlName = "DaisyInput", TabHeader = "Sidebar_DataInput" },
+                    new SidebarItem { Id = "calendar-date-picker", Name = "Sidebar_CalendarDatePicker", ControlName = "DaisyCalendarDatePicker", TabHeader = "Sidebar_DataInput" },
                     new SidebarItem { Id = "mask-input", Name = "Sidebar_MaskInput", ControlName = "DaisyMaskInput", TabHeader = "Sidebar_DataInput" },
                     new SidebarItem { Id = "numericupdown", Name = "Sidebar_NumericUpDown", ControlName = "DaisyNumericUpDown", TabHeader = "Sidebar_DataInput" },
                     new SidebarItem { Id = "otpinput", Name = "Sidebar_OtpInput", ControlName = "DaisyOtpInput", TabHeader = "Sidebar_DataInput" },
@@ -157,7 +158,7 @@ public static class GallerySidebarData
                     new SidebarItem { Id = "radial-progress", Name = "Sidebar_RadialProgress", ControlName = "DaisyRadialProgress", TabHeader = "Sidebar_Feedback" },
                     new SidebarItem { Id = "skeleton", Name = "Sidebar_Skeleton", ControlName = "DaisySkeleton", TabHeader = "Sidebar_Feedback" },
                     new SidebarItem { Id = "toast", Name = "Sidebar_Toast", ControlName = "DaisyToast", TabHeader = "Sidebar_Feedback" },
-                    new SidebarItem { Id = "tooltip", Name = "Sidebar_Tooltip", TabHeader = "Sidebar_Feedback" }
+                    new SidebarItem { Id = "tooltip", Name = "Sidebar_Tooltip", ControlName = "DaisyTooltip", TabHeader = "Sidebar_Feedback" }
                 ]
             },
             new() {
@@ -171,6 +172,7 @@ public static class GallerySidebarData
                     new SidebarItem { Id = "join", Name = "Sidebar_Join", ControlName = "DaisyJoin", TabHeader = "Sidebar_Layout" },
                     new SidebarItem { Id = "mask", Name = "Sidebar_Mask", ControlName = "DaisyMask", TabHeader = "Sidebar_Layout" },
                     new SidebarItem { Id = "mockup", Name = "Sidebar_Mockup", ControlName = "DaisyMockup", TabHeader = "Sidebar_Layout" },
+                    new SidebarItem { Id = "resizablecolumns", Name = "Sidebar_ResizableColumns", ControlName = "DaisyResizableColumnsHost", TabHeader = "Sidebar_Layout" },
                     new SidebarItem { Id = "stack", Name = "Sidebar_Stack", ControlName = "DaisyStack", TabHeader = "Sidebar_Layout" }
                 ]
             },
@@ -180,6 +182,7 @@ public static class GallerySidebarData
                 Items =
                 [
                     new SidebarItem { Id = "breadcrumbs", Name = "Sidebar_Breadcrumbs", ControlName = "DaisyBreadcrumbs", TabHeader = "Sidebar_Navigation" },
+                    new SidebarItem { Id = "breadcrumbbar", Name = "Sidebar_BreadcrumbBar", ControlName = "DaisyBreadcrumbBar", TabHeader = "Sidebar_Navigation" },
                     new SidebarItem { Id = "dock", Name = "Sidebar_Dock", ControlName = "DaisyDock", TabHeader = "Sidebar_Navigation" },
                     new SidebarItem { Id = "menu", Name = "Sidebar_Menu", ControlName = "DaisyMenu", TabHeader = "Sidebar_Navigation" },
                     new SidebarItem { Id = "navbar", Name = "Sidebar_Navbar", ControlName = "DaisyNavbar", TabHeader = "Sidebar_Navigation" },

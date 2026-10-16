@@ -134,6 +134,32 @@
 
                 <controls:DaisyDivider />
 
+                <!-- Calendar Date Picker -->
+                <StackPanel Spacing="12">
+                    <local:SectionHeader SectionId="calendar-date-picker" Title="Calendar Date Picker" />
+                    <TextBlock Text="CalendarDatePicker styled like DaisyInput, with the native calendar popup."
+                               Opacity="0.7" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                    <WrapPanel Orientation="Horizontal">
+                        <StackPanel Spacing="10" Width="260" Margin="0,0,40,20">
+                            <TextBlock Text="Variants" FontWeight="SemiBold" Opacity="0.8" />
+                            <controls:DaisyCalendarDatePicker PlaceholderText="Bordered (default)" Variant="Bordered" HorizontalAlignment="Stretch" />
+                            <controls:DaisyCalendarDatePicker PlaceholderText="Ghost" Variant="Ghost" HorizontalAlignment="Stretch" />
+                            <controls:DaisyCalendarDatePicker PlaceholderText="Filled" Variant="Filled" HorizontalAlignment="Stretch" />
+                            <controls:DaisyCalendarDatePicker PlaceholderText="Primary" Variant="Primary" HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                        <StackPanel Spacing="10" Width="260" Margin="0,0,40,20"
+                                    controls:FlowerySizeManager.IgnoreGlobalSize="True">
+                            <TextBlock Text="Sizes" FontWeight="SemiBold" Opacity="0.8" />
+                            <controls:DaisyCalendarDatePicker Size="ExtraSmall" PlaceholderText="Extra Small" HorizontalAlignment="Stretch" />
+                            <controls:DaisyCalendarDatePicker Size="Small" PlaceholderText="Small" HorizontalAlignment="Stretch" />
+                            <controls:DaisyCalendarDatePicker Size="Medium" PlaceholderText="Medium (default)" HorizontalAlignment="Stretch" />
+                            <controls:DaisyCalendarDatePicker Size="Large" PlaceholderText="Large" HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                    </WrapPanel>
+                </StackPanel>
+
+                <controls:DaisyDivider />
+
                 <!-- Mask Input -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="mask-input" Title="Mask Input" />

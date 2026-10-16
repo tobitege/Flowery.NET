@@ -42,6 +42,7 @@ public partial class SectionHeader : UserControl
         ["checkbox"] = "DaisyCheckBox",
         ["fileinput"] = "DaisyFileInput",
         ["input"] = "DaisyInput",
+        ["calendardatepicker"] = "DaisyCalendarDatePicker",
         ["otpinput"] = "DaisyOtpInput",
         ["tagpicker"] = "DaisyTagPicker",
         ["maskinput"] = "DaisyMaskInput",
@@ -60,6 +61,7 @@ public partial class SectionHeader : UserControl
         ["progress"] = "DaisyProgress",
         ["skeleton"] = "DaisySkeleton",
         ["toast"] = "DaisyToast",
+        ["tooltip"] = "DaisyTooltip",
 
         // Data Display
         ["accordion"] = "DaisyAccordion",
@@ -84,6 +86,7 @@ public partial class SectionHeader : UserControl
 
         // Navigation
         ["breadcrumbs"] = "DaisyBreadcrumbs",
+        ["breadcrumbbar"] = "DaisyBreadcrumbBar",
         ["dock"] = "DaisyDock",
         ["drawer"] = "DaisyDrawer",
         ["menu"] = "DaisyMenu",
@@ -101,6 +104,7 @@ public partial class SectionHeader : UserControl
         ["hero"] = "DaisyHero",
         ["join"] = "DaisyJoin",
         ["mockup"] = "DaisyMockup",
+        ["resizablecolumns"] = "DaisyResizableColumnsHost",
         ["hovergallery"] = "DaisyHoverGallery",
         ["glass"] = "DaisyGlass",
         ["daisyglassliquid"] = "DaisyGlass",

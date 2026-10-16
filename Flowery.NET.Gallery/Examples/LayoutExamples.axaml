@@ -332,6 +332,50 @@
 
             <controls:DaisyDivider />
 
+            <!-- Resizable Columns Host -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="resizablecolumns" Title="Resizable Columns Host" />
+                <TextBlock Text="A multi-column host with a shared resize grip between columns. All columns share one width within min/max limits. With keyboard focus, the arrow keys, Page Up/Down, Home and End resize the columns."
+                           Opacity="0.7" TextWrapping="Wrap" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                <controls:DaisyResizableColumnsHost x:Name="DemoResizableHost"
+                                                    ColumnWidth="200"
+                                                    MinColumnWidth="120"
+                                                    MaxColumnWidth="400"
+                                                    ColumnSpacing="16"
+                                                    Height="200">
+                    <Border Width="{Binding #DemoResizableHost.ColumnWidth}"
+                            Background="{DynamicResource DaisyBase200Brush}"
+                            BorderBrush="{DynamicResource DaisyBase300Brush}"
+                            BorderThickness="1" CornerRadius="8" Padding="12">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Column 1" FontWeight="Bold" />
+                            <TextBlock Text="Hover the gap on the right to resize." Opacity="0.7" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                    <Border Width="{Binding #DemoResizableHost.ColumnWidth}"
+                            Background="{DynamicResource DaisyBase200Brush}"
+                            BorderBrush="{DynamicResource DaisyBase300Brush}"
+                            BorderThickness="1" CornerRadius="8" Padding="12">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Column 2" FontWeight="Bold" />
+                            <TextBlock Text="Resizing this column resizes all others." Opacity="0.7" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                    <Border Width="{Binding #DemoResizableHost.ColumnWidth}"
+                            Background="{DynamicResource DaisyBase200Brush}"
+                            BorderBrush="{DynamicResource DaisyBase300Brush}"
+                            BorderThickness="1" CornerRadius="8" Padding="12">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Column 3" FontWeight="Bold" />
+                            <TextBlock Text="Shared width logic." Opacity="0.7" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                </controls:DaisyResizableColumnsHost>
+                <TextBlock Text="{Binding #DemoResizableHost.ColumnWidth, StringFormat='Column width: {0:0} px'}" Opacity="0.7" />
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
             <!-- Stack -->
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="stack" Title="Stack" />

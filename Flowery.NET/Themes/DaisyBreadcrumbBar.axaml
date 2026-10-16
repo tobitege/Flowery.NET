@@ -1,0 +1,122 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+
+    <ControlTheme x:Key="{x:Type controls:DaisyBreadcrumbBarItem}" TargetType="controls:DaisyBreadcrumbBarItem">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="2,1" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Name="PART_Border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="Transparent"
+                            BorderThickness="1"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <Panel>
+                            <ContentPresenter Name="PART_ContentPresenter"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              Foreground="{TemplateBinding Foreground}"
+                                              VerticalAlignment="Center"
+                                              IsVisible="{TemplateBinding IsEllipsis, Converter={x:Static BoolConverters.Not}}" />
+                            <PathIcon Name="PART_EllipsisIcon"
+                                      Data="{StaticResource DaisyIconDotsHorizontal}"
+                                      Width="{TemplateBinding FontSize}"
+                                      Height="{TemplateBinding FontSize}"
+                                      Foreground="{TemplateBinding Foreground}"
+                                      VerticalAlignment="Center"
+                                      IsVisible="{TemplateBinding IsEllipsis}" />
+                        </Panel>
+                    </Border>
+                    <PathIcon Name="PART_Chevron"
+                              Data="{StaticResource DaisyIconChevronRight}"
+                              Width="{TemplateBinding FontSize}"
+                              Height="{TemplateBinding FontSize}"
+                              Margin="4,0"
+                              Foreground="{DynamicResource DaisyBaseContentSubtleBrush}"
+                              VerticalAlignment="Center"
+                              IsVisible="{TemplateBinding IsCurrent, Converter={x:Static BoolConverters.Not}}" />
+                </StackPanel>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryFocusBrush}" />
+        </Style>
+        <Style Selector="^:pressed">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryFocusBrush}" />
+        </Style>
+        <Style Selector="^:focus-visible /template/ Border#PART_Border">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="0.6" />
+        </Style>
+
+        <!-- The last item marks the current location -->
+        <Style Selector="^[IsCurrent=True]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+            <Setter Property="Cursor" Value="Arrow" />
+        </Style>
+        <Style Selector="^[IsCurrent=True]:pointerover, ^[IsCurrent=True]:pressed">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        </Style>
+
+        <!-- The ellipsis button reads as a neutral control, not a link -->
+        <Style Selector="^[IsEllipsis=True]">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+            <Setter Property="Padding" Value="4,1" />
+        </Style>
+        <Style Selector="^[IsEllipsis=True]:pointerover">
+            <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        </Style>
+        <Style Selector="^[IsEllipsis=True]:pressed">
+            <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type controls:DaisyBreadcrumbBar}" TargetType="controls:DaisyBreadcrumbBar">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Padding="{TemplateBinding Padding}">
+                    <controls:DaisyBreadcrumbBarPanel Name="PART_ItemsPanel"
+                                                      HorizontalAlignment="Left" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^[Size=ExtraSmall]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Small]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Large]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+        </Style>
+    </ControlTheme>
+
+</ResourceDictionary>

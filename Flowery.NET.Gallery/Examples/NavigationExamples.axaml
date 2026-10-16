@@ -83,6 +83,34 @@
 
                 <controls:DaisyDivider />
 
+                <!-- Breadcrumb Bar -->
+                <StackPanel Spacing="12">
+                    <local:SectionHeader SectionId="breadcrumbbar" Title="Breadcrumb Bar" />
+                    <TextBlock Text="Breadcrumb trail from an ItemsSource. Leading items collapse into an ellipsis menu when space runs out."
+                               Opacity="0.7" TextWrapping="Wrap" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Default" FontWeight="SemiBold" Opacity="0.8" />
+                        <controls:DaisyBreadcrumbBar x:Name="DefaultBreadcrumbBar" ItemClicked="OnBreadcrumbBarItemClicked">
+                        </controls:DaisyBreadcrumbBar>
+
+                        <TextBlock Text="Small" FontWeight="SemiBold" Opacity="0.8" Margin="0,6,0,0" />
+                        <controls:DaisyBreadcrumbBar x:Name="SmallBreadcrumbBar" Size="Small" controls:FlowerySizeManager.IgnoreGlobalSize="True"
+                                                     ItemClicked="OnBreadcrumbBarItemClicked">
+                        </controls:DaisyBreadcrumbBar>
+
+                        <TextBlock Text="Collapsed (280 px wide)" FontWeight="SemiBold" Opacity="0.8" Margin="0,6,0,0" />
+                        <Border Width="280" HorizontalAlignment="Left" Padding="8,4"
+                                Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8">
+                            <controls:DaisyBreadcrumbBar x:Name="CollapsedBreadcrumbBar" ItemClicked="OnBreadcrumbBarItemClicked">
+                            </controls:DaisyBreadcrumbBar>
+                        </Border>
+
+                        <TextBlock x:Name="BreadcrumbBarClickedText" Text="Click an item." Opacity="0.7" Margin="0,6,0,0" />
+                    </StackPanel>
+                </StackPanel>
+
+                <controls:DaisyDivider />
+
                 <!-- Dock -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="dock" Title="Dock" />

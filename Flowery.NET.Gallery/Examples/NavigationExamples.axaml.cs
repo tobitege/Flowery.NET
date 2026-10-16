@@ -26,6 +26,19 @@ public partial class NavigationExamples : UserControl, IScrollableExample
         InitializeComponent();
         InitializePhotoTab();
         InitializeHeaderButtons();
+        InitializeBreadcrumbBars();
+    }
+
+    private void InitializeBreadcrumbBars()
+    {
+        DefaultBreadcrumbBar.ItemsSource = new[] { "Home", "Documents", "Reports", "2026" };
+        SmallBreadcrumbBar.ItemsSource = new[] { "Home", "Documents", "Reports" };
+        CollapsedBreadcrumbBar.ItemsSource = new[] { "Home", "Projects", "Flowery", "Controls", "Navigation", "Breadcrumb Bar" };
+    }
+
+    private void OnBreadcrumbBarItemClicked(object? sender, DaisyBreadcrumbBarItemClickedEventArgs e)
+    {
+        BreadcrumbBarClickedText.Text = $"Clicked: {e.Item} (index {e.Index})";
     }
 
     private void InitializeHeaderButtons()

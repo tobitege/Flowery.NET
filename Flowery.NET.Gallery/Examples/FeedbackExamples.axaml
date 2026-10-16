@@ -138,6 +138,7 @@
                 <local:SectionHeader SectionId="tooltip" Title="Tooltip" />
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="ToolTip with classes" FontWeight="SemiBold" Opacity="0.8" />
                         <Button Content="Hover me (Default)" ToolTip.Tip="I am a tooltip" />
                         <Button Content="Hover me (Primary)">
                             <ToolTip.Tip>
@@ -154,6 +155,21 @@
                                 <ToolTip Classes="accent" Content="Accent Tooltip" />
                             </ToolTip.Tip>
                         </Button>
+                    </StackPanel>
+                    <StackPanel Spacing="10" Margin="0,0,40,20">
+                        <TextBlock Text="DaisyTooltip" FontWeight="SemiBold" Opacity="0.8" />
+                        <controls:DaisyTooltip Tip="Default tooltip">
+                            <Button Content="Hover me (Default)" />
+                        </controls:DaisyTooltip>
+                        <controls:DaisyTooltip Tip="Primary tooltip" Variant="Primary">
+                            <Button Content="Hover me (Primary)" />
+                        </controls:DaisyTooltip>
+                        <controls:DaisyTooltip Tip="Success, shown below" Variant="Success" Placement="Bottom">
+                            <Button Content="Hover me (Success, bottom)" />
+                        </controls:DaisyTooltip>
+                        <controls:DaisyTooltip Tip="Error, shown to the right" Variant="Error" Placement="Right">
+                            <Button Content="Hover me (Error, right)" />
+                        </controls:DaisyTooltip>
                     </StackPanel>
                 </WrapPanel>
             </StackPanel>
