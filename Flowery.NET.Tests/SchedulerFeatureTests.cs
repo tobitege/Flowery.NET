@@ -10,6 +10,7 @@ using Flowery.Controls.Scheduler.Contracts;
 using Flowery.Controls.Scheduler.Models;
 using Flowery.Controls.Scheduler.Rendering;
 using Flowery.Localization;
+using System.Globalization;
 using Xunit;
 
 namespace Flowery.NET.Tests;
@@ -17,14 +18,16 @@ namespace Flowery.NET.Tests;
 public sealed partial class SchedulerTests
 {
     [AvaloniaTheory]
-    [InlineData(SchedulerDateTimeFormat.US, SchedulerClockFormat.Locale, "9:00 AM", "10/12/2026")]
-    [InlineData(SchedulerDateTimeFormat.UK, SchedulerClockFormat.Locale, "09:00", "12/10/2026")]
-    [InlineData(SchedulerDateTimeFormat.European, SchedulerClockFormat.Locale, "09:00", "12.10.2026")]
-    [InlineData(SchedulerDateTimeFormat.US, SchedulerClockFormat.TwentyFourHour, "09:00", "10/12/2026")]
-    [InlineData(SchedulerDateTimeFormat.European, SchedulerClockFormat.TwelveHour, "9:00 AM", "12.10.2026")]
+    [InlineData(SchedulerDateTimeFormat.US, SchedulerClockFormat.Locale, "t", "en-US", "10/12/2026")]
+    [InlineData(SchedulerDateTimeFormat.UK, SchedulerClockFormat.Locale, "t", "en-GB", "12/10/2026")]
+    [InlineData(SchedulerDateTimeFormat.European, SchedulerClockFormat.Locale, "t", "de-DE", "12.10.2026")]
+    [InlineData(SchedulerDateTimeFormat.US, SchedulerClockFormat.TwentyFourHour, "HH:mm", "en-US", "10/12/2026")]
+    [InlineData(SchedulerDateTimeFormat.European, SchedulerClockFormat.TwelveHour, "h:mm tt", "de-DE", "12.10.2026")]
     public void FormatOverridesRefreshAttachedAppointmentAndTooltipWithoutChangingUiLanguage(
-        SchedulerDateTimeFormat format, SchedulerClockFormat clock, string time, string date)
+        SchedulerDateTimeFormat format, SchedulerClockFormat clock, string timePattern, string cultureName, string date)
     {
+        // Locale formatting follows the runtime's culture data, including ICU/NLS spacing.
+        var time = Monday.AddHours(9).ToString(timePattern, CultureInfo.GetCultureInfo(cultureName));
         using var scope = new SchedulerScope(SchedulerView.Day);
         var previousCulture = FloweryLocalization.CurrentCulture;
         scope.Scheduler.DateTimeFormat = format;

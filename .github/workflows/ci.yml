@@ -1,6 +1,6 @@
 name: CI Build
 
-# Builds on every commit to verify everything compiles
+# Builds and runs the headless tests on every commit and pull request
 # Does NOT publish anything - just verification
 
 on:
@@ -26,18 +26,28 @@ permissions:
 jobs:
   build-library:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: '8.0.x'
+          global-json-file: global.json
 
       - name: Build Library
-        run: dotnet build Flowery.NET/Flowery.NET.csproj -c Release
+        run: dotnet build Flowery.NET/Flowery.NET.csproj -c ${{ matrix.configuration }}
 
-      - name: Build Tests
-        run: dotnet build Flowery.NET.Tests/Flowery.NET.Tests.csproj -c Release
+      - name: Run Tests
+        run: dotnet test Flowery.NET.Tests/Flowery.NET.Tests.csproj -c ${{ matrix.configuration }}
+
+      - name: Generate documentation for the generated-site tests
+        run: python3 Utils/generate_docs.py
+
+      - name: Run documentation tests
+        run: python3 -B -m unittest discover -s Utils -p test_documentation.py
 
   build-gallery:
     strategy:
@@ -53,7 +63,7 @@ jobs:
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: '9.0.x'
+          global-json-file: global.json
 
       - name: Build Gallery Desktop
         shell: bash
