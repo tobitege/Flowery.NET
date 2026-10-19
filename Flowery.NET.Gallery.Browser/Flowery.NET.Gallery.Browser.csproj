@@ -12,6 +12,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia.Browser" Version="12.1.0" />
+        <PackageReference Include="Avalonia.Browser" Version="12.1.4" />
     </ItemGroup>
 </Project>

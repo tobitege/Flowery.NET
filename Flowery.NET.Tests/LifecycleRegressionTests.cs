@@ -56,6 +56,8 @@ public class LifecycleRegressionTests
         Flush(window);
         window.Close();
         Dispatcher.UIThread.RunJobs();
+        // Release the closed window's pending composition batch before the GC assertion.
+        Avalonia.Headless.AvaloniaHeadlessPlatform.ForceRenderTimerTick();
         return [new(text), new(button), new(sidebar), new(category), new(item)];
     }
 
