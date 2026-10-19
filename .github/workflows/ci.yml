@@ -43,6 +43,9 @@ jobs:
       - name: Run Tests
         run: dotnet test Flowery.NET.Tests/Flowery.NET.Tests.csproj -c ${{ matrix.configuration }}
 
+      - name: Generate documentation for the generated-site tests
+        run: python3 Utils/generate_docs.py
+
       - name: Run documentation tests
         run: python3 -B -m unittest discover -s Utils -p test_documentation.py
 
