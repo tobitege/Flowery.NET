@@ -6,6 +6,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.8.0] - 2026-10-19
+
+### Changed
+
+- Updated all Avalonia packages to 12.1.4 across the library, Gallery platforms, and test projects (#68).
+- Updated `Microsoft.Extensions.DependencyInjection.Abstractions` to 10.0.13 (#66).
+- Updated AndroidX SplashScreen to 1.2.0.3 and AppCompat to 1.7.1.4 (#67, #69).
+- Updated `Microsoft.NET.Test.Sdk` to 18.11.0, `xunit.runner.visualstudio` to 4.0.1, and `coverlet.collector` to 10.1.0 (#62, #64, #65).
+- CI runs the full library test suite in Debug and Release, then generates documentation before its route checks (#60).
+
+### Security
+
+- Dependabot checks NuGet and GitHub Actions weekly, covers the native test project, and groups Avalonia updates (#60).
+- CI audits direct and transitive NuGet dependencies in all C# projects. The default branch submits the resolved dependency graph to GitHub (#60).
+- Updated the NuGet Trusted Publishing login action to 1.2.0 (#60).
+
+### Fixed
+
+- Scheduler format tests use runtime culture data on Windows and Linux (#60).
+- Lifecycle GC tests process pending headless rendering teardown before checking weak references (#68).
+
 ## [3.7.0] - 2026-10-17
 
 ### Added
