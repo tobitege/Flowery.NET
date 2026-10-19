@@ -20,6 +20,8 @@
 
     <ItemGroup>
         <PackageReference Include="Avalonia.Android" Version="12.1.0" />
+        <!-- Match the AppCompatResources version required by SplashScreen. -->
+        <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.7.1.4" />
         <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.2.0.3" />
     </ItemGroup>
 
