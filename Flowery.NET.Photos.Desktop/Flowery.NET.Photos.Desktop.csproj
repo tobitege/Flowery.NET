@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Flowery.NET.Photos\Flowery.NET.Photos.csproj" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <PackageReference Include="Chrome.DevTools.Avalonia" Version="0.1.0" PrivateAssets="all" />
+    <!-- CDP's SQLite dependency must not select the vulnerable 2.1.11 native library. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.14" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

@@ -1,6 +1,9 @@
 # Flowery.NET Build & Run Scripts
 
-PowerShell scripts for building and running the multi-platform Flowery.NET.Gallery application.
+PowerShell scripts for building and running the Flowery.NET demo applications.
+Both `build_all.ps1` and `build_desktop.ps1` include the Photos desktop app.
+The full script also builds Photos tests.
+The desktop script includes those tests with `-IncludeTests`.
 
 ## Understanding .NET Workloads
 

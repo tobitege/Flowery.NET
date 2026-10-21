@@ -1,0 +1,17 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Flowery.NET.Photos.Views.PhotoTile">
+  <Border x:Name="Frame" CornerRadius="8" ClipToBounds="True" BorderThickness="2"
+          BorderBrush="Transparent" Background="{DynamicResource DaisyBase200Brush}">
+    <Grid>
+      <Image x:Name="Photo" Stretch="UniformToFill" />
+      <Border VerticalAlignment="Bottom" Background="#99000000" Padding="8,5">
+        <TextBlock x:Name="NameLabel" Foreground="White" TextTrimming="CharacterEllipsis" />
+      </Border>
+      <CheckBox x:Name="Selection" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6"
+                IsHitTestVisible="False" />
+      <TextBlock x:Name="Heart" Text="♥" Foreground="White" FontSize="22" Margin="8"
+                 HorizontalAlignment="Left" VerticalAlignment="Top" />
+    </Grid>
+  </Border>
+</UserControl>

@@ -1,0 +1,69 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:l="using:Flowery.NET.Photos.Localization"
+             xmlns:local="using:Flowery.NET.Photos.Views"
+             x:Class="Flowery.NET.Photos.Views.PhotosShell" x:DataType="l:PhotosLocalization"
+             AutomationProperties.AutomationId="Photos.Shell">
+  <UserControl.Resources>
+    <StreamGeometry x:Key="PhotosIconCamera">M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z</StreamGeometry>
+    <StreamGeometry x:Key="PhotosIconFolder">M10,4H4C2.89,4,2,4.89,2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89,21.1,6,20,6H12L10,4Z</StreamGeometry>
+    <StreamGeometry x:Key="PhotosIconHome">M12,5.69L17,10.19V18H15V12H9V18H7V10.19L12,5.69M12,3L2,12H5V20H11V14H13V20H19V12H22L12,3Z</StreamGeometry>
+    <StreamGeometry x:Key="PhotosIconGallery">M22,16V4A2,2 0 0,0 20,2H8A2,2 0 0,0 6,4V16A2,2 0 0,0 8,18H20A2,2 0 0,0 22,16M11,12L13.03,14.71L16,11L20,16H8M2,6V20A2,2 0 0,0 4,22H18V20H4V6</StreamGeometry>
+    <StreamGeometry x:Key="PhotosIconHeartOutline">M12.1,18.55L12,18.65L11.89,18.55C7.14,14.24 4,11.39 4,8.5C4,6.5 5.5,5 7.5,5C9.04,5 10.54,6 11.07,7.36H12.93C13.46,6 14.96,5 16.5,5C18.5,5 20,6.5 20,8.5C20,11.39 16.86,14.24 12.1,18.55M16.5,3C14.76,3 13.09,3.81 12,5.08C10.91,3.81 9.24,3 7.5,3C4.42,3 2,5.41 2,8.5C2,12.27 5.4,15.36 10.55,20.03L12,21.35L13.45,20.03C18.6,15.36 22,12.27 22,8.5C22,5.41 19.58,3 16.5,3Z</StreamGeometry>
+    <StreamGeometry x:Key="PhotosIconAlbum">M18,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V4A2,2 0 0,0 18,2M18,20H6V4H7V12L9.5,10.5L12,12V4H18V20Z</StreamGeometry>
+  </UserControl.Resources>
+  <Grid RowDefinitions="Auto,*,Auto" Background="{DynamicResource DaisyBase100Brush}">
+    <Grid x:Name="AppHeader" Margin="64,4,16,12">
+      <TextBox AutomationProperties.AutomationId="PhotosShell.Search" AutomationProperties.Name="{Binding [Photos_SearchPlaceholder]}" x:Name="Search" MaxWidth="480" PlaceholderText="{Binding [Photos_SearchPlaceholder]}" />
+    </Grid>
+    <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+      <Border x:Name="NavigationRail" Width="64" BorderBrush="{DynamicResource DaisyBase300Brush}" BorderThickness="0,0,1,0">
+        <Grid RowDefinitions="*,Auto">
+          <StackPanel x:Name="NavigationButtons" Spacing="8" Margin="0,8">
+            <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.Home" AutomationProperties.Name="{Binding [Photos_Nav_Home]}" ToolTip.Tip="{Binding [Photos_Nav_Home]}" Classes="rail" IconData="{StaticResource PhotosIconHome}" Tag="Home" Click="NavigateClick" />
+            <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.Gallery" AutomationProperties.Name="{Binding [Photos_Nav_Gallery]}" ToolTip.Tip="{Binding [Photos_Nav_Gallery]}" Classes="rail" IconData="{StaticResource PhotosIconGallery}" Tag="Gallery" Click="NavigateClick" />
+            <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.Favorites" AutomationProperties.Name="{Binding [Photos_Nav_Favorites]}" ToolTip.Tip="{Binding [Photos_Nav_Favorites]}" Classes="rail" IconData="{StaticResource PhotosIconHeartOutline}" Tag="Favorites" Click="NavigateClick" />
+            <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.Albums" AutomationProperties.Name="{Binding [Photos_Nav_Albums]}" ToolTip.Tip="{Binding [Photos_Nav_Albums]}" Classes="rail" IconData="{StaticResource PhotosIconAlbum}" Tag="Albums" Click="NavigateClick" />
+            <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.Folders" AutomationProperties.Name="{Binding [Photos_Nav_Folders]}" ToolTip.Tip="{Binding [Photos_Nav_Folders]}" Classes="rail" IconSymbol="Folder" Tag="Folders" Click="NavigateClick" />
+          </StackPanel>
+          <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.Photos_Nav_Settings" AutomationProperties.Name="{Binding [Photos_Nav_Settings]}" ToolTip.Tip="{Binding [Photos_Nav_Settings]}" Grid.Row="1" Classes="rail" IconSymbol="Setting" Click="SettingsClick" Margin="0,8,0,12" />
+        </Grid>
+      </Border>
+      <Grid Grid.Column="1" Margin="16,0,16,8">
+        <ScrollViewer x:Name="HomeScroll" Padding="8,12,8,24">
+          <StackPanel x:Name="Home" Spacing="24" />
+        </ScrollViewer>
+        <local:GalleryView x:Name="Gallery" IsVisible="False" />
+        <ScrollViewer x:Name="CollectionsScroll" IsVisible="False" Padding="8,12,8,24">
+          <StackPanel Spacing="16">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+              <StackPanel Orientation="Horizontal" Spacing="16">
+                <TextBlock x:Name="CollectionTitle" Classes="heading" />
+                <TextBlock x:Name="CollectionCount" Opacity="0.65" VerticalAlignment="Center" />
+              </StackPanel>
+              <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.NewAlbum" AutomationProperties.Name="{Binding [Photos_NewAlbum]}" x:Name="NewAlbum" Grid.Column="1" Content="{Binding [Photos_NewAlbum]}" IconSymbol="Add" Click="NewAlbumClick" />
+              <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.AddCollectionFolder" AutomationProperties.Name="{Binding [Photos_AddFolder]}" x:Name="AddCollectionFolder" Grid.Column="2" Content="{Binding [Photos_AddFolder]}" IconSymbol="Folder" Click="AddCollectionFolderClick" />
+            </Grid>
+            <WrapPanel x:Name="Collections" />
+            <StackPanel x:Name="CollectionEmpty" Spacing="12" Margin="24,70" HorizontalAlignment="Center" MaxWidth="420">
+              <TextBlock x:Name="CollectionEmptyTitle" Classes="heading" TextWrapping="Wrap" TextAlignment="Center" />
+              <TextBlock x:Name="CollectionEmptyText" TextWrapping="Wrap" TextAlignment="Center" Opacity="0.7" />
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+        <local:ViewerView x:Name="Viewer" IsVisible="False" />
+      </Grid>
+    </Grid>
+    <Border x:Name="AppStatus" Grid.Row="2" Background="{DynamicResource DaisyBase200Brush}" Padding="12,8">
+      <WrapPanel>
+        <TextBlock x:Name="Status" VerticalAlignment="Center" Margin="0,0,12,0" />
+        <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.BatchFavorite" AutomationProperties.Name="{Binding [Photos_Favorite]}" x:Name="BatchFavorite" Content="{Binding [Photos_Favorite]}" Click="FavoriteClick" IsVisible="False" Margin="0,0,8,0" />
+        <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.BatchAlbum" AutomationProperties.Name="{Binding [Photos_AddToAlbum]}" x:Name="BatchAlbum" Content="{Binding [Photos_AddToAlbum]}" Click="AlbumClick" IsVisible="False" Margin="0,0,8,0" />
+        <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.BatchCopy" AutomationProperties.Name="{Binding [Photos_Copy]}" x:Name="BatchCopy" Content="{Binding [Photos_Copy]}" Click="CopyClick" IsVisible="False" Margin="0,0,8,0" />
+        <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.BatchDelete" AutomationProperties.Name="{Binding [Photos_Delete]}" x:Name="BatchDelete" Content="{Binding [Photos_Delete]}" Variant="Error" Click="DeleteClick" IsVisible="False" Margin="0,0,8,0" />
+        <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.ClearSelection" AutomationProperties.Name="{Binding [Photos_ClearSelection]}" x:Name="ClearSelection" Content="{Binding [Photos_ClearSelection]}" Variant="Neutral" Click="ClearSelectionClick" IsVisible="False" />
+      </WrapPanel>
+    </Border>
+  </Grid>
+</UserControl>

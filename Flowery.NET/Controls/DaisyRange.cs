@@ -1,7 +1,10 @@
-using System;
+﻿using System;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using Flowery.Localization;
 using Flowery.Services;
 
 namespace Flowery.Controls
@@ -27,6 +30,58 @@ namespace Flowery.Controls
         protected override Type StyleKeyOverride => typeof(DaisyRange);
 
         private const double BaseTextFontSize = 12.0;
+        private RepeatButton? _increaseButton;
+        private RepeatButton? _decreaseButton;
+
+        protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+        {
+            base.OnApplyTemplate(e);
+            _increaseButton = e.NameScope.Find<RepeatButton>("PART_IncreaseButton");
+            _decreaseButton = e.NameScope.Find<RepeatButton>("PART_DecreaseButton");
+            UpdateAutomationParts();
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            FloweryLocalization.CultureChanged += OnCultureChanged;
+            UpdateAutomationParts();
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            FloweryLocalization.CultureChanged -= OnCultureChanged;
+            base.OnDetachedFromVisualTree(e);
+        }
+
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            base.OnPropertyChanged(change);
+            if (change.Property == AutomationProperties.NameProperty || change.Property == AutomationProperties.AutomationIdProperty)
+                UpdateAutomationParts();
+        }
+
+        private void OnCultureChanged(object? sender, System.Globalization.CultureInfo culture)
+        {
+            if (Avalonia.Threading.Dispatcher.UIThread.CheckAccess()) UpdateAutomationParts();
+            else Avalonia.Threading.Dispatcher.UIThread.Post(UpdateAutomationParts);
+        }
+
+        private void UpdateAutomationParts()
+        {
+            var name = AutomationProperties.GetName(this) ?? string.Empty;
+            var id = AutomationProperties.GetAutomationId(this) ?? nameof(DaisyRange);
+            SetPart(_increaseButton, "Accessibility_IncreaseValue", name, id + ".Increase");
+            SetPart(_decreaseButton, "Accessibility_DecreaseValue", name, id + ".Decrease");
+        }
+
+        private static void SetPart(RepeatButton? button, string key, string name, string id)
+        {
+            if (button == null) return;
+            AutomationProperties.SetName(button, string.Format(FloweryLocalization.CurrentCulture,
+                FloweryLocalization.GetString(key), name).Trim());
+            AutomationProperties.SetAutomationId(button, id);
+        }
 
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)

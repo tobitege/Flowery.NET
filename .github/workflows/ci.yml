@@ -24,6 +24,23 @@ permissions:
   contents: read
 
 jobs:
+  build-photos:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025-vs2026, ubuntu-24.04, macos-15]
+        configuration: [Debug, Release]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Build Photos Desktop
+        run: dotnet build Flowery.NET.Photos.Desktop/Flowery.NET.Photos.Desktop.csproj -c ${{ matrix.configuration }}
+      - name: Run Photos tests
+        run: dotnet test Flowery.NET.Photos.Tests/Flowery.NET.Photos.Tests.csproj -c ${{ matrix.configuration }}
+
   build-library:
     runs-on: ubuntu-24.04
     strategy:

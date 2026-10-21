@@ -407,6 +407,16 @@ dotnet build Flowery.NET.Gallery.Android -f net10.0-android36.0
 
 ---
 
+## Flowery Photos
+
+[Flowery Photos](Flowery.NET.Photos/README.md) is a desktop photo viewer and editor built with Avalonia 12, Daisy controls, and SkiaSharp.
+It includes a folder library, albums, favorites, a virtualized gallery, and non-destructive image edits.
+Themes, control sizes, and all twelve languages change at runtime.
+
+```powershell
+dotnet run --project Flowery.NET.Photos.Desktop
+```
+
 ## Build & Run Scripts (PowerShell)
 
 The `scripts/` folder contains PowerShell helpers for common build and run workflows:

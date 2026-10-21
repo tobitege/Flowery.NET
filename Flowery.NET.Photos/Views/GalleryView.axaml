@@ -1,0 +1,54 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:l="using:Flowery.NET.Photos.Localization"
+             x:Class="Flowery.NET.Photos.Views.GalleryView" x:DataType="l:PhotosLocalization"
+             AutomationProperties.AutomationId="Photos.Gallery">
+  <Grid RowDefinitions="Auto,*" Margin="8,12,0,0">
+    <WrapPanel Margin="0,0,0,12">
+      <c:DaisyButton x:Name="Back" AutomationProperties.AutomationId="GalleryView.Back" AutomationProperties.Name="{Binding [Photos_Back]}" ToolTip.Tip="{Binding [Photos_Back]}" IconSymbol="Back" Classes="toolbar-icon" Click="BackClick" IsVisible="False" />
+      <TextBlock x:Name="PageTitle" Classes="heading" Margin="0,0,18,6" />
+      <Border x:Name="DateChipFrame" BorderBrush="{DynamicResource DaisyBase300Brush}" BorderThickness="1" CornerRadius="18" Padding="12,6" Margin="0,0,10,6">
+        <TextBlock x:Name="DateChip" VerticalAlignment="Center" />
+      </Border>
+      <TextBlock x:Name="CountLabel" VerticalAlignment="Center" Margin="0,0,12,6" />
+      <c:DaisyButton AutomationProperties.AutomationId="GalleryView.Photos_ViewOptions" AutomationProperties.Name="{Binding [Photos_ViewOptions]}" ToolTip.Tip="{Binding [Photos_ViewOptions]}" IconSymbol="Filter" Classes="toolbar-icon">
+        <c:DaisyButton.Flyout>
+          <Flyout Placement="BottomEdgeAlignedRight">
+            <Border x:Name="OptionsPanel" Padding="12" Width="300" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8">
+              <StackPanel Spacing="8">
+              <TextBlock Text="{Binding [Photos_SortBy]}" />
+              <c:DaisySelect AutomationProperties.AutomationId="GalleryView.Sort" AutomationProperties.Name="{Binding [Photos_SortBy]}" x:Name="Sort" Width="260" Margin="0,0,8,8" />
+              <TextBlock Text="{Binding [Photos_GroupBy]}" />
+              <c:DaisySelect AutomationProperties.AutomationId="GalleryView.Group" AutomationProperties.Name="{Binding [Photos_GroupBy]}" x:Name="Group" Width="260" Margin="0,0,8,8" />
+              <TextBlock Text="{Binding [Photos_FileType]}" />
+              <c:DaisySelect AutomationProperties.AutomationId="GalleryView.Type" AutomationProperties.Name="{Binding [Photos_FileType]}" x:Name="Type" Width="260" Margin="0,0,8,8" />
+              <TextBlock Text="{Binding [Photos_Orientation]}" />
+              <c:DaisySelect AutomationProperties.AutomationId="GalleryView.Orientation" AutomationProperties.Name="{Binding [Photos_Orientation]}" x:Name="Orientation" Width="260" Margin="0,0,8,8" />
+              <c:DaisyCheckBox AutomationProperties.AutomationId="GalleryView.Square" AutomationProperties.Name="{Binding [Photos_SquareTiles]}" x:Name="Square" Content="{Binding [Photos_SquareTiles]}" Margin="0,0,12,8" />
+              <c:DaisyCheckBox AutomationProperties.AutomationId="GalleryView.Names" AutomationProperties.Name="{Binding [Photos_ShowFileNames]}" x:Name="Names" Content="{Binding [Photos_ShowFileNames]}" Margin="0,0,12,8" />
+              <c:DaisyRange AutomationProperties.AutomationId="GalleryView.TileSize" AutomationProperties.Name="{Binding [Photos_TileSize]}" x:Name="TileSize" Width="260" Minimum="90" Maximum="420" Margin="0,0,8,8" />
+              </StackPanel>
+            </Border>
+          </Flyout>
+        </c:DaisyButton.Flyout>
+      </c:DaisyButton>
+      <c:DaisyButton AutomationProperties.AutomationId="GalleryView.Slideshow" AutomationProperties.Name="{Binding [Photos_Slideshow]}" ToolTip.Tip="{Binding [Photos_Slideshow]}" IconSymbol="Play" Classes="toolbar-icon" Click="SlideshowClick" />
+      <c:DaisyButton AutomationProperties.AutomationId="GalleryView.Import" AutomationProperties.Name="{Binding [Photos_Import]}" Content="{Binding [Photos_Import]}" IconSymbol="Add" Click="ImportClick" Margin="8,0,8,6" />
+      <c:DaisyButton AutomationProperties.AutomationId="GalleryView.Photos_SelectAll" AutomationProperties.Name="{Binding [Photos_SelectAll]}" Content="{Binding [Photos_SelectAll]}" Click="SelectAllClick" Margin="0,0,8,6" />
+    </WrapPanel>
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+      <ListBox AutomationProperties.AutomationId="GalleryView.Rows" AutomationProperties.Name="{Binding [Photos_Nav_Gallery]}" x:Name="Rows" Background="Transparent" BorderThickness="0" SelectionMode="Single"
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
+      </ListBox>
+      <ScrollViewer Grid.Column="1" Width="65" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel x:Name="Timeline" Spacing="5" />
+      </ScrollViewer>
+      <StackPanel x:Name="Empty" Grid.ColumnSpan="2" Spacing="12" MaxWidth="440" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False">
+        <TextBlock x:Name="EmptyTitle" Classes="heading" TextAlignment="Center" TextWrapping="Wrap" />
+        <TextBlock x:Name="EmptyText" TextAlignment="Center" TextWrapping="Wrap" Opacity="0.7" />
+      </StackPanel>
+    </Grid>
+  </Grid>
+</UserControl>
