@@ -14,18 +14,27 @@ dotnet run --project Flowery.NET.Photos.Desktop -c Debug --no-build
 ```
 
 Pass an image path to open that image.
-Pass `--screen=2` to place the window on the second display.
-The app preserves that display's orientation.
-
-```powershell
-dotnet run --project Flowery.NET.Photos.Desktop --no-build -- --screen=2
-```
 
 The solution and the repository's desktop and full build scripts include Photos.
 Run the Photos tests with this command:
 
 ```powershell
 dotnet test Flowery.NET.Photos.Tests/Flowery.NET.Photos.Tests.csproj -c Debug
+```
+
+### Debug and demo options
+
+Use `--screen=2` for manual UI tests or demonstrations on a secondary display.
+The app selects the first non-primary display reported by Avalonia.
+It places a normal, resizable window there and sizes it to the full working area.
+The flag keeps the current display resolution, scaling, and orientation.
+It does not enable full-screen mode.
+
+With only one display, the app ignores the flag.
+This placement helper is available in both Debug and Release builds.
+
+```powershell
+dotnet run --project Flowery.NET.Photos.Desktop -c Debug --no-build -- --screen=2
 ```
 
 Pass `--cdp` in a Debug build to enable the CDP server on `http://127.0.0.1:9222`.
