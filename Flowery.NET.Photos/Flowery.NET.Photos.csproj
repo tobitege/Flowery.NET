@@ -24,6 +24,8 @@
     <Content Include="..\Flowery.NET.Gallery\Assets\wallpaper_*.jpg;..\Flowery.NET.Gallery\Assets\tile_*.jpg;..\Flowery.NET.Gallery\Assets\placeholder1.jpg">
       <Link>Assets\Samples\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
   </ItemGroup>
 </Project>
