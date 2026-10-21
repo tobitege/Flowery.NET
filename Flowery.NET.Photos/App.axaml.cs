@@ -12,8 +12,6 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         var configured = Environment.GetEnvironmentVariable("FLOWERY_STATE_ROOT");
-        if (!string.IsNullOrWhiteSpace(configured) && !Path.IsPathFullyQualified(configured))
-            throw new ArgumentException("FLOWERY_STATE_ROOT must be an absolute directory path.");
         PhotosSettings.Initialize(configured ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Flowery.NET.Photos"));
         _ = PhotosLocalization.Instance;

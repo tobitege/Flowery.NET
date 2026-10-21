@@ -599,7 +599,9 @@ namespace Flowery.NET.Photos.Services
             var root = _folders.FirstOrDefault(Directory.Exists)
                 ?? (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("FLOWERY_STATE_ROOT"))
                     ? Environment.GetFolderPath(Environment.SpecialFolder.MyPictures) : PhotosSettings.StateDirectory);
-            var target = System.IO.Path.Combine(root, "Flowery Photos", "Imported " + DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            if (!Path.IsPathFullyQualified(root))
+                throw new InvalidOperationException("The Photos import directory must be an absolute path.");
+            var target = System.IO.Path.Combine(Path.GetFullPath(root), "Flowery Photos", "Imported " + DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             var list = files.Where(ImageMetadataReader.IsSupported).ToList();
             var imported = await Task.Run(() =>
             {

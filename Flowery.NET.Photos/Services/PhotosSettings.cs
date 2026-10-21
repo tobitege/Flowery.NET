@@ -47,8 +47,11 @@ namespace Flowery.NET.Photos.Services
 
         public static void Initialize(string stateDirectory)
         {
-            StateDirectory = stateDirectory;
-            StateStorageProvider.Configure(new FileStateStorage(stateDirectory));
+            if (string.IsNullOrWhiteSpace(stateDirectory) || !Path.IsPathFullyQualified(stateDirectory))
+                throw new ArgumentException("The Photos state directory must be an absolute path.", nameof(stateDirectory));
+            var normalized = Path.GetFullPath(stateDirectory);
+            StateDirectory = normalized;
+            StateStorageProvider.Configure(new FileStateStorage(normalized));
             LoadOptions();
         }
 

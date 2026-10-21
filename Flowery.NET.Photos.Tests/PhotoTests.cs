@@ -324,15 +324,20 @@ public sealed class PhotoTests
         finally { shell.Dispose(); window.Close(); FloweryLocalization.SetCulture(originalCulture); }
     }
 
-    [Theory]
+    [AvaloniaTheory]
     [InlineData("en")] [InlineData("de")] [InlineData("fr")] [InlineData("es")]
     [InlineData("it")] [InlineData("zh-CN")] [InlineData("ko")] [InlineData("ja")]
     [InlineData("ar")] [InlineData("tr")] [InlineData("uk")] [InlineData("he")]
     public void RuntimeLanguageSwitchResolvesTranslatedKeys(string language)
     {
-        FloweryLocalization.SetCulture(language);
-        Assert.Equal(language, PhotosLocalization.CurrentCultureName);
-        Assert.NotEqual("Photos_Home_WelcomeTitle", PhotosLocalization.GetString("Photos_Home_WelcomeTitle"));
+        var previous = FloweryLocalization.CurrentCulture.Name;
+        try
+        {
+            FloweryLocalization.SetCulture(language);
+            Assert.Equal(language, PhotosLocalization.CurrentCultureName);
+            Assert.NotEqual("Photos_Home_WelcomeTitle", PhotosLocalization.GetString("Photos_Home_WelcomeTitle"));
+        }
+        finally { FloweryLocalization.SetCulture(previous); }
     }
 
     [Fact]
@@ -439,6 +444,100 @@ public sealed class PhotoTests
         var file = Path.Combine(NewFolder(), "palette.pal");
         ColorTools.WriteJascPalette(file, colors);
         Assert.Equal(colors, ColorTools.ReadPalette(file));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData(".")]
+    [InlineData("..")]
+    [InlineData("relative-state")]
+    public void StateDirectoryRejectsNonAbsolutePathsBeforeChangingStorage(string path)
+    {
+        var previous = PhotosSettings.StateDirectory;
+        var storage = Flowery.Services.StateStorageProvider.Instance;
+        Assert.Throws<ArgumentException>(() => PhotosSettings.Initialize(path));
+        Assert.Equal(previous, PhotosSettings.StateDirectory);
+        Assert.Same(storage, Flowery.Services.StateStorageProvider.Instance);
+    }
+
+    [Fact]
+    public void StateDirectoryNormalizesTheChosenRootAndKeepsSettingsInsideIt()
+    {
+        var previous = PhotosSettings.StateDirectory;
+        var root = NewFolder();
+        var chosen = Path.Combine(root, "unused", "..", "state");
+        var expected = Path.Combine(root, "state");
+        try
+        {
+            PhotosSettings.Initialize(chosen);
+            Assert.Equal(expected, PhotosSettings.StateDirectory);
+            PhotosSettings.SaveTheme("Dark");
+            Assert.Equal("Dark", File.ReadAllText(Path.Combine(expected, "theme.state")).Trim());
+            Assert.False(Directory.Exists(Path.Combine(root, "unused")));
+            Assert.Equal("Dark", PhotosSettings.LoadTheme());
+        }
+        finally { PhotosSettings.Initialize(previous); }
+    }
+
+    [AvaloniaFact]
+    public async Task ImportRejectsAPersistedRelativeRootBeforeWriting()
+    {
+        var previous = PhotosSettings.StateDirectory;
+        var root = NewFolder();
+        var source = CreatePhoto(NewFolder());
+        var sourceBytes = File.ReadAllBytes(source);
+        PhotosSettings.Initialize(root);
+        PhotosSettings.SaveFolders(["."]);
+        var library = new PhotoLibrary();
+        try
+        {
+            library.Initialize(Dispatcher.UIThread);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => library.ImportFilesAsync([source]));
+            Assert.Equal(sourceBytes, File.ReadAllBytes(source));
+            Assert.Empty(library.Items);
+            Assert.False(Directory.Exists(Path.Combine(root, "Flowery Photos")));
+        }
+        finally { await library.DisposeAsync(); PhotosSettings.Initialize(previous); }
+    }
+
+    [AvaloniaFact]
+    public async Task ImportUsesOnlySourceBasenamesAndPreservesDuplicateSources()
+    {
+        var previous = PhotosSettings.StateDirectory;
+        var oldRoot = Environment.GetEnvironmentVariable("FLOWERY_STATE_ROOT");
+        var root = NewFolder();
+        var external = NewFolder();
+        Directory.CreateDirectory(Path.Combine(external, "nested"));
+        var first = CreatePhoto(external, "imported.png");
+        var second = CreatePhoto(NewFolder(), "imported.png", width: 96);
+        var firstBytes = File.ReadAllBytes(first);
+        var secondBytes = File.ReadAllBytes(second);
+        Environment.SetEnvironmentVariable("FLOWERY_STATE_ROOT", root);
+        PhotosSettings.Initialize(root);
+        var library = new PhotoLibrary();
+        try
+        {
+            library.Initialize(Dispatcher.UIThread);
+            var dottedSource = Path.Combine(external, "nested", "..", "imported.png");
+            Assert.Equal(2, await library.ImportFilesAsync([dottedSource, second]));
+            await library.RescanAsync();
+            Assert.Equal(2, library.Items.Count);
+            var imported = library.Items.Single(item => item.FileName == "imported.png");
+            var duplicate = library.Items.Single(item => item.FileName == "imported (1).png");
+            Assert.True(PhotoLibrary.IsWithin(root, imported.Path));
+            Assert.Equal(imported.FolderPath, duplicate.FolderPath);
+            Assert.Equal(firstBytes, File.ReadAllBytes(imported.Path));
+            Assert.Equal(secondBytes, File.ReadAllBytes(duplicate.Path));
+            Assert.Equal(firstBytes, File.ReadAllBytes(first));
+            Assert.Equal(secondBytes, File.ReadAllBytes(second));
+        }
+        finally
+        {
+            await library.DisposeAsync();
+            Environment.SetEnvironmentVariable("FLOWERY_STATE_ROOT", oldRoot);
+            PhotosSettings.Initialize(previous);
+        }
     }
 
     [AvaloniaFact]
