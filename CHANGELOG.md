@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Flowery Photos - 2026-10-21
+
+### Added
+
+- Added Flowery Photos, an Avalonia 12 desktop photo viewer and editor for Windows, macOS, and Linux (#52, #71).
+- The photo library supports folders, favorites, albums, imports, search, filters, grouping, and file watching.
+- The viewer supports zoom, slideshows, crop, rotation, adjustments, fourteen filters, markup, undo/redo, and JPEG/PNG export.
+- The app includes ten sample photos, twelve languages, themes, size settings, and UI Automation support.
+
 ## [3.8.0] - 2026-10-19
 
 ### Changed
