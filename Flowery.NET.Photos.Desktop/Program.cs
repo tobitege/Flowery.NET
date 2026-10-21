@@ -30,6 +30,6 @@ internal static class Program
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>()
         .UsePlatformDetect().WithInterFont()
         .ConfigureFonts(manager => manager.AddFontCollection(new EmbeddedFontCollection(
-            new Uri("fonts:Flowery.NET.Photos"), new Uri("avares://Flowery.NET.Photos/Assets/Fonts"))))
+            new Uri("fonts:Flowery.NET.Photos"), new Uri(Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts")))))
         .LogToTrace();
 }

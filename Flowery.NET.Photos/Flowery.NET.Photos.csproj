@@ -13,7 +13,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Localization\*.json" WithCulture="false" />
-    <AvaloniaResource Include="..\Flowery.NET.Gallery\Assets\Fonts\*" Link="Assets\Fonts\%(Filename)%(Extension)" />
+    <Content Include="..\Flowery.NET.Gallery\Assets\Fonts\*.ttf;..\Flowery.NET.Gallery\Assets\Fonts\*.otf;..\Flowery.NET.Gallery\Assets\Fonts\OFL.txt">
+      <Link>Assets\Fonts\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
     <Content Include="..\Flowery.NET.Gallery\Assets\wallpaper_*.jpg;..\Flowery.NET.Gallery\Assets\tile_*.jpg;..\Flowery.NET.Gallery\Assets\placeholder1.jpg">
       <Link>Assets\Samples\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

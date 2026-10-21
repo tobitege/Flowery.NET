@@ -4,6 +4,11 @@ Flowery Photos is a desktop photo viewer and editor for Windows, macOS, and Linu
 It uses Avalonia 12, Flowery Daisy controls, and SkiaSharp.
 The app ports the [Flowery.WinUI Photos demo](https://github.com/tobitege/Flowery.WinUI/tree/main/Flowery.WinUI.Photos).
 
+Font files ship in `Assets/Fonts`, and sample photos ship in `Assets/Samples`.
+Distribute both folders with the desktop app.
+Keep `Assets/Fonts/OFL.txt` with the fonts. It contains their copyright notices and the SIL Open Font License 1.1.
+The app loads the fonts from its output directory instead of embedding them in `Flowery.NET.Photos.dll`.
+
 ## Build and run
 
 Use the .NET SDK selected by the repository's `global.json`.

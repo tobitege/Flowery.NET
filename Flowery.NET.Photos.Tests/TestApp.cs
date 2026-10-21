@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Headless;
+using Avalonia.Media.Fonts;
 using Flowery;
 using Flowery.NET.Photos.Services;
 
@@ -11,7 +12,9 @@ namespace Flowery.NET.Photos.Tests;
 public static class TestAppBuilder
 {
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<TestApp>()
-        .UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false });
+        .UseSkia().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false })
+        .ConfigureFonts(manager => manager.AddFontCollection(new EmbeddedFontCollection(
+            new Uri("fonts:Flowery.NET.Photos"), new Uri(Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts")))));
 }
 public sealed class TestApp : Application
 {

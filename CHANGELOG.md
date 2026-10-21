@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The photo library supports folders, favorites, albums, imports, search, filters, grouping, and file watching.
 - The viewer supports zoom, slideshows, crop, rotation, adjustments, fourteen filters, markup, undo/redo, and JPEG/PNG export.
 - The app includes ten sample photos, twelve languages, themes, size settings, and UI Automation support.
+- Fonts and sample photos ship as separate files under `Assets/Fonts` and `Assets/Samples`, with font copyright notices and the OFL-1.1 license.
 
 ## [3.8.0] - 2026-10-19
 
