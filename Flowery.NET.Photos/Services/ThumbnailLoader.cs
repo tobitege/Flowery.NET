@@ -36,7 +36,7 @@ public static class ThumbnailLoader
                 {
                     using var bitmap = PhotoDecoder.Load(item.Path, edge);
                     using var image = SKImage.FromBitmap(bitmap);
-                    using var encoded = image.Encode(SKEncodedImageFormat.Jpeg, 85);
+                    using var encoded = image.Encode(SKEncodedImageFormat.Png, 100);
                     return encoded.ToArray();
                 }, token);
                 token.ThrowIfCancellationRequested();

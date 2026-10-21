@@ -9,6 +9,9 @@
   <Application.Styles>
     <FluentTheme />
     <flowery:DaisyUITheme />
+    <Style Selector="TextBox#Search:focus-within /template/ Border#PART_BorderElement">
+      <Setter Property="BorderBrush" Value="{DynamicResource PhotosAccentBrush}" />
+    </Style>
     <Style Selector="Window">
       <Setter Property="FontFamily" Value="{StaticResource PhotosFont}" />
       <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />

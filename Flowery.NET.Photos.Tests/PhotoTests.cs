@@ -162,7 +162,8 @@ public sealed class PhotoTests
             Assert.False(string.IsNullOrWhiteSpace(canvasPeer.GetName()));
             canvas.Focus();
             window.KeyPress(Avalonia.Input.Key.E, Avalonia.Input.RawInputModifiers.Control, Avalonia.Input.PhysicalKey.E, "e");
-            Assert.True(canvas.IsCropping);
+            Assert.False(canvas.IsCropping);
+            Assert.True(viewer.FindControl<StackPanel>("AdjustPanel")!.IsVisible);
             window.KeyPress(Avalonia.Input.Key.R, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.R, "r");
             Assert.Equal(1, canvas.State.Rotation);
             window.KeyPress(Avalonia.Input.Key.Z, Avalonia.Input.RawInputModifiers.Control, Avalonia.Input.PhysicalKey.Z, "z");
@@ -171,7 +172,7 @@ public sealed class PhotoTests
             Assert.Equal(1, canvas.State.Rotation);
             canvas.SetZoom(100); canvas.ZoomStep(true); Assert.Equal(125, canvas.Zoom);
             canvas.ZoomStep(false); Assert.Equal(100, canvas.Zoom);
-            canvas.ZoomStep(false); Assert.Equal(90, canvas.Zoom);
+            canvas.SetZoom(100); canvas.ZoomStep(false); Assert.Equal(90, canvas.Zoom);
             canvas.Fit(); Assert.True(canvas.ActualZoom > 0);
             var filtersAction = viewer.GetVisualDescendants().OfType<DaisyButton>().Single(b => b.Tag as string == "filters");
             Assert.IsAssignableFrom<IInvokeProvider>(ControlAutomationPeer.CreatePeerForElement(filtersAction)).Invoke();
@@ -241,6 +242,9 @@ public sealed class PhotoTests
             window.Show();
             await viewer.OpenAsync(first, [first, second]);
             viewer.BeginEditing();
+            window.UpdateLayout();
+            var crop = viewer.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.Tag as string == "crop");
+            Assert.IsAssignableFrom<IInvokeProvider>(ControlAutomationPeer.CreatePeerForElement(crop)).Invoke();
             window.UpdateLayout();
             var slider = viewer.FindControl<DaisyRange>("Straighten")!;
             Assert.True(slider.Focus());
@@ -314,6 +318,9 @@ public sealed class PhotoTests
             await shell.OpenFileAsync(CreatePhoto(NewFolder()));
             var viewer = shell.FindControl<ViewerView>("Viewer")!;
             viewer.BeginEditing();
+            window.UpdateLayout();
+            var crop = viewer.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.Tag as string == "crop");
+            Assert.IsAssignableFrom<IInvokeProvider>(ControlAutomationPeer.CreatePeerForElement(crop)).Invoke();
             var canvas = viewer.FindControl<PhotoCanvas>("Canvas")!;
             canvas.State = EditState.Original with { Crop = new Rect(.1, .1, .8, .8) };
             FloweryLocalization.SetCulture("de");
@@ -586,12 +593,12 @@ public sealed class PhotoTests
         var oldRoot = Environment.GetEnvironmentVariable("FLOWERY_STATE_ROOT");
         Environment.SetEnvironmentVariable("FLOWERY_STATE_ROOT", root);
         PhotosSettings.Initialize(root);
-        var library = PhotoLibrary.Instance;
+        var library = new PhotoLibrary();
         library.Initialize(Dispatcher.UIThread);
         var folder = Path.Combine(root, "library"); Directory.CreateDirectory(folder);
         for (var i = 0; i < 35; i++) CreatePhoto(folder, i + ".png");
         library.AddFolder(folder); await library.RescanAsync();
-        var gallery = new GalleryView();
+        var gallery = new GalleryView(library);
         var window = new Window { Content = gallery, Width = 720, Height = 900 };
         try
         {
@@ -607,8 +614,8 @@ public sealed class PhotoTests
             gallery.SelectAll(); Assert.All(library.Items, item => Assert.True(item.IsSelected));
             gallery.Search("missing"); window.UpdateLayout(); Assert.Empty(gallery.Items);
             gallery.Search(""); window.UpdateLayout(); Assert.Equal(35, gallery.Items.Count);
-            var snapshot = SettingsSnapshot.Capture();
-            var settings = new SettingsView();
+            var snapshot = SettingsSnapshot.Capture(library);
+            var settings = new SettingsView(library);
             var dialog = settings.ShowDialog(window);
             FloweryLocalization.SetCulture("de");
             FlowerySizeManager.ApplySize(DaisySize.Large);
@@ -621,7 +628,7 @@ public sealed class PhotoTests
             Assert.Equal(snapshot.Folders, library.Folders);
             await library.RescanAsync();
 
-            using var shell = new PhotosShell();
+            using var shell = new PhotosShell(library);
             window.Content = shell;
             window.UpdateLayout();
             var home = shell.FindControl<StackPanel>("Home")!;
@@ -686,7 +693,7 @@ public sealed class PhotoTests
         shell.FindControl<TextBox>("Search")!.Text = "no matching photos";
         await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
         Assert.Empty(gallery.Items);
-        Assert.Contains(library.Items, item => item.IsSelected);
+        Assert.DoesNotContain(library.Items, item => item.IsSelected);
         var clear = shell.FindControl<DaisyButton>("ClearSelection")!;
         Assert.IsAssignableFrom<IInvokeProvider>(ControlAutomationPeer.CreatePeerForElement(clear)).Invoke();
         Assert.DoesNotContain(library.Items, item => item.IsSelected);

@@ -14,6 +14,12 @@ public partial class MainWindow : Window
     public MainWindow(string[]? args)
     {
         InitializeComponent();
+        Shell.TitleViewChanged += visible => TitleViewButton.IsVisible = visible;
+        TitleViewButton.Click += (_, _) => Shell.ShowViewOptions();
+        TitleViewButton.DataContext = Localization.PhotosLocalization.Instance;
+        TitleViewButton.Bind(Avalonia.Automation.AutomationProperties.NameProperty,
+            new Avalonia.Data.Binding("[Photos_ViewOptions]"));
+        TitleViewButton.Bind(ToolTip.TipProperty, new Avalonia.Data.Binding("[Photos_ViewOptions]"));
         PhotoLibrary.Instance.Initialize(Dispatcher.UIThread);
         var saved = PhotosSettings.LoadWindowBounds();
         if (saved != null)

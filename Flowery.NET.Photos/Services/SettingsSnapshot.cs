@@ -15,7 +15,7 @@
         int JpegQuality,
         IReadOnlyList<string> Folders)
     {
-        public static SettingsSnapshot Capture() => new(
+        public static SettingsSnapshot Capture(PhotoLibrary library) => new(
             DaisyThemeManager.CurrentThemeName,
             FlowerySizeManager.CurrentSize,
             FloweryLocalization.CurrentCulture.Name,
@@ -24,9 +24,9 @@
             PhotosSettings.WheelNavigates,
             PhotosSettings.SlideshowSeconds,
             PhotosSettings.JpegQuality,
-            [.. PhotoLibrary.Instance.Folders]);
+            [.. library.Folders]);
 
-        public void Restore()
+        public void Restore(PhotoLibrary library)
         {
             if (Theme != null && !string.Equals(Theme, DaisyThemeManager.CurrentThemeName, StringComparison.OrdinalIgnoreCase))
                 DaisyThemeManager.ApplyTheme(Theme);
@@ -43,7 +43,7 @@
             PhotosSettings.JpegQuality = JpegQuality;
             PhotosSettings.SaveOptions();
 
-            PhotoLibrary.Instance.RestoreFolders(Folders, IncludeSubfolders);
+            library.RestoreFolders(Folders, IncludeSubfolders);
         }
     }
 }

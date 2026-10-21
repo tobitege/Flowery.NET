@@ -7,7 +7,17 @@ public static class PhotoDecoder
     public static SKBitmap Load(string path, int maxEdge = int.MaxValue)
     {
         using var stream = File.OpenRead(path);
-        using var codec = SKCodec.Create(stream) ?? throw new InvalidDataException("Unsupported image format.");
+        using var codec = SKCodec.Create(stream);
+        if (codec == null)
+        {
+#if WINDOWS
+            try { return WindowsPhotoCodec.DecodeAsync(path, maxEdge).GetAwaiter().GetResult(); }
+            catch (System.Runtime.InteropServices.COMException ex)
+            { throw new InvalidDataException("Image decoding failed.", ex); }
+#else
+            throw new InvalidDataException("Unsupported image format.");
+#endif
+        }
         var scale = Math.Min(1f, (float)maxEdge / Math.Max(codec.Info.Width, codec.Info.Height));
         var dimensions = codec.GetScaledDimensions(scale);
         using var decoded = new SKBitmap(new SKImageInfo(dimensions.Width, dimensions.Height, SKColorType.Bgra8888, SKAlphaType.Premul));

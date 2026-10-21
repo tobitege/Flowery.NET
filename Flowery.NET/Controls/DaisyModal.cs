@@ -18,6 +18,17 @@ namespace Flowery.Controls
 
         private const double BaseTextFontSize = 14.0;
 
+        /// <summary>Defines the <see cref="DialogMaxWidth"/> property.</summary>
+        public static readonly StyledProperty<double> DialogMaxWidthProperty =
+            AvaloniaProperty.Register<DaisyModal, double>(nameof(DialogMaxWidth), 500.0);
+
+        /// <summary>Gets or sets the maximum width of the dialog box, excluding the backdrop.</summary>
+        public double DialogMaxWidth
+        {
+            get => GetValue(DialogMaxWidthProperty);
+            set => SetValue(DialogMaxWidthProperty, value);
+        }
+
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
         {

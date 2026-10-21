@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework Condition="$([MSBuild]::IsOSPlatform('Windows'))">net10.0-windows10.0.19041.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
@@ -13,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Localization\*.json" WithCulture="false" />
+    <AvaloniaResource Include="app_icon.ico" />
     <Content Include="..\Flowery.NET.Gallery\Assets\Fonts\*.ttf;..\Flowery.NET.Gallery\Assets\Fonts\*.otf;..\Flowery.NET.Gallery\Assets\Fonts\OFL.txt">
       <Link>Assets\Fonts\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

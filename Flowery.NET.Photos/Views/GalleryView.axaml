@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:c="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
              xmlns:l="using:Flowery.NET.Photos.Localization"
+             xmlns:local="using:Flowery.NET.Photos.Views"
              x:Class="Flowery.NET.Photos.Views.GalleryView" x:DataType="l:PhotosLocalization"
              AutomationProperties.AutomationId="Photos.Gallery">
   <Grid RowDefinitions="Auto,*" Margin="8,12,0,0">
@@ -34,7 +35,15 @@
         </c:DaisyButton.Flyout>
       </c:DaisyButton>
       <c:DaisyButton AutomationProperties.AutomationId="GalleryView.Slideshow" AutomationProperties.Name="{Binding [Photos_Slideshow]}" ToolTip.Tip="{Binding [Photos_Slideshow]}" IconSymbol="Play" Classes="toolbar-icon" Click="SlideshowClick" />
-      <c:DaisyButton AutomationProperties.AutomationId="GalleryView.Import" AutomationProperties.Name="{Binding [Photos_Import]}" Content="{Binding [Photos_Import]}" IconSymbol="Add" Click="ImportClick" Margin="8,0,8,6" />
+      <c:DaisyButton AutomationProperties.AutomationId="GalleryView.Import" AutomationProperties.Name="{Binding [Photos_Import]}" Content="{Binding [Photos_Import]}" IconSymbol="Add" Margin="8,0,8,6">
+        <c:DaisyButton.Flyout>
+          <MenuFlyout>
+            <MenuItem Header="{Binding [Photos_AddFolder]}" AutomationProperties.AutomationId="GalleryView.ImportFolder" AutomationProperties.Name="{Binding [Photos_AddFolder]}" Click="ImportFolderClick" />
+            <MenuItem Header="{Binding [Photos_ImportFiles]}" AutomationProperties.AutomationId="GalleryView.ImportFiles" AutomationProperties.Name="{Binding [Photos_ImportFiles]}" Click="ImportClick" />
+            <MenuItem Header="{Binding [Photos_Rescan]}" AutomationProperties.AutomationId="GalleryView.Rescan" AutomationProperties.Name="{Binding [Photos_Rescan]}" Click="RescanClick" />
+          </MenuFlyout>
+        </c:DaisyButton.Flyout>
+      </c:DaisyButton>
       <c:DaisyButton AutomationProperties.AutomationId="GalleryView.Photos_SelectAll" AutomationProperties.Name="{Binding [Photos_SelectAll]}" Content="{Binding [Photos_SelectAll]}" Click="SelectAllClick" Margin="0,0,8,6" />
     </WrapPanel>
     <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
@@ -42,12 +51,11 @@
                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
       </ListBox>
-      <ScrollViewer Grid.Column="1" Width="65" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel x:Name="Timeline" Spacing="5" />
-      </ScrollViewer>
+      <local:GalleryTimeline x:Name="Timeline" Grid.Column="1" Width="65" AutomationProperties.AutomationId="Photos.Timeline" AutomationProperties.Name="{Binding [Photos_GroupBy]}" />
       <StackPanel x:Name="Empty" Grid.ColumnSpan="2" Spacing="12" MaxWidth="440" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False">
         <TextBlock x:Name="EmptyTitle" Classes="heading" TextAlignment="Center" TextWrapping="Wrap" />
         <TextBlock x:Name="EmptyText" TextAlignment="Center" TextWrapping="Wrap" Opacity="0.7" />
+        <c:DaisyButton x:Name="ResetFilters" AutomationProperties.AutomationId="GalleryView.ResetFilters" AutomationProperties.Name="{Binding [Photos_ResetFilters]}" Content="{Binding [Photos_ResetFilters]}" Click="ResetFiltersClick" />
       </StackPanel>
     </Grid>
   </Grid>

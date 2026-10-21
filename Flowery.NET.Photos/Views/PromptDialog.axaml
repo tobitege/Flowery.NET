@@ -3,6 +3,7 @@
         xmlns:c="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
         x:Class="Flowery.NET.Photos.Views.PromptDialog"
         Width="440" SizeToContent="Height" CanResize="False" WindowStartupLocation="CenterOwner">
+  <Border BorderBrush="{DynamicResource PhotosAccentBrush}" BorderThickness="1">
   <StackPanel Margin="24" Spacing="18">
     <TextBlock x:Name="Message" TextWrapping="Wrap" />
     <TextBox AutomationProperties.AutomationId="PromptDialog.Input" x:Name="Input" IsVisible="False" />
@@ -12,4 +13,5 @@
       <c:DaisyButton AutomationProperties.AutomationId="PromptDialog.AcceptButton" x:Name="AcceptButton" Margin="4" />
     </WrapPanel>
   </StackPanel>
+  </Border>
 </Window>

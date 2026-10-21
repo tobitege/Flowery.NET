@@ -61,6 +61,33 @@ namespace Flowery.NET.Photos.Editing
 
         public bool HasChanges => HasGeometry || HasColorEdits || !Strokes.IsEmpty;
 
+        public EditState Rotate(bool clockwise)
+        {
+            var crop = clockwise
+                ? new Rect(1 - Crop.Bottom, Crop.X, Crop.Height, Crop.Width)
+                : new Rect(Crop.Y, 1 - Crop.Right, Crop.Height, Crop.Width);
+            return this with
+            {
+                Rotation = (Rotation + (clockwise ? 1 : 3)) % 4,
+                Crop = crop,
+                Strokes = Strokes.Select(stroke => stroke with
+                {
+                    Points = [.. stroke.Points.Select(point => clockwise
+                        ? new Vector2(1 - point.Y, point.X)
+                        : new Vector2(point.Y, 1 - point.X))]
+                }).ToImmutableList()
+            };
+        }
+
+        public EditState Mirror(bool horizontal) => horizontal
+            ? this with { FlipH = !FlipH, Crop = new Rect(1 - Crop.Right, Crop.Y, Crop.Width, Crop.Height) }
+            : this with { FlipV = !FlipV, Crop = new Rect(Crop.X, 1 - Crop.Bottom, Crop.Width, Crop.Height) };
+
+        public EditState GeometryOnly() => Original with
+        {
+            Rotation = Rotation, FlipH = FlipH, FlipV = FlipV, Straighten = Straighten, Crop = Crop
+        };
+
         public EditState ResetAdjustments() => this with
         {
             Brightness = 0,

@@ -142,6 +142,18 @@ namespace Flowery.NET.Photos.Localization
             }
         }
 
+        public static string FormatLibraryStats(int photos, int folders, string fileSize)
+        {
+            var suffix = (photos == 1, folders == 1) switch
+            {
+                (true, true) => "OnePhotoOneFolder",
+                (true, false) => "OnePhoto",
+                (false, true) => "OneFolder",
+                _ => ""
+            };
+            return Format("Photos_Settings_LibraryStats" + suffix, photos, folders, fileSize);
+        }
+
         private static void LoadTranslation(string languageCode)
         {
             try

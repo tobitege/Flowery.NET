@@ -78,6 +78,15 @@ public static class FileOperations
         using var process = Process.Start(info);
     }
 
+    public static void OpenFolder(string path)
+    {
+        if (!Directory.Exists(path)) throw new DirectoryNotFoundException(path);
+        var info = new ProcessStartInfo(OperatingSystem.IsWindows() ? "explorer.exe"
+            : OperatingSystem.IsMacOS() ? "open" : "xdg-open") { UseShellExecute = false };
+        info.ArgumentList.Add(Path.GetFullPath(path));
+        using var process = Process.Start(info);
+    }
+
     public static void OpenWith(string path)
     {
         if (OperatingSystem.IsWindows())
@@ -100,9 +109,9 @@ public static class FileOperations
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SystemParametersInfo(int action, int parameter, string path, int flags);
 
-    public static async Task CopyFilesAsync(TopLevel top, IReadOnlyList<string> paths)
+    public static async Task<int> CopyFilesAsync(TopLevel top, IReadOnlyList<string> paths)
     {
-        if (top.Clipboard == null) return;
+        if (top.Clipboard == null) throw new InvalidOperationException(Localization.PhotosLocalization.GetString("Photos_ActionFailed"));
         using var transfer = new DataTransfer();
         var files = new List<IStorageFile>();
         try
@@ -114,7 +123,8 @@ public static class FileOperations
                 files.Add(file);
                 transfer.Add(DataTransferItem.CreateFile(file));
             }
-            await top.Clipboard.SetDataAsync(transfer);
+            if (files.Count > 0) await top.Clipboard.SetDataAsync(transfer);
+            return files.Count;
         }
         finally { foreach (var file in files) file.Dispose(); }
     }

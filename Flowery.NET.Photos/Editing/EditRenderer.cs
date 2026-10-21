@@ -9,16 +9,22 @@ public static class EditRenderer
     private static readonly Lazy<SKRuntimeEffect> Tone = new(() =>
         SKRuntimeEffect.CreateShader(ToneSource, out var error)
         ?? throw new InvalidOperationException(error));
+    private static readonly Lazy<SKRuntimeEffect> Vignette = new(() =>
+        SKRuntimeEffect.CreateShader(VignetteSource, out var error)
+        ?? throw new InvalidOperationException(error));
 
     private const string ToneSource = """
         uniform shader image;
         uniform float exposure;
         uniform float highlights;
         uniform float shadows;
+        uniform float clarity;
+        uniform float contrast;
         uniform float warmth;
         uniform float tint;
-        uniform float vignette;
-        uniform float2 size;
+        float3 curve(float3 rgb, float amount) {
+            return rgb + amount * (2.0 * rgb - 1.0) * min(rgb, 1.0 - rgb);
+        }
         half4 main(float2 p) {
             half4 pixel = image.eval(p);
             float3 rgb = pixel.rgb / max(pixel.a, 0.0001);
@@ -26,11 +32,21 @@ public static class EditRenderer
             float l = dot(rgb, float3(0.2126, 0.7152, 0.0722));
             rgb += shadows * pow(1.0 - clamp(l, 0.0, 1.0), 2.0) * 0.4;
             rgb += highlights * pow(clamp(l, 0.0, 1.0), 2.0) * 0.4;
+            rgb = curve(clamp(rgb, 0.0, 1.0), clarity * 4.0 * clamp(l, 0.0, 1.0) * (1.0 - clamp(l, 0.0, 1.0)));
+            rgb = curve(clamp(rgb, 0.0, 1.0), contrast);
             rgb *= float3(1.0 + warmth * 0.16, 1.0 - tint * 0.12, 1.0 - warmth * 0.16);
-            float distance = length((p / size - 0.5) * 1.4142);
-            float amount = smoothstep(0.3, 0.95, distance) * abs(vignette) * 0.8;
-            rgb = mix(rgb, vignette > 0.0 ? float3(0) : float3(1), amount);
             return half4(clamp(rgb, 0.0, 1.0) * pixel.a, pixel.a);
+        }
+        """;
+    private const string VignetteSource = """
+        uniform float2 size;
+        uniform float amount;
+        uniform float curve;
+        uniform float white;
+        half4 main(float2 p) {
+            float distance = length((p / size - 0.5) * 1.41421356);
+            float alpha = pow(smoothstep(1.0 - amount, 1.0, distance), curve);
+            return half4(float3(white * alpha), alpha);
         }
         """;
 
@@ -49,53 +65,72 @@ public static class EditRenderer
         var transformed = GetTransformedSize(new Size(source.Width, source.Height), state);
         var cropX = (float)(state.Crop.X * transformed.Width);
         var cropY = (float)(state.Crop.Y * transformed.Height);
-        canvas.Save();
-        canvas.Translate(-cropX, -cropY);
-        canvas.Save();
-        canvas.Translate((float)transformed.Width / 2, (float)transformed.Height / 2);
+        var output = GetOutputSize(new Size(source.Width, source.Height), state);
         var theta = Math.Abs(state.Straighten) * Math.PI / 180;
         var fill = Math.Cos(theta) + Math.Max(transformed.Width / transformed.Height,
             transformed.Height / transformed.Width) * Math.Sin(theta);
-        canvas.Scale((float)fill);
-        canvas.RotateDegrees(state.Rotation * 90 + (float)state.Straighten);
-        canvas.Scale(state.FlipH ? -1 : 1, state.FlipV ? -1 : 1);
-        canvas.Translate(-source.Width / 2f, -source.Height / 2f);
+        var geometry = SKMatrix.Concat(SKMatrix.CreateTranslation((float)transformed.Width / 2 - cropX, (float)transformed.Height / 2 - cropY),
+            SKMatrix.Concat(SKMatrix.CreateScale((float)fill, (float)fill),
+            SKMatrix.Concat(SKMatrix.CreateRotationDegrees(state.Rotation * 90 + (float)state.Straighten),
+            SKMatrix.Concat(SKMatrix.CreateScale(state.FlipH ? -1 : 1, state.FlipV ? -1 : 1),
+                SKMatrix.CreateTranslation(-source.Width / 2f, -source.Height / 2f)))));
 
         using var child = source.ToShader(SKShaderTileMode.Clamp, SKShaderTileMode.Clamp,
-            new SKSamplingOptions(SKFilterMode.Linear));
+            new SKSamplingOptions(SKFilterMode.Linear), geometry);
         var uniforms = new SKRuntimeEffectUniforms(Tone.Value)
         {
             ["exposure"] = (float)(state.Exposure / 100 * 1.5),
             ["highlights"] = (float)(state.Highlights / 100),
             ["shadows"] = (float)(state.Shadows / 100),
-            ["warmth"] = (float)(state.Warmth / 100),
-            ["tint"] = (float)(state.Tint / 100),
-            ["vignette"] = (float)(state.Vignette / 100),
-            ["size"] = new float[] { source.Width, source.Height }
+            ["clarity"] = (float)(state.Clarity / 100),
+            ["contrast"] = (float)(state.Contrast / 100 * .75),
+            ["warmth"] = (float)(state.Warmth / 100 * .8),
+            ["tint"] = (float)(state.Tint / 100 * .8)
         };
         var children = new SKRuntimeEffectChildren(Tone.Value) { ["image"] = child };
         using var shader = Tone.Value.ToShader(uniforms, children);
-        var matrix = ColorMatrix.Contrast((float)(1 + state.Contrast / 100 * 0.75))
-            .Then(ColorMatrix.Brightness((float)(state.Brightness / 400)))
+        var matrix = ColorMatrix.Brightness((float)(state.Brightness / 400))
             .Then(ColorMatrix.Saturation((float)(1 + state.Saturation / 100)));
         if (state.Filter != FilterPresets.NoneId)
             matrix = matrix.Then(ColorMatrix.Identity.Lerp(FilterPresets.Get(state.Filter).Matrix,
                 (float)Math.Clamp(state.FilterIntensity / 100, 0, 1)));
         matrix = matrix.Then(ColorMatrix.Fade((float)(state.Fade / 100)));
         using var color = SKColorFilter.CreateColorMatrix(matrix.ToSkiaMatrix());
-        using var detail = CreateDetailFilter(state);
+        using var detail = CreateDetailFilter(state, output);
         using var paint = new SKPaint { Shader = shader, ColorFilter = color, ImageFilter = detail, IsAntialias = true };
-        canvas.DrawRect(0, 0, source.Width, source.Height, paint);
+        var bounds = SKRect.Create((float)output.Width, (float)output.Height);
+        canvas.Save();
+        canvas.ClipRect(bounds);
+        canvas.SaveLayer(bounds, null);
+        canvas.DrawRect(bounds, paint);
+        if (state.Vignette != 0)
+        {
+            var strength = (float)Math.Clamp(Math.Abs(state.Vignette) / 100, 0, 1);
+            var vignetteUniforms = new SKRuntimeEffectUniforms(Vignette.Value)
+            {
+                ["size"] = new float[] { (float)output.Width, (float)output.Height },
+                ["amount"] = .15f + strength * .65f,
+                ["curve"] = .35f + (1 - strength) * .4f,
+                ["white"] = state.Vignette < 0 ? 1f : 0f
+            };
+            using var vignetteShader = Vignette.Value.ToShader(vignetteUniforms);
+            using var vignettePaint = new SKPaint { Shader = vignetteShader, BlendMode = SKBlendMode.SrcATop };
+            canvas.DrawRect(bounds, vignettePaint);
+        }
         canvas.Restore();
+        canvas.Translate(-cropX, -cropY);
         DrawStrokes(canvas, state.Strokes, transformed);
         canvas.Restore();
     }
 
-    private static SKImageFilter? CreateDetailFilter(EditState state)
+    private static SKImageFilter? CreateDetailFilter(EditState state, Size output)
     {
         if (state.Sharpness < 0)
-            return SKImageFilter.CreateBlur((float)(-state.Sharpness / 100 * 4), (float)(-state.Sharpness / 100 * 4));
-        var strength = (float)((state.Sharpness + state.Clarity * 0.4) / 100);
+        {
+            var radius = (float)(-state.Sharpness / 100 * Math.Max(output.Width, output.Height) / 400);
+            return SKImageFilter.CreateBlur(radius, radius, SKShaderTileMode.Clamp);
+        }
+        var strength = (float)(state.Sharpness / 100 * 6);
         if (strength == 0) return null;
         float[] kernel = [0, -strength, 0, -strength, 1 + 4 * strength, -strength, 0, -strength, 0];
         return SKImageFilter.CreateMatrixConvolution(new SKSizeI(3, 3), kernel, 1, 0,
@@ -118,8 +153,15 @@ public static class EditRenderer
             using var path = new SKPath();
             var first = stroke.Points[0];
             path.MoveTo(first.X * (float)size.Width, first.Y * (float)size.Height);
-            foreach (var point in stroke.Points.Skip(1))
-                path.LineTo(point.X * (float)size.Width, point.Y * (float)size.Height);
+            for (var index = 1; index < stroke.Points.Length; index++)
+            {
+                var previous = stroke.Points[index - 1];
+                var next = stroke.Points[index];
+                path.QuadTo(previous.X * (float)size.Width, previous.Y * (float)size.Height,
+                    (previous.X + next.X) / 2 * (float)size.Width, (previous.Y + next.Y) / 2 * (float)size.Height);
+            }
+            var last = stroke.Points[^1];
+            path.LineTo(last.X * (float)size.Width, last.Y * (float)size.Height);
             if (stroke.Points.Length == 1)
                 canvas.DrawPoint(first.X * (float)size.Width, first.Y * (float)size.Height, paint);
             else canvas.DrawPath(path, paint);
@@ -137,16 +179,35 @@ public static class EditRenderer
         return result;
     }
 
-    public static async Task SaveAsync(string sourcePath, string targetPath, EditState state, int quality)
+    public static bool CanEncode(string extension)
     {
-        await Task.Run(() =>
+        if (extension.ToLowerInvariant() is ".jpg" or ".jpeg" or ".jpe" or ".jfif" or ".png") return true;
+#if WINDOWS
+        return WindowsPhotoCodec.CanEncode(extension);
+#else
+        return false;
+#endif
+    }
+
+    public static async Task SaveAsync(string sourcePath, string targetPath, EditState state, int quality, bool overwrite = true)
+    {
+        await Task.Run(async () =>
         {
             using var source = PhotoDecoder.Load(sourcePath);
             using var rendered = Render(source, state);
             using var image = SKImage.FromBitmap(rendered);
-            var format = Path.GetExtension(targetPath).Equals(".png", StringComparison.OrdinalIgnoreCase)
-                ? SKEncodedImageFormat.Png : SKEncodedImageFormat.Jpeg;
-            using var encoded = image.Encode(format, quality);
+            var extension = Path.GetExtension(targetPath);
+            if (!CanEncode(extension)) throw new NotSupportedException(extension);
+            byte[] bytes;
+#if WINDOWS
+            if (WindowsPhotoCodec.CanEncode(extension)) bytes = await WindowsPhotoCodec.EncodeAsync(rendered, extension);
+            else
+#endif
+            {
+                var format = extension.Equals(".png", StringComparison.OrdinalIgnoreCase) ? SKEncodedImageFormat.Png : SKEncodedImageFormat.Jpeg;
+                using var encoded = image.Encode(format, quality);
+                bytes = encoded.ToArray();
+            }
             var temporary = targetPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
             var created = false;
             try
@@ -154,10 +215,10 @@ public static class EditRenderer
                 using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
                     created = true;
-                    encoded.SaveTo(stream);
+                    await stream.WriteAsync(bytes);
                     stream.Flush(true);
                 }
-                File.Move(temporary, targetPath, true);
+                File.Move(temporary, targetPath, overwrite);
             }
             catch (Exception error)
             {

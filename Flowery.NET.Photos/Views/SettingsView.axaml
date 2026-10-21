@@ -4,8 +4,15 @@
         xmlns:l="using:Flowery.NET.Photos.Localization"
         x:Class="Flowery.NET.Photos.Views.SettingsView" x:DataType="l:PhotosLocalization"
         AutomationProperties.AutomationId="Photos.Settings"
-        Width="760" Height="900" MinWidth="620" MinHeight="480" WindowStartupLocation="CenterOwner">
-  <Grid RowDefinitions="*,Auto" Margin="24">
+        Width="760" Height="900" CanResize="False" WindowDecorations="None" ShowInTaskbar="False" Background="Transparent" TransparencyLevelHint="Transparent" WindowStartupLocation="CenterOwner">
+  <Window.Styles>
+    <Style Selector="c|DaisyModal /template/ Border">
+      <Setter Property="BorderBrush" Value="{DynamicResource PhotosAccentBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+  </Window.Styles>
+  <c:DaisyModal x:Name="SettingsModal" IsOpen="True" DialogMaxWidth="Infinity" AutomationProperties.AutomationId="SettingsView.Modal" AutomationProperties.Name="{Binding [Photos_Nav_Settings]}">
+  <Grid x:Name="DialogContent" RowDefinitions="*,Auto">
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
       <StackPanel Spacing="16">
         <c:DaisyCard Classes="photo-card">
@@ -71,5 +78,7 @@
       <c:DaisyButton AutomationProperties.AutomationId="SettingsView.Photos_Cancel" AutomationProperties.Name="{Binding [Photos_Cancel]}" Content="{Binding [Photos_Cancel]}" Variant="Neutral" Click="CancelClick" />
       <c:DaisyButton AutomationProperties.AutomationId="SettingsView.Photos_Ok" AutomationProperties.Name="{Binding [Photos_Ok]}" Content="{Binding [Photos_Ok]}" Click="OkClick" />
     </StackPanel>
+    <c:DaisyToast x:Name="Notifications" Grid.RowSpan="2" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="12,12,12,60" MaxWidth="500" AutomationProperties.AutomationId="SettingsView.Notifications" AutomationProperties.LiveSetting="Polite" />
   </Grid>
+  </c:DaisyModal>
 </Window>

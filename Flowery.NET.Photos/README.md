@@ -63,8 +63,9 @@ Removing a source folder preserves its files.
 
 The scanner reads image headers and stores metadata in a JSON cache.
 File watchers refresh changed folders.
-JPEG metadata includes EXIF orientation, dates, camera, lens, exposure, and GPS coordinates when available.
-SkiaSharp supplies decoding for supported image codecs.
+JPEG metadata includes EXIF orientation, dates, camera, lens, exposure, ISO, focal length, and GPS coordinates when available.
+Windows also supplies image codecs and metadata for formats such as TIFF and JPEG XR.
+Other platforms use the SkiaSharp codecs and the JPEG metadata reader.
 
 The gallery supports these operations:
 
@@ -73,10 +74,14 @@ The gallery supports these operations:
 - Search by name, folder, camera, year, or month.
 - File type and orientation filters.
 - Sort by capture date, modified date, name, or size.
-- A visible-date indicator and a timeline with month and year buttons.
+- A visible-date indicator and a draggable timeline with proportional month and year positions.
 - Selection with checkboxes, Ctrl-click, Shift-click, or Select all.
 - Batch favorites, album assignment, clipboard copy, and Windows Recycle Bin actions.
-- Context menus for individual photos.
+- Context menus for individual photos or the visible selection.
+
+Date groups and the timeline appear only with capture-date sorting.
+Search retains the current folder, album, or favorites source.
+Album and folder cards load their covers only in the visible part of the collection list.
 
 Albums reference the original paths.
 They do not copy or move the images.
@@ -102,8 +107,15 @@ Edits remain separate from the source image until you save:
 - Save a copy, replace the original after confirmation, or copy the edited image.
 
 The same Skia rendering pipeline supplies the preview and full-resolution export.
-Exports use JPEG or PNG.
-Other input formats use a JPEG copy.
+Detail zoom uses the full-resolution image and accounts for display scaling.
+The blur radius scales with the output dimensions.
+The pipeline applies geometry before color and detail effects, then the vignette, then markup.
+Skia effects preserve the original control ranges and processing order, but do not guarantee identical Win2D pixels.
+
+Copies retain the source format when an encoder is available.
+All platforms export JPEG and PNG.
+Windows also exports BMP, GIF, TIFF, and JPEG XR through its native codecs.
+Other input formats use a JPEG copy. Saved copies appear next to their originals in the viewer list.
 Exports do not preserve EXIF metadata.
 Animated images show their first frame.
 
@@ -133,20 +145,25 @@ Editor sliders expose RangeValue, and the tests exercise these patterns against 
 | Ctrl+F | Search |
 | Ctrl+, | Settings |
 | Ctrl+A | Select all gallery photos |
-| Ctrl+wheel | Change gallery thumbnail size |
-| Left / Right | Previous / next photo |
+| Ctrl+wheel / Ctrl+Plus / Ctrl+Minus | Change gallery thumbnail size |
+| Left / Right or PageUp / PageDown | Previous / next photo |
+| Home / End | First / last photo |
 | Ctrl+E | Edit |
-| Ctrl+Z / Ctrl+Y | Undo / redo |
+| Ctrl+Z / Ctrl+Y or Ctrl+Shift+Z | Undo / redo |
 | Ctrl+S | Save a copy |
+| Ctrl+Shift+S | Replace the original after confirmation |
+| Ctrl+C | Copy the selection or the current photo, including its edits |
+| I | Toggle file information |
 | Delete | Move selected photos to the Windows Recycle Bin |
 | + / - | Zoom |
 | 0 / 1 | Fit / 100% |
 | F | Favorite |
 | R / Shift+R | Rotate right / left |
 | X | Swap markup colors |
-| F5 | Slideshow |
+| F5 | Start or stop slideshow |
+| Space | Advance during slideshow |
 | F11 | Full screen |
-| Esc | Exit full screen, stop slideshow, or return to the gallery |
+| Esc | Clear gallery selection, stop slideshow, exit full screen, close comparison or the side panel, then return to the previous page |
 
 ## Isolated demonstrations
 

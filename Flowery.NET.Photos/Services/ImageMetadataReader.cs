@@ -42,21 +42,38 @@ namespace Flowery.NET.Photos.Services
             return await ProbeWithDecoderAsync(path).ConfigureAwait(false);
         }
 
-        private static Task<ImageProbe?> ProbeWithDecoderAsync(string path)
+        public static async Task<ImageProbe?> ReadDetailsAsync(string path)
+        {
+#if WINDOWS
+            try { return await WindowsPhotoCodec.ReadMetadataAsync(path).ConfigureAwait(false); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or System.Runtime.InteropServices.COMException)
+            { /* Optional shell metadata may be unavailable for an otherwise readable image. */ }
+#endif
+            return await ProbeAsync(path).ConfigureAwait(false);
+        }
+
+        private static async Task<ImageProbe?> ProbeWithDecoderAsync(string path)
         {
             try
             {
                 using var stream = File.OpenRead(path);
                 using var codec = SKCodec.Create(stream);
-                if (codec == null) return Task.FromResult<ImageProbe?>(null);
+                if (codec == null)
+                {
+#if WINDOWS
+                    return await WindowsPhotoCodec.ProbeAsync(path).ConfigureAwait(false);
+#else
+                    return null;
+#endif
+                }
                 var swap = (int)codec.EncodedOrigin >= 5;
-                return Task.FromResult<ImageProbe?>(new ImageProbe(
+                return new ImageProbe(
                     swap ? codec.Info.Height : codec.Info.Width,
-                    swap ? codec.Info.Width : codec.Info.Height, null, (int)codec.EncodedOrigin, null));
+                    swap ? codec.Info.Width : codec.Info.Height, null, (int)codec.EncodedOrigin, null);
             }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or System.Runtime.InteropServices.COMException)
             {
-                return Task.FromResult<ImageProbe?>(null);
+                return null;
             }
         }
 
@@ -230,7 +247,8 @@ namespace Flowery.NET.Photos.Services
 
             DateTime? date = null;
             string? lens = null;
-            double? exposure = null, aperture = null;
+            double? exposure = null, aperture = null, focalLength = null;
+            ushort? iso = null;
             if (exifIfd > 0)
             {
                 foreach (var entry in EnumerateIfd(tiff, exifIfd, little))
@@ -239,6 +257,8 @@ namespace Flowery.NET.Photos.Services
                         lens = ReadAscii(tiff, entry.Count, entry.ValueOffset, tiff.Slice(entry.EntryOffset + 8, 4));
                     if (entry.Tag == 0x829A) exposure = ReadRational(tiff, entry.ValueOffset, little);
                     if (entry.Tag == 0x829D) aperture = ReadRational(tiff, entry.ValueOffset, little);
+                    if (entry.Tag == 0x920A) focalLength = ReadRational(tiff, entry.ValueOffset, little);
+                    if (entry.Tag == 0x8827 && entry.Count == 1) iso = ReadU16(tiff, entry.EntryOffset + 8, little);
                     if (entry.Tag is 0x9003 or 0x9004 && date == null)
                     {
                         var text = ReadAscii(tiff, entry.Count, entry.ValueOffset, tiff.Slice(entry.EntryOffset + 8, 4));
@@ -271,10 +291,14 @@ namespace Flowery.NET.Photos.Services
             }
             if (latitude.HasValue) latitude = south ? -latitude : latitude;
             if (longitude.HasValue) longitude = west ? -longitude : longitude;
-            var exposureText = exposure.HasValue ? exposure < 1
-                ? string.Format(CultureInfo.InvariantCulture, "1/{0:0} s", 1 / exposure) : exposure + " s" : null;
-            if (aperture.HasValue) exposureText += string.Format(CultureInfo.InvariantCulture, " · f/{0:0.#}", aperture);
-            return new PhotoDetails(lens, exposureText, latitude, longitude);
+            List<string> exposureParts = [];
+            if (aperture > 0) exposureParts.Add(string.Format(CultureInfo.InvariantCulture, "ƒ/{0:0.#}", aperture));
+            if (exposure > 0) exposureParts.Add(exposure < 1
+                ? string.Format(CultureInfo.InvariantCulture, "1/{0:0} s", 1 / exposure)
+                : string.Format(CultureInfo.InvariantCulture, "{0:0.#} s", exposure));
+            if (iso > 0) exposureParts.Add($"ISO {iso}");
+            if (focalLength > 0) exposureParts.Add(string.Format(CultureInfo.InvariantCulture, "{0:0} mm", focalLength));
+            return new PhotoDetails(lens, string.Join("  ·  ", exposureParts), latitude, longitude);
         }
 
         private static double? ReadRational(ReadOnlySpan<byte> data, ulong offset, bool little)
