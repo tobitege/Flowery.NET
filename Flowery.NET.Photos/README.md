@@ -9,6 +9,39 @@ Distribute both folders with the desktop app.
 Keep `Assets/Fonts/OFL.txt` with the fonts. It contains their copyright notices and the SIL Open Font License 1.1.
 The app loads the fonts from its output directory instead of embedding them in `Flowery.NET.Photos.dll`.
 
+## Standalone releases
+
+The manual **Release Photos** workflow creates a Photos-only GitHub release without publishing NuGet packages or changing the library version.
+With library version `3.8.0`, its tags are `v3.8.0-photos.1`, `v3.8.0-photos.2`, and so on.
+The `main` and `avalonia12` branches share this counter.
+The `alpha` branch uses separate prerelease tags such as `v3.8.0-alpha-photos.1`.
+Photos releases do not replace the latest library release on GitHub.
+
+After the workflow is merged into the default branch:
+
+1. Open **Actions → Release Photos → Run workflow**.
+2. Select `avalonia12` as the workflow branch and as **Branch to release from**.
+3. Enter an optional description.
+4. Start the workflow to build the packages, create the tag, and publish the release.
+
+Every package and the release tag use the same source commit.
+The release contains these downloads:
+
+| Platform | Archive | Executable |
+| --- | --- | --- |
+| Windows x64 | `Flowery.Photos-Windows-x64.zip` | `Flowery.NET.Photos.Desktop.exe` |
+| Linux x64 | `Flowery.Photos-Linux-x64.tar.gz` | `Flowery.NET.Photos.Desktop` |
+| macOS ARM64 | `Flowery.Photos-macOS-arm64.tar.gz` | `Flowery.NET.Photos.Desktop` |
+
+Extract the complete archive before starting the app.
+Keep `Assets/Fonts`, its license file, and `Assets/Samples` beside the executable.
+The .NET runtime is included. Linux still requires the system libraries used by Avalonia.
+The macOS archive contains a standalone executable, without an `.app` bundle, signing, or notarization.
+The Unix archives preserve executable permissions.
+
+**Release Gallery** also provides these three desktop platforms and retains its four Android APKs.
+Its desktop archives use the prefix `Flowery.Gallery`.
+
 ## Build and run
 
 Use the .NET SDK selected by the repository's `global.json`.

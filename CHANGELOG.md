@@ -6,6 +6,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Desktop app releases - 2026-10-21
+
+### Added
+
+- Added the manual Release Photos workflow with independent `photos.N` release tags and no NuGet publication or library version change.
+- Photos releases include Windows x64, Linux x64, and macOS ARM64 packages with external fonts, their license, and all ten sample photos.
+
+### Changed
+
+- Gallery releases now include Linux x64 and macOS ARM64 archives alongside Windows x64 and the existing Android APKs.
+- CI verifies Photos publish contents on all three desktop platforms and builds Gallery packages for the same platforms.
+
 ## Flowery Photos - 2026-10-21
 
 ### Added

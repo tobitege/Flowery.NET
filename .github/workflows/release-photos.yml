@@ -1,0 +1,204 @@
+name: Release Photos
+
+# Manual Photos-only releases. Library versions and NuGet packages stay unchanged.
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to release from'
+        required: true
+        type: choice
+        options:
+          - avalonia12
+          - main
+          - alpha
+        default: avalonia12
+      description:
+        description: 'Optional: What changed in this release?'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# Stable branches share the photos.N counter. Do not allocate it concurrently.
+concurrency:
+  group: release-photos
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      source_sha: ${{ steps.version.outputs.source_sha }}
+      lib_version: ${{ steps.version.outputs.lib_version }}
+      tag: ${{ steps.version.outputs.tag }}
+      display_version: ${{ steps.version.outputs.display_version }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Test release metadata and package checks
+        run: python3 -B -m unittest discover -s Utils -p test_photos_release.py
+
+      - name: Determine version and source commit
+        id: version
+        env:
+          RELEASE_BRANCH: ${{ inputs.branch }}
+        run: python3 Utils/photos_release.py version --branch "$RELEASE_BRANCH"
+
+  build-photos:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2025-vs2026
+            rid: win-x64
+            artifact_name: Flowery.Photos-Windows-x64
+          - os: ubuntu-24.04
+            rid: linux-x64
+            artifact_name: Flowery.Photos-Linux-x64
+          - os: macos-15
+            rid: osx-arm64
+            artifact_name: Flowery.Photos-macOS-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.source_sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Run Photos tests
+        run: dotnet test Flowery.NET.Photos.Tests/Flowery.NET.Photos.Tests.csproj -c Release
+
+      - name: Publish Photos App
+        shell: bash
+        run: |
+          dotnet publish Flowery.NET.Photos.Desktop/Flowery.NET.Photos.Desktop.csproj \
+            -c Release -r ${{ matrix.rid }} --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:EnableCompressionInSingleFile=true \
+            -o ./publish
+
+      - name: Verify executable, fonts, license, and samples
+        run: python Utils/photos_release.py verify --directory ./publish --rid ${{ matrix.rid }}
+
+      - name: Zip Windows artifact
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path ./publish/* -DestinationPath ./${{ matrix.artifact_name }}.zip
+
+      - name: Archive Unix artifact
+        if: runner.os != 'Windows'
+        shell: bash
+        env:
+          ARCHIVE: ${{ matrix.artifact_name }}.tar.gz
+        run: tar -czf "$ARCHIVE" -C ./publish .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            ./${{ matrix.artifact_name }}.zip
+            ./${{ matrix.artifact_name }}.tar.gz
+          if-no-files-found: error
+
+  publish:
+    needs: [prepare, build-photos]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.source_sha }}
+
+      - name: Download Photos artifacts
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: Flowery.Photos-*
+          merge-multiple: true
+          path: ./release-artifacts
+
+      - name: Require all platform archives
+        run: |
+          test -s ./release-artifacts/Flowery.Photos-Windows-x64.zip
+          test -s ./release-artifacts/Flowery.Photos-Linux-x64.tar.gz
+          test -s ./release-artifacts/Flowery.Photos-macOS-arm64.tar.gz
+
+      - name: Build release notes
+        env:
+          RELEASE_DESCRIPTION: ${{ inputs.description }}
+          LIB_VERSION: ${{ needs.prepare.outputs.lib_version }}
+          SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+          IS_PRERELEASE: ${{ needs.prepare.outputs.is_prerelease }}
+        run: |
+          {
+            echo '## Photos Desktop App Update'
+            echo ''
+            if [ "$IS_PRERELEASE" = 'true' ]; then
+              echo '> Pre-release from the alpha branch.'
+              echo ''
+            fi
+            if [ -n "$RELEASE_DESCRIPTION" ]; then
+              printf '%s\n\n' "$RELEASE_DESCRIPTION"
+            fi
+            echo "This Photos-only release uses Flowery.NET $LIB_VERSION. It does not publish NuGet packages."
+            echo ''
+            echo 'Extract the complete archive. Keep Assets/Fonts, its OFL.txt license, and Assets/Samples beside the executable.'
+            echo 'The .NET runtime is included. Linux requires the system libraries used by Avalonia.'
+            echo 'The macOS archive contains a standalone executable, without an .app bundle, signing, or notarization.'
+            echo ''
+            echo '| Platform | Download |'
+            echo '| --- | --- |'
+            echo '| Windows x64 | `Flowery.Photos-Windows-x64.zip` |'
+            echo '| Linux x64 | `Flowery.Photos-Linux-x64.tar.gz` |'
+            echo '| macOS ARM64 | `Flowery.Photos-macOS-arm64.tar.gz` |'
+            echo ''
+            echo "Source commit: $SOURCE_SHA"
+          } > release_notes.md
+
+      - name: Create and push tag for the built commit
+        env:
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+        run: |
+          git tag "$RELEASE_TAG" "$SOURCE_SHA"
+          git push origin "refs/tags/$RELEASE_TAG"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: Photos ${{ needs.prepare.outputs.display_version }}
+          files: |
+            ./release-artifacts/Flowery.Photos-Windows-x64.zip
+            ./release-artifacts/Flowery.Photos-Linux-x64.tar.gz
+            ./release-artifacts/Flowery.Photos-macOS-arm64.tar.gz
+          fail_on_unmatched_files: true
+          body_path: release_notes.md
+          prerelease: ${{ needs.prepare.outputs.is_prerelease == 'true' }}
+          make_latest: false
+
+      - name: Summary
+        env:
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+        run: |
+          {
+            echo '## Photos Release Complete'
+            echo "- Tag: $RELEASE_TAG"
+            echo "- Source: $SOURCE_SHA"
+            echo "- Release: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG"
+          } >> "$GITHUB_STEP_SUMMARY"

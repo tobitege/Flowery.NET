@@ -30,6 +30,13 @@ jobs:
       matrix:
         os: [windows-2025-vs2026, ubuntu-24.04, macos-15]
         configuration: [Debug, Release]
+        include:
+          - os: windows-2025-vs2026
+            rid: win-x64
+          - os: ubuntu-24.04
+            rid: linux-x64
+          - os: macos-15
+            rid: osx-arm64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -40,6 +47,18 @@ jobs:
         run: dotnet build Flowery.NET.Photos.Desktop/Flowery.NET.Photos.Desktop.csproj -c ${{ matrix.configuration }}
       - name: Run Photos tests
         run: dotnet test Flowery.NET.Photos.Tests/Flowery.NET.Photos.Tests.csproj -c ${{ matrix.configuration }}
+
+      - name: Verify Photos release package
+        if: matrix.configuration == 'Release'
+        shell: bash
+        run: |
+          dotnet publish Flowery.NET.Photos.Desktop/Flowery.NET.Photos.Desktop.csproj \
+            -c Release -r ${{ matrix.rid }} --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:EnableCompressionInSingleFile=true \
+            -o ./publish
+          python Utils/photos_release.py verify --directory ./publish --rid ${{ matrix.rid }}
 
   build-library:
     runs-on: ubuntu-24.04
@@ -66,12 +85,19 @@ jobs:
       - name: Run documentation tests
         run: python3 -B -m unittest discover -s Utils -p test_documentation.py
 
+      - name: Run Photos release tests
+        run: python3 -B -m unittest discover -s Utils -p test_photos_release.py
+
   build-gallery:
     strategy:
       matrix:
         include:
           - os: windows-2025-vs2026
             rid: win-x64
+          - os: ubuntu-24.04
+            rid: linux-x64
+          - os: macos-15
+            rid: osx-arm64
 
     runs-on: ${{ matrix.os }}
 

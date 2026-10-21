@@ -142,6 +142,7 @@ jobs:
           mkdir -p ./final
           find ./release-artifacts -name "*.nupkg" -exec cp {} ./final/ \;
           find ./release-artifacts -name "*.zip" -exec cp {} ./final/ \;
+          find ./release-artifacts -name "*.tar.gz" -exec cp {} ./final/ \;
           find ./release-artifacts -name "*.apk" -exec cp {} ./final/ \;
           echo "=== Release artifacts ==="
           ls -la ./final/
@@ -228,6 +229,8 @@ jobs:
           | Platform | Download |
           |----------|----------|
           | Windows x64 | `Flowery.Gallery-Windows-x64.zip` |
+          | Linux x64 | `Flowery.Gallery-Linux-x64.tar.gz` |
+          | macOS ARM64 | `Flowery.Gallery-macOS-arm64.tar.gz` |
           | Android arm | `Flowery.Gallery-Android-arm.apk` |
           | Android arm64 | `Flowery.Gallery-Android-arm64.apk` |
           | Android x86 | `Flowery.Gallery-Android-x86.apk` |

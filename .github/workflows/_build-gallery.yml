@@ -14,11 +14,18 @@ on:
 jobs:
   build-desktop:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-2025-vs2026
             rid: win-x64
             artifact_name: Flowery.Gallery-Windows-x64
+          - os: ubuntu-24.04
+            rid: linux-x64
+            artifact_name: Flowery.Gallery-Linux-x64
+          - os: macos-15
+            rid: osx-arm64
+            artifact_name: Flowery.Gallery-macOS-arm64
 
     runs-on: ${{ matrix.os }}
     permissions:
@@ -31,7 +38,7 @@ jobs:
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: '10.0.x'
+          global-json-file: global.json
 
       - name: Publish Gallery App
         shell: bash
@@ -50,13 +57,23 @@ jobs:
         run: Compress-Archive -Path ./publish/* -DestinationPath ./${{ matrix.artifact_name }}.zip
         shell: pwsh
 
+      - name: Archive Unix artifact
+        if: runner.os != 'Windows'
+        shell: bash
+        env:
+          ARCHIVE: ${{ matrix.artifact_name }}.tar.gz
+        run: |
+          test -x ./publish/Flowery.NET.Gallery.Desktop
+          tar -czf "$ARCHIVE" -C ./publish .
+
       - name: Upload artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: ${{ matrix.artifact_name }}
           path: |
             ./${{ matrix.artifact_name }}.zip
-          if-no-files-found: ignore
+            ./${{ matrix.artifact_name }}.tar.gz
+          if-no-files-found: error
 
   build-android:
     strategy:
