@@ -58,7 +58,7 @@ jobs:
             -p:IncludeNativeLibrariesForSelfExtract=true \
             -p:EnableCompressionInSingleFile=true \
             -o ./publish
-          python Utils/photos_release.py verify --directory ./publish --rid ${{ matrix.rid }}
+          python Utils/photos_release.py verify --rid ${{ matrix.rid }}
 
   build-library:
     runs-on: ubuntu-24.04

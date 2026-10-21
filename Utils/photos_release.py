@@ -48,22 +48,18 @@ def main():
     version = commands.add_parser('version')
     version.add_argument('--branch', required=True)
     verify = commands.add_parser('verify')
-    verify.add_argument('--directory', type=Path, required=True)
     verify.add_argument('--rid', required=True)
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
     if args.command == 'verify':
-        verify_publish(root, args.directory, args.rid)
+        verify_publish(root, root / 'publish', args.rid)
         print(f'Photos package verified for {args.rid}: executable, fonts, license, ten samples')
         return
     library_version = ET.parse(root / 'Directory.Build.props').findtext('./PropertyGroup/Version', '').strip()
     tags = subprocess.check_output(['git', 'tag', '--list'], cwd=root, text=True).splitlines()
     metadata = release_metadata(library_version, args.branch, tags)
-    metadata['source_sha'] = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
-    with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
-        for key, value in metadata.items():
-            print(f'{key}={value}', file=output)
-            print(f'{key}={value}')
+    for key, value in metadata.items():
+        print(f'{key}={value}')
 
 
 if __name__ == '__main__':

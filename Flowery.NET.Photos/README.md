@@ -20,7 +20,7 @@ Photos releases do not replace the latest library release on GitHub.
 After the workflow is merged into the default branch:
 
 1. Open **Actions → Release Photos → Run workflow**.
-2. Select `avalonia12` as the workflow branch and as **Branch to release from**.
+2. Select `avalonia12` under **Use workflow from**. The other supported branches are `main` and `alpha`.
 3. Enter an optional description.
 4. Start the workflow to build the packages, create the tag, and publish the release.
 

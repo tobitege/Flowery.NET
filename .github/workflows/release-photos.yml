@@ -4,15 +4,6 @@ name: Release Photos
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: 'Branch to release from'
-        required: true
-        type: choice
-        options:
-          - avalonia12
-          - main
-          - alpha
-        default: avalonia12
       description:
         description: 'Optional: What changed in this release?'
         required: false
@@ -28,9 +19,9 @@ concurrency:
 
 jobs:
   prepare:
+    if: github.ref == 'refs/heads/avalonia12' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/alpha'
     runs-on: ubuntu-24.04
     outputs:
-      source_sha: ${{ steps.version.outputs.source_sha }}
       lib_version: ${{ steps.version.outputs.lib_version }}
       tag: ${{ steps.version.outputs.tag }}
       display_version: ${{ steps.version.outputs.display_version }}
@@ -38,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.branch }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -48,8 +39,8 @@ jobs:
       - name: Determine version and source commit
         id: version
         env:
-          RELEASE_BRANCH: ${{ inputs.branch }}
-        run: python3 Utils/photos_release.py version --branch "$RELEASE_BRANCH"
+          RELEASE_BRANCH: ${{ github.ref_name }}
+        run: python3 Utils/photos_release.py version --branch "$RELEASE_BRANCH" >> "$GITHUB_OUTPUT"
 
   build-photos:
     needs: prepare
@@ -70,7 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.prepare.outputs.source_sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
@@ -91,7 +82,7 @@ jobs:
             -o ./publish
 
       - name: Verify executable, fonts, license, and samples
-        run: python Utils/photos_release.py verify --directory ./publish --rid ${{ matrix.rid }}
+        run: python Utils/photos_release.py verify --rid ${{ matrix.rid }}
 
       - name: Zip Windows artifact
         if: runner.os == 'Windows'
@@ -122,7 +113,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.prepare.outputs.source_sha }}
+          ref: ${{ github.sha }}
 
       - name: Download Photos artifacts
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -141,7 +132,7 @@ jobs:
         env:
           RELEASE_DESCRIPTION: ${{ inputs.description }}
           LIB_VERSION: ${{ needs.prepare.outputs.lib_version }}
-          SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+          SOURCE_SHA: ${{ github.sha }}
           IS_PRERELEASE: ${{ needs.prepare.outputs.is_prerelease }}
         run: |
           {
@@ -172,7 +163,7 @@ jobs:
       - name: Create and push tag for the built commit
         env:
           RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
-          SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+          SOURCE_SHA: ${{ github.sha }}
         run: |
           git tag "$RELEASE_TAG" "$SOURCE_SHA"
           git push origin "refs/tags/$RELEASE_TAG"
@@ -194,7 +185,7 @@ jobs:
       - name: Summary
         env:
           RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
-          SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+          SOURCE_SHA: ${{ github.sha }}
         run: |
           {
             echo '## Photos Release Complete'
