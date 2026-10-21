@@ -1,0 +1,84 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+        xmlns:l="using:Flowery.NET.Photos.Localization"
+        x:Class="Flowery.NET.Photos.Views.SettingsView" x:DataType="l:PhotosLocalization"
+        AutomationProperties.AutomationId="Photos.Settings"
+        Width="760" Height="900" CanResize="False" WindowDecorations="None" ShowInTaskbar="False" Background="Transparent" TransparencyLevelHint="Transparent" WindowStartupLocation="CenterOwner">
+  <Window.Styles>
+    <Style Selector="c|DaisyModal /template/ Border">
+      <Setter Property="BorderBrush" Value="{DynamicResource PhotosAccentBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+  </Window.Styles>
+  <c:DaisyModal x:Name="SettingsModal" IsOpen="True" DialogMaxWidth="Infinity" AutomationProperties.AutomationId="SettingsView.Modal" AutomationProperties.Name="{Binding [Photos_Nav_Settings]}">
+  <Grid x:Name="DialogContent" RowDefinitions="*,Auto">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Spacing="16">
+        <c:DaisyCard Classes="photo-card">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{Binding [Photos_Settings_Appearance]}" Classes="section-heading" />
+            <Grid ColumnDefinitions="*,240" RowDefinitions="Auto,Auto,Auto">
+              <TextBlock Grid.Row="0" Text="{Binding [Photos_Settings_Theme]}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,8,12,8" />
+            <c:DaisySelect Grid.Row="0" Grid.Column="1" AutomationProperties.AutomationId="SettingsView.ThemeChoice" AutomationProperties.Name="{Binding [Photos_Settings_Theme]}" x:Name="ThemeChoice" HorizontalAlignment="Stretch" Margin="0,8" />
+              <TextBlock Grid.Row="1" Text="{Binding [Photos_Settings_Size]}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,8,12,8" />
+            <c:DaisySelect Grid.Row="1" Grid.Column="1" AutomationProperties.AutomationId="SettingsView.GlobalSize" AutomationProperties.Name="{Binding [Photos_Settings_Size]}" x:Name="GlobalSize" HorizontalAlignment="Stretch" Margin="0,8" />
+              <TextBlock Grid.Row="2" Text="{Binding [Photos_Settings_Language]}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,8,12,8" />
+            <c:DaisySelect Grid.Row="2" Grid.Column="1" AutomationProperties.AutomationId="SettingsView.Language" AutomationProperties.Name="{Binding [Photos_Settings_Language]}" x:Name="Language" HorizontalAlignment="Stretch" Margin="0,8" />
+            </Grid>
+            <TextBlock Text="{Binding [Photos_Settings_SizeHint]}" TextWrapping="Wrap" Opacity="0.65" />
+          </StackPanel>
+        </c:DaisyCard>
+        <c:DaisyCard Classes="photo-card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="{Binding [Photos_Settings_Library]}" Classes="section-heading" />
+            <TextBlock x:Name="LibraryStats" TextWrapping="Wrap" Opacity="0.65" />
+            <WrapPanel>
+              <c:DaisyButton AutomationProperties.AutomationId="SettingsView.Rescan" AutomationProperties.Name="{Binding [Photos_Rescan]}" Content="{Binding [Photos_Rescan]}" IconSymbol="Refresh" Click="RescanClick" Margin="0,0,8,8" />
+              <c:DaisyButton AutomationProperties.AutomationId="SettingsView.Photos_AddFolder" AutomationProperties.Name="{Binding [Photos_AddFolder]}" Content="{Binding [Photos_AddFolder]}" IconSymbol="Folder" Click="AddFolderClick" Margin="0,0,0,8" />
+            </WrapPanel>
+            <StackPanel x:Name="Folders" Spacing="8" />
+            <c:DaisyCheckBox AutomationProperties.AutomationId="SettingsView.Recursive" AutomationProperties.Name="{Binding [Photos_Settings_IncludeSubfolders]}" x:Name="Recursive" Content="{Binding [Photos_Settings_IncludeSubfolders]}" />
+          </StackPanel>
+        </c:DaisyCard>
+        <c:DaisyCard Classes="photo-card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="{Binding [Photos_Settings_ViewingEditing]}" Classes="section-heading" />
+            <c:DaisyCheckBox AutomationProperties.AutomationId="SettingsView.ConfirmDelete" AutomationProperties.Name="{Binding [Photos_Settings_ConfirmDelete]}" x:Name="ConfirmDelete" Content="{Binding [Photos_Settings_ConfirmDelete]}" />
+            <c:DaisyCheckBox AutomationProperties.AutomationId="SettingsView.Wheel" AutomationProperties.Name="{Binding [Photos_Settings_WheelNavigates]}" x:Name="Wheel" Content="{Binding [Photos_Settings_WheelNavigates]}" />
+            <TextBlock Text="{Binding [Photos_Settings_SlideshowInterval]}" />
+            <c:DaisyRange AutomationProperties.AutomationId="SettingsView.Interval" AutomationProperties.Name="{Binding [Photos_Settings_SlideshowInterval]}" x:Name="Interval" Minimum="1" Maximum="30" TickFrequency="1" IsSnapToTickEnabled="True" />
+            <TextBlock Text="{Binding Value, ElementName=Interval, StringFormat='{}{0:0} s'}" x:CompileBindings="False" HorizontalAlignment="Right" />
+            <TextBlock Text="{Binding [Photos_Settings_JpegQuality]}" />
+            <c:DaisyRange AutomationProperties.AutomationId="SettingsView.Quality" AutomationProperties.Name="{Binding [Photos_Settings_JpegQuality]}" x:Name="Quality" Minimum="40" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" />
+            <TextBlock Text="{Binding Value, ElementName=Quality, StringFormat='{}{0:0}%'}" x:CompileBindings="False" HorizontalAlignment="Right" />
+          </StackPanel>
+        </c:DaisyCard>
+        <c:DaisyCard Classes="photo-card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="{Binding [Photos_Settings_Shortcuts]}" Classes="section-heading" />
+            <StackPanel x:Name="Shortcuts" Spacing="8" />
+          </StackPanel>
+        </c:DaisyCard>
+        <c:DaisyCard Classes="photo-card">
+          <StackPanel Spacing="10">
+            <TextBlock Text="{Binding [Photos_AppTitle]}" Classes="section-heading" />
+            <TextBlock x:Name="VersionText" Opacity="0.65" />
+            <TextBlock Text="{Binding [Photos_Settings_AboutText]}" TextWrapping="Wrap" />
+            <WrapPanel>
+              <c:DaisyButton AutomationProperties.AutomationId="SettingsView.GitHub" AutomationProperties.Name="GitHub" Content="GitHub" Click="GitHubClick" Margin="0,0,8,8" />
+              <c:DaisyButton AutomationProperties.AutomationId="SettingsView.DataFolder" AutomationProperties.Name="{Binding [Photos_Settings_OpenDataFolder]}" Content="{Binding [Photos_Settings_OpenDataFolder]}" IconSymbol="Folder" Click="DataFolderClick" Margin="0,0,8,8" />
+              <c:DaisyButton AutomationProperties.AutomationId="SettingsView.Photos_Settings_ClearCache" AutomationProperties.Name="{Binding [Photos_Settings_ClearCache]}" Content="{Binding [Photos_Settings_ClearCache]}" Click="ClearCacheClick" Margin="0,0,0,8" />
+            </WrapPanel>
+          </StackPanel>
+        </c:DaisyCard>
+      </StackPanel>
+    </ScrollViewer>
+    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,16,0,0">
+      <c:DaisyButton AutomationProperties.AutomationId="SettingsView.Photos_Cancel" AutomationProperties.Name="{Binding [Photos_Cancel]}" Content="{Binding [Photos_Cancel]}" Variant="Neutral" Click="CancelClick" />
+      <c:DaisyButton AutomationProperties.AutomationId="SettingsView.Photos_Ok" AutomationProperties.Name="{Binding [Photos_Ok]}" Content="{Binding [Photos_Ok]}" Click="OkClick" />
+    </StackPanel>
+    <c:DaisyToast x:Name="Notifications" Grid.RowSpan="2" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="12,12,12,60" MaxWidth="500" AutomationProperties.AutomationId="SettingsView.Notifications" AutomationProperties.LiveSetting="Polite" />
+  </Grid>
+  </c:DaisyModal>
+</Window>

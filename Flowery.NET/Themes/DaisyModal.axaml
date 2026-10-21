@@ -36,7 +36,7 @@
                             Padding="{TemplateBinding Padding}"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            MaxWidth="500"
+                            MaxWidth="{TemplateBinding DialogMaxWidth}"
                             BoxShadow="0 10 25 0 #80000000">
                         <Border.CornerRadius>
                             <MultiBinding Converter="{x:Static controls:ModalCornerRadiusConverter.Instance}">

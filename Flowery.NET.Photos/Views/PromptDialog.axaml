@@ -1,0 +1,17 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+        x:Class="Flowery.NET.Photos.Views.PromptDialog"
+        Width="440" SizeToContent="Height" CanResize="False" WindowStartupLocation="CenterOwner">
+  <Border BorderBrush="{DynamicResource PhotosAccentBrush}" BorderThickness="1">
+  <StackPanel Margin="24" Spacing="18">
+    <TextBlock x:Name="Message" TextWrapping="Wrap" />
+    <TextBox AutomationProperties.AutomationId="PromptDialog.Input" x:Name="Input" IsVisible="False" />
+    <WrapPanel HorizontalAlignment="Right">
+      <c:DaisyButton AutomationProperties.AutomationId="PromptDialog.CancelButton" x:Name="CancelButton" Variant="Neutral" Margin="4" />
+      <c:DaisyButton AutomationProperties.AutomationId="PromptDialog.AlternativeButton" x:Name="AlternativeButton" Variant="Neutral" IsVisible="False" Margin="4" />
+      <c:DaisyButton AutomationProperties.AutomationId="PromptDialog.AcceptButton" x:Name="AcceptButton" Margin="4" />
+    </WrapPanel>
+  </StackPanel>
+  </Border>
+</Window>

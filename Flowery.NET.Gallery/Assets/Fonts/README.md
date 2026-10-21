@@ -23,7 +23,7 @@ These fonts are from the [Google Noto Fonts](https://fonts.google.com/noto) proj
 ✅ **Free to use** - in personal and commercial projects  
 ✅ **Free to distribute** - can be bundled with applications  
 ✅ **Free to modify** - derivative works are allowed  
-✅ **No attribution required** - though appreciated  
+✅ **Copyright and license notices** - keep `OFL.txt` with redistributed fonts
 
 The OFL is one of the most permissive font licenses available. The full license text is available at:
 https://scripts.sil.org/OFL

@@ -1,0 +1,150 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:colors="clr-namespace:Flowery.Controls.ColorPicker;assembly=Flowery.NET"
+             xmlns:l="using:Flowery.NET.Photos.Localization"
+             xmlns:local="using:Flowery.NET.Photos.Views"
+             x:Class="Flowery.NET.Photos.Views.ViewerView" x:DataType="l:PhotosLocalization"
+             AutomationProperties.AutomationId="Photos.Viewer">
+  <Grid RowDefinitions="Auto,*,Auto" Background="{DynamicResource DaisyBase200Brush}">
+    <Grid x:Name="Toolbar" ColumnDefinitions="Auto,*" Margin="8,4,8,10" ZIndex="10" VerticalAlignment="Top">
+      <StackPanel Orientation="Horizontal" Spacing="2">
+        <c:DaisyButton AutomationProperties.AutomationId="ViewerView.back" AutomationProperties.Name="{Binding [Photos_Back]}" ToolTip.Tip="{Binding [Photos_Back]}" Classes="toolbar-icon" IconSymbol="Back" Tag="back" Click="ActionClick"  />
+        <c:DaisyButton AutomationProperties.AutomationId="ViewerView.rotate" AutomationProperties.Name="{Binding [Photos_RotateRight]}" ToolTip.Tip="{Binding [Photos_RotateRight]}" Classes="toolbar-icon" IconSymbol="Redo" Tag="right" Click="ActionClick" />
+        <local:PhotoFavoriteButton x:Name="FavoriteButton" AutomationProperties.AutomationId="ViewerView.favorite" Classes="toolbar-icon" IconSymbol="Favorite" Tag="favorite" Click="ActionClick" />
+        <c:DaisyButton AutomationProperties.AutomationId="ViewerView.delete" AutomationProperties.Name="{Binding [Photos_Delete]}" ToolTip.Tip="{Binding [Photos_Delete]}" Classes="toolbar-icon" IconSymbol="Delete" Tag="delete" Click="ActionClick"  />
+      </StackPanel>
+      <WrapPanel Grid.Column="1" HorizontalAlignment="Right">
+        <c:DaisyBadge x:Name="EditedBadge" Content="{Binding [Photos_Edited]}" IsVisible="False" VerticalAlignment="Center" Margin="8,0" />
+        <c:DaisyButton AutomationProperties.AutomationId="ViewerView.info" AutomationProperties.Name="{Binding [Photos_Info]}" ToolTip.Tip="{Binding [Photos_Info]}" Classes="toolbar-icon" IconSymbol="Help" Tag="info" Click="ActionClick"  />
+        <c:DaisyButton AutomationProperties.AutomationId="ViewerView.copy" AutomationProperties.Name="{Binding [Photos_CopyEdited]}" ToolTip.Tip="{Binding [Photos_CopyEdited]}" Classes="toolbar-icon" IconSymbol="Copy" Tag="copy" Click="ActionClick"  />
+        <c:DaisyButton AutomationProperties.AutomationId="ViewerView.slideshow" AutomationProperties.Name="{Binding [Photos_Slideshow]}" ToolTip.Tip="{Binding [Photos_Slideshow]}" Classes="toolbar-icon" IconSymbol="Play" Tag="slideshow" Click="ActionClick"  />
+        <c:DaisyButton AutomationProperties.AutomationId="ViewerView.fullscreen" AutomationProperties.Name="{Binding [Photos_FullScreen]}" ToolTip.Tip="{Binding [Photos_FullScreen]}" Classes="toolbar-icon" IconData="M4,8V4H8V2H2V8M16,2V4H20V8H22V2M20,16V20H16V22H22V16M8,20H4V16H2V22H8Z" Tag="fullscreen" Click="ActionClick"  />
+        <c:DaisyButton AutomationProperties.AutomationId="ViewerView.view" AutomationProperties.Name="{Binding [Photos_ViewOptions]}" ToolTip.Tip="{Binding [Photos_ViewOptions]}" Classes="toolbar-icon" IconSymbol="Setting" Tag="view" Click="ActionClick"  />
+        <c:DaisyButton x:Name="MoreButton" AutomationProperties.AutomationId="ViewerView.More" AutomationProperties.Name="{Binding [Photos_More]}" ToolTip.Tip="{Binding [Photos_More]}" Classes="toolbar-icon" Content="⋯">
+          <c:DaisyButton.Flyout>
+            <MenuFlyout Opening="MoreOpening" />
+          </c:DaisyButton.Flyout>
+        </c:DaisyButton>
+        <c:DaisyButton AutomationProperties.AutomationId="ViewerView.edit" AutomationProperties.Name="{Binding [Photos_Edit]}" Content="{Binding [Photos_Edit]}" IconSymbol="Edit" Tag="edit" Click="ActionClick" Variant="Neutral" Margin="8,0,0,0" />
+        <StackPanel x:Name="TopSaveGroup" Orientation="Horizontal" IsVisible="False" Margin="8,0,0,0">
+          <c:DaisyButton AutomationProperties.AutomationId="ViewerView.save" AutomationProperties.Name="{Binding [Photos_SaveCopy]}" Content="{Binding [Photos_SaveCopy]}" IconSymbol="Save" Tag="save" Click="ActionClick" />
+          <c:DaisyButton AutomationProperties.AutomationId="ViewerView.replace" AutomationProperties.Name="{Binding [Photos_SaveOverwrite]}" ToolTip.Tip="{Binding [Photos_SaveOverwrite]}" Classes="toolbar-icon" IconSymbol="Save" Tag="replace" Click="ActionClick" />
+        </StackPanel>
+      </WrapPanel>
+    </Grid>
+    <Grid x:Name="MainArea" Grid.Row="1" ColumnDefinitions="*,Auto">
+      <Border x:Name="CanvasFrame" CornerRadius="12" ClipToBounds="True" Margin="8,0" Background="{DynamicResource DaisyBase100Brush}">
+        <Grid x:Name="CanvasHost">
+          <local:PhotoCanvas AutomationProperties.AutomationId="ViewerView.Canvas" AutomationProperties.Name="{Binding [Photos_View]}" x:Name="Canvas" />
+          <TextBlock x:Name="ErrorText" AutomationProperties.AutomationId="ViewerView.LoadError" AutomationProperties.LiveSetting="Assertive" IsVisible="False" TextWrapping="Wrap" Margin="48" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <c:DaisyButton x:Name="PreviousButton" AutomationProperties.AutomationId="ViewerView.previous" AutomationProperties.Name="{Binding [Photos_Previous]}" ToolTip.Tip="{Binding [Photos_Previous]}" IconSymbol="Previous" Tag="previous" Click="ActionClick" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="16,0" Shape="Circle" Variant="Neutral" Opacity="0.7" />
+          <c:DaisyButton x:Name="NextButton" AutomationProperties.AutomationId="ViewerView.next" AutomationProperties.Name="{Binding [Photos_Next]}" ToolTip.Tip="{Binding [Photos_Next]}" IconSymbol="Next" Tag="next" Click="ActionClick" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="16,0" Shape="Circle" Variant="Neutral" Opacity="0.7" />
+          <TextBlock x:Name="SlideshowHint" Text="{Binding [Photos_SlideshowHint]}" Foreground="White" Background="#CC000000" Padding="16,8" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="24" IsVisible="False" AutomationProperties.AutomationId="ViewerView.SlideshowHint" AutomationProperties.LiveSetting="Polite" />
+        </Grid>
+      </Border>
+      <Border x:Name="SidePanel" Grid.Column="1" Width="364" IsVisible="False" CornerRadius="12" Margin="0,0,8,0"
+              Background="{DynamicResource DaisyBase100Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}" BorderThickness="1" Padding="14,10">
+        <ScrollViewer>
+          <StackPanel Spacing="10">
+            <WrapPanel>
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.Undo" AutomationProperties.Name="{Binding [Photos_Undo]}" ToolTip.Tip="{Binding [Photos_Undo]}" x:Name="Undo" IconSymbol="Undo" Classes="toolbar-icon" Tag="undo" Click="ActionClick" Margin="0,0,6,6" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.Redo" AutomationProperties.Name="{Binding [Photos_Redo]}" ToolTip.Tip="{Binding [Photos_Redo]}" x:Name="Redo" IconSymbol="Redo" Classes="toolbar-icon" Tag="redo" Click="ActionClick" Margin="0,0,6,6" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.revert" AutomationProperties.Name="{Binding [Photos_Revert]}" Content="{Binding [Photos_Revert]}" Tag="revert" Click="ActionClick" Margin="0,0,6,6" />
+            </WrapPanel>
+            <WrapPanel>
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.crop" AutomationProperties.Name="{Binding [Photos_Tab_Crop]}" Content="{Binding [Photos_Tab_Crop]}" Tag="crop" Click="ActionClick" Margin="0,0,6,6" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.adjust" AutomationProperties.Name="{Binding [Photos_Tab_Adjust]}" Content="{Binding [Photos_Tab_Adjust]}" Tag="adjust" Click="ActionClick" Margin="0,0,6,6" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.filters" AutomationProperties.Name="{Binding [Photos_Tab_Filters]}" Content="{Binding [Photos_Tab_Filters]}" Tag="filters" Click="ActionClick" Margin="0,0,6,6" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.markup" AutomationProperties.Name="{Binding [Photos_Tab_Markup]}" Content="{Binding [Photos_Tab_Markup]}" Tag="markup" Click="ActionClick" Margin="0,0,6,6" />
+            </WrapPanel>
+            <StackPanel x:Name="CropPanel" Spacing="10">
+              <TextBlock Text="{Binding [Photos_CropHint]}" TextWrapping="Wrap" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.left" AutomationProperties.Name="{Binding [Photos_RotateLeft]}" Content="{Binding [Photos_RotateLeft]}" Tag="left" Click="ActionClick" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.right" AutomationProperties.Name="{Binding [Photos_RotateRight]}" Content="{Binding [Photos_RotateRight]}" Tag="right" Click="ActionClick" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.flipH" AutomationProperties.Name="{Binding [Photos_FlipHorizontal]}" Content="{Binding [Photos_FlipHorizontal]}" Tag="flipH" Click="ActionClick" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.flipV" AutomationProperties.Name="{Binding [Photos_FlipVertical]}" Content="{Binding [Photos_FlipVertical]}" Tag="flipV" Click="ActionClick" />
+              <TextBlock Text="{Binding [Photos_Straighten]}" />
+              <c:DaisyRange AutomationProperties.AutomationId="ViewerView.Straighten" AutomationProperties.Name="{Binding [Photos_Straighten]}" x:Name="Straighten" Minimum="-45" Maximum="45" />
+              <TextBlock Text="{Binding [Photos_AspectRatio]}" />
+              <c:DaisySelect AutomationProperties.AutomationId="ViewerView.Ratio" AutomationProperties.Name="{Binding [Photos_AspectRatio]}" x:Name="Ratio" HorizontalAlignment="Stretch" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.resetCrop" AutomationProperties.Name="{Binding [Photos_ResetCrop]}" Content="{Binding [Photos_ResetCrop]}" Tag="resetCrop" Click="ActionClick" />
+            </StackPanel>
+            <StackPanel x:Name="AdjustPanel" IsVisible="False" Spacing="12">
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.enhance" AutomationProperties.Name="{Binding [Photos_AutoEnhance]}" Content="{Binding [Photos_AutoEnhance]}" Tag="enhance" Click="ActionClick" />
+              <ItemsControl x:Name="Adjustments">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="local:AdjustmentGroup">
+                    <c:DaisyCollapse Header="{Binding Label}" IsExpanded="{Binding Expanded}" Margin="0,0,0,8" AutomationProperties.AutomationId="{Binding Key, StringFormat='Viewer.AdjustGroup.{0}'}" AutomationProperties.Name="{Binding Label}">
+                      <ItemsControl ItemsSource="{Binding Items}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="local:Adjustment">
+                            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" Margin="2,4,2,8">
+                              <TextBlock Text="{Binding Label}" DoubleTapped="ResetAdjustment" ToolTip.Tip="{Binding ResetHint}" />
+                              <TextBlock Grid.Column="1" Text="{Binding Value, StringFormat={}{0:+0;-0;0}}" Opacity="0.7" />
+                              <c:DaisyRange Grid.Row="1" Grid.ColumnSpan="2" AutomationProperties.AutomationId="{Binding Key, StringFormat='Viewer.Adjust.{0}'}" AutomationProperties.Name="{Binding Label}" Minimum="{Binding Minimum}" Maximum="100" Value="{Binding Value, Mode=TwoWay}" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </c:DaisyCollapse>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.resetAdjust" AutomationProperties.Name="{Binding [Photos_ResetAdjustments]}" Content="{Binding [Photos_ResetAdjustments]}" Tag="resetAdjust" Click="ActionClick" />
+            </StackPanel>
+            <StackPanel x:Name="FilterPanel" IsVisible="False" Spacing="12">
+              <WrapPanel x:Name="Filters" />
+              <TextBlock Text="{Binding [Photos_FilterIntensity]}" />
+              <c:DaisyRange AutomationProperties.AutomationId="ViewerView.FilterIntensity" AutomationProperties.Name="{Binding [Photos_FilterIntensity]}" x:Name="FilterIntensity" Minimum="0" Maximum="100" Value="100" />
+            </StackPanel>
+            <StackPanel x:Name="MarkupPanel" IsVisible="False" Spacing="10">
+              <TextBlock Text="{Binding [Photos_MarkupHint]}" TextWrapping="Wrap" />
+              <c:DaisyCheckBox AutomationProperties.AutomationId="ViewerView.Highlighter" AutomationProperties.Name="{Binding [Photos_Highlighter]}" x:Name="Highlighter" Content="{Binding [Photos_Highlighter]}" />
+              <TextBlock Text="{Binding [Photos_PenSize]}" />
+              <c:DaisyRange AutomationProperties.AutomationId="ViewerView.PenSize" AutomationProperties.Name="{Binding [Photos_PenSize]}" x:Name="PenSize" Minimum="1" Maximum="40" Value="5" />
+              <TextBlock Text="{Binding [Photos_PrimaryColor]}" TextWrapping="Wrap" />
+              <colors:DaisyColorEditor AutomationProperties.AutomationId="ViewerView.ColorEditor" AutomationProperties.Name="{Binding [Photos_PrimaryColor]}" x:Name="ColorEditor" />
+              <Expander Header="{Binding [Photos_SecondaryColor]}">
+                <colors:DaisyColorEditor AutomationProperties.AutomationId="ViewerView.SecondaryColorEditor" AutomationProperties.Name="{Binding [Photos_SecondaryColor]}" x:Name="SecondaryColorEditor" />
+              </Expander>
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.swap" AutomationProperties.Name="{Binding [Photos_SwapColors]}" Content="{Binding [Photos_SwapColors]}" Tag="swap" Click="ActionClick" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.eyedropper" AutomationProperties.Name="{Binding [Photos_Eyedropper]}" Content="{Binding [Photos_Eyedropper]}" Tag="eyedropper" Click="ActionClick" />
+              <WrapPanel x:Name="RecentColors" />
+              <TextBlock Text="{Binding [Photos_CustomColors]}" />
+              <WrapPanel x:Name="Palette" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.storeColor" AutomationProperties.Name="{Binding [Photos_Palette_AddCurrent]}" Content="{Binding [Photos_Palette_AddCurrent]}" Tag="storeColor" Click="ActionClick" />
+              <c:DaisySelect AutomationProperties.AutomationId="ViewerView.Harmony" AutomationProperties.Name="{Binding [Photos_Harmonies]}" x:Name="Harmony" HorizontalAlignment="Stretch" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.harmony" AutomationProperties.Name="{Binding [Photos_Harmonies]}" Content="{Binding [Photos_Harmonies]}" Tag="harmony" Click="ActionClick" />
+              <WrapPanel x:Name="ColorActions" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.extract" AutomationProperties.Name="{Binding [Photos_Palette_Extract]}" Content="{Binding [Photos_Palette_Extract]}" Tag="extract" Click="ActionClick" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.importPalette" AutomationProperties.Name="{Binding [Photos_Palette_Import]}" Content="{Binding [Photos_Palette_Import]}" Tag="importPalette" Click="ActionClick" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.exportPalette" AutomationProperties.Name="{Binding [Photos_Palette_Export]}" Content="{Binding [Photos_Palette_Export]}" Tag="exportPalette" Click="ActionClick" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.clearMarkup" AutomationProperties.Name="{Binding [Photos_ClearMarkup]}" Content="{Binding [Photos_ClearMarkup]}" Tag="clearMarkup" Click="ActionClick" />
+            </StackPanel>
+            <StackPanel x:Name="InfoPanel" Spacing="14" IsVisible="False" />
+            <StackPanel x:Name="ViewPanel" IsVisible="False" Spacing="12">
+              <c:DaisyCheckBox AutomationProperties.AutomationId="ViewerView.Rulers" AutomationProperties.Name="{Binding [Photos_View_Rulers]}" x:Name="Rulers" Content="{Binding [Photos_View_Rulers]}" />
+              <c:DaisyCheckBox AutomationProperties.AutomationId="ViewerView.Gridlines" AutomationProperties.Name="{Binding [Photos_View_Gridlines]}" x:Name="Gridlines" Content="{Binding [Photos_View_Gridlines]}" />
+              <c:DaisyCheckBox AutomationProperties.AutomationId="ViewerView.Navigator" AutomationProperties.Name="{Binding [Photos_View_Navigator]}" x:Name="Navigator" Content="{Binding [Photos_View_Navigator]}" />
+              <c:DaisyCheckBox AutomationProperties.AutomationId="ViewerView.StatusBar" AutomationProperties.Name="{Binding [Photos_View_StatusBar]}" x:Name="StatusBar" Content="{Binding [Photos_View_StatusBar]}" />
+              <c:DaisyCheckBox AutomationProperties.AutomationId="ViewerView.AutoHide" AutomationProperties.Name="{Binding [Photos_View_AutoHideToolbar]}" x:Name="AutoHide" Content="{Binding [Photos_View_AutoHideToolbar]}" />
+              <c:DaisyButton AutomationProperties.AutomationId="ViewerView.settings" AutomationProperties.Name="{Binding [Photos_Nav_Settings]}" Content="{Binding [Photos_Nav_Settings]}" Tag="settings" Click="ActionClick" />
+            </StackPanel>
+            <c:DaisyCheckBox AutomationProperties.AutomationId="ViewerView.Compare" AutomationProperties.Name="{Binding [Photos_Compare]}" x:Name="Compare" Content="{Binding [Photos_Compare]}" />
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </Grid>
+    <WrapPanel Grid.Row="2" x:Name="StatusPanel" Margin="0,8,0,0" ZIndex="10" VerticalAlignment="Bottom">
+      <TextBlock x:Name="FileName" VerticalAlignment="Center" Margin="12,0,16,0" MaxWidth="260" TextTrimming="CharacterEllipsis" />
+      <TextBlock x:Name="ImageMetadata" VerticalAlignment="Center" Margin="0,0,16,0" Opacity="0.65" />
+      <TextBlock x:Name="ZoomText" VerticalAlignment="Center" Margin="0,0,10,0" />
+      <c:DaisyButton AutomationProperties.AutomationId="ViewerView.zoomOut" AutomationProperties.Name="{Binding [Photos_ZoomOut]}" ToolTip.Tip="{Binding [Photos_ZoomOut]}" Content="−" Tag="zoomOut" Click="ActionClick" Variant="Ghost" />
+      <c:DaisyButton AutomationProperties.AutomationId="ViewerView.zoomIn" AutomationProperties.Name="{Binding [Photos_ZoomIn]}" ToolTip.Tip="{Binding [Photos_ZoomIn]}" Content="+" Tag="zoomIn" Click="ActionClick" Variant="Ghost" />
+      <c:DaisyButton AutomationProperties.AutomationId="ViewerView.fit" AutomationProperties.Name="{Binding [Photos_ZoomFitShort]}" Content="{Binding [Photos_ZoomFitShort]}" Tag="fit" Click="ActionClick" Variant="Ghost" />
+      <c:DaisyButton AutomationProperties.AutomationId="ViewerView.actual" Content="100%" Tag="actual" Click="ActionClick" Variant="Ghost" />
+      <c:DaisyRange AutomationProperties.AutomationId="ViewerView.ZoomSlider" AutomationProperties.Name="{Binding [Photos_View_Zoom]}" x:Name="ZoomSlider" Width="150" Minimum="2" Maximum="1600" Value="100" />
+    </WrapPanel>
+  </Grid>
+</UserControl>
