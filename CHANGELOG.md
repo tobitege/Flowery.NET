@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.10.0] - 2026-10-22
 
 ### Added
 
@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - DaisyToggle: the knob stays visible in themes whose variant color is close to the track color (e.g. Secondary in the HappyHues themes). A `PART_KnobOutline` ellipse gives it a thin BaseContent outline (50 % opacity), the checked track border takes the variant color, and a checked knob whose color is too close to the track (CIE76 color difference below 20) is darkened on a light track or lightened on a dark one, keeping its hue.
+- The library, FlowKanban, the Gallery (desktop, Android, iOS) and Flowery Photos are version 3.10.0.
 
 ### Fixed
 
