@@ -379,26 +379,6 @@ The `.Browser.csproj` requires minimal configuration for JSON-based localization
 
 ---
 
-## Utility Scripts
-
-Two helper scripts exist under `Utils/` for localization maintenance.
-
-### Convert RESX to JSON
-
-Convert existing RESX files to JSON format:
-
-```bash
-python "Utils/convert_resx_to_json.py"
-```
-
-### Check for Missing Keys (Legacy)
-
-```bash
-python "Utils/sync_resx_keys.py" "Flowery.NET/Localization/FloweryStrings.resx" "Flowery.NET/Localization"
-```
-
----
-
 ## Available Resource Keys
 
 The library provides localized strings for control text, accessibility labels, and theme names. Below is the complete list of keys available in each language JSON file.

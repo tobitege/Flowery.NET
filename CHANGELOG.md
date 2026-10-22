@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Maintenance - 2026-10-22
+
+### Removed
+
+- Removed the legacy RESX scripts `Utils/check_resx_keys.py`, `Utils/sync_resx_keys.py` and `Utils/convert_resx_to_json.py`. The library has used JSON localization without any `.resx` files since 1.5, and CodeQL flagged the scripts' XML parsing.
+
 ## Runtime UI tests - 2026-10-22
 
 ### Added
