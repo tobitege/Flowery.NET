@@ -71,6 +71,17 @@
                                             </Transitions>
                                         </Ellipse.Transitions>
                                     </Ellipse>
+                                    <!-- Thin outline that keeps the knob visible on any track; a separate ellipse,
+                                         because a stroke cannot take its own opacity. -->
+                                    <Ellipse x:Name="PART_KnobOutline"
+                                             IsHitTestVisible="False"
+                                             Width="{Binding #Knob.Width}"
+                                             Height="{Binding #Knob.Height}"
+                                             Stroke="{DynamicResource DaisyBaseContentBrush}"
+                                             StrokeThickness="1"
+                                             Opacity="0.5"
+                                             Canvas.Left="{Binding #Knob.(Canvas.Left)}"
+                                             Canvas.Top="{Binding #Knob.(Canvas.Top)}" />
                                 </Canvas>
                             </Border>
                         </LayoutTransformControl>
@@ -109,8 +120,34 @@
         <Style Selector="^[Variant=Warning]:checked /template/ Ellipse#Knob">
             <Setter Property="Fill" Value="{DynamicResource DaisyWarningBrush}" />
         </Style>
+        <Style Selector="^[Variant=Info]:checked /template/ Ellipse#Knob">
+            <Setter Property="Fill" Value="{DynamicResource DaisyInfoBrush}" />
+        </Style>
         <Style Selector="^[Variant=Error]:checked /template/ Ellipse#Knob">
             <Setter Property="Fill" Value="{DynamicResource DaisyErrorBrush}" />
+        </Style>
+
+        <!-- The checked track border takes the variant color, like DaisyUI -->
+        <Style Selector="^[Variant=Primary]:checked /template/ Border#SwitchArea">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Secondary]:checked /template/ Border#SwitchArea">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisySecondaryBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Accent]:checked /template/ Border#SwitchArea">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyAccentBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Success]:checked /template/ Border#SwitchArea">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisySuccessBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Warning]:checked /template/ Border#SwitchArea">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyWarningBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Info]:checked /template/ Border#SwitchArea">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyInfoBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Error]:checked /template/ Border#SwitchArea">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyErrorBrush}" />
         </Style>
 
         <!-- Sizes -->

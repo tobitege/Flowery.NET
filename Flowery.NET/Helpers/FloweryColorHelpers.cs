@@ -92,6 +92,49 @@ namespace Flowery.Helpers
         }
 
         /// <summary>
+        /// Computes the CIE76 color difference (Delta E) between two opaque colors in the CIELAB space:
+        /// 0 for identical colors, about 2.3 for a just noticeable difference and 100 for black against white.
+        /// Unlike a luminance contrast ratio it also counts hue and saturation differences.
+        /// </summary>
+        public static double GetColorDifference(Color first, Color second)
+        {
+            var (firstL, firstA, firstB) = ToLab(first);
+            var (secondL, secondA, secondB) = ToLab(second);
+            var deltaL = firstL - secondL;
+            var deltaA = firstA - secondA;
+            var deltaB = firstB - secondB;
+            return Math.Sqrt(deltaL * deltaL + deltaA * deltaA + deltaB * deltaB);
+        }
+
+        private static (double L, double A, double B) ToLab(Color color)
+        {
+            var r = ToLinear(color.R);
+            var g = ToLinear(color.G);
+            var b = ToLinear(color.B);
+
+            // sRGB to CIE XYZ, relative to the D65 white point.
+            var x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047;
+            var y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            var z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883;
+
+            var fx = ToLabComponent(x);
+            var fy = ToLabComponent(y);
+            var fz = ToLabComponent(z);
+            return (116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz));
+        }
+
+        private static double ToLabComponent(double value)
+        {
+            return value > 216.0 / 24389.0 ? Math.Cbrt(value) : (24389.0 / 27.0 * value + 16) / 116;
+        }
+
+        private static double ToLinear(byte channel)
+        {
+            var value = channel / 255.0;
+            return value <= 0.04045 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4);
+        }
+
+        /// <summary>
         /// Determines if a color is considered "dark" (luminance below 0.5).
         /// </summary>
         public static bool IsDark(Color color)

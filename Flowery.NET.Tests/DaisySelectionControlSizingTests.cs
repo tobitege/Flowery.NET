@@ -3,10 +3,12 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
+using Flowery.Helpers;
 using Flowery.Services;
 using Xunit;
 
@@ -275,6 +277,48 @@ public class DaisySelectionControlSizingTests
         Assert.Equal(DaisySize.Small, controller.Size);
         Assert.Equal(10, box.Bounds.Height);
         Assert.Equal(DaisySize.Large, fixedController.Size);
+    }
+
+    [AvaloniaFact]
+    public void Checked_Knob_That_Matches_The_Track_Gets_Contrast_An_Outline_And_A_Variant_Border()
+    {
+        using var scope = new SizeScope();
+        var toggle = new DaisyToggle { Content = "Toggle", Variant = DaisyToggleVariant.Secondary, IsChecked = true };
+        scope.Show(toggle);
+        var track = Part<Border>(toggle, "SwitchArea");
+        var knob = Part<Avalonia.Controls.Shapes.Ellipse>(toggle, "Knob");
+        Assert.True(toggle.TryFindResource("DaisySecondaryBrush", toggle.ActualThemeVariant, out var resource));
+        var secondary = Assert.IsAssignableFrom<ISolidColorBrush>(resource).Color;
+
+        // A track painted in the Secondary color hides a Secondary knob unless the toggle adjusts it.
+        track.Background = new SolidColorBrush(secondary);
+        scope.Layout();
+        var knobColor = Assert.IsAssignableFrom<ISolidColorBrush>(knob.Fill).Color;
+        Assert.NotEqual(secondary, knobColor);
+        Assert.True(FloweryColorHelpers.GetColorDifference(knobColor, secondary) >= 20);
+        Assert.Equal(1, Part<Avalonia.Controls.Shapes.Ellipse>(toggle, "PART_KnobOutline").StrokeThickness);
+        Assert.Equal(secondary, Assert.IsAssignableFrom<ISolidColorBrush>(track.BorderBrush).Color);
+
+        // Unchecked, the styles are in charge again: the plain knob and the neutral track border.
+        toggle.IsChecked = false;
+        scope.Layout();
+        Assert.Equal(Colors.White, Assert.IsAssignableFrom<ISolidColorBrush>(knob.Fill).Color);
+        Assert.NotEqual(secondary, Assert.IsAssignableFrom<ISolidColorBrush>(track.BorderBrush).Color);
+
+        toggle.IsChecked = true;
+        scope.Layout();
+        Assert.Equal(knobColor, Assert.IsAssignableFrom<ISolidColorBrush>(knob.Fill).Color);
+    }
+
+    [AvaloniaFact]
+    public void Checked_Info_Toggle_Uses_The_Info_Color()
+    {
+        using var scope = new SizeScope();
+        var toggle = new DaisyToggle { Content = "Toggle", Variant = DaisyToggleVariant.Info, IsChecked = true };
+        scope.Show(toggle);
+        Assert.True(toggle.TryFindResource("DaisyInfoBrush", toggle.ActualThemeVariant, out var resource));
+        var info = Assert.IsAssignableFrom<ISolidColorBrush>(resource).Color;
+        Assert.Equal(info, Assert.IsAssignableFrom<ISolidColorBrush>(Part<Border>(toggle, "SwitchArea").BorderBrush).Color);
     }
 
     private static T Part<T>(Control control, string name) where T : Control =>
