@@ -22,7 +22,8 @@ internal static class RuntimeTestRunner
     /// <summary>The theme every test starts with: the library's base theme when the run started.</summary>
     internal static readonly string BaseTheme = DaisyThemeManager.BaseThemeName;
 
-    private static readonly double DefaultNeumorphicIntensity = DaisyNeumorphic.GlobalIntensity;
+    /// <summary>The documented default of <see cref="DaisyNeumorphic.GlobalIntensity"/>; a host may have changed the live value.</summary>
+    internal const double DefaultNeumorphicIntensity = 0.45;
 
     private const string DynamicSkipPrefix = "$XunitDynamicSkip$";
     // xunit runs tests without a timeout indefinitely; here they get this much before the run stops.
@@ -57,7 +58,7 @@ internal static class RuntimeTestRunner
             var results = await RunCasesAsync(testCases, host, progress);
 
             // Work that the last test posted late would otherwise be lost when the run ends.
-            await SettleDispatcherAsync();
+            await RuntimeTestHelpers.SettleDispatcherAsync();
             if (TakeUnhandledExceptions() is { } late)
                 results.Add(new RuntimeTestResult("RuntimeTests.AfterLastTest", RuntimeTestOutcome.Failed, late.ToString()));
 
@@ -258,11 +259,12 @@ internal static class RuntimeTestRunner
     /// <summary>
     /// Lets the test's posted work run, clears the host panel and pins the global state again. Each step runs
     /// even when an earlier one failed, so a failing teardown cannot leave its state to the next test.
+    /// Exceptions from timers and thread-pool continuations that post later are blamed on the test running then.
     /// </summary>
     private static async Task<Exception?> TearDownAsync(Panel host)
     {
         // Work the test posted (async handlers, Loaded callbacks) runs while its controls are still attached.
-        await SettleDispatcherAsync();
+        await RuntimeTestHelpers.SettleDispatcherAsync();
         Exception? failure = null;
         try
         {
@@ -282,14 +284,9 @@ internal static class RuntimeTestRunner
             failure = Combine(failure, exception);
         }
 
-        await SettleDispatcherAsync();
+        await RuntimeTestHelpers.SettleDispatcherAsync();
         return failure;
     }
-
-    // Runs all work already posted to the dispatcher at a higher priority. Timers and thread-pool continuations
-    // that post later are blamed on the test that is running then.
-    private static async Task SettleDispatcherAsync() =>
-        await Dispatcher.UIThread.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle);
 
     /// <summary>
     /// Pins the global state that tests may depend on, independent of the host's settings and of earlier tests.

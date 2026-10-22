@@ -11,11 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added a runtime UI test suite that runs in a real desktop window on Windows (#74).
-  - `Flowery.NET.RuntimeTests` starts the Gallery application with a test window and runs xunit `[Fact]` and `[Theory]` tests on the UI thread. Before each test it pins the culture, size, motion, contrast, base theme and in-memory state storage.
+  - `Flowery.NET.RuntimeTests` starts the Gallery application with a test window and runs xunit `[Fact]` and `[Theory]` tests on the UI thread. Before each test it pins the culture, size, motion, contrast, base theme, neumorphic settings and in-memory state storage.
   - `Flowery.NET.RuntimeTests.Runner` and `scripts/test_runtime.ps1` run the suite with a test filter and a window placement on a chosen monitor (`Full`, `UpperHalf`, `LowerHalf`). They write an XML report, a progress log and test images to `TestResults/` and the console log to `logs/`. Tests that call `Assert.Skip` are reported as inconclusive warnings.
   - Every public control of Flowery.NET and Flowery.NET.Kanban is constructed, attached and rendered. Every Gallery sidebar item opens its page.
   - Pixel checks: a shadow that a control shows must change rendered pixels, by default and in the known shadow configurations. Every theme renders the primary, secondary and accent button colors of its palette.
-  - Neumorphic pixel checks: every registered surface draws its shadow in Raised, Inset and Flat mode, and Raised and Flat shadows are not clipped at the control. Table, ButtonGroup, Join and Pagination stay flat inside, and high contrast removes every shadow.
+  - Neumorphic pixel checks: every registered surface draws its shadow in Raised, Inset and Flat mode, in the places the mode puts it: light top-left and dark bottom-right for Raised, inside the surface for Inset, and not clipped at the control. Table, ButtonGroup, Join and Pagination stay flat inside, configurations without a surface draw nothing, and turning on high contrast removes every shadow.
   - CI runs the suite on Windows in Debug and Release.
 
 ### Changed
@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - The Gallery's `MainView` subscribes to the culture and size change events only while it is attached, so a detached view and its cached pages can be collected.
+- `DaisyNumberFlow` draws the neumorphic effect only with `ShowControls`. Without it the number has no visible surface, but a shadow box was drawn around it.
 
 ## [3.9.0] - 2026-10-22
 

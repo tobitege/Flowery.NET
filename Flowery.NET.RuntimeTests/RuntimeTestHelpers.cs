@@ -67,9 +67,16 @@ internal static class RuntimeTestHelpers
     /// </summary>
     public static async Task WaitForIdleAsync()
     {
-        await Dispatcher.UIThread.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle);
+        await SettleDispatcherAsync();
         await WaitForRenderAsync();
     }
+
+    /// <summary>
+    /// Runs all work already posted to the dispatcher at a higher priority. Timers and thread-pool continuations
+    /// that post later are not covered.
+    /// </summary>
+    public static async Task SettleDispatcherAsync() =>
+        await Dispatcher.UIThread.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle);
 
     /// <summary>
     /// Renders <paramref name="visual"/> into a bitmap at its current size. With <paramref name="artifactName"/>
