@@ -88,3 +88,7 @@ Place any layout/content inside the card; common patterns:
 - Adjust `BodyPadding` for edge-to-edge media (e.g., set to `0` and pad inner content manually).
 - Set explicit `Width` or use layout constraints for uniform card grids.
 - Pair with DaisyButton variants for clear primary/secondary actions inside the card.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the effect is drawn on `PART_SolidBackground`, and the card's drop shadow `Effect` is removed until the effect turns off. Glass mode hides the solid surface, so glass cards draw no neumorphic shadow. `DaisyPatternedCard` uses an unclipped `PART_NeumorphicShadow` layer because its surface clips the pattern; `DaisyExpandableCard` behaves like `DaisyCard`.

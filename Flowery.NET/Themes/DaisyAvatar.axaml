@@ -42,6 +42,10 @@
                               CornerRadius="{TemplateBinding Width, Converter={x:Static controls:IndicatorConverters.HalfToCornerRadiusConverter}}"
                               Margin="-4" />
 
+                    <!-- Unclipped layer for neumorphic outer shadows; Mask clips its own. -->
+                    <Border Name="PART_NeumorphicShadow"
+                              CornerRadius="{Binding #Mask.CornerRadius}" />
+
                     <!-- Avatar Mask/Container -->
                     <Border Name="Mask"
                               Background="{TemplateBinding Background}"

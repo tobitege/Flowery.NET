@@ -568,10 +568,11 @@ namespace Flowery.NET.Gallery.Examples
         }
 
         /// <summary>
-        /// Preserves the Uno form builder API shape while Flowery.NET has no neumorphic attached behavior.
+        /// Opts a form control into the neumorphic effect (drawn while a global mode is selected).
         /// </summary>
         private static T WithNeumorphic<T>(T control) where T : Control
         {
+            DaisyNeumorphic.SetIsEnabled(control, true);
             return control;
         }
 

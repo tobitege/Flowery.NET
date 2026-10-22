@@ -219,6 +219,7 @@ jobs:
           body: ${{ steps.release_body.outputs.body }}
           generate_release_notes: true
           prerelease: ${{ needs.prepare.outputs.is_prerelease == 'true' }}
+          make_latest: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

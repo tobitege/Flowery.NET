@@ -32,7 +32,8 @@
                     <Rectangle Fill="Black" Opacity="0.4" />
 
                     <!-- Modal Box -->
-                    <Border Background="{TemplateBinding Background}"
+                    <Border x:Name="PART_Dialog"
+                            Background="{TemplateBinding Background}"
                             Padding="{TemplateBinding Padding}"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"

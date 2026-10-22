@@ -236,7 +236,6 @@
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase200Brush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="ClipToBounds" Value="True" />
         <Setter Property="ItemsPanel">
             <Setter.Value>
                 <ItemsPanelTemplate>
@@ -246,13 +245,23 @@
         </Setter>
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="{TemplateBinding CornerRadius}"
-                        ClipToBounds="True">
-                    <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
-                </Border>
+                <Panel>
+                    <!-- Unclipped layer for neumorphic outer shadows; PART_Surface clips its own. -->
+                    <Border x:Name="PART_NeumorphicShadow"
+                            CornerRadius="{TemplateBinding CornerRadius}" />
+                    <Border x:Name="PART_Surface"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            ClipToBounds="True">
+                        <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+                    </Border>
+                    <!-- Neumorphic inset shadows go on top: the opaque rows would hide them on PART_Surface. -->
+                    <Border x:Name="PART_NeumorphicInset"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            IsHitTestVisible="False" />
+                </Panel>
             </ControlTemplate>
         </Setter>
     </ControlTheme>

@@ -34,3 +34,7 @@ DaisyKbd renders keyboard keycaps for inline hints (e.g., shortcuts). It provide
 - Keep content short (1–5 characters) for a key-like appearance.
 - Use consistent sizes within a sentence to avoid visual jitter.
 - Combine with instructions in tooltips or docs to clarify keyboard interactions.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, keys look raised (or pressed in). The key cap border (`PART_Surface`) has an uneven `BorderThickness`, which draws no `BoxShadow`, so the template is a `Panel` with an unclipped `PART_NeumorphicShadow` layer behind it and a hit-test invisible `PART_NeumorphicInset` overlay on top.

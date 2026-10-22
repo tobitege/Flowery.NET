@@ -48,3 +48,7 @@ DaisyFab is a Floating Action Button container with built-in trigger and child a
 - Use `AutoClose=False` if actions open modal flows and you want the menu to stay open.
 - Prefer circular action buttons with concise icons/letters; labels belong in tooltips or surrounding UI.
 - Position the FAB with layout (default bottom-right with margin 16) to avoid overlap with content.
+
+## Neumorphic Effect
+
+The FAB container never draws the [neumorphic](DaisyNeumorphic.md) effect; its trigger and action buttons are regular `DaisyButton`s and draw it themselves.

@@ -20,3 +20,7 @@ The task editor uses keyboard-accessible color choices and subtask rename button
 Enter commits a subtask rename; Escape cancels it. Save reads the current tag and color selections.
 
 See [FlowKanbanDialogBase](FlowKanbanDialogBase.md) for modal focus behavior.
+
+## Neumorphic Effect
+
+The board root sets `DaisyNeumorphic.ScopeEnabled="False"`, so columns, cards and their Daisy controls stay flat when a global [neumorphic](DaisyNeumorphic.md) mode is active.

@@ -12,6 +12,8 @@
         <ControlTheme x:Key="{x:Type controls:FloweryComponentSidebar}" TargetType="controls:FloweryComponentSidebar">
             <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
             <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+            <!-- Navigation chrome stays flat in neumorphic mode. -->
+            <Setter Property="controls:DaisyNeumorphic.ScopeEnabled" Value="False" />
             <Setter Property="Template">
                 <ControlTemplate>
                     <Border Background="{TemplateBinding Background}"
@@ -111,6 +113,21 @@
                                                                         Margin="10,0,0,0" />
                                                                     <controls:DaisySizeDropdown
                                                                         Margin="0,0,8,0" />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+
+                                                            <DataTemplate
+                                                                x:DataType="controls:SidebarNeumorphicSelectorItem">
+                                                                <StackPanel Margin="8,6,0,8"
+                                                                    Spacing="6">
+                                                                    <TextBlock Text="Neumorphic"
+                                                                        Opacity="0.7"
+                                                                        Margin="10,0,0,0" />
+                                                                    <controls:DaisySelect
+                                                                        Margin="0,0,8,0"
+                                                                        AutomationProperties.Name="Neumorphic mode"
+                                                                        ItemsSource="{Binding AvailableNeumorphicModes, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}}"
+                                                                        SelectedItem="{Binding NeumorphicMode, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}, Mode=TwoWay}" />
                                                                 </StackPanel>
                                                             </DataTemplate>
 

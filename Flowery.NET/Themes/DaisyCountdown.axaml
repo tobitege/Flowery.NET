@@ -20,7 +20,7 @@
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Template">
             <ControlTemplate TargetType="controls:DaisyCountdown">
-                <Border Background="{TemplateBinding Background}"
+                <Border x:Name="PART_Surface" Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
                         Padding="{TemplateBinding Padding}">

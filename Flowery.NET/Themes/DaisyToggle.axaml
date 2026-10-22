@@ -45,6 +45,13 @@
                                     BorderThickness="1">
                                 <!-- Avalonia ToggleSwitch expects PART_MovingKnobs -->
                                 <Canvas x:Name="PART_MovingKnobs">
+                                    <!-- Follows the knob; carries its neumorphic shadow (an Ellipse has no BoxShadow). -->
+                                    <Border x:Name="PART_KnobShadow"
+                                            Width="{Binding #Knob.Width}"
+                                            Height="{Binding #Knob.Height}"
+                                            CornerRadius="9999"
+                                            Canvas.Left="{Binding #Knob.(Canvas.Left)}"
+                                            Canvas.Top="{Binding #Knob.(Canvas.Top)}" />
                                     <Ellipse x:Name="Knob"
                                         Width="{DynamicResource DaisyToggleKnobMediumSize}"
                                         Height="{DynamicResource DaisyToggleKnobMediumSize}"

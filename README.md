@@ -34,6 +34,7 @@ This library provides native Avalonia controls that mimic the utility-first, sem
 - **80+ Controls**: C# classes inheriting from Avalonia primitives (e.g., `DaisyButton : Button`).
 - **35 DaisyUI Themes**: All official DaisyUI themes included (Light, Dark, Cupcake, Dracula, Nord, Synthwave, and more).
 - **Runtime Theme Switching**: Use `DaisyThemeDropdown` to switch themes at runtime.
+- **Neumorphic Effect**: Raised, Inset and Flat soft-UI shadows for about 50 controls, switchable globally or per control. [Usage guide](llms-static/DaisyNeumorphic.md)
 - **Scheduler**: `DaisyScheduler` provides Day, Week, Month, Agenda, resource Planner, horizontal Timeline, and a Calendar navigator with a daily appointment list. It supports Flowery themes, five sizes, and twelve languages. [Usage guide](llms-static/DaisyScheduler.md)
 - **Localization Support**: Built-in i18n with **12 languages** (🇺🇸 🇩🇪 🇫🇷 🇪🇸 🇮🇹 🇨🇳 🇰🇷 🇯🇵 🇸🇦 🇹🇷 🇺🇦 🇮🇱), localizable theme names, and runtime language switching. [📖 Guide](LOCALIZATION.md)
 - **Variants**: Supports `Primary`, `Secondary`, `Accent`, `Ghost`, etc.
@@ -242,6 +243,27 @@ xmlns:kanban="clr-namespace:Flowery.NET.Kanban.Controls;assembly=Flowery.NET.Kan
 ### Glass Effect
 
 - **Glass** (`DaisyGlass`): Glassmorphism/frosted effect container with multiple blur modes (Simulated, BitmapCapture, SkiaSharp GPU-accelerated).
+
+### Neumorphic Effect
+
+`DaisyNeumorphic` gives controls a soft-UI look: surfaces appear raised from, or pressed into, the background. It is drawn with `Border.BoxShadow` and works the same on every platform.
+
+- **Modes**: `Raised`, `Inset` and `Flat`, set globally (`DaisyNeumorphic.GlobalMode`) or per control.
+- **Composite controls** such as `DaisyTable`, `DaisyList` and `DaisyButtonGroup` draw one surface; their rows, cells and segments stay flat.
+- **Theme-aware**: shadow colors follow the current theme; high contrast turns the effect off.
+- **Gallery**: the sidebar's *Neumorphic* selector switches the mode for all controls, and *Effects > Neumorphic Effect* shows the controls side by side with their own mode and intensity selector.
+
+```xml
+<controls:DaisyCard controls:DaisyNeumorphic.Mode="Inset">
+    <TextBlock Text="Pressed-in card" />
+</controls:DaisyCard>
+```
+
+```csharp
+DaisyNeumorphic.GlobalMode = DaisyNeumorphicMode.Raised;
+```
+
+See the [Neumorphic guide](llms-static/DaisyNeumorphic.md) for scopes, colors and how to add the effect to custom controls.
 
 ### Color Picker Suite
 

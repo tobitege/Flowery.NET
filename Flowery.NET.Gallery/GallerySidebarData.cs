@@ -42,7 +42,8 @@ public static class GallerySidebarData
                     new SidebarItem { Id = "welcome", Name = "Sidebar_Welcome", TabHeader = "Sidebar_Home" },
                     new GalleryThemeSelectorItem { Id = "theme", Name = "Sidebar_Theme", TabHeader = "Sidebar_Home" },
                     new GalleryLanguageSelectorItem { Id = "language", Name = "Sidebar_Language", TabHeader = "Sidebar_Home" },
-                    new GallerySizeSelectorItem { Id = "size", Name = "Sidebar_Size", TabHeader = "Sidebar_Home" }
+                    new GallerySizeSelectorItem { Id = "size", Name = "Sidebar_Size", TabHeader = "Sidebar_Home" },
+                    new GalleryNeumorphicSelectorItem { Id = "neumorphic", Name = "Sidebar_Neumorphic", TabHeader = "Sidebar_Home" }
                 ]
             },
             // Alphabetically sorted categories
@@ -211,6 +212,7 @@ public static class GallerySidebarData
                     new SidebarItem { Id = "wave", Name = "Sidebar_Wave", TabHeader = "Sidebar_Effects" },
                     new SidebarItem { Id = "typewriter", Name = "Sidebar_Typewriter", TabHeader = "Sidebar_Effects" },
                     new SidebarItem { Id = "cursor-follow", Name = "Sidebar_CursorFollow", TabHeader = "Sidebar_Effects" },
+                    new SidebarItem { Id = "neumorphic-effect", Name = "Sidebar_NeumorphicEffect", ControlName = "DaisyNeumorphic", TabHeader = "Sidebar_Effects" },
                     new SidebarItem { Id = "showcase", Name = "Sidebar_Showcase", TabHeader = "Sidebar_Effects" }
                 ]
             },
@@ -283,5 +285,14 @@ public class GalleryLanguageSelectorItem : SidebarLanguageSelectorItem
 /// Extends the library's SidebarSizeSelectorItem so the existing template works.
 /// </summary>
 public class GallerySizeSelectorItem : SidebarSizeSelectorItem
+{
+}
+
+/// <summary>
+/// Gallery-specific sidebar item for the global neumorphic mode.
+/// This item type triggers a special template in the sidebar that shows a mode dropdown.
+/// Extends the library's SidebarNeumorphicSelectorItem so the existing template works.
+/// </summary>
+public class GalleryNeumorphicSelectorItem : SidebarNeumorphicSelectorItem
 {
 }

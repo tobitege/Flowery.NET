@@ -54,3 +54,7 @@ DaisyTagPicker is an organized tag selection component inspired by "Animated Tag
 - Selection is string-based; ensure tag strings are unique.
 - The control automatically filters the pool of `Tags` to only show unselected ones in the "Available" area.
 - If you bind `SelectedTags`, the list is replaced with a new instance on every toggle.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the selected-tags container (`PART_SelectedContainer`) draws the effect; the tag buttons draw their own.

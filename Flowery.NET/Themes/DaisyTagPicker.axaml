@@ -18,7 +18,8 @@
                                    Foreground="{TemplateBinding Foreground}"
                                    Opacity="0.8"/>
 
-                        <Border BorderBrush="{DynamicResource DaisyBase300Brush}"
+                        <Border x:Name="PART_SelectedContainer"
+                                BorderBrush="{DynamicResource DaisyBase300Brush}"
                                 BorderThickness="1"
                                 CornerRadius="12"
                                 Background="{DynamicResource DaisyBase200Brush}"

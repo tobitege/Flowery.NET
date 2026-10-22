@@ -108,5 +108,18 @@ namespace Flowery.Theming
 
             return null;
         }
+
+        /// <summary>
+        /// Gets the default neumorphic elevation (shadow depth in pixels) for a control size.
+        /// </summary>
+        public static double GetDefaultElevation(DaisySize size) => size switch
+        {
+            DaisySize.ExtraSmall => 10,
+            DaisySize.Small => 11,
+            DaisySize.Medium => 12,
+            DaisySize.Large => 14,
+            DaisySize.ExtraLarge => 16,
+            _ => 12
+        };
     }
 }

@@ -74,3 +74,7 @@ The control displays each key as a `DaisyKbd` element. Active keys are highlight
 - **Lock keys** (Caps/Num/Scroll): Highlighted when toggled on
 
 Customize appearance using standard `DaisyKbd` theming.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, every visible key draws the effect. Each key (`ShiftKey`, `CtrlKey`, ...) sits in a `Panel` with a `<Key>Shadow` layer behind and a `<Key>Inset` overlay on top, because the key cap's uneven border thickness draws no `BoxShadow`. The `Show*` properties hide the whole panel.

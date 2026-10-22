@@ -61,3 +61,7 @@ The control retains the normal size-tier row height for clicking the label; only
 - Use semantic variants to reinforce status (Success/Warning/Error) without extra icons.
 - Keep content concise; longer labels may need additional left padding if you override `Padding`.
 - Respect accessibility: ensure checked/unchecked colors have sufficient contrast against backgrounds.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the box (`PART_Border`) is always inset, like an input well, whatever the global mode.

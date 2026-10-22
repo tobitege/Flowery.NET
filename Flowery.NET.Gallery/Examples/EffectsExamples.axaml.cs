@@ -6,8 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using Flowery.Controls;
 using Flowery.Effects;
 using Flowery.Localization;
 
@@ -28,6 +30,35 @@ public partial class EffectsExamples : UserControl, IScrollableExample
                 cursorSection.IsVisible = false;
             }
         }
+
+        InitializeNeumorphicShowcase();
+    }
+
+    private void InitializeNeumorphicShowcase()
+    {
+        NeumorphicModeSelect.ItemsSource = new[] { DaisyNeumorphicMode.Raised, DaisyNeumorphicMode.Inset, DaisyNeumorphicMode.Flat };
+        NeumorphicModeSelect.SelectedItem = DaisyNeumorphicMode.Raised;
+        NeumorphicModeSelect.SelectionChanged += (_, _) => ApplyNeumorphicShowcase();
+        NeumorphicIntensityRange.PropertyChanged += OnNeumorphicIntensityChanged;
+        ApplyNeumorphicShowcase();
+    }
+
+    private void OnNeumorphicIntensityChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == RangeBase.ValueProperty)
+        {
+            ApplyNeumorphicShowcase();
+        }
+    }
+
+    /// <summary>
+    /// Applies the showcase mode and intensity to its scope, independent of the sidebar's global mode.
+    /// Segments of joins and button groups stay flat because a scope cannot override them.
+    /// </summary>
+    private void ApplyNeumorphicShowcase()
+    {
+        DaisyNeumorphic.SetScopeMode(NeumorphicShowcase, NeumorphicModeSelect.SelectedItem as DaisyNeumorphicMode? ?? DaisyNeumorphicMode.Raised);
+        DaisyNeumorphic.SetScopeIntensity(NeumorphicShowcase, NeumorphicIntensityRange.Value);
     }
 
     public void ReplayTypewriter_Click(object? sender, RoutedEventArgs e)

@@ -64,3 +64,7 @@ DaisySkeleton includes built-in accessibility for screen readers via the `Access
 - Text mode works best when you supply representative placeholder text with similar length to the final content.
 - Keep skeleton colors neutral; rely on the built-in pulse rather than bright accents.
 - Use `AccessibleText` to describe what content is being loaded (e.g., "Loading profile picture" or "Loading comments").
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the effect is drawn on `PART_BackgroundBorder` and pulses with it. Only the text content (`PART_ContentPresenter`) is clipped, so the shadows stay visible.

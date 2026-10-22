@@ -6,6 +6,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.9.0] - 2026-10-22
+
+### Added
+
+- Added neumorphic (soft UI) effects with `DaisyNeumorphic`: Raised, Inset and Flat modes drawn with `Border.BoxShadow`, a global mode and intensity, per-control attached properties, subtree scopes (`ScopeEnabled`, `ScopeMode`, `ScopeIntensity`), and theme-derived shadow colors (#59).
+- About 50 controls with a visible surface take part through a central surface registry. Composite controls draw one surface: `DaisyTable` rows and cells, `DaisyList` rows, and the children of `DaisyButtonGroup`, `DaisyJoin` and `DaisyPagination` stay flat (#59).
+- `FloweryComponentSidebar` offers a neumorphic mode selector (`SidebarNeumorphicSelectorItem`), and the Gallery sidebar shows it (#59).
+- Kbd, ModifierKeys, boxed Timeline items and WeatherForecast day tiles draw the effect. Toggle tracks, CheckBox boxes and Radio circles are always inset; the toggle knob is always raised (#59).
+- Added `DaisyWeatherForecastItem`, the control for one forecast day tile (#59).
+- Custom controls take part with `DaisyNeumorphic.RegisterSurface`, `RegisterRefreshTriggers`, `RegisterExclusion`, `RegisterSegmentContainer`, `RegisterShadowPassThrough`, `RegisterEffectSuppression` and `RegisterDisabledByDefault` (#59).
+- The Gallery's Effects page has a Neumorphic Effect showcase with its own mode and intensity selector (#59).
+
+### Changed
+
+- Table, List, Stats, Progress, Avatar, ButtonGroup, FileInput and PatternedCard templates have an unclipped shadow layer behind their clipped surface. DaisyTable also has an overlay above its rows for Inset shadows (#59).
+- Table, List, Stats and Skeleton no longer set `ClipToBounds="True"` in their themes. They still clip through the Avalonia 12 default for templated controls; Skeleton additionally clips its text content (#59).
+- The Modal dialog box and the TagPicker selection container have template names (`PART_Dialog`, `PART_SelectedContainer`) (#59).
+- DaisyToggle has a `PART_KnobShadow` border that follows the knob. While its tiles draw the effect, DaisyWeatherForecast lifts its default clip so their shadows can extend past the strip (#59).
+- The surface borders of Alert, AccordionItem, Badge, Collapse, Countdown, Dock, Mockup, WeatherCard, WeatherMetrics and WeatherForecastItem are named `PART_Surface` (#59).
+- The library, FlowKanban, the Gallery (desktop, Android, iOS) and Flowery Photos are version 3.9.0.
+
+### Breaking Changes
+
+- The template roots of DaisyTable, DaisyList, DaisyStats, DaisyProgress and DaisyKbd are now a `Panel` holding two or three borders instead of a single `Border`. Custom styles that select `/template/ Border` without a name now match the extra layers; select the named parts (`PART_Surface`, `PART_Track`) instead (#59).
+- Each DaisyModifierKeys key border now sits in a `Panel` with a shadow layer and an inset overlay; the `Show*` properties hide that panel instead of the key border (#59).
+- DaisyWeatherForecast tiles are `DaisyWeatherForecastItem` controls instead of plain borders in the item template (#59).
+- DaisyStats always clips its content to its rounded surface. Setting `ClipToBounds="False"` on DaisyStats no longer removes that clip (#59).
+
 ## Desktop app releases - 2026-10-21
 
 ### Added

@@ -18,6 +18,8 @@ Similarly, set `AvailableLanguages` to enable the language selector functionalit
 | `ItemSelected` (event) | Raised with `SidebarItemSelectedEventArgs` containing the selected `SidebarItem` and its `SidebarCategory`. |
 | `AvailableLanguages` (`ObservableCollection<SidebarLanguage>`) | List of languages for the language selector dropdown. |
 | `SelectedLanguage` (`SidebarLanguage?`) | Currently selected language; syncs with `FloweryLocalization`. |
+| `NeumorphicMode` (`DaisyNeumorphicMode`) | Global neumorphic mode; two-way synced with `DaisyNeumorphic.GlobalMode`. |
+| `AvailableNeumorphicModes` (`IReadOnlyList<DaisyNeumorphicMode>`) | Modes offered by the neumorphic selector (`None`, `Raised`, `Inset`, `Flat`). |
 
 ## Data Models
 
@@ -25,6 +27,7 @@ Similarly, set `AvailableLanguages` to enable the language selector functionalit
 - `SidebarItem`: `Id`, `Name`, `TabHeader`, optional `Badge`, optional `ControlName` (control class such as `DaisyTagPicker`; the search matches it in addition to the translated name, ignoring case, spaces and punctuation)
 - `SidebarLanguageSelectorItem`: Special item type that renders as a language dropdown instead of a button
 - `SidebarThemeSelectorItem`: Special item type for theme selection
+- `SidebarNeumorphicSelectorItem`: Special item type that renders a dropdown for the global neumorphic mode (see [DaisyNeumorphic](DaisyNeumorphic.md)). The sidebar itself sets `DaisyNeumorphic.ScopeEnabled="False"`, so its own controls stay flat.
 - `SidebarLanguage`: `Code` (e.g., "en", "de"), `DisplayName` (e.g., "English", "Deutsch")
 
 ## Language/Translation Support

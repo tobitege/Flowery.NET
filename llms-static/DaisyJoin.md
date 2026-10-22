@@ -44,3 +44,7 @@ DaisyJoin groups adjacent controls into a seamless, connected set by trimming in
 - Place semantic variants on endpoints to emphasize actions (e.g., Primary on the rightmost button).
 - For form combos (input + button), keep the input first so borders align naturally.
 - When stacking vertically, use equal widths to avoid staggered edges.
+
+## Neumorphic Effect
+
+`DaisyJoin` is a segment container for [DaisyNeumorphic](DaisyNeumorphic.md): its children stay flat so the joined segments do not draw separate shadows. The join itself has no surface of its own.

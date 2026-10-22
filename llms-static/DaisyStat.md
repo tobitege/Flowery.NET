@@ -60,3 +60,7 @@ DaisyStat displays a metric with title, value, optional description, figure (ico
 - Center stats (`IsCentered=True`) when presenting small sets or when values/figures need emphasis.
 - For long lists, prefer `Orientation="Vertical"` and ensure consistent padding for readability.
 - Keep titles short; use `Figure` to add meaning without overloading text.
+
+## Neumorphic Effect
+
+`DaisyStats` is one [neumorphic](DaisyNeumorphic.md) surface for all its stats and removes its drop shadow `Effect` while the effect is drawn. Its template is a `Panel` with an unclipped `PART_NeumorphicShadow` layer behind `PART_Surface`. `PART_Surface` always clips the stats to its rounded corners; `ClipToBounds="False"` on `DaisyStats` no longer removes that clip.
