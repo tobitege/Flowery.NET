@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using SkiaSharp;
@@ -10,6 +11,7 @@ namespace Flowery.NET.RuntimeTests;
 internal static class RuntimeTestHelpers
 {
     private static readonly TimeSpan FrameTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan SettleTimeout = TimeSpan.FromSeconds(2);
 
     public static Window GetWindow()
     {
@@ -77,6 +79,39 @@ internal static class RuntimeTestHelpers
 
         stream.Position = 0;
         return SKBitmap.Decode(stream) ?? throw new InvalidOperationException("The rendered bitmap could not be decoded.");
+    }
+
+    /// <summary>
+    /// Renders <paramref name="visual"/> once per frame until the pixel at (<paramref name="x"/>, <paramref name="y"/>)
+    /// matches <paramref name="expected"/>, so that animated transitions can settle. Returns the last sampled color.
+    /// </summary>
+    public static async Task<SKColor> WaitForPixelAsync(Visual visual, int x, int y, Color expected, int tolerance = 2)
+    {
+        var deadline = DateTime.UtcNow + SettleTimeout;
+        while (true)
+        {
+            using (var pixels = Render(visual))
+            {
+                var actual = pixels.GetPixel(x, y);
+                if (IsClose(actual, expected, tolerance) || DateTime.UtcNow >= deadline)
+                    return actual;
+            }
+
+            await WaitForRenderAsync();
+        }
+    }
+
+    /// <summary>Compares the color channels of a rendered pixel with <paramref name="expected"/>.</summary>
+    public static bool IsClose(SKColor actual, Color expected, int tolerance = 2) =>
+        Math.Abs(actual.Red - expected.R) <= tolerance
+        && Math.Abs(actual.Green - expected.G) <= tolerance
+        && Math.Abs(actual.Blue - expected.B) <= tolerance;
+
+    /// <summary>Resolves a theme color resource as <paramref name="control"/> sees it.</summary>
+    public static Color GetThemeColor(Control control, string key)
+    {
+        Assert.True(control.TryFindResource(key, control.ActualThemeVariant, out var resource), $"Missing resource {key}.");
+        return Assert.IsType<Color>(resource);
     }
 
     /// <summary>Returns a path for <paramref name="fileName"/> in the run's artifact directory.</summary>

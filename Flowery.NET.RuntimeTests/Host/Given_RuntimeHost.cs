@@ -1,6 +1,4 @@
-using Avalonia.Controls;
 using Avalonia.Layout;
-using Avalonia.Media;
 using Flowery.Controls;
 using Xunit;
 
@@ -30,15 +28,12 @@ public class Given_RuntimeHost
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         });
-        Assert.True(button.TryFindResource("DaisyPrimaryColor", button.ActualThemeVariant, out var resource));
-        var expected = Assert.IsType<Color>(resource);
+        var expected = RuntimeTestHelpers.GetThemeColor(button, "DaisyPrimaryColor");
 
         using var pixels = RuntimeTestHelpers.Render(button, nameof(When_A_Primary_Button_Is_Rendered_Its_Fill_Uses_The_Primary_Color));
         // Sample the fill between the rounded corner and the label.
         var actual = pixels.GetPixel(12, pixels.Height / 2);
 
-        Assert.True(Math.Abs(actual.Red - expected.R) <= 2 && Math.Abs(actual.Green - expected.G) <= 2
-                    && Math.Abs(actual.Blue - expected.B) <= 2,
-            $"Expected the primary color {expected}, but the button fill is {actual}.");
+        Assert.True(RuntimeTestHelpers.IsClose(actual, expected), $"Expected the primary color {expected}, but the button fill is {actual}.");
     }
 }
