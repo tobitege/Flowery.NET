@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- The LibraryImport source generator emits unsafe code. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Lets the solution restore on Linux and macOS; the suite itself runs only on Windows. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+    <!-- Test discovery uses the xunit attributes and asserts only; the runner lives in this process. -->
+    <PackageReference Include="xunit.v3.assert" Version="3.2.2" />
+    <PackageReference Include="xunit.v3.extensibility.core" Version="3.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Flowery.NET.Gallery\Flowery.NET.Gallery.csproj" />
+    <ProjectReference Include="..\Flowery.Capture.NET\Flowery.Capture.NET.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The same in-memory state storage as the headless tests. -->
+    <Compile Include="..\Flowery.NET.Tests\InMemoryStateStorage.cs" Link="InMemoryStateStorage.cs" />
+  </ItemGroup>
+</Project>

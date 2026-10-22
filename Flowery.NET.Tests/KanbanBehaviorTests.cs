@@ -3243,46 +3243,6 @@ namespace Flowery.NET.Tests
             }
         }
 
-        private sealed class InMemoryStateStorage : IStateStorage
-        {
-            private readonly Dictionary<string, List<string>> _store = new(StringComparer.Ordinal);
-
-            public int SaveCount { get; private set; }
-
-            public IReadOnlyList<string> LoadLines(string key) =>
-                _store.TryGetValue(key, out var lines) ? lines : Array.Empty<string>();
-
-            public void SaveLines(string key, IEnumerable<string> lines)
-            {
-                SaveCount++;
-                _store[key] = new List<string>(lines);
-            }
-
-            public void ResetSaveCount()
-            {
-                SaveCount = 0;
-            }
-
-            public void Delete(string key)
-            {
-                _store.Remove(key);
-            }
-
-            public void Rename(string sourceKey, string targetKey)
-            {
-                if (!_store.TryGetValue(sourceKey, out var lines))
-                {
-                    throw new InvalidOperationException($"Storage key '{sourceKey}' does not exist.");
-                }
-
-                _store[targetKey] = new List<string>(lines);
-                _store.Remove(sourceKey);
-            }
-
-            public IEnumerable<string> GetKeys(string prefix) =>
-                _store.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal)).ToArray();
-        }
-
         private enum StorageFailure
         {
             Load,

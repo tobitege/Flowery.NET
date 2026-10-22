@@ -92,7 +92,7 @@ High contrast (`DaisyAccessibility.HighContrastEnabled`) turns the effect off.
 
 Only controls with a visible surface draw the effect; the surface is the template border that paints the control's background.
 
-- **Surfaces:** Card, PatternedCard, ExpandableCard, Alert, AccordionItem, Collapse, Hero, Mockup, Modal, Navbar, Dock, WeatherCard, WeatherMetrics, Button (not Ghost or Link), Badge, Avatar, Countdown (when it has a background), NumberFlow, Kbd, ModifierKeys keys, Input, TextArea, MaskInput, PasswordBox, NumericUpDown, FileInput, TagPicker, Select, SizeDropdown, ThemeDropdown, ProductThemeDropdown, CalendarDatePicker, Dropdown trigger, Range track, Progress, Skeleton, DateTimeline items, boxed Tabs header, boxed Timeline items, WeatherForecast day tiles (`DaisyWeatherForecastItem`).
+- **Surfaces:** Card, PatternedCard, ExpandableCard, Alert, AccordionItem, Collapse, Hero, Mockup, Modal, Navbar, Dock, WeatherCard, WeatherMetrics, Button (not Ghost or Link), Badge, Avatar, Countdown (when it has a background), NumberFlow (with `ShowControls`), Kbd, ModifierKeys keys, Input, TextArea, MaskInput, PasswordBox, NumericUpDown, FileInput, TagPicker, Select, SizeDropdown, ThemeDropdown, ProductThemeDropdown, CalendarDatePicker, Dropdown trigger, Range track, Progress, Skeleton, DateTimeline items, boxed Tabs header, boxed Timeline items, WeatherForecast day tiles (`DaisyWeatherForecastItem`).
 - **SlideToConfirm:** the track is always inset and the handle always raised.
 - **Toggle, CheckBox, Radio:** the track and boxes are always inset (input wells); the toggle knob is always raised.
 - **ChatBubble:** off by default; set `IsEnabled="True"` to draw it.

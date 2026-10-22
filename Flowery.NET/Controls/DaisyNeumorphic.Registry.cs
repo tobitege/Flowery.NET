@@ -72,7 +72,8 @@ namespace Flowery.Controls
                 OuterShadowLayer = c => TemplatePart(c, ShadowLayer)
             });
             RegisterSurface(new DaisyNeumorphicSurface<DaisyCountdown> { Resolve = c => TemplatePart(c, SurfacePart), RequiresBackground = true });
-            RegisterSurface<DaisyNumberFlow>(c => TemplatePart(c, "OuterContainer"));
+            // Without ShowControls the container is transparent and borderless; it has no surface to raise.
+            RegisterSurface(new DaisyNeumorphicSurface<DaisyNumberFlow> { Resolve = c => TemplatePart(c, "OuterContainer"), RequiresBackground = true });
             // Key caps have uneven border thickness, which draws no BoxShadow; the shadows go to plain layers.
             foreach (var key in new[] { "ShiftKey", "CtrlKey", "AltKey", "CapsLockKey", "NumLockKey", "ScrollLockKey" })
             {

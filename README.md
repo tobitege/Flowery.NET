@@ -452,6 +452,8 @@ The `scripts/` folder contains PowerShell helpers for common build and run workf
   - `scripts/run-desktop.ps1`: Runs the Desktop gallery host
   - `scripts/run-browser.ps1`: Runs the Browser (WASM) gallery host
   - `scripts/run-android.ps1`: Runs/builds the Android gallery host (requires Android SDK and running emulator!)
+- **Test scripts**:
+  - `scripts/test_runtime.ps1`: Runs the runtime UI tests on Windows. They render every control and Gallery page in a real desktop window and check the pixels, for example that shadows and theme colors reach the screen. **Photosensitivity warning:** the test window flashes rapidly while the tests run; see `scripts/README.md`.
 
 For details and parameters, see `scripts/README.md`.
 
