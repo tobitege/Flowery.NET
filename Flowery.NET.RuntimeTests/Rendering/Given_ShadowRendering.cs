@@ -50,26 +50,30 @@ public class Given_ShadowRendering
             .Concat(ControlCatalog.GetColorPickerControls())
             .Concat(ControlCatalog.GetCustomControls())
             .Concat(ControlCatalog.GetKanbanControls())
-            .Where(type => type.GetConstructor(Type.EmptyTypes) is not null && !typeof(Window).IsAssignableFrom(type));
+            .Where(type => type.GetConstructor(Type.EmptyTypes) is not null && !typeof(Window).IsAssignableFrom(type))
+            .ToList();
 
+        // No control shows a shadow by default today; the configurations below prove that the detection works.
+        // This sweep catches a control that starts showing one, so it must reach every control.
         var failures = new StringBuilder();
+        var checkedControls = 0;
         foreach (var type in controlTypes)
         {
-            Control control;
             try
             {
-                control = (Control)Activator.CreateInstance(type)!;
+                await CheckShadowsAsync(type.Name, (Control)Activator.CreateInstance(type)!, failures);
+                checkedControls++;
             }
-            catch
+            catch (Exception exception)
             {
-                // Given_AllControls reports construction failures.
-                continue;
+                var cause = RuntimeTestHelpers.Unwrap(exception);
+                failures.AppendLine($"{type.Name}: {cause.GetType().Name} - {cause.Message}");
             }
-
-            await CheckShadowsAsync(type.Name, control, failures);
         }
 
         Assert.True(failures.Length == 0, failures.ToString());
+        Assert.Equal(controlTypes.Count, checkedControls);
+        Assert.True(checkedControls > 100, $"Only {checkedControls} controls were checked.");
     }
 
     [Theory]
