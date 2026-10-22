@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `DaisyThemeManager.ThemeChanged` notifies its handlers one at a time. A handler that threw stopped the notification, so every control subscribed after it kept its old theme colors; the failure is now written to the debug output.
 - DaisyToggle: a checked `Info` toggle uses the Info color; it fell back to BaseContent.
 
 ## [3.9.0] - 2026-10-22

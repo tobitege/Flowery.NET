@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using Flowery.Helpers;
+using Flowery.Services;
 using Flowery.Theming;
 
 namespace Flowery.Controls
@@ -479,7 +480,7 @@ namespace Flowery.Controls
                 app.RequestedThemeVariant = def.Info.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
 
                 DaisyAccessibility.RefreshContrastPalette();
-                ThemeChanged?.Invoke(null, def.Info.Name);
+                FloweryEventRaiser.Raise(ThemeChanged, null, def.Info.Name, nameof(ThemeChanged));
 
                 return true;
             }
@@ -502,7 +503,7 @@ namespace Flowery.Controls
             _currentThemeName = themeName;
             _themeApplicationPending = false;
             DaisyAccessibility.RefreshContrastPalette();
-            ThemeChanged?.Invoke(null, themeName);
+            FloweryEventRaiser.Raise(ThemeChanged, null, themeName, nameof(ThemeChanged));
         }
 
         internal static void ApplyContrastResources(bool enabled, bool dark)
