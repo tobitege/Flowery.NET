@@ -237,6 +237,7 @@ public partial class MainView : UserControl
                 AttachScrollHandler(_activeCategoryContent);
         }
 
+        // SetHeaderCollapsed above writes fixed medium-size values; restore the current size after it.
         ApplySizeToGalleryElements(FlowerySizeManager.CurrentSize);
     }
 

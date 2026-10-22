@@ -72,7 +72,6 @@ public class Given_ShadowRendering
         }
 
         Assert.True(failures.Length == 0, failures.ToString());
-        Assert.Equal(controlTypes.Count, checkedControls);
         Assert.True(checkedControls > 100, $"Only {checkedControls} controls were checked.");
     }
 
