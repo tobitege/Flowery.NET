@@ -316,7 +316,7 @@ namespace Flowery.NET.Tests
 
         /// <summary>
         /// Validates that all supported languages load without errors.
-        /// Catches malformed .resx files or missing resources.
+        /// Catches malformed localization JSON files or missing resources.
         /// </summary>
         [AvaloniaTheory]
         [InlineData("de")]
@@ -411,7 +411,7 @@ namespace Flowery.NET.Tests
 
         /// <summary>
         /// Validates that all theme names have localization entries.
-        /// Uses actual themes from FloweryStrings.resx.
+        /// Uses the names of built-in themes.
         /// </summary>
         [AvaloniaTheory]
         [InlineData("Light")]
