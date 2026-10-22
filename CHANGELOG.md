@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Flowery.NET.RuntimeTests.Runner` and `scripts/test_runtime.ps1` run the suite with a test filter and a window placement on a chosen monitor (`Full`, `UpperHalf`, `LowerHalf`). They write an XML report, a progress log and test images to `TestResults/` and the console log to `logs/`. Tests that call `Assert.Skip` are reported as inconclusive warnings.
   - Every public control of Flowery.NET and Flowery.NET.Kanban is constructed, attached and rendered. Every Gallery sidebar item opens its page.
   - Pixel checks: a shadow that a control shows must change rendered pixels, by default and in the known shadow configurations. Every theme renders the primary, secondary and accent button colors of its palette.
+  - Neumorphic pixel checks: every registered surface draws its shadow in Raised, Inset and Flat mode, and Raised and Flat shadows are not clipped at the control. Table, ButtonGroup, Join and Pagination stay flat inside, and high contrast removes every shadow.
   - CI runs the suite on Windows in Debug and Release.
 
 ### Changed

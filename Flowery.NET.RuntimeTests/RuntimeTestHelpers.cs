@@ -62,6 +62,16 @@ internal static class RuntimeTestHelpers
     }
 
     /// <summary>
+    /// Lets all work already posted to the dispatcher run (for example queued effect refreshes), then waits for
+    /// rendered frames.
+    /// </summary>
+    public static async Task WaitForIdleAsync()
+    {
+        await Dispatcher.UIThread.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle);
+        await WaitForRenderAsync();
+    }
+
+    /// <summary>
     /// Renders <paramref name="visual"/> into a bitmap at its current size. With <paramref name="artifactName"/>
     /// the image is also saved to the artifact directory.
     /// </summary>
