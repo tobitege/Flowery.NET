@@ -22,6 +22,8 @@ internal static class RuntimeTestRunner
     /// <summary>The theme every test starts with: the library's base theme when the run started.</summary>
     internal static readonly string BaseTheme = DaisyThemeManager.BaseThemeName;
 
+    private static readonly double DefaultNeumorphicIntensity = DaisyNeumorphic.GlobalIntensity;
+
     private const string DynamicSkipPrefix = "$XunitDynamicSkip$";
     // xunit runs tests without a timeout indefinitely; here they get this much before the run stops.
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromMinutes(2);
@@ -301,6 +303,13 @@ internal static class RuntimeTestRunner
         // Rendering assertions use normal motion and contrast regardless of the Windows settings.
         DaisyAccessibility.ReducedMotionOverride = false;
         DaisyAccessibility.HighContrastOverride = false;
+        // Neumorphic effects are off, with the library's default intensity and colors. Raised first resets
+        // the mode that GlobalEnabled would restore.
+        DaisyNeumorphic.GlobalMode = DaisyNeumorphicMode.Raised;
+        DaisyNeumorphic.GlobalMode = DaisyNeumorphicMode.None;
+        DaisyNeumorphic.GlobalIntensity = DefaultNeumorphicIntensity;
+        DaisyNeumorphic.GlobalDarkShadowColor = null;
+        DaisyNeumorphic.GlobalLightShadowColor = null;
         if (!DaisyThemeManager.ApplyTheme(BaseTheme))
             throw new InvalidOperationException($"The {BaseTheme} theme could not be applied.");
     }
