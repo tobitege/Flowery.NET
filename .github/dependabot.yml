@@ -9,6 +9,10 @@ updates:
       time: "06:00"
       timezone: "Europe/Berlin"
     open-pull-requests-limit: 10
+    ignore:
+      # Avalonia.Headless.XUnit 12 requires xunit.v3 3.x; xunit 4 waits for an Avalonia release that supports it.
+      - dependency-name: "xunit*"
+        update-types: ["version-update:semver-major"]
     groups:
       # Avalonia packages must move together across all application/test hosts.
       avalonia:
@@ -20,6 +24,10 @@ updates:
         patterns:
           - "Avalonia"
           - "Avalonia.*"
+      # The xunit packages of the headless tests, the runtime tests and their runner must stay on one version.
+      xunit:
+        patterns:
+          - "xunit*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
