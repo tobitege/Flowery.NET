@@ -8,6 +8,8 @@
     <IsPackable>false</IsPackable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- The LibraryImport source generator emits unsafe code. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- Lets the solution restore on Linux and macOS; the suite itself runs only on Windows. -->
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>

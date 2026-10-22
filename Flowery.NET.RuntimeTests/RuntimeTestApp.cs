@@ -10,20 +10,24 @@ namespace Flowery.NET.RuntimeTests;
 /// </summary>
 internal sealed class RuntimeTestApp(string reportPath) : App
 {
+    private IClassicDesktopStyleApplicationLifetime? _lifetime;
+    private PixelRect? _region;
+
     public override void OnFrameworkInitializationCompleted()
     {
         // Unlike the Gallery's own startup, the test run neither restores nor saves user settings.
-        var lifetime = (IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!;
-        var window = new Window
-        {
-            Title = "Flowery.NET Runtime Tests",
-            Width = 1280,
-            Height = 900,
-            ShowActivated = false
-        };
-        var region = RuntimeTestWindowPlacement.Prepare(window);
-        window.Opened += async (_, _) => lifetime.Shutdown(await RunAsync(window, region));
-        lifetime.MainWindow = window;
+        _lifetime = (IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!;
+        var window = new Window { Title = "Flowery.NET Runtime Tests", ShowActivated = false };
+        _region = RuntimeTestWindowPlacement.Prepare(window);
+        window.Opened += OnWindowOpened;
+        _lifetime.MainWindow = window;
+    }
+
+    private async void OnWindowOpened(object? sender, EventArgs e)
+    {
+        var window = (Window)sender!;
+        window.Opened -= OnWindowOpened;
+        _lifetime!.Shutdown(await RunAsync(window, _region));
     }
 
     private async Task<int> RunAsync(Window window, PixelRect? region)

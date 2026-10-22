@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
@@ -9,16 +10,20 @@ namespace Flowery.NET.RuntimeTests;
 
 /// <summary>
 /// Places the test window from FLOWERY_MONITOR_DEVICE (for example <c>\\.\DISPLAY2</c>) and
-/// FLOWERY_MONITOR_REGION (<c>full</c>, <c>upper-half</c> or <c>lower-half</c>).
+/// FLOWERY_MONITOR_REGION (<c>full</c>, <c>upper-half</c> or <c>lower-half</c>). Without a monitor the window
+/// is centered on the primary screen.
 /// </summary>
-internal static class RuntimeTestWindowPlacement
+internal static partial class RuntimeTestWindowPlacement
 {
-    // Runtime tests must not rely on more room than a 1080p screen offers.
-    private const int MaxWidth = 1920;
-    private const int MaxHeight = 1080;
+    // Runtime tests must not rely on more room than a 1080p screen at 100% scaling offers.
+    private const double MaxWidth = 1920;
+    private const double MaxHeight = 1080;
+    // Without a requested monitor the window keeps this size if the screen has room for it.
+    private const double DefaultWidth = 1280;
+    private const double DefaultHeight = 900;
 
     /// <summary>
-    /// Positions the window before it is shown and returns the requested region in device pixels,
+    /// Sizes and positions the window before it is shown. Returns the requested region in device pixels,
     /// or null when no monitor was requested.
     /// </summary>
     public static PixelRect? Prepare(Window window)
@@ -26,6 +31,10 @@ internal static class RuntimeTestWindowPlacement
         var device = Environment.GetEnvironmentVariable("FLOWERY_MONITOR_DEVICE");
         if (string.IsNullOrWhiteSpace(device))
         {
+            // Small desktops, such as the 1024x768 desktop of CI runners, get a window that fits their work area.
+            var primary = window.Screens.Primary ?? throw new InvalidOperationException("No screen is available.");
+            window.Width = Math.Min(DefaultWidth, primary.WorkingArea.Width / primary.Scaling * 0.9);
+            window.Height = Math.Min(DefaultHeight, primary.WorkingArea.Height / primary.Scaling * 0.9);
             window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             return null;
         }
@@ -35,15 +44,16 @@ internal static class RuntimeTestWindowPlacement
         if (region is not ("full" or "upper-half" or "lower-half"))
             throw new ArgumentException("FLOWERY_MONITOR_REGION must be 'full', 'upper-half' or 'lower-half'.");
 
-        var screen = window.Screens.All.FirstOrDefault(candidate =>
-                         string.Equals(GetDeviceName(candidate), device, StringComparison.OrdinalIgnoreCase))
+        var screen = FindScreen(window.Screens.All, device)
                      ?? throw new InvalidOperationException($"Requested monitor '{device}' is not available. Monitors: "
                                                             + string.Join(", ", window.Screens.All.Select(GetDeviceName)));
 
         var area = screen.WorkingArea;
         var top = region == "lower-half" ? area.Y + area.Height / 2 : area.Y;
         var height = region == "full" ? area.Height : area.Height / 2;
-        var bounds = new PixelRect(area.X, top, Math.Min(area.Width, MaxWidth), Math.Min(height, MaxHeight));
+        var bounds = new PixelRect(area.X, top,
+            Math.Min(area.Width, (int)(MaxWidth * screen.Scaling)),
+            Math.Min(height, (int)(MaxHeight * screen.Scaling)));
 
         window.WindowStartupLocation = WindowStartupLocation.Manual;
         window.Position = bounds.Position;
@@ -76,34 +86,52 @@ internal static class RuntimeTestWindowPlacement
         return $"Region={Format(region)}; Window={Format(actual)}; Scaling={scaling}";
     }
 
-    private static string? GetDeviceName(Screen screen)
+    private static Screen? FindScreen(IReadOnlyList<Screen> screens, string device)
     {
-        if (screen.TryGetPlatformHandle() is { } handle && handle.Handle != IntPtr.Zero)
+        foreach (var screen in screens)
         {
-            var information = new MonitorInfoEx { Size = (uint)Marshal.SizeOf<MonitorInfoEx>(), DeviceName = string.Empty };
-            if (!GetMonitorInfo(handle.Handle, ref information))
-                throw new Win32Exception(Marshal.GetLastWin32Error(), "Unable to read Windows monitor information.");
-            return information.DeviceName;
+            if (string.Equals(GetDeviceName(screen), device, StringComparison.OrdinalIgnoreCase))
+                return screen;
         }
 
-        return screen.DisplayName;
+        return null;
+    }
+
+    private static string? GetDeviceName(Screen screen)
+    {
+        if (screen.TryGetPlatformHandle() is not { } handle || handle.Handle == IntPtr.Zero)
+            return screen.DisplayName;
+
+        var information = new MonitorInfoEx { Size = (uint)Marshal.SizeOf<MonitorInfoEx>() };
+        if (!GetMonitorInfo(handle.Handle, ref information))
+            throw new Win32Exception(Marshal.GetLastPInvokeError(), "Unable to read Windows monitor information.");
+
+        var name = MemoryMarshal.Cast<ushort, char>((ReadOnlySpan<ushort>)information.DeviceName);
+        var end = name.IndexOf('\0');
+        return (end < 0 ? name : name[..end]).ToString();
     }
 
     private static string Format(PixelRect bounds) => $"{bounds.X},{bounds.Y},{bounds.Width},{bounds.Height}";
 
-    [DllImport("user32.dll", EntryPoint = "GetMonitorInfoW", CharSet = CharSet.Unicode, SetLastError = true)]
+    [LibraryImport("user32.dll", EntryPoint = "GetMonitorInfoW", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetMonitorInfo(IntPtr monitor, ref MonitorInfoEx information);
+    private static partial bool GetMonitorInfo(IntPtr monitor, ref MonitorInfoEx information);
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential)]
     private struct MonitorInfoEx
     {
         public uint Size;
         public NativeRect Monitor;
         public NativeRect WorkArea;
         public uint Flags;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-        public string DeviceName;
+        public DeviceNameBuffer DeviceName;
+    }
+
+    // CCHDEVICENAME UTF-16 code units, inline and as ushort so that the structure stays blittable.
+    [InlineArray(32)]
+    private struct DeviceNameBuffer
+    {
+        private ushort _element;
     }
 
     [StructLayout(LayoutKind.Sequential)]
