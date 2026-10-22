@@ -2,7 +2,10 @@ using System.Xml.Linq;
 
 namespace Flowery.NET.RuntimeTests;
 
-internal enum RuntimeTestOutcome { Passed, Failed, Inconclusive }
+/// <summary>
+/// How a runtime test ended. A timed-out test stops the run; the tests after it are not run.
+/// </summary>
+internal enum RuntimeTestOutcome { Passed, Failed, Inconclusive, TimedOut, NotRun }
 
 internal sealed record RuntimeTestResult(string Name, RuntimeTestOutcome Outcome, string? Message);
 
@@ -16,9 +19,11 @@ internal static class RuntimeTestReport
         var document = new XDocument(
             new XElement("tests",
                 new XAttribute("total", results.Count),
-                new XAttribute("passed", results.Count(result => result.Outcome == RuntimeTestOutcome.Passed)),
-                new XAttribute("failed", results.Count(result => result.Outcome == RuntimeTestOutcome.Failed)),
-                new XAttribute("inconclusive", results.Count(result => result.Outcome == RuntimeTestOutcome.Inconclusive)),
+                new XAttribute("passed", Count(results, RuntimeTestOutcome.Passed)),
+                new XAttribute("failed", Count(results, RuntimeTestOutcome.Failed)),
+                new XAttribute("inconclusive", Count(results, RuntimeTestOutcome.Inconclusive)),
+                new XAttribute("timedOut", Count(results, RuntimeTestOutcome.TimedOut)),
+                new XAttribute("notRun", Count(results, RuntimeTestOutcome.NotRun)),
                 results.Select(result =>
                     new XElement("test",
                         new XAttribute("name", result.Name),
@@ -27,6 +32,18 @@ internal static class RuntimeTestReport
 
         Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
         document.Save(reportPath);
+    }
+
+    /// <summary>Whether the run failed: a test failed or timed out, or a test was not run.</summary>
+    public static bool HasFailures(IEnumerable<RuntimeTestResult> results)
+    {
+        foreach (var result in results)
+        {
+            if (result.Outcome is RuntimeTestOutcome.Failed or RuntimeTestOutcome.TimedOut or RuntimeTestOutcome.NotRun)
+                return true;
+        }
+
+        return false;
     }
 
     public static void WriteStartupFailure(string reportPath, Exception exception)
@@ -42,5 +59,17 @@ internal static class RuntimeTestReport
         }
 
         Console.Error.WriteLine(exception);
+    }
+
+    private static int Count(IEnumerable<RuntimeTestResult> results, RuntimeTestOutcome outcome)
+    {
+        var count = 0;
+        foreach (var result in results)
+        {
+            if (result.Outcome == outcome)
+                count++;
+        }
+
+        return count;
     }
 }

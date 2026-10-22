@@ -65,22 +65,48 @@ public class Given_RuntimeTestRun(ITestOutputHelper output)
         var root = XDocument.Load(reportPath).Root ?? throw new InvalidOperationException("The runtime report has no root element.");
         var tests = root.Elements("test").ToList();
         var total = (int?)root.Attribute("total") ?? -1;
-        var passed = (int?)root.Attribute("passed") ?? -1;
-        var failed = (int?)root.Attribute("failed") ?? -1;
-        var inconclusive = (int?)root.Attribute("inconclusive") ?? -1;
 
         foreach (var test in tests.Where(test => (string?)test.Attribute("outcome") != "Passed"))
             output.WriteLine($"{test.Attribute("outcome")?.Value} {test.Attribute("name")?.Value}: {test.Element("message")?.Value}");
 
         Assert.True(total > 0, "The runtime report contains no tests.");
         Assert.Equal(total, tests.Count);
-        Assert.Equal(total, passed + failed + inconclusive);
         Assert.Equal(total, tests.Select(test => (string?)test.Attribute("name")).Distinct().Count());
-        Assert.Equal(passed, tests.Count(test => (string?)test.Attribute("outcome") == "Passed"));
-        Assert.Equal(inconclusive, tests.Count(test => (string?)test.Attribute("outcome") == "Inconclusive"));
+        var counted = 0;
+        foreach (var (attribute, outcome) in Outcomes)
+        {
+            var count = (int?)root.Attribute(attribute) ?? -1;
+            Assert.Equal(count, CountOutcome(tests, outcome));
+            counted += count;
+        }
+
+        Assert.Equal(total, counted);
         // Inconclusive tests could not set up their scenario here; scripts/test_runtime.ps1 reports them as warnings.
-        Assert.True(failed == 0, $"{failed} runtime tests failed. See {reportPath}.");
+        var unsuccessful = total - CountOutcome(tests, "Passed") - CountOutcome(tests, "Inconclusive");
+        Assert.True(unsuccessful == 0, $"{unsuccessful} runtime tests failed, timed out or did not run. See {reportPath}.");
         Assert.True(process.ExitCode == 0, $"The runtime test host returned exit code {process.ExitCode}.");
+    }
+
+    // The report's count attributes and the outcomes they count.
+    private static readonly (string Attribute, string Outcome)[] Outcomes =
+    [
+        ("passed", "Passed"),
+        ("failed", "Failed"),
+        ("inconclusive", "Inconclusive"),
+        ("timedOut", "TimedOut"),
+        ("notRun", "NotRun")
+    ];
+
+    private static int CountOutcome(IEnumerable<XElement> tests, string outcome)
+    {
+        var count = 0;
+        foreach (var test in tests)
+        {
+            if ((string?)test.Attribute("outcome") == outcome)
+                count++;
+        }
+
+        return count;
     }
 
     private void WriteIfPresent(string text)

@@ -259,7 +259,7 @@ The host opens the Gallery application with its fonts, styles and themes, but wi
 It runs every xunit `[Fact]` and `[Theory]` with `[InlineData]` in its assembly, one after another on the UI thread.
 It honors `Skip` with `SkipUnless`, `SkipWhen` and `SkipType`, `SkipExceptions`, `Explicit` and `Timeout`.
 Explicit tests run only when `-TestFilter` is their full name or their `Namespace.Class.Method`.
-A test without a timeout gets two minutes.
+A test without a timeout gets two minutes, except under a debugger.
 A test that times out cannot be stopped on the UI thread, so the run ends there and reports the remaining tests as not run.
 
 ### Runtime Tests: Usage
@@ -290,7 +290,7 @@ The script passes its settings to the host as `FLOWERY_MONITOR_DEVICE`, `FLOWERY
 
 ### Runtime Tests: Output
 
-- `TestResults\<Configuration>\<run>\runtime-tests.xml`: the report with `total`, `passed`, `failed` and `inconclusive` counts and one entry per test
+- `TestResults\<Configuration>\<run>\runtime-tests.xml`: the report with `total`, `passed`, `failed`, `inconclusive`, `timedOut` and `notRun` counts and one entry per test
 - `TestResults\<Configuration>\<run>\runtime-tests.progress.log`: each test as it starts and ends, with failure messages
 - `TestResults\<Configuration>\<run>\artifacts\`: images that tests saved, such as captures and screenshots
 - `TestResults\<Configuration>\<run>\runner.trx`: the runner's result
@@ -299,7 +299,7 @@ The script passes its settings to the host as `FLOWERY_MONITOR_DEVICE`, `FLOWERY
 A test that calls `Assert.Skip` could not set up its scenario in this environment.
 It is reported as inconclusive: as a warning locally and as an annotation in GitHub Actions.
 It does not fail the run.
-A nonzero exit code means that at least one test failed.
+A nonzero exit code means that at least one test failed, timed out or did not run.
 
 The tests do not access the clipboard or move other application windows.
 Some glass tests take screenshots of the test window and set it topmost for that moment.

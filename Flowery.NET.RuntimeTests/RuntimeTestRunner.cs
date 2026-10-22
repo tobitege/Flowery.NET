@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -26,6 +27,9 @@ internal static class RuntimeTestRunner
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromMinutes(2);
     private static readonly List<Exception> UnhandledExceptions = [];
 
+    /// <summary>Exceptions that reached the dispatcher and were not yet blamed on a test.</summary>
+    internal static int PendingUnhandledExceptions => UnhandledExceptions.Count;
+
     public static async Task<int> RunAsync(Window window, string reportPath, string? placement)
     {
         Dispatcher.UIThread.VerifyAccess();
@@ -49,8 +53,14 @@ internal static class RuntimeTestRunner
             if (placement is not null)
                 await progress.WriteLineAsync($"PLACEMENT {placement}");
             var results = await RunCasesAsync(testCases, host, progress);
+
+            // Work that the last test posted late would otherwise be lost when the run ends.
+            await SettleDispatcherAsync();
+            if (TakeUnhandledExceptions() is { } late)
+                results.Add(new RuntimeTestResult("RuntimeTests.AfterLastTest", RuntimeTestOutcome.Failed, late.ToString()));
+
             RuntimeTestReport.Write(reportPath, results);
-            return results.Any(result => result.Outcome == RuntimeTestOutcome.Failed) ? 1 : 0;
+            return RuntimeTestReport.HasFailures(results) ? 1 : 0;
         }
         finally
         {
@@ -62,7 +72,7 @@ internal static class RuntimeTestRunner
     /// Runs the test cases in order. A timed-out test cannot be cancelled on the UI thread and would interfere
     /// with later tests, so the run stops there and reports the remaining tests as not run.
     /// </summary>
-    internal static async Task<List<RuntimeTestResult>> RunCasesAsync(IReadOnlyList<RuntimeTestCase> testCases, Panel? host, TextWriter progress)
+    internal static async Task<List<RuntimeTestResult>> RunCasesAsync(IReadOnlyList<RuntimeTestCase> testCases, Panel host, TextWriter progress)
     {
         var results = new List<RuntimeTestResult>();
         string? timedOut = null;
@@ -70,18 +80,18 @@ internal static class RuntimeTestRunner
         {
             if (timedOut is not null)
             {
-                results.Add(new RuntimeTestResult(testCase.Name, RuntimeTestOutcome.Failed,
-                    $"Not run: {timedOut} timed out and may still be running on the UI thread."));
+                results.Add(new RuntimeTestResult(testCase.Name, RuntimeTestOutcome.NotRun,
+                    $"{timedOut} timed out and may still be running on the UI thread."));
                 continue;
             }
 
             await progress.WriteLineAsync($"START {testCase.Name}");
-            var (result, isTimedOut) = await ExecuteAsync(testCase, host);
+            var result = await ExecuteAsync(testCase, host);
             results.Add(result);
-            await progress.WriteLineAsync($"{result.Outcome switch { RuntimeTestOutcome.Passed => "PASS", RuntimeTestOutcome.Inconclusive => "WARN", _ => "FAIL" }} {testCase.Name}");
+            await progress.WriteLineAsync($"{ProgressLabel(result.Outcome)} {testCase.Name}");
             if (result.Message is not null)
                 await progress.WriteLineAsync(result.Message);
-            if (isTimedOut)
+            if (result.Outcome == RuntimeTestOutcome.TimedOut)
                 timedOut = testCase.Name;
         }
 
@@ -124,10 +134,9 @@ internal static class RuntimeTestRunner
                 if (method.GetCustomAttribute<FactAttribute>() is not { } fact)
                     continue;
 
-                if (method.ReturnType == typeof(void) && method.GetCustomAttribute<AsyncStateMachineAttribute>() is not null)
+                if (GetSignatureError(method) is { } signatureError)
                 {
-                    // The runner could not await it; the body would run into later tests.
-                    yield return new RuntimeTestCase(testClass, method, fact, null, "Async void test methods are not supported; return a Task.");
+                    yield return new RuntimeTestCase(testClass, method, fact, null, signatureError);
                     continue;
                 }
 
@@ -151,51 +160,73 @@ internal static class RuntimeTestRunner
     }
 
     /// <summary>
-    /// Runs one test, then its teardown: the dispatcher catches up, the host panel is cleared and the global state
-    /// is pinned again. Exceptions of the teardown and exceptions that reached the dispatcher fail this test.
+    /// Runs one test, then its teardown, and blames the test for exceptions that reached the dispatcher meanwhile.
+    /// A timed-out test is still running, so it gets no teardown; the run stops after it.
     /// </summary>
-    internal static async Task<(RuntimeTestResult Result, bool TimedOut)> ExecuteAsync(RuntimeTestCase testCase, Panel? host)
+    internal static async Task<RuntimeTestResult> ExecuteAsync(RuntimeTestCase testCase, Panel host)
     {
         if (testCase.DiscoveryError is { } discoveryError)
-            return (new RuntimeTestResult(testCase.Name, RuntimeTestOutcome.Failed, discoveryError), false);
+            return new RuntimeTestResult(testCase.Name, RuntimeTestOutcome.Failed, discoveryError);
 
+        string? skipReason = null;
         Exception? failure = null;
-        var timedOut = false;
         try
         {
-            if (testCase.ResolveSkipReason() is { } skipReason)
-                return (new RuntimeTestResult(testCase.Name, RuntimeTestOutcome.Inconclusive, $"Skipped: {skipReason}"), false);
+            skipReason = testCase.ResolveSkipReason();
+        }
+        catch (Exception exception)
+        {
+            failure = exception;
+        }
 
-            var instance = testCase.Method.IsStatic ? null : Activator.CreateInstance(testCase.TestClass);
+        if (skipReason is null && failure is null)
+        {
+            var (testFailure, timedOut) = await InvokeAsync(testCase);
+            if (timedOut)
+                return new RuntimeTestResult(testCase.Name, RuntimeTestOutcome.TimedOut, testFailure!.Message);
+            failure = testFailure;
+        }
+
+        failure = Combine(failure, await TearDownAsync(host));
+        failure = Combine(failure, TakeUnhandledExceptions());
+        return Classify(testCase, skipReason, failure);
+    }
+
+    /// <summary>
+    /// Creates the test class, runs the test with its timeout and disposes the instance.
+    /// Returns the failure and whether the test timed out.
+    /// </summary>
+    private static async Task<(Exception? Failure, bool TimedOut)> InvokeAsync(RuntimeTestCase testCase)
+    {
+        object? instance;
+        try
+        {
+            instance = testCase.Method.IsStatic ? null : Activator.CreateInstance(testCase.TestClass);
+        }
+        catch (Exception exception)
+        {
+            return (RuntimeTestHelpers.Unwrap(exception), false);
+        }
+
+        Exception? failure = null;
+        try
+        {
+            var task = testCase.Method.Invoke(instance, testCase.Arguments) switch
+            {
+                Task returned => returned,
+                ValueTask returned => returned.AsTask(),
+                // Discovery admits only void, Task and ValueTask.
+                _ => Task.CompletedTask
+            };
             try
             {
-                var task = testCase.Method.Invoke(instance, testCase.Arguments) switch
-                {
-                    Task returned => returned,
-                    ValueTask returned => returned.AsTask(),
-                    _ => Task.CompletedTask
-                };
-                try
-                {
-                    await task.WaitAsync(testCase.Timeout);
-                }
-                catch (TimeoutException) when (!task.IsCompleted)
-                {
-                    timedOut = true;
-                    throw new TimeoutException(string.Create(CultureInfo.InvariantCulture,
-                        $"The test did not finish within {testCase.Timeout.TotalSeconds:0.###} seconds."));
-                }
+                await task.WaitAsync(testCase.Timeout);
             }
-            finally
+            catch (TimeoutException) when (!task.IsCompleted)
             {
-                // A timed-out test is still running; it keeps its instance.
-                if (!timedOut)
-                {
-                    if (instance is IAsyncDisposable asyncDisposable)
-                        await asyncDisposable.DisposeAsync();
-                    else if (instance is IDisposable disposable)
-                        disposable.Dispose();
-                }
+                // The test keeps running and keeps its instance.
+                return (new TimeoutException(string.Create(CultureInfo.InvariantCulture,
+                    $"The test did not finish within {testCase.Timeout.TotalSeconds:0.###} seconds.")), true);
             }
         }
         catch (Exception exception)
@@ -203,47 +234,58 @@ internal static class RuntimeTestRunner
             failure = RuntimeTestHelpers.Unwrap(exception);
         }
 
-        if (!timedOut)
-        {
-            try
-            {
-                await TearDownAsync(host);
-            }
-            catch (Exception exception)
-            {
-                failure = failure is null ? exception : new AggregateException("The test and its teardown failed.", failure, exception);
-            }
-        }
-
-        var unhandled = UnhandledExceptions.ToArray();
-        UnhandledExceptions.Clear();
-        if (unhandled.Length > 0)
-        {
-            var dispatcherFailure = new AggregateException("The test left unhandled exceptions on the UI thread.", unhandled);
-            failure = failure is null ? dispatcherFailure : new AggregateException("The test failed.", failure, dispatcherFailure);
-        }
-
-        // An inconclusive test could not set up its scenario in this environment; it warns instead of failing.
-        // The reason alone is reported; the stack of a skip carries no information.
-        return failure switch
-        {
-            null => (new RuntimeTestResult(testCase.Name, RuntimeTestOutcome.Passed, null), false),
-            SkipException skip => (new RuntimeTestResult(testCase.Name, RuntimeTestOutcome.Inconclusive, StripSkipPrefix(skip.Message)), false),
-            _ when testCase.IsSkipException(failure) => (new RuntimeTestResult(testCase.Name, RuntimeTestOutcome.Inconclusive, failure.Message), false),
-            _ => (new RuntimeTestResult(testCase.Name, RuntimeTestOutcome.Failed, failure.ToString()), timedOut)
-        };
+        return (Combine(failure, await DisposeAsync(instance)), false);
     }
 
-    private static async Task TearDownAsync(Panel? host)
+    private static async Task<Exception?> DisposeAsync(object? instance)
+    {
+        try
+        {
+            if (instance is IAsyncDisposable asyncDisposable)
+                await asyncDisposable.DisposeAsync();
+            else if (instance is IDisposable disposable)
+                disposable.Dispose();
+            return null;
+        }
+        catch (Exception exception)
+        {
+            return exception;
+        }
+    }
+
+    /// <summary>
+    /// Lets the test's posted work run, clears the host panel and pins the global state again. Each step runs
+    /// even when an earlier one failed, so a failing teardown cannot leave its state to the next test.
+    /// </summary>
+    private static async Task<Exception?> TearDownAsync(Panel host)
     {
         // Work the test posted (async handlers, Loaded callbacks) runs while its controls are still attached.
         await SettleDispatcherAsync();
-        host?.Children.Clear();
-        PinGlobalState();
+        Exception? failure = null;
+        try
+        {
+            host.Children.Clear();
+        }
+        catch (Exception exception)
+        {
+            failure = exception;
+        }
+
+        try
+        {
+            PinGlobalState();
+        }
+        catch (Exception exception)
+        {
+            failure = Combine(failure, exception);
+        }
+
         await SettleDispatcherAsync();
+        return failure;
     }
 
-    // Lower than every priority that controls post work with, so all of it runs first.
+    // Runs all work already posted to the dispatcher at a higher priority. Timers and thread-pool continuations
+    // that post later are blamed on the test that is running then.
     private static async Task SettleDispatcherAsync() =>
         await Dispatcher.UIThread.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle);
 
@@ -263,8 +305,61 @@ internal static class RuntimeTestRunner
             throw new InvalidOperationException($"The {BaseTheme} theme could not be applied.");
     }
 
+    /// <summary>
+    /// An inconclusive test could not set up its scenario in this environment; it warns instead of failing.
+    /// Every skip is reported as "Skipped: reason"; the stack of a skip carries no information.
+    /// </summary>
+    private static RuntimeTestResult Classify(RuntimeTestCase testCase, string? skipReason, Exception? failure) => failure switch
+    {
+        null when skipReason is not null => Skipped(testCase, skipReason),
+        null => new RuntimeTestResult(testCase.Name, RuntimeTestOutcome.Passed, null),
+        SkipException skip => Skipped(testCase, StripSkipPrefix(skip.Message)),
+        _ when testCase.IsSkipException(failure) => Skipped(testCase, failure.Message),
+        _ => new RuntimeTestResult(testCase.Name, RuntimeTestOutcome.Failed, failure.ToString())
+    };
+
+    private static RuntimeTestResult Skipped(RuntimeTestCase testCase, string reason) =>
+        new(testCase.Name, RuntimeTestOutcome.Inconclusive, $"Skipped: {reason}");
+
+    private static Exception? Combine(Exception? first, Exception? second) =>
+        first is null ? second : second is null ? first : new AggregateException(first, second);
+
+    private static Exception? TakeUnhandledExceptions()
+    {
+        if (UnhandledExceptions.Count == 0)
+            return null;
+
+        var exceptions = UnhandledExceptions.ToArray();
+        UnhandledExceptions.Clear();
+        return new AggregateException("Unhandled exceptions reached the UI thread.", exceptions);
+    }
+
+    /// <summary>The runner awaits only Task and ValueTask; any other result would pass without being awaited.</summary>
+    private static string? GetSignatureError(MethodInfo method)
+    {
+        var returnType = method.ReturnType;
+        if (returnType == typeof(void))
+        {
+            return method.GetCustomAttribute<AsyncStateMachineAttribute>() is null
+                ? null
+                : "Async void test methods are not supported; return a Task.";
+        }
+
+        return typeof(Task).IsAssignableFrom(returnType) || returnType == typeof(ValueTask)
+            ? null
+            : $"Runtime tests must return void, Task or ValueTask, not {returnType.Name}.";
+    }
+
     private static string StripSkipPrefix(string message) =>
         message.StartsWith(DynamicSkipPrefix, StringComparison.Ordinal) ? message[DynamicSkipPrefix.Length..] : message;
+
+    private static string ProgressLabel(RuntimeTestOutcome outcome) => outcome switch
+    {
+        RuntimeTestOutcome.Passed => "PASS",
+        RuntimeTestOutcome.Inconclusive => "WARN",
+        RuntimeTestOutcome.TimedOut => "TIMEOUT",
+        _ => "FAIL"
+    };
 
     private static void OnUnhandledException(object? sender, DispatcherUnhandledExceptionEventArgs e)
     {
@@ -284,23 +379,34 @@ internal static class RuntimeTestRunner
         // A row inherits these from the method unless it sets its own.
         public bool IsExplicit => ((IDataAttribute?)Row)?.Explicit ?? Fact.Explicit;
 
-        public TimeSpan Timeout => (((IDataAttribute?)Row)?.Timeout ?? Fact.Timeout) is > 0 and var milliseconds
-            ? TimeSpan.FromMilliseconds(milliseconds)
-            : DefaultTimeout;
+        // As in xunit, a debugger session has no timeout.
+        public TimeSpan Timeout => Debugger.IsAttached
+            ? System.Threading.Timeout.InfiniteTimeSpan
+            : (((IDataAttribute?)Row)?.Timeout ?? Fact.Timeout) is > 0 and var milliseconds
+                ? TimeSpan.FromMilliseconds(milliseconds)
+                : DefaultTimeout;
 
         /// <summary>
         /// The skip reason, if the test is skipped. As in xunit, SkipUnless or SkipWhen name a public static bool
-        /// property that makes the skip conditional; a row's own Skip replaces the method's.
+        /// property that makes the skip conditional, and they need Skip; a row's own Skip replaces the method's.
         /// </summary>
         public string? ResolveSkipReason()
         {
+            if (Row is { Skip: null } && (Row.SkipUnless ?? Row.SkipWhen) is not null)
+                throw new InvalidOperationException("You must set Skip when you set SkipUnless or SkipWhen.");
+
             var (reason, type, unless, when) = Row?.Skip is not null
                 ? (Row.Skip, Row.SkipType, Row.SkipUnless, Row.SkipWhen)
                 : (Fact.Skip, Fact.SkipType, Fact.SkipUnless, Fact.SkipWhen);
-            if (reason is null)
-                return null;
             if (unless is not null && when is not null)
                 throw new InvalidOperationException("SkipUnless and SkipWhen cannot both be set.");
+            if (reason is null)
+            {
+                return (unless ?? when) is null
+                    ? null
+                    : throw new InvalidOperationException("You must set Skip when you set SkipUnless or SkipWhen.");
+            }
+
             if ((unless ?? when) is not { } propertyName)
                 return reason;
 
@@ -312,16 +418,9 @@ internal static class RuntimeTestRunner
             return unless is not null ? (value ? null : reason) : (value ? reason : null);
         }
 
-        public bool IsSkipException(Exception exception)
-        {
-            foreach (var type in Fact.SkipExceptions ?? [])
-            {
-                if (type.IsInstanceOfType(exception))
-                    return true;
-            }
-
-            return false;
-        }
+        /// <summary>As in xunit, the exception's exact type must be listed in SkipExceptions.</summary>
+        public bool IsSkipException(Exception exception) =>
+            Fact.SkipExceptions is { } types && Array.IndexOf(types, exception.GetType()) >= 0;
 
         private static string FormatArgument(object? argument) => argument switch
         {

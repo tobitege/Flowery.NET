@@ -108,8 +108,9 @@ if (Test-Path -LiteralPath $reportPath -PathType Leaf) {
             Write-Warning $text
         }
     }
-    Write-Host ('Runtime tests: {0} total, {1} passed, {2} failed, {3} inconclusive' -f `
-        $report.tests.total, $report.tests.passed, $report.tests.failed, $report.tests.inconclusive)
+    Write-Host ('Runtime tests: {0} total, {1} passed, {2} failed, {3} inconclusive, {4} timed out, {5} not run' -f `
+        $report.tests.total, $report.tests.passed, $report.tests.failed, $report.tests.inconclusive, `
+        $report.tests.timedOut, $report.tests.notRun)
 }
 
 Write-Host ('Log: {0}' -f $logPath)
