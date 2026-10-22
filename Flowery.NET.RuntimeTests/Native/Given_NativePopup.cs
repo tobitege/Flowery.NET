@@ -15,42 +15,51 @@ public class Given_NativePopup
     {
         var window = RuntimeTestHelpers.GetWindow();
         var (width, height, position) = (window.Width, window.Height, window.Position);
-        // The popup needs room around the window: at a screen edge it is held in place and offsets cannot move it.
-        // The smaller window is centered in the placed one, so it stays in the requested monitor region.
-        var scaling = window.DesktopScaling;
-        window.Width = 800;
-        window.Height = 600;
-        window.Position = new PixelPoint(
-            position.X + (int)((width - 800) * scaling / 2),
-            position.Y + (int)((height - 600) * scaling / 2));
-        var popover = await RuntimeTestHelpers.AttachAsync(new ProbePopover
-        {
-            TriggerContent = "Open",
-            PopoverContent = new Border { Width = 240, Height = 160, Background = Brushes.Coral },
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Bottom,
-            IsLightDismissEnabled = false
-        });
-        popover.IsOpen = true;
-        await RuntimeTestHelpers.WaitForRenderAsync();
         try
         {
-            var root = TopLevel.GetTopLevel(popover.Popup.Child)!;
-            Assert.True(root is not Window && root.TryGetPlatformHandle() is not null, "Expected a native popup root.");
-            AssertInsideScreen(window, root);
-            var before = root.PointToScreen(default);
-            popover.HorizontalOffset = -80;
+            // The popup needs room around the window: at a screen edge it is held in place and offsets cannot move it.
+            // Like the old 800x600 probe window, the window shrinks, at most to the placed size, and is centered
+            // in the placed bounds, so it never leaves the requested monitor region.
+            var probeWidth = Math.Min(800, width);
+            var probeHeight = Math.Min(600, height);
+            var scaling = window.DesktopScaling;
+            window.Width = probeWidth;
+            window.Height = probeHeight;
+            window.Position = new PixelPoint(
+                position.X + (int)((width - probeWidth) * scaling / 2),
+                position.Y + (int)((height - probeHeight) * scaling / 2));
+            var popover = await RuntimeTestHelpers.AttachAsync(new ProbePopover
+            {
+                TriggerContent = "Open",
+                PopoverContent = new Border { Width = 240, Height = 160, Background = Brushes.Coral },
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                IsLightDismissEnabled = false
+            });
+            popover.IsOpen = true;
             await RuntimeTestHelpers.WaitForRenderAsync();
-            var after = root.PointToScreen(default);
-            Assert.True(after != before, "Changing the offset did not reposition the popup.");
-            window.Width = 650;
-            window.Height = 470;
-            await RuntimeTestHelpers.WaitForRenderAsync();
-            AssertInsideScreen(window, root);
+            try
+            {
+                var root = TopLevel.GetTopLevel(popover.Popup.Child)!;
+                Assert.True(root is not Window && root.TryGetPlatformHandle() is not null, "Expected a native popup root.");
+                AssertInsideScreen(window, root);
+                var before = root.PointToScreen(default);
+                popover.HorizontalOffset = -80;
+                await RuntimeTestHelpers.WaitForRenderAsync();
+                var after = root.PointToScreen(default);
+                Assert.True(after != before, "Changing the offset did not reposition the popup.");
+                window.Width = Math.Min(650, probeWidth);
+                window.Height = Math.Min(470, probeHeight);
+                await RuntimeTestHelpers.WaitForRenderAsync();
+                AssertInsideScreen(window, root);
+            }
+            finally
+            {
+                popover.IsOpen = false;
+            }
         }
         finally
         {
-            popover.IsOpen = false;
             // Later tests use the placed window size.
             window.Width = width;
             window.Height = height;
