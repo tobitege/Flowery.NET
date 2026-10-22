@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The 19 native review probes (glass backdrop, popup placement, range automation, Skia cache, scaling lifetime) moved into the runtime suite. `Flowery.NET.Tests.Native` and `scripts/test_review_native.ps1` were removed.
 
+### Fixed
+
+- The Gallery's `MainView` subscribes to the culture and size change events only while it is attached, so a detached view and its cached pages can be collected.
+
 ## [3.9.0] - 2026-10-22
 
 ### Added
