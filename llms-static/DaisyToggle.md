@@ -51,3 +51,7 @@ The full label row keeps its normal size-tier height for interaction.
 - Use semantic variants to convey meaning (Success for enabled/ready, Error for risky toggles).
 - Keep `TogglePadding` small; larger padding may reduce visible track fill on small sizes.
 - Bind `IsChecked` for state management; it inherits ToggleSwitch behavior.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the track (`SwitchArea`) is always inset and the knob always raised, whatever the global mode. The knob is an `Ellipse`, which has no `BoxShadow`; its shadow is drawn on `PART_KnobShadow`, a round border that follows the knob's size and position.

@@ -321,6 +321,7 @@ class SiteGenerator:
     # Helper/internal classes shown in a separate 'Helpers' section
     HELPER_CONTROL_NAMES = {
         'DaisyAccessibility',   # Accessibility utilities
+        'DaisyNeumorphic',      # Neumorphic (soft UI) effects
         'DaisyPaginationItem',  # Part of DaisyPagination
         'DaisySizeDropdown',    # Global size selection dropdown
         'ColorCollection',      # Color collection class

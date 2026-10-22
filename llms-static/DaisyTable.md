@@ -70,3 +70,9 @@ DaisyTable provides a styled table layout with header, body, and footer sections
 - Put the table inside a constrained ScrollViewer to enable PinRows and PinCols.
 - Header ColumnWidth changes update corresponding body columns. Fixed widths reserve space; star weights divide the remaining width.
 - Auto widths use each row's content measurements; they do not calculate a shared maximum across every row.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the whole table is one raised (or inset) surface, like a card. `DaisyTableRow`, `DaisyTableCell` and `DaisyTableHeaderCell` never draw the effect, so no box appears around a row or cell, and a `*` column does not stretch a shadow across the table. Controls inside cells (e.g. a `DaisyButton`) keep their own effect.
+
+The template is a `Panel` with three borders: `PART_NeumorphicShadow` (unclipped, carries Raised/Flat shadows), `PART_Surface` (background, rounded clip) and `PART_NeumorphicInset` (hit-test invisible overlay above the rows for Inset shadows).

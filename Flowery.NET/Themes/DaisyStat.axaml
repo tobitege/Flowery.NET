@@ -179,7 +179,6 @@
     <ControlTheme x:Key="{x:Type controls:DaisyStats}" TargetType="controls:DaisyStats">
         <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />
         <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="ClipToBounds" Value="True" />
         <Setter Property="Effect">
             <Setter.Value>
                 <DropShadowEffect BlurRadius="8" Color="Black" Opacity="0.15" OffsetX="0" OffsetY="2" />
@@ -192,11 +191,17 @@
         </Setter>
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Background="{TemplateBinding Background}"
-                        CornerRadius="{TemplateBinding CornerRadius}"
-                        ClipToBounds="{TemplateBinding ClipToBounds}">
-                    <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
-                </Border>
+                <Panel>
+                    <!-- Unclipped layer for neumorphic outer shadows; PART_Surface clips its own. -->
+                    <Border x:Name="PART_NeumorphicShadow"
+                            CornerRadius="{TemplateBinding CornerRadius}" />
+                    <Border x:Name="PART_Surface"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            ClipToBounds="True">
+                        <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+                    </Border>
+                </Panel>
             </ControlTemplate>
         </Setter>
     </ControlTheme>

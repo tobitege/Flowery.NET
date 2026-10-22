@@ -33,7 +33,6 @@
         <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
         <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="ClipToBounds" Value="True" />
 
         <Setter Property="Template">
             <ControlTemplate>
@@ -58,7 +57,9 @@
                     </Border>
 
                     <!-- Text content skeleton (text mode) -->
+                    <!-- Clips the text only, so neumorphic shadows of PART_BackgroundBorder stay visible. -->
                     <ContentPresenter x:Name="PART_ContentPresenter"
+                                      ClipToBounds="True"
                                       IsVisible="False"
                                       Content="{TemplateBinding Content}"
                                       ContentTemplate="{TemplateBinding ContentTemplate}"

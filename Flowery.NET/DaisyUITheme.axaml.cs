@@ -14,6 +14,7 @@ namespace Flowery
             // Registers the global size handlers before any control is loaded.
             RuntimeHelpers.RunClassConstructor(typeof(FlowerySizeManager).TypeHandle);
             RuntimeHelpers.RunClassConstructor(typeof(DaisyAccessibility).TypeHandle);
+            RuntimeHelpers.RunClassConstructor(typeof(DaisyNeumorphic).TypeHandle);
         }
     }
 }

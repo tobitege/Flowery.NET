@@ -28,7 +28,7 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <!-- Outer border: Background matches BorderBrush so corners show border color -->
-                <Border BorderBrush="{TemplateBinding BorderBrush}"
+                <Border x:Name="PART_Surface" BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
                         CornerRadius="{TemplateBinding CornerRadius}"
                         Background="{TemplateBinding BorderBrush}">
@@ -84,7 +84,7 @@
              <Setter Property="Template">
                  <ControlTemplate>
                      <!-- Outer border: Background matches BorderBrush so corners show border color -->
-                     <Border BorderBrush="{TemplateBinding BorderBrush}"
+                     <Border x:Name="PART_Surface" BorderBrush="{TemplateBinding BorderBrush}"
                              BorderThickness="{TemplateBinding BorderThickness}"
                              CornerRadius="{TemplateBinding CornerRadius}"
                              Background="{TemplateBinding BorderBrush}">

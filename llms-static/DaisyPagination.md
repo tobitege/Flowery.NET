@@ -205,3 +205,7 @@ The pagination control uses these icons from `DaisyIcons.xaml`:
 - **Bar** (`|`) = boundary/edge indicator
 - **Single chevron** = single step navigation
 - **Double chevron** = multi-step jump navigation
+
+## Neumorphic Effect
+
+`DaisyPagination` is a segment container for [DaisyNeumorphic](DaisyNeumorphic.md): its items stay flat so the joined strip does not draw separate shadows.

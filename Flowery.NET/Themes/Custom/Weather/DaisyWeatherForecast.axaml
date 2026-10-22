@@ -25,10 +25,7 @@
         </Setter>
         <Setter Property="ItemTemplate">
             <DataTemplate x:DataType="models:ForecastDay">
-                <Border Background="{DynamicResource DaisyBase100Brush}"
-                        CornerRadius="8"
-                        Padding="12,8"
-                        MinWidth="60">
+                <weather:DaisyWeatherForecastItem>
                     <StackPanel HorizontalAlignment="Center" Spacing="4">
                         <!-- Day Name -->
                         <TextBlock Text="{Binding DayName}"
@@ -79,7 +76,7 @@
                                    Foreground="{DynamicResource DaisyBaseContentBrush}"
                                    HorizontalAlignment="Center" />
                     </StackPanel>
-                </Border>
+                </weather:DaisyWeatherForecastItem>
             </DataTemplate>
         </Setter>
         <Setter Property="Template">
@@ -87,6 +84,24 @@
                 <Border Background="{TemplateBinding Background}"
                         Padding="{TemplateBinding Padding}">
                     <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+
+    <!-- One forecast day tile -->
+    <ControlTheme x:Key="{x:Type weather:DaisyWeatherForecastItem}" TargetType="weather:DaisyWeatherForecastItem">
+        <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="MinWidth" Value="60" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border x:Name="PART_Surface" Background="{TemplateBinding Background}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
                 </Border>
             </ControlTemplate>
         </Setter>

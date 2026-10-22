@@ -48,6 +48,9 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Panel ClipToBounds="False">
+                    <!-- Unclipped layer for neumorphic outer shadows; PART_Background clips its own. -->
+                    <Border Name="PART_NeumorphicShadow"
+                            CornerRadius="{TemplateBinding CornerRadius}" />
                     <Border Name="PART_Background"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"

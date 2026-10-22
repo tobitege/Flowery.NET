@@ -202,6 +202,10 @@ namespace Flowery.Controls
     {
     }
 
+    public class SidebarNeumorphicSelectorItem : SidebarItem
+    {
+    }
+
     public class SidebarLanguage
     {
         public string Code { get; set; } = string.Empty;
@@ -414,6 +418,37 @@ namespace Flowery.Controls
             }
         }
 
+        private DaisyNeumorphicMode _neumorphicMode = DaisyNeumorphic.GlobalMode;
+
+        /// <summary>
+        /// Defines the <see cref="NeumorphicMode"/> property.
+        /// </summary>
+        public static readonly DirectProperty<FloweryComponentSidebar, DaisyNeumorphicMode> NeumorphicModeProperty =
+            AvaloniaProperty.RegisterDirect<FloweryComponentSidebar, DaisyNeumorphicMode>(
+                nameof(NeumorphicMode),
+                o => o.NeumorphicMode,
+                (o, v) => o.NeumorphicMode = v);
+
+        /// <summary>
+        /// Gets or sets the global neumorphic mode. Bound to <see cref="DaisyNeumorphic.GlobalMode"/>.
+        /// </summary>
+        public DaisyNeumorphicMode NeumorphicMode
+        {
+            get => _neumorphicMode;
+            set
+            {
+                if (SetAndRaise(NeumorphicModeProperty, ref _neumorphicMode, value))
+                {
+                    DaisyNeumorphic.GlobalMode = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the modes offered by the neumorphic selector.
+        /// </summary>
+        public IReadOnlyList<DaisyNeumorphicMode> AvailableNeumorphicModes { get; } = Enum.GetValues<DaisyNeumorphicMode>();
+
         static FloweryComponentSidebar()
         {
             SearchTextProperty.Changed.AddClassHandler<FloweryComponentSidebar>((s, e) => s.OnSearchTextChanged());
@@ -432,9 +467,11 @@ namespace Flowery.Controls
             base.OnAttachedToVisualTree(e);
             FloweryLocalization.CultureChanged += OnLocalizationCultureChanged;
             Flowery.Services.FloweryScaleManager.IsEnabledChanged += OnScalingEnabledChanged;
+            DaisyNeumorphic.GlobalChanged += OnNeumorphicGlobalChanged;
             foreach (var category in _allCategories)
                 category.PropertyChanged += OnCategoryPropertyChanged;
             OnScalingEnabledChanged(this, Flowery.Services.FloweryScaleManager.IsEnabled);
+            OnNeumorphicGlobalChanged(this, EventArgs.Empty);
             UpdateSelectedLanguageFromCulture(FloweryLocalization.CurrentCulture);
         }
 
@@ -442,9 +479,19 @@ namespace Flowery.Controls
         {
             FloweryLocalization.CultureChanged -= OnLocalizationCultureChanged;
             Flowery.Services.FloweryScaleManager.IsEnabledChanged -= OnScalingEnabledChanged;
+            DaisyNeumorphic.GlobalChanged -= OnNeumorphicGlobalChanged;
             foreach (var category in _allCategories)
                 category.PropertyChanged -= OnCategoryPropertyChanged;
             base.OnDetachedFromVisualTree(e);
+        }
+
+        private void OnNeumorphicGlobalChanged(object? sender, EventArgs e)
+        {
+            var mode = DaisyNeumorphic.GlobalMode;
+            if (_neumorphicMode != mode)
+            {
+                SetAndRaise(NeumorphicModeProperty, ref _neumorphicMode, mode);
+            }
         }
 
         private void OnCategoryPropertyChanged(object? sender, PropertyChangedEventArgs e)

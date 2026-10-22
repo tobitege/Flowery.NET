@@ -5,6 +5,8 @@
     xmlns:services="clr-namespace:Flowery.Services;assembly=Flowery.NET"
     xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
     xmlns:galloc="clr-namespace:Flowery.NET.Gallery.Localization"
+    xmlns:weather="clr-namespace:Flowery.Controls.Custom.Weather;assembly=Flowery.NET"
+    xmlns:models="clr-namespace:Flowery.Controls.Custom.Weather.Models;assembly=Flowery.NET"
     x:Class="Flowery.NET.Gallery.Examples.EffectsExamples">
 
     <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled"
@@ -338,6 +340,185 @@
                         </Panel>
                     </Border>
                 </WrapPanel>
+            </StackPanel>
+
+            <!-- Neumorphic Effect -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader x:Name="NeumorphicSectionHeader" SectionId="neumorphic-effect"
+                    Title="{galloc:Localize Effects_Neumorphic_Title}" />
+                <TextBlock Text="{galloc:Localize Effects_Neumorphic_Description}"
+                    Opacity="0.7" TextWrapping="Wrap" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel Spacing="4" Width="200" Margin="0,0,24,8">
+                        <TextBlock Text="{galloc:Localize Effects_Neumorphic_Mode}" Opacity="0.7" />
+                        <controls:DaisySelect x:Name="NeumorphicModeSelect"
+                            AutomationProperties.Name="{galloc:Localize Effects_Neumorphic_Mode}" />
+                    </StackPanel>
+                    <StackPanel Spacing="4" Width="220" Margin="0,0,24,8">
+                        <TextBlock Text="{galloc:Localize Effects_Neumorphic_Intensity}" Opacity="0.7" />
+                        <controls:DaisyRange x:Name="NeumorphicIntensityRange"
+                            Minimum="0.05" Maximum="1" Value="0.45"
+                            AutomationProperties.Name="{galloc:Localize Effects_Neumorphic_Intensity}" />
+                    </StackPanel>
+                </WrapPanel>
+
+                <!-- The scope draws the effect here regardless of the global mode; code-behind sets ScopeMode and ScopeIntensity. -->
+                <Border x:Name="NeumorphicShowcase" Background="{DynamicResource DaisyBase200Brush}"
+                        CornerRadius="12" Padding="8"
+                        controls:DaisyNeumorphic.ScopeEnabled="True">
+                    <WrapPanel Orientation="Horizontal">
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisyCard" FontWeight="SemiBold" />
+                            <controls:DaisyCard>
+                                <TextBlock Text="Card body" />
+                            </controls:DaisyCard>
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisyPatternedCard" FontWeight="SemiBold" />
+                            <controls:DaisyPatternedCard Pattern="Dots" MinHeight="100">
+                                <TextBlock Text="Patterned" />
+                            </controls:DaisyPatternedCard>
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisyButton" FontWeight="SemiBold" />
+                            <WrapPanel>
+                                <controls:DaisyButton Content="Default" Margin="6" />
+                                <controls:DaisyButton Content="Primary" Variant="Primary" Margin="6" />
+                                <controls:DaisyButton Content="Ghost" Variant="Ghost" Margin="6" />
+                            </WrapPanel>
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisyInput / DaisySelect" FontWeight="SemiBold" />
+                            <controls:DaisyInput PlaceholderText="Type here" />
+                            <controls:DaisySelect PlaceholderText="Pick" HorizontalAlignment="Stretch">
+                                <ComboBoxItem Content="A" />
+                                <ComboBoxItem Content="B" />
+                            </controls:DaisySelect>
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisyJoin (segments stay flat)" FontWeight="SemiBold" />
+                            <controls:DaisyJoin>
+                                <controls:DaisyButton Content="One" />
+                                <controls:DaisyButton Content="Two" />
+                                <controls:DaisyButton Content="Three" />
+                            </controls:DaisyJoin>
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisyButtonGroup" FontWeight="SemiBold" />
+                            <controls:DaisyButtonGroup HorizontalAlignment="Left">
+                                <controls:DaisyButton Content="Left" />
+                                <controls:DaisyButton Content="Mid" />
+                                <controls:DaisyButton Content="Right" />
+                            </controls:DaisyButtonGroup>
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisyBadge / DaisyAvatar / DaisyKbd" FontWeight="SemiBold" />
+                            <WrapPanel>
+                                <controls:DaisyBadge Content="Badge" Margin="6" VerticalAlignment="Center" />
+                                <controls:DaisyBadge Content="Primary" Variant="Primary" Margin="6" VerticalAlignment="Center" />
+                                <controls:DaisyAvatar Margin="6">
+                                    <TextBlock Text="AB" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </controls:DaisyAvatar>
+                                <controls:DaisyKbd Content="Ctrl" Margin="6" VerticalAlignment="Center" />
+                                <controls:DaisyKbd Content="K" Margin="6" VerticalAlignment="Center" />
+                            </WrapPanel>
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisyToggle / DaisyCheckBox / DaisyRadio" FontWeight="SemiBold" />
+                            <WrapPanel>
+                                <controls:DaisyToggle IsChecked="True" Margin="6" />
+                                <controls:DaisyToggle Margin="6" />
+                                <controls:DaisyCheckBox IsChecked="True" Margin="6" />
+                                <controls:DaisyCheckBox Margin="6" />
+                                <controls:DaisyRadio IsChecked="True" GroupName="NeumorphicShowcase" Margin="6" />
+                                <controls:DaisyRadio GroupName="NeumorphicShowcase" Margin="6" />
+                            </WrapPanel>
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisyProgress / DaisyRange" FontWeight="SemiBold" />
+                            <controls:DaisyProgress Value="60" Maximum="100" />
+                            <controls:DaisyRange Value="40" Maximum="100" />
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisyAlert" FontWeight="SemiBold" />
+                            <controls:DaisyAlert Variant="Info" Content="Alert text" />
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisySkeleton / DaisyFileInput" FontWeight="SemiBold" />
+                            <controls:DaisySkeleton Height="32" />
+                            <controls:DaisyFileInput />
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisySlideToConfirm" FontWeight="SemiBold" />
+                            <controls:DaisySlideToConfirm />
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisyTable (rows and cells stay flat)" FontWeight="SemiBold" />
+                            <controls:DaisyTable>
+                                <controls:DaisyTableHead>
+                                    <controls:DaisyTableRow>
+                                        <controls:DaisyTableHeaderCell Content="Name" />
+                                        <controls:DaisyTableHeaderCell Content="Enabled" />
+                                    </controls:DaisyTableRow>
+                                </controls:DaisyTableHead>
+                                <controls:DaisyTableBody>
+                                    <controls:DaisyTableRow>
+                                        <controls:DaisyTableCell Content="Row 1" />
+                                        <controls:DaisyTableCell>
+                                            <controls:DaisyToggle IsChecked="True" />
+                                        </controls:DaisyTableCell>
+                                    </controls:DaisyTableRow>
+                                    <controls:DaisyTableRow>
+                                        <controls:DaisyTableCell Content="Row 2" />
+                                        <controls:DaisyTableCell>
+                                            <controls:DaisyToggle />
+                                        </controls:DaisyTableCell>
+                                    </controls:DaisyTableRow>
+                                </controls:DaisyTableBody>
+                            </controls:DaisyTable>
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisyList" FontWeight="SemiBold" />
+                            <controls:DaisyList>
+                                <controls:DaisyListRow>
+                                    <controls:DaisyListColumn Content="List row 1" />
+                                </controls:DaisyListRow>
+                                <controls:DaisyListRow>
+                                    <controls:DaisyListColumn Content="List row 2" />
+                                </controls:DaisyListRow>
+                                <controls:DaisyListRow>
+                                    <controls:DaisyListColumn Content="List row 3" />
+                                </controls:DaisyListRow>
+                            </controls:DaisyList>
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="280" Margin="12">
+                            <TextBlock Text="DaisyCollapse / DaisyNumericUpDown" FontWeight="SemiBold" />
+                            <controls:DaisyCollapse Header="Collapse" Content="Body" />
+                            <controls:DaisyNumericUpDown Value="3" />
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="580" Margin="12">
+                            <TextBlock Text="DaisyTimeline (boxed)" FontWeight="SemiBold" />
+                            <controls:DaisyTimeline Orientation="Horizontal">
+                                <controls:DaisyTimelineItem StartContent="2024" EndContent="Planned"
+                                    IsBoxed="True" HasEndLine="True" IsActive="True" />
+                                <controls:DaisyTimelineItem StartContent="2025" EndContent="Built"
+                                    IsBoxed="True" HasStartLine="True" HasEndLine="True" IsActive="True" />
+                                <controls:DaisyTimelineItem StartContent="2026" EndContent="Shipped"
+                                    IsBoxed="True" HasStartLine="True" />
+                            </controls:DaisyTimeline>
+                        </StackPanel>
+                        <StackPanel Spacing="8" Width="580" Margin="12">
+                            <TextBlock Text="DaisyWeatherForecast" FontWeight="SemiBold" />
+                            <weather:DaisyWeatherForecast>
+                                <models:ForecastDay Date="2025-07-16" Condition="PartlyCloudy" HighTemperature="16" LowTemperature="8" />
+                                <models:ForecastDay Date="2025-07-17" Condition="Rain" HighTemperature="15" LowTemperature="9" />
+                                <models:ForecastDay Date="2025-07-18" Condition="Sunny" HighTemperature="18" LowTemperature="7" />
+                                <models:ForecastDay Date="2025-07-19" Condition="Cloudy" HighTemperature="14" LowTemperature="6" />
+                            </weather:DaisyWeatherForecast>
+                        </StackPanel>
+                    </WrapPanel>
+                </Border>
             </StackPanel>
 
             <!-- Effects Showcase (for GIF recording) -->

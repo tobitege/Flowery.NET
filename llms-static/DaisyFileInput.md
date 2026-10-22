@@ -46,3 +46,7 @@ private async void OnPickFile(object? sender, RoutedEventArgs e)
 - Pair with validation text or `DaisyAlert` for upload constraints (size/type).
 - Use `Variant="Primary"` for key upload actions; use Default/Accent for secondary forms.
 - Remember to set focus/keyboard handling as you would with a standard button; this control is still a `Button`.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the input draws the effect on `PART_Surface`; outer shadows go to the unclipped `PART_NeumorphicShadow` layer behind it.

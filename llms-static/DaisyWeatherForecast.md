@@ -70,3 +70,7 @@ Items are arranged horizontally with equal spacing.
 - Temperature high: `DaisyPrimaryBrush`
 - Temperature low: `DaisyBaseContentBrush` with opacity
 - Icons: Colored based on condition type
+
+## Neumorphic Effect
+
+Each day tile is a `DaisyWeatherForecastItem` control, so with [DaisyNeumorphic](DaisyNeumorphic.md) active every tile draws its own effect, including tiles created after the forecast loads. While tiles draw the effect, the forecast lifts its default clip so the tile shadows can extend past the strip; otherwise it clips its content as before.

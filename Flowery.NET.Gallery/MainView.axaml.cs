@@ -65,6 +65,7 @@ public partial class MainView : UserControl
     public MainView()
     {
         InitializeComponent();
+        DaisyNeumorphic.GlobalIntensity = 0.25;
 
         // Detect mobile platform early (before any navigation)
         _isMobilePlatform = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();

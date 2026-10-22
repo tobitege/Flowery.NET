@@ -1140,6 +1140,8 @@ class DocumentationGenerator:
             'weatherforecast': 'DaisyWeatherForecast',
             'weathermetrics': 'DaisyWeatherMetrics',
             'expandablecards': 'DaisyExpandableCard',
+            # Effects (from EffectsExamples.axaml)
+            'neumorphiceffect': 'DaisyNeumorphic',
         }
 
         return mappings.get(normalized)

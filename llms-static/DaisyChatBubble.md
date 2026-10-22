@@ -61,3 +61,7 @@ DaisyChatBubble renders chat-style message bubbles with alignment control, optio
 - Avatars should be square to avoid clipping when rendered in the 40×40 slot.
 - Limit bubble width via parent layout or `MaxWidth` to prevent overly wide messages (defaults to 400).
 - Choose semantic variants to convey tone (success/warning/error) without extra icons.
+
+## Neumorphic Effect
+
+Chat bubbles ignore the global [neumorphic](DaisyNeumorphic.md) mode. Set `controls:DaisyNeumorphic.IsEnabled="True"` (and a `Mode`) on a bubble to draw the effect on `PART_Bubble`.

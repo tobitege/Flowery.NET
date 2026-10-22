@@ -52,3 +52,7 @@ It also supports non-clickable segments (for counters/labels) by using a `Border
 - Use `Border` items for label/counter segments so the group can apply borders and padding consistently.
 - For icon-only segments, set `Padding="0"` and a fixed `Width` (e.g. `40`) to get square buttons.
 - If you enable `AutoSelect`, style `.button-group-active` for your segment buttons if you want a stronger visual “selected” state.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the group draws one surface around its segments (on the unclipped `PART_NeumorphicShadow` layer behind `PART_Background`), and the segment buttons stay flat. Like `ShowShadow`, the surface spans the group's full size, so size the group to its content when the effect is used.

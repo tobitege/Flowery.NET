@@ -46,3 +46,7 @@ Kanban overlay dialogs use [FlowKanbanDialogBase](FlowKanbanDialogBase.md) for i
 - Keep modal content concise; if you need long forms, add a `ScrollViewer` inside to avoid overflow.
 - Adjust individual corner radii to match brand shapes or align with other components.
 - For more animation, wrap modal content in transitions; the template currently toggles visibility instantly.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the dialog box (`PART_Dialog`) draws the effect instead of its default drop shadow.

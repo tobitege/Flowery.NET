@@ -138,6 +138,10 @@ public partial class SectionHeader : UserControl
         ["productthemes"] = "DaisyProductThemeDropdown",
         ["themeswap"] = "DaisyThemeSwap",
         ["themeradio"] = "DaisyThemeRadio",
+
+        // Effects
+        ["neumorphiceffect"] = "DaisyNeumorphic",
+
         // Showcase / Eye Candy
         ["expandablecards"] = "DaisyExpandableCard",
         ["expandable-batteries"] = "DaisyExpandableCard",

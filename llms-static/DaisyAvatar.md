@@ -93,3 +93,7 @@ DaisyAvatar renders user/profile images or initials with **5 sizes**, **3 shapes
 - Choose **Rounded** when avatars sit next to cards/panels with similar rounding; use **Circle** for classic profile lists.
 - Rings help call out priority or presence; align ring color with meaning (e.g., `Success` for active, `Warning` for away).
 - `IsRounded` exists for backward compatibility - new layouts should use `Shape` instead.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the avatar draws the effect around its shape. Outer shadows go to the unclipped `PART_NeumorphicShadow` layer, which follows the `Mask` corner radius; Inset shadows are drawn inside `Mask`.

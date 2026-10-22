@@ -54,3 +54,7 @@ The full label row stays clickable, and `GroupName` retains normal radio selecti
 - Align size with neighboring inputs; use Small/XS for dense forms, Large for mobile-friendly layouts.
 - Use semantic variants to indicate consequence (e.g., Error for destructive choices).
 - Keep labels short; adjust `Padding` if you customize spacing.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the circle (`PART_Border`) is always inset, like an input well, whatever the global mode.

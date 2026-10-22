@@ -58,3 +58,7 @@ DaisyTimeline lays out timeline items horizontally or vertically. Each `DaisyTim
 - Set `IsCompact=True` for dense sidebars; `SnapIcon=True` keeps icons aligned on pixel boundaries.
 - For vertical timelines, `IsBoxed=True` helps differentiate items from the spine.
 - Keep `StartContent` concise (dates/labels) and `EndContent` for descriptions; use `MiddleContent` for status icons.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the boxes of boxed items (`IsBoxed="True"`, `StartBox`/`EndBox`) draw the effect. Items without boxes stay flat.

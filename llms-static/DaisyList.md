@@ -69,3 +69,7 @@ DaisyList is a vertical list container with row and column primitives for struct
 - For multi-line descriptions, set `Wrap=True` on the description column; keep other columns non-wrapping.
 - Maintain consistent `Spacing` across rows for visual rhythm; default 12 works well for compact lists.
 - Combine with `CornerRadius` and background on `DaisyList` for card-like blocks.
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the list is one surface; `DaisyListRow` and `DaisyListColumn` never draw the effect. The template is a `Panel` with an unclipped `PART_NeumorphicShadow` layer behind the clipped `PART_Surface`.

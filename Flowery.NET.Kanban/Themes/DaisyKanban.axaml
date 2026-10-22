@@ -1351,6 +1351,7 @@
                           DataContext="{Binding Localization, RelativeSource={RelativeSource TemplatedParent}}"
                           AutomationProperties.Name="{Binding Board.Title, RelativeSource={RelativeSource TemplatedParent}}"
                          AutomationProperties.AutomationId="Kanban_BoardRoot"
+                         controls:DaisyNeumorphic.ScopeEnabled="False"
                          >
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />

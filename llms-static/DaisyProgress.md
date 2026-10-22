@@ -64,3 +64,7 @@ DaisyProgress includes built-in accessibility for screen readers via the `Access
 - If using indeterminate mode, ensure it communicates ongoing work without a definite end time; determinate values are better for known-length tasks.
 - Wrap in a container with explicit width; the indicator scales to parent width via the `ProgressBar` layout.
 - Use `AccessibleText` to provide context about what is loading (e.g., "Saving document" instead of generic "Progress").
+
+## Neumorphic Effect
+
+With [DaisyNeumorphic](DaisyNeumorphic.md) active, the track draws the effect; Inset suits progress bars well. The template is a `Panel` with an unclipped `PART_NeumorphicShadow` layer behind `PART_Track`, which clips `PART_Indicator`.

@@ -20,24 +20,30 @@
         <Setter Property="CornerRadius" Value="{DynamicResource DaisyProgressMediumCornerRadius}" />
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="{TemplateBinding CornerRadius}"
-                        ClipToBounds="True">
-                    <Grid>
-                        <Border Name="PART_Indicator"
-                                HorizontalAlignment="Left"
-                                Background="{TemplateBinding Foreground}">
-                             <Border.Transitions>
-                                  <Transitions>
-                                       <DoubleTransition Property="Width" Duration="0:0:0.25" />
-                                  </Transitions>
-                             </Border.Transitions>
-                             <!-- The width is set by ProgressBar logic automatically -->
-                        </Border>
-                    </Grid>
-                </Border>
+                <Panel>
+                    <!-- Unclipped layer for neumorphic outer shadows; PART_Track clips its own. -->
+                    <Border Name="PART_NeumorphicShadow"
+                            CornerRadius="{TemplateBinding CornerRadius}" />
+                    <Border Name="PART_Track"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            ClipToBounds="True">
+                        <Grid>
+                            <Border Name="PART_Indicator"
+                                    HorizontalAlignment="Left"
+                                    Background="{TemplateBinding Foreground}">
+                                 <Border.Transitions>
+                                      <Transitions>
+                                           <DoubleTransition Property="Width" Duration="0:0:0.25" />
+                                      </Transitions>
+                                 </Border.Transitions>
+                                 <!-- The width is set by ProgressBar logic automatically -->
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Panel>
             </ControlTemplate>
         </Setter>
 

@@ -22,116 +22,140 @@
             <ControlTemplate>
                 <StackPanel Orientation="Horizontal" Spacing="4">
                     <!-- Shift -->
-                    <Border Name="ShiftKey"
-                            IsVisible="{TemplateBinding ShowShift}"
-                            Background="{DynamicResource DaisyBase200Brush}"
-                            BorderBrush="{DynamicResource DaisyBase300Brush}"
-                            BorderThickness="1,1,1,2"
-                            CornerRadius="4"
-                            Padding="6,4"
-                            MinWidth="40">
-                        <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-                            <PathIcon Data="{StaticResource ModifierIconShift}"
-                                      Width="14" Height="14"
-                                      Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                            <TextBlock Text="⇧" FontSize="10" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                        </StackPanel>
-                    </Border>
+                    <Panel IsVisible="{TemplateBinding ShowShift}">
+                        <!-- Neumorphic layers: the key cap border has uneven thickness and cannot draw BoxShadow. -->
+                        <Border Name="ShiftKeyShadow" CornerRadius="4" />
+                        <Border Name="ShiftKey"
+                                Background="{DynamicResource DaisyBase200Brush}"
+                                BorderBrush="{DynamicResource DaisyBase300Brush}"
+                                BorderThickness="1,1,1,2"
+                                CornerRadius="4"
+                                Padding="6,4"
+                                MinWidth="40">
+                            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                <PathIcon Data="{StaticResource ModifierIconShift}"
+                                          Width="14" Height="14"
+                                          Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                <TextBlock Text="⇧" FontSize="10" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Name="ShiftKeyInset" CornerRadius="4" IsHitTestVisible="False" />
+                    </Panel>
 
                     <!-- Ctrl -->
-                    <Border Name="CtrlKey"
-                            IsVisible="{TemplateBinding ShowCtrl}"
-                            Background="{DynamicResource DaisyBase200Brush}"
-                            BorderBrush="{DynamicResource DaisyBase300Brush}"
-                            BorderThickness="1,1,1,2"
-                            CornerRadius="4"
-                            Padding="6,4"
-                            MinWidth="40">
-                        <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-                            <PathIcon Data="{StaticResource ModifierIconCtrl}"
-                                      Width="14" Height="14"
-                                      Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                            <TextBlock Text="Ctrl" FontSize="10" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                        </StackPanel>
-                    </Border>
+                    <Panel IsVisible="{TemplateBinding ShowCtrl}">
+                        <!-- Neumorphic layers: the key cap border has uneven thickness and cannot draw BoxShadow. -->
+                        <Border Name="CtrlKeyShadow" CornerRadius="4" />
+                        <Border Name="CtrlKey"
+                                Background="{DynamicResource DaisyBase200Brush}"
+                                BorderBrush="{DynamicResource DaisyBase300Brush}"
+                                BorderThickness="1,1,1,2"
+                                CornerRadius="4"
+                                Padding="6,4"
+                                MinWidth="40">
+                            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                <PathIcon Data="{StaticResource ModifierIconCtrl}"
+                                          Width="14" Height="14"
+                                          Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                <TextBlock Text="Ctrl" FontSize="10" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Name="CtrlKeyInset" CornerRadius="4" IsHitTestVisible="False" />
+                    </Panel>
 
                     <!-- Alt -->
-                    <Border Name="AltKey"
-                            IsVisible="{TemplateBinding ShowAlt}"
-                            Background="{DynamicResource DaisyBase200Brush}"
-                            BorderBrush="{DynamicResource DaisyBase300Brush}"
-                            BorderThickness="1,1,1,2"
-                            CornerRadius="4"
-                            Padding="6,4"
-                            MinWidth="40">
-                        <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-                            <PathIcon Data="{StaticResource ModifierIconAlt}"
-                                      Width="14" Height="14"
-                                      Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                            <TextBlock Text="Alt" FontSize="10" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                        </StackPanel>
-                    </Border>
+                    <Panel IsVisible="{TemplateBinding ShowAlt}">
+                        <!-- Neumorphic layers: the key cap border has uneven thickness and cannot draw BoxShadow. -->
+                        <Border Name="AltKeyShadow" CornerRadius="4" />
+                        <Border Name="AltKey"
+                                Background="{DynamicResource DaisyBase200Brush}"
+                                BorderBrush="{DynamicResource DaisyBase300Brush}"
+                                BorderThickness="1,1,1,2"
+                                CornerRadius="4"
+                                Padding="6,4"
+                                MinWidth="40">
+                            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                <PathIcon Data="{StaticResource ModifierIconAlt}"
+                                          Width="14" Height="14"
+                                          Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                <TextBlock Text="Alt" FontSize="10" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Name="AltKeyInset" CornerRadius="4" IsHitTestVisible="False" />
+                    </Panel>
 
                     <!-- Separator -->
                     <Border Width="1" Height="20" Background="{DynamicResource DaisyBase300Brush}" Margin="4,0"
                             IsVisible="{Binding $parent[custom:DaisyModifierKeys].ShowCapsLock}" />
 
                     <!-- Caps Lock -->
-                    <Border Name="CapsLockKey"
-                            IsVisible="{TemplateBinding ShowCapsLock}"
-                            Background="{DynamicResource DaisyBase200Brush}"
-                            BorderBrush="{DynamicResource DaisyBase300Brush}"
-                            BorderThickness="1,1,1,2"
-                            CornerRadius="4"
-                            Padding="6,4"
-                            MinWidth="40">
-                        <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-                            <PathIcon Data="{StaticResource ModifierIconCapsLock}"
-                                      Width="14" Height="14"
-                                      Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                            <TextBlock Text="A" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                        </StackPanel>
-                    </Border>
+                    <Panel IsVisible="{TemplateBinding ShowCapsLock}">
+                        <!-- Neumorphic layers: the key cap border has uneven thickness and cannot draw BoxShadow. -->
+                        <Border Name="CapsLockKeyShadow" CornerRadius="4" />
+                        <Border Name="CapsLockKey"
+                                Background="{DynamicResource DaisyBase200Brush}"
+                                BorderBrush="{DynamicResource DaisyBase300Brush}"
+                                BorderThickness="1,1,1,2"
+                                CornerRadius="4"
+                                Padding="6,4"
+                                MinWidth="40">
+                            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                <PathIcon Data="{StaticResource ModifierIconCapsLock}"
+                                          Width="14" Height="14"
+                                          Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                <TextBlock Text="A" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Name="CapsLockKeyInset" CornerRadius="4" IsHitTestVisible="False" />
+                    </Panel>
 
                     <!-- Num Lock -->
-                    <Border Name="NumLockKey"
-                            IsVisible="{TemplateBinding ShowNumLock}"
-                            Background="{DynamicResource DaisyBase200Brush}"
-                            BorderBrush="{DynamicResource DaisyBase300Brush}"
-                            BorderThickness="1,1,1,2"
-                            CornerRadius="4"
-                            Padding="6,4"
-                            MinWidth="40">
-                        <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-                            <PathIcon Data="{StaticResource ModifierIconNumLock}"
-                                      Width="14" Height="14"
-                                      Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                            <TextBlock Text="123" FontSize="9" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                        </StackPanel>
-                    </Border>
+                    <Panel IsVisible="{TemplateBinding ShowNumLock}">
+                        <!-- Neumorphic layers: the key cap border has uneven thickness and cannot draw BoxShadow. -->
+                        <Border Name="NumLockKeyShadow" CornerRadius="4" />
+                        <Border Name="NumLockKey"
+                                Background="{DynamicResource DaisyBase200Brush}"
+                                BorderBrush="{DynamicResource DaisyBase300Brush}"
+                                BorderThickness="1,1,1,2"
+                                CornerRadius="4"
+                                Padding="6,4"
+                                MinWidth="40">
+                            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                <PathIcon Data="{StaticResource ModifierIconNumLock}"
+                                          Width="14" Height="14"
+                                          Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                <TextBlock Text="123" FontSize="9" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Name="NumLockKeyInset" CornerRadius="4" IsHitTestVisible="False" />
+                    </Panel>
 
                     <!-- Scroll Lock -->
-                    <Border Name="ScrollLockKey"
-                            IsVisible="{TemplateBinding ShowScrollLock}"
-                            Background="{DynamicResource DaisyBase200Brush}"
-                            BorderBrush="{DynamicResource DaisyBase300Brush}"
-                            BorderThickness="1,1,1,2"
-                            CornerRadius="4"
-                            Padding="6,4"
-                            MinWidth="40">
-                        <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-                            <PathIcon Data="{StaticResource ModifierIconScrollLock}"
-                                      Width="14" Height="14"
-                                      Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                            <TextBlock Text="Scr" FontSize="10" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                        </StackPanel>
-                    </Border>
+                    <Panel IsVisible="{TemplateBinding ShowScrollLock}">
+                        <!-- Neumorphic layers: the key cap border has uneven thickness and cannot draw BoxShadow. -->
+                        <Border Name="ScrollLockKeyShadow" CornerRadius="4" />
+                        <Border Name="ScrollLockKey"
+                                Background="{DynamicResource DaisyBase200Brush}"
+                                BorderBrush="{DynamicResource DaisyBase300Brush}"
+                                BorderThickness="1,1,1,2"
+                                CornerRadius="4"
+                                Padding="6,4"
+                                MinWidth="40">
+                            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                <PathIcon Data="{StaticResource ModifierIconScrollLock}"
+                                          Width="14" Height="14"
+                                          Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                <TextBlock Text="Scr" FontSize="10" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            </StackPanel>
+                        </Border>
+                        <Border Name="ScrollLockKeyInset" CornerRadius="4" IsHitTestVisible="False" />
+                    </Panel>
                 </StackPanel>
             </ControlTemplate>
         </Setter>
