@@ -13,7 +13,7 @@ DaisyToggle is a styled `ToggleSwitch` with **8 color variants** and **5 size pr
 | Primary / Secondary / Accent | When checked, knob and track border take the variant color. |
 | Success / Warning / Info / Error | When checked, knob and track border take the semantic color. |
 
-The knob always has a thin BaseContent outline (25 % opacity, the `PART_KnobOutline` ellipse), so it stays visible on
+The knob always has a thin BaseContent outline (50 % opacity, the `PART_KnobOutline` ellipse), so it stays visible on
 any track. When a theme's variant color is too close to the track (CIE76 color difference below 20), the checked knob
 is darkened on a light track or lightened on a dark one, in its own hue, until it differs enough (at most 60 %).
 
