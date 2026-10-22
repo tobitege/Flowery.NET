@@ -6,34 +6,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Maintenance - 2026-10-22
-
-### Removed
-
-- Removed the legacy RESX scripts `Utils/check_resx_keys.py`, `Utils/sync_resx_keys.py` and `Utils/convert_resx_to_json.py`. The library has used JSON localization without any `.resx` files since 1.5, and CodeQL flagged the scripts' XML parsing.
-
-## Runtime UI tests - 2026-10-22
-
-### Added
-
-- Added a runtime UI test suite that runs in a real desktop window on Windows (#74).
-  - `Flowery.NET.RuntimeTests` starts the Gallery application with a test window and runs xunit `[Fact]` and `[Theory]` tests on the UI thread. Before each test it pins the culture, size, motion, contrast, base theme, neumorphic settings and in-memory state storage.
-  - `Flowery.NET.RuntimeTests.Runner` and `scripts/test_runtime.ps1` run the suite with a test filter and a window placement on a chosen monitor (`Full`, `UpperHalf`, `LowerHalf`). They write an XML report, a progress log and test images to `TestResults/` and the console log to `logs/`. Tests that call `Assert.Skip` are reported as inconclusive warnings.
-  - Every public control of Flowery.NET and Flowery.NET.Kanban is constructed, attached and rendered. Every Gallery sidebar item opens its page.
-  - Pixel checks: a shadow that a control shows must change rendered pixels, by default and in the known shadow configurations. Every theme renders the primary, secondary and accent button colors of its palette.
-  - Neumorphic pixel checks: every registered surface draws its shadow in Raised, Inset and Flat mode, in the places the mode puts it: light top-left and dark bottom-right for Raised, inside the surface for Inset, and not clipped at the control. Table, ButtonGroup, Join and Pagination stay flat inside, configurations without a surface draw nothing, and turning on high contrast removes every shadow.
-  - CI runs the suite on Windows in Debug and Release.
-
-### Changed
-
-- The 19 native review probes (glass backdrop, popup placement, range automation, Skia cache, scaling lifetime) moved into the runtime suite. `Flowery.NET.Tests.Native` and `scripts/test_review_native.ps1` were removed.
-
-### Fixed
-
-- The Gallery's `MainView` subscribes to the culture and size change events only while it is attached, so a detached view and its cached pages can be collected.
-- `DaisyNumberFlow` draws the neumorphic effect only with `ShowControls`. Without it the number has no visible surface, but a shadow box was drawn around it.
-
 ## [3.9.0] - 2026-10-22
+
+### Breaking Changes
+
+- The template roots of DaisyTable, DaisyList, DaisyStats, DaisyProgress and DaisyKbd are now a `Panel` holding two or three borders instead of a single `Border`. Custom styles that select `/template/ Border` without a name now match the extra layers; select the named parts (`PART_Surface`, `PART_Track`) instead (#59).
+- Each DaisyModifierKeys key border now sits in a `Panel` with a shadow layer and an inset overlay; the `Show*` properties hide that panel instead of the key border (#59).
+- DaisyWeatherForecast tiles are `DaisyWeatherForecastItem` controls instead of plain borders in the item template (#59).
+- DaisyStats always clips its content to its rounded surface. Setting `ClipToBounds="False"` on DaisyStats no longer removes that clip (#59).
 
 ### Added
 
@@ -44,6 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `DaisyWeatherForecastItem`, the control for one forecast day tile (#59).
 - Custom controls take part with `DaisyNeumorphic.RegisterSurface`, `RegisterRefreshTriggers`, `RegisterExclusion`, `RegisterSegmentContainer`, `RegisterShadowPassThrough`, `RegisterEffectSuppression` and `RegisterDisabledByDefault` (#59).
 - The Gallery's Effects page has a Neumorphic Effect showcase with its own mode and intensity selector (#59).
+- Added a runtime UI test suite that runs in a real desktop window on Windows (#74).
+  - `Flowery.NET.RuntimeTests` starts the Gallery application with a test window and runs xunit `[Fact]` and `[Theory]` tests on the UI thread. Before each test it pins the culture, size, motion, contrast, base theme, neumorphic settings and in-memory state storage.
+  - `Flowery.NET.RuntimeTests.Runner` and `scripts/test_runtime.ps1` run the suite with a test filter and a window placement on a chosen monitor (`Full`, `UpperHalf`, `LowerHalf`). They write an XML report, a progress log and test images to `TestResults/` and the console log to `logs/`. Tests that call `Assert.Skip` are reported as inconclusive warnings.
+  - Every public control of Flowery.NET and Flowery.NET.Kanban is constructed, attached and rendered. Every Gallery sidebar item opens its page.
+  - Pixel checks: a shadow that a control shows must change rendered pixels, by default and in the known shadow configurations. Every theme renders the primary, secondary and accent button colors of its palette.
+  - Neumorphic pixel checks: every registered surface draws its shadow in Raised, Inset and Flat mode, in the places the mode puts it: light top-left and dark bottom-right for Raised, inside the surface for Inset, and not clipped at the control. Table, ButtonGroup, Join and Pagination stay flat inside, configurations without a surface draw nothing, and turning on high contrast removes every shadow.
+  - CI runs the suite on Windows in Debug and Release.
 
 ### Changed
 
@@ -53,13 +40,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DaisyToggle has a `PART_KnobShadow` border that follows the knob. While its tiles draw the effect, DaisyWeatherForecast lifts its default clip so their shadows can extend past the strip (#59).
 - The surface borders of Alert, AccordionItem, Badge, Collapse, Countdown, Dock, Mockup, WeatherCard, WeatherMetrics and WeatherForecastItem are named `PART_Surface` (#59).
 - The library, FlowKanban, the Gallery (desktop, Android, iOS) and Flowery Photos are version 3.9.0.
+- The 19 native review probes (glass backdrop, popup placement, range automation, Skia cache, scaling lifetime) moved into the runtime suite. `Flowery.NET.Tests.Native` and `scripts/test_review_native.ps1` were removed.
 
-### Breaking Changes
+### Removed
 
-- The template roots of DaisyTable, DaisyList, DaisyStats, DaisyProgress and DaisyKbd are now a `Panel` holding two or three borders instead of a single `Border`. Custom styles that select `/template/ Border` without a name now match the extra layers; select the named parts (`PART_Surface`, `PART_Track`) instead (#59).
-- Each DaisyModifierKeys key border now sits in a `Panel` with a shadow layer and an inset overlay; the `Show*` properties hide that panel instead of the key border (#59).
-- DaisyWeatherForecast tiles are `DaisyWeatherForecastItem` controls instead of plain borders in the item template (#59).
-- DaisyStats always clips its content to its rounded surface. Setting `ClipToBounds="False"` on DaisyStats no longer removes that clip (#59).
+- Removed the legacy RESX scripts `Utils/check_resx_keys.py`, `Utils/sync_resx_keys.py` and `Utils/convert_resx_to_json.py`. The library has used JSON localization without any `.resx` files since 1.5, and CodeQL flagged the scripts' XML parsing.
+
+### Fixed
+
+- The Gallery's `MainView` subscribes to the culture and size change events only while it is attached, so a detached view and its cached pages can be collected.
+- `DaisyNumberFlow` draws the neumorphic effect only with `ShowControls`. Without it the number has no visible surface, but a shadow box was drawn around it.
 
 ## Desktop app releases - 2026-10-21
 
