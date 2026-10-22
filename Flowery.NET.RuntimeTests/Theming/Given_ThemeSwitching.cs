@@ -53,29 +53,64 @@ public class Given_ThemeSwitching
         var themes = DaisyThemeManager.AvailableThemes.Select(theme => theme.Name).ToList();
         Assert.NotEmpty(themes);
         var palettes = new Dictionary<string, Color[]>(StringComparer.OrdinalIgnoreCase);
-        var unobserved = new List<string>();
-        Color[]? previous = null;
+        // Buttons whose color did not change in a switch, per theme.
+        var unobserved = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
+        // The pinned base theme is on screen before the first switch.
+        var previous = ReadPalette();
         foreach (var theme in themes)
         {
             if (await CheckThemeAsync(theme) is not { } palette)
                 continue;
-            if (previous is not null && IsSamePalette(previous, palette))
-                unobserved.Add(theme);
+            for (var index = 0; index < palette.Length; index++)
+            {
+                if (IsSameColor(previous[index], palette[index]))
+                    GetOrAdd(unobserved, theme).Add(index);
+            }
+
             palettes[theme] = palette;
             previous = palette;
         }
 
-        // A switch between two themes with the same button colors changes no pixel and proves nothing,
-        // so these themes are checked again right after a theme with other colors.
-        foreach (var theme in unobserved)
+        // A switch that keeps a button's color changes none of its pixels and proves nothing for that button,
+        // so each such button is checked again right after a theme that gives it another color.
+        foreach (var (theme, indices) in unobserved)
         {
-            if (FindOtherPalette(palettes, palettes[theme]) is not { } other)
-                continue;
-            await CheckThemeAsync(other);
-            await CheckThemeAsync(theme);
+            while (indices.Count > 0)
+            {
+                var other = FindOtherColor(palettes, indices[0], palettes[theme][indices[0]]);
+                if (other is null)
+                {
+                    // Every theme gives this button the same color; no switch can show it.
+                    indices.RemoveAt(0);
+                    continue;
+                }
+
+                await CheckThemeAsync(other);
+                await CheckThemeAsync(theme);
+                for (var position = indices.Count - 1; position >= 0; position--)
+                {
+                    if (!IsSameColor(palettes[other][indices[position]], palettes[theme][indices[position]]))
+                        indices.RemoveAt(position);
+                }
+            }
         }
 
         Assert.True(_failures.Length == 0, _failures.ToString());
+    }
+
+    private Color[] ReadPalette()
+    {
+        var palette = new Color[_buttons.Length];
+        for (var index = 0; index < _buttons.Length; index++)
+            palette[index] = RuntimeTestHelpers.GetThemeColor(_buttons[index], ColoredButtons[index].ColorKey);
+        return palette;
+    }
+
+    private static List<int> GetOrAdd(Dictionary<string, List<int>> lists, string key)
+    {
+        if (!lists.TryGetValue(key, out var list))
+            lists[key] = list = [];
+        return list;
     }
 
     /// <summary>
@@ -117,29 +152,20 @@ public class Given_ThemeSwitching
         }
     }
 
-    private static string? FindOtherPalette(Dictionary<string, Color[]> palettes, Color[] palette)
+    /// <summary>Returns a theme that gives the button at <paramref name="index"/> a color other than <paramref name="color"/>.</summary>
+    private static string? FindOtherColor(Dictionary<string, Color[]> palettes, int index, Color color)
     {
-        foreach (var (theme, candidate) in palettes)
+        foreach (var (theme, palette) in palettes)
         {
-            if (!IsSamePalette(candidate, palette))
+            if (!IsSameColor(palette[index], color))
                 return theme;
         }
 
         return null;
     }
 
-    private static bool IsSamePalette(Color[] first, Color[] second)
-    {
-        for (var index = 0; index < first.Length; index++)
-        {
-            if (Math.Abs(first[index].R - second[index].R) > Tolerance
-                || Math.Abs(first[index].G - second[index].G) > Tolerance
-                || Math.Abs(first[index].B - second[index].B) > Tolerance)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
+    private static bool IsSameColor(Color first, Color second) =>
+        Math.Abs(first.R - second.R) <= Tolerance
+        && Math.Abs(first.G - second.G) <= Tolerance
+        && Math.Abs(first.B - second.B) <= Tolerance;
 }
