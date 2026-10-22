@@ -22,6 +22,9 @@ public class Given_RuntimeTestRun(ITestOutputHelper output)
             "Set FLOWERY_TEST_RESULTS_ROOT to an existing absolute report directory. Use scripts/test_runtime.ps1.");
 
         var reportPath = Path.Combine(resultsRoot, "runtime-tests.xml");
+        // A report left from an earlier run in the same directory must not pass for this run's report.
+        File.Delete(reportPath);
+        File.Delete(Path.ChangeExtension(reportPath, ".progress.log"));
         var startInfo = new ProcessStartInfo
         {
             FileName = Path.GetFullPath(executable),
