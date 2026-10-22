@@ -53,9 +53,9 @@ internal static class RuntimeTestHelpers
         window.UpdateLayout();
         for (var frame = 0; frame < 2; frame++)
         {
-            var rendered = new TaskCompletionSource();
-            window.RequestAnimationFrame(_ => rendered.TrySetResult());
-            await rendered.Task.WaitAsync(FrameTimeout);
+            var signal = new FrameSignal();
+            window.RequestAnimationFrame(signal.OnFrame);
+            await signal.Rendered.WaitAsync(FrameTimeout);
         }
 
         await Dispatcher.UIThread.InvokeAsync(window.UpdateLayout, DispatcherPriority.Background);
@@ -125,5 +125,14 @@ internal static class RuntimeTestHelpers
         var directory = RuntimeTestContext.ArtifactsDirectory ?? Path.GetTempPath();
         Directory.CreateDirectory(directory);
         return Path.Combine(directory, fileName);
+    }
+
+    private sealed class FrameSignal
+    {
+        private readonly TaskCompletionSource _rendered = new();
+
+        public Task Rendered => _rendered.Task;
+
+        public void OnFrame(TimeSpan time) => _rendered.TrySetResult();
     }
 }

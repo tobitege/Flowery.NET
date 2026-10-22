@@ -269,22 +269,16 @@ public class Given_GlassBackdrop
 
     private static async Task EnableBackdropBlurAsync(DaisyGlass glass)
     {
-        var published = new TaskCompletionSource();
-        void OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs change)
-        {
-            if (change.Property == DaisyGlass.BlurredBackgroundProperty && glass.BlurredBackground is not null)
-                published.TrySetResult();
-        }
-
-        glass.PropertyChanged += OnPropertyChanged;
+        var waiter = new BlurPublishedWaiter();
+        glass.PropertyChanged += waiter.OnPropertyChanged;
         try
         {
             glass.EnableBackdropBlur = true;
-            await published.Task.WaitAsync(PublishTimeout);
+            await waiter.Published.WaitAsync(PublishTimeout);
         }
         finally
         {
-            glass.PropertyChanged -= OnPropertyChanged;
+            glass.PropertyChanged -= waiter.OnPropertyChanged;
         }
     }
 
@@ -341,6 +335,20 @@ public class Given_GlassBackdrop
         {
             RenderCount++;
             context.DrawRectangle(Brushes.Red, null, new Rect(Bounds.Size));
+        }
+    }
+
+    /// <summary>Completes when a glass publishes its blurred backdrop.</summary>
+    private sealed class BlurPublishedWaiter
+    {
+        private readonly TaskCompletionSource _published = new();
+
+        public Task Published => _published.Task;
+
+        public void OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs change)
+        {
+            if (change.Property == DaisyGlass.BlurredBackgroundProperty && sender is DaisyGlass { BlurredBackground: not null })
+                _published.TrySetResult();
         }
     }
 

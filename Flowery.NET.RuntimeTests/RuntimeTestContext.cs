@@ -13,7 +13,7 @@ internal static class RuntimeTestContext
     /// <summary>Directory next to the report for images and other evidence that tests save.</summary>
     public static string? ArtifactsDirectory { get; private set; }
 
-    internal static void Initialize(Window window, Panel hostPanel, string artifactsDirectory)
+    public static void Initialize(Window window, Panel hostPanel, string artifactsDirectory)
     {
         Window = window;
         HostPanel = hostPanel;

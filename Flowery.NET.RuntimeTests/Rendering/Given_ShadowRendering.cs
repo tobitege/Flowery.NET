@@ -20,7 +20,7 @@ namespace Flowery.NET.RuntimeTests.Rendering;
 public class Given_ShadowRendering
 {
     // Room around the control for shadows that extend outside its bounds.
-    private const double Margin = 48;
+    private const double FrameMargin = 48;
     // A drawn shadow changes at least this many pixels by more than the channel tolerance.
     private const int MinimumChangedPixels = 8;
     private const int ChannelTolerance = 2;
@@ -103,7 +103,7 @@ public class Given_ShadowRendering
             root = parent;
         var frame = new Border
         {
-            Padding = new Thickness(Margin),
+            Padding = new Thickness(FrameMargin),
             Background = Brushes.White,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
