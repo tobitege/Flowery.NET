@@ -377,6 +377,9 @@ namespace Flowery.NET.Tests
                 case DaisyTabs tabs:
                     tabs.Variant = DaisyTabVariant.Boxed;
                     break;
+                case DaisyNumberFlow numberFlow:
+                    numberFlow.ShowControls = true;
+                    break;
                 case DaisyModal modal:
                     modal.IsOpen = true;
                     break;
@@ -409,6 +412,29 @@ namespace Flowery.NET.Tests
                 window.Close();
                 if (addedHeroBrush)
                     resources.Remove("DaisyBase200Brush");
+            }
+        }
+
+        [AvaloniaFact]
+        public void NumberFlow_Draws_The_Effect_Only_With_Its_Controls()
+        {
+            var numberFlow = new DaisyNumberFlow { Value = 42 };
+            DaisyNeumorphic.SetIsEnabled(numberFlow, true);
+            DaisyNeumorphic.SetMode(numberFlow, DaisyNeumorphicMode.Raised);
+            var window = Show(numberFlow);
+            try
+            {
+                // Without ShowControls the container is transparent and borderless: there is no surface to raise.
+                foreach (var shadow in Part(numberFlow, "OuterContainer").BoxShadow)
+                    Assert.Equal(0, shadow.Color.A);
+
+                numberFlow.ShowControls = true;
+                Dispatcher.UIThread.RunJobs();
+                Assert.Equal(2, Part(numberFlow, "OuterContainer").BoxShadow.Count);
+            }
+            finally
+            {
+                window.Close();
             }
         }
 
