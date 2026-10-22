@@ -245,12 +245,22 @@ pwsh ./scripts/run_browser.ps1
 
 ## test_runtime.ps1
 
+> [!WARNING]
+> **Photosensitivity warning:** While the tests run, the test window flashes.
+> It switches through all themes within a few seconds, replaces its content many times per second, and changes size and stacking order.
+> If you are sensitive to flashing lights, for example because of photosensitive epilepsy, do not watch the window while the tests run.
+> Place it on a monitor outside your field of view with `-Monitor`, or let CI run the suite.
+
 Runs the runtime UI tests in a real desktop window on Windows. Requires native PowerShell 7.
 
 The script builds `Flowery.NET.RuntimeTests.Runner`, which also builds the test host `Flowery.NET.RuntimeTests`.
 The runner starts the host with `--runtime-tests <report.xml>`.
 The host opens the Gallery application with its fonts, styles and themes, but with a test window instead of the main window.
 It runs every xunit `[Fact]` and `[Theory]` with `[InlineData]` in its assembly, one after another on the UI thread.
+It honors `Skip` with `SkipUnless`, `SkipWhen` and `SkipType`, `SkipExceptions`, `Explicit` and `Timeout`.
+Explicit tests run only when `-TestFilter` is their full name or their `Namespace.Class.Method`.
+A test without a timeout gets two minutes.
+A test that times out cannot be stopped on the UI thread, so the run ends there and reports the remaining tests as not run.
 
 ### Runtime Tests: Usage
 
@@ -272,10 +282,10 @@ pwsh ./scripts/test_runtime.ps1 -SkipBuild -TestFilter Given_GlassBackdrop
 | `-Configuration` | string | `Debug` | Build configuration (`Debug` or `Release`) |
 | `-SkipBuild` | switch | off | Use the existing build output |
 | `-TestFilter` | string | none | Run only tests whose full name contains this text (case-insensitive) |
-| `-Monitor` | int | `0` | Place the window on `\\.\DISPLAY<n>`; `0` centers it on the primary screen |
+| `-Monitor` | int | `0` | Place the window on `\\.\DISPLAY<n>`; `0` centers it on the primary screen at up to 1280 × 900 DIPs |
 | `-WindowRegion` | string | `Full` | `Full`, `UpperHalf` or `LowerHalf` of the monitor's work area |
 
-The window is at most 1920 × 1080 pixels.
+The window is at most 1920 × 1080 DIPs, the room of a 1080p screen at 100% scaling.
 The script passes its settings to the host as `FLOWERY_MONITOR_DEVICE`, `FLOWERY_MONITOR_REGION` (`full`, `upper-half`, `lower-half`) and `FLOWERY_RUNTIME_TEST_FILTER`.
 
 ### Runtime Tests: Output
