@@ -6,6 +6,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Runtime UI tests - 2026-10-22
+
+### Added
+
+- Added a runtime UI test suite that runs in a real desktop window on Windows (#74).
+  - `Flowery.NET.RuntimeTests` starts the Gallery application with a test window and runs xunit `[Fact]` and `[Theory]` tests on the UI thread. Before each test it pins the culture, size, motion, contrast, base theme and in-memory state storage.
+  - `Flowery.NET.RuntimeTests.Runner` and `scripts/test_runtime.ps1` run the suite with a test filter and a window placement on a chosen monitor (`Full`, `UpperHalf`, `LowerHalf`). They write an XML report, a progress log and test images to `TestResults/` and the console log to `logs/`. Tests that call `Assert.Skip` are reported as inconclusive warnings.
+  - Every public control of Flowery.NET and Flowery.NET.Kanban is constructed, attached and rendered. Every Gallery sidebar item opens its page.
+  - Pixel checks: a shadow that a control shows must change rendered pixels, by default and in the known shadow configurations. Every theme renders the primary, secondary and accent button colors of its palette.
+  - CI runs the suite on Windows in Debug and Release.
+
+### Changed
+
+- The 19 native review probes (glass backdrop, popup placement, range automation, Skia cache, scaling lifetime) moved into the runtime suite. `Flowery.NET.Tests.Native` and `scripts/test_review_native.ps1` were removed.
+
 ## [3.9.0] - 2026-10-22
 
 ### Added

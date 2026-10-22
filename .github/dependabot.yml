@@ -1,10 +1,8 @@
 version: 2
 updates:
   - package-ecosystem: "nuget"
-    # The native checks project is not included in the root solution.
     directories:
       - "/"
-      - "/Flowery.NET.Tests.Native"
     schedule:
       interval: "weekly"
       day: "monday"
