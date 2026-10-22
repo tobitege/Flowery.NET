@@ -51,7 +51,7 @@ public class Given_AllControls
             }
             catch (Exception exception)
             {
-                var cause = exception is System.Reflection.TargetInvocationException { InnerException: { } inner } ? inner : exception;
+                var cause = RuntimeTestHelpers.Unwrap(exception);
                 failures.AppendLine($"[{area}] {type.FullName}: {cause.GetType().Name} - {cause.Message}");
             }
             finally

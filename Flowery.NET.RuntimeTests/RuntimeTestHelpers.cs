@@ -1,3 +1,4 @@
+using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -113,6 +114,10 @@ internal static class RuntimeTestHelpers
         Assert.True(control.TryFindResource(key, control.ActualThemeVariant, out var resource), $"Missing resource {key}.");
         return Assert.IsType<Color>(resource);
     }
+
+    /// <summary>Returns the exception that a reflection call wrapped, or <paramref name="exception"/> itself.</summary>
+    public static Exception Unwrap(Exception exception) =>
+        exception is TargetInvocationException { InnerException: { } inner } ? inner : exception;
 
     /// <summary>Returns a path for <paramref name="fileName"/> in the run's artifact directory.</summary>
     public static string GetArtifactPath(string fileName)

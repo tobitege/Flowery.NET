@@ -23,4 +23,9 @@
     <ProjectReference Include="..\Flowery.NET.Gallery\Flowery.NET.Gallery.csproj" />
     <ProjectReference Include="..\Flowery.Capture.NET\Flowery.Capture.NET.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- The same in-memory state storage as the headless tests. -->
+    <Compile Include="..\Flowery.NET.Tests\InMemoryStateStorage.cs" Link="InMemoryStateStorage.cs" />
+  </ItemGroup>
 </Project>
