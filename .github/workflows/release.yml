@@ -152,13 +152,15 @@ jobs:
         run: |
           VERSION="${{ needs.validate.outputs.version }}"
           # Extract the section for this version from CHANGELOG.md
-          # Matches from "## [X.Y.Z]" until the next "## [" or end of file
+          # Matches from "## [X.Y.Z]" until the next "## " heading or end of file.
+          # Sections such as the separate Gallery and Photos releases end the version too.
           CHANGELOG=$(awk -v ver="$VERSION" '
-            /^## \[/ {
+            /^## / {
               if (found) exit
-              if ($0 ~ "\\[" ver "\\]") found=1
+              if ($0 ~ "^## \\[" ver "\\]") found=1
+              next
             }
-            found && !/^## \[/ { print }
+            found { print }
           ' CHANGELOG.md)
 
           if [ -z "$CHANGELOG" ]; then
