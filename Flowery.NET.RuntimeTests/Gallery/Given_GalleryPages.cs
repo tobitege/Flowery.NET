@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -64,6 +65,31 @@ public class Given_GalleryPages
         // Every sidebar area opens its own page.
         var areas = sidebar.Categories.SelectMany(category => category.Items).Select(item => item.TabHeader).Distinct().Count();
         Assert.True(visitedPages.Count >= areas, $"{visitedPages.Count} pages opened for {areas} sidebar areas.");
+    }
+
+    [Fact]
+    public async Task When_The_MainView_Is_Detached_It_Can_Be_Collected()
+    {
+        var reference = await AttachAndDetachMainViewAsync();
+        for (var attempt = 0; attempt < 5 && reference.IsAlive; attempt++)
+        {
+            // Rendering releases its references to detached visuals on the next frames.
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+
+        // A static subscription would keep the view and its cached pages alive for the rest of the run.
+        Assert.False(reference.IsAlive, "Something keeps the detached MainView alive.");
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static async Task<WeakReference> AttachAndDetachMainViewAsync()
+    {
+        var mainView = await RuntimeTestHelpers.AttachAsync(new MainView());
+        RuntimeTestHelpers.GetHostPanel().Children.Clear();
+        return new WeakReference(mainView);
     }
 
     // The runner fails the test as well; this names the sidebar item that was open.

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -70,17 +71,8 @@ public partial class MainView : UserControl
         // Detect mobile platform early (before any navigation)
         _isMobilePlatform = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
 
-        // Handle FlowDirection changes
+        // Handle FlowDirection changes; the culture subscription follows the visual tree (see OnAttachedToVisualTree).
         UpdateFlowDirection();
-        FloweryLocalization.CultureChanged += (_, _) =>
-            global::Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => {
-                UpdateFlowDirection();
-                // Update localized title if we have an active category
-                if (_activeCategoryContent != null && CategoryTitle != null && CategoryTitle.Tag is string key)
-                {
-                    CategoryTitle.Text = FloweryLocalization.GetString(key);
-                }
-            });
 
         this.Loaded += OnLoaded;
         this.SizeChanged += OnSizeChanged;
@@ -109,9 +101,6 @@ public partial class MainView : UserControl
         };
         _categoryControlCache = new Dictionary<string, Control>(StringComparer.OrdinalIgnoreCase);
 
-        // Subscribe to global size changes for Gallery demo
-        FlowerySizeManager.SizeChanged += OnGlobalSizeChanged;
-
         if (ComponentSidebar != null)
         {
             // Initialize sidebar with Gallery-specific data
@@ -131,6 +120,39 @@ public partial class MainView : UserControl
         }
 
         NavigateToCategory("Sidebar_Home");
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        // The static events would keep a detached view and its cached pages alive, so subscribe only while attached.
+        FloweryLocalization.CultureChanged += OnCultureChanged;
+        FlowerySizeManager.SizeChanged += OnGlobalSizeChanged;
+        // Catch up with changes made while the view was detached.
+        ApplyCulture();
+        ApplySizeToGalleryElements(FlowerySizeManager.CurrentSize);
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        FloweryLocalization.CultureChanged -= OnCultureChanged;
+        FlowerySizeManager.SizeChanged -= OnGlobalSizeChanged;
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    private void OnCultureChanged(object? sender, CultureInfo culture)
+    {
+        global::Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(ApplyCulture);
+    }
+
+    private void ApplyCulture()
+    {
+        UpdateFlowDirection();
+        // Update localized title if we have an active category
+        if (_activeCategoryContent != null && CategoryTitle != null && CategoryTitle.Tag is string key)
+        {
+            CategoryTitle.Text = FloweryLocalization.GetString(key);
+        }
     }
 
     private void OnGlobalSizeChanged(object? sender, DaisySize newSize)
