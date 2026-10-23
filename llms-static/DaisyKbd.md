@@ -7,13 +7,15 @@ DaisyKbd renders keyboard keycaps for inline hints (e.g., shortcuts). It provide
 
 ## Size Options
 
+The table lists unscaled default token values in logical units.
+
 | Size | Height | Padding | Font Size |
 | ---- | ---------- | ------- | --------- |
 | ExtraSmall | 16 | 2,0 | 10 |
-| Small | 20 | 3,0 | 11 |
-| Medium (default) | 24 | 4,0 | 12 |
-| Large | 32 | 6,0 | 14 |
-| ExtraLarge | 40 | 8,0 | 16 |
+| Small | 20 | 3,0 | 12 |
+| Medium (default) | 24 | 4,0 | 14 |
+| Large | 32 | 6,0 | 18 |
+| ExtraLarge | 40 | 8,0 | 20 |
 
 > [!NOTE]
 > DaisyKbd uses **fixed heights** for each size to match DaisyUI's keycap design.
@@ -21,9 +23,13 @@ DaisyKbd renders keyboard keycaps for inline hints (e.g., shortcuts). It provide
 ## Quick Examples
 
 ```xml
-<TextBlock>
-    Press <controls:DaisyKbd Content="Ctrl" /> + <controls:DaisyKbd Content="S" /> to save.
-</TextBlock>
+<StackPanel Orientation="Horizontal" Spacing="4">
+    <TextBlock Text="Press" VerticalAlignment="Center" />
+    <controls:DaisyKbd Content="Ctrl" />
+    <TextBlock Text="+" VerticalAlignment="Center" />
+    <controls:DaisyKbd Content="S" />
+    <TextBlock Text="to save." VerticalAlignment="Center" />
+</StackPanel>
 
 <controls:DaisyKbd Size="Small" Content="Esc" />
 <controls:DaisyKbd Size="Large" Content="Shift" />
