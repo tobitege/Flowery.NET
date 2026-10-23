@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Gallery: new logo, a six-petal violet flower with one warm petal, shared by the Flowery family (Flowery.Uno uses blue, Flowery.WinUI teal). It replaces the Avalonia default icon and splash everywhere: the Desktop window and executable icon (`app_icon.ico`), the Android launcher icon (adaptive) and splash, the iOS app icon (`AppIcon` asset catalog) and launch screen, and the Browser favicon and splash. The Home banner (`flowery-banner.png`) is redrawn too. `app_icon.icns` is included for macOS app bundles.
+
 ## [3.10.0] - 2026-10-22
 
 ### Added
@@ -189,10 +195,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed input accessibility metadata, localized password/OTP actions, Kanban dialog focus, editor color choices, and subtask renaming.
 - Fixed forecast unit and precipitation labels, shared table column widths, and animated text image fills.
 - Corrected API and design-token documentation. Documentation generation now merges partial APIs, includes Kanban/helpers/guides, and resolves local links and fragments consistently.
-
-### Changed
-
-- Gallery: new logo, a six-petal violet flower with one warm petal, shared by the Flowery family (Flowery.Uno uses blue, Flowery.WinUI teal). It replaces the Avalonia default icon and splash everywhere: the Desktop window and executable icon (`app_icon.ico`), the Android launcher icon (adaptive) and splash, the iOS app icon (`AppIcon` asset catalog) and launch screen, and the Browser favicon and splash. The Home banner (`flowery-banner.png`) is redrawn too. `app_icon.icns` is included for macOS app bundles.
 
 ## [3.5.0] - 2026-10-10
 
