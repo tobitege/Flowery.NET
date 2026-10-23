@@ -3,7 +3,7 @@
 
 # Overview
 
-DaisyBadge is a compact label for counts, statuses, or tags. It supports **10 color variants**, **4 size presets**, and an **outline** mode for low-emphasis contexts. Works standalone or nested inside other controls (e.g., buttons, lists) to highlight small bits of information without overwhelming the layout.
+DaisyBadge is a compact label for counts, statuses, or tags. It supports **10 color variants**, **5 size presets**, and an **outline** mode. Use it alone or inside buttons and lists.
 
 ## Variant Options
 
@@ -22,13 +22,15 @@ DaisyBadge is a compact label for counts, statuses, or tags. It supports **10 co
 
 ## Size Options
 
-| Size | Approx. Dimensions | Use Case |
-| ---- | ------------------ | -------- |
-| ExtraSmall | 12px height, 4px horizontal padding, 8px text | Tiny dots/counts inline with text |
-| Small | 16px height, 6px padding, 10px text | Compact chips for dense lists |
-| Medium (default) | 20px height, 8px padding, 12px text | General-purpose badges |
-| Large | 24px height, 12px padding, 14px text | Emphasized tags or hero labels |
-| ExtraLarge | Falls back to medium metrics (no additional styling in theme) |
+The table lists unscaled default token values in logical units.
+
+| Size | Height | Horizontal Padding | Font Size |
+| ---- | ------ | ------------------ | --------- |
+| ExtraSmall | 16 | 4 | 10 |
+| Small | 20 | 6 | 12 |
+| Medium (default) | 24 | 8 | 14 |
+| Large | 28 | 12 | 18 |
+| ExtraLarge | 32 | 14 | 20 |
 
 ## Outline Mode
 
@@ -57,11 +59,15 @@ DaisyBadge is a compact label for counts, statuses, or tags. It supports **10 co
     <controls:DaisyBadge Content="Small" Size="Small" />
     <controls:DaisyBadge Content="Medium" Size="Medium" />
     <controls:DaisyBadge Content="Large" Size="Large" />
+    <controls:DaisyBadge Content="XL" Size="ExtraLarge" />
 </StackPanel>
 
 <!-- Inside a button -->
-<controls:DaisyButton Variant="Ghost" Content="Messages">
-    <controls:DaisyBadge Content="5" Variant="Error" Size="Small" />
+<controls:DaisyButton Variant="Ghost">
+    <StackPanel Orientation="Horizontal" Spacing="6">
+        <TextBlock Text="Messages" VerticalAlignment="Center" />
+        <controls:DaisyBadge Content="5" Variant="Error" Size="Small" />
+    </StackPanel>
 </controls:DaisyButton>
 
 <!-- Placeholder/count style -->
