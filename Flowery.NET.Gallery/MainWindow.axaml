@@ -8,6 +8,7 @@
         d:DesignHeight="800"
         x:Class="Flowery.NET.Gallery.MainWindow"
         Title="Flowery.NET.Gallery"
+        Icon="avares://Flowery.NET.Gallery/Assets/app_icon.ico"
         Width="1200"
         Height="800"
         Background="{DynamicResource DaisyBase100Brush}">

@@ -3,52 +3,35 @@
     position: absolute;
     height: 100%;
     width: 100%;
-    background: white;
-    font-family: 'Outfit', sans-serif;
+    background: radial-gradient(circle at 50% 42%, #2a1659 0%, #0f0a24 70%);
+    font-family: 'Outfit', 'Poppins', 'Segoe UI', sans-serif;
     justify-content: center;
     align-items: center;
     display: flex;
     pointer-events: none;
 }
 
-/* Light theme styles */
-@media (prefers-color-scheme: light) {
-    .avalonia-splash {
-        background: white;
-    }
-
-    .avalonia-splash h2 {
-        color: #1b2a4e;
-    }
-
-    .avalonia-splash a {
-        color: #0D6EFD;
-    }
-}
-
-@media (prefers-color-scheme: dark) {
-    .avalonia-splash {
-        background: #1b2a4e;
-    }
-
-    .avalonia-splash h2 {
-        color: white;
-    }
-
-    .avalonia-splash a {
-        color: white;
-    }
+.avalonia-splash .splash-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
 }
 
 .avalonia-splash h2 {
-    font-weight: 400;
-    font-size: 1.5rem;
+    margin: 0;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 2.25rem;
+    letter-spacing: 0.01em;
 }
 
-.avalonia-splash a {
-    text-decoration: none;
-    font-size: 2.5rem;
-    display: block;   
+.avalonia-splash h2 .dot {
+    color: #ffc15e;
+}
+
+.avalonia-splash h2 .net {
+    color: #c4b5fd;
 }
 
 .avalonia-splash.splash-close {
