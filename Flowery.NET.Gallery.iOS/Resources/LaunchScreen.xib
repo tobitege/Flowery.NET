@@ -11,23 +11,32 @@
 			<rect key="frame" x="0.0" y="0.0" width="480" height="480" />
 			<autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES" />
 			<subviews>
+				<imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="splash_logo" translatesAutoresizingMaskIntoConstraints="NO" id="lg1-ic-n01">
+					<rect key="frame" x="180" y="12" width="120" height="120" />
+					<constraints>
+						<constraint firstAttribute="width" constant="120" id="lg1-w01" />
+						<constraint firstAttribute="height" constant="120" id="lg1-h01" />
+					</constraints>
+				</imageView>
 				<label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="  Copyright (c) 2022 " textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines"
 					minimumFontSize="9" translatesAutoresizingMaskIntoConstraints="NO" id="8ie-xW-0ye">
 					<rect key="frame" x="20" y="439" width="441" height="21" />
 					<fontDescription key="fontDescription" type="system" pointSize="17" />
-					<color key="textColor" cocoaTouchSystemColor="darkTextColor" />
+					<color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite" />
 					<nil key="highlightedColor" />
 				</label>
 				<label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Flowery.NET.Gallery" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines"
 					minimumFontSize="18" translatesAutoresizingMaskIntoConstraints="NO" id="kId-c2-rCX">
 					<rect key="frame" x="20" y="140" width="441" height="43" />
 					<fontDescription key="fontDescription" type="boldSystem" pointSize="36" />
-					<color key="textColor" cocoaTouchSystemColor="darkTextColor" />
+					<color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite" />
 					<nil key="highlightedColor" />
 				</label>
 			</subviews>
-			<color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite" />
+			<color key="backgroundColor" red="0.0588" green="0.0392" blue="0.1412" alpha="1" colorSpace="custom" customColorSpace="sRGB" />
 			<constraints>
+				<constraint firstAttribute="centerX" secondItem="lg1-ic-n01" secondAttribute="centerX" id="lg1-cx1" />
+				<constraint firstItem="kId-c2-rCX" firstAttribute="top" secondItem="lg1-ic-n01" secondAttribute="bottom" constant="16" id="lg1-sp1" />
 				<constraint firstItem="kId-c2-rCX" firstAttribute="centerY" secondItem="iN0-l3-epB" secondAttribute="bottom" multiplier="1/3" constant="1" id="5cJ-9S-tgC" />
 				<constraint firstAttribute="centerX" secondItem="kId-c2-rCX" secondAttribute="centerX" id="Koa-jz-hwk" />
 				<constraint firstAttribute="bottom" secondItem="8ie-xW-0ye" secondAttribute="bottom" constant="20" id="Kzo-t9-V3l" />
@@ -40,4 +49,7 @@
 			<point key="canvasLocation" x="548" y="455" />
 		</view>
 	</objects>
+	<resources>
+		<image name="splash_logo" width="360" height="360" />
+	</resources>
 </document>
