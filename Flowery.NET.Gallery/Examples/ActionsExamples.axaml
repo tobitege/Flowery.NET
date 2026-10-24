@@ -219,7 +219,7 @@
                                 <TextBlock Text="▲ ● ■ ◆ ▲ ● ■ ◆ ▲ ● ■ ◆ ▲ ● ■ ◆" FontSize="30" Foreground="#22d3ee" />
                             </StackPanel>
                             <!-- Bounces off the four walls like a pool ball; the code-behind moves it on every frame. -->
-                            <Border x:Name="GlassDemoBall" Width="110" Height="110" CornerRadius="55" Background="#facc15"
+                            <Border x:Name="GlassDemoBall" Width="110" Height="110" CornerRadius="55" Background="#ef4444"
                                     HorizontalAlignment="Left" VerticalAlignment="Top"
                                     IsHitTestVisible="False"
                                     IsVisible="{Binding #GlassButtonMotionToggle.IsChecked}">
