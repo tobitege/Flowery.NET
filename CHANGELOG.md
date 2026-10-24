@@ -6,11 +6,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.10.1] - 2026-10-24
 
 ### Changed
 
 - Gallery: new logo, a six-petal violet flower with one warm petal, shared by the Flowery family (Flowery.Uno uses blue, Flowery.WinUI teal). It replaces the Avalonia default icon and splash everywhere: the Desktop window and executable icon (`app_icon.ico`), the Android launcher icon (adaptive) and splash, the iOS app icon (`AppIcon` asset catalog) and launch screen, and the Browser favicon and splash. The Home banner (`flowery-banner.png`) is redrawn too. `app_icon.icns` is included for macOS app bundles.
+- Release: the library, Gallery and Photos release workflows attest the build provenance of every asset they upload, verifiable with `gh attestation verify <file> --repo tobitege/Flowery.NET`, and publish `SHA256SUMS.txt` with the SHA-256 checksum of each asset. The release notes explain both checks.
+- The library, FlowKanban, the Gallery (desktop, Android, iOS) and Flowery Photos are version 3.10.1.
 
 ## [3.10.0] - 2026-10-22
 
