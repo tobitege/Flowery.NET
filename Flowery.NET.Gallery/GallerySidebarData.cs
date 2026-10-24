@@ -53,6 +53,7 @@ public static class GallerySidebarData
                 Items =
                 [
                     new SidebarItem { Id = "button", Name = "Sidebar_Button", ControlName = "DaisyButton", TabHeader = "Sidebar_Actions" },
+                    new SidebarItem { Id = "glass-button", Name = "Sidebar_GlassButton", ControlName = "DaisyGlassButton", TabHeader = "Sidebar_Actions" },
                     new SidebarItem { Id = "button-group", Name = "Sidebar_ButtonGroup", ControlName = "DaisyButtonGroup", TabHeader = "Sidebar_Actions" },
                     new SidebarItem { Id = "figma-comment", Name = "Sidebar_FigmaComment", TabHeader = "Sidebar_Actions" },
                     new SidebarItem { Id = "copybutton", Name = "Sidebar_CopyButton", ControlName = "DaisyCopyButton", TabHeader = "Sidebar_Actions" },

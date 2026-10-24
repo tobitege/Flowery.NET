@@ -6,14 +6,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.10.1] - 2026-10-24
+## [3.11.0] - 2026-10-24
+
+### Added
+
+- `DaisyGlassButton`: a `DaisyButton` on a glass surface that blurs whatever lies behind it. By default it uses `BlurMode=SkiaSharp`, which blurs the live backdrop on every frame, so moving content behind the button stays blurred. Variants, styles, sizes, shapes and icons work as on `DaisyButton`; the variant color tints the glass at `GlassColorOpacity` (0.35), and the default variant is clear glass that brightens on hover. The glass properties are those of `DaisyGlass`; `GlassTextShadowOpacity` puts a shadow under the text and icons.
+- Glass: `DaisyGlass` and `DaisyGlassButton` can color and texture the glass over the blurred backdrop. `GlassFill` takes any brush, such as a linear, radial or conic gradient; `GlassGradient` selects a preset (`Aurora`, `Sunset`, `Ocean`, `Mint`, `Holo`, `Frost`) when no fill is set; `GlassFillOpacity` (0.6) sets their opacity. `GlassPattern` draws one of the `DaisyPatternedCard` patterns in `GlassPatternColor`, with `GlassPatternOpacity` (0.4) as the opacity of a typical stroke. `DaisyGlassGradients.CreateBrush` creates the preset brushes; the presets are plain ARGB stops so other Flowery ports can match them.
+- Gallery: a Glass Button section on the Actions page shows the variants, styles, sizes, blur modes, gradients, patterns and a custom fill over a backdrop with a moving disc, which can be stopped.
+
+### Fixed
+
+- Glass: a `DaisyGlass` without a fixed size in `BitmapCapture` mode keeps its size. The captured backdrop reaches up to 20 past each edge and was part of the measure, so every capture widened the glass until it filled its background container.
 
 ### Changed
 
 - Gallery: new logo, a six-petal violet flower with one warm petal, shared by the Flowery family (Flowery.Uno uses blue, Flowery.WinUI teal). It replaces the Avalonia default icon and splash everywhere: the Desktop window and executable icon (`app_icon.ico`), the Android launcher icon (adaptive) and splash, the iOS app icon (`AppIcon` asset catalog) and launch screen, and the Browser favicon and splash. The Home banner (`flowery-banner.png`) is redrawn too. `app_icon.icns` is included for macOS app bundles.
 - Gallery: in the glass demos of the Cards page (Glass Card, Liquid Glass, Bitmap Capture and Full Width), every glass panel has a row of six stars. Two stay left of it and four run half behind its lower edge, so sharp and covered stars sit side by side; the panels are 100 apart to make room. The star and diamond rows in the demos' text columns are gone.
 - Release: the library, Gallery and Photos release workflows attest the build provenance of every asset they upload, verifiable with `gh attestation verify <file> --repo tobitege/Flowery.NET`, and publish `SHA256SUMS.txt` with the SHA-256 checksum of each asset. The release notes explain both checks.
-- The library, FlowKanban, the Gallery (desktop, Android, iOS) and Flowery Photos are version 3.10.1.
+- The library, FlowKanban, the Gallery (desktop, Android, iOS) and Flowery Photos are version 3.11.0.
 
 ## [3.10.0] - 2026-10-22
 
