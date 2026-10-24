@@ -86,6 +86,7 @@ public partial class MainView : UserControl
             ["Sidebar_DataDisplay"] = () => new DataDisplayExamples(),
             ["Sidebar_DateDisplay"] = () => new DateDisplayExamples(),
             ["Sidebar_Feedback"] = () => new FeedbackExamples(),
+            ["Sidebar_Glass"] = () => new GlassExamples(),
             ["Sidebar_Cards"] = () => new CardsExamples(),
             ["Sidebar_Divider"] = () => new DividerExamples(),
             ["Sidebar_Layout"] = () => new LayoutExamples(),
