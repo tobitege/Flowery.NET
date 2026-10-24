@@ -218,27 +218,14 @@
                                            FontSize="16" Foreground="White" Opacity="0.85" TextWrapping="Wrap" />
                                 <TextBlock Text="▲ ● ■ ◆ ▲ ● ■ ◆ ▲ ● ■ ◆ ▲ ● ■ ◆" FontSize="30" Foreground="#22d3ee" />
                             </StackPanel>
-                            <Border Width="110" Height="110" CornerRadius="55" Background="#facc15"
-                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                            <!-- Bounces off the four walls like a pool ball; the code-behind moves it on every frame. -->
+                            <Border x:Name="GlassDemoBall" Width="110" Height="110" CornerRadius="55" Background="#facc15"
+                                    HorizontalAlignment="Left" VerticalAlignment="Top"
                                     IsHitTestVisible="False"
                                     IsVisible="{Binding #GlassButtonMotionToggle.IsChecked}">
                                 <Border.RenderTransform>
                                     <TranslateTransform />
                                 </Border.RenderTransform>
-                                <Border.Styles>
-                                    <Style Selector="Border">
-                                        <Style.Animations>
-                                            <Animation Duration="0:0:6" IterationCount="Infinite" PlaybackDirection="Alternate">
-                                                <KeyFrame Cue="0%">
-                                                    <Setter Property="TranslateTransform.X" Value="-320" />
-                                                </KeyFrame>
-                                                <KeyFrame Cue="100%">
-                                                    <Setter Property="TranslateTransform.X" Value="320" />
-                                                </KeyFrame>
-                                            </Animation>
-                                        </Style.Animations>
-                                    </Style>
-                                </Border.Styles>
                             </Border>
 
                             <StackPanel Margin="20,24" Spacing="14" VerticalAlignment="Center">
@@ -334,8 +321,9 @@
                         </Border.Background>
                         <Grid>
                             <!-- Scrolling backdrop: colorful blocks and text pass under the glass bar and card. -->
+                            <!-- The bottom margin lets even the last row scroll up under the bar. -->
                             <ScrollViewer x:Name="GlassShowcaseScroller" VerticalScrollBarVisibility="Auto">
-                                <StackPanel Margin="24,88,24,24" Spacing="16">
+                                <StackPanel Margin="24,88,24,440" Spacing="16">
                                     <TextBlock Text="SCROLL ME" FontSize="56" FontWeight="Black" Foreground="White" Opacity="0.9" />
                                     <WrapPanel>
                                         <Border Width="140" Height="90" CornerRadius="18" Margin="0,0,16,16" Background="#facc15" />
