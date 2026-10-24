@@ -996,7 +996,7 @@ class DocumentationGenerator:
         """Merge partials and public members inherited from source base classes."""
         controls = {}
         curated_names = {path.stem for path in self.supplementary_dir.glob('*.md') if path.name not in NON_API_FILES}
-        for project in ('Flowery.NET', 'Flowery.NET.Kanban'):
+        for project in ('Flowery.NET', 'Flowery.NET.Kanban', 'Flowery.NET.Skia'):
             for filepath in sorted((self.root_dir / project).rglob('*.cs')):
                 if {'obj', 'bin'} & set(filepath.parts):
                     continue

@@ -89,16 +89,22 @@ jobs:
           echo "✅ Version matches: $SHARED_VERSION"
 
       - name: Build library
-        run: dotnet build Flowery.NET/Flowery.NET.csproj -c Release -o ./build-output
+        run: |
+          dotnet build Flowery.NET/Flowery.NET.csproj -c Release -o ./build-output
+          dotnet build Flowery.NET.Skia/Flowery.NET.Skia.csproj -c Release -o ./build-output
 
-      - name: Create NuGet package
-        run: dotnet pack Flowery.NET/Flowery.NET.csproj -c Release -o ./artifacts
+      - name: Create NuGet packages
+        run: |
+          dotnet pack Flowery.NET/Flowery.NET.csproj -c Release -o ./artifacts
+          dotnet pack Flowery.NET.Skia/Flowery.NET.Skia.csproj -c Release -o ./artifacts
 
       - name: Create library zip
         run: |
           mkdir -p ./artifacts/lib
           cp ./build-output/Flowery.NET.dll ./artifacts/lib/
           cp ./build-output/Flowery.NET.pdb ./artifacts/lib/
+          cp ./build-output/Flowery.NET.Skia.dll ./artifacts/lib/
+          cp ./build-output/Flowery.NET.Skia.pdb ./artifacts/lib/
           cd ./artifacts/lib
           zip ../Flowery.NET-lib.zip *
 
@@ -234,7 +240,8 @@ jobs:
           FOOTER
 
           echo "| \`Flowery.NET.${{ needs.validate.outputs.version }}.nupkg\` | NuGet package (also on [nuget.org](https://www.nuget.org/packages/Flowery.NET)) |" >> release_notes.md
-          echo "| \`Flowery.NET-lib.zip\` | Compiled DLL and PDB |" >> release_notes.md
+          echo "| \`Flowery.NET.Skia.${{ needs.validate.outputs.version }}.nupkg\` | SkiaSharp effects: live glass blur and shader backgrounds (also on [nuget.org](https://www.nuget.org/packages/Flowery.NET.Skia)) |" >> release_notes.md
+          echo "| \`Flowery.NET-lib.zip\` | Compiled DLLs and PDBs of both packages |" >> release_notes.md
 
           cat >> release_notes.md << 'GALLERY'
 
@@ -297,4 +304,5 @@ jobs:
           echo "- **Version:** ${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Tag:** ${{ needs.validate.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
           echo "- **NuGet:** https://www.nuget.org/packages/Flowery.NET/${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **NuGet (Skia):** https://www.nuget.org/packages/Flowery.NET.Skia/${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Release:** ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ needs.validate.outputs.tag }}" >> $GITHUB_STEP_SUMMARY

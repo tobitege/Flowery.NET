@@ -43,6 +43,7 @@ $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $captureProject = Join-Path $repoRoot "Flowery.Capture.NET/Flowery.Capture.NET.csproj"
 $floweryProject = Join-Path $repoRoot "Flowery.NET/Flowery.NET.csproj"
 $kanbanProject = Join-Path $repoRoot "Flowery.NET.Kanban/Flowery.NET.Kanban.csproj"
+$skiaProject = Join-Path $repoRoot "Flowery.NET.Skia/Flowery.NET.Skia.csproj"
 $galleryProject = Join-Path $repoRoot "Flowery.NET.Gallery/Flowery.NET.Gallery.csproj"
 $desktopProject = Join-Path $repoRoot "Flowery.NET.Gallery.Desktop/Flowery.NET.Gallery.Desktop.csproj"
 $photosProject = Join-Path $repoRoot 'Flowery.NET.Photos.Desktop/Flowery.NET.Photos.Desktop.csproj'
@@ -54,6 +55,7 @@ $noRestoreArg = if ($NoRestore) { " --no-restore" } else { "" }
 Invoke-Step "Build: Flowery.Capture.NET" "dotnet build `"$captureProject`" -c $Configuration$noRestoreArg"
 Invoke-Step "Build: Flowery.NET" "dotnet build `"$floweryProject`" -c $Configuration$noRestoreArg"
 Invoke-Step "Build: Flowery.NET.Kanban" "dotnet build `"$kanbanProject`" -c $Configuration$noRestoreArg"
+Invoke-Step "Build: Flowery.NET.Skia" "dotnet build `"$skiaProject`" -c $Configuration$noRestoreArg"
 Invoke-Step "Build: Flowery.NET.Gallery" "dotnet build `"$galleryProject`" -c $Configuration$noRestoreArg"
 Invoke-Step "Build: Flowery.NET.Gallery.Desktop" "dotnet build `"$desktopProject`" -c $Configuration$noRestoreArg"
 Invoke-Step 'Build: Flowery.NET.Photos.Desktop' "dotnet build `"$photosProject`" -c $Configuration$noRestoreArg"

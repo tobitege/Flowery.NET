@@ -7,6 +7,7 @@ using Avalonia.Markup.Xaml;
 using Flowery.Controls;
 using Flowery.Localization;
 using Flowery.NET.Gallery.Localization;
+using Flowery.Skia;
 
 namespace Flowery.NET.Gallery;
 
@@ -14,6 +15,8 @@ public partial class App : Application
 {
     public override void Initialize()
     {
+        // The live glass blur and shader backgrounds come from Flowery.NET.Skia.
+        FlowerySkia.Register();
         AvaloniaXamlLoader.Load(this);
 
         // Force GalleryLocalization static constructor to run early,

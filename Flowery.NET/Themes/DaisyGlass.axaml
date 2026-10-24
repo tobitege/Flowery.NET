@@ -156,13 +156,13 @@
         </Setter>
 
         <!-- Bitmap capture mode owns the image blur layer. SkiaSharp renders its backdrop in code. -->
-        <Style Selector="^[EnableBackdropBlur=True][BlurMode=BitmapCapture] /template/ Canvas#PART_BackdropBlurPanel">
+        <Style Selector="^[EnableBackdropBlur=True][EffectiveBlurMode=BitmapCapture] /template/ Canvas#PART_BackdropBlurPanel">
             <Setter Property="IsVisible" Value="True" />
         </Style>
         <Style Selector="^[EnableBackdropBlur=True] /template/ Panel#PART_SimulatedGlassPanel">
             <Setter Property="IsVisible" Value="False" />
         </Style>
-        <Style Selector="^[EnableBackdropBlur=True][BlurMode=BitmapCapture] /template/ Border#PART_TintOverlay">
+        <Style Selector="^[EnableBackdropBlur=True][EffectiveBlurMode=BitmapCapture] /template/ Border#PART_TintOverlay">
             <Setter Property="IsVisible" Value="True" />
         </Style>
         <Style Selector="^:highcontrast /template/ Border#PART_ContrastSurface">

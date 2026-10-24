@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Flowery.NET\Flowery.NET.csproj" />
     <ProjectReference Include="..\Flowery.NET.Kanban\Flowery.NET.Kanban.csproj" />
+    <ProjectReference Include="..\Flowery.NET.Skia\Flowery.NET.Skia.csproj" />
     <ProjectReference Include="..\Flowery.Capture.NET\Flowery.Capture.NET.csproj" />
   </ItemGroup>
 

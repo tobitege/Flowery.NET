@@ -11,6 +11,8 @@
     <ProjectReference Include="..\Flowery.NET\Flowery.NET.csproj" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
+    <!-- The editor renders with SkiaSharp directly; Flowery.NET no longer brings it in. -->
+    <PackageReference Include="Avalonia.Skia" Version="12.1.4" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Localization\*.json" WithCulture="false" />

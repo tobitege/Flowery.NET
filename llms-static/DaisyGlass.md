@@ -15,7 +15,7 @@ See [accessibility preferences](DaisyAccessibility.md#system-contrast-and-reduce
 | ---- | ----------- |
 | `Simulated` | No real blur; uses layered gradients/textures for a lightweight glass look. |
 | `BitmapCapture` (default) | Captures underlying content once and blurs it; good balance of quality/perf. |
-| `SkiaSharp` | GPU blur via Skia; more real-time but experimental. |
+| `SkiaSharp` | Live blur on every frame with liquid-glass optics. Needs the Flowery.NET.Skia package, registered with `FlowerySkia.Register()`; without it the glass uses `BitmapCapture` (`EffectiveBlurMode` reports the mode in use). |
 
 ## Key Properties
 
@@ -23,6 +23,7 @@ See [accessibility preferences](DaisyAccessibility.md#system-contrast-and-reduce
 | -------- | ----------- |
 | `EnableBackdropBlur` (bool) | Enables real capture/blur; simulated layers are always rendered. |
 | `BlurMode` | Chooses blur pipeline (Simulated/BitmapCapture/SkiaSharp). |
+| `EffectiveBlurMode` (read-only) | The mode in use: `SkiaSharp` falls back to `BitmapCapture` when Flowery.NET.Skia is not registered. |
 | `GlassBlur` | Blur radius/strength. |
 | `GlassOpacity` | Base tint opacity (overlay). |
 | `GlassTint` / `GlassTintOpacity` | Tint color and intensity. |
