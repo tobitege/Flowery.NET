@@ -77,6 +77,7 @@ namespace Flowery.Skia
         private readonly SkiaGlassRedraw _redraw;
         private readonly int _redrawVersion;
         private SKRectI? _seen;
+        private SKRectI[]? _seenCells;
 
         public SkiaGlassDrawOperation(
             SkiaGlassRedraw redraw,
@@ -154,7 +155,7 @@ namespace Flowery.Skia
                 (float)_bounds.Right,
                 (float)_bounds.Bottom);
 
-            var roundedRect = new SKRoundRect(rect, _cornerRadius);
+            using var roundedRect = new SKRoundRect(rect, _cornerRadius);
 
             // Taken before the rounded clip below: the clip on entry bounds the area this frame redraws.
             var backdrop = lease.SkSurface is SKSurface surface ? GetBackdrop(surface, canvas, rect) : null;
@@ -290,7 +291,7 @@ namespace Flowery.Skia
             // The rim is stroked on the glass edge at twice its width and blurred; the rounded clip keeps the inner
             // half. It fades inward and follows the corner radius, with no inner edge that would read as a second,
             // squarer rectangle on small controls.
-            var rimRect = new SKRoundRect(rect, _cornerRadius);
+            using var rimRect = new SKRoundRect(rect, _cornerRadius);
             using var rimBlur = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, rimWidth * 0.5f);
             var angle = _sheenAngle * MathF.PI / 180f;
             var light = new SKPoint(MathF.Cos(angle), MathF.Sin(angle));
@@ -318,12 +319,14 @@ namespace Flowery.Skia
                     new SKColor(255, 255, 255, ToAlpha(_reflectOpacity * 0.36f))
                 };
                 var points = new[] { 0f, 0.38f, 0.72f, 1f };
-                rimPaint.Shader = SKShader.CreateLinearGradient(
+                // A paint does not dispose its shader.
+                using var rimShader = SKShader.CreateLinearGradient(
                     new SKPoint(rect.MidX - light.X * rect.Width * 0.5f, rect.MidY - light.Y * rect.Height * 0.5f),
                     new SKPoint(rect.MidX + light.X * rect.Width * 0.5f, rect.MidY + light.Y * rect.Height * 0.5f),
                     colors,
                     points,
                     SKShaderTileMode.Clamp);
+                rimPaint.Shader = rimShader;
 
                 canvas.DrawRoundRect(rimRect, rimPaint);
             }
@@ -334,23 +337,24 @@ namespace Flowery.Skia
                     rect.MidX - light.X * rect.Width * 0.22f,
                     rect.MidY - light.Y * rect.Height * 0.22f);
                 var glowRadius = Math.Max(8f, minSide * (0.28f + _depth * 0.2f));
+                using var glowShader = SKShader.CreateRadialGradient(
+                    glowCenter,
+                    glowRadius,
+                    new[]
+                    {
+                        new SKColor(255, 255, 255, ToAlpha(_reflectOpacity * (0.25f + _curvature * 0.25f))),
+                        new SKColor(255, 255, 255, 0)
+                    },
+                    new[] { 0f, 1f },
+                    SKShaderTileMode.Clamp);
                 using var glowPaint = new SKPaint
                 {
                     Style = SKPaintStyle.Fill,
                     IsAntialias = true,
-                    Shader = SKShader.CreateRadialGradient(
-                        glowCenter,
-                        glowRadius,
-                        new[]
-                        {
-                            new SKColor(255, 255, 255, ToAlpha(_reflectOpacity * (0.25f + _curvature * 0.25f))),
-                            new SKColor(255, 255, 255, 0)
-                        },
-                        new[] { 0f, 1f },
-                        SKShaderTileMode.Clamp)
+                    Shader = glowShader
                 };
 
-                canvas.DrawRoundRect(new SKRoundRect(rect, _cornerRadius), glowPaint);
+                canvas.DrawRoundRect(rimRect, glowPaint);
             }
         }
 
@@ -405,13 +409,12 @@ namespace Flowery.Skia
                 var seen = glass;
                 seen.Intersect(clipBounds);
                 _seen = seen;
+                _seenCells = ProbeSeenCells(canvas, rect);
             }
-            clipBounds.Inflate(1, 1);
-            var partial = !clipBounds.Contains(_seen!.Value);
 
             // A partial render follows a change behind the glass. The blur spreads that change beyond the redrawn
             // area, where this frame cannot draw, so the glass redraws in full for a moment.
-            if (!first && partial)
+            if (!first && !CoversSeen(canvas, rect, _seen!.Value, _seenCells))
                 _redraw.BackdropChanged();
 
             var margin = (int)Math.Ceiling(_blurSigma * 3) + 1;
@@ -424,6 +427,87 @@ namespace Flowery.Skia
             sample = new SKRectI(sample.Left, sample.Top, sample.Left + fresh.Width, sample.Top + fresh.Height);
 
             return (fresh, sample);
+        }
+
+        /// <summary>
+        /// Returns the device bounds of the clip in each cell of the glass, when the clip is not a rectangle, such as
+        /// the rounded clip of an ancestor; for a rectangular clip the visible area is a rectangle and needs no cells.
+        /// </summary>
+        internal static SKRectI[]? ProbeSeenCells(SKCanvas canvas, SKRect rect) =>
+            canvas.IsClipRect ? null : ProbeCells(canvas, Cells(rect));
+
+        /// <summary>
+        /// Returns whether the clip of this render covers all of the glass that the first render could see.
+        /// The bounds of the clip are not enough when it is a region, as with
+        /// <c>CompositionOptions.UseRegionDirtyRectClipping</c>: two redrawn areas apart from each other can span the
+        /// glass while the part between them is not redrawn. The glass is then checked cell by cell.
+        /// </summary>
+        internal static bool CoversSeen(SKCanvas canvas, SKRect rect, SKRectI seen, SKRectI[]? seenCells)
+        {
+            var bounds = canvas.DeviceClipBounds;
+            bounds.Inflate(1, 1);
+            if (!bounds.Contains(seen))
+                return false;
+            if (canvas.IsClipRect)
+                return true;
+
+            var cells = Cells(rect);
+            var probed = ProbeCells(canvas, cells);
+            for (var i = 0; i < cells.Length; i++)
+            {
+                SKRectI expected;
+                if (seenCells != null)
+                {
+                    expected = seenCells[i];
+                }
+                else
+                {
+                    expected = SKRectI.Ceiling(canvas.TotalMatrix.MapRect(cells[i]));
+                    expected.Intersect(seen);
+                }
+                if (expected.IsEmpty)
+                    continue;
+                var covered = probed[i];
+                covered.Inflate(1, 1);
+                if (!covered.Contains(expected))
+                    return false;
+            }
+            return true;
+        }
+
+        // A cell narrower than the gap between two redrawn areas shows the gap in its clip bounds.
+        private const float CellSize = 16f;
+
+        private static SKRect[] Cells(SKRect rect)
+        {
+            var columns = Math.Max(1, (int)MathF.Ceiling(rect.Width / CellSize));
+            var rows = Math.Max(1, (int)MathF.Ceiling(rect.Height / CellSize));
+            var cells = new SKRect[columns * rows];
+            for (var row = 0; row < rows; row++)
+            {
+                for (var column = 0; column < columns; column++)
+                {
+                    cells[row * columns + column] = new SKRect(
+                        rect.Left + rect.Width * column / columns,
+                        rect.Top + rect.Height * row / rows,
+                        rect.Left + rect.Width * (column + 1) / columns,
+                        rect.Top + rect.Height * (row + 1) / rows);
+                }
+            }
+            return cells;
+        }
+
+        private static SKRectI[] ProbeCells(SKCanvas canvas, SKRect[] cells)
+        {
+            var bounds = new SKRectI[cells.Length];
+            for (var i = 0; i < cells.Length; i++)
+            {
+                canvas.Save();
+                canvas.ClipRect(cells[i]);
+                bounds[i] = canvas.DeviceClipBounds;
+                canvas.Restore();
+            }
+            return bounds;
         }
 
         private static float Clamp01(float value) => Math.Clamp(value, 0f, 1f);

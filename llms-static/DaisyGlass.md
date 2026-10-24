@@ -92,7 +92,7 @@ The glass is a stack of layers: the backdrop (blurred or simulated), the tint, t
 
 ## Animated Backgrounds
 
-`GlassBackground` takes an animated background with an `Effect` (`Plasma`, `Aurora`, `LiquidGold`) and a `Speed` (1 is normal, 0 stops it). There are two implementations of the same effects, so you can choose between look and cost:
+`GlassBackground` takes an animated background with an `Effect` (`Plasma`, `Aurora`, `LiquidGold`), a `Speed` (1 is normal, 0 stops it) and a `FrameRate` (redraws per second, default 30; 0 redraws on every display frame). There are two implementations of the same effects, so you can choose between look and cost:
 
 | Background | Package | Drawing |
 | ---------- | ------- | ------- |
@@ -116,7 +116,20 @@ The glass is a stack of layers: the backdrop (blurred or simulated), the tint, t
 
 A background object may be shared; every glass draws its own layer from it, starting at a different phase. With reduced motion the layer shows a still frame; with high contrast it stops, since the contrast surface covers it.
 
-**Cost:** an animated glass redraws on every frame, and in `SkiaSharp` mode that includes its backdrop blur. In the Gallery (Debug build, desktop), six animated glass buttons use about 44 % of one CPU core. Keep the number of animated surfaces small. A lower `Speed` slows the motion but not the frame rate; `Speed="0"` stops the redraws.
+**Cost:** an animated glass redraws `FrameRate` times per second, and in `SkiaSharp` mode that includes its backdrop blur. The rate holds on any refresh rate, so a 144 Hz display does not redraw more often. In the Gallery (Debug build, desktop, region clipping on, see below), six animated glass buttons at the default 30 per second use about 18 % of one CPU core. Keep the number of animated surfaces small. A lower `FrameRate` saves the most; a lower `Speed` slows the motion but not the redraws; `Speed="0"` stops them.
+
+## Performance with Animated Content
+
+By default Avalonia merges all areas that change in a frame into one rectangle. With an animation on screen, that rectangle can reach glass controls far from the change, which then redraw their blur in full on every frame. Turn on region clipping, so each changed area stays separate:
+
+```csharp
+AppBuilder.Configure<App>()
+    .UsePlatformDetect()
+    .With(new CompositionOptions { UseRegionDirtyRectClipping = true }) // Avalonia.Rendering.Composition
+    .UseFlowerySkia();
+```
+
+In the Gallery, this cut the CPU use of the Glass Button section with its six animated buttons from about 70 % to about 18 % of one core. The live glass works with either setting.
 
 ## Quick Examples
 

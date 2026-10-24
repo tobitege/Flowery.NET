@@ -1,3 +1,4 @@
+using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
@@ -64,6 +65,34 @@ public class DaisyGlassBackgroundTests
         {
             window.Close();
         }
+    }
+
+    [Fact]
+    public void A_Background_Redraws_30_Times_A_Second_Unless_Set_Otherwise()
+    {
+        Assert.Equal(30, new DaisyGlassGradientBackground().FrameRate);
+        Assert.Equal(30, new DaisyGlassShaderBackground().FrameRate);
+    }
+
+    [Theory]
+    [InlineData(60, 30, 30)]
+    [InlineData(60, 60, 60)]
+    [InlineData(144, 30, 30)]
+    [InlineData(144, 60, 60)]
+    [InlineData(240, 30, 30)]
+    [InlineData(144, 0, 144)]
+    public void A_Background_Keeps_Its_Frame_Rate_On_Any_Refresh_Rate(int refreshRate, double frameRate, int expected)
+    {
+        var isRedrawFrame = typeof(DaisyGlassAnimationLayer).GetMethod("IsRedrawFrame", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var args = new object[] { 0.0, 1.0 / refreshRate, frameRate };
+        var redraws = 0;
+        for (var frame = 0; frame < refreshRate * 10; frame++)
+        {
+            if ((bool)isRedrawFrame.Invoke(null, args)!)
+                redraws++;
+        }
+
+        Assert.InRange(redraws / 10.0, expected - 0.5, expected + 0.5);
     }
 
     private static Window Show(Control content)

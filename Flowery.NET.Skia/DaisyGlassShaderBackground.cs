@@ -140,7 +140,7 @@ namespace Flowery.Skia
                     return;
                 using var lease = feature.Lease();
                 var shaderEffect = GetEffect(_effect);
-                var uniforms = new SKRuntimeEffectUniforms(shaderEffect)
+                using var uniforms = new SKRuntimeEffectUniforms(shaderEffect)
                 {
                     ["size"] = new[] { (float)Bounds.Width, (float)Bounds.Height },
                     ["time"] = _time

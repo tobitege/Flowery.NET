@@ -43,20 +43,38 @@ namespace Flowery.Controls
         }
 
         /// <summary>
+        /// Defines the <see cref="FrameRate"/> property.
+        /// </summary>
+        public static readonly StyledProperty<double> FrameRateProperty =
+            AvaloniaProperty.Register<DaisyGlassBackground, double>(nameof(FrameRate), 30.0);
+
+        /// <summary>
+        /// Gets or sets how many times per second the background redraws at most (default 30); 0 redraws on every
+        /// display frame. The rate holds on any refresh rate, such as 60 or 144 Hz. Each redraw also redraws the glass
+        /// with its blur, so a lower rate costs less. The animation keeps its speed.
+        /// </summary>
+        public double FrameRate
+        {
+            get => GetValue(FrameRateProperty);
+            set => SetValue(FrameRateProperty, value);
+        }
+
+        /// <summary>
         /// Creates the layer that draws this background for one glass.
         /// </summary>
         public abstract DaisyGlassAnimationLayer CreateLayer();
     }
 
     /// <summary>
-    /// A layer that draws one animated <see cref="DaisyGlassBackground"/> and redraws itself on every frame while it is
-    /// attached. With reduced motion it draws a still frame; with high contrast it stops redrawing, since the contrast
+    /// A layer that draws one animated <see cref="DaisyGlassBackground"/> and redraws itself
+    /// <see cref="DaisyGlassBackground.FrameRate"/> times per second while it is attached. With reduced motion it draws a still frame; with high contrast it stops redrawing, since the contrast
     /// surface covers it.
     /// </summary>
     public abstract class DaisyGlassAnimationLayer : Control
     {
         private bool _frameRequested;
         private TimeSpan? _lastFrame;
+        private double _sinceRedraw;
 
         protected DaisyGlassAnimationLayer(DaisyGlassBackground source)
         {
@@ -117,9 +135,22 @@ namespace Flowery.Controls
             var elapsed = _lastFrame is { } last ? Math.Min((now - last).TotalSeconds, 0.1) : 0;
             _lastFrame = now;
             Time += elapsed * Math.Max(0, Source.Speed);
-            if (!DaisyAccessibility.IsHighContrast && IsEffectivelyVisible && elapsed > 0 && Source.Speed > 0)
+            if (!DaisyAccessibility.IsHighContrast && IsEffectivelyVisible && elapsed > 0 && Source.Speed > 0 &&
+                IsRedrawFrame(ref _sinceRedraw, elapsed, Source.FrameRate))
                 InvalidateVisual();
             RequestFrame();
+        }
+
+        // A frame redraws when it is nearer to the next redraw time than the frame after it. The time past that point
+        // carries over, so 30 per second on a 144 Hz display alternates between every fourth and fifth frame.
+        private static bool IsRedrawFrame(ref double sinceRedraw, double elapsed, double frameRate)
+        {
+            var interval = frameRate > 0 ? 1 / frameRate : 0;
+            sinceRedraw += elapsed;
+            if (sinceRedraw < interval - elapsed / 2)
+                return false;
+            sinceRedraw = Math.Max(sinceRedraw - interval, -interval);
+            return true;
         }
     }
 }
