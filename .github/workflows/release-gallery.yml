@@ -125,6 +125,8 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
+      id-token: write
+      attestations: write
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -144,6 +146,19 @@ jobs:
           find ./release-artifacts -name "*.apk" -exec cp {} ./final/ \;
           echo "=== Release artifacts ==="
           ls -la ./final/
+
+      - name: Create checksums
+        working-directory: ./final
+        run: |
+          sha256sum -- * > ../SHA256SUMS.txt
+          mv ../SHA256SUMS.txt ./SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      # Signed build provenance for every release asset, verifiable with `gh attestation verify`.
+      - name: Attest build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: './final/*'
 
       - name: Create and push tag
         run: |
@@ -191,6 +206,16 @@ jobs:
             echo "| Android arm64 | \`Flowery.Gallery-Android-arm64.apk\` |"
             echo "| Android x86 | \`Flowery.Gallery-Android-x86.apk\` |"
             echo "| Android x64 | \`Flowery.Gallery-Android-x64.apk\` |"
+            echo ""
+            echo "### Verify downloads"
+            echo ""
+            echo "This workflow built every asset above and attested its build provenance. To check that a file comes from this repository and release build:"
+            echo ""
+            echo '```'
+            echo "gh attestation verify <file> --repo ${{ github.repository }}"
+            echo '```'
+            echo ""
+            echo "\`SHA256SUMS.txt\` lists the SHA-256 checksum of every asset; check all of them with \`sha256sum -c SHA256SUMS.txt\`, or one file in PowerShell with \`Get-FileHash <file>\`."
             echo ""
             echo "---"
             echo ""

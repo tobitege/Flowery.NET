@@ -110,6 +110,8 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -127,6 +129,22 @@ jobs:
           test -s ./release-artifacts/Flowery.Photos-Windows-x64.zip
           test -s ./release-artifacts/Flowery.Photos-Linux-x64.tar.gz
           test -s ./release-artifacts/Flowery.Photos-macOS-arm64.tar.gz
+
+      - name: Create checksums
+        working-directory: ./release-artifacts
+        run: |
+          sha256sum -- Flowery.Photos-Windows-x64.zip Flowery.Photos-Linux-x64.tar.gz Flowery.Photos-macOS-arm64.tar.gz > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      # Signed build provenance for every release asset, verifiable with `gh attestation verify`.
+      - name: Attest build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: |
+            ./release-artifacts/Flowery.Photos-Windows-x64.zip
+            ./release-artifacts/Flowery.Photos-Linux-x64.tar.gz
+            ./release-artifacts/Flowery.Photos-macOS-arm64.tar.gz
+            ./release-artifacts/SHA256SUMS.txt
 
       - name: Build release notes
         env:
@@ -157,6 +175,16 @@ jobs:
             echo '| Linux x64 | `Flowery.Photos-Linux-x64.tar.gz` |'
             echo '| macOS ARM64 | `Flowery.Photos-macOS-arm64.tar.gz` |'
             echo ''
+            echo '### Verify downloads'
+            echo ''
+            echo 'This workflow built every asset above and attested its build provenance. To check that a file comes from this repository and release build:'
+            echo ''
+            echo '```'
+            echo "gh attestation verify <file> --repo $GITHUB_REPOSITORY"
+            echo '```'
+            echo ''
+            echo '`SHA256SUMS.txt` lists the SHA-256 checksum of every asset; check all of them with `sha256sum -c SHA256SUMS.txt`, or one file in PowerShell with `Get-FileHash <file>`.'
+            echo ''
             echo "Source commit: $SOURCE_SHA"
           } > release_notes.md
 
@@ -177,6 +205,7 @@ jobs:
             ./release-artifacts/Flowery.Photos-Windows-x64.zip
             ./release-artifacts/Flowery.Photos-Linux-x64.tar.gz
             ./release-artifacts/Flowery.Photos-macOS-arm64.tar.gz
+            ./release-artifacts/SHA256SUMS.txt
           fail_on_unmatched_files: true
           body_path: release_notes.md
           prerelease: ${{ needs.prepare.outputs.is_prerelease == 'true' }}
