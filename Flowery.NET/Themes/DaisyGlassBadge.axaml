@@ -31,7 +31,9 @@
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{TemplateBinding CornerRadius}"
                             Padding="{TemplateBinding Padding}">
+                        <!-- EffectiveForeground is Foreground with enough contrast over the glass. -->
                         <ContentPresenter Content="{TemplateBinding Content}"
+                                          TextElement.Foreground="{TemplateBinding EffectiveForeground}"
                                           ContentTemplate="{TemplateBinding ContentTemplate}"
                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}">

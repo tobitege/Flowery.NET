@@ -106,6 +106,75 @@ namespace Flowery.Helpers
             return Math.Sqrt(deltaL * deltaL + deltaA * deltaA + deltaB * deltaB);
         }
 
+        /// <summary>
+        /// Computes the WCAG 2 relative luminance of an opaque color: 0 for black and 1 for white.
+        /// </summary>
+        public static double GetRelativeLuminance(Color color)
+        {
+            return 0.2126 * ToLinear(color.R) + 0.7152 * ToLinear(color.G) + 0.0722 * ToLinear(color.B);
+        }
+
+        /// <summary>
+        /// Computes the WCAG 2 contrast ratio between two opaque colors: 1 for equal colors and 21 for black on white.
+        /// WCAG asks for 4.5 for normal text and 3 for large or bold text.
+        /// </summary>
+        public static double GetContrastRatio(Color first, Color second)
+        {
+            var firstLuminance = GetRelativeLuminance(first);
+            var secondLuminance = GetRelativeLuminance(second);
+            return (Math.Max(firstLuminance, secondLuminance) + 0.05) / (Math.Min(firstLuminance, secondLuminance) + 0.05);
+        }
+
+        /// <summary>
+        /// Returns <paramref name="text"/> with at least <paramref name="ratio"/> contrast against
+        /// <paramref name="background"/>. A color that has it already comes back unchanged; otherwise it is mixed
+        /// toward white or black, whichever contrasts more with the background, only as far as needed, so its hue
+        /// stays. When even white or black cannot reach the ratio, that color is returned. The alpha is kept.
+        /// </summary>
+        public static Color EnsureContrast(Color text, Color background, double ratio)
+        {
+            var opaqueText = Color.FromRgb(text.R, text.G, text.B);
+            if (GetContrastRatio(opaqueText, background) >= ratio)
+                return text;
+
+            var target = GetContrastRatio(Colors.White, background) >= GetContrastRatio(Colors.Black, background)
+                ? Colors.White
+                : Colors.Black;
+            if (GetContrastRatio(target, background) < ratio)
+                return Color.FromArgb(text.A, target.R, target.G, target.B);
+
+            // On the way to white or black the contrast may first drop, while the text passes the background's
+            // luminance, and then only grows; it stays below the start, and so below the ratio, until it grows. The
+            // mixes that reach the ratio therefore form one range up to white or black, whose start halving finds.
+            double low = 0, high = 1;
+            for (var i = 0; i < 16; i++)
+            {
+                var middle = (low + high) / 2;
+                if (GetContrastRatio(Mix(opaqueText, target, middle), background) >= ratio)
+                    high = middle;
+                else
+                    low = middle;
+            }
+            var mixed = Mix(opaqueText, target, high);
+            return Color.FromArgb(text.A, mixed.R, mixed.G, mixed.B);
+        }
+
+        /// <summary>
+        /// Paints <paramref name="over"/> at <paramref name="opacity"/>, times its own alpha, over the opaque
+        /// <paramref name="under"/> and returns the opaque result.
+        /// </summary>
+        public static Color Composite(Color under, Color over, double opacity)
+        {
+            var alpha = Math.Clamp(opacity, 0, 1) * over.A / 255.0;
+            return Mix(Color.FromRgb(under.R, under.G, under.B), Color.FromRgb(over.R, over.G, over.B), alpha);
+        }
+
+        private static Color Mix(Color from, Color to, double amount)
+        {
+            static byte Channel(byte a, byte b, double t) => (byte)Math.Round(a + (b - a) * t);
+            return Color.FromRgb(Channel(from.R, to.R, amount), Channel(from.G, to.G, amount), Channel(from.B, to.B, amount));
+        }
+
         private static (double L, double A, double B) ToLab(Color color)
         {
             var r = ToLinear(color.R);

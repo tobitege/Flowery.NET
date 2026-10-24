@@ -17,12 +17,72 @@ namespace Flowery.Controls
         protected override Type StyleKeyOverride => typeof(DaisyGlassButton);
 
         private IDisposable? _surfaceBindings;
+        private GlassTextContrast? _textContrast;
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
             _surfaceBindings?.Dispose();
-            _surfaceBindings = e.NameScope.Find<DaisyGlass>("PART_Glass") is { } glass ? DaisyGlass.BindSurface(glass, this) : null;
+            _textContrast?.Dispose();
+            _textContrast = null;
+            var glass = e.NameScope.Find<DaisyGlass>("PART_Glass");
+            _surfaceBindings = glass != null ? DaisyGlass.BindSurface(glass, this) : null;
+            if (glass != null)
+                _textContrast = new GlassTextContrast(this, glass, e.NameScope.Find<Border>("PART_Background"), GlassTextContrast,
+                    brush => EffectiveForeground = brush);
+            else
+                EffectiveForeground = Foreground;
+        }
+
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            base.OnPropertyChanged(change);
+            if (change.Property == GlassTextContrastProperty && _textContrast != null)
+                _textContrast.Enabled = GlassTextContrast;
+            else if (change.Property == ForegroundProperty || change.Property == FontSizeProperty || change.Property == FontWeightProperty)
+            {
+                if (_textContrast != null)
+                    _textContrast.Update();
+                else
+                    EffectiveForeground = Foreground;
+            }
+        }
+
+        /// <summary>
+        /// Defines the <see cref="GlassTextContrast"/> property.
+        /// </summary>
+        public static readonly StyledProperty<bool> GlassTextContrastProperty =
+            AvaloniaProperty.Register<DaisyGlassButton, bool>(nameof(GlassTextContrast), true);
+
+        /// <summary>
+        /// Gets or sets whether the text keeps WCAG contrast over what lies behind the glass (default true). The glass
+        /// measures its backdrop, and the text color moves toward white or black, keeping its hue, until it has a
+        /// contrast of 4.5 (3 for large text) against the glass over that backdrop. Needs a blur mode that sees the
+        /// backdrop (<c>BitmapCapture</c> or <c>SkiaSharp</c>); a <see cref="TemplatedControl.Foreground"/> set on the
+        /// button itself is kept as it is.
+        /// </summary>
+        public bool GlassTextContrast
+        {
+            get => GetValue(GlassTextContrastProperty);
+            set => SetValue(GlassTextContrastProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="EffectiveForeground"/> property.
+        /// </summary>
+        public static readonly DirectProperty<DaisyGlassButton, IBrush?> EffectiveForegroundProperty =
+            AvaloniaProperty.RegisterDirect<DaisyGlassButton, IBrush?>(nameof(EffectiveForeground), o => o.EffectiveForeground);
+
+        private IBrush? _effectiveForeground;
+
+        /// <summary>
+        /// Gets the brush the text and icons are drawn with: <see cref="TemplatedControl.Foreground"/>, adjusted for
+        /// contrast while <see cref="GlassTextContrast"/> is on.
+        /// </summary>
+        public IBrush? EffectiveForeground
+        {
+            get => _effectiveForeground;
+            private set => SetAndRaise(EffectiveForegroundProperty, ref _effectiveForeground, value);
         }
 
         /// <summary>

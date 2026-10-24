@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
@@ -31,6 +32,7 @@ namespace Flowery.Skia
         /// <summary>Called on the render thread when a frame redrew only part of the glass.</summary>
         public void BackdropChanged()
         {
+            Volatile.Write(ref _measureDue, 1);
             if (Interlocked.Exchange(ref _changeQueued, 1) == 1)
                 return;
             Dispatcher.UIThread.Post(() =>
@@ -39,6 +41,54 @@ namespace Flowery.Skia
                 _liveUntil = DateTime.UtcNow + LiveTime;
                 RequestFrame();
             }, DispatcherPriority.Render);
+        }
+
+        // A measurement reads pixels back from the GPU, which stalls the frame; a few per second follow a change closely enough.
+        private const long MeasureInterval = 300;
+
+        private long _lastMeasure = long.MinValue / 2;
+        private int _measureLaterQueued;
+        private int _measureDue = 1;
+
+        /// <summary>Set on the UI thread for each render: whether the glass wants its backdrop color measured.</summary>
+        public volatile bool MeasureBackdrop;
+
+        /// <summary>
+        /// Called on the render thread with the whole backdrop at hand: returns whether to measure it now, at most every
+        /// <see cref="MeasureInterval"/>. After the backdrop changed, a render too soon schedules a render for later, so
+        /// the last state behind the glass is measured too; without a change nothing is scheduled, since a scheduled
+        /// render redraws the glass, which could make a glass around it redraw this one again.
+        /// </summary>
+        public bool TryStartMeasure()
+        {
+            if (!MeasureBackdrop)
+                return false;
+            var now = Environment.TickCount64;
+            var wait = Interlocked.Read(ref _lastMeasure) + MeasureInterval - now;
+            if (wait > 0)
+            {
+                if (Volatile.Read(ref _measureDue) == 1)
+                    MeasureLater(wait);
+                return false;
+            }
+            Interlocked.Exchange(ref _lastMeasure, now);
+            Volatile.Write(ref _measureDue, 0);
+            return true;
+        }
+
+        /// <summary>Called on the render thread with a measured backdrop color.</summary>
+        public void ReportBackdropColor(Color color) =>
+            Dispatcher.UIThread.Post(() => SkiaGlassRenderer.ReportMeasuredColor(owner, color), DispatcherPriority.Background);
+
+        private void MeasureLater(long delay)
+        {
+            if (Interlocked.Exchange(ref _measureLaterQueued, 1) == 1)
+                return;
+            Dispatcher.UIThread.Post(() => DispatcherTimer.RunOnce(() =>
+            {
+                _measureLaterQueued = 0;
+                owner.InvalidateVisual();
+            }, TimeSpan.FromMilliseconds(delay)));
         }
 
         private void RequestFrame()
@@ -78,6 +128,7 @@ namespace Flowery.Skia
         private readonly int _redrawVersion;
         private SKRectI? _seen;
         private SKRectI[]? _seenCells;
+        private bool _redrawsAll;
 
         public SkiaGlassDrawOperation(
             SkiaGlassRedraw redraw,
@@ -159,6 +210,11 @@ namespace Flowery.Skia
 
             // Taken before the rounded clip below: the clip on entry bounds the area this frame redraws.
             var backdrop = lease.SkSurface is SKSurface surface ? GetBackdrop(surface, canvas, rect) : null;
+            // Only a render of the whole glass has the bare backdrop under all of it; elsewhere a partial render still
+            // shows the last frame's glass and text, and measuring those would change the text color for nothing.
+            if (backdrop is { } measured && _redrawsAll && _redraw.TryStartMeasure()
+                && MeasureBackdropColor(lease.GrContext, measured.Image, measured.Bounds, SKRectI.Ceiling(canvas.TotalMatrix.MapRect(rect))) is { } color)
+                _redraw.ReportBackdropColor(color);
 
             // Save canvas state
             int saveCount = canvas.Save();
@@ -414,7 +470,8 @@ namespace Flowery.Skia
 
             // A partial render follows a change behind the glass. The blur spreads that change beyond the redrawn
             // area, where this frame cannot draw, so the glass redraws in full for a moment.
-            if (!first && !CoversSeen(canvas, rect, _seen!.Value, _seenCells))
+            _redrawsAll = first || CoversSeen(canvas, rect, _seen!.Value, _seenCells);
+            if (!_redrawsAll)
                 _redraw.BackdropChanged();
 
             var margin = (int)Math.Ceiling(_blurSigma * 3) + 1;
@@ -427,6 +484,57 @@ namespace Flowery.Skia
             sample = new SKRectI(sample.Left, sample.Top, sample.Left + fresh.Width, sample.Top + fresh.Height);
 
             return (fresh, sample);
+        }
+
+        /// <summary>
+        /// Returns the average color of the glass area in the backdrop snapshot, or <c>null</c> when nothing opaque is
+        /// there. A GPU image cannot be read directly, so the area is drawn small into a surface on the same GPU
+        /// context, or a raster surface without one, and those few pixels are read back.
+        /// </summary>
+        internal static Color? MeasureBackdropColor(GRContext? context, SKImage image, SKRectI imageBounds, SKRectI glass)
+        {
+            var area = glass;
+            area.Intersect(imageBounds);
+            if (area.IsEmpty)
+                return null;
+
+            var width = Math.Clamp(area.Width / 4, 1, 64);
+            var height = Math.Clamp(area.Height / 4, 1, 16);
+            var info = new SKImageInfo(width, height, SKColorType.Rgba8888, SKAlphaType.Premul);
+            using var small = context != null ? SKSurface.Create(context, false, info) : SKSurface.Create(info);
+            if (small == null)
+                return null;
+            small.Canvas.DrawImage(
+                image,
+                SKRect.Create(area.Left - imageBounds.Left, area.Top - imageBounds.Top, area.Width, area.Height),
+                SKRect.Create(width, height),
+                new SKSamplingOptions(SKFilterMode.Linear));
+
+            var pixels = new byte[width * height * 4];
+            var handle = GCHandle.Alloc(pixels, GCHandleType.Pinned);
+            try
+            {
+                if (!small.ReadPixels(info, handle.AddrOfPinnedObject(), width * 4, 0, 0))
+                    return null;
+            }
+            finally
+            {
+                handle.Free();
+            }
+
+            // Premultiplied channels summed and divided by the summed alpha give the alpha-weighted average.
+            long red = 0, green = 0, blue = 0, alpha = 0;
+            for (var i = 0; i < pixels.Length; i += 4)
+            {
+                red += pixels[i];
+                green += pixels[i + 1];
+                blue += pixels[i + 2];
+                alpha += pixels[i + 3];
+            }
+            if (alpha == 0)
+                return null;
+            return Color.FromRgb(
+                (byte)Math.Min(255, red * 255 / alpha), (byte)Math.Min(255, green * 255 / alpha), (byte)Math.Min(255, blue * 255 / alpha));
         }
 
         /// <summary>

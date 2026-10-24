@@ -27,5 +27,12 @@ namespace Flowery.Controls
         /// Draws the backdrop of <paramref name="glass"/> into <paramref name="context"/>, below its content and layers.
         /// </summary>
         public abstract void Render(DaisyGlass glass, DrawingContext context);
+
+        /// <summary>
+        /// Reports the average color behind <paramref name="glass"/>, measured by the renderer while
+        /// <see cref="DaisyGlass.MeasureBackdropColor"/> is on, into <see cref="DaisyGlass.BackdropColor"/>.
+        /// Call it on the UI thread.
+        /// </summary>
+        protected static void ReportBackdropColor(DaisyGlass glass, Color color) => glass.ReportBackdropColor(color);
     }
 }

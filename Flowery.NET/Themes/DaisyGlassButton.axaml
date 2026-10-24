@@ -65,7 +65,9 @@
                                StrokeThickness="1"
                                StrokeDashArray="4,2"
                                RadiusX="8" RadiusY="8" />
+                    <!-- EffectiveForeground is Foreground with enough contrast over the glass; the icons inherit it. -->
                     <StackPanel x:Name="PART_ContentPanel"
+                        TextElement.Foreground="{TemplateBinding EffectiveForeground}"
                         Orientation="Horizontal"
                         Spacing="{TemplateBinding IconSpacing}"
                         Margin="{TemplateBinding Padding}"
@@ -94,7 +96,7 @@
                                 <Path Width="24"
                                       Height="24"
                                       Data="{TemplateBinding EffectiveIconData}"
-                                      Fill="{TemplateBinding Foreground}"
+                                      Fill="{TemplateBinding EffectiveForeground}"
                                       Stretch="Fill" />
                             </Viewbox>
                             <ContentPresenter x:Name="PART_ContentPresenter"
@@ -102,7 +104,7 @@
                                               Grid.Column="1"
                                               Content="{TemplateBinding Content}"
                                               ContentTemplate="{TemplateBinding ContentTemplate}"
-                                              TextElement.Foreground="{TemplateBinding Foreground}"
+                                              TextElement.Foreground="{TemplateBinding EffectiveForeground}"
                                               RecognizesAccessKey="False"
                                               IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"
                                               VerticalAlignment="Center" />

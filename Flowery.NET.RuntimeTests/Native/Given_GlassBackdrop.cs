@@ -9,6 +9,7 @@ using Avalonia.VisualTree;
 using Flowery.Capture;
 using Flowery.Capture.Platforms;
 using Flowery.Controls;
+using Flowery.Helpers;
 using SkiaSharp;
 using Xunit;
 
@@ -273,6 +274,37 @@ public class Given_GlassBackdrop
         Assert.True(outside <= 2, $"The edge outside the button is not sharp: {outside} mixed pixels.");
         Assert.True(blurred > 6, $"The glass button did not blur the red/blue edge behind it: {blurred} mixed pixels.");
     }
+
+    [Theory]
+    [InlineData(GlassBlurMode.SkiaSharp)]
+    [InlineData(GlassBlurMode.BitmapCapture)]
+    public async Task When_A_Glass_Button_Lies_Over_Its_Own_Text_Color_The_Text_Gets_Contrast(GlassBlurMode mode)
+    {
+        var button = new DaisyGlassButton { Content = "Contrast", Width = 200, Height = 60, BlurMode = mode };
+        Canvas.SetLeft(button, 100);
+        Canvas.SetTop(button, 100);
+        var canvas = new Canvas { Width = 400, Height = 260, Background = Brushes.Gray, Children = { button } };
+        await RuntimeTestHelpers.AttachAsync(canvas);
+        var text = Assert.IsAssignableFrom<ISolidColorBrush>(button.Foreground).Color;
+
+        // The backdrop takes the text color, so without contrast the text would vanish into it.
+        canvas.Background = new SolidColorBrush(text);
+        var glass = button.GetVisualDescendants().OfType<DaisyGlass>().Single(control => control.Name == "PART_Glass");
+        if (mode == GlassBlurMode.BitmapCapture)
+            glass.RefreshBackdrop();
+        for (var frame = 0; frame < 40 && !IsNear(glass.BackdropColor, text); frame++)
+            await RuntimeTestHelpers.WaitForRenderAsync();
+
+        Assert.True(IsNear(glass.BackdropColor, text), $"The glass measured {glass.BackdropColor} instead of {text}.");
+        var surface = FloweryColorHelpers.Composite(Color.FromRgb(text.R, text.G, text.B), glass.GlassTint, glass.GlassTintOpacity);
+        var effective = Assert.IsAssignableFrom<ISolidColorBrush>(button.EffectiveForeground).Color;
+        Assert.True(FloweryColorHelpers.GetContrastRatio(Color.FromRgb(effective.R, effective.G, effective.B), surface) >= 4.5,
+            $"The text {effective} has too little contrast on {surface}.");
+    }
+
+    private static bool IsNear(Color? actual, Color expected) =>
+        actual is { } color && Math.Abs(color.R - expected.R) <= 6 && Math.Abs(color.G - expected.G) <= 6
+        && Math.Abs(color.B - expected.B) <= 6;
 
     // Counts the pixels of the red/blue transition at x=200 that are neither nearly red nor nearly blue.
     private static int MixedPixels(SKBitmap pixels, double scaling, double y)

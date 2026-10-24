@@ -42,6 +42,7 @@ namespace Flowery.Skia
         public override void Render(DaisyGlass glass, DrawingContext context)
         {
             var redraw = _redraws.GetValue(glass, static owner => new SkiaGlassRedraw(owner));
+            redraw.MeasureBackdrop = glass.MeasureBackdropColor;
             context.Custom(new SkiaGlassDrawOperation(
                 redraw,
                 new Rect(0, 0, glass.Bounds.Width, glass.Bounds.Height),
@@ -56,6 +57,15 @@ namespace Flowery.Skia
                 glass.GlassCurvature,
                 glass.GlassBend,
                 glass.GlassDispersion));
+        }
+
+        /// <summary>
+        /// Hands a backdrop color measured on the render thread to its glass on the UI thread.
+        /// </summary>
+        internal static void ReportMeasuredColor(Visual owner, Color color)
+        {
+            if (owner is DaisyGlass glass)
+                ReportBackdropColor(glass, color);
         }
     }
 }

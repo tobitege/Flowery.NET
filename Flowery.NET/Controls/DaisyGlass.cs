@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -6,6 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Enums;
@@ -387,6 +389,67 @@ namespace Flowery.Controls
         }
 
         /// <summary>
+        /// Defines the <see cref="MeasureBackdropColor"/> property.
+        /// </summary>
+        public static readonly StyledProperty<bool> MeasureBackdropColorProperty =
+            AvaloniaProperty.Register<DaisyGlass, bool>(nameof(MeasureBackdropColor));
+
+        /// <summary>
+        /// Gets or sets whether the glass measures the average color of its backdrop into <see cref="BackdropColor"/>.
+        /// The glass controls turn it on for their text contrast. Off by default: in <c>SkiaSharp</c> mode each
+        /// measurement reads pixels back from the GPU, at most a few times per second.
+        /// </summary>
+        public bool MeasureBackdropColor
+        {
+            get => GetValue(MeasureBackdropColorProperty);
+            set => SetValue(MeasureBackdropColorProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="BackdropColor"/> property.
+        /// </summary>
+        public static readonly DirectProperty<DaisyGlass, Color?> BackdropColorProperty =
+            AvaloniaProperty.RegisterDirect<DaisyGlass, Color?>(nameof(BackdropColor), o => o.BackdropColor);
+
+        private Color? _backdropColor;
+
+        /// <summary>
+        /// Gets the average color of what lies behind the glass, before its blur and tint, while
+        /// <see cref="MeasureBackdropColor"/> is on and a blur mode can see the backdrop (<c>BitmapCapture</c> or
+        /// <c>SkiaSharp</c>); otherwise <c>null</c>. It follows changes behind the glass with a short delay.
+        /// </summary>
+        public Color? BackdropColor
+        {
+            get => _backdropColor;
+            private set => SetAndRaise(BackdropColorProperty, ref _backdropColor, value);
+        }
+
+        private bool CanMeasureBackdrop => MeasureBackdropColor && EnableBackdropBlur && !DaisyAccessibility.IsHighContrast
+            && EffectiveBlurMode is GlassBlurMode.BitmapCapture or GlassBlurMode.SkiaSharp;
+
+        /// <summary>
+        /// Takes a measured backdrop color on the UI thread. Changes too small to see do not update the property, so
+        /// the controls that follow it do not redraw for nothing.
+        /// </summary>
+        internal void ReportBackdropColor(Color color)
+        {
+            if (!CanMeasureBackdrop)
+                return;
+            if (BackdropColor is { } current && Math.Abs(current.R - color.R) <= 2 && Math.Abs(current.G - color.G) <= 2
+                && Math.Abs(current.B - color.B) <= 2)
+                return;
+            BackdropColor = Color.FromRgb(color.R, color.G, color.B);
+        }
+
+        private void UpdateBackdropColorState()
+        {
+            if (!CanMeasureBackdrop)
+                BackdropColor = null;
+            else if (_capturedBitmap is BackdropBitmap { AverageColor: { } average })
+                ReportBackdropColor(average);
+        }
+
+        /// <summary>
         /// Internal property for the blurred background bitmap.
         /// </summary>
         public static readonly StyledProperty<IImage?> BlurredBackgroundProperty =
@@ -539,6 +602,7 @@ namespace Flowery.Controls
         private void OnAccessibilityChanged(object? sender, EventArgs e)
         {
             PseudoClasses.Set(":highcontrast", DaisyAccessibility.IsHighContrast);
+            UpdateBackdropColorState();
             if (DaisyAccessibility.IsHighContrast) ClearCapturedBackdrop();
             else if (ShouldCaptureBackdrop) RequestBackdropCapture();
             InvalidateVisual();
@@ -598,6 +662,22 @@ namespace Flowery.Controls
             {
                 RequestBackdropCapture();
             }
+
+            if (change.Property == MeasureBackdropColorProperty)
+            {
+                UpdateBackdropColorState();
+                if (MeasureBackdropColor)
+                {
+                    // A capture taken without the measurement has no average; the live renderer measures on its next render.
+                    if (ShouldCaptureBackdrop && TopLevel.GetTopLevel(this) != null)
+                        RequestBackdropCapture();
+                    InvalidateVisual();
+                }
+            }
+            else if (change.Property == EnableBackdropBlurProperty || change.Property == BlurModeProperty)
+            {
+                UpdateBackdropColorState();
+            }
         }
 
         private void RequestBackdropCapture()
@@ -649,6 +729,7 @@ namespace Flowery.Controls
                     UpdateBackdropImageBounds();
                     BlurredBackground = blurredBitmap;
                     (oldBitmap as IDisposable)?.Dispose();
+                    UpdateBackdropColorState();
                 }
             }
             catch
@@ -724,11 +805,22 @@ namespace Flowery.Controls
             {
                 var displayBounds = new Rect(capture.X - topLeft.X, capture.Y - topLeft.Y, capture.Width, capture.Height);
                 var dpi = new Vector(96 * pixelWidth / capture.Width, 96 * pixelHeight / capture.Height);
-                bitmap = new BackdropBitmap(new PixelSize(pixelWidth, pixelHeight), dpi, displayBounds);
+                var backdrop = new BackdropBitmap(new PixelSize(pixelWidth, pixelHeight), dpi, displayBounds);
+                bitmap = backdrop;
 
                 using (var ctx = bitmap.CreateDrawingContext())
                 {
                     BackdropRenderer.Render(ctx, backgroundSource, this, capture);
+                }
+
+                if (MeasureBackdropColor)
+                {
+                    // The glass itself, without the blur padding around it, in bitmap pixels.
+                    var scaleX = pixelWidth / capture.Width;
+                    var scaleY = pixelHeight / capture.Height;
+                    backdrop.AverageColor = AverageColor(backdrop, new PixelRect(
+                        (int)Math.Floor((topLeft.X - capture.X) * scaleX), (int)Math.Floor((topLeft.Y - capture.Y) * scaleY),
+                        (int)Math.Ceiling(bounds.Width * scaleX), (int)Math.Ceiling(bounds.Height * scaleY)));
                 }
 
                 return bitmap;
@@ -740,11 +832,48 @@ namespace Flowery.Controls
             }
         }
 
+        /// <summary>
+        /// Returns the average color of <paramref name="area"/> in <paramref name="bitmap"/>, weighted by alpha, or
+        /// <c>null</c> when the area holds nothing opaque.
+        /// </summary>
+        private static Color? AverageColor(Bitmap bitmap, PixelRect area)
+        {
+            area = area.Intersect(new PixelRect(bitmap.PixelSize));
+            if (area.Width <= 0 || area.Height <= 0)
+                return null;
+
+            // Copied into a bitmap of a known format; the copy converts from whatever format the platform renders in.
+            using var copy = new WriteableBitmap(bitmap.PixelSize, bitmap.Dpi, PixelFormat.Bgra8888, AlphaFormat.Premul);
+            using var frame = copy.Lock();
+            bitmap.CopyPixels(frame);
+            var row = new byte[area.Width * 4];
+            long blue = 0, green = 0, red = 0, alpha = 0;
+            for (var y = area.Y; y < area.Bottom; y++)
+            {
+                Marshal.Copy(frame.Address + y * frame.RowBytes + area.X * 4, row, 0, row.Length);
+                for (var i = 0; i < row.Length; i += 4)
+                {
+                    // Premultiplied channels summed and divided by the summed alpha give the alpha-weighted average.
+                    blue += row[i];
+                    green += row[i + 1];
+                    red += row[i + 2];
+                    alpha += row[i + 3];
+                }
+            }
+            if (alpha == 0)
+                return null;
+            return Color.FromRgb(
+                (byte)Math.Min(255, red * 255 / alpha), (byte)Math.Min(255, green * 255 / alpha), (byte)Math.Min(255, blue * 255 / alpha));
+        }
+
         // The display rectangle travels with the owned bitmap and is applied only after capture validation.
         private sealed class BackdropBitmap(PixelSize pixelSize, Vector dpi, Rect displayBounds)
             : RenderTargetBitmap(pixelSize, dpi), IImage
         {
             public Rect DisplayBounds { get; } = displayBounds;
+
+            /// <summary>The average color behind the glass, measured when the glass asked for it.</summary>
+            public Color? AverageColor { get; set; }
 
             // Bitmap.Draw uses pixel source coordinates. Image must see the same units,
             // while the render target retains its DPI for drawing shadows and effects.

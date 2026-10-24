@@ -44,6 +44,8 @@ See [accessibility preferences](DaisyAccessibility.md#system-contrast-and-reduce
 | `EffectiveGlassFill` (read-only) | The brush in use: `GlassFill`, else the `GlassGradient` preset. |
 | `GlassBackground` | An animated background over the fill and below the pattern: a `DaisyGlassGradientBackground`, or a `DaisyGlassShaderBackground` from Flowery.NET.Skia. |
 | `GlassBackgroundOpacity` | Opacity of the animated background (default 0.6). |
+| `MeasureBackdropColor` (bool) | Measures the average color behind the glass into `BackdropColor` (default off; the glass button and badge turn it on for their text contrast). In `SkiaSharp` mode a measurement reads pixels back from the GPU, at most about three times per second and only while the backdrop changes. |
+| `BackdropColor` (read-only) | The measured average color behind the glass, before blur and tint, in `BitmapCapture` and `SkiaSharp` mode; `null` otherwise. |
 
 ## Liquid Glass
 

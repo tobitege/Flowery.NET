@@ -13,6 +13,8 @@ DaisyGlassBadge is a [DaisyBadge](DaisyBadge.md) on a glass surface that blurs w
 | `GlassBlur` | 20 | Blur strength. |
 | `GlassColorOpacity` | 0.45 | Opacity of the variant color over the glass; the default variant is clear glass. |
 | `GlassTextShadowOpacity` | 0.5 | Shadow under the content. |
+| `GlassTextContrast` | `True` | Keeps the content at WCAG contrast over the backdrop, as on [DaisyGlassButton](DaisyGlassButton.md); a `Foreground` set on the badge is kept. |
+| `EffectiveForeground` (read-only) | | `Foreground`, adjusted for contrast while `GlassTextContrast` is on. |
 
 ## Quick Examples
 
