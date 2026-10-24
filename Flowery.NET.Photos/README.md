@@ -12,9 +12,9 @@ The app loads the fonts from its output directory instead of embedding them in `
 ## Standalone releases
 
 The manual **Release Photos** workflow creates a Photos-only GitHub release without publishing NuGet packages or changing the library version.
-With library version `3.10.0`, its tags are `v3.10.0-photos.1`, `v3.10.0-photos.2`, and so on.
+With library version `3.10.1`, its tags are `v3.10.1-photos.1`, `v3.10.1-photos.2`, and so on.
 The `main` and `avalonia12` branches share this counter.
-The `alpha` branch uses separate prerelease tags such as `v3.10.0-alpha-photos.1`.
+The `alpha` branch uses separate prerelease tags such as `v3.10.1-alpha-photos.1`.
 Photos releases do not replace the latest library release on GitHub.
 
 After the workflow is merged into the default branch:
