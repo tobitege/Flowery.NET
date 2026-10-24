@@ -6,6 +6,24 @@
     xmlns:galloc="clr-namespace:Flowery.NET.Gallery.Localization"
     x:Class="Flowery.NET.Gallery.Examples.CardsExamples">
 
+    <UserControl.Styles>
+        <!-- Each glass demo panel has a row of six stars: two stay left of the panel,
+             four run half behind its lower edge, so sharp and covered stars sit side by side. -->
+        <Style Selector="Grid.glassStars">
+            <Setter Property="Margin" Value="-80,0,0,-18" />
+            <Setter Property="VerticalAlignment" Value="Bottom" />
+        </Style>
+        <Style Selector="Grid.glassStars > TextBlock">
+            <Setter Property="Text" Value="★" />
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="Foreground" Value="Yellow" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Grid.glassStars.gold > TextBlock">
+            <Setter Property="Foreground" Value="#FFD700" />
+        </Style>
+    </UserControl.Styles>
+
     <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled"
         services:FloweryResponsive.IsEnabled="True"
         services:FloweryResponsive.BaseMaxWidth="430">
@@ -669,11 +687,9 @@
                                 Foreground="White" Opacity="0.9" />
                             <TextBlock Text="This text is being blurred through the glass panels"
                                 FontSize="16" Foreground="White" Opacity="0.8" Margin="0,8,0,0" />
-                            <TextBlock Text="★ ★ ★ ★ ★" FontSize="28" Foreground="Yellow"
-                                Margin="0,12,0,0" />
                             <TextBlock
                                 Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco."
-                                FontSize="14" Foreground="White" Opacity="0.7" Margin="0,8,0,0"
+                                FontSize="14" Foreground="White" Opacity="0.7" Margin="0,56,0,0"
                                 TextWrapping="Wrap" Width="500" />
                         </StackPanel>
                         <TextBlock Text="BLUR" FontSize="72" FontWeight="Black"
@@ -681,37 +697,57 @@
                             HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20" />
                         <TextBlock Text="●●●" FontSize="48" Foreground="White" Opacity="0.5"
                             HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                            Margin="0,0,0,60" />
+                            Margin="0,0,0,8" />
 
-                        <!-- Glass panels with real blur on top -->
+                        <!-- Glass panels with real blur on top; each left margin leaves room for the panel's free stars. -->
                         <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"
                             VerticalAlignment="Center" Margin="32">
-                            <controls:DaisyGlass Padding="20" CornerRadius="16" Margin="10"
-                                Width="240"
-                                EnableBackdropBlur="True" BlurMode="SkiaSharp" GlassBlur="15"
-                                GlassTint="#FFFFFF" GlassTintOpacity="0.15"
-                                GlassBorderOpacity="0.3">
-                                <StackPanel Spacing="8">
-                                    <TextBlock Text="Glass Panel" FontWeight="Bold" FontSize="18" />
-                                    <TextBlock Text="Real SkiaSharp blur at GlassBlur=15"
-                                        TextWrapping="Wrap" />
-                                    <controls:DaisyButton Content="Action" Size="Small"
-                                        HorizontalAlignment="Right" Margin="0,8,0,0" />
-                                </StackPanel>
-                            </controls:DaisyGlass>
+                            <Grid Margin="90,10,10,24">
+                                <Grid Classes="glassStars" ColumnDefinitions="40,40,*,*,*,*">
+                                    <TextBlock />
+                                    <TextBlock Grid.Column="1" />
+                                    <TextBlock Grid.Column="2" />
+                                    <TextBlock Grid.Column="3" />
+                                    <TextBlock Grid.Column="4" />
+                                    <TextBlock Grid.Column="5" />
+                                </Grid>
+                                <controls:DaisyGlass Padding="20" CornerRadius="16"
+                                    Width="240"
+                                    EnableBackdropBlur="True" BlurMode="SkiaSharp" GlassBlur="15"
+                                    GlassTint="#FFFFFF" GlassTintOpacity="0.15"
+                                    GlassBorderOpacity="0.3">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="Glass Panel" FontWeight="Bold" FontSize="18" />
+                                        <TextBlock Text="Real SkiaSharp blur at GlassBlur=15"
+                                            TextWrapping="Wrap" />
+                                        <controls:DaisyButton Content="Action" Size="Small"
+                                            HorizontalAlignment="Right" Margin="0,8,0,0" />
+                                    </StackPanel>
+                                </controls:DaisyGlass>
+                            </Grid>
 
-                            <controls:DaisyGlass Padding="20" CornerRadius="16" Margin="10"
-                                Width="240"
-                                EnableBackdropBlur="True" BlurMode="SkiaSharp" GlassBlur="25"
-                                GlassTint="#1a1a2e" GlassTintOpacity="0.5"
-                                GlassBorderOpacity="0.2">
-                                <StackPanel Spacing="8">
-                                    <TextBlock Text="Dark Glass" FontWeight="Bold" FontSize="18"
-                                        Foreground="White" />
-                                    <TextBlock Text="Darker tint with GlassBlur=25"
-                                        TextWrapping="Wrap" Foreground="White" Opacity="0.9" />
-                                </StackPanel>
-                            </controls:DaisyGlass>
+                            <Grid Margin="90,10,10,24">
+                                <Grid Classes="glassStars" ColumnDefinitions="40,40,*,*,*,*">
+                                    <TextBlock />
+                                    <TextBlock Grid.Column="1" />
+                                    <TextBlock Grid.Column="2" />
+                                    <TextBlock Grid.Column="3" />
+                                    <TextBlock Grid.Column="4" />
+                                    <TextBlock Grid.Column="5" />
+                                </Grid>
+                                <controls:DaisyGlass Padding="20" CornerRadius="16"
+                                    Width="240"
+                                    EnableBackdropBlur="True" BlurMode="SkiaSharp" GlassBlur="25"
+                                    GlassTint="#1a1a2e" GlassTintOpacity="0.5"
+                                    GlassBorderOpacity="0.2">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="Dark Glass" FontWeight="Bold" FontSize="18"
+                                            Foreground="White" />
+                                        <TextBlock Text="Darker tint with GlassBlur=25"
+                                            TextWrapping="Wrap" Foreground="White" Opacity="0.9" />
+                                    </StackPanel>
+                                </controls:DaisyGlass>
+                            </Grid>
                         </WrapPanel>
                     </Grid>
                 </Border>
@@ -768,41 +804,62 @@
                             Foreground="#30FFFFFF"
                             HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20" />
 
+                        <!-- Each left margin leaves room for the panel's free stars; the covered stars show the rim bend. -->
                         <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"
                             VerticalAlignment="Center" Margin="32">
-                            <controls:DaisyGlass Padding="22" CornerRadius="22" Margin="10"
-                                Width="260"
-                                EnableBackdropBlur="True" BlurMode="SkiaSharp"
-                                GlassBlur="28" GlassSaturation="1.15"
-                                GlassTint="#FFFFFF" GlassTintOpacity="0.12"
-                                GlassReflectDegree="35" GlassReflectOpacity="0.28"
-                                GlassDepth="0.85" GlassCurvature="0.8"
-                                GlassBend="0.65" GlassDispersion="0.28">
-                                <StackPanel Spacing="8">
-                                    <TextBlock Text="Convex Lens" FontWeight="Bold"
-                                        FontSize="18" />
-                                    <TextBlock Text="Strong rim bend with chromatic edge split."
-                                        TextWrapping="Wrap" />
-                                    <controls:DaisyButton Content="Preview" Size="Small"
-                                        HorizontalAlignment="Right" Margin="0,8,0,0" />
-                                </StackPanel>
-                            </controls:DaisyGlass>
+                            <Grid Margin="90,10,10,24">
+                                <Grid Classes="glassStars" ColumnDefinitions="40,40,*,*,*,*">
+                                    <TextBlock />
+                                    <TextBlock Grid.Column="1" />
+                                    <TextBlock Grid.Column="2" />
+                                    <TextBlock Grid.Column="3" />
+                                    <TextBlock Grid.Column="4" />
+                                    <TextBlock Grid.Column="5" />
+                                </Grid>
+                                <controls:DaisyGlass Padding="22" CornerRadius="22"
+                                    Width="260"
+                                    EnableBackdropBlur="True" BlurMode="SkiaSharp"
+                                    GlassBlur="28" GlassSaturation="1.15"
+                                    GlassTint="#FFFFFF" GlassTintOpacity="0.12"
+                                    GlassReflectDegree="35" GlassReflectOpacity="0.28"
+                                    GlassDepth="0.85" GlassCurvature="0.8"
+                                    GlassBend="0.65" GlassDispersion="0.28">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="Convex Lens" FontWeight="Bold"
+                                            FontSize="18" />
+                                        <TextBlock Text="Strong rim bend with chromatic edge split."
+                                            TextWrapping="Wrap" />
+                                        <controls:DaisyButton Content="Preview" Size="Small"
+                                            HorizontalAlignment="Right" Margin="0,8,0,0" />
+                                    </StackPanel>
+                                </controls:DaisyGlass>
+                            </Grid>
 
-                            <controls:DaisyGlass Padding="22" CornerRadius="22" Margin="10"
-                                Width="260"
-                                EnableBackdropBlur="True" BlurMode="SkiaSharp"
-                                GlassBlur="20" GlassSaturation="0.85"
-                                GlassTint="#111827" GlassTintOpacity="0.38"
-                                GlassReflectDegree="135" GlassReflectOpacity="0.22"
-                                GlassDepth="0.55" GlassCurvature="0.45"
-                                GlassBend="0.35" GlassDispersion="0.12">
-                                <StackPanel Spacing="8">
-                                    <TextBlock Text="Dark Lens" FontWeight="Bold"
-                                        FontSize="18" Foreground="White" />
-                                    <TextBlock Text="Lower curvature with a softer liquid rim."
-                                        TextWrapping="Wrap" Foreground="White" Opacity="0.9" />
-                                </StackPanel>
-                            </controls:DaisyGlass>
+                            <Grid Margin="90,10,10,24">
+                                <Grid Classes="glassStars" ColumnDefinitions="40,40,*,*,*,*">
+                                    <TextBlock />
+                                    <TextBlock Grid.Column="1" />
+                                    <TextBlock Grid.Column="2" />
+                                    <TextBlock Grid.Column="3" />
+                                    <TextBlock Grid.Column="4" />
+                                    <TextBlock Grid.Column="5" />
+                                </Grid>
+                                <controls:DaisyGlass Padding="22" CornerRadius="22"
+                                    Width="260"
+                                    EnableBackdropBlur="True" BlurMode="SkiaSharp"
+                                    GlassBlur="20" GlassSaturation="0.85"
+                                    GlassTint="#111827" GlassTintOpacity="0.38"
+                                    GlassReflectDegree="135" GlassReflectOpacity="0.22"
+                                    GlassDepth="0.55" GlassCurvature="0.45"
+                                    GlassBend="0.35" GlassDispersion="0.12">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="Dark Lens" FontWeight="Bold"
+                                            FontSize="18" Foreground="White" />
+                                        <TextBlock Text="Lower curvature with a softer liquid rim."
+                                            TextWrapping="Wrap" Foreground="White" Opacity="0.9" />
+                                    </StackPanel>
+                                </controls:DaisyGlass>
+                            </Grid>
                         </WrapPanel>
                     </Grid>
                 </Border>
@@ -829,29 +886,49 @@
                         <StackPanel Margin="20">
                             <TextBlock Text="BACKGROUND TEXT" FontSize="32" FontWeight="Black" Foreground="White" Opacity="0.9"/>
                             <TextBlock Text="This text is blurred through the glass" FontSize="16" Foreground="White" Opacity="0.8" Margin="0,8,0,0"/>
-                            <TextBlock Text="★ ★ ★ ★ ★" FontSize="28" Foreground="Yellow" Margin="0,12,0,0"/>
                             <TextBlock Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore."
-                                       FontSize="14" Foreground="#404040" Opacity="0.9" Margin="0,8,0,0" TextWrapping="Wrap" Width="500"/>
+                                       FontSize="14" Foreground="#404040" Opacity="0.9" Margin="0,56,0,0" TextWrapping="Wrap" Width="500"/>
                         </StackPanel>
                         <TextBlock Text="SHARP" FontSize="72" FontWeight="Black" Foreground="#40FFFFFF"
                                    HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20"/>
 
+                        <!-- Each left margin leaves room for the panel's free stars. -->
                         <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32">
-                            <controls:DaisyGlass Padding="24" CornerRadius="16" Margin="10" Width="220"
-                                                 EnableBackdropBlur="True" BlurMode="BitmapCapture" GlassBlur="10">
-                                <StackPanel Spacing="8">
-                                    <TextBlock Text="Bitmap Mode" FontWeight="Bold" FontSize="18"/>
-                                    <TextBlock Text="GlassBlur=10" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </controls:DaisyGlass>
+                            <Grid Margin="90,10,10,24">
+                                <Grid Classes="glassStars" ColumnDefinitions="40,40,*,*,*,*">
+                                    <TextBlock />
+                                    <TextBlock Grid.Column="1" />
+                                    <TextBlock Grid.Column="2" />
+                                    <TextBlock Grid.Column="3" />
+                                    <TextBlock Grid.Column="4" />
+                                    <TextBlock Grid.Column="5" />
+                                </Grid>
+                                <controls:DaisyGlass Padding="24" CornerRadius="16" Width="220"
+                                                     EnableBackdropBlur="True" BlurMode="BitmapCapture" GlassBlur="10">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="Bitmap Mode" FontWeight="Bold" FontSize="18"/>
+                                        <TextBlock Text="GlassBlur=10" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </controls:DaisyGlass>
+                            </Grid>
 
-                            <controls:DaisyGlass Padding="24" CornerRadius="16" Margin="10" Width="220"
-                                                 EnableBackdropBlur="True" BlurMode="BitmapCapture" GlassBlur="20" GlassTint="#FFFFFF" GlassTintOpacity="0.2">
-                                <StackPanel Spacing="8">
-                                    <TextBlock Text="With Tint" FontWeight="Bold" FontSize="18"/>
-                                    <TextBlock Text="GlassBlur=20" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </controls:DaisyGlass>
+                            <Grid Margin="90,10,10,24">
+                                <Grid Classes="glassStars" ColumnDefinitions="40,40,*,*,*,*">
+                                    <TextBlock />
+                                    <TextBlock Grid.Column="1" />
+                                    <TextBlock Grid.Column="2" />
+                                    <TextBlock Grid.Column="3" />
+                                    <TextBlock Grid.Column="4" />
+                                    <TextBlock Grid.Column="5" />
+                                </Grid>
+                                <controls:DaisyGlass Padding="24" CornerRadius="16" Width="220"
+                                                     EnableBackdropBlur="True" BlurMode="BitmapCapture" GlassBlur="20" GlassTint="#FFFFFF" GlassTintOpacity="0.2">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="With Tint" FontWeight="Bold" FontSize="18"/>
+                                        <TextBlock Text="GlassBlur=20" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </controls:DaisyGlass>
+                            </Grid>
                         </WrapPanel>
                     </Grid>
                 </Border>
@@ -875,23 +952,33 @@
                         <StackPanel Margin="20">
                             <TextBlock Text="FULL WIDTH TEST" FontSize="32" FontWeight="Black" Foreground="White" Opacity="0.9"/>
                             <TextBlock Text="Testing SkiaSharp GPU blur + Saturation" FontSize="16" Foreground="White" Opacity="0.8" Margin="0,8,0,0"/>
-                            <TextBlock Text="◆ ◆ ◆ ◆ ◆" FontSize="28" Foreground="#FFD700" Margin="0,12,0,0"/>
                             <TextBlock Text="Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae."
-                                       FontSize="14" Foreground="#2D4A3E" Opacity="0.9" Margin="0,8,0,0" TextWrapping="Wrap" Width="500"/>
+                                       FontSize="14" Foreground="#2D4A3E" Opacity="0.9" Margin="0,56,0,0" TextWrapping="Wrap" Width="500"/>
                         </StackPanel>
                         <TextBlock Text="GPU" FontSize="72" FontWeight="Black" Foreground="#40FFFFFF"
                                    HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="20"/>
 
-                        <controls:DaisyGlass Margin="40" Height="120" VerticalAlignment="Center"
-                                             EnableBackdropBlur="True" BlurMode="SkiaSharp"
-                                             GlassBlur="30" GlassSaturation="0.5"
-                                             GlassTint="#FFFFFF" GlassTintOpacity="0.15"
-                                             GlassBorderOpacity="0.3">
-                            <StackPanel Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                <TextBlock Text="Milky Glass Panel" FontWeight="Bold" FontSize="24" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Blur=30, Sat=0.5" HorizontalAlignment="Center" Opacity="0.8"/>
-                            </StackPanel>
-                        </controls:DaisyGlass>
+                        <!-- The wide panel keeps its four covered stars at its left end, clear of the GPU text. -->
+                        <Grid Margin="100,40" VerticalAlignment="Center">
+                            <Grid Classes="glassStars gold" ColumnDefinitions="40,40,40,40,40,40" HorizontalAlignment="Left">
+                                <TextBlock />
+                                <TextBlock Grid.Column="1" />
+                                <TextBlock Grid.Column="2" />
+                                <TextBlock Grid.Column="3" />
+                                <TextBlock Grid.Column="4" />
+                                <TextBlock Grid.Column="5" />
+                            </Grid>
+                            <controls:DaisyGlass Height="120"
+                                                 EnableBackdropBlur="True" BlurMode="SkiaSharp"
+                                                 GlassBlur="30" GlassSaturation="0.5"
+                                                 GlassTint="#FFFFFF" GlassTintOpacity="0.15"
+                                                 GlassBorderOpacity="0.3">
+                                <StackPanel Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock Text="Milky Glass Panel" FontWeight="Bold" FontSize="24" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Blur=30, Sat=0.5" HorizontalAlignment="Center" Opacity="0.8"/>
+                                </StackPanel>
+                            </controls:DaisyGlass>
+                        </Grid>
                     </Grid>
                 </Border>
             </StackPanel>
