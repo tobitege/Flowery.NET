@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Glass: in `SkiaSharp` mode, content moving behind a glass no longer leaves streaks or a tinted rectangle. A frame redraws only the changed area, but the blur spreads the change further, so the edges of that area kept the old blur. While the backdrop changes, the glass now redraws in full on every frame and returns to partial redraws about 0.3 s later. A glass that a scroll viewer or another ancestor clips counts only its visible part, so nested glass controls at the edge of a view no longer keep each other redrawing. The backdrop snapshot covers only the glass and its blur margin instead of the whole window.
 - Glass: a `DaisyGlass` without a fixed size in `BitmapCapture` mode keeps its size. The captured backdrop reaches up to 20 past each edge and was part of the measure, so every capture widened the glass until it filled its background container.
 
 ### Changed

@@ -59,6 +59,7 @@ namespace Flowery.Controls
         private IImage? _capturedBitmap;
         private Image? _blurImage;
         private Canvas? _patternLayer;
+        private SkiaGlassRedraw? _skiaRedraw;
         private bool _needsUpdate = true;
         private bool _captureScheduled;
         private int _captureGeneration;
@@ -733,7 +734,9 @@ namespace Flowery.Controls
             if (EnableBackdropBlur && BlurMode == GlassBlurMode.SkiaSharp && !DaisyAccessibility.IsHighContrast)
             {
                 // Use custom SkiaSharp draw operation for real-time blur
+                _skiaRedraw ??= new SkiaGlassRedraw(this);
                 var operation = new SkiaGlassDrawOperation(
+                    _skiaRedraw,
                     new Rect(0, 0, Bounds.Width, Bounds.Height),
                     GlassBlur,
                     GlassTint,
@@ -755,6 +758,53 @@ namespace Flowery.Controls
     }
 
     /// <summary>
+    /// Keeps a SkiaSharp glass redrawing in full for a moment after its backdrop changed.
+    /// A frame redraws only the changed areas, but the blur spreads each change a few pixels further, so a partial
+    /// redraw would leave the old blur at the edges of the changed area. While the backdrop keeps changing,
+    /// the whole glass is redrawn every frame; afterwards it returns to partial redraws.
+    /// </summary>
+    internal sealed class SkiaGlassRedraw(Visual owner)
+    {
+        private static readonly TimeSpan LiveTime = TimeSpan.FromMilliseconds(300);
+
+        private int _changeQueued;
+        private DateTime _liveUntil;
+        private bool _frameRequested;
+
+        /// <summary>Incremented on the UI thread for each full redraw, so the new draw operation differs from the last.</summary>
+        public int Version { get; private set; }
+
+        /// <summary>Called on the render thread when a frame redrew only part of the glass.</summary>
+        public void BackdropChanged()
+        {
+            if (Interlocked.Exchange(ref _changeQueued, 1) == 1)
+                return;
+            Dispatcher.UIThread.Post(() =>
+            {
+                _changeQueued = 0;
+                _liveUntil = DateTime.UtcNow + LiveTime;
+                RequestFrame();
+            }, DispatcherPriority.Render);
+        }
+
+        private void RequestFrame()
+        {
+            if (_frameRequested || TopLevel.GetTopLevel(owner) is not { } topLevel)
+                return;
+            _frameRequested = true;
+            topLevel.RequestAnimationFrame(_ =>
+            {
+                _frameRequested = false;
+                if (DateTime.UtcNow > _liveUntil)
+                    return;
+                Version++;
+                owner.InvalidateVisual();
+                RequestFrame();
+            });
+        }
+    }
+
+    /// <summary>
     /// Custom SkiaSharp draw operation for real-time glass blur effect.
     /// </summary>
     internal class SkiaGlassDrawOperation : ICustomDrawOperation
@@ -770,8 +820,12 @@ namespace Flowery.Controls
         private readonly float _curvature;
         private readonly float _bend;
         private readonly float _dispersion;
+        private readonly SkiaGlassRedraw _redraw;
+        private readonly int _redrawVersion;
+        private SKRectI? _seen;
 
         public SkiaGlassDrawOperation(
+            SkiaGlassRedraw redraw,
             Rect bounds,
             double blurRadius,
             Color tintColor,
@@ -785,6 +839,8 @@ namespace Flowery.Controls
             double bend,
             double dispersion)
         {
+            _redraw = redraw;
+            _redrawVersion = redraw.Version;
             _bounds = bounds;
             _blurSigma = (float)(blurRadius / 10.0);
             _tintColor = new SKColor(
@@ -808,7 +864,9 @@ namespace Flowery.Controls
 
         public bool Equals(ICustomDrawOperation? other)
         {
+            // A full redraw must differ from the last operation, or the renderer would keep the old one.
             return other is SkiaGlassDrawOperation op &&
+                   op._redrawVersion == _redrawVersion &&
                    op._bounds == _bounds &&
                    op._tintColor == _tintColor &&
                    op._cornerRadius == _cornerRadius &&
@@ -843,6 +901,9 @@ namespace Flowery.Controls
                 (float)_bounds.Bottom);
 
             var roundedRect = new SKRoundRect(rect, _cornerRadius);
+
+            // Taken before the rounded clip below: the clip on entry bounds the area this frame redraws.
+            var backdrop = lease.SkSurface is SKSurface surface ? GetBackdrop(surface, canvas, rect) : null;
 
             // Save canvas state
             int saveCount = canvas.Save();
@@ -900,28 +961,21 @@ namespace Flowery.Controls
 
             // Fallback: Snapshot approach (Manual Backdrop Blur)
             // This is robust and works without SKSaveLayerRec
-            if (lease.SkSurface is SKSurface surface)
+            if (backdrop is { } snapshot)
             {
-                using var snapshot = surface.Snapshot();
                 using var paint = new SKPaint
                 {
                     ImageFilter = backdropFilter,
                     IsAntialias = true
                 };
 
-                // IMPORTANT: The snapshot is in Device Coordinates (pixels).
-                // The canvas is currently in Local Coordinates (with transforms/scaling).
-                // To align the background perfectly, we must draw in Device Coordinates.
-
+                // The backdrop is in device pixels; draw it with the identity matrix so it aligns with the surface.
+                // The rounded clip is kept in device space, so it masks correctly.
                 canvas.Save();
-                // Reset matrix to Identity (Device Coordinates) so 0,0 is top-left of window
                 canvas.ResetMatrix();
-
-                // Draw the snapshot at 0,0.
-                // The previous clip (rounded rect) is preserved in device space, so it masks correctly.
-                canvas.DrawImage(snapshot, 0, 0, paint);
-
+                canvas.DrawImage(snapshot.Image, snapshot.Bounds.Left, snapshot.Bounds.Top, paint);
                 canvas.Restore();
+                snapshot.Image.Dispose();
             }
 
             if (backdropFilter != blurFilter)
@@ -1077,6 +1131,45 @@ namespace Flowery.Controls
                 canvas.DrawRoundRect(rimRect, bluePaint);
             }
             canvas.Restore();
+        }
+
+        /// <summary>
+        /// Returns the backdrop of the glass and its blur margin from the surface, in device pixels.
+        /// The caller disposes the image after drawing it; no surface image outlives the frame.
+        /// </summary>
+        private (SKImage Image, SKRectI Bounds)? GetBackdrop(SKSurface surface, SKCanvas canvas, SKRect rect)
+        {
+            var glass = SKRectI.Ceiling(canvas.TotalMatrix.MapRect(rect));
+            var clipBounds = canvas.DeviceClipBounds;
+
+            // The first render of an operation follows an invalidation of the glass, which redraws all of it that can
+            // be seen; a scroll viewer or another clipping ancestor may hide the rest, which is never redrawn.
+            // A later render that misses part of that visible area redraws only part of the glass.
+            var first = _seen == null;
+            if (first)
+            {
+                var seen = glass;
+                seen.Intersect(clipBounds);
+                _seen = seen;
+            }
+            clipBounds.Inflate(1, 1);
+            var partial = !clipBounds.Contains(_seen!.Value);
+
+            // A partial render follows a change behind the glass. The blur spreads that change beyond the redrawn
+            // area, where this frame cannot draw, so the glass redraws in full for a moment.
+            if (!first && partial)
+                _redraw.BackdropChanged();
+
+            var margin = (int)Math.Ceiling(_blurSigma * 3) + 1;
+            var sample = glass;
+            sample.Inflate(margin, margin);
+            sample = new SKRectI(Math.Max(0, sample.Left), Math.Max(0, sample.Top), sample.Right, sample.Bottom);
+            if (sample.Width <= 0 || sample.Height <= 0 || surface.Snapshot(sample) is not { } fresh)
+                return null;
+            // The surface clips the snapshot at its right and bottom edges.
+            sample = new SKRectI(sample.Left, sample.Top, sample.Left + fresh.Width, sample.Top + fresh.Height);
+
+            return (fresh, sample);
         }
 
         private static float Clamp01(float value) => Math.Clamp(value, 0f, 1f);
