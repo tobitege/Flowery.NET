@@ -134,43 +134,41 @@
                                 <controls:DaisyGlassButton Content="Get started" Size="ExtraLarge" Shape="Wide" GlassGradient="Aurora" GlassPattern="Noise" GlassPatternOpacity="0.4"
                                                            GlassDepth="0.9" GlassCurvature="0.8" GlassReflectOpacity="0.3" Foreground="White" Margin="6" />
                             </WrapPanel>
-                            <!-- Animated backgrounds: moving gradients from Flowery.NET, shaders from Flowery.NET.Skia -->
-                            <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBlock Text="Gradients" Width="90" VerticalAlignment="Center" Foreground="White" FontWeight="SemiBold" Margin="6" />
-                                <controls:DaisyGlassButton Content="Plasma" Size="Large" Shape="Wide" Foreground="White" Margin="6">
+                            <!-- Animated backgrounds, one effect per row: moving gradients from Flowery.NET, shaders from Flowery.NET.Skia -->
+                            <Grid HorizontalAlignment="Center" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+                                <TextBlock Text="Gradients" HorizontalAlignment="Center" Foreground="White" FontWeight="SemiBold" Margin="6,6,6,0" />
+                                <TextBlock Text="Shaders" Grid.Column="1" HorizontalAlignment="Center" Foreground="White" FontWeight="SemiBold" Margin="6,6,6,0" />
+                                <controls:DaisyGlassButton Content="Plasma" Grid.Row="1" Grid.Column="0" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="White" Margin="6">
                                     <controls:DaisyGlassButton.GlassBackground>
                                         <controls:DaisyGlassGradientBackground Effect="Plasma" />
                                     </controls:DaisyGlassButton.GlassBackground>
                                 </controls:DaisyGlassButton>
-                                <controls:DaisyGlassButton Content="Aurora" Size="Large" Shape="Wide" Foreground="White" GlassBackgroundOpacity="0.8" Margin="6">
-                                    <controls:DaisyGlassButton.GlassBackground>
-                                        <controls:DaisyGlassGradientBackground Effect="Aurora" />
-                                    </controls:DaisyGlassButton.GlassBackground>
-                                </controls:DaisyGlassButton>
-                                <controls:DaisyGlassButton Content="Liquid gold" Size="Large" Shape="Wide" Foreground="#3B2600" GlassTextShadowOpacity="0" GlassBackgroundOpacity="0.85" Margin="6">
-                                    <controls:DaisyGlassButton.GlassBackground>
-                                        <controls:DaisyGlassGradientBackground Effect="LiquidGold" />
-                                    </controls:DaisyGlassButton.GlassBackground>
-                                </controls:DaisyGlassButton>
-                            </WrapPanel>
-                            <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBlock Text="Shaders" Width="90" VerticalAlignment="Center" Foreground="White" FontWeight="SemiBold" Margin="6" />
-                                <controls:DaisyGlassButton Content="Plasma" Size="Large" Shape="Wide" Foreground="White" Margin="6">
+                                <controls:DaisyGlassButton Content="Plasma" Grid.Row="1" Grid.Column="1" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="White" Margin="6">
                                     <controls:DaisyGlassButton.GlassBackground>
                                         <skia:DaisyGlassShaderBackground Effect="Plasma" />
                                     </controls:DaisyGlassButton.GlassBackground>
                                 </controls:DaisyGlassButton>
-                                <controls:DaisyGlassButton Content="Aurora" Size="Large" Shape="Wide" Foreground="White" GlassBackgroundOpacity="0.8" Margin="6">
+                                <controls:DaisyGlassButton Content="Aurora" Grid.Row="2" Grid.Column="0" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="White" GlassBackgroundOpacity="0.8" Margin="6">
+                                    <controls:DaisyGlassButton.GlassBackground>
+                                        <controls:DaisyGlassGradientBackground Effect="Aurora" />
+                                    </controls:DaisyGlassButton.GlassBackground>
+                                </controls:DaisyGlassButton>
+                                <controls:DaisyGlassButton Content="Aurora" Grid.Row="2" Grid.Column="1" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="White" GlassBackgroundOpacity="0.8" Margin="6">
                                     <controls:DaisyGlassButton.GlassBackground>
                                         <skia:DaisyGlassShaderBackground Effect="Aurora" />
                                     </controls:DaisyGlassButton.GlassBackground>
                                 </controls:DaisyGlassButton>
-                                <controls:DaisyGlassButton Content="Liquid gold" Size="Large" Shape="Wide" Foreground="#3B2600" GlassTextShadowOpacity="0" GlassBackgroundOpacity="0.85" Margin="6">
+                                <controls:DaisyGlassButton Content="Liquid gold" Grid.Row="3" Grid.Column="0" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="#3B2600" GlassTextShadowOpacity="0" GlassBackgroundOpacity="0.85" Margin="6">
+                                    <controls:DaisyGlassButton.GlassBackground>
+                                        <controls:DaisyGlassGradientBackground Effect="LiquidGold" />
+                                    </controls:DaisyGlassButton.GlassBackground>
+                                </controls:DaisyGlassButton>
+                                <controls:DaisyGlassButton Content="Liquid gold" Grid.Row="3" Grid.Column="1" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="#3B2600" GlassTextShadowOpacity="0" GlassBackgroundOpacity="0.85" Margin="6">
                                     <controls:DaisyGlassButton.GlassBackground>
                                         <skia:DaisyGlassShaderBackground Effect="LiquidGold" />
                                     </controls:DaisyGlassButton.GlassBackground>
                                 </controls:DaisyGlassButton>
-                            </WrapPanel>
+                            </Grid>
                         </StackPanel>
                     </Grid>
                 </Border>
