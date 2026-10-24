@@ -267,6 +267,36 @@ namespace Flowery.Controls
         }
 
         /// <summary>
+        /// Defines the <see cref="GlassBackground"/> property.
+        /// </summary>
+        public static readonly StyledProperty<DaisyGlassBackground?> GlassBackgroundProperty =
+            DaisyGlass.GlassBackgroundProperty.AddOwner<DaisyGlassNavbar>();
+
+        /// <summary>
+        /// Gets or sets an animated background drawn over the fill and below the pattern.
+        /// </summary>
+        public DaisyGlassBackground? GlassBackground
+        {
+            get => GetValue(GlassBackgroundProperty);
+            set => SetValue(GlassBackgroundProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="GlassBackgroundOpacity"/> property.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassBackgroundOpacityProperty =
+            DaisyGlass.GlassBackgroundOpacityProperty.AddOwner<DaisyGlassNavbar>();
+
+        /// <summary>
+        /// Gets or sets the opacity of the animated background.
+        /// </summary>
+        public double GlassBackgroundOpacity
+        {
+            get => GetValue(GlassBackgroundOpacityProperty);
+            set => SetValue(GlassBackgroundOpacityProperty, value);
+        }
+
+        /// <summary>
         /// Defines the <see cref="GlassPattern"/> property.
         /// </summary>
         public static readonly StyledProperty<DaisyCardPattern> GlassPatternProperty =

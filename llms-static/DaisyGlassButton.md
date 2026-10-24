@@ -29,6 +29,7 @@ From back to front: the blurred backdrop, the glass tint, the fill (`GlassFill` 
 | `GlassColorOpacity` | 0.35 | Opacity of the variant color and its hover color over the glass. |
 | `GlassFill` / `GlassGradient` / `GlassFillOpacity` | none / `None` / 0.6 | Brush or gradient preset over the glass. |
 | `GlassPattern` / `GlassPatternColor` / `GlassPatternOpacity` | `None` / White / 0.4 | Pattern over the fill. |
+| `GlassBackground` / `GlassBackgroundOpacity` | none / 0.6 | Animated background (Plasma, Aurora, Liquid Gold) as gradients or, with Flowery.NET.Skia, shaders; see [DaisyGlass](DaisyGlass.md#animated-backgrounds). |
 | `GlassTextShadowOpacity` | 0.5 | Shadow under text and icons; keeps them readable on any backdrop. |
 | `GlassSaturation`, `GlassReflectDegree`, `GlassReflectOpacity`, `GlassDepth`, `GlassCurvature`, `GlassBend`, `GlassDispersion` | as DaisyGlass | Saturation and the liquid-glass optics of the SkiaSharp mode. |
 

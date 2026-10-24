@@ -57,6 +57,7 @@ namespace Flowery.Controls
         private IImage? _capturedBitmap;
         private Image? _blurImage;
         private Canvas? _patternLayer;
+        private Panel? _backgroundHost;
         private bool _needsUpdate = true;
         private bool _captureScheduled;
         private int _captureGeneration;
@@ -294,6 +295,31 @@ namespace Flowery.Controls
         }
 
         /// <summary>
+        /// Gets or sets an animated background drawn over the fill and below the pattern, such as a
+        /// <see cref="DaisyGlassGradientBackground"/> or, from Flowery.NET.Skia, a DaisyGlassShaderBackground.
+        /// </summary>
+        public static readonly StyledProperty<DaisyGlassBackground?> GlassBackgroundProperty =
+            AvaloniaProperty.Register<DaisyGlass, DaisyGlassBackground?>(nameof(GlassBackground));
+
+        public DaisyGlassBackground? GlassBackground
+        {
+            get => GetValue(GlassBackgroundProperty);
+            set => SetValue(GlassBackgroundProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the opacity of the animated background.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassBackgroundOpacityProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassBackgroundOpacity), 0.6);
+
+        public double GlassBackgroundOpacity
+        {
+            get => GetValue(GlassBackgroundOpacityProperty);
+            set => SetValue(GlassBackgroundOpacityProperty, value);
+        }
+
+        /// <summary>
         /// Defines the <see cref="EffectiveGlassFill"/> property.
         /// </summary>
         public static readonly DirectProperty<DaisyGlass, IBrush?> EffectiveGlassFillProperty =
@@ -379,7 +405,8 @@ namespace Flowery.Controls
             GlassTintProperty, GlassTintOpacityProperty, GlassReflectDegreeProperty, GlassReflectOpacityProperty,
             GlassDepthProperty, GlassCurvatureProperty, GlassBendProperty, GlassDispersionProperty,
             GlassFillProperty, GlassGradientProperty, GlassFillOpacityProperty,
-            GlassPatternProperty, GlassPatternColorProperty, GlassPatternOpacityProperty
+            GlassPatternProperty, GlassPatternColorProperty, GlassPatternOpacityProperty,
+            GlassBackgroundProperty, GlassBackgroundOpacityProperty
         ];
 
         /// <summary>
@@ -431,8 +458,18 @@ namespace Flowery.Controls
             base.OnApplyTemplate(e);
             _blurImage = e.NameScope.Find<Image>("PART_BlurImage");
             _patternLayer = e.NameScope.Find<Canvas>("PART_PatternLayer");
+            _backgroundHost = e.NameScope.Find<Panel>("PART_BackgroundHost");
             UpdateBackdropImageBounds();
             RebuildPatternLayer();
+            RebuildBackgroundLayer();
+        }
+
+        private void RebuildBackgroundLayer()
+        {
+            if (_backgroundHost == null) return;
+            _backgroundHost.Children.Clear();
+            if (GlassBackground?.CreateLayer() is { } layer)
+                _backgroundHost.Children.Add(layer);
         }
 
         private void UpdateEffectiveGlassFill()
@@ -510,6 +547,12 @@ namespace Flowery.Controls
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
+
+            if (change.Property == GlassBackgroundProperty)
+            {
+                RebuildBackgroundLayer();
+                return;
+            }
 
             if (change.Property == GlassFillProperty || change.Property == GlassGradientProperty)
             {

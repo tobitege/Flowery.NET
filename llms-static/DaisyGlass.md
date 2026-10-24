@@ -42,6 +42,8 @@ See [accessibility preferences](DaisyAccessibility.md#system-contrast-and-reduce
 | `GlassPattern` | One of the `DaisyPatternedCard` patterns (`DaisyCardPattern`), drawn over the fill. |
 | `GlassPatternColor` / `GlassPatternOpacity` | Pattern color (default white) and the opacity of a typical stroke (default 0.4). |
 | `EffectiveGlassFill` (read-only) | The brush in use: `GlassFill`, else the `GlassGradient` preset. |
+| `GlassBackground` | An animated background over the fill and below the pattern: a `DaisyGlassGradientBackground`, or a `DaisyGlassShaderBackground` from Flowery.NET.Skia. |
+| `GlassBackgroundOpacity` | Opacity of the animated background (default 0.6). |
 
 ## Liquid Glass
 
@@ -87,6 +89,34 @@ The glass is a stack of layers: the backdrop (blurred or simulated), the tint, t
 ```
 
 `DaisyGlassGradients.CreateBrush(DaisyGlassGradient)` returns a new brush for a preset. The presets are plain ARGB stops with an angle (linear), a sweep (`Holo`, conic) or a corner highlight (`Frost`, radial), so the other Flowery ports can reproduce the same colors with their own brush types. The patterns are the shared `DaisyCardPattern` set; `GlassPatternOpacity` scales each pattern's own shading, so lighter and darker strokes keep their proportion.
+
+## Animated Backgrounds
+
+`GlassBackground` takes an animated background with an `Effect` (`Plasma`, `Aurora`, `LiquidGold`) and a `Speed` (1 is normal, 0 stops it). There are two implementations of the same effects, so you can choose between look and cost:
+
+| Background | Package | Drawing |
+| ---------- | ------- | ------- |
+| `DaisyGlassGradientBackground` | Flowery.NET | Moving linear and radial gradients. No SkiaSharp needed, works with every blur mode. |
+| `DaisyGlassShaderBackground` | Flowery.NET.Skia | SkSL runtime shaders drawn per pixel: plasma fields, aurora curtains with shimmer, molten gold with highlights. |
+
+```xml
+<controls:DaisyGlassButton Content="Plasma">
+    <controls:DaisyGlassButton.GlassBackground>
+        <controls:DaisyGlassGradientBackground Effect="Plasma" />
+    </controls:DaisyGlassButton.GlassBackground>
+</controls:DaisyGlassButton>
+
+<!-- xmlns:skia="clr-namespace:Flowery.Skia;assembly=Flowery.NET.Skia" -->
+<controls:DaisyGlass GlassBackgroundOpacity="0.8">
+    <controls:DaisyGlass.GlassBackground>
+        <skia:DaisyGlassShaderBackground Effect="Aurora" Speed="0.5" />
+    </controls:DaisyGlass.GlassBackground>
+</controls:DaisyGlass>
+```
+
+A background object may be shared; every glass draws its own layer from it, starting at a different phase. With reduced motion the layer shows a still frame; with high contrast it stops, since the contrast surface covers it.
+
+**Cost:** an animated glass redraws on every frame, and in `SkiaSharp` mode that includes its backdrop blur. In the Gallery (Debug build, desktop), six animated glass buttons use about 44 % of one CPU core. Keep the number of animated surfaces small. A lower `Speed` slows the motion but not the frame rate; `Speed="0"` stops the redraws.
 
 ## Quick Examples
 
