@@ -1,0 +1,66 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <!-- Inherits sections, full width and shadow options from DaisyNavbar; only the surface differs. -->
+    <ControlTheme x:Key="{x:Type controls:DaisyGlassNavbar}" TargetType="controls:DaisyGlassNavbar"
+                  BasedOn="{StaticResource {x:Type controls:DaisyNavbar}}">
+        <Setter Property="EnableBackdropBlur" Value="True" />
+        <Setter Property="BlurMode" Value="SkiaSharp" />
+        <Setter Property="GlassBlur" Value="40" />
+        <Setter Property="GlassTint" Value="White" />
+        <Setter Property="GlassTintOpacity" Value="0.1" />
+        <Setter Property="GlassReflectOpacity" Value="0.1" />
+        <!-- A drop shadow under translucent glass shows through it; the glass border separates the bar instead. -->
+        <Setter Property="HasShadow" Value="False" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="#33FFFFFF" />
+
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel>
+                    <!-- The glass comes first, so its backdrop holds only what lies behind the bar. -->
+                    <controls:DaisyGlass x:Name="PART_Glass"
+                                         Padding="0"
+                                         IsHitTestVisible="False"
+                                         CornerRadius="{TemplateBinding CornerRadius}" />
+                    <Border x:Name="PART_Tint"
+                            IsHitTestVisible="False"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Opacity="{TemplateBinding GlassColorOpacity}" />
+                    <Border x:Name="PART_RootBorder"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <Panel>
+                            <Grid x:Name="PART_SectionLayout" ColumnDefinitions="*, Auto, *">
+                                <ContentPresenter x:Name="PART_NavbarStart"
+                                                  Grid.Column="0"
+                                                  Content="{TemplateBinding NavbarStart}"
+                                                  HorizontalAlignment="Left"
+                                                  VerticalAlignment="Center" />
+                                <ContentPresenter x:Name="PART_NavbarCenter"
+                                                  Grid.Column="1"
+                                                  Content="{TemplateBinding NavbarCenter}"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
+                                <ContentPresenter x:Name="PART_NavbarEnd"
+                                                  Grid.Column="2"
+                                                  Content="{TemplateBinding NavbarEnd}"
+                                                  HorizontalAlignment="Right"
+                                                  VerticalAlignment="Center" />
+                            </Grid>
+                            <ContentPresenter x:Name="PART_Content"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              VerticalAlignment="Center"
+                                              IsVisible="False" />
+                        </Panel>
+                    </Border>
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

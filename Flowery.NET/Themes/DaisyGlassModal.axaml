@@ -1,0 +1,54 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <!-- Inherits opening, padding and corner radii from DaisyModal; only the dialog surface differs. -->
+    <ControlTheme x:Key="{x:Type controls:DaisyGlassModal}" TargetType="controls:DaisyGlassModal"
+                  BasedOn="{StaticResource {x:Type controls:DaisyModal}}">
+        <Setter Property="EnableBackdropBlur" Value="True" />
+        <Setter Property="BlurMode" Value="SkiaSharp" />
+        <Setter Property="GlassBlur" Value="50" />
+        <Setter Property="GlassTint" Value="White" />
+        <Setter Property="GlassTintOpacity" Value="0.12" />
+        <Setter Property="GlassReflectOpacity" Value="0.15" />
+
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid IsVisible="{TemplateBinding IsOpen}">
+                    <!-- Backdrop: the glass dialog blurs the dimmed page -->
+                    <Rectangle Fill="Black" Opacity="0.3" />
+
+                    <Panel x:Name="PART_DialogHost"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           MaxWidth="{TemplateBinding DialogMaxWidth}">
+                        <!-- The glass comes first, so its backdrop holds only the page behind the dialog. -->
+                        <controls:DaisyGlass x:Name="PART_Glass"
+                                             Padding="0"
+                                             IsHitTestVisible="False"
+                                             CornerRadius="{Binding #PART_Dialog.CornerRadius}" />
+                        <Border x:Name="PART_Tint"
+                                IsHitTestVisible="False"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="{Binding #PART_Dialog.CornerRadius}"
+                                Opacity="{TemplateBinding GlassColorOpacity}" />
+                        <Border x:Name="PART_Dialog"
+                                Padding="{TemplateBinding Padding}"
+                                BoxShadow="0 10 25 0 #60000000">
+                            <Border.CornerRadius>
+                                <MultiBinding Converter="{x:Static controls:ModalCornerRadiusConverter.Instance}">
+                                    <Binding Path="TopLeftRadius" RelativeSource="{RelativeSource TemplatedParent}" />
+                                    <Binding Path="TopRightRadius" RelativeSource="{RelativeSource TemplatedParent}" />
+                                    <Binding Path="BottomRightRadius" RelativeSource="{RelativeSource TemplatedParent}" />
+                                    <Binding Path="BottomLeftRadius" RelativeSource="{RelativeSource TemplatedParent}" />
+                                </MultiBinding>
+                            </Border.CornerRadius>
+                            <ContentPresenter Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}" />
+                        </Border>
+                    </Panel>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

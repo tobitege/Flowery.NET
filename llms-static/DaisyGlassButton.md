@@ -5,6 +5,8 @@
 
 DaisyGlassButton is a DaisyButton on a glass surface that blurs whatever lies behind it. By default it blurs the live backdrop on every frame (`BlurMode="SkiaSharp"`), so content that moves behind the button stays blurred. Variants, styles, sizes, shapes, icons and states work exactly as on [DaisyButton](DaisyButton.md); the glass properties are those of [DaisyGlass](DaisyGlass.md), including gradients and patterns.
 
+The same glass is available on [DaisyGlassBadge](DaisyGlassBadge.md), [DaisyGlassInput](DaisyGlassInput.md), [DaisyGlassNavbar](DaisyGlassNavbar.md) and [DaisyGlassModal](DaisyGlassModal.md).
+
 ## How the Surface Is Built
 
 From back to front: the blurred backdrop, the glass tint, the fill (`GlassFill` or a `GlassGradient` preset), the pattern, the variant color, the borders, then the content with a light text shadow. The glass is painted first, so its backdrop holds only what lies behind the button, never the button's own tint or text.

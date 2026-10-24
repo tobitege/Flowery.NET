@@ -318,6 +318,107 @@
 
                 <controls:DaisyDivider />
 
+                <!-- Glass Controls -->
+                <StackPanel Spacing="12">
+                    <local:SectionHeader SectionId="glass-controls" Title="Glass Controls" />
+                    <TextBlock
+                        Text="DaisyGlassNavbar, DaisyGlassInput, DaisyGlassBadge and DaisyGlassModal blur what lies behind them, like DaisyGlassButton. Scroll the backdrop under the bar, and open the dialog to see the page blurred behind it."
+                        Opacity="0.7" TextWrapping="Wrap" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                    <Border CornerRadius="16" ClipToBounds="True" Height="520">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                <GradientStop Color="#1e1b4b" Offset="0" />
+                                <GradientStop Color="#7e22ce" Offset="0.5" />
+                                <GradientStop Color="#db2777" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Grid>
+                            <!-- Scrolling backdrop: colorful blocks and text pass under the glass bar and card. -->
+                            <ScrollViewer x:Name="GlassShowcaseScroller" VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="24,88,24,24" Spacing="16">
+                                    <TextBlock Text="SCROLL ME" FontSize="56" FontWeight="Black" Foreground="White" Opacity="0.9" />
+                                    <WrapPanel>
+                                        <Border Width="140" Height="90" CornerRadius="18" Margin="0,0,16,16" Background="#facc15" />
+                                        <Border Width="90" Height="90" CornerRadius="45" Margin="0,0,16,16" Background="#22d3ee" />
+                                        <Border Width="180" Height="90" CornerRadius="18" Margin="0,0,16,16" Background="#34d399" />
+                                        <Border Width="90" Height="90" CornerRadius="45" Margin="0,0,16,16" Background="#fb7185" />
+                                        <Border Width="140" Height="90" CornerRadius="18" Margin="0,0,16,16" Background="#a78bfa" />
+                                    </WrapPanel>
+                                    <TextBlock Text="★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★" FontSize="32" Foreground="Yellow" />
+                                    <TextBlock Text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
+                                               FontSize="18" Foreground="White" TextWrapping="Wrap" />
+                                    <WrapPanel>
+                                        <Border Width="90" Height="90" CornerRadius="45" Margin="0,0,16,16" Background="#f97316" />
+                                        <Border Width="200" Height="90" CornerRadius="18" Margin="0,0,16,16" Background="#38bdf8" />
+                                        <Border Width="90" Height="90" CornerRadius="45" Margin="0,0,16,16" Background="#facc15" />
+                                        <Border Width="160" Height="90" CornerRadius="18" Margin="0,0,16,16" Background="#4ade80" />
+                                    </WrapPanel>
+                                    <TextBlock Text="▲ ● ■ ◆ ▲ ● ■ ◆ ▲ ● ■ ◆ ▲ ● ■ ◆ ▲ ● ■ ◆" FontSize="34" Foreground="#67e8f9" />
+                                    <TextBlock Text="KEEP SCROLLING" FontSize="56" FontWeight="Black" Foreground="#fde68a" />
+                                    <WrapPanel>
+                                        <Border Width="180" Height="120" CornerRadius="24" Margin="0,0,16,16" Background="#e879f9" />
+                                        <Border Width="120" Height="120" CornerRadius="60" Margin="0,0,16,16" Background="#2dd4bf" />
+                                        <Border Width="220" Height="120" CornerRadius="24" Margin="0,0,16,16" Background="#fbbf24" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </ScrollViewer>
+
+                            <controls:DaisyGlassNavbar VerticalAlignment="Top" Margin="12" Foreground="White">
+                                <controls:DaisyGlassNavbar.NavbarStart>
+                                    <TextBlock Text="Flowery" FontSize="20" FontWeight="Bold" Foreground="White" />
+                                </controls:DaisyGlassNavbar.NavbarStart>
+                                <controls:DaisyGlassNavbar.NavbarCenter>
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <controls:DaisyGlassBadge Content="Docs" Foreground="White" />
+                                        <controls:DaisyGlassBadge Content="Beta" Variant="Primary" />
+                                        <controls:DaisyGlassBadge Content="12" Variant="Error" Size="Small" />
+                                    </StackPanel>
+                                </controls:DaisyGlassNavbar.NavbarCenter>
+                                <controls:DaisyGlassNavbar.NavbarEnd>
+                                    <controls:DaisyGlassButton Content="Open dialog" Size="Small" GlassGradient="Aurora" Foreground="White"
+                                                               Click="OpenGlassModal_Click" />
+                                </controls:DaisyGlassNavbar.NavbarEnd>
+                            </controls:DaisyGlassNavbar>
+
+                            <!-- A sign-in card: glass inputs and badges inside a glass panel. -->
+                            <controls:DaisyGlass Width="340" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="24"
+                                                 Padding="24" CornerRadius="20"
+                                                 EnableBackdropBlur="True" BlurMode="SkiaSharp" GlassBlur="40"
+                                                 GlassTint="#0F172A" GlassTintOpacity="0.35">
+                                <StackPanel Spacing="12">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="Sign in" FontSize="22" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" />
+                                        <controls:DaisyGlassBadge Content="Secure" Variant="Success" Size="Small" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <controls:DaisyGlassInput PlaceholderText="Email" Foreground="White" />
+                                    <controls:DaisyGlassInput PlaceholderText="Password" PasswordChar="●" Foreground="White" />
+                                    <controls:DaisyGlassInput Label="Workspace" LabelPosition="Floating" Text="flowery" Foreground="White" />
+                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                                        <controls:DaisyGlassButton Content="Cancel" Foreground="White" />
+                                        <controls:DaisyGlassButton Content="Sign in" GlassGradient="Sunset" Foreground="White" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </controls:DaisyGlass>
+
+                            <controls:DaisyGlassModal x:Name="GlassShowcaseModal" DialogMaxWidth="360">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Glass dialog" FontSize="22" FontWeight="Bold" Foreground="White" />
+                                    <TextBlock Text="The dialog blurs the dimmed page behind it. Its glass takes gradients and patterns like every glass control."
+                                               TextWrapping="Wrap" Foreground="White" Opacity="0.9" />
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <controls:DaisyGlassBadge Content="Live blur" Foreground="White" />
+                                        <controls:DaisyGlassBadge Content="SkiaSharp" Variant="Info" />
+                                    </StackPanel>
+                                    <controls:DaisyGlassButton Content="Close" HorizontalAlignment="Right" GlassGradient="Holo" GlassFillOpacity="0.6"
+                                                               Foreground="#1E1B4B" GlassTextShadowOpacity="0.2" Click="CloseGlassModal_Click" />
+                                </StackPanel>
+                            </controls:DaisyGlassModal>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <controls:DaisyDivider />
+
                 <!-- Button Group -->
                 <StackPanel Spacing="12">
                     <local:SectionHeader SectionId="button-group" Title="Button Group" />

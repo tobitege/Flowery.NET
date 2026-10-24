@@ -40,6 +40,16 @@ public partial class ActionsExamples : UserControl, IScrollableExample
         DataContext = this;
     }
 
+    public void OpenGlassModal_Click(object? sender, RoutedEventArgs e)
+    {
+        GlassShowcaseModal.IsOpen = true;
+    }
+
+    public void CloseGlassModal_Click(object? sender, RoutedEventArgs e)
+    {
+        GlassShowcaseModal.IsOpen = false;
+    }
+
     public void OpenModalBtn_Click(object? sender, RoutedEventArgs e)
     {
         OpenModalRequested?.Invoke(this, EventArgs.Empty);
