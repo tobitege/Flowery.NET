@@ -15,6 +15,15 @@
         <Setter Property="BorderBrush" Value="#66FFFFFF" />
         <Setter Property="CaretBrush" Value="{Binding Foreground, RelativeSource={RelativeSource Self}}" />
 
+        <!-- The default Bordered variant draws its field border in Neutral, which is near black on glass. -->
+        <Style Selector="^[Variant=Bordered] /template/ Border#PART_Background">
+            <Setter Property="BorderBrush" Value="#66FFFFFF" />
+        </Style>
+        <!-- Restates the focus border, which the style above would override. -->
+        <Style Selector="^[Variant=Bordered]:focus /template/ Border#PART_Background">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
+        </Style>
+
         <!-- The filled and ghost variants brighten the glass instead of covering it with an opaque surface. -->
         <Style Selector="^[Variant=Filled]">
             <Setter Property="Background" Value="#26FFFFFF" />

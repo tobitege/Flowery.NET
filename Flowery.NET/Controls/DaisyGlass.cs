@@ -978,13 +978,12 @@ namespace Flowery.Controls
                 return;
 
             var rimWidth = Math.Clamp(minSide * (0.035f + _depth * 0.055f + _bend * 0.04f), 2f, minSide * 0.2f);
-            var insetRect = rect;
-            insetRect.Inflate(-rimWidth * 0.5f, -rimWidth * 0.5f);
-            if (insetRect.Width <= 0 || insetRect.Height <= 0)
-                return;
 
-            var insetRadius = Math.Max(0, _cornerRadius - rimWidth * 0.5f);
-            var rimRect = new SKRoundRect(insetRect, insetRadius);
+            // The rim is stroked on the glass edge at twice its width and blurred; the rounded clip keeps the inner
+            // half. It fades inward and follows the corner radius, with no inner edge that would read as a second,
+            // squarer rectangle on small controls.
+            var rimRect = new SKRoundRect(rect, _cornerRadius);
+            using var rimBlur = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, rimWidth * 0.5f);
             var angle = _sheenAngle * MathF.PI / 180f;
             var light = new SKPoint(MathF.Cos(angle), MathF.Sin(angle));
             var specularAlpha = ToAlpha(Math.Clamp(_reflectOpacity + _curvature * 0.12f, 0f, 0.75f));
@@ -992,13 +991,14 @@ namespace Flowery.Controls
             if (_dispersion > 0.001f)
             {
                 var offset = Math.Clamp(_dispersion * 4f, 0.5f, 4f);
-                DrawChromaticRim(canvas, rimRect, offset, rimWidth);
+                DrawChromaticRim(canvas, rimRect, offset, rimWidth, rimBlur);
             }
 
             using (var rimPaint = new SKPaint
             {
                 Style = SKPaintStyle.Stroke,
-                StrokeWidth = rimWidth,
+                StrokeWidth = rimWidth * 2,
+                MaskFilter = rimBlur,
                 IsAntialias = true
             })
             {
@@ -1046,7 +1046,7 @@ namespace Flowery.Controls
             }
         }
 
-        private static void DrawChromaticRim(SKCanvas canvas, SKRoundRect rimRect, float offset, float rimWidth)
+        private static void DrawChromaticRim(SKCanvas canvas, SKRoundRect rimRect, float offset, float rimWidth, SKMaskFilter blur)
         {
             canvas.Save();
             canvas.Translate(-offset, 0);
@@ -1054,7 +1054,8 @@ namespace Flowery.Controls
             {
                 Color = new SKColor(255, 80, 80, 34),
                 Style = SKPaintStyle.Stroke,
-                StrokeWidth = Math.Max(1f, rimWidth * 0.35f),
+                StrokeWidth = Math.Max(2f, rimWidth * 0.7f),
+                MaskFilter = blur,
                 IsAntialias = true
             })
             {
@@ -1068,7 +1069,8 @@ namespace Flowery.Controls
             {
                 Color = new SKColor(80, 150, 255, 34),
                 Style = SKPaintStyle.Stroke,
-                StrokeWidth = Math.Max(1f, rimWidth * 0.35f),
+                StrokeWidth = Math.Max(2f, rimWidth * 0.7f),
+                MaskFilter = blur,
                 IsAntialias = true
             })
             {
