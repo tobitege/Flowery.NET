@@ -43,7 +43,9 @@
                             Background="{TemplateBinding Background}"
                             CornerRadius="{TemplateBinding CornerRadius}"
                             Opacity="{TemplateBinding GlassColorOpacity}" />
+                    <!-- Transparent, not null: the glass and tint ignore the pointer, so this layer takes it for the whole surface. -->
                     <Border x:Name="PART_Border"
+                            Background="Transparent"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{TemplateBinding CornerRadius}">

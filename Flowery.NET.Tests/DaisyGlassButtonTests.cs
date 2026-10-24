@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -111,6 +113,31 @@ public class DaisyGlassButtonTests
             Assert.Equal(0, order.IndexOf("PART_Glass"));
             Assert.True(order.IndexOf("PART_Background") > 0);
             Assert.True(order.IndexOf("PART_ContentPanel") > order.IndexOf("PART_Background"));
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Whole_Surface_Takes_The_Pointer()
+    {
+        // The glass and tint layers ignore the pointer, so the border layer must take it, not only the text.
+        var button = new DaisyGlassButton
+        {
+            Content = "Glass",
+            Width = 200,
+            Height = 48,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top
+        };
+        var window = Show(button);
+        try
+        {
+            var hit = button.InputHitTest(new Point(6, 24));
+            Assert.True(hit is Visual visual && (ReferenceEquals(visual, button) || button.IsVisualAncestorOf(visual)),
+                $"The edge of the button was not hit-testable: {hit}.");
         }
         finally
         {

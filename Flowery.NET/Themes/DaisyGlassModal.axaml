@@ -33,6 +33,7 @@
                                 CornerRadius="{Binding #PART_Dialog.CornerRadius}"
                                 Opacity="{TemplateBinding GlassColorOpacity}" />
                         <Border x:Name="PART_Dialog"
+                                Background="Transparent"
                                 Padding="{TemplateBinding Padding}"
                                 BoxShadow="0 10 25 0 #60000000">
                             <Border.CornerRadius>

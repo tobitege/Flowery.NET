@@ -26,6 +26,7 @@
                             CornerRadius="{TemplateBinding CornerRadius}"
                             Opacity="{TemplateBinding GlassColorOpacity}" />
                     <Border x:Name="PART_Border"
+                            Background="Transparent"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{TemplateBinding CornerRadius}"
