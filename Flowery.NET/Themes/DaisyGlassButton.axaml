@@ -31,30 +31,12 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Panel ClipToBounds="False">
-                    <!-- The glass comes first, so its backdrop holds only what lies behind the button. -->
+                    <!-- The glass comes first, so its backdrop holds only what lies behind the button.
+                         The control binds its glass properties to it when the template is applied. -->
                     <controls:DaisyGlass x:Name="PART_Glass"
                                          Padding="0"
                                          IsHitTestVisible="False"
-                                         CornerRadius="{TemplateBinding CornerRadius}"
-                                         EnableBackdropBlur="{TemplateBinding EnableBackdropBlur}"
-                                         BlurMode="{TemplateBinding BlurMode}"
-                                         GlassBlur="{TemplateBinding GlassBlur}"
-                                         GlassSaturation="{TemplateBinding GlassSaturation}"
-                                         GlassOpacity="{TemplateBinding GlassOpacity}"
-                                         GlassTint="{TemplateBinding GlassTint}"
-                                         GlassTintOpacity="{TemplateBinding GlassTintOpacity}"
-                                         GlassReflectDegree="{TemplateBinding GlassReflectDegree}"
-                                         GlassReflectOpacity="{TemplateBinding GlassReflectOpacity}"
-                                         GlassDepth="{TemplateBinding GlassDepth}"
-                                         GlassCurvature="{TemplateBinding GlassCurvature}"
-                                         GlassBend="{TemplateBinding GlassBend}"
-                                         GlassDispersion="{TemplateBinding GlassDispersion}"
-                                         GlassFill="{TemplateBinding GlassFill}"
-                                         GlassGradient="{TemplateBinding GlassGradient}"
-                                         GlassFillOpacity="{TemplateBinding GlassFillOpacity}"
-                                         GlassPattern="{TemplateBinding GlassPattern}"
-                                         GlassPatternColor="{TemplateBinding GlassPatternColor}"
-                                         GlassPatternOpacity="{TemplateBinding GlassPatternOpacity}" />
+                                         CornerRadius="{TemplateBinding CornerRadius}" />
                     <!-- The variant color tints the glass; DaisyButton's hover styles change it. -->
                     <Border x:Name="PART_Background"
                             IsHitTestVisible="False"

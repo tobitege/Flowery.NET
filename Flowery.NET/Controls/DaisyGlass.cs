@@ -349,6 +349,37 @@ namespace Flowery.Controls
             private set => SetValue(BlurredBackgroundProperty, value);
         }
 
+        // The glass properties that glass controls such as DaisyGlassButton own and pass to their glass surface.
+        private static readonly AvaloniaProperty[] SurfaceProperties =
+        [
+            EnableBackdropBlurProperty, BlurModeProperty, GlassBlurProperty, GlassSaturationProperty, GlassOpacityProperty,
+            GlassTintProperty, GlassTintOpacityProperty, GlassReflectDegreeProperty, GlassReflectOpacityProperty,
+            GlassDepthProperty, GlassCurvatureProperty, GlassBendProperty, GlassDispersionProperty,
+            GlassFillProperty, GlassGradientProperty, GlassFillOpacityProperty,
+            GlassPatternProperty, GlassPatternColorProperty, GlassPatternOpacityProperty
+        ];
+
+        /// <summary>
+        /// Binds the glass properties of <paramref name="surface"/> to the same properties of <paramref name="owner"/>,
+        /// which owns them through <c>AddOwner</c>. Dispose the result before binding a new surface.
+        /// </summary>
+        internal static IDisposable BindSurface(DaisyGlass surface, AvaloniaObject owner)
+        {
+            var bindings = new IDisposable[SurfaceProperties.Length];
+            for (var i = 0; i < SurfaceProperties.Length; i++)
+                bindings[i] = surface.Bind(SurfaceProperties[i], owner.GetObservable(SurfaceProperties[i]));
+            return new SurfaceBindings(bindings);
+        }
+
+        private sealed class SurfaceBindings(IDisposable[] bindings) : IDisposable
+        {
+            public void Dispose()
+            {
+                foreach (var binding in bindings)
+                    binding.Dispose();
+            }
+        }
+
         static DaisyGlass()
         {
             AffectsRender<DaisyGlass>(

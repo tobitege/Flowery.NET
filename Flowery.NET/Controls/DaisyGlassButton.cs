@@ -1,5 +1,7 @@
 using System;
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Flowery.Enums;
 
@@ -13,6 +15,15 @@ namespace Flowery.Controls
     public class DaisyGlassButton : DaisyButton
     {
         protected override Type StyleKeyOverride => typeof(DaisyGlassButton);
+
+        private IDisposable? _surfaceBindings;
+
+        protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+        {
+            base.OnApplyTemplate(e);
+            _surfaceBindings?.Dispose();
+            _surfaceBindings = e.NameScope.Find<DaisyGlass>("PART_Glass") is { } glass ? DaisyGlass.BindSurface(glass, this) : null;
+        }
 
         /// <summary>
         /// Defines the <see cref="EnableBackdropBlur"/> property.
