@@ -10,6 +10,7 @@ using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Flowery.Enums;
 using Flowery.Helpers;
 using Flowery.Services;
 using SkiaSharp;
@@ -57,6 +58,7 @@ namespace Flowery.Controls
         private bool _isCapturing;
         private IImage? _capturedBitmap;
         private Image? _blurImage;
+        private Canvas? _patternLayer;
         private bool _needsUpdate = true;
         private bool _captureScheduled;
         private int _captureGeneration;
@@ -221,6 +223,96 @@ namespace Flowery.Controls
         }
 
         /// <summary>
+        /// Gets or sets a brush, such as a gradient, painted over the blurred backdrop at <see cref="GlassFillOpacity"/>.
+        /// It takes precedence over <see cref="GlassGradient"/>.
+        /// </summary>
+        public static readonly StyledProperty<IBrush?> GlassFillProperty =
+            AvaloniaProperty.Register<DaisyGlass, IBrush?>(nameof(GlassFill));
+
+        public IBrush? GlassFill
+        {
+            get => GetValue(GlassFillProperty);
+            set => SetValue(GlassFillProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets a gradient preset painted over the blurred backdrop when <see cref="GlassFill"/> is not set.
+        /// </summary>
+        public static readonly StyledProperty<DaisyGlassGradient> GlassGradientProperty =
+            AvaloniaProperty.Register<DaisyGlass, DaisyGlassGradient>(nameof(GlassGradient));
+
+        public DaisyGlassGradient GlassGradient
+        {
+            get => GetValue(GlassGradientProperty);
+            set => SetValue(GlassGradientProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the opacity of the fill over the blurred backdrop.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassFillOpacityProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassFillOpacity), 0.6);
+
+        public double GlassFillOpacity
+        {
+            get => GetValue(GlassFillOpacityProperty);
+            set => SetValue(GlassFillOpacityProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets a pattern drawn over the fill, using the same patterns as <see cref="DaisyPatternedCard"/>.
+        /// </summary>
+        public static readonly StyledProperty<DaisyCardPattern> GlassPatternProperty =
+            AvaloniaProperty.Register<DaisyGlass, DaisyCardPattern>(nameof(GlassPattern));
+
+        public DaisyCardPattern GlassPattern
+        {
+            get => GetValue(GlassPatternProperty);
+            set => SetValue(GlassPatternProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the color of the glass pattern.
+        /// </summary>
+        public static readonly StyledProperty<Color> GlassPatternColorProperty =
+            AvaloniaProperty.Register<DaisyGlass, Color>(nameof(GlassPatternColor), Colors.White);
+
+        public Color GlassPatternColor
+        {
+            get => GetValue(GlassPatternColorProperty);
+            set => SetValue(GlassPatternColorProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the opacity of a typical stroke of the glass pattern. Lighter and darker parts of a pattern keep their proportion.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassPatternOpacityProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassPatternOpacity), 0.4);
+
+        public double GlassPatternOpacity
+        {
+            get => GetValue(GlassPatternOpacityProperty);
+            set => SetValue(GlassPatternOpacityProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="EffectiveGlassFill"/> property.
+        /// </summary>
+        public static readonly DirectProperty<DaisyGlass, IBrush?> EffectiveGlassFillProperty =
+            AvaloniaProperty.RegisterDirect<DaisyGlass, IBrush?>(nameof(EffectiveGlassFill), o => o.EffectiveGlassFill);
+
+        private IBrush? _effectiveGlassFill;
+
+        /// <summary>
+        /// Gets the brush painted over the blurred backdrop: <see cref="GlassFill"/>, else the <see cref="GlassGradient"/> preset.
+        /// </summary>
+        public IBrush? EffectiveGlassFill
+        {
+            get => _effectiveGlassFill;
+            private set => SetAndRaise(EffectiveGlassFillProperty, ref _effectiveGlassFill, value);
+        }
+
+        /// <summary>
         /// Gets or sets whether to enable real backdrop blur (performance intensive).
         /// When false, uses the simulated glass effect.
         /// </summary>
@@ -279,7 +371,45 @@ namespace Flowery.Controls
         {
             base.OnApplyTemplate(e);
             _blurImage = e.NameScope.Find<Image>("PART_BlurImage");
+            _patternLayer = e.NameScope.Find<Canvas>("PART_PatternLayer");
             UpdateBackdropImageBounds();
+            RebuildPatternLayer();
+        }
+
+        private void UpdateEffectiveGlassFill()
+        {
+            EffectiveGlassFill = GlassFill ?? DaisyGlassGradients.CreateBrush(GlassGradient);
+        }
+
+        private void RebuildPatternLayer()
+        {
+            if (_patternLayer == null) return;
+            _patternLayer.Children.Clear();
+
+            var size = Bounds.Size;
+            if (GlassPattern == DaisyCardPattern.None || size.Width <= 0 || size.Height <= 0) return;
+
+            var pattern = FloweryPatternTileGenerator.CreateTiledPatternCanvas(
+                GlassPattern, new SolidColorBrush(GlassPatternColor), size.Width, size.Height);
+            if (pattern == null) return;
+
+            // The tiles carry the faint opacities of card patterns, mostly 0.15. Scale them so that
+            // GlassPatternOpacity is the opacity of a typical stroke, keeping each pattern's own shading.
+            ScalePatternOpacity(pattern, GlassPatternOpacity / CardPatternOpacity);
+            _patternLayer.Children.Add(pattern);
+        }
+
+        private const double CardPatternOpacity = 0.15;
+
+        private static void ScalePatternOpacity(Panel panel, double scale)
+        {
+            foreach (var child in panel.Children)
+            {
+                if (child is Panel nested)
+                    ScalePatternOpacity(nested, scale);
+                else
+                    child.Opacity = Math.Clamp(child.Opacity * scale, 0, 1);
+            }
         }
 
         private void UpdateBackdropImageBounds()
@@ -321,6 +451,19 @@ namespace Flowery.Controls
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
+
+            if (change.Property == GlassFillProperty || change.Property == GlassGradientProperty)
+            {
+                UpdateEffectiveGlassFill();
+                return;
+            }
+
+            if (change.Property == GlassPatternProperty || change.Property == GlassPatternColorProperty
+                || change.Property == GlassPatternOpacityProperty
+                || (change.Property == BoundsProperty && change.GetOldValue<Rect>().Size != change.GetNewValue<Rect>().Size))
+            {
+                RebuildPatternLayer();
+            }
 
             if (change.Property == EnableBackdropBlurProperty)
             {
