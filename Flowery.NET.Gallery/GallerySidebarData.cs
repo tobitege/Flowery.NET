@@ -73,13 +73,7 @@ public static class GallerySidebarData
                     new SidebarItem { Id = "card", Name = "Sidebar_Card", ControlName = "DaisyCard", TabHeader = "Sidebar_Cards" },
                     new SidebarItem { Id = "card-stack", Name = "Sidebar_CardStack", TabHeader = "Sidebar_Cards" },
                     new SidebarItem { Id = "expandable-cards", Name = "Showcase_ExpandableCards_Title", ControlName = "DaisyExpandableCard", TabHeader = "Sidebar_Cards" },
-                    new SidebarItem { Id = "patterned-card", Name = "Sidebar_PatternedCard", ControlName = "DaisyPatternedCard", TabHeader = "Sidebar_Cards" },
-                    new SidebarItem { Id = "glass-card", Name = "Sidebar_GlassCard", ControlName = "DaisyGlass", TabHeader = "Sidebar_Cards" },
-                    new SidebarItem { Id = "daisyglass-liquid", Name = "Sidebar_DaisyGlassLiquid", ControlName = "DaisyGlass", TabHeader = "Sidebar_Cards" },
-                    new SidebarItem { Id = "daisyglass-simulated", Name = "Sidebar_DaisyGlassSimulated", ControlName = "DaisyGlass", TabHeader = "Sidebar_Cards" },
-                    new SidebarItem { Id = "daisyglass-bitmap-capture", Name = "Sidebar_DaisyGlassBitmapCapture", ControlName = "DaisyGlass", TabHeader = "Sidebar_Cards" },
-                    new SidebarItem { Id = "daisyglass-skia-matrix", Name = "Sidebar_DaisyGlassSkiaMatrix", ControlName = "DaisyGlass", TabHeader = "Sidebar_Cards" },
-                    new SidebarItem { Id = "daisyglass-full-width", Name = "Sidebar_DaisyGlassFullWidth", ControlName = "DaisyGlass", TabHeader = "Sidebar_Cards" }
+                    new SidebarItem { Id = "patterned-card", Name = "Sidebar_PatternedCard", ControlName = "DaisyPatternedCard", TabHeader = "Sidebar_Cards" }
                 ]
             },
             new() {
@@ -160,6 +154,20 @@ public static class GallerySidebarData
                     new SidebarItem { Id = "skeleton", Name = "Sidebar_Skeleton", ControlName = "DaisySkeleton", TabHeader = "Sidebar_Feedback" },
                     new SidebarItem { Id = "toast", Name = "Sidebar_Toast", ControlName = "DaisyToast", TabHeader = "Sidebar_Feedback" },
                     new SidebarItem { Id = "tooltip", Name = "Sidebar_Tooltip", ControlName = "DaisyTooltip", TabHeader = "Sidebar_Feedback" }
+                ]
+            },
+            new() {
+                Name = "Sidebar_Glass",
+                IconKey = "DaisyIconNestedSquares",
+                Items =
+                [
+                    new SidebarItem { Id = "glass-button", Name = "Sidebar_GlassButton", ControlName = "DaisyGlassButton", TabHeader = "Sidebar_Glass" },
+                    new SidebarItem { Id = "glass-controls", Name = "Sidebar_GlassControls", TabHeader = "Sidebar_Glass" },
+                    new SidebarItem { Id = "glass-card", Name = "Sidebar_GlassCard", ControlName = "DaisyGlass", TabHeader = "Sidebar_Glass" },
+                    new SidebarItem { Id = "daisyglass-liquid", Name = "Sidebar_DaisyGlassLiquid", ControlName = "DaisyGlass", TabHeader = "Sidebar_Glass" },
+                    new SidebarItem { Id = "daisyglass-bitmap-capture", Name = "Sidebar_DaisyGlassBitmapCapture", ControlName = "DaisyGlass", TabHeader = "Sidebar_Glass" },
+                    new SidebarItem { Id = "daisyglass-full-width", Name = "Sidebar_DaisyGlassFullWidth", ControlName = "DaisyGlass", TabHeader = "Sidebar_Glass" },
+                    new SidebarItem { Id = "daisyglass-skia-matrix", Name = "Sidebar_DaisyGlassSkiaMatrix", ControlName = "DaisyGlass", TabHeader = "Sidebar_Glass" }
                 ]
             },
             new() {

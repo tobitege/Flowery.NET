@@ -62,6 +62,12 @@ For the optional Kanban board package, also install:
 dotnet add package Flowery.NET.Kanban --version 3.6.0
 ```
 
+For the live glass blur, liquid-glass optics and animated shader backgrounds of the `DaisyGlass` controls, also install the SkiaSharp effects package and register it at startup with `FlowerySkia.Register()` (or `UseFlowerySkia()` on the `AppBuilder`). Without it, a glass with `BlurMode="SkiaSharp"` uses the bitmap capture blur:
+
+```bash
+dotnet add package Flowery.NET.Skia --version 3.11.0
+```
+
 1. Add to your `App.axaml`:
 
 ```xml

@@ -55,6 +55,11 @@
                 <ResourceInclude Source="/Themes/DaisyModal.axaml" />
                 <ResourceInclude Source="/Themes/DaisySkeleton.axaml" />
                 <ResourceInclude Source="/Themes/DaisyGlass.axaml" />
+                <ResourceInclude Source="/Themes/DaisyGlassButton.axaml" />
+                <ResourceInclude Source="/Themes/DaisyGlassBadge.axaml" />
+                <ResourceInclude Source="/Themes/DaisyGlassInput.axaml" />
+                <ResourceInclude Source="/Themes/DaisyGlassNavbar.axaml" />
+                <ResourceInclude Source="/Themes/DaisyGlassModal.axaml" />
                 <ResourceInclude Source="/Themes/DaisyToast.axaml" />
                 <ResourceInclude Source="/Themes/DaisyAvatar.axaml" />
                 <ResourceInclude Source="/Themes/DaisyAvatarGroup.axaml" />

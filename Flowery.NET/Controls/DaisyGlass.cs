@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -6,13 +7,12 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Rendering.SceneGraph;
-using Avalonia.Skia;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Flowery.Enums;
 using Flowery.Helpers;
 using Flowery.Services;
-using SkiaSharp;
 
 namespace Flowery.Controls
 {
@@ -32,7 +32,8 @@ namespace Flowery.Controls
         BitmapCapture,
 
         /// <summary>
-        /// Uses SkiaSharp for GPU-accelerated blur (experimental).
+        /// Blurs the live backdrop on every frame with SkiaSharp, including the liquid-glass optics.
+        /// Needs the Flowery.NET.Skia package (<c>FlowerySkia.Register()</c>); without it the glass uses BitmapCapture.
         /// </summary>
         SkiaSharp
     }
@@ -57,12 +58,14 @@ namespace Flowery.Controls
         private bool _isCapturing;
         private IImage? _capturedBitmap;
         private Image? _blurImage;
+        private Canvas? _patternLayer;
+        private Panel? _backgroundHost;
         private bool _needsUpdate = true;
         private bool _captureScheduled;
         private int _captureGeneration;
         private CancellationTokenSource? _captureCancellation;
 
-        private bool ShouldCaptureBackdrop => EnableBackdropBlur && BlurMode == GlassBlurMode.BitmapCapture && !DaisyAccessibility.IsHighContrast;
+        private bool ShouldCaptureBackdrop => EnableBackdropBlur && EffectiveBlurMode == GlassBlurMode.BitmapCapture && !DaisyAccessibility.IsHighContrast;
 
         /// <summary>
         /// Gets or sets the blur amount for the glass effect.
@@ -221,6 +224,121 @@ namespace Flowery.Controls
         }
 
         /// <summary>
+        /// Gets or sets a brush, such as a gradient, painted over the blurred backdrop at <see cref="GlassFillOpacity"/>.
+        /// It takes precedence over <see cref="GlassGradient"/>.
+        /// </summary>
+        public static readonly StyledProperty<IBrush?> GlassFillProperty =
+            AvaloniaProperty.Register<DaisyGlass, IBrush?>(nameof(GlassFill));
+
+        public IBrush? GlassFill
+        {
+            get => GetValue(GlassFillProperty);
+            set => SetValue(GlassFillProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets a gradient preset painted over the blurred backdrop when <see cref="GlassFill"/> is not set.
+        /// </summary>
+        public static readonly StyledProperty<DaisyGlassGradient> GlassGradientProperty =
+            AvaloniaProperty.Register<DaisyGlass, DaisyGlassGradient>(nameof(GlassGradient));
+
+        public DaisyGlassGradient GlassGradient
+        {
+            get => GetValue(GlassGradientProperty);
+            set => SetValue(GlassGradientProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the opacity of the fill over the blurred backdrop.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassFillOpacityProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassFillOpacity), 0.6);
+
+        public double GlassFillOpacity
+        {
+            get => GetValue(GlassFillOpacityProperty);
+            set => SetValue(GlassFillOpacityProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets a pattern drawn over the fill, using the same patterns as <see cref="DaisyPatternedCard"/>.
+        /// </summary>
+        public static readonly StyledProperty<DaisyCardPattern> GlassPatternProperty =
+            AvaloniaProperty.Register<DaisyGlass, DaisyCardPattern>(nameof(GlassPattern));
+
+        public DaisyCardPattern GlassPattern
+        {
+            get => GetValue(GlassPatternProperty);
+            set => SetValue(GlassPatternProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the color of the glass pattern.
+        /// </summary>
+        public static readonly StyledProperty<Color> GlassPatternColorProperty =
+            AvaloniaProperty.Register<DaisyGlass, Color>(nameof(GlassPatternColor), Colors.White);
+
+        public Color GlassPatternColor
+        {
+            get => GetValue(GlassPatternColorProperty);
+            set => SetValue(GlassPatternColorProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the opacity of a typical stroke of the glass pattern. Lighter and darker parts of a pattern keep their proportion.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassPatternOpacityProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassPatternOpacity), 0.4);
+
+        public double GlassPatternOpacity
+        {
+            get => GetValue(GlassPatternOpacityProperty);
+            set => SetValue(GlassPatternOpacityProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets an animated background drawn over the fill and below the pattern, such as a
+        /// <see cref="DaisyGlassGradientBackground"/> or, from Flowery.NET.Skia, a DaisyGlassShaderBackground.
+        /// </summary>
+        public static readonly StyledProperty<DaisyGlassBackground?> GlassBackgroundProperty =
+            AvaloniaProperty.Register<DaisyGlass, DaisyGlassBackground?>(nameof(GlassBackground));
+
+        public DaisyGlassBackground? GlassBackground
+        {
+            get => GetValue(GlassBackgroundProperty);
+            set => SetValue(GlassBackgroundProperty, value);
+        }
+
+        /// <summary>
+        /// Gets or sets the opacity of the animated background.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassBackgroundOpacityProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassBackgroundOpacity), 0.6);
+
+        public double GlassBackgroundOpacity
+        {
+            get => GetValue(GlassBackgroundOpacityProperty);
+            set => SetValue(GlassBackgroundOpacityProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="EffectiveGlassFill"/> property.
+        /// </summary>
+        public static readonly DirectProperty<DaisyGlass, IBrush?> EffectiveGlassFillProperty =
+            AvaloniaProperty.RegisterDirect<DaisyGlass, IBrush?>(nameof(EffectiveGlassFill), o => o.EffectiveGlassFill);
+
+        private IBrush? _effectiveGlassFill;
+
+        /// <summary>
+        /// Gets the brush painted over the blurred backdrop: <see cref="GlassFill"/>, else the <see cref="GlassGradient"/> preset.
+        /// </summary>
+        public IBrush? EffectiveGlassFill
+        {
+            get => _effectiveGlassFill;
+            private set => SetAndRaise(EffectiveGlassFillProperty, ref _effectiveGlassFill, value);
+        }
+
+        /// <summary>
         /// Gets or sets whether to enable real backdrop blur (performance intensive).
         /// When false, uses the simulated glass effect.
         /// </summary>
@@ -246,6 +364,92 @@ namespace Flowery.Controls
         }
 
         /// <summary>
+        /// Defines the <see cref="EffectiveBlurMode"/> property.
+        /// </summary>
+        public static readonly DirectProperty<DaisyGlass, GlassBlurMode> EffectiveBlurModeProperty =
+            AvaloniaProperty.RegisterDirect<DaisyGlass, GlassBlurMode>(nameof(EffectiveBlurMode), o => o.EffectiveBlurMode);
+
+        private GlassBlurMode _effectiveBlurMode = GlassBlurMode.BitmapCapture;
+
+        /// <summary>
+        /// Gets the blur mode in use. <see cref="GlassBlurMode.SkiaSharp"/> needs a live renderer, which the
+        /// Flowery.NET.Skia package registers; without one the glass uses <see cref="GlassBlurMode.BitmapCapture"/>.
+        /// </summary>
+        public GlassBlurMode EffectiveBlurMode
+        {
+            get => _effectiveBlurMode;
+            private set => SetAndRaise(EffectiveBlurModeProperty, ref _effectiveBlurMode, value);
+        }
+
+        private void UpdateEffectiveBlurMode()
+        {
+            EffectiveBlurMode = BlurMode == GlassBlurMode.SkiaSharp && DaisyGlassLiveRenderer.Current == null
+                ? GlassBlurMode.BitmapCapture
+                : BlurMode;
+        }
+
+        /// <summary>
+        /// Defines the <see cref="MeasureBackdropColor"/> property.
+        /// </summary>
+        public static readonly StyledProperty<bool> MeasureBackdropColorProperty =
+            AvaloniaProperty.Register<DaisyGlass, bool>(nameof(MeasureBackdropColor));
+
+        /// <summary>
+        /// Gets or sets whether the glass measures the average color of its backdrop into <see cref="BackdropColor"/>.
+        /// The glass controls turn it on for their text contrast. Off by default: in <c>SkiaSharp</c> mode each
+        /// measurement reads pixels back from the GPU, at most a few times per second.
+        /// </summary>
+        public bool MeasureBackdropColor
+        {
+            get => GetValue(MeasureBackdropColorProperty);
+            set => SetValue(MeasureBackdropColorProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="BackdropColor"/> property.
+        /// </summary>
+        public static readonly DirectProperty<DaisyGlass, Color?> BackdropColorProperty =
+            AvaloniaProperty.RegisterDirect<DaisyGlass, Color?>(nameof(BackdropColor), o => o.BackdropColor);
+
+        private Color? _backdropColor;
+
+        /// <summary>
+        /// Gets the average color of what lies behind the glass, before its blur and tint, while
+        /// <see cref="MeasureBackdropColor"/> is on and a blur mode can see the backdrop (<c>BitmapCapture</c> or
+        /// <c>SkiaSharp</c>); otherwise <c>null</c>. It follows changes behind the glass with a short delay.
+        /// </summary>
+        public Color? BackdropColor
+        {
+            get => _backdropColor;
+            private set => SetAndRaise(BackdropColorProperty, ref _backdropColor, value);
+        }
+
+        private bool CanMeasureBackdrop => MeasureBackdropColor && EnableBackdropBlur && !DaisyAccessibility.IsHighContrast
+            && EffectiveBlurMode is GlassBlurMode.BitmapCapture or GlassBlurMode.SkiaSharp;
+
+        /// <summary>
+        /// Takes a measured backdrop color on the UI thread. Changes too small to see do not update the property, so
+        /// the controls that follow it do not redraw for nothing.
+        /// </summary>
+        internal void ReportBackdropColor(Color color)
+        {
+            if (!CanMeasureBackdrop)
+                return;
+            if (BackdropColor is { } current && Math.Abs(current.R - color.R) <= 2 && Math.Abs(current.G - color.G) <= 2
+                && Math.Abs(current.B - color.B) <= 2)
+                return;
+            BackdropColor = Color.FromRgb(color.R, color.G, color.B);
+        }
+
+        private void UpdateBackdropColorState()
+        {
+            if (!CanMeasureBackdrop)
+                BackdropColor = null;
+            else if (_capturedBitmap is BackdropBitmap { AverageColor: { } average })
+                ReportBackdropColor(average);
+        }
+
+        /// <summary>
         /// Internal property for the blurred background bitmap.
         /// </summary>
         public static readonly StyledProperty<IImage?> BlurredBackgroundProperty =
@@ -255,6 +459,38 @@ namespace Flowery.Controls
         {
             get => GetValue(BlurredBackgroundProperty);
             private set => SetValue(BlurredBackgroundProperty, value);
+        }
+
+        // The glass properties that glass controls such as DaisyGlassButton own and pass to their glass surface.
+        private static readonly AvaloniaProperty[] SurfaceProperties =
+        [
+            EnableBackdropBlurProperty, BlurModeProperty, GlassBlurProperty, GlassSaturationProperty, GlassOpacityProperty,
+            GlassTintProperty, GlassTintOpacityProperty, GlassReflectDegreeProperty, GlassReflectOpacityProperty,
+            GlassDepthProperty, GlassCurvatureProperty, GlassBendProperty, GlassDispersionProperty,
+            GlassFillProperty, GlassGradientProperty, GlassFillOpacityProperty,
+            GlassPatternProperty, GlassPatternColorProperty, GlassPatternOpacityProperty,
+            GlassBackgroundProperty, GlassBackgroundOpacityProperty
+        ];
+
+        /// <summary>
+        /// Binds the glass properties of <paramref name="surface"/> to the same properties of <paramref name="owner"/>,
+        /// which owns them through <c>AddOwner</c>. Dispose the result before binding a new surface.
+        /// </summary>
+        internal static IDisposable BindSurface(DaisyGlass surface, AvaloniaObject owner)
+        {
+            var bindings = new IDisposable[SurfaceProperties.Length];
+            for (var i = 0; i < SurfaceProperties.Length; i++)
+                bindings[i] = surface.Bind(SurfaceProperties[i], owner.GetObservable(SurfaceProperties[i]));
+            return new SurfaceBindings(bindings);
+        }
+
+        private sealed class SurfaceBindings(IDisposable[] bindings) : IDisposable
+        {
+            public void Dispose()
+            {
+                foreach (var binding in bindings)
+                    binding.Dispose();
+            }
         }
 
         static DaisyGlass()
@@ -275,11 +511,64 @@ namespace Flowery.Controls
                 GlassDispersionProperty);
         }
 
+        public DaisyGlass()
+        {
+            UpdateEffectiveBlurMode();
+        }
+
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
             _blurImage = e.NameScope.Find<Image>("PART_BlurImage");
+            _patternLayer = e.NameScope.Find<Canvas>("PART_PatternLayer");
+            _backgroundHost = e.NameScope.Find<Panel>("PART_BackgroundHost");
             UpdateBackdropImageBounds();
+            RebuildPatternLayer();
+            RebuildBackgroundLayer();
+        }
+
+        private void RebuildBackgroundLayer()
+        {
+            if (_backgroundHost == null) return;
+            _backgroundHost.Children.Clear();
+            if (GlassBackground?.CreateLayer() is { } layer)
+                _backgroundHost.Children.Add(layer);
+        }
+
+        private void UpdateEffectiveGlassFill()
+        {
+            EffectiveGlassFill = GlassFill ?? DaisyGlassGradients.CreateBrush(GlassGradient);
+        }
+
+        private void RebuildPatternLayer()
+        {
+            if (_patternLayer == null) return;
+            _patternLayer.Children.Clear();
+
+            var size = Bounds.Size;
+            if (GlassPattern == DaisyCardPattern.None || size.Width <= 0 || size.Height <= 0) return;
+
+            var pattern = FloweryPatternTileGenerator.CreateTiledPatternCanvas(
+                GlassPattern, new SolidColorBrush(GlassPatternColor), size.Width, size.Height);
+            if (pattern == null) return;
+
+            // The tiles carry the faint opacities of card patterns, mostly 0.15. Scale them so that
+            // GlassPatternOpacity is the opacity of a typical stroke, keeping each pattern's own shading.
+            ScalePatternOpacity(pattern, GlassPatternOpacity / CardPatternOpacity);
+            _patternLayer.Children.Add(pattern);
+        }
+
+        private const double CardPatternOpacity = 0.15;
+
+        private static void ScalePatternOpacity(Panel panel, double scale)
+        {
+            foreach (var child in panel.Children)
+            {
+                if (child is Panel nested)
+                    ScalePatternOpacity(nested, scale);
+                else
+                    child.Opacity = Math.Clamp(child.Opacity * scale, 0, 1);
+            }
         }
 
         private void UpdateBackdropImageBounds()
@@ -313,6 +602,7 @@ namespace Flowery.Controls
         private void OnAccessibilityChanged(object? sender, EventArgs e)
         {
             PseudoClasses.Set(":highcontrast", DaisyAccessibility.IsHighContrast);
+            UpdateBackdropColorState();
             if (DaisyAccessibility.IsHighContrast) ClearCapturedBackdrop();
             else if (ShouldCaptureBackdrop) RequestBackdropCapture();
             InvalidateVisual();
@@ -321,6 +611,25 @@ namespace Flowery.Controls
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
+
+            if (change.Property == GlassBackgroundProperty)
+            {
+                RebuildBackgroundLayer();
+                return;
+            }
+
+            if (change.Property == GlassFillProperty || change.Property == GlassGradientProperty)
+            {
+                UpdateEffectiveGlassFill();
+                return;
+            }
+
+            if (change.Property == GlassPatternProperty || change.Property == GlassPatternColorProperty
+                || change.Property == GlassPatternOpacityProperty
+                || (change.Property == BoundsProperty && change.GetOldValue<Rect>().Size != change.GetNewValue<Rect>().Size))
+            {
+                RebuildPatternLayer();
+            }
 
             if (change.Property == EnableBackdropBlurProperty)
             {
@@ -335,6 +644,7 @@ namespace Flowery.Controls
             }
             else if (change.Property == BlurModeProperty)
             {
+                UpdateEffectiveBlurMode();
                 if (ShouldCaptureBackdrop && TopLevel.GetTopLevel(this) != null)
                 {
                     RequestBackdropCapture();
@@ -351,6 +661,22 @@ namespace Flowery.Controls
             else if (change.Property == BoundsProperty && ShouldCaptureBackdrop)
             {
                 RequestBackdropCapture();
+            }
+
+            if (change.Property == MeasureBackdropColorProperty)
+            {
+                UpdateBackdropColorState();
+                if (MeasureBackdropColor)
+                {
+                    // A capture taken without the measurement has no average; the live renderer measures on its next render.
+                    if (ShouldCaptureBackdrop && TopLevel.GetTopLevel(this) != null)
+                        RequestBackdropCapture();
+                    InvalidateVisual();
+                }
+            }
+            else if (change.Property == EnableBackdropBlurProperty || change.Property == BlurModeProperty)
+            {
+                UpdateBackdropColorState();
             }
         }
 
@@ -403,6 +729,7 @@ namespace Flowery.Controls
                     UpdateBackdropImageBounds();
                     BlurredBackground = blurredBitmap;
                     (oldBitmap as IDisposable)?.Dispose();
+                    UpdateBackdropColorState();
                 }
             }
             catch
@@ -478,11 +805,22 @@ namespace Flowery.Controls
             {
                 var displayBounds = new Rect(capture.X - topLeft.X, capture.Y - topLeft.Y, capture.Width, capture.Height);
                 var dpi = new Vector(96 * pixelWidth / capture.Width, 96 * pixelHeight / capture.Height);
-                bitmap = new BackdropBitmap(new PixelSize(pixelWidth, pixelHeight), dpi, displayBounds);
+                var backdrop = new BackdropBitmap(new PixelSize(pixelWidth, pixelHeight), dpi, displayBounds);
+                bitmap = backdrop;
 
                 using (var ctx = bitmap.CreateDrawingContext())
                 {
                     BackdropRenderer.Render(ctx, backgroundSource, this, capture);
+                }
+
+                if (MeasureBackdropColor)
+                {
+                    // The glass itself, without the blur padding around it, in bitmap pixels.
+                    var scaleX = pixelWidth / capture.Width;
+                    var scaleY = pixelHeight / capture.Height;
+                    backdrop.AverageColor = AverageColor(backdrop, new PixelRect(
+                        (int)Math.Floor((topLeft.X - capture.X) * scaleX), (int)Math.Floor((topLeft.Y - capture.Y) * scaleY),
+                        (int)Math.Ceiling(bounds.Width * scaleX), (int)Math.Ceiling(bounds.Height * scaleY)));
                 }
 
                 return bitmap;
@@ -494,11 +832,48 @@ namespace Flowery.Controls
             }
         }
 
+        /// <summary>
+        /// Returns the average color of <paramref name="area"/> in <paramref name="bitmap"/>, weighted by alpha, or
+        /// <c>null</c> when the area holds nothing opaque.
+        /// </summary>
+        private static Color? AverageColor(Bitmap bitmap, PixelRect area)
+        {
+            area = area.Intersect(new PixelRect(bitmap.PixelSize));
+            if (area.Width <= 0 || area.Height <= 0)
+                return null;
+
+            // Copied into a bitmap of a known format; the copy converts from whatever format the platform renders in.
+            using var copy = new WriteableBitmap(bitmap.PixelSize, bitmap.Dpi, PixelFormat.Bgra8888, AlphaFormat.Premul);
+            using var frame = copy.Lock();
+            bitmap.CopyPixels(frame);
+            var row = new byte[area.Width * 4];
+            long blue = 0, green = 0, red = 0, alpha = 0;
+            for (var y = area.Y; y < area.Bottom; y++)
+            {
+                Marshal.Copy(frame.Address + y * frame.RowBytes + area.X * 4, row, 0, row.Length);
+                for (var i = 0; i < row.Length; i += 4)
+                {
+                    // Premultiplied channels summed and divided by the summed alpha give the alpha-weighted average.
+                    blue += row[i];
+                    green += row[i + 1];
+                    red += row[i + 2];
+                    alpha += row[i + 3];
+                }
+            }
+            if (alpha == 0)
+                return null;
+            return Color.FromRgb(
+                (byte)Math.Min(255, red * 255 / alpha), (byte)Math.Min(255, green * 255 / alpha), (byte)Math.Min(255, blue * 255 / alpha));
+        }
+
         // The display rectangle travels with the owned bitmap and is applied only after capture validation.
         private sealed class BackdropBitmap(PixelSize pixelSize, Vector dpi, Rect displayBounds)
             : RenderTargetBitmap(pixelSize, dpi), IImage
         {
             public Rect DisplayBounds { get; } = displayBounds;
+
+            /// <summary>The average color behind the glass, measured when the glass asked for it.</summary>
+            public Color? AverageColor { get; set; }
 
             // Bitmap.Draw uses pixel source coordinates. Image must see the same units,
             // while the render target retains its DPI for drawing shadows and effects.
@@ -552,359 +927,14 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Override render to support SkiaSharp blur mode.
+        /// Draws the live backdrop through the registered <see cref="DaisyGlassLiveRenderer"/> in SkiaSharp mode.
         /// </summary>
         public override void Render(DrawingContext context)
         {
-            if (EnableBackdropBlur && BlurMode == GlassBlurMode.SkiaSharp && !DaisyAccessibility.IsHighContrast)
-            {
-                // Use custom SkiaSharp draw operation for real-time blur
-                var operation = new SkiaGlassDrawOperation(
-                    new Rect(0, 0, Bounds.Width, Bounds.Height),
-                    GlassBlur,
-                    GlassTint,
-                    GlassTintOpacity,
-                    CornerRadius.TopLeft,
-                    GlassSaturation,
-                    GlassReflectDegree,
-                    GlassReflectOpacity,
-                    GlassDepth,
-                    GlassCurvature,
-                    GlassBend,
-                    GlassDispersion);
-
-                context.Custom(operation);
-            }
+            if (EnableBackdropBlur && EffectiveBlurMode == GlassBlurMode.SkiaSharp && !DaisyAccessibility.IsHighContrast)
+                DaisyGlassLiveRenderer.Current?.Render(this, context);
 
             base.Render(context);
         }
-    }
-
-    /// <summary>
-    /// Custom SkiaSharp draw operation for real-time glass blur effect.
-    /// </summary>
-    internal class SkiaGlassDrawOperation : ICustomDrawOperation
-    {
-        private readonly Rect _bounds;
-        private readonly float _blurSigma;
-        private readonly SKColor _tintColor;
-        private readonly float _cornerRadius;
-        private readonly float _saturation;
-        private readonly float _sheenAngle;
-        private readonly float _reflectOpacity;
-        private readonly float _depth;
-        private readonly float _curvature;
-        private readonly float _bend;
-        private readonly float _dispersion;
-
-        public SkiaGlassDrawOperation(
-            Rect bounds,
-            double blurRadius,
-            Color tintColor,
-            double tintOpacity,
-            double cornerRadius,
-            double saturation,
-            double sheenAngle,
-            double reflectOpacity,
-            double depth,
-            double curvature,
-            double bend,
-            double dispersion)
-        {
-            _bounds = bounds;
-            _blurSigma = (float)(blurRadius / 10.0);
-            _tintColor = new SKColor(
-                tintColor.R,
-                tintColor.G,
-                tintColor.B,
-                ToAlpha(Clamp01((float)tintOpacity)));
-            _cornerRadius = (float)cornerRadius;
-            _saturation = Math.Max(0, (float)saturation);
-            _sheenAngle = (float)sheenAngle;
-            _reflectOpacity = Clamp01((float)reflectOpacity);
-            _depth = Clamp01((float)depth);
-            _curvature = Clamp01((float)curvature);
-            _bend = Clamp01((float)bend);
-            _dispersion = Clamp01((float)dispersion);
-        }
-
-        public Rect Bounds => _bounds;
-
-        public bool HitTest(Point p) => _bounds.Contains(p);
-
-        public bool Equals(ICustomDrawOperation? other)
-        {
-            return other is SkiaGlassDrawOperation op &&
-                   op._bounds == _bounds &&
-                   op._tintColor == _tintColor &&
-                   op._cornerRadius == _cornerRadius &&
-                   op._sheenAngle == _sheenAngle &&
-                   Math.Abs(op._blurSigma - _blurSigma) < 0.1f &&
-                   Math.Abs(op._saturation - _saturation) < 0.01f &&
-                   Math.Abs(op._reflectOpacity - _reflectOpacity) < 0.01f &&
-                   Math.Abs(op._depth - _depth) < 0.01f &&
-                   Math.Abs(op._curvature - _curvature) < 0.01f &&
-                   Math.Abs(op._bend - _bend) < 0.01f &&
-                   Math.Abs(op._dispersion - _dispersion) < 0.01f;
-        }
-
-        public void Dispose() { }
-
-        public void Render(ImmediateDrawingContext context)
-        {
-            var leaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
-            if (leaseFeature == null)
-                return;
-
-            using var lease = leaseFeature.Lease();
-            var canvas = lease.SkCanvas;
-
-            if (canvas == null)
-                return;
-
-            var rect = new SKRect(
-                (float)_bounds.X,
-                (float)_bounds.Y,
-                (float)_bounds.Right,
-                (float)_bounds.Bottom);
-
-            var roundedRect = new SKRoundRect(rect, _cornerRadius);
-
-            // Save canvas state
-            int saveCount = canvas.Save();
-
-            // Clip to our bounds
-            canvas.ClipRoundRect(roundedRect, SKClipOperation.Intersect, true);
-
-            // Create blur filter
-            using var blurFilter = SKImageFilter.CreateBlur(_blurSigma, _blurSigma, SKShaderTileMode.Clamp);
-
-            SKImageFilter? backdropFilter = blurFilter;
-            SKColorFilter? colorFilter = null;
-
-            // Apply saturation if needed
-            if (Math.Abs(_saturation - 1.0f) > 0.01f)
-            {
-                // Standard luminance weights
-                float r = 0.2126f;
-                float g = 0.7152f;
-                float b = 0.0722f;
-
-                float sr = (1 - _saturation) * r;
-                float sg = (1 - _saturation) * g;
-                float sb = (1 - _saturation) * b;
-
-                float[] matrix = new float[]
-                {
-                    sr + _saturation, sr,              sr,              0, 0,
-                    sg,               sg + _saturation, sg,              0, 0,
-                    sb,               sb,              sb + _saturation, 0, 0,
-                    0,                0,               0,                1, 0
-                };
-
-                colorFilter = SKColorFilter.CreateColorMatrix(matrix);
-                backdropFilter = SKImageFilter.CreateColorFilter(colorFilter, blurFilter);
-            }
-
-            // Try to use SKSaveLayerRec if available (Standard way)
-            // Note: If SKSaveLayerRec is missing in this binding, we fallback to Snapshot
-            bool useSnapshot = true;
-
-            if (!useSnapshot)
-            {
-                // Original attempt - failed compilation for user
-                /*
-                var saveLayerRec = new SKSaveLayerRec
-                {
-                    Bounds = rect,
-                    Backdrop = backdropFilter
-                };
-                canvas.SaveLayer(saveLayerRec);
-                canvas.Restore();
-                */
-            }
-
-            // Fallback: Snapshot approach (Manual Backdrop Blur)
-            // This is robust and works without SKSaveLayerRec
-            if (lease.SkSurface is SKSurface surface)
-            {
-                using var snapshot = surface.Snapshot();
-                using var paint = new SKPaint
-                {
-                    ImageFilter = backdropFilter,
-                    IsAntialias = true
-                };
-
-                // IMPORTANT: The snapshot is in Device Coordinates (pixels).
-                // The canvas is currently in Local Coordinates (with transforms/scaling).
-                // To align the background perfectly, we must draw in Device Coordinates.
-
-                canvas.Save();
-                // Reset matrix to Identity (Device Coordinates) so 0,0 is top-left of window
-                canvas.ResetMatrix();
-
-                // Draw the snapshot at 0,0.
-                // The previous clip (rounded rect) is preserved in device space, so it masks correctly.
-                canvas.DrawImage(snapshot, 0, 0, paint);
-
-                canvas.Restore();
-            }
-
-            if (backdropFilter != blurFilter)
-            {
-                backdropFilter?.Dispose();
-            }
-            colorFilter?.Dispose();
-
-            // Draw tint overlay
-            using var tintPaint = new SKPaint
-            {
-                Color = _tintColor,
-                Style = SKPaintStyle.Fill,
-                IsAntialias = true
-            };
-            canvas.DrawRoundRect(roundedRect, tintPaint);
-
-            DrawLiquidOptics(canvas, rect);
-
-            // Draw highlight border (gradient from top to bottom to simulate light source)
-            using var highlightPaint = new SKPaint
-            {
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 1,
-                IsAntialias = true
-            };
-
-            // Gradient: White (Top) -> Transparent (Bottom)
-            var colors = new SKColor[]
-            {
-                new SKColor(255, 255, 255, 80),
-                new SKColor(255, 255, 255, 0)
-            };
-
-            using var shader = SKShader.CreateLinearGradient(
-                new SKPoint((float)_bounds.Left, (float)_bounds.Top),
-                new SKPoint((float)_bounds.Left, (float)_bounds.Bottom),
-                colors,
-                null,
-                SKShaderTileMode.Clamp);
-
-            highlightPaint.Shader = shader;
-
-            canvas.DrawRoundRect(roundedRect, highlightPaint);
-
-            // Restore canvas
-            canvas.RestoreToCount(saveCount);
-        }
-
-        private void DrawLiquidOptics(SKCanvas canvas, SKRect rect)
-        {
-            var minSide = Math.Min(rect.Width, rect.Height);
-            if (minSide <= 0)
-                return;
-
-            var rimWidth = Math.Clamp(minSide * (0.035f + _depth * 0.055f + _bend * 0.04f), 2f, minSide * 0.2f);
-            var insetRect = rect;
-            insetRect.Inflate(-rimWidth * 0.5f, -rimWidth * 0.5f);
-            if (insetRect.Width <= 0 || insetRect.Height <= 0)
-                return;
-
-            var insetRadius = Math.Max(0, _cornerRadius - rimWidth * 0.5f);
-            var rimRect = new SKRoundRect(insetRect, insetRadius);
-            var angle = _sheenAngle * MathF.PI / 180f;
-            var light = new SKPoint(MathF.Cos(angle), MathF.Sin(angle));
-            var specularAlpha = ToAlpha(Math.Clamp(_reflectOpacity + _curvature * 0.12f, 0f, 0.75f));
-
-            if (_dispersion > 0.001f)
-            {
-                var offset = Math.Clamp(_dispersion * 4f, 0.5f, 4f);
-                DrawChromaticRim(canvas, rimRect, offset, rimWidth);
-            }
-
-            using (var rimPaint = new SKPaint
-            {
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = rimWidth,
-                IsAntialias = true
-            })
-            {
-                var colors = new[]
-                {
-                    new SKColor(255, 255, 255, specularAlpha),
-                    new SKColor(255, 255, 255, ToAlpha(_reflectOpacity * 0.28f)),
-                    new SKColor(0, 0, 0, ToAlpha(_bend * 0.18f)),
-                    new SKColor(255, 255, 255, ToAlpha(_reflectOpacity * 0.36f))
-                };
-                var points = new[] { 0f, 0.38f, 0.72f, 1f };
-                rimPaint.Shader = SKShader.CreateLinearGradient(
-                    new SKPoint(rect.MidX - light.X * rect.Width * 0.5f, rect.MidY - light.Y * rect.Height * 0.5f),
-                    new SKPoint(rect.MidX + light.X * rect.Width * 0.5f, rect.MidY + light.Y * rect.Height * 0.5f),
-                    colors,
-                    points,
-                    SKShaderTileMode.Clamp);
-
-                canvas.DrawRoundRect(rimRect, rimPaint);
-            }
-
-            if (_curvature > 0.001f || _bend > 0.001f)
-            {
-                var glowCenter = new SKPoint(
-                    rect.MidX - light.X * rect.Width * 0.22f,
-                    rect.MidY - light.Y * rect.Height * 0.22f);
-                var glowRadius = Math.Max(8f, minSide * (0.28f + _depth * 0.2f));
-                using var glowPaint = new SKPaint
-                {
-                    Style = SKPaintStyle.Fill,
-                    IsAntialias = true,
-                    Shader = SKShader.CreateRadialGradient(
-                        glowCenter,
-                        glowRadius,
-                        new[]
-                        {
-                            new SKColor(255, 255, 255, ToAlpha(_reflectOpacity * (0.25f + _curvature * 0.25f))),
-                            new SKColor(255, 255, 255, 0)
-                        },
-                        new[] { 0f, 1f },
-                        SKShaderTileMode.Clamp)
-                };
-
-                canvas.DrawRoundRect(new SKRoundRect(rect, _cornerRadius), glowPaint);
-            }
-        }
-
-        private static void DrawChromaticRim(SKCanvas canvas, SKRoundRect rimRect, float offset, float rimWidth)
-        {
-            canvas.Save();
-            canvas.Translate(-offset, 0);
-            using (var redPaint = new SKPaint
-            {
-                Color = new SKColor(255, 80, 80, 34),
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = Math.Max(1f, rimWidth * 0.35f),
-                IsAntialias = true
-            })
-            {
-                canvas.DrawRoundRect(rimRect, redPaint);
-            }
-            canvas.Restore();
-
-            canvas.Save();
-            canvas.Translate(offset, 0);
-            using (var bluePaint = new SKPaint
-            {
-                Color = new SKColor(80, 150, 255, 34),
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = Math.Max(1f, rimWidth * 0.35f),
-                IsAntialias = true
-            })
-            {
-                canvas.DrawRoundRect(rimRect, bluePaint);
-            }
-            canvas.Restore();
-        }
-
-        private static float Clamp01(float value) => Math.Clamp(value, 0f, 1f);
-
-        private static byte ToAlpha(float opacity) => (byte)Math.Clamp(opacity * 255f, 0f, 255f);
     }
 }

@@ -40,7 +40,6 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.4" />
-    <PackageReference Include="Avalonia.Skia" Version="12.1.4" />
   </ItemGroup>
 
 </Project>

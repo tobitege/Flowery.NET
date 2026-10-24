@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Rendering.Composition;
 
 namespace Flowery.NET.Gallery.Desktop;
 
@@ -32,6 +33,9 @@ sealed class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            // Separate redrawn areas keep a glass control out of a redraw it does not need: by default every changed
+            // area of a frame merges into one rectangle, which can reach glass far from the change.
+            .With(new CompositionOptions { UseRegionDirtyRectClipping = true })
             .WithInterFont()
             .WithNotoFonts()
             .LogToTrace();

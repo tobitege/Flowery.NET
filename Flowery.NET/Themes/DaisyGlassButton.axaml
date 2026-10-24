@@ -1,0 +1,129 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Width="420">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Offset="0" Color="#FF6B8DD6" />
+                    <GradientStop Offset="1" Color="#FF8E37D7" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <WrapPanel>
+                <controls:DaisyGlassButton Content="Glass" Margin="4" />
+                <controls:DaisyGlassButton Variant="Primary" Content="Primary" Margin="4" />
+                <controls:DaisyGlassButton ButtonStyle="Outline" Variant="Accent" Content="Outline" Margin="4" />
+            </WrapPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- Inherits variants, styles, sizes, shapes and hover colors from DaisyButton; only the surface differs. -->
+    <ControlTheme x:Key="{x:Type controls:DaisyGlassButton}" TargetType="controls:DaisyGlassButton"
+                  BasedOn="{StaticResource {x:Type controls:DaisyButton}}">
+        <Setter Property="EnableBackdropBlur" Value="True" />
+        <Setter Property="BlurMode" Value="SkiaSharp" />
+        <Setter Property="GlassBlur" Value="30" />
+        <Setter Property="GlassTint" Value="White" />
+        <Setter Property="GlassTintOpacity" Value="0.15" />
+        <Setter Property="GlassReflectOpacity" Value="0.15" />
+
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel ClipToBounds="False">
+                    <!-- The glass comes first, so its backdrop holds only what lies behind the button.
+                         The control binds its glass properties to it when the template is applied. -->
+                    <controls:DaisyGlass x:Name="PART_Glass"
+                                         Padding="0"
+                                         IsHitTestVisible="False"
+                                         CornerRadius="{TemplateBinding CornerRadius}" />
+                    <!-- The variant color tints the glass; DaisyButton's hover styles change it. -->
+                    <Border x:Name="PART_Background"
+                            IsHitTestVisible="False"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Opacity="{TemplateBinding GlassColorOpacity}" />
+                    <!-- Transparent, not null: the glass and tint ignore the pointer, so this layer takes it for the whole surface. -->
+                    <Border x:Name="PART_Border"
+                            Background="Transparent"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                        <Border.BoxShadow>
+                            <MultiBinding Converter="{x:Static controls:ButtonShadowConverter.Instance}">
+                                <Binding Path="ShowShadow" RelativeSource="{RelativeSource TemplatedParent}" />
+                                <Binding Path="ShadowOffsetX" RelativeSource="{RelativeSource TemplatedParent}" />
+                                <Binding Path="ShadowOffsetY" RelativeSource="{RelativeSource TemplatedParent}" />
+                                <Binding Path="ShadowBlur" RelativeSource="{RelativeSource TemplatedParent}" />
+                                <Binding Path="ShadowColor" RelativeSource="{RelativeSource TemplatedParent}" />
+                            </MultiBinding>
+                        </Border.BoxShadow>
+                    </Border>
+                    <Rectangle x:Name="PART_DashBorder"
+                               IsVisible="False"
+                               Stroke="{TemplateBinding BorderBrush}"
+                               StrokeThickness="1"
+                               StrokeDashArray="4,2"
+                               RadiusX="8" RadiusY="8" />
+                    <!-- EffectiveForeground is Foreground with enough contrast over the glass; the icons inherit it. -->
+                    <StackPanel x:Name="PART_ContentPanel"
+                        TextElement.Foreground="{TemplateBinding EffectiveForeground}"
+                        Orientation="Horizontal"
+                        Spacing="{TemplateBinding IconSpacing}"
+                        Margin="{TemplateBinding Padding}"
+                        HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                        <StackPanel.Effect>
+                            <DropShadowEffect OffsetX="0" OffsetY="1" BlurRadius="3" Color="Black"
+                                              Opacity="{Binding GlassTextShadowOpacity, RelativeSource={RelativeSource TemplatedParent}}" />
+                        </StackPanel.Effect>
+                        <ContentPresenter x:Name="PART_IconLeft"
+                            Content="{TemplateBinding IconLeft}"
+                            IsVisible="{TemplateBinding IconLeft, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            VerticalAlignment="Center" />
+                        <Grid x:Name="PART_UnifiedContentGrid"
+                              ColumnDefinitions="Auto,Auto"
+                              RowDefinitions="Auto,Auto"
+                              VerticalAlignment="Center">
+                            <Viewbox x:Name="PART_UnifiedIcon"
+                                     Grid.Row="0"
+                                     Grid.Column="0"
+                                     Width="{TemplateBinding EffectiveIconSize}"
+                                     Height="{TemplateBinding EffectiveIconSize}"
+                                     Margin="{TemplateBinding EffectiveIconMargin}"
+                                     Stretch="Uniform"
+                                     IsVisible="{TemplateBinding HasUnifiedIcon}">
+                                <Path Width="24"
+                                      Height="24"
+                                      Data="{TemplateBinding EffectiveIconData}"
+                                      Fill="{TemplateBinding EffectiveForeground}"
+                                      Stretch="Fill" />
+                            </Viewbox>
+                            <ContentPresenter x:Name="PART_ContentPresenter"
+                                              Grid.Row="0"
+                                              Grid.Column="1"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              TextElement.Foreground="{TemplateBinding EffectiveForeground}"
+                                              RecognizesAccessKey="False"
+                                              IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                              VerticalAlignment="Center" />
+                        </Grid>
+                        <ContentPresenter x:Name="PART_IconRight"
+                            Content="{TemplateBinding IconRight}"
+                            IsVisible="{TemplateBinding IconRight, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            VerticalAlignment="Center" />
+                    </StackPanel>
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+
+        <!-- The default variant is clear glass, so fills and patterns keep their colors; hover brightens the glass. -->
+        <Style Selector="^[Variant=Default]">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="^[Variant=Default]:pointerover /template/ Border#PART_Background">
+            <Setter Property="Background" Value="#80FFFFFF" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

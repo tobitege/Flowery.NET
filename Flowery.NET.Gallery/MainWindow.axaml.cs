@@ -9,6 +9,8 @@ namespace Flowery.NET.Gallery;
 
 public partial class MainWindow : Window
 {
+    private GallerySettings.WindowPlacement? _restoredPlacement;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -43,6 +45,23 @@ public partial class MainWindow : Window
             if (state is WindowState.Maximized or WindowState.FullScreen)
                 WindowState = state;
         }
+
+        // The window is created on the primary monitor and then moved to the saved position. Moving it to a monitor
+        // with another scale rounds its size down by a pixel or two, which added up over restarts, so the saved size
+        // is applied again once the window is open.
+        _restoredPlacement = placement;
+        Opened += OnOpenedRestoreSize;
+    }
+
+    private void OnOpenedRestoreSize(object? sender, EventArgs e)
+    {
+        Opened -= OnOpenedRestoreSize;
+        if (_restoredPlacement is not { } placement || WindowState != WindowState.Normal)
+            return;
+        if (placement.Width >= 300)
+            Width = placement.Width;
+        if (placement.Height >= 300)
+            Height = placement.Height;
     }
 
     private void SaveWindowPlacement()

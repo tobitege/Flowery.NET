@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowery.NET.RuntimeTests", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowery.NET.RuntimeTests.Runner", "Flowery.NET.RuntimeTests.Runner\Flowery.NET.RuntimeTests.Runner.csproj", "{5D0C3F7A-2B41-4E8C-9A63-7F1E2D4B8C90}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowery.NET.Skia", "Flowery.NET.Skia\Flowery.NET.Skia.csproj", "{4B6693CD-D13C-40D2-8D95-0D7817037A9F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -209,6 +211,18 @@ Global
 		{5D0C3F7A-2B41-4E8C-9A63-7F1E2D4B8C90}.Release|x64.Build.0 = Release|Any CPU
 		{5D0C3F7A-2B41-4E8C-9A63-7F1E2D4B8C90}.Release|x86.ActiveCfg = Release|Any CPU
 		{5D0C3F7A-2B41-4E8C-9A63-7F1E2D4B8C90}.Release|x86.Build.0 = Release|Any CPU
+		{4B6693CD-D13C-40D2-8D95-0D7817037A9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B6693CD-D13C-40D2-8D95-0D7817037A9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B6693CD-D13C-40D2-8D95-0D7817037A9F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4B6693CD-D13C-40D2-8D95-0D7817037A9F}.Debug|x64.Build.0 = Debug|Any CPU
+		{4B6693CD-D13C-40D2-8D95-0D7817037A9F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4B6693CD-D13C-40D2-8D95-0D7817037A9F}.Debug|x86.Build.0 = Debug|Any CPU
+		{4B6693CD-D13C-40D2-8D95-0D7817037A9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B6693CD-D13C-40D2-8D95-0D7817037A9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B6693CD-D13C-40D2-8D95-0D7817037A9F}.Release|x64.ActiveCfg = Release|Any CPU
+		{4B6693CD-D13C-40D2-8D95-0D7817037A9F}.Release|x64.Build.0 = Release|Any CPU
+		{4B6693CD-D13C-40D2-8D95-0D7817037A9F}.Release|x86.ActiveCfg = Release|Any CPU
+		{4B6693CD-D13C-40D2-8D95-0D7817037A9F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

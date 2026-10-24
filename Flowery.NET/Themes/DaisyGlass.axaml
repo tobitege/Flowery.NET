@@ -48,18 +48,17 @@
                         CornerRadius="{TemplateBinding CornerRadius}"
                         ClipToBounds="True">
                     <Panel>
-                        <!-- Real backdrop blur (when enabled) -->
-                        <Panel x:Name="PART_BackdropBlurPanel" IsVisible="False">
+                        <!-- Real backdrop blur (when enabled). The capture extends past the glass by the blur padding;
+                             a Canvas keeps it out of the measure, so an auto-sized glass does not grow with each capture. -->
+                        <Canvas x:Name="PART_BackdropBlurPanel" IsVisible="False">
                             <Image x:Name="PART_BlurImage"
                                    Source="{TemplateBinding BlurredBackground}"
-                                   HorizontalAlignment="Left"
-                                   VerticalAlignment="Top"
                                    Stretch="Fill">
                                 <Image.Effect>
                                     <BlurEffect Radius="{Binding GlassBlur, RelativeSource={RelativeSource TemplatedParent}}" />
                                 </Image.Effect>
                             </Image>
-                        </Panel>
+                        </Canvas>
 
                         <!-- Simulated glass effect (default) -->
                         <Panel x:Name="PART_SimulatedGlassPanel">
@@ -94,6 +93,18 @@
                                                  Opacity="{TemplateBinding GlassTintOpacity}" />
                             </Border.Background>
                         </Border>
+
+                        <!-- Fill (GlassFill or a GlassGradient preset) and pattern over the blurred backdrop -->
+                        <Border x:Name="PART_Fill"
+                                IsHitTestVisible="False"
+                                CornerRadius="{TemplateBinding CornerRadius}"
+                                Background="{TemplateBinding EffectiveGlassFill}"
+                                Opacity="{TemplateBinding GlassFillOpacity}" />
+                        <!-- Animated background (GlassBackground) -->
+                        <Panel x:Name="PART_BackgroundHost"
+                               IsHitTestVisible="False"
+                               Opacity="{TemplateBinding GlassBackgroundOpacity}" />
+                        <Canvas x:Name="PART_PatternLayer" IsHitTestVisible="False" />
 
                         <!-- Top shine/reflection (always shown) -->
                         <Border CornerRadius="{TemplateBinding CornerRadius}"
@@ -149,13 +160,13 @@
         </Setter>
 
         <!-- Bitmap capture mode owns the image blur layer. SkiaSharp renders its backdrop in code. -->
-        <Style Selector="^[EnableBackdropBlur=True][BlurMode=BitmapCapture] /template/ Panel#PART_BackdropBlurPanel">
+        <Style Selector="^[EnableBackdropBlur=True][EffectiveBlurMode=BitmapCapture] /template/ Canvas#PART_BackdropBlurPanel">
             <Setter Property="IsVisible" Value="True" />
         </Style>
         <Style Selector="^[EnableBackdropBlur=True] /template/ Panel#PART_SimulatedGlassPanel">
             <Setter Property="IsVisible" Value="False" />
         </Style>
-        <Style Selector="^[EnableBackdropBlur=True][BlurMode=BitmapCapture] /template/ Border#PART_TintOverlay">
+        <Style Selector="^[EnableBackdropBlur=True][EffectiveBlurMode=BitmapCapture] /template/ Border#PART_TintOverlay">
             <Setter Property="IsVisible" Value="True" />
         </Style>
         <Style Selector="^:highcontrast /template/ Border#PART_ContrastSurface">
