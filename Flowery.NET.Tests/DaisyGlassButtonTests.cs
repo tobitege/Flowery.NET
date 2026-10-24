@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Layout;
@@ -135,6 +136,9 @@ public class DaisyGlassButtonTests
         var window = Show(button);
         try
         {
+            // Hit testing uses the rendered scene, which holds the button only after a frame was rendered.
+            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            Dispatcher.UIThread.RunJobs();
             var hit = button.InputHitTest(new Point(6, 24));
             Assert.True(hit is Visual visual && (ReferenceEquals(visual, button) || button.IsVisualAncestorOf(visual)),
                 $"The edge of the button was not hit-testable: {hit}.");
