@@ -219,6 +219,75 @@ public class Given_GlassBackdrop
         }
     }
 
+    [Fact]
+    public async Task When_An_Auto_Sized_Glass_Displays_Its_Backdrop_It_Keeps_Its_Size()
+    {
+        var glass = new CaptureGlass { GlassBlur = 20, Content = new Border { Width = 120, Height = 60 } };
+        Canvas.SetLeft(glass, 100);
+        Canvas.SetTop(glass, 80);
+        var canvas = new Canvas { Width = 400, Height = 260, Background = Brushes.Blue, Children = { glass } };
+        await RuntimeTestHelpers.AttachAsync(canvas);
+        var size = glass.Bounds.Size;
+
+        // The capture reaches 20 DIPs past each edge. It must not widen the glass, or every capture would widen it again.
+        await EnableBackdropBlurAsync(glass);
+        await RuntimeTestHelpers.WaitForRenderAsync();
+        await RuntimeTestHelpers.WaitForRenderAsync();
+
+        Assert.True(glass.Bounds.Size == size, $"The glass grew from {size} to {glass.Bounds.Size} after its capture.");
+    }
+
+    [Fact]
+    public async Task When_A_Glass_Button_Is_Rendered_The_Backdrop_Behind_It_Is_Blurred()
+    {
+        var window = RuntimeTestHelpers.GetWindow();
+        var red = new Border { Width = 200, Height = 260, Background = Brushes.Red };
+        var canvas = new Canvas { Width = 400, Height = 260, Background = Brushes.Blue, Children = { red } };
+        await RuntimeTestHelpers.AttachAsync(canvas);
+        using var reference = SKBitmap.Decode(await SaveScreenAsync(window, canvas, "glass-button-reference"));
+
+        // Ghost and zero tints leave only the blurred backdrop, so the red/blue edge at x=200 shows the blur.
+        var button = new DaisyGlassButton
+        {
+            Variant = DaisyButtonVariant.Ghost,
+            Width = 200,
+            Height = 80,
+            GlassBlur = 30,
+            GlassTintOpacity = 0,
+            GlassReflectOpacity = 0,
+            GlassCurvature = 0,
+            GlassBend = 0,
+            GlassDispersion = 0
+        };
+        Canvas.SetLeft(button, 100);
+        Canvas.SetTop(button, 90);
+        canvas.Children.Add(button);
+        await RuntimeTestHelpers.WaitForRenderAsync();
+        await RuntimeTestHelpers.WaitForRenderAsync();
+        using var actual = SKBitmap.Decode(await SaveScreenAsync(window, canvas, "glass-button-screen"));
+
+        var sharp = MixedPixels(reference, window.RenderScaling, 140);
+        var blurred = MixedPixels(actual, window.RenderScaling, 140);
+        var outside = MixedPixels(actual, window.RenderScaling, 40);
+        Assert.True(sharp <= 2, $"The reference edge is not sharp: {sharp} mixed pixels.");
+        Assert.True(outside <= 2, $"The edge outside the button is not sharp: {outside} mixed pixels.");
+        Assert.True(blurred > 6, $"The glass button did not blur the red/blue edge behind it: {blurred} mixed pixels.");
+    }
+
+    // Counts the pixels of the red/blue transition at x=200 that are neither nearly red nor nearly blue.
+    private static int MixedPixels(SKBitmap pixels, double scaling, double y)
+    {
+        var mixed = 0;
+        for (var x = 160; x < 240; x++)
+        {
+            var pixel = pixels.GetPixel((int)(x * scaling), (int)(y * scaling));
+            if (pixel.Red is > 20 and < 235)
+                mixed++;
+        }
+
+        return mixed;
+    }
+
     private static async Task AssertGlassCaptureAsync(Canvas canvas, string name, Point sample, SKColor expectedColor)
     {
         var window = RuntimeTestHelpers.GetWindow();
