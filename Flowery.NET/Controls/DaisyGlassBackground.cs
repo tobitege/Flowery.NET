@@ -1,6 +1,8 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
+using Avalonia.Threading;
 using Flowery.Enums;
 
 namespace Flowery.Controls
@@ -67,12 +69,19 @@ namespace Flowery.Controls
 
     /// <summary>
     /// A layer that draws one animated <see cref="DaisyGlassBackground"/> and redraws itself
-    /// <see cref="DaisyGlassBackground.FrameRate"/> times per second while it is attached. With reduced motion it draws a still frame; with high contrast it stops redrawing, since the contrast
-    /// surface covers it.
+    /// <see cref="DaisyGlassBackground.FrameRate"/> times per second while it is attached and on screen. With reduced
+    /// motion it draws a still frame; with high contrast it stops redrawing, since the contrast surface covers it.
+    /// While it cannot move (a speed of 0, reduced motion or high contrast) or is scrolled out of view it asks for no
+    /// frames; while it is hidden, such as on a page that is not shown, it looks again a few times per second.
     /// </summary>
     public abstract class DaisyGlassAnimationLayer : Control
     {
+        private static readonly TimeSpan HiddenCheckInterval = TimeSpan.FromMilliseconds(250);
+
+        private bool _attached;
         private bool _frameRequested;
+        private bool _hiddenCheckQueued;
+        private bool _inViewport = true;
         private TimeSpan? _lastFrame;
         private double _sinceRedraw;
 
@@ -94,16 +103,24 @@ namespace Flowery.Controls
         /// </summary>
         protected double Time { get; private set; }
 
+        private bool CanMove => Source.Speed > 0 && !DaisyAccessibility.IsReducedMotion && !DaisyAccessibility.IsHighContrast;
+
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
+            _attached = true;
             DaisyAccessibility.PreferencesChanged += OnPreferencesChanged;
+            Source.PropertyChanged += OnSourceChanged;
+            EffectiveViewportChanged += OnEffectiveViewportChanged;
             RequestFrame();
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
+            _attached = false;
             DaisyAccessibility.PreferencesChanged -= OnPreferencesChanged;
+            Source.PropertyChanged -= OnSourceChanged;
+            EffectiveViewportChanged -= OnEffectiveViewportChanged;
             _lastFrame = null;
             base.OnDetachedFromVisualTree(e);
         }
@@ -114,38 +131,78 @@ namespace Flowery.Controls
             RequestFrame();
         }
 
+        // A new effect shows at once, also on a still frame; a speed above 0 starts the frames again.
+        private void OnSourceChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+        {
+            InvalidateVisual();
+            RequestFrame();
+        }
+
+        private void OnEffectiveViewportChanged(object? sender, EffectiveViewportChangedEventArgs e)
+        {
+            _inViewport = e.EffectiveViewport.Intersects(new Rect(Bounds.Size));
+            RequestFrame();
+        }
+
         private void RequestFrame()
         {
-            if (_frameRequested || DaisyAccessibility.IsReducedMotion || TopLevel.GetTopLevel(this) is not { } topLevel)
+            if (_frameRequested || !_attached || !CanMove || !_inViewport || TopLevel.GetTopLevel(this) is not { } topLevel)
+            {
+                _lastFrame = null;
                 return;
+            }
+            if (!IsEffectivelyVisible)
+            {
+                CheckWhenHidden();
+                return;
+            }
             _frameRequested = true;
             topLevel.RequestAnimationFrame(OnFrame);
+        }
+
+        // Nothing reports when an ancestor shows the layer again, so a hidden layer looks again now and then.
+        private void CheckWhenHidden()
+        {
+            _lastFrame = null;
+            if (_hiddenCheckQueued)
+                return;
+            _hiddenCheckQueued = true;
+            DispatcherTimer.RunOnce(() =>
+            {
+                _hiddenCheckQueued = false;
+                RequestFrame();
+            }, HiddenCheckInterval);
         }
 
         private void OnFrame(TimeSpan now)
         {
             _frameRequested = false;
-            if (TopLevel.GetTopLevel(this) == null || DaisyAccessibility.IsReducedMotion)
+            if (!_attached || !CanMove || !_inViewport || !IsEffectivelyVisible)
             {
-                _lastFrame = null;
+                RequestFrame();
                 return;
             }
 
             // A long gap, such as after the window was hidden, does not make the animation jump.
             var elapsed = _lastFrame is { } last ? Math.Min((now - last).TotalSeconds, 0.1) : 0;
             _lastFrame = now;
-            Time += elapsed * Math.Max(0, Source.Speed);
-            if (!DaisyAccessibility.IsHighContrast && IsEffectivelyVisible && elapsed > 0 && Source.Speed > 0 &&
-                IsRedrawFrame(ref _sinceRedraw, elapsed, Source.FrameRate))
+            Time += elapsed * Source.Speed;
+            if (elapsed > 0 && IsRedrawFrame(ref _sinceRedraw, elapsed, Source.FrameRate))
                 InvalidateVisual();
             RequestFrame();
         }
 
         // A frame redraws when it is nearer to the next redraw time than the frame after it. The time past that point
-        // carries over, so 30 per second on a 144 Hz display alternates between every fourth and fifth frame.
+        // carries over, so 30 per second on a 144 Hz display alternates between every fourth and fifth frame. Without a
+        // rate every frame redraws and nothing carries over.
         private static bool IsRedrawFrame(ref double sinceRedraw, double elapsed, double frameRate)
         {
-            var interval = frameRate > 0 ? 1 / frameRate : 0;
+            if (frameRate <= 0)
+            {
+                sinceRedraw = 0;
+                return true;
+            }
+            var interval = 1 / frameRate;
             sinceRedraw += elapsed;
             if (sinceRedraw < interval - elapsed / 2)
                 return false;
