@@ -5,7 +5,7 @@ name: Deploy Documentation to Pages
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ["main"]
+    branches: ["avalonia12"]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -26,10 +26,10 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-      - name: Ensure branch is main
-        if: github.ref != 'refs/heads/main'
+      - name: Ensure branch is avalonia12
+        if: github.ref != 'refs/heads/avalonia12'
         run: |
-          echo "::error::Documentation can only be deployed from the main branch."
+          echo "::error::Documentation can only be deployed from the avalonia12 branch."
           exit 1
 
       - name: Checkout
