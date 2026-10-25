@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gallery: a Glass Controls section combines a glass navbar over scrolling content, a sign-in card with glass inputs, badges and buttons, and a glass dialog.
 - Gallery: a Glass Button section shows the variants, styles, sizes, blur modes, gradients, patterns and a custom fill over a backdrop with a moving disc, which can be stopped and rests while its section is out of view or its page is hidden.
 - Release: the Gallery and Photos releases add Windows ARM64, Linux ARM64 and macOS x64 archives, such as `Flowery.Gallery-Windows-arm64.zip` and `Flowery.Photos-macOS-x64.tar.gz`, cross-published on the existing Windows, Linux and macOS runners. The Gallery releases also contain the Browser (WebAssembly) Gallery as `Flowery.Gallery-Browser.zip`, a static site to serve with any web server. CI on pull requests builds the Gallery and checks the Photos package for the three new runtimes, and builds the Android Gallery for `android-arm64`.
+- `DaisyScheduler`: `ShowWeekends` (default `true`) hides Saturday and Sunday in Month, Week and Planner, also from the settings menu. Month and Week show the other five days of each week; the Planner shows Monday to Friday, which for a week that starts on another day than Saturday, Sunday or Monday are the five weekdays that share the most days with that week.
 
 ### Fixed
 

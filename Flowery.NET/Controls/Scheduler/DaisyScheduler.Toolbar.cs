@@ -147,6 +147,7 @@ public partial class DaisyScheduler
         var settings = new StackPanel { Spacing = SpacingXS, MinWidth = Token<double>("DaisySchedulerSettingsMinimumWidth") };
         settings.Children.Add(SettingCheckBox("ShowTiles", ShowTiles));
         settings.Children.Add(SettingCheckBox("HideIdleResources", HideIdleResources));
+        settings.Children.Add(SettingCheckBox("ShowWeekends", ShowWeekends));
         settings.Children.Add(SettingCheckBox("GroupByDay", GroupMode == SchedulerGroupMode.ByDay));
         AddPreferences(settings);
         var increments = new[]
@@ -189,6 +190,7 @@ public partial class DaisyScheduler
         {
             case "ShowTiles": SetCurrentValue(ShowTilesProperty, value); break;
             case "HideIdleResources": SetCurrentValue(HideIdleResourcesProperty, value); break;
+            case "ShowWeekends": SetCurrentValue(ShowWeekendsProperty, value); break;
             case "GroupByDay": SetCurrentValue(GroupModeProperty, value ? SchedulerGroupMode.ByDay : SchedulerGroupMode.ByResource); break;
         }
     }

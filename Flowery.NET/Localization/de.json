@@ -47,6 +47,7 @@
   "Scheduler_Resources": "Ressourcen",
   "Scheduler_ShowTiles": "Kacheln anzeigen",
   "Scheduler_HideIdleResources": "Unbelegte Ressourcen ausblenden",
+  "Scheduler_ShowWeekends": "Wochenenden anzeigen",
   "Scheduler_GroupByDay": "Nach Tag gruppieren",
   "Scheduler_TimeScale": "Zeitraster",
   "Clock_Hour": "Stunde",

@@ -54,12 +54,15 @@ public partial class DaisyScheduler
     {
         var month = new DateTime(SelectedDate.Year, SelectedDate.Month, 1);
         var start = WeekStart(month, FirstDayOfWeek);
-        var maxAppointments = Enumerable.Range(0, 42).Max(day => Items.Count(appointment => OnDate(appointment, start.AddDays(day))));
+        // The offsets within a week of the columns shown, in the order of the week.
+        var columns = Enumerable.Range(0, 7).Where(day => ShowWeekends || !IsWeekend(start.AddDays(day))).ToArray();
+        var days = Enumerable.Range(0, 42).Where(day => columns.Contains(day % 7)).ToArray();
+        var maxAppointments = days.Max(day => Items.Count(appointment => OnDate(appointment, start.AddDays(day))));
         var minimumHeight = 6 * Math.Max(Token<double>("DaisySchedulerMonthMinimumCellHeight") * Scale,
             Token<double>($"DaisySize{Size}Height") + maxAppointments * (ChipHeight + SpacingXS / 2)) + ChipHeight;
         var grid = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("*,*,*,*,*,*,*"),
+            ColumnDefinitions = new ColumnDefinitions(string.Join(",", columns.Select(static _ => "*"))),
             RowDefinitions = new RowDefinitions("Auto,*,*,*,*,*,*"),
             MinWidth = Token<double>("DaisySchedulerMonthMinimumWidth") * Scale,
             Width = Math.Max(Token<double>("DaisySchedulerMonthMinimumWidth") * Scale, Bounds.Width - BorderThickness.Left - BorderThickness.Right - Padding.Left - Padding.Right - SpacingLarge),
@@ -67,15 +70,15 @@ public partial class DaisyScheduler
             Height = minimumHeight
         };
         _monthGrid = grid;
-        for (var column = 0; column < 7; column++)
+        for (var column = 0; column < columns.Length; column++)
         {
-            var text = Label(start.AddDays(column).ToString("ddd", Culture), true);
+            var text = Label(start.AddDays(columns[column]).ToString("ddd", Culture), true);
             text.HorizontalAlignment = HorizontalAlignment.Center;
             var header = Cell(text, header: true);
             Grid.SetColumn(header, column);
             grid.Children.Add(header);
         }
-        for (var index = 0; index < 42; index++)
+        foreach (var index in days)
         {
             var date = start.AddDays(index);
             var stack = new StackPanel { Spacing = 2, Margin = new Thickness(2) };
@@ -95,7 +98,7 @@ public partial class DaisyScheduler
             var cell = Cell(stack, today: date == DateTime.Today);
             cell.ClipToBounds = true;
             AttachEmptyDay(cell, date, null);
-            Grid.SetColumn(cell, index % 7);
+            Grid.SetColumn(cell, Array.IndexOf(columns, index % 7));
             Grid.SetRow(cell, index / 7 + 1);
             grid.Children.Add(cell);
         }
@@ -228,8 +231,8 @@ public partial class DaisyScheduler
 
     private Control BuildPlanner()
     {
-        var dayCount = CurrentView == SchedulerView.Timeline ? 1 : 7;
-        var start = dayCount == 1 ? SelectedDate.Date : WeekStart(SelectedDate.Date, FirstDayOfWeek);
+        var dayCount = CurrentView == SchedulerView.Timeline ? 1 : ShowWeekends ? 7 : 5;
+        var start = dayCount == 1 ? SelectedDate.Date : PlannerStart();
         var end = start.AddDays(dayCount);
         var resources = ActiveResources(start, end);
         if (resources.Count == 0)

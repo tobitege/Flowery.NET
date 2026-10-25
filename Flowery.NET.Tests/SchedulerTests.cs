@@ -123,6 +123,50 @@ public sealed partial class SchedulerTests
     }
 
     [AvaloniaTheory]
+    [InlineData(SchedulerView.Week, DayOfWeek.Monday, 0)]
+    [InlineData(SchedulerView.Week, DayOfWeek.Sunday, 0)]
+    [InlineData(SchedulerView.Planner, DayOfWeek.Monday, 0)]
+    [InlineData(SchedulerView.Planner, DayOfWeek.Sunday, 0)]
+    [InlineData(SchedulerView.Planner, DayOfWeek.Saturday, 0)]
+    [InlineData(SchedulerView.Planner, DayOfWeek.Wednesday, -7)]
+    public void WithoutWeekendsWeekAndPlannerShowMondayToFriday(SchedulerView view, DayOfWeek firstDay, int mondayOffset)
+    {
+        using var scope = new SchedulerScope(view);
+        Assert.True(scope.Scheduler.ShowWeekends);
+        scope.Scheduler.FirstDayOfWeek = firstDay;
+        scope.Scheduler.ShowWeekends = false;
+        scope.Layout();
+
+        // A week from Wednesday to Tuesday shares three weekdays with the Monday before it and two with the one after.
+        var monday = Monday.AddDays(mondayOffset);
+        var culture = scope.Scheduler.FormattingCulture;
+        var texts = scope.Scheduler.GetVisualDescendants().OfType<TextBlock>().Select(static text => text.Text).ToArray();
+        for (var day = 0; day < 5; day++)
+            Assert.Contains(monday.AddDays(day).ToString("ddd, d MMM", culture), texts);
+        Assert.DoesNotContain(monday.AddDays(-1).ToString("ddd, d MMM", culture), texts);
+        Assert.DoesNotContain(monday.AddDays(5).ToString("ddd, d MMM", culture), texts);
+    }
+
+    [AvaloniaFact]
+    public void WithoutWeekendsTheMonthShowsFiveColumns()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Month);
+        Grid MonthGrid() => scope.Scheduler.GetVisualDescendants().OfType<Grid>().First(static grid => grid.RowDefinitions.Count == 7);
+        Assert.Equal(7, MonthGrid().ColumnDefinitions.Count);
+
+        scope.Scheduler.ShowWeekends = false;
+        scope.Layout();
+
+        var grid = MonthGrid();
+        var culture = scope.Scheduler.FormattingCulture;
+        var headers = grid.Children.OfType<Border>().Where(static cell => Grid.GetRow(cell) == 0)
+            .Select(static cell => ((TextBlock)cell.Child!).Text).ToArray();
+        Assert.Equal(Enumerable.Range(0, 5).Select(day => Monday.AddDays(day).ToString("ddd", culture)), headers);
+        Assert.Equal(5, grid.ColumnDefinitions.Count);
+        Assert.Equal(5 + 6 * 5, grid.Children.Count);
+    }
+
+    [AvaloniaTheory]
     [InlineData(SchedulerClockFormat.TwelveHour, "9a  Install")]
     [InlineData(SchedulerClockFormat.TwentyFourHour, "09:00  Install")]
     public void SingleLineChipShowsTheCompactStart(SchedulerClockFormat clock, string expected)
