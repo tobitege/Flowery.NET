@@ -36,6 +36,17 @@ namespace Flowery.Controls
         public virtual DaisyGlassBackground? CreateShaderBackground() => null;
 
         /// <summary>
+        /// Gets whether <see cref="CreateShaderBackground"/> creates a background. The renderer of Flowery.NET.Skia returns
+        /// true.
+        /// </summary>
+        public virtual bool SupportsShaderBackground => false;
+
+        /// <summary>
+        /// Returns whether <paramref name="background"/> is a background <see cref="CreateShaderBackground"/> creates.
+        /// </summary>
+        public virtual bool IsShaderBackground(DaisyGlassBackground background) => false;
+
+        /// <summary>
         /// Reports the average color behind <paramref name="glass"/>, measured by the renderer while
         /// <see cref="DaisyGlass.MeasureBackdropColor"/> is on, into <see cref="DaisyGlass.BackdropColor"/>.
         /// Call it on the UI thread.

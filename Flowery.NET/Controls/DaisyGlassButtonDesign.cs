@@ -26,7 +26,12 @@ namespace Flowery.Controls
         /// <summary>A radial gradient from the top center.</summary>
         Radial,
         /// <summary>A conic gradient around the center, starting at <see cref="DaisyGlassButtonDesign.FillAngle"/>.</summary>
-        Conic
+        Conic,
+        /// <summary>
+        /// The fill of the button stays as it is: <see cref="DaisyGlassButtonDesign.FromButton"/> reads a fill this design
+        /// cannot describe, such as a solid or image brush, as Keep, so applying the design does not replace it.
+        /// </summary>
+        Keep
     }
 
     /// <summary>
@@ -39,7 +44,12 @@ namespace Flowery.Controls
         /// <summary><see cref="DaisyGlassGradientBackground"/>: moving gradients, no SkiaSharp needed.</summary>
         Gradient,
         /// <summary><c>DaisyGlassShaderBackground</c> from Flowery.NET.Skia: per-pixel shaders.</summary>
-        Shader
+        Shader,
+        /// <summary>
+        /// The animated background of the button stays as it is: <see cref="DaisyGlassButtonDesign.FromButton"/> reads a
+        /// background of another kind as Keep, so applying the design does not replace it.
+        /// </summary>
+        Keep
     }
 
     /// <summary>
@@ -168,10 +178,14 @@ namespace Flowery.Controls
         /// <summary>Gets or sets whether the text keeps its contrast over the backdrop.</summary>
         public bool GlassTextContrast { get; set; } = true;
 
+        // The fill a Keep design leaves on the button, read by FromButton. It is not serialized; the designer shows it in its
+        // preview, and ApplyTo sets it on a button without its own fill.
+        internal IBrush? KeptFill { get; set; }
+
         /// <summary>
         /// Gets whether a shader background can be created, which needs the renderer of Flowery.NET.Skia.
         /// </summary>
-        public static bool ShaderBackgroundAvailable => DaisyGlassLiveRenderer.Current?.CreateShaderBackground() is not null;
+        public static bool ShaderBackgroundAvailable => DaisyGlassLiveRenderer.Current?.SupportsShaderBackground == true;
 
         /// <summary>
         /// Creates a deep copy.
@@ -189,7 +203,7 @@ namespace Flowery.Controls
         /// </summary>
         public IBrush? CreateFill()
         {
-            if (FillKind is DaisyGlassFillKind.None or DaisyGlassFillKind.Preset || FillStops.Count == 0)
+            if (FillKind is DaisyGlassFillKind.None or DaisyGlassFillKind.Preset or DaisyGlassFillKind.Keep || FillStops.Count == 0)
                 return null;
 
             var stops = new GradientStops();
@@ -238,7 +252,7 @@ namespace Flowery.Controls
 
         /// <summary>
         /// Sets the look of <paramref name="button"/> to this design. The content stays unless
-        /// <paramref name="includeContent"/> is true.
+        /// <paramref name="includeContent"/> is true; a fill or background of kind Keep stays too.
         /// </summary>
         public void ApplyTo(DaisyGlassButton button, bool includeContent = false) => ApplyTo(button, includeContent, reuseBackground: false);
 
@@ -267,13 +281,24 @@ namespace Flowery.Controls
             button.GlassCurvature = GlassCurvature;
             button.GlassBend = GlassBend;
             button.GlassDispersion = GlassDispersion;
-            button.GlassFill = CreateFill();
-            button.GlassGradient = FillKind == DaisyGlassFillKind.Preset ? FillPreset : DaisyGlassGradient.None;
+            if (FillKind != DaisyGlassFillKind.Keep)
+            {
+                button.GlassFill = CreateFill();
+                button.GlassGradient = FillKind == DaisyGlassFillKind.Preset ? FillPreset : DaisyGlassGradient.None;
+            }
+            else if (button.GlassFill is null && KeptFill is not null)
+            {
+                button.GlassFill = KeptFill;
+            }
             button.GlassFillOpacity = GlassFillOpacity;
             button.GlassPattern = GlassPattern;
             button.GlassPatternColor = GlassPatternColor;
             button.GlassPatternOpacity = GlassPatternOpacity;
-            if (reuseBackground && button.GlassBackground is { } current && IsSameRenderer(current))
+            if (BackgroundRenderer == DaisyGlassBackgroundRenderer.Keep)
+            {
+                // The background of the button stays as it is.
+            }
+            else if (reuseBackground && button.GlassBackground is { } current && IsSameRenderer(current))
             {
                 current.Effect = BackgroundEffect;
                 current.Speed = BackgroundSpeed;
@@ -289,16 +314,21 @@ namespace Flowery.Controls
             button.GlassTextContrast = GlassTextContrast;
         }
 
+        // Whether the background is what CreateBackground makes for this design: without the Skia renderer a shader design
+        // gets a gradient background, which must be updated in place too, or its animation restarts on every change.
         private bool IsSameRenderer(DaisyGlassBackground background) => BackgroundRenderer switch
         {
             DaisyGlassBackgroundRenderer.Gradient => background is DaisyGlassGradientBackground,
-            DaisyGlassBackgroundRenderer.Shader => background is not DaisyGlassGradientBackground,
+            DaisyGlassBackgroundRenderer.Shader => DaisyGlassLiveRenderer.Current is { SupportsShaderBackground: true } renderer
+                ? renderer.IsShaderBackground(background)
+                : background is DaisyGlassGradientBackground,
             _ => false
         };
 
         /// <summary>
-        /// Reads the look of <paramref name="button"/>. A fill brush other than a linear, radial or conic gradient is
-        /// read as no fill; a radial fill keeps its stops but not its geometry.
+        /// Reads the look of <paramref name="button"/>. A fill or animated background this design cannot describe, such as
+        /// a solid or image brush, a radial gradient with another geometry or a custom background, is read as Keep, so
+        /// applying the design leaves it as it is.
         /// </summary>
         public static DaisyGlassButtonDesign FromButton(DaisyGlassButton button)
         {
@@ -340,7 +370,8 @@ namespace Flowery.Controls
                     design.FillAngle = LinearAngle(linear.StartPoint, linear.EndPoint);
                     design.FillStops = ReadStops(linear);
                     break;
-                case RadialGradientBrush radial:
+                case RadialGradientBrush radial when radial.Center == RadialCenter && radial.GradientOrigin == RadialCenter
+                                                     && radial.RadiusX == RadialRadius && radial.RadiusY == RadialRadius:
                     design.FillKind = DaisyGlassFillKind.Radial;
                     design.FillStops = ReadStops(radial);
                     break;
@@ -353,13 +384,19 @@ namespace Flowery.Controls
                     design.FillKind = DaisyGlassFillKind.Preset;
                     design.FillPreset = button.GlassGradient;
                     break;
+                case null:
+                    break;
+                default:
+                    design.FillKind = DaisyGlassFillKind.Keep;
+                    design.KeptFill = button.GlassFill;
+                    break;
             }
 
             if (button.GlassBackground is { } background)
             {
-                design.BackgroundRenderer = background is DaisyGlassGradientBackground
-                    ? DaisyGlassBackgroundRenderer.Gradient
-                    : DaisyGlassBackgroundRenderer.Shader;
+                design.BackgroundRenderer = background is DaisyGlassGradientBackground ? DaisyGlassBackgroundRenderer.Gradient
+                    : DaisyGlassLiveRenderer.Current?.IsShaderBackground(background) == true ? DaisyGlassBackgroundRenderer.Shader
+                    : DaisyGlassBackgroundRenderer.Keep;
                 design.BackgroundEffect = background.Effect;
                 design.BackgroundSpeed = background.Speed;
                 design.BackgroundFrameRate = background.FrameRate;
@@ -376,7 +413,8 @@ namespace Flowery.Controls
         /// <summary>
         /// Reads a design from JSON written by <see cref="ToJson"/>. Missing values keep their defaults.
         /// </summary>
-        /// <exception cref="JsonException">The text is not a valid design.</exception>
+        /// <exception cref="JsonException">The text is not a valid design: not JSON, an unknown enum value, an empty fill
+        /// stop, or a number that is not finite or out of range.</exception>
         public static DaisyGlassButtonDesign FromJson(string json)
         {
             ArgumentNullException.ThrowIfNull(json);
@@ -384,7 +422,62 @@ namespace Flowery.Controls
                          ?? throw new JsonException("The JSON holds no design.");
             design.FillStops ??= CreateDefaultStops();
             design.Content ??= "";
+            design.Validate();
             return design;
+        }
+
+        // JSON can name any enum number and any value; a design that reaches a button holds only values it can apply.
+        private void Validate()
+        {
+            Defined(Variant);
+            Defined(ButtonStyle);
+            Defined(Shape);
+            Defined(Size);
+            Defined(BlurMode);
+            Defined(FillKind);
+            Defined(FillPreset);
+            Defined(GlassPattern);
+            Defined(BackgroundRenderer);
+            Defined(BackgroundEffect);
+            foreach (var (name, value) in new[]
+                     {
+                         (nameof(GlassBlur), GlassBlur), (nameof(GlassSaturation), GlassSaturation),
+                         (nameof(BackgroundSpeed), BackgroundSpeed), (nameof(BackgroundFrameRate), BackgroundFrameRate)
+                     })
+                InRange(name, value, 0, double.MaxValue);
+            foreach (var (name, value) in new[]
+                     {
+                         (nameof(GlassOpacity), GlassOpacity), (nameof(GlassTintOpacity), GlassTintOpacity),
+                         (nameof(GlassReflectOpacity), GlassReflectOpacity), (nameof(GlassFillOpacity), GlassFillOpacity),
+                         (nameof(GlassPatternOpacity), GlassPatternOpacity), (nameof(GlassBackgroundOpacity), GlassBackgroundOpacity),
+                         (nameof(GlassColorOpacity), GlassColorOpacity), (nameof(GlassTextShadowOpacity), GlassTextShadowOpacity)
+                     })
+                InRange(name, value, 0, 1);
+            foreach (var (name, value) in new[]
+                     {
+                         (nameof(GlassReflectDegree), GlassReflectDegree), (nameof(GlassDepth), GlassDepth),
+                         (nameof(GlassCurvature), GlassCurvature), (nameof(GlassBend), GlassBend),
+                         (nameof(GlassDispersion), GlassDispersion), (nameof(FillAngle), FillAngle)
+                     })
+                InRange(name, value, double.MinValue, double.MaxValue);
+            foreach (var stop in FillStops)
+            {
+                if (stop is null)
+                    throw new JsonException("A fill stop is empty.");
+                InRange("fill stop offset", stop.Offset, 0, 1);
+            }
+        }
+
+        private static void Defined<T>(T value) where T : struct, Enum
+        {
+            if (!Enum.IsDefined(value))
+                throw new JsonException($"{value} is not a {typeof(T).Name}.");
+        }
+
+        private static void InRange(string name, double value, double minimum, double maximum)
+        {
+            if (!double.IsFinite(value) || value < minimum || value > maximum)
+                throw new JsonException(string.Format(CultureInfo.InvariantCulture, "{0} is {1}, outside {2} to {3}.", name, value, minimum, maximum));
         }
 
         /// <summary>
@@ -407,8 +500,8 @@ namespace Flowery.Controls
             var children = new List<string>();
             if (CreateFill() is { } fill)
                 children.Add(PropertyElement(element, "GlassFill", FillXaml(fill)));
-            if (BackgroundRenderer != DaisyGlassBackgroundRenderer.None)
-                children.Add(PropertyElement(element, "GlassBackground", BackgroundXaml(prefix)));
+            if (BackgroundRenderer is DaisyGlassBackgroundRenderer.Gradient or DaisyGlassBackgroundRenderer.Shader)
+                children.Add(PropertyElement(element, "GlassBackground", BackgroundXaml(prefix, defaults)));
 
             var builder = new StringBuilder();
             if (BackgroundRenderer == DaisyGlassBackgroundRenderer.Shader)
@@ -447,10 +540,11 @@ namespace Flowery.Controls
                 lines.Add($"GlassGradient = DaisyGlassGradient.{FillPreset}");
             if (CreateFill() is { } fill)
                 lines.Add("GlassFill = " + FillCSharp(fill));
-            if (BackgroundRenderer != DaisyGlassBackgroundRenderer.None)
-                lines.Add("GlassBackground = " + BackgroundCSharp());
+            if (BackgroundRenderer is DaisyGlassBackgroundRenderer.Gradient or DaisyGlassBackgroundRenderer.Shader)
+                lines.Add("GlassBackground = " + BackgroundCSharp(defaults));
 
             var builder = new StringBuilder();
+            builder.AppendLine("// using Avalonia; using Avalonia.Media; using Flowery.Controls; using Flowery.Enums;");
             if (BackgroundRenderer == DaisyGlassBackgroundRenderer.Shader)
                 builder.AppendLine("// DaisyGlassShaderBackground is in Flowery.Skia (package Flowery.NET.Skia).");
             builder.AppendLine("var button = new DaisyGlassButton");
@@ -494,27 +588,27 @@ namespace Flowery.Controls
         private static (string, object, bool) Number(string name, double value, double defaultValue) =>
             (name, value, Math.Abs(value - defaultValue) < Tolerance);
 
-        private string BackgroundXaml(string prefix)
+        private string BackgroundXaml(string prefix, DaisyGlassButtonDesign defaults)
         {
             var element = BackgroundRenderer == DaisyGlassBackgroundRenderer.Shader
                 ? "skia:DaisyGlassShaderBackground"
                 : $"{prefix}:DaisyGlassGradientBackground";
             var builder = new StringBuilder($"<{element} Effect=\"{BackgroundEffect}\"");
-            if (Math.Abs(BackgroundSpeed - 1) >= Tolerance)
+            if (Math.Abs(BackgroundSpeed - defaults.BackgroundSpeed) >= Tolerance)
                 builder.Append($" Speed=\"{FormatNumber(BackgroundSpeed)}\"");
-            if (Math.Abs(BackgroundFrameRate - 30) >= Tolerance)
+            if (Math.Abs(BackgroundFrameRate - defaults.BackgroundFrameRate) >= Tolerance)
                 builder.Append($" FrameRate=\"{FormatNumber(BackgroundFrameRate)}\"");
             builder.Append(" />");
             return builder.ToString();
         }
 
-        private string BackgroundCSharp()
+        private string BackgroundCSharp(DaisyGlassButtonDesign defaults)
         {
             var type = BackgroundRenderer == DaisyGlassBackgroundRenderer.Shader ? "DaisyGlassShaderBackground" : "DaisyGlassGradientBackground";
             var values = new List<string> { $"Effect = DaisyGlassAnimation.{BackgroundEffect}" };
-            if (Math.Abs(BackgroundSpeed - 1) >= Tolerance)
+            if (Math.Abs(BackgroundSpeed - defaults.BackgroundSpeed) >= Tolerance)
                 values.Add($"Speed = {FormatNumber(BackgroundSpeed)}");
-            if (Math.Abs(BackgroundFrameRate - 30) >= Tolerance)
+            if (Math.Abs(BackgroundFrameRate - defaults.BackgroundFrameRate) >= Tolerance)
                 values.Add($"FrameRate = {FormatNumber(BackgroundFrameRate)}");
             return $"new {type} {{ {string.Join(", ", values)} }}";
         }
@@ -612,7 +706,8 @@ namespace Flowery.Controls
             double number => FormatNumber(number),
             bool flag => flag ? "true" : "false",
             Color color => $"Color.Parse(\"{FormatColor(color)}\")",
-            Enum enumValue => $"{enumValue.GetType().Name}.{enumValue}",
+            // DaisySize exists in Flowery.Controls and Flowery.Enums; the button uses the first.
+            Enum enumValue => (enumValue is DaisySize ? typeof(DaisySize).FullName : enumValue.GetType().Name) + "." + enumValue,
             _ => value.ToString() ?? ""
         };
 
@@ -626,10 +721,41 @@ namespace Flowery.Controls
         private static string PointCSharp(RelativePoint point) =>
             $"new RelativePoint({FormatNumber(point.Point.X)}, {FormatNumber(point.Point.Y)}, RelativeUnit.Relative)";
 
-        private static string EscapeXml(string text) => text
-            .Replace("&", "&amp;").Replace("\"", "&quot;").Replace("<", "&lt;").Replace(">", "&gt;");
+        // An attribute that starts with a brace would be read as a markup extension; {} escapes it. Line breaks and other
+        // control characters become character references, which an attribute keeps.
+        private static string EscapeXml(string text)
+        {
+            var builder = new StringBuilder(text.StartsWith('{') ? "{}" : "");
+            foreach (var c in text)
+                builder.Append(c switch
+                {
+                    '&' => "&amp;",
+                    '"' => "&quot;",
+                    '<' => "&lt;",
+                    '>' => "&gt;",
+                    _ when char.IsControl(c) => "&#" + ((int)c).ToString(CultureInfo.InvariantCulture) + ";",
+                    _ => c.ToString()
+                });
+            return builder.ToString();
+        }
 
-        private static string EscapeCSharp(string text) => text.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        // A string literal keeps line breaks and control characters as escape sequences.
+        private static string EscapeCSharp(string text)
+        {
+            var builder = new StringBuilder();
+            foreach (var c in text)
+                builder.Append(c switch
+                {
+                    '\\' => @"\\",
+                    '"' => "\\\"",
+                    '\n' => @"\n",
+                    '\r' => @"\r",
+                    '\t' => @"\t",
+                    _ when char.IsControl(c) => @"\u" + ((int)c).ToString("X4", CultureInfo.InvariantCulture),
+                    _ => c.ToString()
+                });
+            return builder.ToString();
+        }
     }
 
     /// <summary>

@@ -14,6 +14,7 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Avalonia.VisualTree;
 using Flowery.Controls.ColorPicker;
 using Flowery.Enums;
 using Flowery.Helpers;
@@ -57,6 +58,13 @@ namespace Flowery.Controls
         private TextBlock _importError = null!;
         private readonly Dictionary<Tab, RadioButton> _tabButtons = new();
         private CancellationTokenSource? _motion;
+        private DaisyToggle? _move;
+        private CultureInfo? _builtCulture;
+        // One suffix per designer keeps its radio groups apart from those of another designer.
+        private readonly string _groups = Guid.NewGuid().ToString("N");
+
+        // Whether the Button tab offers the text: EditAsync leaves the content of a button that is no text alone.
+        internal bool EditsText { get; set; } = true;
 
         /// <summary>
         /// Occurs when the design changes through the editor, a preset, an import or <see cref="Design"/>.
@@ -92,6 +100,7 @@ namespace Flowery.Controls
         private void Build()
         {
             StopMotion();
+            _builtCulture = FloweryLocalization.CurrentCulture;
             (_preview.Parent as Panel)?.Children.Remove(_preview);
             (_blob.Parent as Panel)?.Children.Remove(_blob);
             _tabButtons.Clear();
@@ -187,14 +196,17 @@ namespace Flowery.Controls
         /// <param name="target">Any visual in the window or view to open the designer over.</param>
         /// <param name="initial">The design to start with, or <c>null</c> for the default look.</param>
         /// <exception cref="InvalidOperationException"><paramref name="target"/> has no overlay layer.</exception>
-        public static Task<DaisyGlassButtonDesign?> ShowOverlayAsync(Visual target, DaisyGlassButtonDesign? initial = null)
+        public static Task<DaisyGlassButtonDesign?> ShowOverlayAsync(Visual target, DaisyGlassButtonDesign? initial = null) =>
+            ShowOverlayAsync(target, initial, editsText: true);
+
+        private static Task<DaisyGlassButtonDesign?> ShowOverlayAsync(Visual target, DaisyGlassButtonDesign? initial, bool editsText)
         {
             ArgumentNullException.ThrowIfNull(target);
             var overlay = OverlayLayer.GetOverlayLayer(target)
                           ?? throw new InvalidOperationException("No overlay layer found for the target visual.");
 
             var result = new TaskCompletionSource<DaisyGlassButtonDesign?>();
-            var designer = new DaisyGlassButtonDesigner();
+            var designer = new DaisyGlassButtonDesigner { EditsText = editsText };
             if (initial is not null)
                 designer.Design = initial;
 
@@ -224,6 +236,9 @@ namespace Flowery.Controls
                     }
                 }
             };
+            // The overlay keeps the keyboard inside it and gives the focus back when it closes.
+            var focusManager = TopLevel.GetTopLevel(target)?.FocusManager;
+            var previousFocus = focusManager?.GetFocusedElement();
             var backdrop = new Border
             {
                 Classes = { "gbd-overlay" },
@@ -246,8 +261,18 @@ namespace Flowery.Controls
             void Close(DaisyGlassButtonDesign? design)
             {
                 overlay.LayoutUpdated -= Resize;
-                overlay.Children.Remove(backdrop);
+                // Set before the backdrop leaves the tree, which would otherwise report a cancel.
                 result.TrySetResult(design);
+                overlay.Children.Remove(backdrop);
+                previousFocus?.Focus();
+            }
+
+            // The window or view closes while the overlay is open: the caller gets null instead of waiting forever.
+            void Detached(object? sender, VisualTreeAttachmentEventArgs e)
+            {
+                backdrop.DetachedFromVisualTree -= Detached;
+                overlay.LayoutUpdated -= Resize;
+                result.TrySetResult(null);
             }
 
             overlay.LayoutUpdated += Resize;
@@ -260,22 +285,27 @@ namespace Flowery.Controls
                 e.Handled = true;
                 Close(null);
             };
+            KeyboardNavigation.SetTabNavigation(backdrop, KeyboardNavigationMode.Cycle);
             overlay.Children.Add(backdrop);
+            backdrop.DetachedFromVisualTree += Detached;
             backdrop.Focus();
             return result.Task;
         }
 
         /// <summary>
-        /// Opens a designer over the app with the look of <paramref name="button"/> and applies the result to it.
+        /// Opens a designer over the app with the look of <paramref name="button"/> and applies the result to it. A text
+        /// content can be edited too; other content stays and the designer offers no text. A fill or animated background the
+        /// design cannot describe stays as it is (see <see cref="DaisyGlassFillKind.Keep"/>).
         /// </summary>
         /// <returns><c>true</c> when the user applied a design; <c>false</c> when the user cancelled.</returns>
         public static async Task<bool> EditAsync(DaisyGlassButton button)
         {
             ArgumentNullException.ThrowIfNull(button);
-            if (await ShowOverlayAsync(button, DaisyGlassButtonDesign.FromButton(button)) is not { } design)
+            var editsText = button.Content is null or string;
+            if (await ShowOverlayAsync(button, DaisyGlassButtonDesign.FromButton(button), editsText) is not { } design)
                 return false;
 
-            design.ApplyTo(button);
+            design.ApplyTo(button, includeContent: editsText);
             return true;
         }
 
@@ -283,6 +313,11 @@ namespace Flowery.Controls
         {
             base.OnAttachedToVisualTree(e);
             FloweryLocalization.CultureChanged += OnCultureChanged;
+            // A language change while detached was not seen; a disc that moved before detaching moves again.
+            if (!Equals(_builtCulture, FloweryLocalization.CurrentCulture))
+                OnCultureChanged(this, FloweryLocalization.CurrentCulture);
+            if (_move?.IsChecked == true)
+                StartMotion();
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -297,6 +332,8 @@ namespace Flowery.Controls
             Build();
             ShowTab(_tab);
             UpdateCode();
+            if (_move?.IsChecked == true && this.IsAttachedToVisualTree())
+                StartMotion();
         }
 
         private static string L(string key, string fallback) => FloweryLocalization.GetString(key, fallback);
@@ -360,7 +397,7 @@ namespace Flowery.Controls
                 Spacing = 2,
                 Children =
                 {
-                    new TextBlock { Classes = { "gbd-title" }, Text = L("GlassDesigner_Title", "Glass Button Studio") },
+                    new TextBlock { Classes = { "gbd-title" }, Text = L("GlassDesigner_Title", "Glass Button Designer") },
                     new TextBlock
                     {
                         Classes = { "gbd-subtitle" },
@@ -416,7 +453,7 @@ namespace Flowery.Controls
                 var swatch = new RadioButton
                 {
                     Classes = { "gbd-swatch" },
-                    GroupName = "gbd-backdrop-" + GetHashCode(),
+                    GroupName = "gbd-backdrop-" + _groups,
                     Background = StageBrush(backdrop),
                     IsChecked = backdrop == _backdrop
                 };
@@ -431,7 +468,8 @@ namespace Flowery.Controls
                 backdrops.Children.Add(swatch);
             }
 
-            var move = new DaisyToggle { Size = DaisySize.Small, Content = L("GlassDesigner_Move", "Move") };
+            var move = new DaisyToggle { Size = DaisySize.Small, Content = L("GlassDesigner_Move", "Move"), IsChecked = _move?.IsChecked == true };
+            _move = move;
             move.IsCheckedChanged += (_, _) =>
             {
                 if (move.IsChecked == true)
@@ -533,7 +571,7 @@ namespace Flowery.Controls
                 var button = new RadioButton
                 {
                     Classes = { "gbd-tab" },
-                    GroupName = "gbd-tab-" + GetHashCode(),
+                    GroupName = "gbd-tab-" + _groups,
                     Content = L("GlassDesigner_Tab" + tab, tab.ToString()),
                     IsChecked = tab == _tab
                 };
@@ -635,9 +673,12 @@ namespace Flowery.Controls
 
         private IEnumerable<Control> CreateButtonFields()
         {
-            var text = new TextBox { Text = _design.Content };
-            text.TextChanged += (_, _) => Change(d => d.Content = text.Text ?? "");
-            yield return Field("GlassDesigner_Text", "Text", text);
+            if (EditsText)
+            {
+                var text = new TextBox { Text = _design.Content };
+                text.TextChanged += (_, _) => Change(d => d.Content = text.Text ?? "");
+                yield return Field("GlassDesigner_Text", "Text", text);
+            }
             yield return Chips("GlassDesigner_Variant", "Variant", Enum.GetValues<DaisyButtonVariant>(), d => d.Variant, (d, v) => d.Variant = v, wide: true);
             yield return Chips("GlassDesigner_Style", "Style", Enum.GetValues<DaisyButtonStyle>(), d => d.ButtonStyle, (d, v) => d.ButtonStyle = v);
             yield return Chips("GlassDesigner_Size", "Size", Enum.GetValues<DaisySize>(), d => d.Size, (d, v) => d.Size = v);
@@ -670,7 +711,9 @@ namespace Flowery.Controls
 
         private IEnumerable<Control> CreateFillFields()
         {
-            yield return Chips("GlassDesigner_Fill", "Fill", Enum.GetValues<DaisyGlassFillKind>(), d => d.FillKind, (d, v) =>
+            // Keep is offered only for a fill read from a button that the design cannot describe.
+            var kinds = Enum.GetValues<DaisyGlassFillKind>().Where(kind => kind != DaisyGlassFillKind.Keep || _design.FillKind == kind).ToArray();
+            yield return Chips("GlassDesigner_Fill", "Fill", kinds, d => d.FillKind, (d, v) =>
             {
                 d.FillKind = v;
                 if (v == DaisyGlassFillKind.Preset && d.FillPreset == DaisyGlassGradient.None)
@@ -701,7 +744,7 @@ namespace Flowery.Controls
                 var tile = new RadioButton
                 {
                     Classes = { "gbd-gradient" },
-                    GroupName = "gbd-gradient-" + GetHashCode(),
+                    GroupName = "gbd-gradient-" + _groups,
                     Background = DaisyGlassGradients.CreateBrush(gradient),
                     Content = gradient.ToString(),
                     IsChecked = _design.FillPreset == gradient,
@@ -774,7 +817,7 @@ namespace Flowery.Controls
                 var tile = new RadioButton
                 {
                     Classes = { "gbd-pattern" },
-                    GroupName = "gbd-pattern-" + GetHashCode(),
+                    GroupName = "gbd-pattern-" + _groups,
                     IsChecked = _design.GlassPattern == pattern,
                     Margin = new Thickness(0, 0, 8, 8),
                     Content = new StackPanel
@@ -813,7 +856,8 @@ namespace Flowery.Controls
 
         private IEnumerable<Control> CreateMotionFields()
         {
-            var renderers = Enum.GetValues<DaisyGlassBackgroundRenderer>();
+            var renderers = Enum.GetValues<DaisyGlassBackgroundRenderer>()
+                .Where(renderer => renderer != DaisyGlassBackgroundRenderer.Keep || _design.BackgroundRenderer == renderer).ToArray();
             var shaderAvailable = DaisyGlassButtonDesign.ShaderBackgroundAvailable;
             yield return Chips("GlassDesigner_Renderer", "Animated background", renderers, d => d.BackgroundRenderer, (d, v) => d.BackgroundRenderer = v,
                 wide: true, rebuildTab: true,
@@ -822,6 +866,11 @@ namespace Flowery.Controls
 
             if (_design.BackgroundRenderer == DaisyGlassBackgroundRenderer.None)
                 yield break;
+            if (_design.BackgroundRenderer == DaisyGlassBackgroundRenderer.Keep)
+            {
+                yield return Slider("GlassDesigner_BackgroundOpacity", "Background opacity", 0, 1, 0.01, d => d.GlassBackgroundOpacity, (d, v) => d.GlassBackgroundOpacity = v);
+                yield break;
+            }
 
             yield return Chips("GlassDesigner_Effect", "Effect", Enum.GetValues<DaisyGlassAnimation>(), d => d.BackgroundEffect, (d, v) => d.BackgroundEffect = v);
             yield return Slider("GlassDesigner_Speed", "Speed", 0, 3, 0.05, d => d.BackgroundSpeed, (d, v) => d.BackgroundSpeed = v);
@@ -837,7 +886,7 @@ namespace Flowery.Controls
             var label = L(key, fallback);
             AutomationProperties.SetName(editor, label);
             var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-            header.Children.Add(new TextBlock { Classes = { "gbd-label" }, Text = label.ToUpper(CultureInfo.CurrentCulture), VerticalAlignment = VerticalAlignment.Center });
+            header.Children.Add(new TextBlock { Classes = { "gbd-label" }, Text = label.ToUpper(FloweryLocalization.CurrentCulture), VerticalAlignment = VerticalAlignment.Center });
             if (value is not null)
             {
                 Grid.SetColumn(value, 1);
@@ -858,7 +907,7 @@ namespace Flowery.Controls
         private Border Chips<T>(string key, string fallback, IReadOnlyList<T> values, Func<DaisyGlassButtonDesign, T> get, Action<DaisyGlassButtonDesign, T> set,
             bool wide = false, bool rebuildTab = false, Func<T, bool>? isEnabled = null, string? hint = null, Func<T, string>? label = null)
         {
-            var group = "gbd-chips-" + Guid.NewGuid().ToString("N");
+            var group = "gbd-chips-" + key + "-" + _groups;
             var chips = new WrapPanel { Orientation = Orientation.Horizontal };
             var current = get(_design);
             foreach (var value in values)

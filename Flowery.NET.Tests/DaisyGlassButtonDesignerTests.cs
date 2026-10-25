@@ -66,6 +66,62 @@ public class DaisyGlassButtonDesignerTests
         Assert.Throws<JsonException>(() => DaisyGlassButtonDesign.FromJson("null"));
     }
 
+    [Theory]
+    [InlineData("{ \"fillStops\": [null] }")]
+    [InlineData("{ \"variant\": 99 }")]
+    [InlineData("{ \"glassBlur\": -5 }")]
+    [InlineData("{ \"glassOpacity\": 2 }")]
+    [InlineData("{ \"fillStops\": [{ \"color\": \"#FFFFFFFF\", \"offset\": 3 }] }")]
+    public void Json_With_A_Value_No_Button_Takes_Fails_With_A_Json_Exception(string json)
+    {
+        Assert.Throws<JsonException>(() => DaisyGlassButtonDesign.FromJson(json));
+    }
+
+    [AvaloniaFact]
+    public void The_Exported_Code_Keeps_Any_Text_And_Names_Every_Type_Unambiguously()
+    {
+        const string text = "{Hi}\n\"quoted\" \\ & <tag>";
+        var design = new DaisyGlassButtonDesign { Content = text, Size = DaisySize.Large, GlassPattern = DaisyCardPattern.Dots };
+
+        var xaml = design.ToXaml().Replace("<controls:DaisyGlassButton ",
+            "<controls:DaisyGlassButton xmlns=\"https://github.com/avaloniaui\" " +
+            "xmlns:controls=\"clr-namespace:Flowery.Controls;assembly=Flowery.NET\" ");
+        var button = (DaisyGlassButton)Avalonia.Markup.Xaml.AvaloniaRuntimeXamlLoader.Load(xaml);
+        Assert.Equal(text, button.Content);
+
+        var code = design.ToCSharp();
+        Assert.Contains("Content = \"{Hi}\\n\\\"quoted\\\" \\\\ & <tag>\"", code);
+        // DaisySize exists in Flowery.Controls and Flowery.Enums, which the code needs both.
+        Assert.Contains("Size = Flowery.Controls.DaisySize.Large", code);
+        Assert.Contains("GlassPattern = DaisyCardPattern.Dots", code);
+    }
+
+    [AvaloniaFact]
+    public void A_Fill_Or_Background_The_Design_Cannot_Describe_Stays_On_The_Button()
+    {
+        var solid = new SolidColorBrush(Colors.Teal);
+        var background = new OwnBackground();
+        var radial = new RadialGradientBrush { Center = RelativePoint.Center, GradientStops = { new GradientStop(Colors.Red, 0) } };
+        foreach (IBrush fill in new IBrush[] { solid, radial })
+        {
+            var button = new DaisyGlassButton { GlassFill = fill, GlassBackground = background, GlassBlur = 5 };
+            var design = DaisyGlassButtonDesign.FromButton(button);
+            Assert.Equal(DaisyGlassFillKind.Keep, design.FillKind);
+            Assert.Equal(DaisyGlassBackgroundRenderer.Keep, design.BackgroundRenderer);
+
+            design.GlassBlur = 40;
+            design.ApplyTo(button);
+            Assert.Equal(40, button.GlassBlur);
+            Assert.Same(fill, button.GlassFill);
+            Assert.Same(background, button.GlassBackground);
+
+            // The designer preview starts without a fill and shows the kept one.
+            var preview = new DaisyGlassButton();
+            design.ApplyTo(preview);
+            Assert.Same(fill, preview.GlassFill);
+        }
+    }
+
     [AvaloniaTheory]
     [InlineData(DaisyGlassFillKind.Linear)]
     [InlineData(DaisyGlassFillKind.Radial)]
@@ -102,11 +158,13 @@ public class DaisyGlassButtonDesignerTests
             "                           GlassBlur=\"44\" />",
             design.ToXaml().ReplaceLineEndings("\n"));
         Assert.Equal(
+            "// using Avalonia; using Avalonia.Media; using Flowery.Controls; using Flowery.Enums;\n" +
             "var button = new DaisyGlassButton\n{\n    Content = \"Go\",\n    Variant = DaisyButtonVariant.Primary,\n    GlassBlur = 44\n};",
             design.ToCSharp().ReplaceLineEndings("\n"));
     }
 
-    [Fact]
+    // An AvaloniaFact runs on the UI thread like the other tests that register a renderer, so they never overlap.
+    [AvaloniaFact]
     public void A_Shader_Background_Needs_The_Skia_Renderer()
     {
         var previous = DaisyGlassLiveRenderer.Current;
@@ -122,6 +180,8 @@ public class DaisyGlassButtonDesignerTests
             Assert.True(DaisyGlassButtonDesign.ShaderBackgroundAvailable);
             var background = Assert.IsType<DaisyGlassShaderBackground>(design.CreateBackground());
             Assert.Equal(0.5, background.Speed);
+            Assert.True(DaisyGlassLiveRenderer.Current!.IsShaderBackground(background));
+            Assert.False(DaisyGlassLiveRenderer.Current.IsShaderBackground(new DaisyGlassGradientBackground()));
             Assert.Contains("<skia:DaisyGlassShaderBackground Effect=\"Plasma\" Speed=\"0.5\" />", design.ToXaml());
         }
         finally
@@ -306,6 +366,57 @@ public class DaisyGlassButtonDesignerTests
         {
             window.Close();
         }
+    }
+
+    [AvaloniaFact]
+    public async Task Editing_A_Button_Edits_Its_Text_But_Leaves_Other_Content()
+    {
+        var button = new DaisyGlassButton { Content = "Old" };
+        var window = Show(button, 1100, 1300);
+        try
+        {
+            var overlay = OverlayLayer.GetOverlayLayer(button)!;
+            var edit = DaisyGlassButtonDesigner.EditAsync(button);
+            Dispatcher.UIThread.RunJobs();
+            var designer = overlay.GetVisualDescendants().OfType<DaisyGlassButtonDesigner>().Single();
+            var design = designer.Design;
+            design.Content = "New";
+            designer.Design = design;
+            OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            Assert.True(await edit);
+            Assert.Equal("New", button.Content);
+
+            var icon = new TextBlock { Text = "★" };
+            button.Content = icon;
+            edit = DaisyGlassButtonDesigner.EditAsync(button);
+            Dispatcher.UIThread.RunJobs();
+            OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            Assert.True(await edit);
+            Assert.Same(icon, button.Content);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Closing_The_Window_Ends_An_Open_Overlay_With_Nothing()
+    {
+        var host = new Border();
+        var window = Show(host, 1100, 1300);
+        var open = DaisyGlassButtonDesigner.ShowOverlayAsync(host);
+        Dispatcher.UIThread.RunJobs();
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(open.IsCompleted);
+        Assert.Null(await open);
+    }
+
+    // A background the design cannot describe.
+    private sealed class OwnBackground : DaisyGlassBackground
+    {
+        public override DaisyGlassAnimationLayer CreateLayer() => throw new NotSupportedException();
     }
 
     // A preset fill has no stops of its own, so the design keeps the default stops, as one read from a button would.

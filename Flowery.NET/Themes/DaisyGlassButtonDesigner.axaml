@@ -7,7 +7,8 @@
     </Design.PreviewWith>
 
     <!-- DaisyGlassButtonDesigner builds its parts in code; these styles give them their look.
-         Every selector starts at the designer, so nothing leaks into the app. -->
+         The selectors start at the designer, so nothing leaks into the app, except the two overlay classes
+         (gbd-overlay, gbd-overlay-card) of ShowOverlayAsync, whose border lies in the overlay layer. -->
     <Style Selector="controls|DaisyGlassButtonDesigner">
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
     </Style>
