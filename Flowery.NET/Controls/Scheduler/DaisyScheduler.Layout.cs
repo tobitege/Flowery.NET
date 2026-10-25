@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Flowery.Controls.Scheduler.Models;
@@ -146,31 +147,42 @@ public partial class DaisyScheduler
         }
     }
 
-    // A single-line chip or bar keeps its start time whole. Status glyphs and tiles show only when they fit beside it,
-    // in the order they were added; the subject takes the rest and trims, or hides below its shortest useful width.
-    private sealed class AppointmentLinePanel(double spacing) : Panel
+    // One line of a chip or bar, left to right: status icons, left tiles, start time, subject, right tiles. The start
+    // time always shows whole; Planner and Timeline bars are made wide enough for it. Status icons and then the tiles
+    // show only when they fit beside it; the subject takes the rest and trims, or hides below its shortest useful width.
+    private sealed class AppointmentLinePanel : Panel
     {
-        public const int Required = 0;
-        public const int Optional = 1;
-        public const int Fill = 2;
+        private readonly double _spacing;
+        private readonly Control? _start;
+        private readonly Control _subject;
+        private readonly double _subjectMinimum;
+        private readonly Control[] _optional;
+        private readonly HashSet<Control> _shown = new();
+        private double _startWidth;
+        private double _subjectWidth;
 
-        private readonly List<int> _roles = new();
-        private bool[] _shown = Array.Empty<bool>();
-        private double _fillWidth;
-        private double _fillMinimum;
-
-        /// <param name="child">The part to add.</param>
-        /// <param name="role"><see cref="Required"/>, <see cref="Optional"/> or <see cref="Fill"/>.</param>
-        /// <param name="minimumWidth">For the Fill part: the narrowest width worth showing, such as the first characters
-        /// and an ellipsis. Below it the part is hidden instead of showing fragments.</param>
-        public void Add(Control child, int role, double minimumWidth = 0)
+        /// <param name="spacing">The gap between two shown parts.</param>
+        /// <param name="status">Status icons, or null.</param>
+        /// <param name="leftTiles">Tiles before the start time, or null.</param>
+        /// <param name="start">The start time, or null for an all-day appointment.</param>
+        /// <param name="subject">The subject.</param>
+        /// <param name="subjectMinimum">The narrowest subject worth showing, such as two characters and an ellipsis.</param>
+        /// <param name="rightTiles">Tiles after the subject, or null.</param>
+        public AppointmentLinePanel(double spacing, Control? status, Control? leftTiles, Control? start, Control subject,
+            double subjectMinimum, Control? rightTiles)
         {
-            child.ClipToBounds = true;
-            Children.Add(child);
-            _roles.Add(role);
-            if (role == Fill)
-                _fillMinimum = minimumWidth;
-            _shown = new bool[Children.Count];
+            _spacing = spacing;
+            _start = start;
+            _subject = subject;
+            _subjectMinimum = subjectMinimum;
+            _optional = new[] { status, leftTiles, rightTiles }.OfType<Control>().ToArray();
+            foreach (var part in new[] { status, leftTiles, start, subject, rightTiles })
+            {
+                if (part is null)
+                    continue;
+                part.ClipToBounds = true;
+                Children.Add(part);
+            }
         }
 
         protected override Size MeasureOverride(Size availableSize)
@@ -178,58 +190,124 @@ public partial class DaisyScheduler
             foreach (var child in Children)
                 child.Measure(new Size(double.PositiveInfinity, availableSize.Height));
             Choose(availableSize.Width);
+            if (_shown.Contains(_subject))
+                _subject.Measure(new Size(_subjectWidth, availableSize.Height));
             var width = 0d;
             var height = 0d;
-            var count = 0;
-            for (var index = 0; index < Children.Count; index++)
+            foreach (var child in Children)
             {
-                if (!_shown[index])
+                if (!_shown.Contains(child))
                     continue;
-                if (_roles[index] == Fill)
-                    Children[index].Measure(new Size(_fillWidth, availableSize.Height));
-                width += (count++ > 0 ? spacing : 0) + Children[index].DesiredSize.Width;
-                height = Math.Max(height, Children[index].DesiredSize.Height);
+                width += (width > 0 ? _spacing : 0) + PartWidth(child);
+                height = Math.Max(height, child.DesiredSize.Height);
             }
             return new Size(width, height);
         }
 
-        // Each shown part costs its width plus one spacing; the first spacing is given back.
+        // Each shown part costs its width plus one spacing; the first spacing is given back. Without a width limit every
+        // part shows at its natural width.
         private void Choose(double width)
         {
-            Array.Clear(_shown);
-            var remaining = width + spacing;
-            foreach (var role in new[] { Required, Optional })
-                for (var index = 0; index < Children.Count; index++)
-                {
-                    if (_roles[index] != role)
-                        continue;
-                    var cost = Children[index].DesiredSize.Width + spacing;
-                    if (role == Optional && cost > remaining)
-                        continue;
-                    _shown[index] = true;
-                    remaining -= cost;
-                }
-            _fillWidth = Math.Max(0, remaining - spacing);
-            for (var index = 0; index < Children.Count; index++)
-                if (_roles[index] == Fill)
-                    _shown[index] = _fillWidth > 0 && _fillWidth >= _fillMinimum;
+            _shown.Clear();
+            if (double.IsInfinity(width))
+                width = Children.Sum(static child => child.DesiredSize.Width) + _spacing * Math.Max(0, Children.Count - 1);
+            var remaining = width + _spacing;
+            if (_start is not null)
+            {
+                _startWidth = _start.DesiredSize.Width;
+                _shown.Add(_start);
+                remaining -= _startWidth + _spacing;
+            }
+            foreach (var part in _optional)
+            {
+                var cost = part.DesiredSize.Width + _spacing;
+                if (cost > remaining)
+                    continue;
+                _shown.Add(part);
+                remaining -= cost;
+            }
+            _subjectWidth = Math.Max(0, remaining - _spacing);
+            if (_subjectWidth > 0 && _subjectWidth >= _subjectMinimum)
+                _shown.Add(_subject);
         }
+
+        private double PartWidth(Control child) =>
+            ReferenceEquals(child, _start) ? _startWidth : ReferenceEquals(child, _subject) ? _subjectWidth : child.DesiredSize.Width;
 
         protected override Size ArrangeOverride(Size finalSize)
         {
             Choose(finalSize.Width);
             var x = 0d;
-            for (var index = 0; index < Children.Count; index++)
+            foreach (var child in Children)
             {
-                var child = Children[index];
-                if (!_shown[index])
+                if (!_shown.Contains(child))
                 {
                     child.Arrange(default);
                     continue;
                 }
-                var width = _roles[index] == Fill ? _fillWidth : child.DesiredSize.Width;
+                var width = PartWidth(child);
                 child.Arrange(new Rect(x, 0, width, finalSize.Height));
-                x += width + spacing;
+                x += width + _spacing;
+            }
+            return finalSize;
+        }
+    }
+
+    /// <summary>The position of a Planner or Timeline element along the shown days, in minutes from the first day.
+    /// Without <paramref name="Minutes"/> the element keeps its own width.</summary>
+    private readonly record struct MinuteSpan(double Start, double Minutes, double Offset, double Trim, double MinimumWidth);
+
+    // A Planner or Timeline surface that places its children by minutes along the shown days, at the scale it inherits
+    // from the view. A new visible width only sets that scale on the view, and every surface arranges itself again.
+    // Children without a span are placed like on a Canvas, such as the ghost of a running gesture.
+    private sealed class MinuteCanvas(double totalMinutes) : Canvas
+    {
+        public static readonly AttachedProperty<double> PixelsPerMinuteProperty =
+            AvaloniaProperty.RegisterAttached<MinuteCanvas, Control, double>("PixelsPerMinute", 1, inherits: true);
+
+        private static readonly AttachedProperty<MinuteSpan?> SpanProperty =
+            AvaloniaProperty.RegisterAttached<MinuteCanvas, Control, MinuteSpan?>("Span");
+
+        static MinuteCanvas() => AffectsMeasure<MinuteCanvas>(PixelsPerMinuteProperty);
+
+        public double PixelsPerMinute => GetValue(PixelsPerMinuteProperty);
+
+        public static void Place(Control child, double start, double minutes = double.NaN, double offset = 0, double trim = 0,
+            double minimumWidth = 0) => child.SetValue(SpanProperty, new MinuteSpan(start, minutes, offset, trim, minimumWidth));
+
+        private static double SpanWidth(MinuteSpan span, double pixelsPerMinute) =>
+            Math.Max(span.MinimumWidth, span.Minutes * pixelsPerMinute - span.Trim);
+
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            var pixelsPerMinute = PixelsPerMinute;
+            foreach (var child in Children)
+            {
+                var width = child.GetValue(SpanProperty) is { Minutes: not double.NaN } span
+                    ? SpanWidth(span, pixelsPerMinute) : double.PositiveInfinity;
+                child.Measure(new Size(width, double.PositiveInfinity));
+            }
+            return new Size(totalMinutes * pixelsPerMinute, 0);
+        }
+
+        protected override Size ArrangeOverride(Size finalSize)
+        {
+            var pixelsPerMinute = PixelsPerMinute;
+            foreach (var child in Children)
+            {
+                var top = GetTop(child);
+                if (double.IsNaN(top))
+                    top = 0;
+                if (child.GetValue(SpanProperty) is not { } span)
+                {
+                    var left = GetLeft(child);
+                    if (double.IsNaN(left))
+                        left = 0;
+                    child.Arrange(new Rect(new Point(left, top), child.DesiredSize));
+                    continue;
+                }
+                var width = double.IsNaN(span.Minutes) ? child.DesiredSize.Width : SpanWidth(span, pixelsPerMinute);
+                child.Arrange(new Rect(span.Start * pixelsPerMinute + span.Offset, top, width, child.DesiredSize.Height));
             }
             return finalSize;
         }

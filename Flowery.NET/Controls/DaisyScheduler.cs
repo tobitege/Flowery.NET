@@ -414,7 +414,7 @@ public partial class DaisyScheduler : TemplatedControl
         _frames.Clear();
         _occurrenceSources.Clear();
         _lanes.Clear();
-        _hourItems.Clear();
+        _minuteView = null;
         _visibleItems = GetVisibleOccurrences().ToArray();
         var appointments = Appointments ?? Array.Empty<AppointmentModel>();
         var retained = _selection.Select(old => appointments.FirstOrDefault(a => Same(a, old)))

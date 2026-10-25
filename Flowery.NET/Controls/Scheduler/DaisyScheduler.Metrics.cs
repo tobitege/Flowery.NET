@@ -2,6 +2,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Flowery.Controls.Scheduler.Models;
 using Flowery.Controls.Scheduler.Utilities;
 
 namespace Flowery.Controls;
@@ -25,30 +26,37 @@ public partial class DaisyScheduler
         return Math.Ceiling(length * scaling) / scaling;
     }
 
-    // Planner and Timeline hours fit their header label and a one-hour bar that shows its start time whole (frame and
-    // accent borders, content margins, the gap between bars and one spacing of slack). The width follows the size,
-    // font, culture and clock format; hours widen from it to fill the visible width. Hosts can raise it with
+    // Planner and Timeline hours fit their header label and a one-hour bar that shows its start time whole (the chrome
+    // around the bar content, the gap between bars and one spacing of slack). The width follows the size, font, culture
+    // and clock format; hours widen from it to fill the visible width. Hosts can raise it for the Timeline with
     // DaisySchedulerTimelineMinimumHourWidth. Text widths are rounded up to device pixels as layout rounds them.
-    private double MinimumHourPixelsPerMinute()
+    private double MinimumHourPixelsPerMinute(bool timeline)
     {
-        var barChrome = SpacingXS * 4 + LineThickness * 4 + 2;
-        var width = Token<double>("DaisySchedulerTimelineMinimumHourWidth") * Scale;
+        var barChrome = LineChrome + BarGap + SpacingXS;
+        var width = timeline ? Token<double>("DaisySchedulerTimelineMinimumHourWidth") * Scale : 0;
         for (var hour = 0; hour < 24; hour++)
         {
             var time = DateTime.Today.AddHours(hour);
             var header = Label(FormatTime(time), true);
             header.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            // Bars also start on the half hour, where a compact 12-hour time is widest ("12:30p").
-            var start = Label(CompactTime(time.AddMinutes(30)));
-            start.FontWeight = FontWeight.SemiBold;
-            start.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            // Bars also start on the half hour, where a compact 12-hour time is wider ("12:30p").
             width = Math.Max(width, Math.Max(RoundToPixel(header.DesiredSize.Width) + SpacingSmall * 2,
-                RoundToPixel(start.DesiredSize.Width) + barChrome));
+                StartWidth(time.AddMinutes(30)) + barChrome));
         }
         return RoundToPixel(width) / 60;
     }
 
-    // The start time of a single-line chip or bar, as AppointmentContext.CompactStart writes it.
-    private string CompactTime(DateTime time) =>
-        TimePattern.Contains('H') ? time.ToString(TimePattern, Culture) : SchedulerTimeFormatter.Compact(time);
+    // The width of the start time of a single-line chip or bar, rounded up to device pixels as layout rounds it.
+    private double StartWidth(DateTime start)
+    {
+        var label = Label(SchedulerTimeFormatter.CompactStart(start, TimePattern, Culture));
+        label.FontWeight = FontWeight.SemiBold;
+        label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        return RoundToPixel(label.DesiredSize.Width);
+    }
+
+    // A Planner or Timeline bar is at least as wide as its whole start time, however short the appointment is.
+    private double BarMinimumWidth(AppointmentModel appointment) =>
+        Math.Max(ChipHeight, appointment.IsAllDay ? 0 : StartWidth(appointment.Start) + LineChrome);
+
 }

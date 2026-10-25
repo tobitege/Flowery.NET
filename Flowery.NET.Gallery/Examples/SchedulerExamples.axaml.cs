@@ -131,9 +131,9 @@ public partial class SchedulerExamples : UserControl
         Refresh();
     }
 
-    // The other days of the current month get appointments too, weekends included, so the month view is filled and
-    // today has four appointments for four resources on any date. Weekdays of the current week keep the feature
-    // samples above, which have three or more per day.
+    // The other days of the current month get appointments too, weekends included, so the month view is filled.
+    // Weekdays of the current week keep the feature samples above, which have three or more per day; today gets four
+    // more for four resources on any date, so Day and Timeline always show several.
     private void SeedMonth(DateTime monday)
     {
         var subjects = new[] { "Customer visit", "Code review", "Planning", "Inventory check", "Support shift", "Design review", "Delivery", "Room booking" };
@@ -141,7 +141,7 @@ public partial class SchedulerExamples : UserControl
         var first = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
         for (var day = first; day.Month == first.Month; day = day.AddDays(1))
         {
-            if (day >= monday && day < monday.AddDays(5))
+            if (day != DateTime.Today && day >= monday && day < monday.AddDays(5))
                 continue;
             var count = day == DateTime.Today ? 4 : day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday ? 1 : 2;
             for (var slot = 0; slot < count; slot++)

@@ -2,7 +2,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
@@ -106,31 +108,58 @@ public sealed partial class SchedulerTests
     [AvaloniaTheory]
     [InlineData(SchedulerClockFormat.TwelveHour)]
     [InlineData(SchedulerClockFormat.TwentyFourHour)]
-    public void SingleLineBarsKeepTheStartTimeWholeAndHideSubjectFragments(SchedulerClockFormat clock)
+    public void SingleLineBarsAlwaysShowTheWholeStartTimeAndOnlyWhatFitsBesideIt(SchedulerClockFormat clock)
     {
         using var scope = new SchedulerScope(SchedulerView.Timeline);
         scope.Scheduler.ClockFormat = clock;
+        scope.Scheduler.ShowTiles = true;
         scope.Appointment.Subject = "Support shift";
         scope.Appointment.Start = Monday.AddHours(11);
         scope.Appointment.End = Monday.AddHours(12);
-        var shortOne = new AppointmentModel { Id = 2, Subject = "Install", Start = Monday.AddHours(15), End = Monday.AddHours(15).AddMinutes(10), ResourceIds = { 1 } };
-        scope.Scheduler.Appointments = new[] { scope.Appointment, shortOne };
+        var longOne = Decorated(new AppointmentModel { Id = 3, Subject = "Site visit", Start = Monday.AddHours(17), End = Monday.AddHours(21), ResourceIds = { 1 } });
+        scope.Scheduler.Appointments = new[] { scope.Appointment, longOne };
         // Narrower than one day at the minimum hour width, so hours keep that minimum.
         scope.Window.Width = 500;
         scope.Layout();
 
         // A one-hour bar at the narrowest hours shows its start time whole.
         var frame = scope.Frame(scope.Appointment);
-        var context = Assert.IsType<AppointmentContext>(frame.DataContext);
-        var start = frame.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Text == context.CompactStart);
+        var start = Text(frame, Assert.IsType<AppointmentContext>(frame.DataContext).CompactStart);
         AssertFullyInside(start, frame);
         AssertNotTrimmed(start);
 
-        // A bar too short for two characters and an ellipsis after its start time hides the subject.
+        // A ten-minute bar is widened to its whole start time and hides everything that does not fit beside it.
+        var shortOne = Decorated(new AppointmentModel { Id = 2, Subject = "Install", Start = Monday.AddHours(15), End = Monday.AddHours(15).AddMinutes(10), ResourceIds = { 1 } });
+        scope.Scheduler.Appointments = new[] { scope.Appointment, shortOne, longOne };
+        scope.Layout();
         var shortFrame = scope.Frame(shortOne);
-        var subject = shortFrame.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Text == shortOne.Subject);
-        Assert.Equal(0, subject.Bounds.Width);
+        var shortStart = Text(shortFrame, Assert.IsType<AppointmentContext>(shortFrame.DataContext).CompactStart);
+        AssertFullyInside(shortStart, shortFrame);
+        AssertNotTrimmed(shortStart);
+        var lane = Assert.IsAssignableFrom<Canvas>(shortFrame.Parent);
+        Assert.True(shortFrame.Bounds.Width > lane.Bounds.Width / 1440 * 10, $"frame {shortFrame.Bounds.Width}");
+        foreach (var hidden in new[] { shortOne.Subject, "↻", "Alex" })
+            Assert.Equal(0, PartWidth(Text(shortFrame, hidden)));
+
+        // A long bar shows the status icon and the tile beside its start time and subject.
+        var longFrame = scope.Frame(longOne);
+        foreach (var shown in new[] { longOne.Subject, "↻", "Alex" })
+            AssertFullyInside(Text(longFrame, shown), longFrame);
     }
+
+    private static AppointmentModel Decorated(AppointmentModel appointment)
+    {
+        appointment.Indicators.Add(new AppointmentIndicator { Glyph = "↻", Tooltip = "Recurring" });
+        appointment.Tiles.Add(new AppointmentDecoration { Text = "Alex", Position = DecorationPosition.Right });
+        return appointment;
+    }
+
+    private static TextBlock Text(Control frame, string text) =>
+        frame.GetVisualDescendants().OfType<TextBlock>().Single(block => block.Text == text);
+
+    // The arranged width of the part of a chip line that holds the text; a hidden part is arranged empty and clips it.
+    private static double PartWidth(Control text) => new[] { text }.Concat(text.GetVisualAncestors().OfType<Control>())
+        .First(static part => part.GetVisualParent()?.GetType().Name == "AppointmentLinePanel").Bounds.Width;
 
     [AvaloniaTheory]
     [InlineData(SchedulerView.Planner)]
@@ -142,13 +171,13 @@ public sealed partial class SchedulerTests
         // A narrow window keeps the minimum hour width and scrolls.
         scope.Window.Width = 500;
         scope.Layout();
-        var lane = scope.Scheduler.GetVisualDescendants().OfType<Canvas>().Single(Avalonia.Input.DragDrop.GetAllowDrop);
+        var lane = scope.Scheduler.GetVisualDescendants().OfType<Canvas>().Single(DragDrop.GetAllowDrop);
         var scroll = lane.GetVisualAncestors().OfType<ScrollViewer>().First();
         var frame = scope.Frame(scope.Appointment);
         var hours = view == SchedulerView.Timeline ? 24 : 24 * 5;
-        var minimum = lane.Width;
+        var minimum = lane.Bounds.Width;
         Assert.True(minimum > scroll.Viewport.Width, $"lane {minimum}, viewport {scroll.Viewport.Width}");
-        AssertHourBar();
+        AssertHourBar(frame, lane, hours);
 
         // Wider windows widen the hours to the visible width without rendering again: the same frame grows with them.
         foreach (var extra in new[] { 1000d, 3000d })
@@ -156,14 +185,29 @@ public sealed partial class SchedulerTests
             scope.Window.Width = minimum + extra;
             scope.Layout();
             Assert.Same(frame, scope.Frame(scope.Appointment));
-            Assert.Equal(scroll.Viewport.Width, lane.Width, 3);
-            Assert.True(lane.Width > minimum);
-            AssertHourBar();
+            Assert.Equal(scroll.Viewport.Width, lane.Bounds.Width, 3);
+            Assert.True(lane.Bounds.Width > minimum);
+            AssertHourBar(frame, lane, hours);
         }
 
-        // The one-hour appointment is one hour wide less the gap between bars; layout rounds it to whole pixels.
-        void AssertHourBar() => Assert.InRange(frame.Bounds.Width + 2 - lane.Width / hours, -1, 1);
+        // The header label of an hour starts at that hour of the lane, and a click there creates an appointment at it.
+        var hour = Monday.AddHours(14);
+        var hourX = lane.Bounds.Width / hours * 14;
+        var label = scope.Scheduler.GetVisualDescendants().OfType<TextBlock>().First(text => text.Text == scope.Scheduler.FormatTime(hour));
+        var labelX = label.TranslatePoint(default, lane)!.Value.X;
+        Assert.InRange(labelX - 4 - hourX, -1, 1);
+        scope.Scheduler.SingleClickCreates = true;
+        var created = new List<DateTime>();
+        scope.Scheduler.AppointmentCreateRequested += (_, args) => created.Add(args.Start);
+        var point = scope.Point(lane, hourX + 1, lane.Bounds.Height / 2);
+        scope.Window.MouseDown(point, MouseButton.Left);
+        scope.Window.MouseUp(point, MouseButton.Left);
+        Assert.Equal(hour, Assert.Single(created));
     }
+
+    // The one-hour appointment is one hour wide less the gap between bars; layout rounds it to whole pixels.
+    private static void AssertHourBar(Control frame, Control lane, int hours) =>
+        Assert.InRange(frame.Bounds.Width + 2 - lane.Bounds.Width / hours, -1, 1);
 
     [AvaloniaFact]
     public void ShortBarsPackedAtTheMinimumHourWidthNeverOverlapWhenHoursWiden()

@@ -324,16 +324,13 @@ public class Given_GlassBackdrop
         // Every wait is logged: the redraw versions, the measured backdrop colors and the text colors, so a failure
         // shows what started the glasses again.
         var log = new List<string>();
-        void Log(string step) => log.Add($"{step}: version {RedrawVersion(button)}/{RedrawVersion(badge)}, backdrop "
-            + $"{Glass(button).BackdropColor}/{Glass(badge).BackdropColor}, text {Text(button.EffectiveForeground)}/"
-            + $"{Text(badge.EffectiveForeground)}, measure {Glass(button).MeasureBackdropColor}/{Glass(badge).MeasureBackdropColor}");
 
         // Moving content behind both glasses makes them redraw in full for a moment.
         for (var step = 0; step < 10; step++)
         {
             Canvas.SetLeft(mover, 60 + step * 25);
             await RuntimeTestHelpers.WaitForRenderAsync();
-            Log($"move {step}");
+            log.Add(Snapshot($"move {step}", button, badge));
         }
 
         // Each full redraw raises the version of the glass's own redraw controller. Only these two glasses count:
@@ -344,7 +341,7 @@ public class Given_GlassBackdrop
         for (var frame = 0; frame < 120 && !stopped; frame++)
         {
             await RuntimeTestHelpers.WaitForRenderAsync();
-            Log($"wait {frame}");
+            log.Add(Snapshot($"wait {frame}", button, badge));
             var current = new[] { RedrawVersion(button), RedrawVersion(badge) };
             quiet = current.SequenceEqual(versions) ? quiet + 1 : 0;
             versions = current;
@@ -356,11 +353,16 @@ public class Given_GlassBackdrop
         for (var frame = 0; frame < 20; frame++)
         {
             await RuntimeTestHelpers.WaitForRenderAsync();
-            Log($"after {frame}");
+            log.Add(Snapshot($"after {frame}", button, badge));
         }
         Assert.True(versions.SequenceEqual([RedrawVersion(button), RedrawVersion(badge)]),
             $"The glasses started redrawing in full again after {string.Join("/", versions)} redraws.\n" + string.Join("\n", log));
     }
+
+    private static string Snapshot(string step, DaisyGlassButton button, DaisyGlassBadge badge) =>
+        $"{step}: version {RedrawVersion(button)}/{RedrawVersion(badge)}, backdrop {Glass(button).BackdropColor}/"
+        + $"{Glass(badge).BackdropColor}, text {Text(button.EffectiveForeground)}/{Text(badge.EffectiveForeground)}, "
+        + $"measure {Glass(button).MeasureBackdropColor}/{Glass(badge).MeasureBackdropColor}";
 
     private static DaisyGlass Glass(Control control) =>
         control.GetVisualDescendants().OfType<DaisyGlass>().Single(part => part.Name == "PART_Glass");

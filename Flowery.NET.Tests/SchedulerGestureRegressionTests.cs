@@ -138,7 +138,7 @@ public sealed partial class SchedulerTests
         // Keep both slots visible so scrolling cannot turn separate slot clicks into a double-click. The date is the
         // last day of its Planner week.
         var scroll = lane.GetVisualAncestors().OfType<ScrollViewer>().First();
-        scroll.Offset = new Vector(view == SchedulerView.Planner ? lane.Width * 6 / 7 : 0, 0);
+        scroll.Offset = new Vector(view == SchedulerView.Planner ? lane.Bounds.Width * 6 / 7 : 0, 0);
         scope.Layout();
         var selections = 0;
         var creations = new List<AppointmentCreateArgs>();
@@ -186,9 +186,9 @@ public sealed partial class SchedulerTests
         var frame = scope.Frame(scope.Appointment);
         frame.BringIntoView();
         scope.Layout();
-        var lane = Assert.IsType<Canvas>(frame.Parent);
+        var lane = Assert.IsAssignableFrom<Canvas>(frame.Parent);
         var origin = scope.Point(frame, resize ? frame.Bounds.Width - 2 : frame.Bounds.Width / 2, frame.Bounds.Height / 2);
-        DragPointer(scope, origin, origin + new Vector(lane.Width / 1440 * (resize ? 60 : 90), 0));
+        DragPointer(scope, origin, origin + new Vector(lane.Bounds.Width / 1440 * (resize ? 60 : 90), 0));
         Assert.Equal(0, requests);
         Assert.Equal(date, scope.Appointment.Start);
         Assert.Equal(date.AddMinutes(30), scope.Appointment.End);
@@ -245,7 +245,7 @@ public sealed partial class SchedulerTests
         var days = scope.Scheduler.CurrentView == SchedulerView.Planner ? 7 : 1;
         if (days == 7)
             origin = origin.AddDays(-((7 + (int)origin.DayOfWeek - (int)scope.Scheduler.FirstDayOfWeek) % 7));
-        var x = ((time - origin).TotalMinutes + 1) * lane.Width / (days * 1440);
+        var x = ((time - origin).TotalMinutes + 1) * lane.Bounds.Width / (days * 1440);
         lane.BringIntoView(new Rect(x - 4, 0, 8, lane.Height));
         scope.Layout();
         return scope.Point(lane, x, lane.Height / 2);
