@@ -48,7 +48,7 @@ namespace Flowery.Controls
 
         /// <summary>
         /// Gets or sets how the backdrop is blurred. SkiaSharp blurs the live backdrop on every frame;
-        /// BitmapCapture blurs a snapshot that is taken again when the button moves or resizes.
+        /// BitmapCapture blurs a snapshot that is taken again when the bar moves or resizes.
         /// </summary>
         public GlassBlurMode BlurMode
         {

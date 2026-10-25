@@ -93,6 +93,12 @@ namespace Flowery.Controls
         public string? ControlName { get; set; }
 
         /// <summary>
+        /// Optional further words the sidebar search matches, separated by spaces, such as the controls of an entry that
+        /// shows several of them. Unlike <see cref="ControlName"/> they are not shown.
+        /// </summary>
+        public string? SearchTerms { get; set; }
+
+        /// <summary>
         /// Returns whether the search text matches the translated name or the control class name.
         /// Case, spaces and punctuation are ignored, so "tag picker", "TagPicker" and "DaisyTagPicker"
         /// all find the same item.
@@ -108,7 +114,10 @@ namespace Flowery.Controls
 
             return NormalizeForSearch(DisplayName).Contains(normalizedSearch)
                 || (ControlName is { Length: > 0 } controlName
-                    && NormalizeForSearch(controlName).Contains(normalizedSearch));
+                    && NormalizeForSearch(controlName).Contains(normalizedSearch))
+                || (SearchTerms is { Length: > 0 } terms
+                    && terms.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                        .Any(term => NormalizeForSearch(term).Contains(normalizedSearch)));
         }
 
         private static string NormalizeForSearch(string text)

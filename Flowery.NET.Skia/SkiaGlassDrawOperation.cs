@@ -1,8 +1,5 @@
-using System;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
@@ -13,103 +10,8 @@ using SkiaSharp;
 namespace Flowery.Skia
 {
     /// <summary>
-    /// Keeps a SkiaSharp glass redrawing in full for a moment after its backdrop changed.
-    /// A frame redraws only the changed areas, but the blur spreads each change a few pixels further, so a partial
-    /// redraw would leave the old blur at the edges of the changed area. While the backdrop keeps changing,
-    /// the whole glass is redrawn every frame; afterwards it returns to partial redraws.
-    /// </summary>
-    internal sealed class SkiaGlassRedraw(Visual owner)
-    {
-        private static readonly TimeSpan LiveTime = TimeSpan.FromMilliseconds(300);
-
-        private int _changeQueued;
-        private DateTime _liveUntil;
-        private bool _frameRequested;
-
-        /// <summary>Incremented on the UI thread for each full redraw, so the new draw operation differs from the last.</summary>
-        public int Version { get; private set; }
-
-        /// <summary>Called on the render thread when a frame redrew only part of the glass.</summary>
-        public void BackdropChanged()
-        {
-            Volatile.Write(ref _measureDue, 1);
-            if (Interlocked.Exchange(ref _changeQueued, 1) == 1)
-                return;
-            Dispatcher.UIThread.Post(() =>
-            {
-                _changeQueued = 0;
-                _liveUntil = DateTime.UtcNow + LiveTime;
-                RequestFrame();
-            }, DispatcherPriority.Render);
-        }
-
-        // A measurement reads pixels back from the GPU, which stalls the frame; a few per second follow a change closely enough.
-        private const long MeasureInterval = 300;
-
-        private long _lastMeasure = long.MinValue / 2;
-        private int _measureLaterQueued;
-        private int _measureDue = 1;
-
-        /// <summary>Set on the UI thread for each render: whether the glass wants its backdrop color measured.</summary>
-        public volatile bool MeasureBackdrop;
-
-        /// <summary>
-        /// Called on the render thread with the whole backdrop at hand: returns whether to measure it now, at most every
-        /// <see cref="MeasureInterval"/>. After the backdrop changed, a render too soon schedules a render for later, so
-        /// the last state behind the glass is measured too; without a change nothing is scheduled, since a scheduled
-        /// render redraws the glass, which could make a glass around it redraw this one again.
-        /// </summary>
-        public bool TryStartMeasure()
-        {
-            if (!MeasureBackdrop)
-                return false;
-            var now = Environment.TickCount64;
-            var wait = Interlocked.Read(ref _lastMeasure) + MeasureInterval - now;
-            if (wait > 0)
-            {
-                if (Volatile.Read(ref _measureDue) == 1)
-                    MeasureLater(wait);
-                return false;
-            }
-            Interlocked.Exchange(ref _lastMeasure, now);
-            Volatile.Write(ref _measureDue, 0);
-            return true;
-        }
-
-        /// <summary>Called on the render thread with a measured backdrop color.</summary>
-        public void ReportBackdropColor(Color color) =>
-            Dispatcher.UIThread.Post(() => SkiaGlassRenderer.ReportMeasuredColor(owner, color), DispatcherPriority.Background);
-
-        private void MeasureLater(long delay)
-        {
-            if (Interlocked.Exchange(ref _measureLaterQueued, 1) == 1)
-                return;
-            Dispatcher.UIThread.Post(() => DispatcherTimer.RunOnce(() =>
-            {
-                _measureLaterQueued = 0;
-                owner.InvalidateVisual();
-            }, TimeSpan.FromMilliseconds(delay)));
-        }
-
-        private void RequestFrame()
-        {
-            if (_frameRequested || TopLevel.GetTopLevel(owner) is not { } topLevel)
-                return;
-            _frameRequested = true;
-            topLevel.RequestAnimationFrame(_ =>
-            {
-                _frameRequested = false;
-                if (DateTime.UtcNow > _liveUntil)
-                    return;
-                Version++;
-                owner.InvalidateVisual();
-                RequestFrame();
-            });
-        }
-    }
-
-    /// <summary>
-    /// Custom SkiaSharp draw operation for real-time glass blur effect.
+    /// Draws a SkiaSharp glass: the blurred live backdrop from a snapshot of the surface, the tint and the liquid-glass
+    /// optics. No surface image is kept beyond the frame.
     /// </summary>
     internal sealed class SkiaGlassDrawOperation : ICustomDrawOperation
     {
@@ -127,7 +29,8 @@ namespace Flowery.Skia
         private readonly SkiaGlassRedraw _redraw;
         private readonly int _redrawVersion;
         private SKRectI? _seen;
-        private SKRectI[]? _seenCells;
+        private SKRect[]? _cells;
+        private SKRectI[]? _probe;
         private bool _redrawsAll;
 
         public SkiaGlassDrawOperation(
@@ -210,28 +113,25 @@ namespace Flowery.Skia
 
             // Taken before the rounded clip below: the clip on entry bounds the area this frame redraws.
             var backdrop = lease.SkSurface is SKSurface surface ? GetBackdrop(surface, canvas, rect) : null;
+            // The snapshot is a surface image; it must not outlive this frame, whatever happens below.
+            using var backdropImage = backdrop?.Image;
             // Only a render of the whole glass has the bare backdrop under all of it; elsewhere a partial render still
             // shows the last frame's glass and text, and measuring those would change the text color for nothing.
             if (backdrop is { } measured && _redrawsAll && _redraw.TryStartMeasure()
                 && MeasureBackdropColor(lease.GrContext, measured.Image, measured.Bounds, SKRectI.Ceiling(canvas.TotalMatrix.MapRect(rect))) is { } color)
                 _redraw.ReportBackdropColor(color);
 
-            // Save canvas state
             int saveCount = canvas.Save();
-
-            // Clip to our bounds
             canvas.ClipRoundRect(roundedRect, SKClipOperation.Intersect, true);
 
-            // Create blur filter
             using var blurFilter = SKImageFilter.CreateBlur(_blurSigma, _blurSigma, SKShaderTileMode.Clamp);
 
             SKImageFilter? backdropFilter = blurFilter;
             SKColorFilter? colorFilter = null;
 
-            // Apply saturation if needed
             if (Math.Abs(_saturation - 1.0f) > 0.01f)
             {
-                // Standard luminance weights
+                // A saturation matrix with the Rec. 709 luminance weights.
                 float r = 0.2126f;
                 float g = 0.7152f;
                 float b = 0.0722f;
@@ -252,26 +152,7 @@ namespace Flowery.Skia
                 backdropFilter = SKImageFilter.CreateColorFilter(colorFilter, blurFilter);
             }
 
-            // Try to use SKSaveLayerRec if available (Standard way)
-            // Note: If SKSaveLayerRec is missing in this binding, we fallback to Snapshot
-            bool useSnapshot = true;
-
-            if (!useSnapshot)
-            {
-                // Original attempt - failed compilation for user
-                /*
-                var saveLayerRec = new SKSaveLayerRec
-                {
-                    Bounds = rect,
-                    Backdrop = backdropFilter
-                };
-                canvas.SaveLayer(saveLayerRec);
-                canvas.Restore();
-                */
-            }
-
-            // Fallback: Snapshot approach (Manual Backdrop Blur)
-            // This is robust and works without SKSaveLayerRec
+            // The backdrop blur from the frame snapshot.
             if (backdrop is { } snapshot)
             {
                 using var paint = new SKPaint
@@ -286,7 +167,6 @@ namespace Flowery.Skia
                 canvas.ResetMatrix();
                 canvas.DrawImage(snapshot.Image, snapshot.Bounds.Left, snapshot.Bounds.Top, paint);
                 canvas.Restore();
-                snapshot.Image.Dispose();
             }
 
             if (backdropFilter != blurFilter)
@@ -295,7 +175,6 @@ namespace Flowery.Skia
             }
             colorFilter?.Dispose();
 
-            // Draw tint overlay
             using var tintPaint = new SKPaint
             {
                 Color = _tintColor,
@@ -306,7 +185,7 @@ namespace Flowery.Skia
 
             DrawLiquidOptics(canvas, rect);
 
-            // Draw highlight border (gradient from top to bottom to simulate light source)
+            // A highlight border that fades from the top, as lit from above.
             using var highlightPaint = new SKPaint
             {
                 Style = SKPaintStyle.Stroke,
@@ -314,7 +193,6 @@ namespace Flowery.Skia
                 IsAntialias = true
             };
 
-            // Gradient: White (Top) -> Transparent (Bottom)
             var colors = new SKColor[]
             {
                 new SKColor(255, 255, 255, 80),
@@ -331,8 +209,6 @@ namespace Flowery.Skia
             highlightPaint.Shader = shader;
 
             canvas.DrawRoundRect(roundedRect, highlightPaint);
-
-            // Restore canvas
             canvas.RestoreToCount(saveCount);
         }
 
@@ -465,12 +341,16 @@ namespace Flowery.Skia
                 var seen = glass;
                 seen.Intersect(clipBounds);
                 _seen = seen;
-                _seenCells = ProbeSeenCells(canvas, rect);
             }
 
             // A partial render follows a change behind the glass. The blur spreads that change beyond the redrawn
             // area, where this frame cannot draw, so the glass redraws in full for a moment.
-            _redrawsAll = first || CoversSeen(canvas, rect, _seen!.Value, _seenCells);
+            if (!first && !canvas.IsClipRect)
+            {
+                _cells ??= Cells(rect);
+                _probe ??= new SKRectI[_cells.Length];
+            }
+            _redrawsAll = first || CoversSeen(canvas, rect, _seen!.Value, _cells, _probe);
             if (!_redrawsAll)
                 _redraw.BackdropChanged();
 
@@ -538,19 +418,16 @@ namespace Flowery.Skia
         }
 
         /// <summary>
-        /// Returns the device bounds of the clip in each cell of the glass, when the clip is not a rectangle, such as
-        /// the rounded clip of an ancestor; for a rectangular clip the visible area is a rectangle and needs no cells.
-        /// </summary>
-        internal static SKRectI[]? ProbeSeenCells(SKCanvas canvas, SKRect rect) =>
-            canvas.IsClipRect ? null : ProbeCells(canvas, Cells(rect));
-
-        /// <summary>
         /// Returns whether the clip of this render covers all of the glass that the first render could see.
         /// The bounds of the clip are not enough when it is a region, as with
         /// <c>CompositionOptions.UseRegionDirtyRectClipping</c>: two redrawn areas apart from each other can span the
-        /// glass while the part between them is not redrawn. The glass is then checked cell by cell.
+        /// glass while the part between them is not redrawn. The glass is then checked cell by cell; a draw operation
+        /// passes its <paramref name="cells"/> and a <paramref name="probeBuffer"/> of the same length, since its glass
+        /// keeps its size. A rounded or path clip of an ancestor needs no special care: Skia reports conservative
+        /// bounds for it, the whole cell, so only the exact bounds of a region show a gap.
         /// </summary>
-        internal static bool CoversSeen(SKCanvas canvas, SKRect rect, SKRectI seen, SKRectI[]? seenCells)
+        internal static bool CoversSeen(SKCanvas canvas, SKRect rect, SKRectI seen,
+            SKRect[]? cells = null, SKRectI[]? probeBuffer = null)
         {
             var bounds = canvas.DeviceClipBounds;
             bounds.Inflate(1, 1);
@@ -559,20 +436,12 @@ namespace Flowery.Skia
             if (canvas.IsClipRect)
                 return true;
 
-            var cells = Cells(rect);
-            var probed = ProbeCells(canvas, cells);
+            cells ??= Cells(rect);
+            var probed = ProbeCells(canvas, cells, probeBuffer);
             for (var i = 0; i < cells.Length; i++)
             {
-                SKRectI expected;
-                if (seenCells != null)
-                {
-                    expected = seenCells[i];
-                }
-                else
-                {
-                    expected = SKRectI.Ceiling(canvas.TotalMatrix.MapRect(cells[i]));
-                    expected.Intersect(seen);
-                }
+                var expected = SKRectI.Ceiling(canvas.TotalMatrix.MapRect(cells[i]));
+                expected.Intersect(seen);
                 if (expected.IsEmpty)
                     continue;
                 var covered = probed[i];
@@ -583,13 +452,16 @@ namespace Flowery.Skia
             return true;
         }
 
-        // A cell narrower than the gap between two redrawn areas shows the gap in its clip bounds.
+        // A cell narrower than the gap between two redrawn areas shows the gap in its clip bounds. A large glass uses
+        // larger cells, at most MaxCellsPerSide along each side, so the check stays at a few thousand native calls.
         private const float CellSize = 16f;
+        private const int MaxCellsPerSide = 32;
 
-        private static SKRect[] Cells(SKRect rect)
+        internal static SKRect[] Cells(SKRect rect)
         {
-            var columns = Math.Max(1, (int)MathF.Ceiling(rect.Width / CellSize));
-            var rows = Math.Max(1, (int)MathF.Ceiling(rect.Height / CellSize));
+            var size = Math.Max(CellSize, Math.Max(rect.Width, rect.Height) / MaxCellsPerSide);
+            var columns = Math.Clamp((int)MathF.Ceiling(rect.Width / size), 1, MaxCellsPerSide);
+            var rows = Math.Clamp((int)MathF.Ceiling(rect.Height / size), 1, MaxCellsPerSide);
             var cells = new SKRect[columns * rows];
             for (var row = 0; row < rows; row++)
             {
@@ -605,9 +477,9 @@ namespace Flowery.Skia
             return cells;
         }
 
-        private static SKRectI[] ProbeCells(SKCanvas canvas, SKRect[] cells)
+        private static SKRectI[] ProbeCells(SKCanvas canvas, SKRect[] cells, SKRectI[]? buffer)
         {
-            var bounds = new SKRectI[cells.Length];
+            var bounds = buffer is { Length: var length } && length == cells.Length ? buffer : new SKRectI[cells.Length];
             for (var i = 0; i < cells.Length; i++)
             {
                 canvas.Save();

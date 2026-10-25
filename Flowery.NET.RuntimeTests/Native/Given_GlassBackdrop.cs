@@ -1,3 +1,4 @@
+using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
@@ -10,6 +11,7 @@ using Flowery.Capture;
 using Flowery.Capture.Platforms;
 using Flowery.Controls;
 using Flowery.Helpers;
+using Flowery.Skia;
 using SkiaSharp;
 using Xunit;
 
@@ -292,7 +294,8 @@ public class Given_GlassBackdrop
         var glass = button.GetVisualDescendants().OfType<DaisyGlass>().Single(control => control.Name == "PART_Glass");
         if (mode == GlassBlurMode.BitmapCapture)
             glass.RefreshBackdrop();
-        for (var frame = 0; frame < 40 && !IsNear(glass.BackdropColor, text); frame++)
+        // A change behind the whole glass is measured within about a second.
+        for (var frame = 0; frame < 150 && !IsNear(glass.BackdropColor, text); frame++)
             await RuntimeTestHelpers.WaitForRenderAsync();
 
         Assert.True(IsNear(glass.BackdropColor, text), $"The glass measured {glass.BackdropColor} instead of {text}.");
@@ -300,6 +303,45 @@ public class Given_GlassBackdrop
         var effective = Assert.IsAssignableFrom<ISolidColorBrush>(button.EffectiveForeground).Color;
         Assert.True(FloweryColorHelpers.GetContrastRatio(Color.FromRgb(effective.R, effective.G, effective.B), surface) >= 4.5,
             $"The text {effective} has too little contrast on {surface}.");
+    }
+
+    [Fact]
+    public async Task When_Overlapping_Live_Glasses_See_A_Change_They_Stop_Redrawing_In_Full_Together()
+    {
+        var mover = new Border { Width = 40, Height = 40, Background = Brushes.Red };
+        Canvas.SetLeft(mover, 60);
+        Canvas.SetTop(mover, 110);
+        var button = new DaisyGlassButton { Content = "Live", Width = 200, Height = 60, BlurMode = GlassBlurMode.SkiaSharp };
+        Canvas.SetLeft(button, 100);
+        Canvas.SetTop(button, 100);
+        // The badge lies half over the button's corner, so each one's full redraw redraws part of the other.
+        var badge = new DaisyGlassBadge { Content = "Over", Width = 80, Height = 30, BlurMode = GlassBlurMode.SkiaSharp };
+        Canvas.SetLeft(badge, 260);
+        Canvas.SetTop(badge, 85);
+        var canvas = new Canvas { Width = 400, Height = 260, Background = Brushes.Blue, Children = { mover, button, badge } };
+        await RuntimeTestHelpers.AttachAsync(canvas);
+
+        // Moving content behind both glasses makes them redraw in full for a moment.
+        for (var step = 0; step < 10; step++)
+        {
+            Canvas.SetLeft(mover, 60 + step * 25);
+            await RuntimeTestHelpers.WaitForRenderAsync();
+        }
+
+        var liveCount = typeof(FlowerySkia).Assembly.GetType("Flowery.Skia.SkiaGlassRedraw", throwOnError: true)!
+            .GetProperty("LiveCount", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var stopped = false;
+        for (var frame = 0; frame < 120 && !stopped; frame++)
+        {
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            stopped = (int)liveCount.GetValue(null)! == 0;
+        }
+        Assert.True(stopped, "The overlapping glasses kept each other redrawing in full.");
+
+        // Once stopped, they stay stopped.
+        for (var frame = 0; frame < 20; frame++)
+            await RuntimeTestHelpers.WaitForRenderAsync();
+        Assert.Equal(0, (int)liveCount.GetValue(null)!);
     }
 
     private static bool IsNear(Color? actual, Color expected) =>

@@ -2,6 +2,22 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
+    <Design.PreviewWith>
+        <Border Padding="20" Width="420">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Offset="0" Color="#FF6B8DD6" />
+                    <GradientStop Offset="1" Color="#FF8E37D7" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <WrapPanel>
+                <controls:DaisyGlassBadge Content="Glass" Margin="4" />
+                <controls:DaisyGlassBadge Variant="Primary" Content="Primary" Margin="4" />
+                <controls:DaisyGlassBadge Variant="Accent" Content="Accent" Margin="4" />
+            </WrapPanel>
+        </Border>
+    </Design.PreviewWith>
+
     <!-- Inherits variants, outline and sizes from DaisyBadge; only the surface differs. -->
     <ControlTheme x:Key="{x:Type controls:DaisyGlassBadge}" TargetType="controls:DaisyGlassBadge"
                   BasedOn="{StaticResource {x:Type controls:DaisyBadge}}">

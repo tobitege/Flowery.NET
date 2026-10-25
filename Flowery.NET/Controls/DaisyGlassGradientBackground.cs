@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Flowery.Enums;
 
 namespace Flowery.Controls
@@ -90,7 +91,7 @@ namespace Flowery.Controls
                         new GradientStop(Color.FromArgb(0, color.R, color.G, color.B), 1)
                     }
                 };
-                context.DrawRectangle(brush, null, area);
+                context.DrawRectangle(brush.ToImmutable(), null, area);
             }
 
             private static void Blob(DrawingContext context, Rect area, double x, double y, double radius, Color color)
@@ -107,23 +108,21 @@ namespace Flowery.Controls
                         new GradientStop(Color.FromArgb(0, color.R, color.G, color.B), 1)
                     }
                 };
-                context.DrawRectangle(brush, null, area);
+                context.DrawRectangle(brush.ToImmutable(), null, area);
             }
 
-            // The angle runs clockwise from the left edge, so 0 is left to right and 90 is top to bottom.
-            private static LinearGradientBrush Linear(double angle, params (Color Color, double Offset)[] stops)
+            // The angle runs clockwise from the left edge, so 0 is left to right and 90 is top to bottom. The brushes of a
+            // frame are immutable: a mutable brush would become a compositor resource, created and freed every frame.
+            private static ImmutableLinearGradientBrush Linear(double angle, params (Color Color, double Offset)[] stops)
             {
                 var radians = angle * Math.PI / 180;
                 var dx = Math.Cos(radians) / 2;
                 var dy = Math.Sin(radians) / 2;
-                var brush = new LinearGradientBrush
-                {
-                    StartPoint = new RelativePoint(0.5 - dx, 0.5 - dy, RelativeUnit.Relative),
-                    EndPoint = new RelativePoint(0.5 + dx, 0.5 + dy, RelativeUnit.Relative)
-                };
-                foreach (var (color, offset) in stops)
-                    brush.GradientStops.Add(new GradientStop(color, offset));
-                return brush;
+                var gradient = new ImmutableGradientStop[stops.Length];
+                for (var i = 0; i < stops.Length; i++)
+                    gradient[i] = new ImmutableGradientStop(stops[i].Offset, stops[i].Color);
+                return new ImmutableLinearGradientBrush(gradient, 1, null, null, GradientSpreadMethod.Pad,
+                    new RelativePoint(0.5 - dx, 0.5 - dy, RelativeUnit.Relative), new RelativePoint(0.5 + dx, 0.5 + dy, RelativeUnit.Relative));
             }
 
             private static Color Hsv(double hue, double saturation, double value, double alpha = 1)

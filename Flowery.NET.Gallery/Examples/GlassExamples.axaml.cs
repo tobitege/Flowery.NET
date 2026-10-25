@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 
@@ -23,11 +24,19 @@ public partial class GlassExamples : UserControl, IScrollableExample
     private Vector _ballVelocity = new(190, 140);
     private TimeSpan? _lastBallFrame;
     private bool _ballFrameRequested;
+    private bool _ballCheckQueued;
+    private bool _ballInView = true;
 
     public GlassExamples()
     {
         InitializeComponent();
         GlassButtonMotionToggle.IsCheckedChanged += (_, _) => RequestBallFrame();
+        // The ball stops while its section is scrolled out of view and moves on when it comes back.
+        GlassDemoBall.EffectiveViewportChanged += (_, e) =>
+        {
+            _ballInView = e.EffectiveViewport.Intersects(new Rect(GlassDemoBall.Bounds.Size));
+            RequestBallFrame();
+        };
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -39,8 +48,27 @@ public partial class GlassExamples : UserControl, IScrollableExample
 
     private void RequestBallFrame()
     {
-        if (_ballFrameRequested || GlassButtonMotionToggle.IsChecked != true || TopLevel.GetTopLevel(this) is not { } topLevel)
+        if (_ballFrameRequested || GlassButtonMotionToggle.IsChecked != true || !_ballInView
+            || TopLevel.GetTopLevel(this) is not { } topLevel)
+        {
+            _lastBallFrame = null;
             return;
+        }
+        // The Gallery keeps a page it showed once and only hides it, and nothing reports when it is shown again, so a
+        // hidden ball looks again a few times per second instead of asking for every frame.
+        if (!GlassDemoBall.IsEffectivelyVisible)
+        {
+            _lastBallFrame = null;
+            if (_ballCheckQueued)
+                return;
+            _ballCheckQueued = true;
+            DispatcherTimer.RunOnce(() =>
+            {
+                _ballCheckQueued = false;
+                RequestBallFrame();
+            }, TimeSpan.FromMilliseconds(250));
+            return;
+        }
         _ballFrameRequested = true;
         topLevel.RequestAnimationFrame(OnBallFrame);
     }
@@ -48,10 +76,12 @@ public partial class GlassExamples : UserControl, IScrollableExample
     private void OnBallFrame(TimeSpan time)
     {
         _ballFrameRequested = false;
-        if (GlassButtonMotionToggle.IsChecked != true || TopLevel.GetTopLevel(this) == null
-            || GlassDemoBall is not { Parent: Control area, RenderTransform: TranslateTransform transform })
+        if (GlassDemoBall is not { Parent: Control area, RenderTransform: TranslateTransform transform })
+            return;
+        if (GlassButtonMotionToggle.IsChecked != true || !_ballInView || !GlassDemoBall.IsEffectivelyVisible
+            || TopLevel.GetTopLevel(this) == null)
         {
-            _lastBallFrame = null;
+            RequestBallFrame();
             return;
         }
 
@@ -131,39 +161,39 @@ public partial class GlassExamples : UserControl, IScrollableExample
 
             for (int sat = 0; sat <= 100; sat += 10)
             {
-                 // Container for tile + background content
-                 var tileGrid = new Grid { Width = 50, Height = 35 };
+                // Container for tile + background content
+                var tileGrid = new Grid { Width = 50, Height = 35 };
 
-                 // Background content (text "lorem")
-                 var bgText = new TextBlock
-                 {
-                     Text = "lorem",
-                     FontSize = 10,
-                     Foreground = Brushes.Black,
-                     FontWeight = FontWeight.Bold,
-                     HorizontalAlignment = HorizontalAlignment.Center,
-                     VerticalAlignment = VerticalAlignment.Center
-                 };
-                 tileGrid.Children.Add(bgText);
+                // Background content (text "lorem")
+                var bgText = new TextBlock
+                {
+                    Text = "lorem",
+                    FontSize = 10,
+                    Foreground = Brushes.Black,
+                    FontWeight = FontWeight.Bold,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                tileGrid.Children.Add(bgText);
 
-                 // Glass Overlay
-                 var glass = new DaisyGlass
-                 {
-                     GlassBlur = blur,
-                     GlassSaturation = sat / 100.0,
-                     BlurMode = GlassBlurMode.SkiaSharp,
-                     EnableBackdropBlur = true,
-                     CornerRadius = new CornerRadius(6),
-                     GlassTintOpacity = 0.1,
-                     GlassTint = Colors.White,
-                     GlassBorderOpacity = 0.2,
-                     GlassReflectOpacity = 0.15,
-                     Padding = new Thickness(0)
-                 };
-                 ToolTip.SetTip(glass, $"Blur: {blur}, Saturation: {sat/100.0:P0}");
+                // Glass Overlay
+                var glass = new DaisyGlass
+                {
+                    GlassBlur = blur,
+                    GlassSaturation = sat / 100.0,
+                    BlurMode = GlassBlurMode.SkiaSharp,
+                    EnableBackdropBlur = true,
+                    CornerRadius = new CornerRadius(6),
+                    GlassTintOpacity = 0.1,
+                    GlassTint = Colors.White,
+                    GlassBorderOpacity = 0.2,
+                    GlassReflectOpacity = 0.15,
+                    Padding = new Thickness(0)
+                };
+                ToolTip.SetTip(glass, $"Blur: {blur}, Saturation: {sat/100.0:P0}");
 
-                 tileGrid.Children.Add(glass);
-                 row.Children.Add(tileGrid);
+                tileGrid.Children.Add(glass);
+                row.Children.Add(tileGrid);
             }
             container.Children.Add(row);
         }

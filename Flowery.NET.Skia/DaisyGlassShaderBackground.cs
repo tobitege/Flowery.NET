@@ -139,16 +139,25 @@ namespace Flowery.Skia
                 if (context.TryGetFeature<ISkiaSharpApiLeaseFeature>() is not { } feature)
                     return;
                 using var lease = feature.Lease();
-                var shaderEffect = GetEffect(_effect);
-                using var uniforms = new SKRuntimeEffectUniforms(shaderEffect)
-                {
-                    ["size"] = new[] { (float)Bounds.Width, (float)Bounds.Height },
-                    ["time"] = _time
-                };
-                using var shader = shaderEffect.ToShader(uniforms);
-                using var paint = new SKPaint { Shader = shader };
-                lease.SkCanvas.DrawRect(SKRect.Create((float)Bounds.Width, (float)Bounds.Height), paint);
+                Draw(lease.SkCanvas, (float)Bounds.Width, (float)Bounds.Height, _effect, _time);
             }
+        }
+
+        /// <summary>
+        /// Draws <paramref name="effect"/> at <paramref name="time"/> into a <paramref name="width"/> by
+        /// <paramref name="height"/> area at the canvas origin.
+        /// </summary>
+        internal static void Draw(SKCanvas canvas, float width, float height, DaisyGlassAnimation effect, float time)
+        {
+            var shaderEffect = GetEffect(effect);
+            using var uniforms = new SKRuntimeEffectUniforms(shaderEffect)
+            {
+                ["size"] = new[] { width, height },
+                ["time"] = time
+            };
+            using var shader = shaderEffect.ToShader(uniforms);
+            using var paint = new SKPaint { Shader = shader };
+            canvas.DrawRect(SKRect.Create(width, height), paint);
         }
     }
 }

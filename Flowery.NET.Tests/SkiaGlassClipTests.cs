@@ -21,12 +21,12 @@ public class SkiaGlassClipTests
 
         canvas.Save();
         canvas.ClipRect(new SKRect(10, 10, 190, 70));
-        Assert.True(SkiaGlassDrawOperation.CoversSeen(canvas, Glass, seen, null));
+        Assert.True(SkiaGlassDrawOperation.CoversSeen(canvas, Glass, seen));
         canvas.Restore();
 
         canvas.Save();
         canvas.ClipRect(new SKRect(10, 10, 100, 70));
-        Assert.False(SkiaGlassDrawOperation.CoversSeen(canvas, Glass, seen, null));
+        Assert.False(SkiaGlassDrawOperation.CoversSeen(canvas, Glass, seen));
         canvas.Restore();
     }
 
@@ -44,7 +44,7 @@ public class SkiaGlassClipTests
         canvas.ClipRegion(region);
 
         Assert.True(canvas.DeviceClipBounds.Contains(seen));
-        Assert.False(SkiaGlassDrawOperation.CoversSeen(canvas, Glass, seen, null));
+        Assert.False(SkiaGlassDrawOperation.CoversSeen(canvas, Glass, seen));
     }
 
     [Fact]
@@ -61,28 +61,38 @@ public class SkiaGlassClipTests
         canvas.ClipRegion(region);
 
         Assert.False(canvas.IsClipRect);
-        Assert.True(SkiaGlassDrawOperation.CoversSeen(canvas, Glass, seen, null));
+        Assert.True(SkiaGlassDrawOperation.CoversSeen(canvas, Glass, seen));
     }
 
     [Fact]
-    public void A_Rounded_Clip_Of_An_Ancestor_Covers_What_The_First_Render_Saw()
+    public void A_Rounded_Clip_Of_An_Ancestor_Is_Not_Taken_For_A_Partial_Render()
     {
         using var surface = SKSurface.Create(new SKImageInfo(200, 100));
         var canvas = surface.Canvas;
 
-        // The ancestor's rounded corner cuts into the glass; the first render sees the glass through it.
-        using var ancestor = new SKRoundRect(new SKRect(0, 0, 200, 70), 30);
+        // The ancestor's rounded corners cut the corners off the glass; the clip is no rectangle any more.
+        using var ancestor = new SKRoundRect(Glass, 20);
         canvas.ClipRoundRect(ancestor, antialias: true);
         var seen = Seen(canvas);
-        var seenCells = SkiaGlassDrawOperation.ProbeSeenCells(canvas, Glass);
-        Assert.NotNull(seenCells);
+        Assert.False(canvas.IsClipRect);
 
-        Assert.True(SkiaGlassDrawOperation.CoversSeen(canvas, Glass, seen, seenCells));
+        Assert.True(SkiaGlassDrawOperation.CoversSeen(canvas, Glass, seen));
 
         canvas.Save();
         canvas.ClipRect(new SKRect(0, 0, 100, 100));
-        Assert.False(SkiaGlassDrawOperation.CoversSeen(canvas, Glass, seen, seenCells));
+        Assert.False(SkiaGlassDrawOperation.CoversSeen(canvas, Glass, seen));
         canvas.Restore();
+    }
+
+    [Fact]
+    public void A_Large_Glass_Is_Checked_In_At_Most_1024_Cells()
+    {
+        var glass = new SKRect(0, 0, 3800, 2100);
+
+        var cells = SkiaGlassDrawOperation.Cells(glass);
+
+        Assert.InRange(cells.Length, 1, 1024);
+        Assert.Equal(glass, cells.Aggregate(SKRect.Empty, (all, cell) => all.IsEmpty ? cell : SKRect.Union(all, cell)));
     }
 
     private static SKRectI Seen(SKCanvas canvas)

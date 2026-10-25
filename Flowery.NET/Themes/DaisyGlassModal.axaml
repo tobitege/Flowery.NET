@@ -2,6 +2,20 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
+    <Design.PreviewWith>
+        <Border Padding="20" Width="420">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Offset="0" Color="#FF6B8DD6" />
+                    <GradientStop Offset="1" Color="#FF8E37D7" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <controls:DaisyGlassModal IsOpen="True" Height="200">
+                <TextBlock Text="A glass dialog" Foreground="White" />
+            </controls:DaisyGlassModal>
+        </Border>
+    </Design.PreviewWith>
+
     <!-- Inherits opening, padding and corner radii from DaisyModal; only the dialog surface differs. -->
     <ControlTheme x:Key="{x:Type controls:DaisyGlassModal}" TargetType="controls:DaisyGlassModal"
                   BasedOn="{StaticResource {x:Type controls:DaisyModal}}">

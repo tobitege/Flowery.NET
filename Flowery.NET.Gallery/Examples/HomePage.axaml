@@ -56,7 +56,7 @@
                         DaisyUI's design system, complete with theme support and responsive layouts.
                     </TextBlock>
                     <WrapPanel HorizontalAlignment="Center" Margin="0,10,0,0">
-                        <controls:DaisyBadge Content="60+ Components" Variant="Primary" Margin="4"/>
+                        <controls:DaisyBadge Content="100+ Components" Variant="Primary" Margin="4"/>
                         <controls:DaisyBadge Content="30+ Themes" Variant="Secondary" Margin="4"/>
                         <controls:DaisyBadge Content="Cross-Platform" Variant="Accent" Margin="4"/>
                         <controls:DaisyBadge Content="MIT License" Variant="Info" Margin="4"/>

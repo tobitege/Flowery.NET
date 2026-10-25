@@ -23,30 +23,19 @@ namespace Flowery.Controls
         {
             base.OnApplyTemplate(e);
             _surfaceBindings?.Dispose();
-            _textContrast?.Dispose();
-            _textContrast = null;
             var glass = e.NameScope.Find<DaisyGlass>("PART_Glass");
             _surfaceBindings = glass != null ? DaisyGlass.BindSurface(glass, this) : null;
-            if (glass != null)
-                _textContrast = new GlassTextContrast(this, glass, e.NameScope.Find<Border>("PART_Background"), GlassTextContrast,
-                    brush => EffectiveForeground = brush);
-            else
-                EffectiveForeground = Foreground;
+            _textContrast = Controls.GlassTextContrast.Attach(_textContrast, this, glass, e.NameScope.Find<Border>("PART_Background"),
+                GlassTextContrast, SetEffectiveForeground);
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
-            if (change.Property == GlassTextContrastProperty && _textContrast != null)
-                _textContrast.Enabled = GlassTextContrast;
-            else if (change.Property == ForegroundProperty || change.Property == FontSizeProperty || change.Property == FontWeightProperty)
-            {
-                if (_textContrast != null)
-                    _textContrast.Update();
-                else
-                    EffectiveForeground = Foreground;
-            }
+            Controls.GlassTextContrast.OnOwnerPropertyChanged(_textContrast, this, change, GlassTextContrastProperty, SetEffectiveForeground);
         }
+
+        private void SetEffectiveForeground(IBrush? brush) => EffectiveForeground = brush;
 
         /// <summary>
         /// Defines the <see cref="GlassTextContrast"/> property.

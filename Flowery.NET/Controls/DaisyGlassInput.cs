@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
@@ -18,13 +19,15 @@ namespace Flowery.Controls
     {
         protected override Type StyleKeyOverride => typeof(DaisyGlassInput);
 
-        private IDisposable? _surfaceBindings;
+        // The bindings to the parts of the current template; a new template replaces them.
+        private readonly List<IDisposable> _templateBindings = [];
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
-            _surfaceBindings?.Dispose();
-            _surfaceBindings = null;
+            foreach (var binding in _templateBindings)
+                binding.Dispose();
+            _templateBindings.Clear();
 
             // Both DaisyInput templates draw the field in a Border inside a Panel. The glass goes behind that Border,
             // so the templates stay shared and the backdrop holds only what lies behind the field.
@@ -32,29 +35,31 @@ namespace Flowery.Controls
                 return;
 
             var glass = new DaisyGlass { Name = "PART_Glass", Padding = default, IsHitTestVisible = false };
-            glass.Bind(CornerRadiusProperty, background.GetObservable(Border.CornerRadiusProperty));
+            _templateBindings.Add(glass.Bind(CornerRadiusProperty, background.GetObservable(Border.CornerRadiusProperty)));
             field.Children.Insert(field.Children.IndexOf(background), glass);
-            _surfaceBindings = DaisyGlass.BindSurface(glass, this);
+            _templateBindings.Add(DaisyGlass.BindSurface(glass, this));
 
-            // The templates color the text, icons, placeholder and floating label with theme brushes made for opaque fields.
-            // On glass they follow Foreground. Template values outrank theme styles, so they are set here.
+            // The templates color the text, icons, placeholder and floating label with theme brushes made for opaque
+            // fields, as values inside the template. On glass they follow Foreground; a style cannot reach a value set
+            // in a template part, so the parts are bound here. Each binding listens to this input, so it is disposed
+            // with the template, or the old parts would stay alive as long as the input.
             if (e.NameScope.Find<TextBlock>("PART_Watermark") is { } watermark)
             {
-                watermark.Bind(TextBlock.ForegroundProperty, this.GetObservable(ForegroundProperty));
+                _templateBindings.Add(watermark.Bind(TextBlock.ForegroundProperty, this.GetObservable(ForegroundProperty)));
                 if (LabelPosition != DaisyLabelPosition.Floating)
                     watermark.Opacity = PlaceholderOpacity;
             }
 
             if (e.NameScope.Find<TextPresenter>("PART_TextPresenter") is { } text)
-                text.Bind(TextElement.ForegroundProperty, this.GetObservable(ForegroundProperty));
+                _templateBindings.Add(text.Bind(TextElement.ForegroundProperty, this.GetObservable(ForegroundProperty)));
             foreach (var name in new[] { "PART_StartIcon", "PART_EndIcon" })
             {
                 if (e.NameScope.Find<PathIcon>(name) is { } icon)
-                    icon.Bind(ForegroundProperty, this.GetObservable(ForegroundProperty));
+                    _templateBindings.Add(icon.Bind(ForegroundProperty, this.GetObservable(ForegroundProperty)));
             }
 
             if (e.NameScope.Find<TextBlock>("PART_FloatingLabel") is { } label)
-                label.Bind(TextBlock.ForegroundProperty, this.GetObservable(ForegroundProperty));
+                _templateBindings.Add(label.Bind(TextBlock.ForegroundProperty, this.GetObservable(ForegroundProperty)));
             if (e.NameScope.Find<Border>("PART_FloatingLabelContainer") is { } labelChip)
                 labelChip.Background = FloatingLabelBackground;
         }
@@ -86,7 +91,7 @@ namespace Flowery.Controls
 
         /// <summary>
         /// Gets or sets how the backdrop is blurred. SkiaSharp blurs the live backdrop on every frame;
-        /// BitmapCapture blurs a snapshot that is taken again when the button moves or resizes.
+        /// BitmapCapture blurs a snapshot that is taken again when the field moves or resizes.
         /// </summary>
         public GlassBlurMode BlurMode
         {

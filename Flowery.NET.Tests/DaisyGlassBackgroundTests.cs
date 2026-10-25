@@ -95,6 +95,46 @@ public class DaisyGlassBackgroundTests
         Assert.InRange(redraws / 10.0, expected - 0.5, expected + 0.5);
     }
 
+    [Fact]
+    public void Switching_From_Every_Frame_To_A_Frame_Rate_Takes_Effect_At_Once()
+    {
+        var isRedrawFrame = typeof(DaisyGlassAnimationLayer).GetMethod("IsRedrawFrame", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var args = new object[] { 0.0, 1.0 / 144, 0.0 };
+        for (var frame = 0; frame < 144 * 60; frame++)
+            isRedrawFrame.Invoke(null, args);
+
+        // A minute without a rate must not leave time that makes the next second redraw on every frame.
+        args[2] = 30.0;
+        var redraws = 0;
+        for (var frame = 0; frame < 144; frame++)
+        {
+            if ((bool)isRedrawFrame.Invoke(null, args)!)
+                redraws++;
+        }
+        Assert.InRange(redraws, 29, 31);
+    }
+
+    [AvaloniaFact]
+    public void A_Background_That_Cannot_Move_Asks_For_No_Frames_Until_It_Can()
+    {
+        var background = new DaisyGlassGradientBackground { Speed = 0 };
+        var glass = new DaisyGlass { Width = 160, Height = 60, GlassBackground = background };
+        var window = Show(glass);
+        try
+        {
+            var layer = Assert.IsAssignableFrom<DaisyGlassAnimationLayer>(Assert.Single(Part<Panel>(glass, "PART_BackgroundHost").Children));
+            var frameRequested = typeof(DaisyGlassAnimationLayer).GetField("_frameRequested", BindingFlags.NonPublic | BindingFlags.Instance)!;
+            Assert.False((bool)frameRequested.GetValue(layer)!);
+
+            background.Speed = 1;
+            Assert.True((bool)frameRequested.GetValue(layer)!);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     private static Window Show(Control content)
     {
         var window = new Window { Width = 400, Height = 300, Content = content };
