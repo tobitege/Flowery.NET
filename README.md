@@ -31,7 +31,7 @@ This library provides native Avalonia controls that mimic the utility-first, sem
 
 ## Features
 
-- **80+ Controls**: C# classes inheriting from Avalonia primitives (e.g., `DaisyButton : Button`).
+- **100+ Controls**: C# classes inheriting from Avalonia primitives (e.g., `DaisyButton : Button`).
 - **35 DaisyUI Themes**: All official DaisyUI themes included (Light, Dark, Cupcake, Dracula, Nord, Synthwave, and more).
 - **Runtime Theme Switching**: Use `DaisyThemeDropdown` to switch themes at runtime.
 - **Neumorphic Effect**: Raised, Inset and Flat soft-UI shadows for about 50 controls, switchable globally or per control. [Usage guide](llms-static/DaisyNeumorphic.md)
