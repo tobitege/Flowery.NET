@@ -319,7 +319,7 @@ namespace Flowery.Controls
             // A language change while detached was not seen; a disc that moved before detaching moves again.
             if (!Equals(_builtCulture, FloweryLocalization.CurrentCulture))
                 OnCultureChanged(this, FloweryLocalization.CurrentCulture);
-            if (_move?.IsChecked == true)
+            else if (_move?.IsChecked == true)
                 StartMotion();
         }
 
@@ -348,15 +348,7 @@ namespace Flowery.Controls
             {
                 _design = design;
                 _design.ApplyTo(_preview, includeContent: true, reuseBackground: true);
-                // A fill or background the design keeps is not the one of the previous design: the preview shows the kept
-                // fill as it was read, and no animated background.
-                if (design.FillKind == DaisyGlassFillKind.Keep)
-                {
-                    _preview.GlassFill = design.KeptFill;
-                    _preview.GlassGradient = DaisyGlassGradient.None;
-                }
-                if (design.BackgroundRenderer == DaisyGlassBackgroundRenderer.Keep)
-                    _preview.GlassBackground = null;
+                ShowKept();
                 ShowTab(_tab);
                 UpdateCode();
             }
@@ -366,6 +358,19 @@ namespace Flowery.Controls
             }
         }
 
+        // ApplyTo leaves a Keep fill or background as it is, which on the preview is the one of an earlier design: the
+        // preview shows the kept fill as it was read from the button, and no animated background.
+        private void ShowKept()
+        {
+            if (_design.FillKind == DaisyGlassFillKind.Keep)
+            {
+                _preview.GlassFill = _design.KeptFill;
+                _preview.GlassGradient = DaisyGlassGradient.None;
+            }
+            if (_design.BackgroundRenderer == DaisyGlassBackgroundRenderer.Keep)
+                _preview.GlassBackground = null;
+        }
+
         private void Change(Action<DaisyGlassButtonDesign> edit, bool rebuildTab = false)
         {
             if (_loading)
@@ -373,6 +378,7 @@ namespace Flowery.Controls
 
             edit(_design);
             _design.ApplyTo(_preview, includeContent: true, reuseBackground: true);
+            ShowKept();
             if (rebuildTab)
                 ShowTab(_tab);
             UpdateCode();
@@ -723,8 +729,10 @@ namespace Flowery.Controls
 
         private IEnumerable<Control> CreateFillFields()
         {
-            // Keep is offered only for a fill read from a button that the design cannot describe.
-            var kinds = Enum.GetValues<DaisyGlassFillKind>().Where(kind => kind != DaisyGlassFillKind.Keep || _design.FillKind == kind).ToArray();
+            // Keep is offered only for a fill read from a button that the design cannot describe, also after another
+            // kind was picked, so the fill of the button can be had back.
+            var kinds = Enum.GetValues<DaisyGlassFillKind>()
+                .Where(kind => kind != DaisyGlassFillKind.Keep || _design.KeptFill is not null || _design.FillKind == kind).ToArray();
             yield return Chips("GlassDesigner_Fill", "Fill", kinds, d => d.FillKind, (d, v) =>
             {
                 d.FillKind = v;
@@ -869,7 +877,8 @@ namespace Flowery.Controls
         private IEnumerable<Control> CreateMotionFields()
         {
             var renderers = Enum.GetValues<DaisyGlassBackgroundRenderer>()
-                .Where(renderer => renderer != DaisyGlassBackgroundRenderer.Keep || _design.BackgroundRenderer == renderer).ToArray();
+                .Where(renderer => renderer != DaisyGlassBackgroundRenderer.Keep || _design.KeptBackground || _design.BackgroundRenderer == renderer)
+                .ToArray();
             var shaderAvailable = DaisyGlassButtonDesign.ShaderBackgroundAvailable;
             yield return Chips("GlassDesigner_Renderer", "Animated background", renderers, d => d.BackgroundRenderer, (d, v) => d.BackgroundRenderer = v,
                 wide: true, rebuildTab: true,

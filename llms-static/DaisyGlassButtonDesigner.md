@@ -38,7 +38,7 @@ The stage offers four backdrops and a disc that drifts behind the button, so the
 
 | Member | Description |
 | ------ | ----------- |
-| `ApplyTo(button, includeContent)` | Sets every glass and button property of the design on `button`. |
+| `ApplyTo(button, includeContent)` | Sets the glass and button properties of the design on `button`; the content only with `includeContent`, and a fill or background of kind `Keep` stays as it is. |
 | `FromButton(button)` (static) | Reads a button. A fill or animated background the design cannot describe (a solid or image brush, a gradient with another geometry, opacity, transform or spread, a custom background) reads as `Keep`, and applying the design leaves it as it is. |
 | `ToXaml(prefix)` / `ToCSharp()` | The values that differ from the defaults, as a `DaisyGlassButton` element or a C# initializer. |
 | `ToJson()` / `FromJson(json)` (static) | JSON with camel-case names, enum names and `#AARRGGBB` colors; missing values keep their defaults. `FromJson` throws a `JsonException` for an unknown enum value, an empty fill stop or a number that is not finite or out of range. |

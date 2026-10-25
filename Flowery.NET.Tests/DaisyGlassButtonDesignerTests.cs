@@ -121,10 +121,10 @@ public class DaisyGlassButtonDesignerTests
             Assert.Same(fill, button.GlassFill);
             Assert.Same(background, button.GlassBackground);
 
-            // The designer preview starts without a fill and shows the kept one.
-            var preview = new DaisyGlassButton();
-            design.ApplyTo(preview);
-            Assert.Same(fill, preview.GlassFill);
+            // On a button without its own fill, a Keep design sets none.
+            var other = new DaisyGlassButton();
+            design.ApplyTo(other);
+            Assert.Null(other.GlassFill);
         }
     }
 
@@ -619,6 +619,80 @@ public class DaisyGlassButtonDesignerTests
         finally
         {
             DaisyGlassLiveRenderer.Register(previous);
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void After_Picking_Another_Fill_Or_Background_The_Kept_One_Can_Be_Had_Back()
+    {
+        var solid = new SolidColorBrush(Colors.Teal);
+        var designer = new DaisyGlassButtonDesigner();
+        var window = Show(designer, 1000, 1200);
+        try
+        {
+            designer.Design = DaisyGlassButtonDesign.FromButton(new DaisyGlassButton { GlassFill = solid, GlassBackground = new OwnBackground() });
+            SelectTab(designer, "Fill");
+            Chip(designer, "Linear").IsChecked = true;
+            Assert.IsType<LinearGradientBrush>(designer.PreviewButton.GlassFill);
+            Chip(designer, "Keep").IsChecked = true;
+            Assert.Equal(DaisyGlassFillKind.Keep, designer.Design.FillKind);
+            Assert.Same(solid, designer.PreviewButton.GlassFill);
+
+            SelectTab(designer, "Motion");
+            Chip(designer, "Gradient").IsChecked = true;
+            Assert.IsType<DaisyGlassGradientBackground>(designer.PreviewButton.GlassBackground);
+            Chip(designer, "Keep").IsChecked = true;
+            Assert.Equal(DaisyGlassBackgroundRenderer.Keep, designer.Design.BackgroundRenderer);
+            Assert.Null(designer.PreviewButton.GlassBackground);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Editing_A_Button_Writes_A_Changed_Fill_And_Background()
+    {
+        var button = new DaisyGlassButton { Content = "Mine" };
+        var window = Show(button, 1100, 1300);
+        try
+        {
+            var overlay = OverlayLayer.GetOverlayLayer(button)!;
+            async Task Edit(Action<DaisyGlassButtonDesign> change)
+            {
+                var edit = DaisyGlassButtonDesigner.EditAsync(button);
+                Dispatcher.UIThread.RunJobs();
+                var designer = overlay.GetVisualDescendants().OfType<DaisyGlassButtonDesigner>().Single();
+                var design = designer.Design;
+                change(design);
+                designer.Design = design;
+                OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+                Assert.True(await edit);
+            }
+
+            await Edit(static design =>
+            {
+                design.FillKind = DaisyGlassFillKind.Linear;
+                design.BackgroundRenderer = DaisyGlassBackgroundRenderer.Gradient;
+                design.BackgroundEffect = DaisyGlassAnimation.Aurora;
+            });
+            var fill = Assert.IsType<LinearGradientBrush>(button.GlassFill);
+            var background = Assert.IsType<DaisyGlassGradientBackground>(button.GlassBackground);
+            Assert.Equal(DaisyGlassAnimation.Aurora, background.Effect);
+
+            // Only the effect changes: a new background with it, and the same fill.
+            await Edit(static design => design.BackgroundEffect = DaisyGlassAnimation.Plasma);
+            Assert.Same(fill, button.GlassFill);
+            Assert.NotSame(background, button.GlassBackground);
+            Assert.Equal(DaisyGlassAnimation.Plasma, button.GlassBackground!.Effect);
+
+            await Edit(static design => design.FillAngle += 45);
+            Assert.NotSame(fill, button.GlassFill);
+        }
+        finally
+        {
             window.Close();
         }
     }

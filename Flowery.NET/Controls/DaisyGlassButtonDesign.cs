@@ -177,9 +177,11 @@ namespace Flowery.Controls
         /// <summary>Gets or sets whether the text keeps its contrast over the backdrop.</summary>
         public bool GlassTextContrast { get; set; } = true;
 
-        // The fill a Keep design leaves on the button, read by FromButton. It is not serialized; the designer shows it in its
-        // preview, and ApplyTo sets it on a button without its own fill.
+        // The fill and whether an animated background a Keep design leaves on the button, as read by FromButton. They are
+        // not serialized; the designer shows the fill in its preview and offers Keep again after another kind was picked.
         internal IBrush? KeptFill { get; set; }
+
+        internal bool KeptBackground { get; set; }
 
         /// <summary>
         /// Gets whether a shader background can be created, which needs the renderer of Flowery.NET.Skia.
@@ -299,12 +301,8 @@ namespace Flowery.Controls
                 button.GlassBend = GlassBend;
             if (Changed(GlassDispersion, original?.GlassDispersion))
                 button.GlassDispersion = GlassDispersion;
-            if (FillKind == DaisyGlassFillKind.Keep)
-            {
-                if (button.GlassFill is null && KeptFill is not null)
-                    button.GlassFill = KeptFill;
-            }
-            else if (original is null || !SameFill(original))
+            // A Keep fill stays as it is.
+            if (FillKind != DaisyGlassFillKind.Keep && (original is null || !SameFill(original)))
             {
                 button.GlassFill = CreateFill();
                 button.GlassGradient = FillKind == DaisyGlassFillKind.Preset ? FillPreset : DaisyGlassGradient.None;
@@ -442,6 +440,7 @@ namespace Flowery.Controls
                 design.BackgroundRenderer = background is DaisyGlassGradientBackground ? DaisyGlassBackgroundRenderer.Gradient
                     : DaisyGlassLiveRenderer.Current?.IsShaderBackground(background) == true ? DaisyGlassBackgroundRenderer.Shader
                     : DaisyGlassBackgroundRenderer.Keep;
+                design.KeptBackground = design.BackgroundRenderer == DaisyGlassBackgroundRenderer.Keep;
                 design.BackgroundEffect = background.Effect;
                 design.BackgroundSpeed = background.Speed;
                 design.BackgroundFrameRate = background.FrameRate;
