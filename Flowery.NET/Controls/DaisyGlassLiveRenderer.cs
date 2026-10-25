@@ -29,6 +29,13 @@ namespace Flowery.Controls
         public abstract void Render(DaisyGlass glass, DrawingContext context);
 
         /// <summary>
+        /// Creates a background that draws its effects with shaders, or returns <c>null</c> when the renderer has none.
+        /// The renderer of Flowery.NET.Skia returns a <c>DaisyGlassShaderBackground</c>; <see cref="DaisyGlassButtonDesigner"/>
+        /// offers shader backgrounds only while such a renderer is registered.
+        /// </summary>
+        public virtual DaisyGlassBackground? CreateShaderBackground() => null;
+
+        /// <summary>
         /// Reports the average color behind <paramref name="glass"/>, measured by the renderer while
         /// <see cref="DaisyGlass.MeasureBackdropColor"/> is on, into <see cref="DaisyGlass.BackdropColor"/>.
         /// Call it on the UI thread.
