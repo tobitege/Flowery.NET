@@ -142,7 +142,13 @@ public partial class DaisyScheduler
             }
         }
         var root = new Grid { ClipToBounds = true };
-        root.Children.Add(new Border { BorderBrush = context.BarBrush, BorderThickness = new Thickness(SpacingXS, 0, 0, 0), Child = main });
+        // The bar follows the rounded corners inside the frame border instead of covering them.
+        var inner = Math.Max(0, context.CornerRadius - LineThickness);
+        root.Children.Add(new Border
+        {
+            BorderBrush = context.BarBrush, BorderThickness = new Thickness(SpacingXS, 0, 0, 0),
+            CornerRadius = new CornerRadius(inner, 0, 0, inner), Child = main
+        });
         foreach (var adornment in context.Adornments)
         {
             var decoration = CreateDecoration(adornment, context, false);

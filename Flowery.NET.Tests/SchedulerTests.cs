@@ -178,6 +178,38 @@ public sealed partial class SchedulerTests
         Assert.Contains(expected, texts);
     }
 
+    [AvaloniaTheory]
+    [InlineData(SchedulerView.Month)]
+    [InlineData(SchedulerView.Week)]
+    [InlineData(SchedulerView.Timeline)]
+    public void SelectingAnAppointmentKeepsItsSizeAndItsContentInPlace(SchedulerView view)
+    {
+        using var scope = new SchedulerScope(view);
+        var frame = scope.Frame(scope.Appointment);
+        var content = frame.Child!;
+        var size = frame.Bounds.Size;
+        var position = content.TranslatePoint(default, scope.Scheduler);
+        var thickness = frame.BorderThickness;
+        var border = frame.BorderBrush;
+        var background = ((ISolidColorBrush)frame.Background!).Color;
+
+        scope.Click(frame);
+
+        Assert.Same(scope.Appointment, scope.Scheduler.SelectedAppointment);
+        Assert.Same(frame, scope.Frame(scope.Appointment));
+        Assert.Equal(size, frame.Bounds.Size);
+        Assert.Equal(position, content.TranslatePoint(default, scope.Scheduler));
+        Assert.Equal(thickness, frame.BorderThickness);
+        Assert.True(scope.Scheduler.TryFindResource("DaisyBaseContentBrush", scope.Scheduler.ActualThemeVariant, out var text));
+        Assert.Same(text, frame.BorderBrush);
+        Assert.NotEqual(background, ((ISolidColorBrush)frame.Background!).Color);
+
+        scope.Scheduler.SelectedAppointment = null;
+
+        Assert.Same(border, frame.BorderBrush);
+        Assert.Equal(background, ((ISolidColorBrush)frame.Background!).Color);
+    }
+
     [AvaloniaFact]
     public void LockedAppointmentCannotBeSelectedOrDeletedButAllowsContextRequest()
     {

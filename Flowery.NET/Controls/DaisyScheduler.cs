@@ -18,6 +18,7 @@ using Avalonia.Threading;
 using Flowery.Controls.Scheduler.Contracts;
 using Flowery.Controls.Scheduler.Models;
 using Flowery.Controls.Scheduler.Rendering;
+using Flowery.Helpers;
 using Flowery.Localization;
 
 namespace Flowery.Controls;
@@ -580,14 +581,24 @@ public partial class DaisyScheduler : TemplatedControl
 
     private void ApplySelection()
     {
+        var content = Brush("DaisyBaseContentBrush");
         foreach (var (frame, appointment) in _frames)
         {
+            if (frame.DataContext is not AppointmentContext context)
+                continue;
             var selected = _selection.Any(item => Same(item, appointment));
-            frame.BorderBrush = Brush(selected ? "DaisyPrimaryBrush" : "DaisyBase300Brush");
-            frame.BorderThickness = new Thickness(selected ? SelectionThickness : LineThickness);
+            // Selection recolors the frame border and tints the background toward the theme text color; the border
+            // keeps its thickness, so the appointment neither moves nor resizes, and no bar color hides the selection.
+            frame.BorderBrush = selected ? content : context.BorderBrush;
+            frame.Background = selected ? SelectedBackground(context.BackBrush, content) : context.BackBrush;
             frame.ZIndex = selected ? 10 : 0;
         }
     }
+
+    private static IBrush SelectedBackground(IBrush background, IBrush content) =>
+        background is ISolidColorBrush back && content is ISolidColorBrush tint
+            ? new SolidColorBrush(FloweryColorHelpers.Blend(back.Color, tint.Color, 0.18))
+            : background;
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
