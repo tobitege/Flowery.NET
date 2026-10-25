@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -19,10 +20,9 @@ namespace Flowery.Skia
         private const long MeasureInterval = 300;
         private const long IdleMeasureInterval = 1000;
         private static readonly TimeSpan LiveTime = TimeSpan.FromMilliseconds(300);
+        private static readonly ConditionalWeakTable<TopLevel, LiveGroup> LiveGroups = new();
 
         private int _changeQueued;
-        private DateTime _liveUntil;
-        private bool _frameRequested;
         private long _lastMeasure = long.MinValue / 2;
         private int _measureLaterQueued;
         private int _measureDue = 1;
@@ -55,8 +55,8 @@ namespace Flowery.Skia
             Dispatcher.UIThread.Post(() =>
             {
                 _changeQueued = 0;
-                _liveUntil = DateTime.UtcNow + LiveTime;
-                RequestFrame();
+                if (TopLevel.GetTopLevel(owner) is { } topLevel)
+                    LiveGroups.GetValue(topLevel, static top => new LiveGroup(top)).Join(this);
             }, DispatcherPriority.Render);
         }
 
@@ -89,22 +89,10 @@ namespace Flowery.Skia
         public void ReportBackdropColor(Color color) =>
             Dispatcher.UIThread.Post(() => SkiaGlassRenderer.ReportMeasuredColor(owner, color), DispatcherPriority.Background);
 
-        private void RequestFrame()
+        private void Redraw()
         {
-            if (_frameRequested || TopLevel.GetTopLevel(owner) is not { } topLevel)
-                return;
-            _frameRequested = true;
-            topLevel.RequestAnimationFrame(OnFrame);
-        }
-
-        private void OnFrame(TimeSpan time)
-        {
-            _frameRequested = false;
-            if (DateTime.UtcNow > _liveUntil)
-                return;
             Version++;
             owner.InvalidateVisual();
-            RequestFrame();
         }
 
         private void MeasureLater(long delay)
@@ -116,6 +104,49 @@ namespace Flowery.Skia
                 _measureLaterQueued = 0;
                 owner.InvalidateVisual();
             }, TimeSpan.FromMilliseconds(delay)));
+        }
+
+        /// <summary>
+        /// The glasses of one top level that redraw in full. They share one frame request and one end, so they redraw in
+        /// the same frames and stop in the same frame. A glass that stopped a frame before another would see that one's
+        /// redraw as a change behind it and start again, and overlapping glasses would keep each other redrawing.
+        /// </summary>
+        private sealed class LiveGroup(TopLevel topLevel)
+        {
+            private readonly HashSet<SkiaGlassRedraw> _members = [];
+            private DateTime _until;
+            private bool _frameRequested;
+
+            // A glass that joins keeps the whole group redrawing for LiveTime.
+            public void Join(SkiaGlassRedraw redraw)
+            {
+                _members.Add(redraw);
+                var until = DateTime.UtcNow + LiveTime;
+                if (until > _until)
+                    _until = until;
+                RequestFrame();
+            }
+
+            private void RequestFrame()
+            {
+                if (_frameRequested)
+                    return;
+                _frameRequested = true;
+                topLevel.RequestAnimationFrame(OnFrame);
+            }
+
+            private void OnFrame(TimeSpan time)
+            {
+                _frameRequested = false;
+                if (DateTime.UtcNow > _until)
+                {
+                    _members.Clear();
+                    return;
+                }
+                foreach (var member in _members)
+                    member.Redraw();
+                RequestFrame();
+            }
         }
     }
 }
