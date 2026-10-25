@@ -30,7 +30,7 @@ public partial class DaisyScheduler
         var end = start.AddDays(42);
         foreach (var appointment in Appointments ?? Array.Empty<AppointmentModel>())
         {
-            if (ResourceKindFilter is not null && !appointment.ResourceIds.Any(resourceIds.Contains))
+            if (ResourceKindFilter is not null && !appointment.ResourceIds.Any(resourceIds.Contains) || !ShowsResources(appointment.ResourceIds))
                 continue;
             foreach (var occurrence in AppointmentOccurrences.InRange(appointment, start, end))
                 for (var day = occurrence.Start.Date < start ? start : occurrence.Start.Date;

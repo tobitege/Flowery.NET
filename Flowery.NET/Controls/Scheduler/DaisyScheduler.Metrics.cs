@@ -58,5 +58,4 @@ public partial class DaisyScheduler
     // A Planner or Timeline bar is at least as wide as its whole start time, however short the appointment is.
     private double BarMinimumWidth(AppointmentModel appointment) =>
         Math.Max(ChipHeight, appointment.IsAllDay ? 0 : StartWidth(appointment.Start) + LineChrome);
-
 }

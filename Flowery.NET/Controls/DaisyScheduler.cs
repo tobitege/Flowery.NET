@@ -419,8 +419,9 @@ public partial class DaisyScheduler : TemplatedControl
         _minuteView = null;
         _visibleItems = GetVisibleOccurrences().ToArray();
         var appointments = Appointments ?? Array.Empty<AppointmentModel>();
+        // A selected appointment that VisibleResourceIds hides leaves the selection, so Delete never removes what is not shown.
         var retained = _selection.Select(old => appointments.FirstOrDefault(a => Same(a, old)))
-            .OfType<AppointmentModel>().Where(static a => !a.IsLocked).ToArray();
+            .OfType<AppointmentModel>().Where(a => !a.IsLocked && ShowsResources(a.ResourceIds)).ToArray();
         if (!_selection.SequenceEqual(retained))
         {
             _selection.Clear();

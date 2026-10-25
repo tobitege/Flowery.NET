@@ -303,8 +303,11 @@ public partial class DaisyScheduler
                 }
                 // Rows are packed for the narrowest hours and the widest bar minimum, so neither wider hours nor a
                 // short bar widened to its start time make bars overlap.
-                var shortest = shown.Select(BarMinimumWidth).DefaultIfEmpty(ChipHeight).Max() + BarGap;
-                var layouts = EventBlockLayout.LayoutRange(start, end, shown, shortest / minimum);
+                var minimumWidths = shown.ToDictionary(appointment => appointment, BarMinimumWidth);
+                var widestMinimum = minimumWidths.Values.DefaultIfEmpty(ChipHeight).Max() + BarGap;
+                // The packing span of a short bar reaches as far as the widest bar minimum, so no bar overlaps another; the
+                // bar itself keeps its own duration and only its own minimum width.
+                var layouts = EventBlockLayout.LayoutRange(start, end, shown, widestMinimum / minimum);
                 var rows = new List<AppointmentModel>();
                 foreach (var layout in layouts)
                 {
@@ -326,8 +329,9 @@ public partial class DaisyScheduler
                     var block = CreateAppointment(originals[layout.Appointment], AppointmentSurface.Bar,
                         original.IsAllDay ? null : lane, layout.Appointment, resource.Id);
                     block.Height = ChipHeight;
-                    MinuteCanvas.Place(block, layout.StartMinutes, layout.EndMinutes - layout.StartMinutes, trim: BarGap,
-                        minimumWidth: BarMinimumWidth(layout.Appointment));
+                    var endMinutes = Math.Min(totalMinutes, (layout.Appointment.End - start).TotalMinutes);
+                    MinuteCanvas.Place(block, layout.StartMinutes, Math.Max(0, endMinutes - layout.StartMinutes), trim: BarGap,
+                        minimumWidth: minimumWidths[layout.Appointment]);
                     Canvas.SetTop(block, rows.IndexOf(original) * rowHeight + (rowHeight - ChipHeight) / 2);
                     canvas.Children.Add(block);
                 }

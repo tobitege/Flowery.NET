@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
@@ -9,6 +11,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 using Flowery.Controls.Scheduler.Models;
+using Flowery.Localization;
 
 namespace Flowery.Controls;
 
@@ -41,6 +44,16 @@ public class DaisySchedulerToolbar : UserControl
     private double _height = 32;
     private double _iconSize = 20;
 
+    // What the built parts depend on: a change of size, language or theme builds them again; anything else only updates
+    // them, so an open settings menu and the keyboard focus stay.
+    private (DaisySize Size, double FontSize, string Culture, string? Theme, object? Variant)? _builtFor;
+    private TextBlock? _primary;
+    private TextBlock? _secondary;
+    private StackPanel? _hostButtons;
+    private Button? _settings;
+    private readonly Dictionary<SchedulerView, Button> _segments = new();
+    private SchedulerToolbarButton[] _hostModels = [];
+
     /// <summary>Initializes a new toolbar.</summary>
     public DaisySchedulerToolbar() => Focusable = false;
 
@@ -56,6 +69,8 @@ public class DaisySchedulerToolbar : UserControl
         base.OnPropertyChanged(change);
         if (change.Property == SchedulerProperty)
             Attach(Scheduler);
+        else if (change.Property == IsVisibleProperty && IsVisible)
+            Update();
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -77,31 +92,59 @@ public class DaisySchedulerToolbar : UserControl
         if (scheduler is not null && !ReferenceEquals(_attached, scheduler))
             scheduler.ToolbarChanged += OnToolbarChanged;
         _attached = scheduler;
-        Rebuild();
+        _builtFor = null;
+        Update();
     }
 
-    private void OnToolbarChanged(object? sender, EventArgs e) => Rebuild();
+    private void OnToolbarChanged(object? sender, EventArgs e) => Update();
 
-    private void Rebuild()
+    private void Update()
     {
-        if (_attached is not { } scheduler || !this.IsAttachedToVisualTree())
+        // The scheduler takes its design tokens from the tree: until it is attached there is nothing to show. A hidden
+        // toolbar, such as the built-in one with ShowToolbar off, catches up when it is shown.
+        if (_attached is not { } scheduler || !this.IsAttachedToVisualTree() || !scheduler.IsAttachedToVisualTree())
         {
             Content = null;
+            _builtFor = null;
             return;
         }
+        if (!IsVisible)
+            return;
+        var key = (scheduler.Size, scheduler.FontSize, FloweryLocalization.CurrentCulture.Name, DaisyThemeManager.CurrentThemeName,
+            (object?)scheduler.ActualThemeVariant);
+        if (_builtFor != key)
+        {
+            Build(scheduler);
+            _builtFor = key;
+        }
 
+        var (primary, secondary) = scheduler.ToolbarTitle();
+        _primary!.Text = primary;
+        _secondary!.Text = secondary;
+        _secondary.IsVisible = secondary.Length > 0;
+        foreach (var (view, segment) in _segments)
+            segment.Classes.Set("selected", view == scheduler.CurrentView);
+        var models = scheduler.ToolbarButtons.Concat(scheduler.ToolbarAdornments).ToArray();
+        if (!models.SequenceEqual(_hostModels))
+        {
+            _hostModels = models;
+            _hostButtons!.Children.Clear();
+            foreach (var model in scheduler.ToolbarButtons)
+                _hostButtons.Children.Add(HostButton(scheduler, model, false));
+            foreach (var model in scheduler.ToolbarAdornments)
+                _hostButtons.Children.Add(HostButton(scheduler, model, true));
+        }
+    }
+
+    private void Build(DaisyScheduler scheduler)
+    {
         // Heights, icons and the title follow the design tokens of the scheduler size, which follows the size of the app.
         _height = scheduler.ToolbarButtonHeight;
         _iconSize = scheduler.ToolbarIconSize;
         FontSize = scheduler.FontSize;
-        var (primary, secondary) = scheduler.ToolbarTitle();
-        var title = new StackPanel { Orientation = Orientation.Horizontal, Spacing = scheduler.SpacingXS * 1.5 };
-        title.Children.Add(new TextBlock { Text = primary, FontWeight = FontWeight.Bold, FontSize = scheduler.ToolbarTitleFontSize });
-        if (secondary.Length > 0)
-            title.Children.Add(new TextBlock
-            {
-                Text = secondary, FontSize = scheduler.ToolbarTitleFontSize, Foreground = scheduler.Brush("DaisyBaseContentMutedBrush")
-            });
+        _primary = new TextBlock { FontWeight = FontWeight.Bold, FontSize = scheduler.ToolbarTitleFontSize };
+        _secondary = new TextBlock { FontSize = scheduler.ToolbarTitleFontSize, Foreground = scheduler.Brush("DaisyBaseContentMutedBrush") };
+        var title = new StackPanel { Orientation = Orientation.Horizontal, Spacing = scheduler.SpacingXS * 1.5, Children = { _primary, _secondary } };
         var date = Action(scheduler, "Date", title, "ChooseDate");
         date.Click += (_, _) => scheduler.ShowDatePicker(date);
         var previous = Action(scheduler, "Previous", Icon(PreviousIcon), "Previous");
@@ -120,20 +163,23 @@ public class DaisySchedulerToolbar : UserControl
         left.Children.Add(next);
         left.Children.Add(today);
 
-        var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = scheduler.SpacingXS, VerticalAlignment = VerticalAlignment.Center };
-        foreach (var model in scheduler.ToolbarButtons)
-            right.Children.Add(HostButton(scheduler, model, false));
-        foreach (var model in scheduler.ToolbarAdornments)
-            right.Children.Add(HostButton(scheduler, model, true));
-        var settings = Action(scheduler, "Settings", Icon(SettingsIcon), "Settings");
+        _hostButtons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = scheduler.SpacingXS };
+        _hostModels = [];
+        _settings = Action(scheduler, "Settings", Icon(SettingsIcon), "Settings");
+        var settings = _settings;
         settings.Click += (_, _) => scheduler.ShowSettings(settings);
-        right.Children.Add(settings);
+        var right = new StackPanel
+        {
+            Orientation = Orientation.Horizontal, Spacing = scheduler.SpacingXS, VerticalAlignment = VerticalAlignment.Center,
+            Children = { _hostButtons, settings }
+        };
 
         var top = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
         top.Children.Add(left);
         Grid.SetColumn(right, 1);
         top.Children.Add(right);
 
+        _segments.Clear();
         var segments = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2 };
         foreach (var view in Enum.GetValues<SchedulerView>())
         {
@@ -141,11 +187,10 @@ public class DaisySchedulerToolbar : UserControl
             // The segments and the padding of their bar are as high as a toolbar button.
             segment.MinHeight = _height - 4;
             segment.Padding = new Thickness(Math.Round(_height * 0.45), 0);
-            if (view == scheduler.CurrentView)
-                segment.Classes.Add("selected");
             Describe(scheduler, segment, DaisyScheduler.Text(view.ToString()));
             segment.Click += (_, _) => scheduler.SetCurrentValue(DaisyScheduler.CurrentViewProperty, view);
             BindIconStroke(segment);
+            _segments[view] = segment;
             segments.Children.Add(segment);
         }
         var views = new Border
@@ -185,7 +230,13 @@ public class DaisySchedulerToolbar : UserControl
     {
         Control content;
         if (model.Image is { Length: > 0 } bytes)
-            content = new DaisyScheduler.OwnedImage(bytes) { Width = 18 * scheduler.Scale, Height = 18 * scheduler.Scale };
+        {
+            // An image with a label shows both, as before the toolbar was its own control.
+            var image = new DaisyScheduler.OwnedImage(bytes) { Width = 18 * scheduler.Scale, Height = 18 * scheduler.Scale };
+            content = model.Label is { Length: > 0 } caption
+                ? new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { image, new TextBlock { Text = caption, VerticalAlignment = VerticalAlignment.Center } } }
+                : image;
+        }
         else if (model.IconData is { Length: > 0 } data)
             content = Icon(data);
         else if (model.Glyph is { Length: > 0 } glyph)
@@ -198,7 +249,7 @@ public class DaisySchedulerToolbar : UserControl
             button.Classes.Add("checked");
         var name = model.Label ?? model.Tooltip ?? model.Id ?? string.Empty;
         AutomationProperties.SetName(button, name);
-        scheduler.SetToolbarTooltip(button, model.Tooltip ?? (content is TextBlock ? null : model.Label));
+        scheduler.SetToolbarTooltip(button, model.Tooltip ?? (content is Viewbox or DaisyScheduler.OwnedImage ? model.Label : null));
         BindIconStroke(button);
         if (model.MenuItems is { Count: > 0 })
             button.Flyout = scheduler.CreateToolbarMenu(model, adornment);

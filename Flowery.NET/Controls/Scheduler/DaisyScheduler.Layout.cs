@@ -307,7 +307,9 @@ public partial class DaisyScheduler
                     continue;
                 }
                 var width = double.IsNaN(span.Minutes) ? child.DesiredSize.Width : SpanWidth(span, pixelsPerMinute);
-                child.Arrange(new Rect(span.Start * pixelsPerMinute + span.Offset, top, width, child.DesiredSize.Height));
+                // A bar widened to its minimum near the end of the range moves left to stay inside it.
+                var x = Math.Max(0, Math.Min(span.Start * pixelsPerMinute + span.Offset, totalMinutes * pixelsPerMinute - width));
+                child.Arrange(new Rect(x, top, width, child.DesiredSize.Height));
             }
             return finalSize;
         }

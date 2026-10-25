@@ -15,7 +15,7 @@
             <controls:DaisyCheckBox x:Name="DetailsOption" Content="{loc:Localize Scheduler_Details}" IsChecked="True" Margin="0,0,16,8" />
             <controls:DaisyCheckBox x:Name="ReadOnlyOption" Content="{loc:Localize Scheduler_ReadOnly}" Margin="0,0,16,8" />
             <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,16,8" VerticalAlignment="Center">
-                <TextBlock Text="{loc:Localize Scheduler_ShowFor}" VerticalAlignment="Center"
+                <TextBlock Text="{loc:Localize Scheduler_ShowFor}" VerticalAlignment="Center" controls:FlowerySizeManager.ResponsiveFont="Primary"
                            Foreground="{DynamicResource DaisyBaseContentBrush}" />
                 <controls:DaisySelect x:Name="ShowForOption" MinWidth="140" SelectionChanged="OnShowForChanged"
                                       AutomationProperties.Name="{loc:Localize Scheduler_ShowFor}" />

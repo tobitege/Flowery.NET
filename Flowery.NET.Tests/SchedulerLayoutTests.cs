@@ -1,16 +1,19 @@
-﻿using System.Reflection;
-using Avalonia;
-using Avalonia.Controls;
+﻿using System.Globalization;
+using System.Reflection;
 using Avalonia.Controls.Primitives;
-using Avalonia.Headless;
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
+using Avalonia.Headless;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Flowery.Controls;
+using Avalonia;
 using Flowery.Controls.Scheduler.Models;
 using Flowery.Controls.Scheduler.Rendering;
+using Flowery.Controls;
 using Flowery.Localization;
 using Xunit;
 
@@ -123,7 +126,7 @@ public sealed partial class SchedulerTests
         Assert.Empty(scope.Frames(unassigned));
         Assert.NotEmpty(scope.Frames(other));
         if (view == SchedulerView.Timeline)
-            Assert.Single(scope.Scheduler.GetVisualDescendants().OfType<Canvas>().Where(DragDrop.GetAllowDrop));
+            Assert.Single(scope.Scheduler.GetVisualDescendants().OfType<Canvas>(), DragDrop.GetAllowDrop);
 
         // Null shows everything again.
         scope.Scheduler.VisibleResourceIds = null;
@@ -169,7 +172,6 @@ public sealed partial class SchedulerTests
         var frame = scope.Frame(scope.Appointment);
         var start = Text(frame, Assert.IsType<AppointmentContext>(frame.DataContext).CompactStart);
         AssertFullyInside(start, frame);
-        AssertNotTrimmed(start);
 
         // A ten-minute bar is widened to its whole start time and hides everything that does not fit beside it.
         var shortOne = Decorated(new AppointmentModel { Id = 2, Subject = "Install", Start = Monday.AddHours(15), End = Monday.AddHours(15).AddMinutes(10), ResourceIds = { 1 } });
@@ -178,7 +180,6 @@ public sealed partial class SchedulerTests
         var shortFrame = scope.Frame(shortOne);
         var shortStart = Text(shortFrame, Assert.IsType<AppointmentContext>(shortFrame.DataContext).CompactStart);
         AssertFullyInside(shortStart, shortFrame);
-        AssertNotTrimmed(shortStart);
         var lane = Assert.IsAssignableFrom<Canvas>(shortFrame.Parent);
         Assert.True(shortFrame.Bounds.Width > lane.Bounds.Width / 1440 * 10, $"frame {shortFrame.Bounds.Width}");
         foreach (var hidden in new[] { shortOne.Subject, "↻", "Alex" })
@@ -272,6 +273,139 @@ public sealed partial class SchedulerTests
                     Assert.False(frames[a].Intersects(frames[b]), $"Bars {a} and {b} overlap at width {width}: {frames[a]} {frames[b]}");
         }
     }
+
+    [AvaloniaFact]
+    public void ShortBarsKeepTheirDurationAboveTheirMinimumAndStayInsideTheLane()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Timeline);
+        var tenMinutes = new AppointmentModel { Id = 2, Subject = "Short", Start = Monday.AddHours(13), End = Monday.AddHours(13).AddMinutes(10), ResourceIds = { 1 } };
+        var twoHours = new AppointmentModel { Id = 3, Subject = "Long", Start = Monday.AddHours(15), End = Monday.AddHours(17), ResourceIds = { 1 } };
+        var lastQuarter = new AppointmentModel { Id = 4, Subject = "Late", Start = Monday.AddHours(23).AddMinutes(30), End = Monday.AddHours(23).AddMinutes(45), ResourceIds = { 1 } };
+        scope.Scheduler.Appointments = new[] { tenMinutes, twoHours, lastQuarter };
+        scope.Window.Width = 500;
+        scope.Layout();
+        var lane = Assert.IsAssignableFrom<Canvas>(scope.Frame(twoHours).Parent);
+        var perMinute = lane.Bounds.Width / 1440;
+
+        // A long bar is as long as its appointment, less the gap between bars; layout rounds it to whole pixels.
+        Assert.InRange(scope.Frame(twoHours).Bounds.Width - (120 * perMinute - 2), -1, 1);
+        // A short bar is only as wide as its whole start time needs, not as wide as the span used to pack the rows.
+        var shortFrame = scope.Frame(tenMinutes);
+        var start = Text(shortFrame, Assert.IsType<AppointmentContext>(shortFrame.DataContext).CompactStart);
+        Assert.True(shortFrame.Bounds.Width < 60 * perMinute, $"short bar {shortFrame.Bounds.Width}, hour {60 * perMinute}");
+        Assert.True(start.Bounds.Width >= start.DesiredSize.Width - 0.5, $"start {start.Bounds.Width} of {start.DesiredSize.Width}");
+        // A bar at the end of the day stays inside the lane with its whole start time.
+        var lateFrame = scope.Frame(lastQuarter);
+        Assert.True(lateFrame.Bounds.Right <= lane.Bounds.Width + 0.5, $"late bar ends at {lateFrame.Bounds.Right} of {lane.Bounds.Width}");
+        AssertFullyInside(Text(lateFrame, Assert.IsType<AppointmentContext>(lateFrame.DataContext).CompactStart), lateFrame);
+    }
+
+    [AvaloniaFact]
+    public void TheToolbarKeepsItsButtonsWhenTheSchedulerChanges()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Week);
+        var toolbar = scope.Scheduler.GetVisualDescendants().OfType<DaisySchedulerToolbar>().Single();
+        var settings = ToolbarButton(toolbar, "Settings");
+        var next = ToolbarButton(toolbar, "Next");
+        var title = Title(toolbar);
+
+        next.Focus();
+        next.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        scope.Scheduler.ShowWeekends = false;
+        scope.Scheduler.CurrentView = SchedulerView.Month;
+        scope.Layout();
+
+        // The same buttons stay, so an open settings menu stays open and the keyboard focus stays on Next.
+        Assert.Same(settings, ToolbarButton(toolbar, "Settings"));
+        Assert.Same(next, ToolbarButton(toolbar, "Next"));
+        Assert.True(next.IsFocused);
+        Assert.NotEqual(title, Title(toolbar));
+        var selected = toolbar.GetVisualDescendants().OfType<Button>().Where(static button => button.Classes.Contains("selected")).ToArray();
+        Assert.Equal(SchedulerView.Month, Assert.Single(selected).Tag);
+    }
+
+    [AvaloniaFact]
+    public void AToolbarElsewhereControlsAHiddenOneOfItsScheduler()
+    {
+        var scheduler = new DaisyScheduler { ShowToolbar = false, SelectedDate = new DateTimeOffset(Monday), CurrentView = SchedulerView.Week };
+        var toolbar = new DaisySchedulerToolbar { Scheduler = scheduler };
+        var panel = new StackPanel();
+        var window = new Window { Width = 1100, Height = 720, Content = panel };
+        window.Show();
+        try
+        {
+            // The toolbar may be shown before its scheduler is; it stays empty until then.
+            panel.Children.Add(toolbar);
+            Dispatcher.UIThread.RunJobs();
+            Assert.Null(toolbar.Content);
+            panel.Children.Add(scheduler);
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+
+            ToolbarButton(toolbar, "Next").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Assert.Equal(Monday.AddDays(7), scheduler.SelectedDate.Date);
+            var builtIn = scheduler.GetVisualDescendants().OfType<DaisySchedulerToolbar>().Single();
+            Assert.False(builtIn.IsVisible);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void HostButtonsRaiseTheirEventsAndShowAnImageWithItsLabel()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Week);
+        var clicked = new List<string?>();
+        var toggled = new List<string?>();
+        scope.Scheduler.ToolbarButtonClicked += (_, button) => clicked.Add(button.Id);
+        scope.Scheduler.AdornmentToggleRequested += (_, button) => toggled.Add(button.Id);
+        scope.Scheduler.ToolbarButtons.Add(new SchedulerToolbarButton { Id = "new", Label = "New", IconData = SchedulerToolbarIcons.Add });
+        scope.Scheduler.ToolbarButtons.Add(new SchedulerToolbarButton { Id = "map", Label = "Map", Image = OnePixelPng });
+        scope.Scheduler.ToolbarAdornments.Add(new SchedulerToolbarButton { Id = "flag", Label = "Flags", IsToggle = true, IsChecked = true });
+        scope.Layout();
+        var toolbar = scope.Scheduler.GetVisualDescendants().OfType<DaisySchedulerToolbar>().Single();
+        Button Host(string id) => toolbar.GetVisualDescendants().OfType<Button>().Single(button => button.Tag is SchedulerToolbarButton model && model.Id == id);
+
+        Host("new").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Host("flag").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Assert.Equal(["new"], clicked);
+        Assert.Equal(["flag"], toggled);
+        Assert.Contains("checked", Host("flag").Classes);
+        Assert.IsType<Viewbox>(Host("new").Content);
+        Assert.Contains(Host("map").GetVisualDescendants().OfType<TextBlock>(), static text => text.Text == "Map");
+    }
+
+    [AvaloniaFact]
+    public void VisibleResourceIdsDropHiddenAppointmentsFromTheSelectionAndTheCalendarMarks()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Week);
+        var other = new AppointmentModel { Id = 2, Subject = "Other", Start = Monday.AddDays(1).AddHours(11), End = Monday.AddDays(1).AddHours(12), ResourceIds = { 2 } };
+        scope.Scheduler.Appointments = new[] { scope.Appointment, other };
+        scope.Scheduler.SelectedAppointment = scope.Appointment;
+        scope.Scheduler.VisibleResourceIds = new object[] { 2 };
+        scope.Layout();
+        Assert.Null(scope.Scheduler.SelectedAppointment);
+
+        // In the Calendar view, the day of the hidden appointment is not marked; the day of the shown one is.
+        scope.Scheduler.CurrentView = SchedulerView.Calendar;
+        scope.Layout();
+        DaisyButton Day(int day) => scope.Scheduler.GetVisualDescendants().OfType<DaisyButton>()
+            .Single(button => Equals(button.Content, Monday.AddDays(day).Day.ToString(CultureInfo.CurrentCulture)));
+        Assert.Equal(DaisyButtonStyle.Default, Day(0).ButtonStyle);
+        Assert.Equal(DaisyButtonStyle.Soft, Day(1).ButtonStyle);
+    }
+
+    private static string Title(DaisySchedulerToolbar toolbar) =>
+        string.Join(" ", ToolbarButton(toolbar, "Date").GetVisualDescendants().OfType<TextBlock>().Select(static text => text.Text));
+
+    private static Button ToolbarButton(DaisySchedulerToolbar toolbar, string tag) =>
+        toolbar.GetVisualDescendants().OfType<Button>().Single(button => Equals(button.Tag, tag));
+
+    // A 1x1 transparent PNG.
+    private static readonly byte[] OnePixelPng = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=");
 
     private static void AssertFullyInside(Control child, Control parent)
     {

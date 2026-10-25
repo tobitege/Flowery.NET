@@ -26,13 +26,21 @@ public partial class DaisyScheduler
     private void UpdateToolbar() => ToolbarChanged?.Invoke(this, EventArgs.Empty);
 
     /// <summary>The title of the shown dates: the emphasized part, such as the month, and the rest, such as the year.</summary>
+    // The month leads in bold and the year follows muted, where the culture writes the month first; a culture that writes
+    // the year first (such as Japanese or Chinese) keeps its own order in one text. A single day keeps the culture's long
+    // date with its weekday.
     internal (string Primary, string Secondary) ToolbarTitle()
     {
         if (CurrentView == SchedulerView.Month)
-            return (SelectedDate.ToString("MMMM", Culture), SelectedDate.ToString("yyyy", Culture));
+        {
+            var pattern = Culture.DateTimeFormat.YearMonthPattern;
+            return pattern.IndexOf('M') < pattern.IndexOf('y')
+                ? (SelectedDate.ToString("MMMM", Culture), SelectedDate.ToString("yyyy", Culture))
+                : (SelectedDate.ToString(pattern, Culture), string.Empty);
+        }
         var dates = VisibleDates();
         if (dates.Length == 1)
-            return (dates[0].ToString("M", Culture), dates[0].ToString("yyyy", Culture));
+            return (dates[0].ToString("D", Culture), string.Empty);
         return dates[0].Year == dates[^1].Year
             ? (dates[0].ToString("d MMM", Culture) + " – " + dates[^1].ToString("d MMM", Culture), dates[^1].ToString("yyyy", Culture))
             : (dates[0].ToString("d MMM yyyy", Culture) + " – " + dates[^1].ToString("d MMM yyyy", Culture), string.Empty);
