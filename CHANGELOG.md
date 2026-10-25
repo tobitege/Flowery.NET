@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `DaisyScheduler`: single-line appointment chips (Month and Agenda) show the start as `AppointmentContext.CompactStart`, so a 12-hour clock reads "7a" or "12:30p" instead of "7:00 AM"; a 24-hour clock still reads "07:00". The default chip did not use the property that exists for this purpose.
 - `DaisyScheduler`: selecting an appointment no longer shifts the layout, and the selection stands out. The selection changed the frame border from 1 to 2 pixels in the primary color, which resized Month chips, moved the content of every appointment and looked like the primary color bar of most appointments. The frame border now keeps its thickness and takes the theme text color, and the background is tinted toward that color.
 - `DaisyScheduler`: the color bar of an appointment follows the rounded corners of its frame. It was a square strip inside the frame and covered the rounded border on the left.
+- `DaisyScheduler`: single-line chips and bars (Month, Agenda, Planner, Timeline) keep the start time whole. Time and subject were one trimmed text, so a short bar showed only "11…". The start time is now never trimmed; status icons and side tiles show only when they fit beside it, and the subject takes the rest or is hidden when not even two characters and an ellipsis fit.
 
 ### Changed
 
@@ -44,6 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gallery and README: the Gallery home page counts 100+ components instead of 60+ and the README 100+ controls instead of 80+, one for each `Daisy*` control documented in `llms-static`.
 - Gallery: the desktop app turns on region clipping (`CompositionOptions.UseRegionDirtyRectClipping`), so the animated glass buttons no longer keep the glass buttons around them redrawing. The Glass Button section uses about 18 % of one CPU core instead of about 78 % before the frame rate, the leak fix and region clipping (Debug build, moving disc stopped).
 - Release: the library, Gallery and Photos release workflows attest the build provenance of every asset they upload, verifiable with `gh attestation verify <file> --repo tobitege/Flowery.NET`, and publish `SHA256SUMS.txt` with the SHA-256 checksum of each asset. The release notes explain both checks.
+- `DaisyScheduler`: Planner and Timeline hours are as wide as their header label and a one-hour bar with its whole start time, for the current size, font, culture and clock format, and widen to fill the visible width. A new width rescales the bars in place, and the Planner labels every hour. **Breaking:** the theme token `DaisySchedulerPlannerPixelsPerMinute` is removed; `DaisySchedulerTimelineMinimumHourWidth` now defaults to 0 and only raises the computed minimum.
+- Gallery: the scheduler samples fill the current month, weekends included, and today always has four appointments, so Day and Timeline show several appointments on any date.
 - The library, FlowKanban, the Gallery (desktop, Android, iOS) and Flowery Photos are version 4.0.0.
 
 ## [3.10.0] - 2026-10-22

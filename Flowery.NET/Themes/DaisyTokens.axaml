@@ -426,8 +426,8 @@
 
     <!-- ==================== SCHEDULER ==================== -->
     <!-- Fonts, chip heights, row heights, spacing and borders reuse the shared size tokens. -->
-    <sys:Double x:Key="DaisySchedulerTimelineMinimumHourWidth">96</sys:Double>
-    <sys:Double x:Key="DaisySchedulerPlannerPixelsPerMinute">0.35</sys:Double>
+    <!-- Planner and Timeline hours fit their start times and fill the visible width; this only raises that minimum. -->
+    <sys:Double x:Key="DaisySchedulerTimelineMinimumHourWidth">0</sys:Double>
     <sys:Double x:Key="DaisySchedulerTimelineResourceWidth">220</sys:Double>
     <sys:Double x:Key="DaisySchedulerPlannerResourceWidth">150</sys:Double>
     <sys:Double x:Key="DaisySchedulerMonthMinimumWidth">560</sys:Double>

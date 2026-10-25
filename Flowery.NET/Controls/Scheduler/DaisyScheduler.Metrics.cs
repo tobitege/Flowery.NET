@@ -1,6 +1,8 @@
 ﻿using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media;
+using Flowery.Controls.Scheduler.Utilities;
 
 namespace Flowery.Controls;
 
@@ -23,18 +25,30 @@ public partial class DaisyScheduler
         return Math.Ceiling(length * scaling) / scaling;
     }
 
-    private double TimelinePixelsPerMinute
+    // Planner and Timeline hours fit their header label and a one-hour bar that shows its start time whole (frame and
+    // accent borders, content margins, the gap between bars and one spacing of slack). The width follows the size,
+    // font, culture and clock format; hours widen from it to fill the visible width. Hosts can raise it with
+    // DaisySchedulerTimelineMinimumHourWidth. Text widths are rounded up to device pixels as layout rounds them.
+    private double MinimumHourPixelsPerMinute()
     {
-        get
+        var barChrome = SpacingXS * 4 + LineThickness * 4 + 2;
+        var width = Token<double>("DaisySchedulerTimelineMinimumHourWidth") * Scale;
+        for (var hour = 0; hour < 24; hour++)
         {
-            var width = Token<double>("DaisySchedulerTimelineMinimumHourWidth") * Scale;
-            for (var hour = 0; hour < 24; hour++)
-            {
-                var label = Label(FormatTime(DateTime.Today.AddHours(hour)), true);
-                label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                width = Math.Max(width, label.DesiredSize.Width + SpacingSmall * 2);
-            }
-            return RoundToPixel(width) / 60;
+            var time = DateTime.Today.AddHours(hour);
+            var header = Label(FormatTime(time), true);
+            header.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            // Bars also start on the half hour, where a compact 12-hour time is widest ("12:30p").
+            var start = Label(CompactTime(time.AddMinutes(30)));
+            start.FontWeight = FontWeight.SemiBold;
+            start.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            width = Math.Max(width, Math.Max(RoundToPixel(header.DesiredSize.Width) + SpacingSmall * 2,
+                RoundToPixel(start.DesiredSize.Width) + barChrome));
         }
+        return RoundToPixel(width) / 60;
     }
+
+    // The start time of a single-line chip or bar, as AppointmentContext.CompactStart writes it.
+    private string CompactTime(DateTime time) =>
+        TimePattern.Contains('H') ? time.ToString(TimePattern, Culture) : SchedulerTimeFormatter.Compact(time);
 }

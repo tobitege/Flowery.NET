@@ -109,7 +109,9 @@ Scheduler widths and time-axis metrics use the `DaisyScheduler*` tokens in `Them
 Hosts can override these resources. `ColumnMinWidth` and `AppointmentCornerRadius` override their token defaults when set.
 Day and Week columns reserve space for complete time ranges, status icons, and overlapping appointments.
 Short appointments give priority to the subject and time. Optional notes and tiles appear only when complete rows fit.
-Window resizing keeps the existing appointment controls, selection, and scroll position.
+Single-line chips and bars (Month, Agenda, Planner, Timeline) never trim the start time. Status icons and side tiles appear only when they fit beside it; the subject takes the rest and is hidden when not even two characters and an ellipsis fit.
+Planner and Timeline hours are at least as wide as their header label and a one-hour bar with its whole start time, for the current size, font, culture and clock format, and widen to fill the visible width. `DaisySchedulerTimelineMinimumHourWidth` (default 0) can only raise that minimum.
+Window resizing keeps the existing appointment controls, selection, and scroll position; Planner and Timeline hours rescale in place.
 
 The control uses the active Flowery palette.
 `DaisySchedulerTodayBrush` controls the current-day highlight.

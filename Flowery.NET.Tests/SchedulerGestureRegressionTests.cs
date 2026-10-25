@@ -135,9 +135,10 @@ public sealed partial class SchedulerTests
         scope.Scheduler.SingleClickCreates = true;
         scope.Layout();
         var lane = scope.Scheduler.GetVisualDescendants().OfType<Canvas>().Single(DragDrop.GetAllowDrop);
-        // Keep both slots visible so scrolling cannot turn separate slot clicks into a double-click.
+        // Keep both slots visible so scrolling cannot turn separate slot clicks into a double-click. The date is the
+        // last day of its Planner week.
         var scroll = lane.GetVisualAncestors().OfType<ScrollViewer>().First();
-        scroll.Offset = new Vector(view == SchedulerView.Planner ? scroll.Extent.Width : 0, 0);
+        scroll.Offset = new Vector(view == SchedulerView.Planner ? lane.Width * 6 / 7 : 0, 0);
         scope.Layout();
         var selections = 0;
         var creations = new List<AppointmentCreateArgs>();

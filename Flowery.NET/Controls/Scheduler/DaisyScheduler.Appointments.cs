@@ -69,9 +69,9 @@ public partial class DaisyScheduler
             title.TextWrapping = TextWrapping.Wrap;
             title.TextTrimming = TextTrimming.None;
         }
-        text.Add(title, 0);
         if (multiline)
         {
+            text.Add(title, 0);
             var time = Label(context.TimeRange, true);
             time.Foreground = context.Foreground;
             text.Add(time, 1);
@@ -86,14 +86,14 @@ public partial class DaisyScheduler
                 }
                 text.Add(note, 4);
             }
+            Grid.SetColumn(text, 2);
+            Grid.SetRow(text, 1);
+            main.Children.Add(text);
         }
-        else if (!context.IsAllDay)
-            title.Text = context.CompactStart + "  " + context.Subject;
-        Grid.SetColumn(text, 2);
-        Grid.SetRow(text, 1);
-        main.Children.Add(text);
 
-        var status = new StackPanel { Spacing = SpacingXS / 2, Margin = new Thickness(0, 0, SpacingXS, 0), Orientation = multiline ? Orientation.Vertical : Orientation.Horizontal };
+        var status = new StackPanel { Spacing = SpacingXS / 2, Orientation = multiline ? Orientation.Vertical : Orientation.Horizontal };
+        if (multiline)
+            status.Margin = new Thickness(0, 0, SpacingXS, 0);
         var flags = AppointmentFlags(context.Appointment);
         if (flags.Length > 0)
         {
@@ -110,9 +110,14 @@ public partial class DaisyScheduler
             SetSchedulerTooltip(glyph, indicator.Tooltip);
             status.Children.Add(glyph);
         }
-        Grid.SetRow(status, 1);
-        main.Children.Add(status);
+        if (multiline)
+        {
+            Grid.SetRow(status, 1);
+            main.Children.Add(status);
+        }
 
+        StackPanel? leftTiles = null;
+        StackPanel? rightTiles = null;
         if (ShowTiles)
         {
             foreach (var side in Enum.GetValues<TileSide>())
@@ -133,6 +138,13 @@ public partial class DaisyScheduler
                     if (side == TileSide.Bottom)
                         text.Bottom = strip;
                 }
+                else if (!multiline && side is TileSide.Left or TileSide.Right)
+                {
+                    if (side == TileSide.Left)
+                        leftTiles = strip;
+                    else
+                        rightTiles = strip;
+                }
                 else
                 {
                     Grid.SetColumn(strip, side switch { TileSide.Left => 1, TileSide.Right => 3, _ => 2 });
@@ -140,6 +152,34 @@ public partial class DaisyScheduler
                     main.Children.Add(strip);
                 }
             }
+        }
+        if (!multiline)
+        {
+            // The start time is never trimmed; status, tiles and then the subject give way to it.
+            var line = new AppointmentLinePanel(SpacingXS) { VerticalAlignment = VerticalAlignment.Center };
+            if (status.Children.Count > 0)
+                line.Add(status, AppointmentLinePanel.Optional);
+            if (leftTiles is { Children.Count: > 0 })
+                line.Add(leftTiles, AppointmentLinePanel.Optional);
+            if (!context.IsAllDay)
+            {
+                var start = Label(context.CompactStart);
+                start.Foreground = context.Foreground;
+                start.FontWeight = FontWeight.SemiBold;
+                start.TextTrimming = TextTrimming.None;
+                line.Add(start, AppointmentLinePanel.Required);
+            }
+            // A subject is worth showing from its first two characters and an ellipsis on.
+            var subject = context.Subject ?? string.Empty;
+            var shortest = Label(subject.Length > 2 ? subject[..2] + "…" : subject);
+            shortest.FontWeight = FontWeight.SemiBold;
+            shortest.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            line.Add(title, AppointmentLinePanel.Fill, shortest.DesiredSize.Width);
+            if (rightTiles is { Children.Count: > 0 })
+                line.Add(rightTiles, AppointmentLinePanel.Optional);
+            Grid.SetRow(line, 1);
+            Grid.SetColumnSpan(line, 4);
+            main.Children.Add(line);
         }
         var root = new Grid { ClipToBounds = true };
         // The bar follows the rounded corners inside the frame border instead of covering them.

@@ -87,10 +87,7 @@ public sealed partial class SchedulerTests
         var time = frame.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Text == context.TimeRange);
         AssertFullyInside(title, frame);
         AssertFullyInside(time, frame);
-        var fullTime = new TextBlock { Text = time.Text, FontSize = time.FontSize, FontFamily = time.FontFamily };
-        fullTime.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        Assert.True(time.Bounds.Width + 1 >= fullTime.DesiredSize.Width,
-            $"{size}: time width {time.Bounds.Width}, required {fullTime.DesiredSize.Width}, font {time.FontSize}, frame {frame.Bounds.Size}, lane {((Canvas)frame.Parent!).Width}");
+        AssertNotTrimmed(time);
         Assert.Single(frame.GetVisualDescendants().OfType<TextBlock>(), text => text.Text == "↻");
         foreach (var label in frame.GetVisualDescendants().OfType<TextBlock>().Where(text => text.Bounds.Height > 0 &&
                      text.GetVisualAncestors().TakeWhile(ancestor => !ReferenceEquals(ancestor, frame)).OfType<Control>().All(ancestor => ancestor.Bounds.Height > 0)))
@@ -99,6 +96,94 @@ public sealed partial class SchedulerTests
         var badge = tallFrame.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Text == "Alex");
         AssertFullyInside(badge, tallFrame);
         Assert.True(badge.Bounds.Height > 0);
+    }
+
+    // The laid-out text itself says whether it was cut off with an ellipsis; a width measured outside the tree can
+    // differ from the width in it by layout rounding.
+    private static void AssertNotTrimmed(TextBlock text) =>
+        Assert.False(text.TextLayout.TextLines.Any(static line => line.HasCollapsed), $"\"{text.Text}\" is trimmed at {text.Bounds.Width}.");
+
+    [AvaloniaTheory]
+    [InlineData(SchedulerClockFormat.TwelveHour)]
+    [InlineData(SchedulerClockFormat.TwentyFourHour)]
+    public void SingleLineBarsKeepTheStartTimeWholeAndHideSubjectFragments(SchedulerClockFormat clock)
+    {
+        using var scope = new SchedulerScope(SchedulerView.Timeline);
+        scope.Scheduler.ClockFormat = clock;
+        scope.Appointment.Subject = "Support shift";
+        scope.Appointment.Start = Monday.AddHours(11);
+        scope.Appointment.End = Monday.AddHours(12);
+        var shortOne = new AppointmentModel { Id = 2, Subject = "Install", Start = Monday.AddHours(15), End = Monday.AddHours(15).AddMinutes(10), ResourceIds = { 1 } };
+        scope.Scheduler.Appointments = new[] { scope.Appointment, shortOne };
+        // Narrower than one day at the minimum hour width, so hours keep that minimum.
+        scope.Window.Width = 500;
+        scope.Layout();
+
+        // A one-hour bar at the narrowest hours shows its start time whole.
+        var frame = scope.Frame(scope.Appointment);
+        var context = Assert.IsType<AppointmentContext>(frame.DataContext);
+        var start = frame.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Text == context.CompactStart);
+        AssertFullyInside(start, frame);
+        AssertNotTrimmed(start);
+
+        // A bar too short for two characters and an ellipsis after its start time hides the subject.
+        var shortFrame = scope.Frame(shortOne);
+        var subject = shortFrame.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Text == shortOne.Subject);
+        Assert.Equal(0, subject.Bounds.Width);
+    }
+
+    [AvaloniaTheory]
+    [InlineData(SchedulerView.Planner)]
+    [InlineData(SchedulerView.Timeline)]
+    public void HoursFillTheVisibleWidthAndRescaleInPlace(SchedulerView view)
+    {
+        using var scope = new SchedulerScope(view);
+        scope.Scheduler.ShowWeekends = false;
+        // A narrow window keeps the minimum hour width and scrolls.
+        scope.Window.Width = 500;
+        scope.Layout();
+        var lane = scope.Scheduler.GetVisualDescendants().OfType<Canvas>().Single(Avalonia.Input.DragDrop.GetAllowDrop);
+        var scroll = lane.GetVisualAncestors().OfType<ScrollViewer>().First();
+        var frame = scope.Frame(scope.Appointment);
+        var hours = view == SchedulerView.Timeline ? 24 : 24 * 5;
+        var minimum = lane.Width;
+        Assert.True(minimum > scroll.Viewport.Width, $"lane {minimum}, viewport {scroll.Viewport.Width}");
+        AssertHourBar();
+
+        // Wider windows widen the hours to the visible width without rendering again: the same frame grows with them.
+        foreach (var extra in new[] { 1000d, 3000d })
+        {
+            scope.Window.Width = minimum + extra;
+            scope.Layout();
+            Assert.Same(frame, scope.Frame(scope.Appointment));
+            Assert.Equal(scroll.Viewport.Width, lane.Width, 3);
+            Assert.True(lane.Width > minimum);
+            AssertHourBar();
+        }
+
+        // The one-hour appointment is one hour wide less the gap between bars; layout rounds it to whole pixels.
+        void AssertHourBar() => Assert.InRange(frame.Bounds.Width + 2 - lane.Width / hours, -1, 1);
+    }
+
+    [AvaloniaFact]
+    public void ShortBarsPackedAtTheMinimumHourWidthNeverOverlapWhenHoursWiden()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Timeline);
+        var appointments = Enumerable.Range(0, 4).Select(index => new AppointmentModel
+        {
+            Id = index + 1, Subject = "Bar " + index, Start = Monday.AddHours(9).AddMinutes(index * 12),
+            End = Monday.AddHours(9).AddMinutes(index * 12 + 10), ResourceIds = { 1 }
+        }).ToArray();
+        scope.Scheduler.Appointments = appointments;
+        foreach (var width in new[] { 500d, 4000d })
+        {
+            scope.Window.Width = width;
+            scope.Layout();
+            var frames = appointments.Select(scope.Frame).Select(frame => new Rect(frame.TranslatePoint(default, scope.Window)!.Value, frame.Bounds.Size)).ToArray();
+            for (var a = 0; a < frames.Length; a++)
+                for (var b = a + 1; b < frames.Length; b++)
+                    Assert.False(frames[a].Intersects(frames[b]), $"Bars {a} and {b} overlap at width {width}: {frames[a]} {frames[b]}");
+        }
     }
 
     private static void AssertFullyInside(Control child, Control parent)

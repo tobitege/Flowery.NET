@@ -167,15 +167,16 @@ public sealed partial class SchedulerTests
     }
 
     [AvaloniaTheory]
-    [InlineData(SchedulerClockFormat.TwelveHour, "9a  Install")]
-    [InlineData(SchedulerClockFormat.TwentyFourHour, "09:00  Install")]
+    [InlineData(SchedulerClockFormat.TwelveHour, "9a")]
+    [InlineData(SchedulerClockFormat.TwentyFourHour, "09:00")]
     public void SingleLineChipShowsTheCompactStart(SchedulerClockFormat clock, string expected)
     {
         using var scope = new SchedulerScope(SchedulerView.Month);
         scope.Scheduler.ClockFormat = clock;
         scope.Layout();
-        var texts = scope.Frame(scope.Appointment).GetVisualDescendants().OfType<TextBlock>().Select(static text => text.Text);
+        var texts = scope.Frame(scope.Appointment).GetVisualDescendants().OfType<TextBlock>().Select(static text => text.Text).ToArray();
         Assert.Contains(expected, texts);
+        Assert.Contains(scope.Appointment.Subject, texts);
     }
 
     [AvaloniaTheory]
