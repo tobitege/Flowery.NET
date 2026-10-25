@@ -294,18 +294,21 @@ namespace Flowery.Controls
 
         /// <summary>
         /// Opens a designer over the app with the look of <paramref name="button"/> and applies the result to it. A text
-        /// content can be edited too; other content stays and the designer offers no text. A fill or animated background the
-        /// design cannot describe stays as it is (see <see cref="DaisyGlassFillKind.Keep"/>).
+        /// content can be edited too; other content, or none such as on an icon button, stays and the designer offers no
+        /// text. Only what the user changed is written to the button, so its styles and the global size keep applying to
+        /// the rest. A fill or animated background the design cannot describe stays as it is (see
+        /// <see cref="DaisyGlassFillKind.Keep"/>).
         /// </summary>
         /// <returns><c>true</c> when the user applied a design; <c>false</c> when the user cancelled.</returns>
         public static async Task<bool> EditAsync(DaisyGlassButton button)
         {
             ArgumentNullException.ThrowIfNull(button);
-            var editsText = button.Content is null or string;
-            if (await ShowOverlayAsync(button, DaisyGlassButtonDesign.FromButton(button), editsText) is not { } design)
+            var editsText = button.Content is string;
+            var original = DaisyGlassButtonDesign.FromButton(button);
+            if (await ShowOverlayAsync(button, original, editsText) is not { } design)
                 return false;
 
-            design.ApplyTo(button, includeContent: editsText);
+            design.ApplyTo(button, includeContent: editsText, reuseBackground: false, original);
             return true;
         }
 
@@ -345,6 +348,15 @@ namespace Flowery.Controls
             {
                 _design = design;
                 _design.ApplyTo(_preview, includeContent: true, reuseBackground: true);
+                // A fill or background the design keeps is not the one of the previous design: the preview shows the kept
+                // fill as it was read, and no animated background.
+                if (design.FillKind == DaisyGlassFillKind.Keep)
+                {
+                    _preview.GlassFill = design.KeptFill;
+                    _preview.GlassGradient = DaisyGlassGradient.None;
+                }
+                if (design.BackgroundRenderer == DaisyGlassBackgroundRenderer.Keep)
+                    _preview.GlassBackground = null;
                 ShowTab(_tab);
                 UpdateCode();
             }
@@ -1034,7 +1046,7 @@ namespace Flowery.Controls
                 var button = new RadioButton
                 {
                     Classes = { "gbd-code-tab" },
-                    GroupName = "gbd-code-" + GetHashCode(),
+                    GroupName = "gbd-code-" + _groups,
                     Content = kind switch { CodeKind.CSharp => "C#", CodeKind.Json => "JSON", _ => "XAML" },
                     IsChecked = kind == _codeKind
                 };

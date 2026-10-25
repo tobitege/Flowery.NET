@@ -8,7 +8,6 @@ using System.Text.Json.Serialization;
 using Avalonia;
 using Avalonia.Media;
 using Flowery.Enums;
-using Flowery.Helpers;
 
 namespace Flowery.Controls
 {
@@ -258,61 +257,107 @@ namespace Flowery.Controls
 
         // With reuseBackground, a background of the same kind is updated in place instead of replaced, so its
         // animation keeps running while the designer changes other values. Only for a background nothing else shares.
-        internal void ApplyTo(DaisyGlassButton button, bool includeContent, bool reuseBackground)
+        // With an original design, as read from the button, only the values that differ from it are written: the local
+        // values, styles and global size of the button stay, and an unchanged fill or background stays the same instance.
+        internal void ApplyTo(DaisyGlassButton button, bool includeContent, bool reuseBackground, DaisyGlassButtonDesign? original = null)
         {
             ArgumentNullException.ThrowIfNull(button);
-            if (includeContent)
+            if (includeContent && (original is null || Content != original.Content))
                 button.Content = Content;
 
-            button.Variant = Variant;
-            button.ButtonStyle = ButtonStyle;
-            button.Shape = Shape;
-            button.Size = Size;
-            button.EnableBackdropBlur = EnableBackdropBlur;
-            button.BlurMode = BlurMode;
-            button.GlassBlur = GlassBlur;
-            button.GlassSaturation = GlassSaturation;
-            button.GlassOpacity = GlassOpacity;
-            button.GlassTint = GlassTint;
-            button.GlassTintOpacity = GlassTintOpacity;
-            button.GlassReflectDegree = GlassReflectDegree;
-            button.GlassReflectOpacity = GlassReflectOpacity;
-            button.GlassDepth = GlassDepth;
-            button.GlassCurvature = GlassCurvature;
-            button.GlassBend = GlassBend;
-            button.GlassDispersion = GlassDispersion;
-            if (FillKind != DaisyGlassFillKind.Keep)
+            if (Changed(Variant, original?.Variant))
+                button.Variant = Variant;
+            if (Changed(ButtonStyle, original?.ButtonStyle))
+                button.ButtonStyle = ButtonStyle;
+            if (Changed(Shape, original?.Shape))
+                button.Shape = Shape;
+            if (Changed(Size, original?.Size))
+                button.Size = Size;
+            if (Changed(EnableBackdropBlur, original?.EnableBackdropBlur))
+                button.EnableBackdropBlur = EnableBackdropBlur;
+            if (Changed(BlurMode, original?.BlurMode))
+                button.BlurMode = BlurMode;
+            if (Changed(GlassBlur, original?.GlassBlur))
+                button.GlassBlur = GlassBlur;
+            if (Changed(GlassSaturation, original?.GlassSaturation))
+                button.GlassSaturation = GlassSaturation;
+            if (Changed(GlassOpacity, original?.GlassOpacity))
+                button.GlassOpacity = GlassOpacity;
+            if (Changed(GlassTint, original?.GlassTint))
+                button.GlassTint = GlassTint;
+            if (Changed(GlassTintOpacity, original?.GlassTintOpacity))
+                button.GlassTintOpacity = GlassTintOpacity;
+            if (Changed(GlassReflectDegree, original?.GlassReflectDegree))
+                button.GlassReflectDegree = GlassReflectDegree;
+            if (Changed(GlassReflectOpacity, original?.GlassReflectOpacity))
+                button.GlassReflectOpacity = GlassReflectOpacity;
+            if (Changed(GlassDepth, original?.GlassDepth))
+                button.GlassDepth = GlassDepth;
+            if (Changed(GlassCurvature, original?.GlassCurvature))
+                button.GlassCurvature = GlassCurvature;
+            if (Changed(GlassBend, original?.GlassBend))
+                button.GlassBend = GlassBend;
+            if (Changed(GlassDispersion, original?.GlassDispersion))
+                button.GlassDispersion = GlassDispersion;
+            if (FillKind == DaisyGlassFillKind.Keep)
+            {
+                if (button.GlassFill is null && KeptFill is not null)
+                    button.GlassFill = KeptFill;
+            }
+            else if (original is null || !SameFill(original))
             {
                 button.GlassFill = CreateFill();
                 button.GlassGradient = FillKind == DaisyGlassFillKind.Preset ? FillPreset : DaisyGlassGradient.None;
             }
-            else if (button.GlassFill is null && KeptFill is not null)
+            if (Changed(GlassFillOpacity, original?.GlassFillOpacity))
+                button.GlassFillOpacity = GlassFillOpacity;
+            if (Changed(GlassPattern, original?.GlassPattern))
+                button.GlassPattern = GlassPattern;
+            if (Changed(GlassPatternColor, original?.GlassPatternColor))
+                button.GlassPatternColor = GlassPatternColor;
+            if (Changed(GlassPatternOpacity, original?.GlassPatternOpacity))
+                button.GlassPatternOpacity = GlassPatternOpacity;
+            // A Keep background stays as it is.
+            if (BackgroundRenderer != DaisyGlassBackgroundRenderer.Keep && (original is null || !SameBackground(original)))
             {
-                button.GlassFill = KeptFill;
+                if (reuseBackground && button.GlassBackground is { } current && IsSameRenderer(current))
+                {
+                    current.Effect = BackgroundEffect;
+                    current.Speed = BackgroundSpeed;
+                    current.FrameRate = BackgroundFrameRate;
+                }
+                else
+                {
+                    button.GlassBackground = CreateBackground();
+                }
             }
-            button.GlassFillOpacity = GlassFillOpacity;
-            button.GlassPattern = GlassPattern;
-            button.GlassPatternColor = GlassPatternColor;
-            button.GlassPatternOpacity = GlassPatternOpacity;
-            if (BackgroundRenderer == DaisyGlassBackgroundRenderer.Keep)
-            {
-                // The background of the button stays as it is.
-            }
-            else if (reuseBackground && button.GlassBackground is { } current && IsSameRenderer(current))
-            {
-                current.Effect = BackgroundEffect;
-                current.Speed = BackgroundSpeed;
-                current.FrameRate = BackgroundFrameRate;
-            }
-            else
-            {
-                button.GlassBackground = CreateBackground();
-            }
-            button.GlassBackgroundOpacity = GlassBackgroundOpacity;
-            button.GlassColorOpacity = GlassColorOpacity;
-            button.GlassTextShadowOpacity = GlassTextShadowOpacity;
-            button.GlassTextContrast = GlassTextContrast;
+            if (Changed(GlassBackgroundOpacity, original?.GlassBackgroundOpacity))
+                button.GlassBackgroundOpacity = GlassBackgroundOpacity;
+            if (Changed(GlassColorOpacity, original?.GlassColorOpacity))
+                button.GlassColorOpacity = GlassColorOpacity;
+            if (Changed(GlassTextShadowOpacity, original?.GlassTextShadowOpacity))
+                button.GlassTextShadowOpacity = GlassTextShadowOpacity;
+            if (Changed(GlassTextContrast, original?.GlassTextContrast))
+                button.GlassTextContrast = GlassTextContrast;
         }
+
+        // Without an original value, every value counts as changed.
+        private static bool Changed<T>(T value, T? original) where T : struct =>
+            original is not { } before || !EqualityComparer<T>.Default.Equals(value, before);
+
+        private static bool Changed(double value, double? original) =>
+            original is not { } before || Math.Abs(value - before) >= Tolerance;
+
+        private bool SameFill(DaisyGlassButtonDesign other) =>
+            FillKind == other.FillKind && FillPreset == other.FillPreset && Math.Abs(FillAngle - other.FillAngle) < Tolerance
+            && FillStops.Count == other.FillStops.Count
+            && FillStops.Zip(other.FillStops).All(static pair => pair.First.Color == pair.Second.Color
+                                                                   && Math.Abs(pair.First.Offset - pair.Second.Offset) < Tolerance);
+
+        private bool SameBackground(DaisyGlassButtonDesign other) =>
+            BackgroundRenderer == other.BackgroundRenderer && BackgroundEffect == other.BackgroundEffect
+            && Math.Abs(BackgroundSpeed - other.BackgroundSpeed) < Tolerance
+            && Math.Abs(BackgroundFrameRate - other.BackgroundFrameRate) < Tolerance;
 
         // Whether the background is what CreateBackground makes for this design: without the Skia renderer a shader design
         // gets a gradient background, which must be updated in place too, or its animation restarts on every change.
@@ -327,8 +372,8 @@ namespace Flowery.Controls
 
         /// <summary>
         /// Reads the look of <paramref name="button"/>. A fill or animated background this design cannot describe, such as
-        /// a solid or image brush, a radial gradient with another geometry or a custom background, is read as Keep, so
-        /// applying the design leaves it as it is.
+        /// a solid or image brush, a gradient with another geometry, opacity, transform or spread, or a custom background,
+        /// is read as Keep, so applying the design leaves it as it is.
         /// </summary>
         public static DaisyGlassButtonDesign FromButton(DaisyGlassButton button)
         {
@@ -365,17 +410,17 @@ namespace Flowery.Controls
 
             switch (button.GlassFill)
             {
-                case LinearGradientBrush linear:
+                case LinearGradientBrush linear when IsPlain(linear) && IsOwnLinear(linear.StartPoint, linear.EndPoint):
                     design.FillKind = DaisyGlassFillKind.Linear;
                     design.FillAngle = LinearAngle(linear.StartPoint, linear.EndPoint);
                     design.FillStops = ReadStops(linear);
                     break;
-                case RadialGradientBrush radial when radial.Center == RadialCenter && radial.GradientOrigin == RadialCenter
+                case RadialGradientBrush radial when IsPlain(radial) && radial.Center == RadialCenter && radial.GradientOrigin == RadialCenter
                                                      && radial.RadiusX == RadialRadius && radial.RadiusY == RadialRadius:
                     design.FillKind = DaisyGlassFillKind.Radial;
                     design.FillStops = ReadStops(radial);
                     break;
-                case ConicGradientBrush conic:
+                case ConicGradientBrush conic when IsPlain(conic) && conic.Center == RelativePoint.Center:
                     design.FillKind = DaisyGlassFillKind.Conic;
                     design.FillAngle = conic.Angle;
                     design.FillStops = ReadStops(conic);
@@ -544,9 +589,12 @@ namespace Flowery.Controls
                 lines.Add("GlassBackground = " + BackgroundCSharp(defaults));
 
             var builder = new StringBuilder();
-            builder.AppendLine("// using Avalonia; using Avalonia.Media; using Flowery.Controls; using Flowery.Enums;");
+            builder.AppendLine("// using Avalonia;");
+            builder.AppendLine("// using Avalonia.Media;");
+            builder.AppendLine("// using Flowery.Controls;");
+            builder.AppendLine("// using Flowery.Enums;");
             if (BackgroundRenderer == DaisyGlassBackgroundRenderer.Shader)
-                builder.AppendLine("// DaisyGlassShaderBackground is in Flowery.Skia (package Flowery.NET.Skia).");
+                builder.AppendLine("// using Flowery.Skia; // DaisyGlassShaderBackground, from the package Flowery.NET.Skia");
             builder.AppendLine("var button = new DaisyGlassButton");
             builder.AppendLine("{");
             for (var i = 0; i < lines.Count; i++)
@@ -677,6 +725,21 @@ namespace Flowery.Controls
                     new RelativePoint(0.5 + dx, 0.5 + dy, RelativeUnit.Relative));
         }
 
+        // A gradient brush with nothing a design cannot write: full opacity, no transform, padded ends.
+        private static bool IsPlain(GradientBrush brush) =>
+            Math.Abs(brush.Opacity - 1) < Tolerance && brush.Transform is null && brush.SpreadMethod == GradientSpreadMethod.Pad;
+
+        // Whether the points are those LinearPoints makes for their angle: centered, half a unit long, relative.
+        private static bool IsOwnLinear(RelativePoint start, RelativePoint end)
+        {
+            if (start.Unit != RelativeUnit.Relative || end.Unit != RelativeUnit.Relative)
+                return false;
+            var (ownStart, ownEnd) = LinearPoints(LinearAngle(start, end));
+            return Near(ownStart.Point, start.Point) && Near(ownEnd.Point, end.Point);
+        }
+
+        private static bool Near(Point a, Point b) => Math.Abs(a.X - b.X) < 1e-3 && Math.Abs(a.Y - b.Y) < 1e-3;
+
         private static double LinearAngle(RelativePoint start, RelativePoint end)
         {
             var degrees = Math.Atan2(end.Point.Y - start.Point.Y, end.Point.X - start.Point.X) * 180 / Math.PI;
@@ -721,8 +784,9 @@ namespace Flowery.Controls
         private static string PointCSharp(RelativePoint point) =>
             $"new RelativePoint({FormatNumber(point.Point.X)}, {FormatNumber(point.Point.Y)}, RelativeUnit.Relative)";
 
-        // An attribute that starts with a brace would be read as a markup extension; {} escapes it. Line breaks and other
-        // control characters become character references, which an attribute keeps.
+        // An attribute that starts with a brace would be read as a markup extension; {} escapes it. Tab and line breaks
+        // become character references, which an attribute keeps; the other C0 control characters cannot be written in
+        // XML 1.0 at all and are left out.
         private static string EscapeXml(string text)
         {
             var builder = new StringBuilder(text.StartsWith('{') ? "{}" : "");
@@ -733,13 +797,16 @@ namespace Flowery.Controls
                     '"' => "&quot;",
                     '<' => "&lt;",
                     '>' => "&gt;",
+                    '\t' or '\n' or '\r' => "&#" + ((int)c).ToString(CultureInfo.InvariantCulture) + ";",
+                    _ when c < ' ' => "",
                     _ when char.IsControl(c) => "&#" + ((int)c).ToString(CultureInfo.InvariantCulture) + ";",
                     _ => c.ToString()
                 });
             return builder.ToString();
         }
 
-        // A string literal keeps line breaks and control characters as escape sequences.
+        // A string literal keeps line breaks and control characters as escape sequences, and the line and paragraph
+        // separators, which would end it as well.
         private static string EscapeCSharp(string text)
         {
             var builder = new StringBuilder();
@@ -751,7 +818,7 @@ namespace Flowery.Controls
                     '\n' => @"\n",
                     '\r' => @"\r",
                     '\t' => @"\t",
-                    _ when char.IsControl(c) => @"\u" + ((int)c).ToString("X4", CultureInfo.InvariantCulture),
+                    _ when char.IsControl(c) || c is '\u2028' or '\u2029' => @"\u" + ((int)c).ToString("X4", CultureInfo.InvariantCulture),
                     _ => c.ToString()
                 });
             return builder.ToString();

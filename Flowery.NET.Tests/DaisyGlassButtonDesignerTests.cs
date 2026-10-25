@@ -1,11 +1,15 @@
-﻿using System.Text.Json;
+﻿using System.Reflection;
+using System.Text.Json;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
+using Avalonia.Diagnostics;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
@@ -16,6 +20,8 @@ using DaisySize = Flowery.Controls.DaisySize;
 
 namespace Flowery.NET.Tests;
 
+// Some tests change the language, which the localization tests must not see.
+[Collection("LocalizationTests")]
 public class DaisyGlassButtonDesignerTests
 {
     [AvaloniaFact]
@@ -158,7 +164,7 @@ public class DaisyGlassButtonDesignerTests
             "                           GlassBlur=\"44\" />",
             design.ToXaml().ReplaceLineEndings("\n"));
         Assert.Equal(
-            "// using Avalonia; using Avalonia.Media; using Flowery.Controls; using Flowery.Enums;\n" +
+            "// using Avalonia;\n// using Avalonia.Media;\n// using Flowery.Controls;\n// using Flowery.Enums;\n" +
             "var button = new DaisyGlassButton\n{\n    Content = \"Go\",\n    Variant = DaisyButtonVariant.Primary,\n    GlassBlur = 44\n};",
             design.ToCSharp().ReplaceLineEndings("\n"));
     }
@@ -411,6 +417,210 @@ public class DaisyGlassButtonDesignerTests
         Dispatcher.UIThread.RunJobs();
         Assert.True(open.IsCompleted);
         Assert.Null(await open);
+    }
+
+    [AvaloniaFact]
+    public async Task Editing_A_Button_Writes_Only_What_Changed()
+    {
+        var fill = new SolidColorBrush(Colors.Teal);
+        var background = new DaisyGlassGradientBackground { Effect = DaisyGlassAnimation.Aurora };
+        var button = new DaisyGlassButton { Content = "Mine", Classes = { "brand" }, GlassFill = fill, GlassBackground = background };
+        // Like the global size, which is no local value either.
+        button.SetCurrentValue(DaisyGlassButton.SizeProperty, DaisySize.Small);
+        var host = new StackPanel { Children = { button } };
+        host.Styles.Add(new Style(static selector => selector.OfType<DaisyGlassButton>().Class("brand"))
+        {
+            Setters = { new Setter(DaisyGlass.GlassBlurProperty, 12d) }
+        });
+        var window = Show(host, 1100, 1300);
+        try
+        {
+            var overlay = OverlayLayer.GetOverlayLayer(button)!;
+            var edit = DaisyGlassButtonDesigner.EditAsync(button);
+            Dispatcher.UIThread.RunJobs();
+            OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            Assert.True(await edit);
+
+            // Nothing changed, so nothing was written: the style and the size still apply, the fill and the background
+            // are the same instances.
+            Assert.NotEqual(BindingPriority.LocalValue, button.GetDiagnostic(DaisyGlass.GlassBlurProperty).Priority);
+            Assert.NotEqual(BindingPriority.LocalValue, button.GetDiagnostic(DaisyGlassButton.SizeProperty).Priority);
+            Assert.NotEqual(BindingPriority.LocalValue, button.GetDiagnostic(DaisyGlassButton.VariantProperty).Priority);
+            Assert.Same(fill, button.GlassFill);
+            Assert.Same(background, button.GlassBackground);
+            button.Classes.Remove("brand");
+            Assert.Equal(30, button.GlassBlur);
+
+            edit = DaisyGlassButtonDesigner.EditAsync(button);
+            Dispatcher.UIThread.RunJobs();
+            var designer = overlay.GetVisualDescendants().OfType<DaisyGlassButtonDesigner>().Single();
+            var design = designer.Design;
+            design.Variant = DaisyButtonVariant.Primary;
+            designer.Design = design;
+            OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            Assert.True(await edit);
+            Assert.Equal(DaisyButtonVariant.Primary, button.Variant);
+            Assert.NotEqual(BindingPriority.LocalValue, button.GetDiagnostic(DaisyGlassButton.SizeProperty).Priority);
+            Assert.Same(background, button.GlassBackground);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Editing_An_Icon_Button_Gives_It_No_Text()
+    {
+        var button = new DaisyGlassButton { Shape = DaisyButtonShape.Circle };
+        var window = Show(button, 1100, 1300);
+        try
+        {
+            var overlay = OverlayLayer.GetOverlayLayer(button)!;
+            var edit = DaisyGlassButtonDesigner.EditAsync(button);
+            Dispatcher.UIThread.RunJobs();
+            OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            Assert.True(await edit);
+            Assert.Null(button.Content);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Fact]
+    public void A_Gradient_With_Another_Geometry_Opacity_Or_Transform_Is_Kept()
+    {
+        var stops = new GradientStops { new GradientStop(Colors.Red, 0), new GradientStop(Colors.Blue, 1) };
+        var own = (LinearGradientBrush)new DaisyGlassButtonDesign { FillKind = DaisyGlassFillKind.Linear, FillAngle = 45 }.CreateFill()!;
+        var cases = new IBrush[]
+        {
+            new LinearGradientBrush { StartPoint = RelativePoint.TopLeft, EndPoint = RelativePoint.BottomRight, GradientStops = stops },
+            new LinearGradientBrush { StartPoint = own.StartPoint, EndPoint = own.EndPoint, GradientStops = stops, Opacity = 0.5 },
+            new LinearGradientBrush { StartPoint = own.StartPoint, EndPoint = own.EndPoint, GradientStops = stops, SpreadMethod = GradientSpreadMethod.Reflect },
+            new ConicGradientBrush { Center = new RelativePoint(0.2, 0.8, RelativeUnit.Relative), GradientStops = stops },
+            new ConicGradientBrush { Center = RelativePoint.Center, GradientStops = stops, Transform = new RotateTransform(10) }
+        };
+        foreach (var brush in cases)
+        {
+            var design = DaisyGlassButtonDesign.FromButton(new DaisyGlassButton { GlassFill = brush });
+            Assert.Equal(DaisyGlassFillKind.Keep, design.FillKind);
+        }
+        Assert.Equal(DaisyGlassFillKind.Linear, DaisyGlassButtonDesign.FromButton(new DaisyGlassButton { GlassFill = own }).FillKind);
+    }
+
+    [AvaloniaFact]
+    public void The_Preview_Of_A_Kept_Fill_Or_Background_Shows_That_Of_The_Button()
+    {
+        var designer = new DaisyGlassButtonDesigner { Design = Custom(DaisyGlassFillKind.Linear) };
+        var window = Show(designer, 1000, 1200);
+        try
+        {
+            var solid = new SolidColorBrush(Colors.Teal);
+            designer.Design = DaisyGlassButtonDesign.FromButton(new DaisyGlassButton { GlassFill = solid, GlassBackground = new OwnBackground() });
+            Assert.Same(solid, designer.PreviewButton.GlassFill);
+            Assert.Null(designer.PreviewButton.GlassBackground);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Exported_Code_Leaves_Out_What_Xaml_Cannot_Hold_And_Escapes_Separators()
+    {
+        var design = new DaisyGlassButtonDesign { Content = "a\u0001\tb\u2028c" };
+
+        var xaml = design.ToXaml().Replace("<controls:DaisyGlassButton ",
+            "<controls:DaisyGlassButton xmlns=\"https://github.com/avaloniaui\" " +
+            "xmlns:controls=\"clr-namespace:Flowery.Controls;assembly=Flowery.NET\" ");
+        var button = (DaisyGlassButton)Avalonia.Markup.Xaml.AvaloniaRuntimeXamlLoader.Load(xaml);
+        Assert.Equal("a\tb\u2028c", button.Content);
+        Assert.Contains("Content = \"a\\u0001\\tb\\u2028c\"", design.ToCSharp());
+    }
+
+    [AvaloniaFact]
+    public async Task The_Overlay_Keeps_The_Keyboard_Inside_And_Gives_The_Focus_Back()
+    {
+        var box = new TextBox();
+        var window = Show(box, 1100, 1300);
+        try
+        {
+            box.Focus();
+            var overlay = OverlayLayer.GetOverlayLayer(box)!;
+            var open = DaisyGlassButtonDesigner.ShowOverlayAsync(box);
+            Dispatcher.UIThread.RunJobs();
+            var backdrop = (Control)overlay.Children[0];
+            Assert.Equal(KeyboardNavigationMode.Cycle, KeyboardNavigation.GetTabNavigation(backdrop));
+            Assert.False(box.IsFocused);
+
+            OverlayButton(overlay, "GlassDesigner_Cancel").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            Assert.Null(await open);
+            Assert.True(box.IsFocused);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Moving_Disc_Moves_Again_And_A_Language_Change_Applies_After_Reattaching()
+    {
+        var previous = Flowery.Localization.FloweryLocalization.CurrentCulture;
+        var designer = new DaisyGlassButtonDesigner();
+        var window = Show(designer, 1000, 1200);
+        var motion = typeof(DaisyGlassButtonDesigner).GetField("_motion", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        try
+        {
+            Flowery.Localization.FloweryLocalization.SetCulture("en");
+            Dispatcher.UIThread.RunJobs();
+            designer.GetVisualDescendants().OfType<DaisyToggle>().Single(toggle => (string?)toggle.Content == "Move").IsChecked = true;
+            Assert.NotNull(motion.GetValue(designer));
+
+            window.Content = null;
+            Assert.Null(motion.GetValue(designer));
+            Flowery.Localization.FloweryLocalization.SetCulture("de");
+            window.Content = designer;
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+
+            Assert.NotNull(motion.GetValue(designer));
+            var tab = Tiles(designer, "gbd-tab").Single(button => AutomationProperties.GetAutomationId(button) == "GlassDesigner_TabGlass");
+            Assert.Equal("Glas", tab.Content);
+        }
+        finally
+        {
+            Flowery.Localization.FloweryLocalization.SetCulture(previous);
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void Without_The_Skia_Renderer_A_Shader_Design_Keeps_Its_Fallback_Background_While_It_Changes()
+    {
+        var previous = DaisyGlassLiveRenderer.Current;
+        var designer = new DaisyGlassButtonDesigner();
+        var window = Show(designer, 1000, 1200);
+        try
+        {
+            DaisyGlassLiveRenderer.Register(null);
+            designer.Design = new DaisyGlassButtonDesign { BackgroundRenderer = DaisyGlassBackgroundRenderer.Shader };
+            var fallback = Assert.IsType<DaisyGlassGradientBackground>(designer.PreviewButton.GlassBackground);
+
+            var design = designer.Design;
+            design.BackgroundSpeed = 2;
+            designer.Design = design;
+            Assert.Same(fallback, designer.PreviewButton.GlassBackground);
+            Assert.Equal(2, fallback.Speed);
+        }
+        finally
+        {
+            DaisyGlassLiveRenderer.Register(previous);
+            window.Close();
+        }
     }
 
     // A background the design cannot describe.
