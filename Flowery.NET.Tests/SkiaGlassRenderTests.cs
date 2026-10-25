@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
@@ -30,16 +30,80 @@ public class SkiaGlassRenderTests
     }
 
     [AvaloniaFact]
-    public void Without_A_Change_The_Backdrop_Is_Measured_Rarely_And_After_A_Change_Soon()
+    public void Without_A_Change_The_Backdrop_Is_Not_Measured_Again_Right_Away()
     {
         var redraw = new SkiaGlassRedraw(new Border()) { MeasureBackdrop = true };
         Assert.True(redraw.TryStartMeasure());
-
-        Thread.Sleep(350);
         Assert.False(redraw.TryStartMeasure());
+    }
 
-        redraw.BackdropChanged();
-        Assert.True(redraw.TryStartMeasure());
+    [AvaloniaFact]
+    public void After_A_Change_The_Backdrop_Is_Measured_After_The_Pause_And_The_Glass_Then_Stops()
+    {
+        var glass = new Border { Width = 50, Height = 20 };
+        var window = new Window { Width = 200, Height = 100, Content = glass };
+        window.Show();
+        try
+        {
+            var redraw = new SkiaGlassRedraw(glass) { MeasureBackdrop = true };
+            Assert.True(redraw.TryStartMeasure());
+            redraw.BackdropChanged();
+
+            // Each frame redraws the glass in full and then renders it, which asks for a measurement.
+            var (measured, lastRedraw) = Run([redraw], 100, _ => redraw.TryStartMeasure() ? redraw.Version : null);
+
+            // Measured after MeasureFrames full redraws, and no redraw after the group stopped.
+            Assert.Equal([SkiaGlassRedraw.MeasureFrames], measured);
+            Assert.Equal(Math.Max(SkiaGlassRedraw.LiveFrames, SkiaGlassRedraw.MeasureFrames), redraw.Version);
+            Assert.InRange(lastRedraw[0], 1, 99);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Measurement_Due_When_The_Change_Ends_Keeps_The_Group_Redrawing_Until_It_Ran()
+    {
+        // The old code redrew such a glass alone from a timer after the group had stopped, which an overlapping
+        // glass saw as a change behind it, so both started redrawing in full again.
+        var first = new Border { Width = 50, Height = 20 };
+        var second = new Border { Width = 50, Height = 20 };
+        var window = new Window { Width = 200, Height = 100, Content = new StackPanel { Children = { first, second } } };
+        window.Show();
+        try
+        {
+            var measuring = new SkiaGlassRedraw(first) { MeasureBackdrop = true };
+            var changed = new SkiaGlassRedraw(second);
+            Assert.True(measuring.TryStartMeasure());
+            changed.BackdropChanged();
+
+            // Shortly before the change ends, the first glass asks again for a measurement, which is too soon.
+            var measuredInFrame = 0;
+            var (measured, lastRedraw) = Run([measuring, changed], 100, frame =>
+            {
+                if (changed.Version == SkiaGlassRedraw.LiveFrames - 2)
+                {
+                    measuring.MeasureBackdrop = false;
+                    measuring.MeasureBackdrop = true;
+                }
+                if (!measuring.MeasureBackdrop || changed.Version < SkiaGlassRedraw.LiveFrames - 2 || !measuring.TryStartMeasure())
+                    return null;
+                measuredInFrame = frame;
+                return measuring.Version;
+            });
+
+            // The first glass joined the group and was measured after MeasureFrames full redraws; the group ran on
+            // until then, past the frames of the change, and both glasses stopped in the frame of the measurement.
+            Assert.Equal([SkiaGlassRedraw.MeasureFrames], measured);
+            Assert.True(changed.Version > SkiaGlassRedraw.LiveFrames, $"The group stopped after {changed.Version} redraws.");
+            Assert.Equal([measuredInFrame, measuredInFrame], lastRedraw);
+        }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [AvaloniaFact]
@@ -70,19 +134,13 @@ public class SkiaGlassRenderTests
             Frame();
             redraws[1].BackdropChanged();
 
-            var lastRedraw = new int[2];
-            for (var frame = 1; frame <= 200; frame++)
-            {
-                var versions = redraws.Select(redraw => redraw.Version).ToArray();
-                Frame();
-                for (var i = 0; i < 2; i++)
-                {
-                    if (redraws[i].Version != versions[i])
-                        lastRedraw[i] = frame;
-                }
-            }
+            var (_, lastRedraw) = Run(redraws, 100, static _ => null);
 
-            Assert.All(lastRedraw, frame => Assert.InRange(frame, 2, 199));
+            // The second change restarted the count for both: the second glass redrew LiveFrames times, the first also
+            // in the frames before, and both stopped in the same frame.
+            Assert.Equal(SkiaGlassRedraw.LiveFrames, redraws[1].Version);
+            Assert.True(redraws[0].Version > redraws[1].Version);
+            Assert.InRange(lastRedraw[0], 1, 99);
             Assert.Equal(lastRedraw[0], lastRedraw[1]);
         }
         finally
@@ -91,11 +149,31 @@ public class SkiaGlassRenderTests
         }
     }
 
-    // One frame of the render timer, about 120 per second.
+    // Runs frames 1 to count. After each frame, render(frame) stands for the render of the glasses and returns a value
+    // when it measured. Returns those values and the last frame in which each glass redrew in full.
+    private static (int[] Measured, int[] LastRedraw) Run(SkiaGlassRedraw[] redraws, int count, Func<int, int?> render)
+    {
+        var measured = new List<int>();
+        var lastRedraw = new int[redraws.Length];
+        for (var frame = 1; frame <= count; frame++)
+        {
+            var versions = redraws.Select(static redraw => redraw.Version).ToArray();
+            Frame();
+            for (var i = 0; i < redraws.Length; i++)
+            {
+                if (redraws[i].Version != versions[i])
+                    lastRedraw[i] = frame;
+            }
+            if (render(frame) is { } measurement)
+                measured.Add(measurement);
+        }
+        return (measured.ToArray(), lastRedraw);
+    }
+
+    // One frame of the render timer. The redraw logic counts frames, not time, so no time has to pass.
     private static void Frame()
     {
         Dispatcher.UIThread.RunJobs();
-        Thread.Sleep(8);
         AvaloniaHeadlessPlatform.ForceRenderTimerTick();
         Dispatcher.UIThread.RunJobs();
     }

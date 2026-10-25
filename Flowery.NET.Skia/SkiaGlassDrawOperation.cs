@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Platform;
@@ -73,7 +73,8 @@ namespace Flowery.Skia
 
         public bool Equals(ICustomDrawOperation? other)
         {
-            // A full redraw must differ from the last operation, or the renderer would keep the old one.
+            // Avalonia does not call Equals to skip a redraw: every InvalidateVisual renders again. Equal operations
+            // only mean that nothing the glass draws has changed.
             return other is SkiaGlassDrawOperation op &&
                    op._redrawVersion == _redrawVersion &&
                    op._bounds == _bounds &&
