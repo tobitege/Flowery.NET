@@ -13,7 +13,7 @@ From back to front: the blurred backdrop, the glass tint, the fill (`GlassFill` 
 
 | Variant | Glass look |
 | ------- | ---------- |
-| Default | Clear glass; hover brightens it. Fills and patterns keep their colors. |
+| Default | Clear glass; hover brightens it in the Default and Soft styles, while Outline and Dash keep the dark hover fill of DaisyButton under their light hover text. Fills and patterns keep their colors. |
 | Primary, Secondary, Accent, Neutral, Info, Success, Warning, Error | The variant color tints the glass at `GlassColorOpacity`; hover uses the DaisyButton hover color. |
 | Ghost | Clear glass with the Ghost hover tint. |
 | Outline / Dash / Soft | The DaisyButton border and colors over the glass. |
@@ -31,9 +31,10 @@ From back to front: the blurred backdrop, the glass tint, the fill (`GlassFill` 
 | `GlassPattern` / `GlassPatternColor` / `GlassPatternOpacity` | `None` / White / 0.4 | Pattern over the fill. |
 | `GlassBackground` / `GlassBackgroundOpacity` | none / 0.6 | Animated background (Plasma, Aurora, Liquid Gold) as gradients or, with Flowery.NET.Skia, shaders; see [DaisyGlass](DaisyGlass.md#animated-backgrounds). |
 | `GlassTextShadowOpacity` | 0.5 | Shadow under text and icons; keeps them readable on any backdrop. |
-| `GlassTextContrast` | `True` | Keeps the text and icons at WCAG contrast over what lies behind the glass: the glass measures its backdrop, and a theme foreground moves toward white or black, keeping its hue, until it has 4.5:1 (3:1 for large text) against the glass over that backdrop. A `Foreground` set on the button is kept. Needs `BitmapCapture` or `SkiaSharp`. |
+| `GlassTextContrast` | `True` | Keeps the text and icons at WCAG contrast over what lies behind the glass: the glass measures its backdrop, and a theme foreground moves toward white or black, keeping its hue, until it has 4.5:1 (3:1 for large text) against the glass over that backdrop. A `Foreground` set on the button is kept. Needs `EnableBackdropBlur=True` and `BitmapCapture` or `SkiaSharp`, and is off with high contrast. The estimate counts the glass tint, fill, animated background, top shine and variant color, with a reserve of 0.25 for the liquid-glass highlights; a translucent text color is checked as it renders. |
 | `EffectiveForeground` (read-only) | | The brush the text and icons are drawn with: `Foreground`, adjusted while `GlassTextContrast` is on. |
-| `GlassSaturation`, `GlassReflectDegree`, `GlassReflectOpacity`, `GlassDepth`, `GlassCurvature`, `GlassBend`, `GlassDispersion` | as DaisyGlass | Saturation and the liquid-glass optics of the SkiaSharp mode. |
+| `GlassReflectOpacity` | 0.15 | Strength of the reflections of the liquid-glass optics. |
+| `GlassSaturation`, `GlassReflectDegree`, `GlassDepth`, `GlassCurvature`, `GlassBend`, `GlassDispersion` | as DaisyGlass | Saturation and the liquid-glass optics of the SkiaSharp mode. |
 
 ## Quick Examples
 

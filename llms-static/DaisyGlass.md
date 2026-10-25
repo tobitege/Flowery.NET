@@ -23,7 +23,7 @@ See [accessibility preferences](DaisyAccessibility.md#system-contrast-and-reduce
 | -------- | ----------- |
 | `EnableBackdropBlur` (bool) | Enables real capture/blur; simulated layers are always rendered. |
 | `BlurMode` | Chooses blur pipeline (Simulated/BitmapCapture/SkiaSharp). |
-| `EffectiveBlurMode` (read-only) | The mode in use: `SkiaSharp` falls back to `BitmapCapture` when Flowery.NET.Skia is not registered. |
+| `EffectiveBlurMode` (read-only) | The mode in use: `SkiaSharp` falls back to `BitmapCapture` when Flowery.NET.Skia is not registered, with a warning in the log once. A glass checks for the renderer when it enters the visual tree; `DaisyGlassLiveRenderer.Register(null)` removes it. |
 | `GlassBlur` | Blur radius/strength. |
 | `GlassOpacity` | Base tint opacity (overlay). |
 | `GlassTint` / `GlassTintOpacity` | Tint color and intensity. |
@@ -44,8 +44,9 @@ See [accessibility preferences](DaisyAccessibility.md#system-contrast-and-reduce
 | `EffectiveGlassFill` (read-only) | The brush in use: `GlassFill`, else the `GlassGradient` preset. |
 | `GlassBackground` | An animated background over the fill and below the pattern: a `DaisyGlassGradientBackground`, or a `DaisyGlassShaderBackground` from Flowery.NET.Skia. |
 | `GlassBackgroundOpacity` | Opacity of the animated background (default 0.6). |
-| `MeasureBackdropColor` (bool) | Measures the average color behind the glass into `BackdropColor` (default off; the glass button and badge turn it on for their text contrast). In `SkiaSharp` mode a measurement reads pixels back from the GPU, at most about three times per second and only while the backdrop changes. |
-| `BackdropColor` (read-only) | The measured average color behind the glass, before blur and tint, in `BitmapCapture` and `SkiaSharp` mode; `null` otherwise. |
+| `MeasureBackdropColor` (bool) | Measures the average color behind the glass into `BackdropColor` (default off; the glass button and badge turn it on for their text contrast). In `SkiaSharp` mode a measurement reads pixels back from the GPU: after a change behind the glass at most about three times per second, otherwise at most once a second while the glass redraws. |
+| `BackdropColor` (read-only) | The measured average color behind the glass, before blur and tint, while `MeasureBackdropColor` and `EnableBackdropBlur` are on in `BitmapCapture` or `SkiaSharp` mode and high contrast is off; `null` otherwise. |
+| `TopShineBrush` / `TopShineHeight` (static) | The white shine that every glass draws at its top (60 high). The glass template draws it, and the text contrast of the glass controls counts it. |
 
 ## Liquid Glass
 
@@ -131,7 +132,7 @@ AppBuilder.Configure<App>()
     .UseFlowerySkia();
 ```
 
-In the Gallery, this cut the CPU use of the Glass Button section with its six animated buttons from about 70 % to about 18 % of one core. The live glass works with either setting.
+In the Gallery, with the default `FrameRate` of 30, turning it on cut the CPU use of the Glass Button section with its six animated buttons from about 70 % to about 18 % of one core. The live glass works with either setting.
 
 ## Quick Examples
 
