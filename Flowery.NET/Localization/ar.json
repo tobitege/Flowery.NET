@@ -159,6 +159,7 @@
   "Scheduler_Settings": "الإعدادات",
   "Scheduler_ShowTiles": "إظهار البطاقات",
   "Scheduler_HideIdleResources": "إخفاء الموارد بلا مواعيد",
+  "Scheduler_ShowWeekends": "إظهار عطلات نهاية الأسبوع",
   "Scheduler_GroupByDay": "تجميع حسب اليوم",
   "Scheduler_TimeScale": "الفاصل الزمني",
   "Scheduler_Previous": "الفترة السابقة",

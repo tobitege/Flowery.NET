@@ -18,6 +18,7 @@ using Avalonia.Threading;
 using Flowery.Controls.Scheduler.Contracts;
 using Flowery.Controls.Scheduler.Models;
 using Flowery.Controls.Scheduler.Rendering;
+using Flowery.Helpers;
 using Flowery.Localization;
 
 namespace Flowery.Controls;
@@ -113,6 +114,17 @@ public partial class DaisyScheduler : TemplatedControl
     {
         get => GetValue(HideIdleResourcesProperty);
         set => SetValue(HideIdleResourcesProperty, value);
+    }
+
+    public static readonly StyledProperty<bool> ShowWeekendsProperty =
+        AvaloniaProperty.Register<DaisyScheduler, bool>(nameof(ShowWeekends), true);
+
+    /// <summary>Whether Month, Week and Planner show Saturday and Sunday (default true). Without them, Month and Week
+    /// show the other five days of each week, and the Planner shows Monday to Friday.</summary>
+    public bool ShowWeekends
+    {
+        get => GetValue(ShowWeekendsProperty);
+        set => SetValue(ShowWeekendsProperty, value);
     }
 
     public static readonly StyledProperty<TimeSpan> WorkDayStartProperty =
@@ -462,17 +474,34 @@ public partial class DaisyScheduler : TemplatedControl
     private static DateTime WeekStart(DateTime date, DayOfWeek firstDay) =>
         date.Date.AddDays(-((7 + (int)date.DayOfWeek - (int)firstDay) % 7));
 
+    private static bool IsWeekend(DateTime date) => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+
+    // Without weekends the Planner shows Monday to Friday as one stretch of time: the five days that share the most
+    // days with the week. For a week that starts on Saturday, Sunday or Monday, these are its own weekdays.
+    private DateTime PlannerStart()
+    {
+        var weekStart = WeekStart(SelectedDate.Date, FirstDayOfWeek);
+        if (ShowWeekends)
+            return weekStart;
+        var monday = (7 + (int)DayOfWeek.Monday - (int)weekStart.DayOfWeek) % 7;
+        return weekStart.AddDays(monday <= 4 ? monday : monday - 7);
+    }
+
     private DateTime[] VisibleDates()
     {
         if (CurrentView is SchedulerView.Day or SchedulerView.Agenda && SelectedDates is { Count: > 0 })
             return SelectedDates.Select(static d => d.Date).Distinct().OrderBy(static d => d).ToArray();
-        var start = CurrentView is SchedulerView.Week or SchedulerView.Planner
-            ? WeekStart(SelectedDate.Date, FirstDayOfWeek) : SelectedDate.Date;
-        var count = CurrentView is SchedulerView.Week or SchedulerView.Planner ? 7 : CurrentView == SchedulerView.Calendar ? 1 : VisibleDays;
+        if (CurrentView == SchedulerView.Planner)
+        {
+            var plannerStart = PlannerStart();
+            return Enumerable.Range(0, ShowWeekends ? 7 : 5).Select(day => plannerStart.AddDays(day)).ToArray();
+        }
+        var start = CurrentView == SchedulerView.Week ? WeekStart(SelectedDate.Date, FirstDayOfWeek) : SelectedDate.Date;
+        var count = CurrentView == SchedulerView.Week ? 7 : CurrentView == SchedulerView.Calendar ? 1 : VisibleDays;
         var dates = new DateTime[count];
         for (var index = 0; index < count; index++)
             dates[index] = start.AddDays(index);
-        return dates;
+        return CurrentView == SchedulerView.Week && !ShowWeekends ? dates.Where(static date => !IsWeekend(date)).ToArray() : dates;
     }
 
     /// <summary>Navigate by the visible date span, week, or month.</summary>
@@ -552,14 +581,24 @@ public partial class DaisyScheduler : TemplatedControl
 
     private void ApplySelection()
     {
+        var content = Brush("DaisyBaseContentBrush");
         foreach (var (frame, appointment) in _frames)
         {
+            if (frame.DataContext is not AppointmentContext context)
+                continue;
             var selected = _selection.Any(item => Same(item, appointment));
-            frame.BorderBrush = Brush(selected ? "DaisyPrimaryBrush" : "DaisyBase300Brush");
-            frame.BorderThickness = new Thickness(selected ? SelectionThickness : LineThickness);
+            // Selection recolors the frame border and tints the background toward the theme text color; the border
+            // keeps its thickness, so the appointment neither moves nor resizes, and no bar color hides the selection.
+            frame.BorderBrush = selected ? content : context.BorderBrush;
+            frame.Background = selected ? SelectedBackground(context.BackBrush, content) : context.BackBrush;
             frame.ZIndex = selected ? 10 : 0;
         }
     }
+
+    private static IBrush SelectedBackground(IBrush background, IBrush content) =>
+        background is ISolidColorBrush back && content is ISolidColorBrush tint
+            ? new SolidColorBrush(FloweryColorHelpers.Blend(back.Color, tint.Color, 0.18))
+            : background;
 
     protected override void OnKeyDown(KeyEventArgs e)
     {

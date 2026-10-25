@@ -138,6 +138,7 @@ Scheduler tooltips use `DaisyBase200Brush`, `DaisyBaseContentBrush`, and a borde
 | `CollapsedResourceGroupIds` | Bindable list of collapsed group IDs |
 | `GroupMode` | Group resource columns or lanes by resource or day |
 | `HideIdleResources` | Hide resources without appointments in the visible range |
+| `ShowWeekends` | Show Saturday and Sunday in Month, Week and Planner (default `true`). Without them, Month and Week show the other five days of each week, and the Planner shows Monday to Friday. Also in the settings menu. |
 | `TimeIncrement` | Grid scale and gesture snapping |
 | `TimeSlotStart`, `TimeSlotEnd`, `TimeSlotInterval` | Time choices for host editors. Default: 07:00 through 17:00, every 30 minutes |
 | `DateTimeFormat` | Locale, US, UK, or European date/time convention, independent of the UI language |

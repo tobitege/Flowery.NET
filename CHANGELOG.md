@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gallery: a Glass Controls section combines a glass navbar over scrolling content, a sign-in card with glass inputs, badges and buttons, and a glass dialog.
 - Gallery: a Glass Button section shows the variants, styles, sizes, blur modes, gradients, patterns and a custom fill over a backdrop with a moving disc, which can be stopped and rests while its section is out of view or its page is hidden.
 - Release: the Gallery and Photos releases add Windows ARM64, Linux ARM64 and macOS x64 archives, such as `Flowery.Gallery-Windows-arm64.zip` and `Flowery.Photos-macOS-x64.tar.gz`, cross-published on the existing Windows, Linux and macOS runners. The Gallery releases also contain the Browser (WebAssembly) Gallery as `Flowery.Gallery-Browser.zip`, a static site to serve with any web server. CI on pull requests builds the Gallery and checks the Photos package for the three new runtimes, and builds the Android Gallery for `android-arm64`.
+- `DaisyScheduler`: `ShowWeekends` (default `true`) hides Saturday and Sunday in Month, Week and Planner, also from the settings menu. Month and Week show the other five days of each week; the Planner shows Monday to Friday, which for a week that starts on another day than Saturday, Sunday or Monday are the five weekdays that share the most days with that week.
 
 ### Fixed
 
@@ -30,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gallery (desktop): the window keeps its saved size. It opens on the primary monitor and moves to its saved position; on a monitor with another scale that move rounded the size down by 2, so the window shrank with every start. The saved size is applied again once the window is open.
 - Glass: a `DaisyGlass` without a fixed size in `BitmapCapture` mode keeps its size. The captured backdrop reaches up to 20 past each edge and was part of the measure, so every capture widened the glass until it filled its background container.
 - Docs: the documentation site deploys again on every push to `avalonia12`, the default branch. It deployed only from `main`, which has not changed since March, so the site lacked the controls and changes since then, such as `DaisyScheduler`.
+- `DaisyScheduler`: single-line appointment chips (Month and Agenda) show the start as `AppointmentContext.CompactStart`, so a 12-hour clock reads "7a" or "12:30p" instead of "7:00 AM"; a 24-hour clock still reads "07:00". The default chip did not use the property that exists for this purpose.
+- `DaisyScheduler`: selecting an appointment no longer shifts the layout, and the selection stands out. The selection changed the frame border from 1 to 2 pixels in the primary color, which resized Month chips, moved the content of every appointment and looked like the primary color bar of most appointments. The frame border now keeps its thickness and takes the theme text color, and the background is tinted toward that color.
+- `DaisyScheduler`: the color bar of an appointment follows the rounded corners of its frame. It was a square strip inside the frame and covered the rounded border on the left.
 
 ### Changed
 

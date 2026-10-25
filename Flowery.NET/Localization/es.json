@@ -157,6 +157,7 @@
   "Scheduler_Settings": "Configuración",
   "Scheduler_ShowTiles": "Mostrar etiquetas",
   "Scheduler_HideIdleResources": "Ocultar recursos sin citas",
+  "Scheduler_ShowWeekends": "Mostrar fines de semana",
   "Scheduler_GroupByDay": "Agrupar por día",
   "Scheduler_TimeScale": "Intervalo de tiempo",
   "Scheduler_Previous": "Período anterior",

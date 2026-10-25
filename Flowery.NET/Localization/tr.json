@@ -157,6 +157,7 @@
   "Scheduler_Settings": "Ayarlar",
   "Scheduler_ShowTiles": "Etiketleri göster",
   "Scheduler_HideIdleResources": "Randevusu olmayan kaynakları gizle",
+  "Scheduler_ShowWeekends": "Hafta sonlarını göster",
   "Scheduler_GroupByDay": "Güne göre grupla",
   "Scheduler_TimeScale": "Zaman aralığı",
   "Scheduler_Previous": "Önceki dönem",
