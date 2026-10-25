@@ -88,7 +88,7 @@ public partial class DaisyScheduler
             }
         }
         else if (!context.IsAllDay)
-            title.Text = context.StartTime + "  " + context.Subject;
+            title.Text = context.CompactStart + "  " + context.Subject;
         Grid.SetColumn(text, 2);
         Grid.SetRow(text, 1);
         main.Children.Add(text);

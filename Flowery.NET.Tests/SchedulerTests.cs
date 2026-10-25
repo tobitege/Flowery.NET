@@ -122,6 +122,18 @@ public sealed partial class SchedulerTests
         Assert.Equal(0, writes);
     }
 
+    [AvaloniaTheory]
+    [InlineData(SchedulerClockFormat.TwelveHour, "9a  Install")]
+    [InlineData(SchedulerClockFormat.TwentyFourHour, "09:00  Install")]
+    public void SingleLineChipShowsTheCompactStart(SchedulerClockFormat clock, string expected)
+    {
+        using var scope = new SchedulerScope(SchedulerView.Month);
+        scope.Scheduler.ClockFormat = clock;
+        scope.Layout();
+        var texts = scope.Frame(scope.Appointment).GetVisualDescendants().OfType<TextBlock>().Select(static text => text.Text);
+        Assert.Contains(expected, texts);
+    }
+
     [AvaloniaFact]
     public void LockedAppointmentCannotBeSelectedOrDeletedButAllowsContextRequest()
     {

@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gallery (desktop): the window keeps its saved size. It opens on the primary monitor and moves to its saved position; on a monitor with another scale that move rounded the size down by 2, so the window shrank with every start. The saved size is applied again once the window is open.
 - Glass: a `DaisyGlass` without a fixed size in `BitmapCapture` mode keeps its size. The captured backdrop reaches up to 20 past each edge and was part of the measure, so every capture widened the glass until it filled its background container.
 - Docs: the documentation site deploys again on every push to `avalonia12`, the default branch. It deployed only from `main`, which has not changed since March, so the site lacked the controls and changes since then, such as `DaisyScheduler`.
+- `DaisyScheduler`: single-line appointment chips (Month and Agenda) show the start as `AppointmentContext.CompactStart`, so a 12-hour clock reads "7a" or "12:30p" instead of "7:00 AM"; a 24-hour clock still reads "07:00". The default chip did not use the property that exists for this purpose.
 
 ### Changed
 
