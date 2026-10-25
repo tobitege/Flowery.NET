@@ -375,21 +375,34 @@ public class Given_GlassBackdrop
         var glass = Glass(button);
         await WaitForBackdropAsync(glass, Colors.White);
         Assert.True(IsNear(glass.BackdropColor, Colors.White), $"The glass measured {glass.BackdropColor} over the white block.");
-        for (var frame = 0; frame < 10; frame++)
+        // Quiet first: no redraws of its own for 10 waits in a row.
+        var log = new List<string>();
+        var quiet = 0;
+        for (var frame = 0; frame < 120 && quiet < 10; frame++)
+        {
+            var version = RedrawVersion(button);
             await RuntimeTestHelpers.WaitForRenderAsync();
+            quiet = RedrawVersion(button) == version ? quiet + 1 : 0;
+        }
 
         var before = RedrawVersion(button);
         var moved = System.Diagnostics.Stopwatch.StartNew();
         Canvas.SetLeft(block, 480);
-        await WaitForBackdropAsync(glass, Colors.Blue);
+        while (!IsNear(glass.BackdropColor, Colors.Blue) && moved.ElapsedMilliseconds < 3000)
+        {
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            log.Add($"{moved.ElapsedMilliseconds} ms: version {RedrawVersion(button) - before}, backdrop {glass.BackdropColor}");
+        }
         var measuredAfter = moved.ElapsedMilliseconds;
         for (var frame = 0; frame < 10; frame++)
             await RuntimeTestHelpers.WaitForRenderAsync();
 
+        var redraws = RedrawVersion(button) - before;
         Assert.True(IsNear(glass.BackdropColor, Colors.Blue),
-            $"The glass measured {glass.BackdropColor} {measuredAfter} ms after the block moved away, " +
-            $"with {RedrawVersion(button) - before} full redraws of its own.");
-        Assert.InRange(RedrawVersion(button) - before, 0, 3);
+            $"The glass measured {glass.BackdropColor} {measuredAfter} ms after the block moved away, with {redraws} full " +
+            "redraws of its own.\n" + string.Join("\n", log));
+        // A frame or two of its own, never a run of full redraws, which lasts 18 frames.
+        Assert.True(redraws < 9, $"{redraws} full redraws.\n" + string.Join("\n", log));
     }
 
     private static string Snapshot(string step, DaisyGlassButton button, DaisyGlassBadge badge) =>

@@ -43,6 +43,7 @@ namespace Flowery.Skia
         {
             var redraw = _redraws.GetValue(glass, static owner => new SkiaGlassRedraw(owner));
             redraw.MeasureBackdrop = glass.MeasureBackdropColor;
+            redraw.Register();
             context.Custom(new SkiaGlassDrawOperation(
                 redraw,
                 new Rect(0, 0, glass.Bounds.Width, glass.Bounds.Height),

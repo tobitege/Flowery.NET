@@ -352,12 +352,14 @@ namespace Flowery.Skia
                 _probe ??= new SKRectI[_cells.Length];
             }
             _redrawsAll = first || CoversSeen(canvas, rect, _seen!.Value, _cells, _probe);
-            if (!_redrawsAll)
-                _redraw.BackdropChanged();
-            // A later render of all of the glass is no redraw of its own, which renders a new operation: a layout pass of
+            // A redraw of the group renders a new operation with a new version. Any other render of all of the glass,
+            // such as a later one of the same operation or one for a new size, is no redraw of its own: a layout pass of
             // an ancestor, a layer of the glass or something over all of it repainted it, and the backdrop may have
             // changed.
-            else if (!first)
+            var ownRedraw = first && _redraw.IsNewRedraw(_redrawVersion);
+            if (!_redrawsAll)
+                _redraw.BackdropChanged();
+            else if (!ownRedraw)
                 _redraw.BackdropRepainted();
 
             var margin = (int)Math.Ceiling(_blurSigma * 3) + 1;
