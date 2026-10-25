@@ -28,8 +28,8 @@ public partial class DaisyScheduler
 
     /// <summary>
     /// Shows only these resources, by <see cref="ResourceModel.Id"/>: the appointments assigned to at least one of them,
-    /// and in Planner and Timeline only their lanes. Appointments without a resource are hidden while it is set. Null or
-    /// empty shows everything.
+    /// their columns in Day and Week, and their lanes in Planner and Timeline. Appointments without a resource are hidden
+    /// while it is set. Null or empty shows everything.
     /// </summary>
     public IReadOnlyList<object>? VisibleResourceIds
     {

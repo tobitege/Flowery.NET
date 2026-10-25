@@ -157,7 +157,11 @@ public class DaisySchedulerToolbar : UserControl
         today.Padding = new Thickness(Math.Round(_height * 0.4), 0);
         today.Click += (_, _) => scheduler.GoToToday();
 
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = scheduler.SpacingXS, VerticalAlignment = VerticalAlignment.Center };
+        var left = new WrapPanel
+        {
+            Orientation = Orientation.Horizontal, ItemSpacing = scheduler.SpacingXS, LineSpacing = scheduler.SpacingXS,
+            VerticalAlignment = VerticalAlignment.Center
+        };
         left.Children.Add(date);
         left.Children.Add(previous);
         left.Children.Add(next);
@@ -174,10 +178,7 @@ public class DaisySchedulerToolbar : UserControl
             Children = { _hostButtons, settings }
         };
 
-        var top = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-        top.Children.Add(left);
-        Grid.SetColumn(right, 1);
-        top.Children.Add(right);
+        var top = new EndsPanel(scheduler.SpacingXS) { Children = { left, right } };
 
         _segments.Clear();
         var segments = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2 };
@@ -310,4 +311,40 @@ public class DaisySchedulerToolbar : UserControl
         SchedulerView.Timeline => TimelineIcon,
         _ => CalendarIcon
     };
+
+    // The first row: the start on the left and the end on the right, at least the spacing apart, or the end
+    // right-aligned below the start where both do not fit side by side.
+    private sealed class EndsPanel(double spacing) : Panel
+    {
+        private bool SideBySide(double width) =>
+            Children[0].DesiredSize.Width + spacing + Children[1].DesiredSize.Width <= width;
+
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            var (start, end) = (Children[0], Children[1]);
+            start.Measure(availableSize);
+            end.Measure(availableSize);
+            return SideBySide(availableSize.Width)
+                ? new Size(start.DesiredSize.Width + spacing + end.DesiredSize.Width, Math.Max(start.DesiredSize.Height, end.DesiredSize.Height))
+                : new Size(Math.Max(start.DesiredSize.Width, end.DesiredSize.Width),
+                    start.DesiredSize.Height + spacing + end.DesiredSize.Height);
+        }
+
+        protected override Size ArrangeOverride(Size finalSize)
+        {
+            var (start, end) = (Children[0], Children[1]);
+            var endLeft = Math.Max(0, finalSize.Width - end.DesiredSize.Width);
+            if (SideBySide(finalSize.Width))
+            {
+                start.Arrange(new Rect(0, 0, start.DesiredSize.Width, finalSize.Height));
+                end.Arrange(new Rect(endLeft, 0, end.DesiredSize.Width, finalSize.Height));
+            }
+            else
+            {
+                start.Arrange(new Rect(0, 0, start.DesiredSize.Width, start.DesiredSize.Height));
+                end.Arrange(new Rect(endLeft, start.DesiredSize.Height + spacing, end.DesiredSize.Width, end.DesiredSize.Height));
+            }
+            return finalSize;
+        }
+    }
 }

@@ -1,19 +1,19 @@
 ﻿using System.Globalization;
 using System.Reflection;
-using Avalonia.Controls.Primitives;
+using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Headless.XUnit;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
+using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Avalonia;
+using Flowery.Controls;
 using Flowery.Controls.Scheduler.Models;
 using Flowery.Controls.Scheduler.Rendering;
-using Flowery.Controls;
 using Flowery.Localization;
 using Xunit;
 
@@ -254,8 +254,10 @@ public sealed partial class SchedulerTests
         Assert.InRange(frame.Bounds.Width + 2 - lane.Bounds.Width / hours, -1, 1);
 
     [AvaloniaFact]
-    public void ShortBarsPackedAtTheMinimumHourWidthNeverOverlapWhenHoursWiden()
+    public void ShortBarsWidenedToTheirStartTimeNeverOverlapAtAnyHourWidth()
     {
+        // Four ten-minute appointments two minutes apart: each bar is wider than its duration, so the bars stay apart
+        // only because every appointment has a row of its own.
         using var scope = new SchedulerScope(SchedulerView.Timeline);
         var appointments = Enumerable.Range(0, 4).Select(index => new AppointmentModel
         {
@@ -289,7 +291,7 @@ public sealed partial class SchedulerTests
 
         // A long bar is as long as its appointment, less the gap between bars; layout rounds it to whole pixels.
         Assert.InRange(scope.Frame(twoHours).Bounds.Width - (120 * perMinute - 2), -1, 1);
-        // A short bar is only as wide as its whole start time needs, not as wide as the span used to pack the rows.
+        // A short bar is only as wide as its whole start time needs, far less than an hour.
         var shortFrame = scope.Frame(tenMinutes);
         var start = Text(shortFrame, Assert.IsType<AppointmentContext>(shortFrame.DataContext).CompactStart);
         Assert.True(shortFrame.Bounds.Width < 60 * perMinute, $"short bar {shortFrame.Bounds.Width}, hour {60 * perMinute}");
@@ -395,6 +397,216 @@ public sealed partial class SchedulerTests
             .Single(button => Equals(button.Content, Monday.AddDays(day).Day.ToString(CultureInfo.CurrentCulture)));
         Assert.Equal(DaisyButtonStyle.Default, Day(0).ButtonStyle);
         Assert.Equal(DaisyButtonStyle.Soft, Day(1).ButtonStyle);
+    }
+
+    [AvaloniaTheory]
+    [InlineData("en", SchedulerView.Month, 0, "October", "2026")]
+    [InlineData("en", SchedulerView.Week, 0, "Oct 12 – Oct 18", "2026")]
+    [InlineData("en", SchedulerView.Week, 79, "Dec 28 – Jan 3", "2026 – 2027")]
+    [InlineData("ja", SchedulerView.Month, 0, "2026年10月", "")]
+    [InlineData("ja", SchedulerView.Week, 0, "2026年10月12日 – 10月18日", "")]
+    [InlineData("ja", SchedulerView.Week, 79, "2026年12月28日 – 2027年1月3日", "")]
+    public void TheToolbarTitleFollowsTheCultureOrderOfYearMonthAndDay(string language, SchedulerView view, int days, string primary, string secondary)
+    {
+        var previous = FloweryLocalization.CurrentCulture;
+        try
+        {
+            FloweryLocalization.SetCulture(language);
+            using var scope = new SchedulerScope(view);
+            scope.Scheduler.FirstDayOfWeek = DayOfWeek.Monday;
+            scope.Scheduler.SelectedDate = new DateTimeOffset(Monday.AddDays(days));
+            scope.Layout();
+            var texts = ToolbarButton(scope.Scheduler.GetVisualDescendants().OfType<DaisySchedulerToolbar>().Single(), "Date")
+                .GetVisualDescendants().OfType<TextBlock>().ToArray();
+
+            Assert.Equal(primary, texts[0].Text);
+            Assert.Equal(secondary, texts[1].Text);
+        }
+        finally
+        {
+            FloweryLocalization.SetCulture(previous);
+        }
+    }
+
+    [AvaloniaTheory]
+    // Persian writes the year first but the day before the month, and its year begins at Nowruz, on 21 March 2026.
+    [InlineData("fa-IR", false, -210, "1404 – 1405")]
+    // Saudi Arabic with the Gregorian calendar for formatting, where the default Hijri year changes in June.
+    [InlineData("ar-SA", true, 79, "2026 – 2027")]
+    [InlineData("ar-SA", true, -119, "2026")]
+    public void TheToolbarTitleCountsYearsInTheCalendarItFormatsWith(string name, bool gregorian, int days, string years)
+    {
+        var previous = FloweryLocalization.CurrentCulture;
+        try
+        {
+            var culture = new CultureInfo(name);
+            if (gregorian)
+                culture.DateTimeFormat.Calendar = new GregorianCalendar();
+            FloweryLocalization.SetCulture(culture);
+            using var scope = new SchedulerScope(SchedulerView.Week);
+            scope.Scheduler.FirstDayOfWeek = DayOfWeek.Monday;
+            scope.Scheduler.SelectedDate = new DateTimeOffset(Monday.AddDays(days));
+            scope.Layout();
+            var texts = ToolbarButton(scope.Scheduler.GetVisualDescendants().OfType<DaisySchedulerToolbar>().Single(), "Date")
+                .GetVisualDescendants().OfType<TextBlock>().ToArray();
+
+            Assert.DoesNotContain(years[..4], texts[0].Text);
+            Assert.Equal(years, texts[1].Text);
+        }
+        finally
+        {
+            FloweryLocalization.SetCulture(previous);
+        }
+    }
+
+    [AvaloniaTheory]
+    [InlineData(1100, false)]
+    [InlineData(420, true)]
+    public void TheToolbarMovesItsButtonsBelowTheTitleOnlyWhereTheyDoNotFitBesideIt(double width, bool below)
+    {
+        using var scope = new SchedulerScope(SchedulerView.Week);
+        scope.Scheduler.ToolbarButtons.Add(new SchedulerToolbarButton { Id = "new", Label = "New", IconData = SchedulerToolbarIcons.Add });
+        scope.Scheduler.ToolbarButtons.Add(new SchedulerToolbarButton { Id = "print", Label = "Print", IconData = SchedulerToolbarIcons.Add });
+        scope.Window.Width = width;
+        scope.Layout();
+        var toolbar = scope.Scheduler.GetVisualDescendants().OfType<DaisySchedulerToolbar>().Single();
+        var buttons = new List<(string? Name, Rect Bounds)>();
+        foreach (var button in toolbar.GetVisualDescendants().OfType<Button>().Where(static button => button.IsEffectivelyVisible))
+            buttons.Add((button.Tag?.ToString(), new Rect(button.TranslatePoint(default, toolbar)!.Value, button.Bounds.Size)));
+
+        foreach (var (name, bounds) in buttons)
+            Assert.True(bounds.X >= -0.5 && bounds.Right <= toolbar.Bounds.Width + 0.5, $"{name} at {bounds} outside {toolbar.Bounds.Width}");
+        for (var a = 0; a < buttons.Count; a++)
+            for (var b = a + 1; b < buttons.Count; b++)
+                Assert.False(buttons[a].Bounds.Intersects(buttons[b].Bounds), $"{buttons[a].Name} {buttons[a].Bounds} overlaps {buttons[b].Name} {buttons[b].Bounds}");
+        var settings = buttons.Single(static button => button.Name == "Settings").Bounds;
+        var date = buttons.Single(static button => button.Name == "Date").Bounds;
+        Assert.True(below == settings.Y >= date.Bottom, $"Settings at {settings}, date at {date}, expected below the title: {below}");
+    }
+
+    [AvaloniaFact]
+    public void TheGhostOfAMovedShortBarShowsItsWholeTimes()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Timeline);
+        var tenMinutes = new AppointmentModel { Id = 2, Subject = "Short", Start = Monday.AddHours(9), End = Monday.AddHours(9).AddMinutes(10), ResourceIds = { 1 } };
+        scope.Scheduler.Appointments = new[] { tenMinutes };
+        scope.Window.Width = 500;
+        scope.Layout();
+        var frame = scope.Frame(tenMinutes);
+        frame.BringIntoView();
+        scope.Layout();
+        var origin = scope.Point(frame, frame.Bounds.Width / 2, frame.Bounds.Height / 2);
+        var lane = Assert.IsAssignableFrom<Canvas>(frame.Parent);
+        try
+        {
+            scope.Window.MouseDown(origin, MouseButton.Left);
+            scope.Window.MouseMove(origin + new Point(40, 0));
+            scope.Layout();
+            var ghost = lane.Children.OfType<Border>().Single(static child => child.ZIndex == 100);
+            var times = Assert.IsType<TextBlock>(ghost.Child);
+
+            Assert.True(ghost.Bounds.Width >= frame.Bounds.Width - 0.5, $"ghost {ghost.Bounds.Width}, bar {frame.Bounds.Width}");
+            AssertNotTrimmed(times);
+        }
+        finally
+        {
+            scope.Window.MouseUp(origin + new Point(40, 0), MouseButton.Left);
+        }
+    }
+
+    [AvaloniaFact]
+    public void TheGhostOfABarOverTheEndOfTheDayStaysAtItsTimeAndOnItsRow()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Timeline);
+        var morning = new AppointmentModel { Id = 2, Subject = "Morning", Start = Monday.AddHours(9), End = Monday.AddHours(10), ResourceIds = { 1 } };
+        var overnight = new AppointmentModel { Id = 3, Subject = "Night", Start = Monday.AddHours(20), End = Monday.AddHours(28), ResourceIds = { 1 } };
+        scope.Scheduler.Appointments = new[] { morning, overnight };
+        scope.Window.Width = 500;
+        scope.Layout();
+        var frame = scope.Frame(overnight);
+        frame.BringIntoView();
+        scope.Layout();
+        var origin = scope.Point(frame, 30, frame.Bounds.Height / 2);
+        var lane = Assert.IsAssignableFrom<Canvas>(frame.Parent);
+        try
+        {
+            scope.Window.MouseDown(origin, MouseButton.Left);
+            scope.Window.MouseMove(origin + new Point(40, 0));
+            scope.Layout();
+            var ghost = lane.Children.OfType<Border>().Single(static child => child.ZIndex == 100);
+
+            // Moved later, the ghost starts after the bar, still reaches the end of the shown day and lies on the bar's row.
+            Assert.True(ghost.Bounds.X > frame.Bounds.X, $"ghost at {ghost.Bounds.X}, bar at {frame.Bounds.X}");
+            Assert.InRange(ghost.Bounds.Right, lane.Bounds.Width - 1, lane.Bounds.Width + 0.5);
+            Assert.InRange(ghost.Bounds.Y, frame.Bounds.Y - 0.5, frame.Bounds.Y + 0.5);
+        }
+        finally
+        {
+            scope.Window.MouseUp(origin + new Point(40, 0), MouseButton.Left);
+        }
+    }
+
+    [AvaloniaFact]
+    public void TheGhostOfABarMovedIntoAnotherLaneLiesOnTheRowUnderThePointer()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Timeline);
+        scope.Scheduler.SchedulerResources = new[] { new ResourceModel { Id = 1, Name = "Alex" }, new ResourceModel { Id = 2, Name = "Blair" } };
+        var others = Enumerable.Range(0, 3).Select(static index => new AppointmentModel
+        {
+            Id = 10 + index, Subject = "Other " + index, Start = Monday.AddHours(9 + index), End = Monday.AddHours(10 + index), ResourceIds = { 2 }
+        }).ToArray();
+        scope.Scheduler.Appointments = new[] { scope.Appointment }.Concat(others).ToArray();
+        scope.Layout();
+        var frame = scope.Frame(scope.Appointment);
+        frame.BringIntoView();
+        scope.Layout();
+        var third = scope.Frame(others[2]);
+        var target = Assert.IsAssignableFrom<Canvas>(third.Parent);
+        var origin = scope.Point(frame, frame.Bounds.Width / 2, frame.Bounds.Height / 2);
+        var destination = scope.Point(target, frame.Bounds.X + frame.Bounds.Width / 2, third.Bounds.Y + third.Bounds.Height / 2);
+        try
+        {
+            scope.Window.MouseDown(origin, MouseButton.Left);
+            scope.Window.MouseMove(destination);
+            scope.Layout();
+            var ghost = target.Children.OfType<Border>().Single(static child => child.ZIndex == 100);
+
+            Assert.InRange(ghost.Bounds.Y, third.Bounds.Y - 0.5, third.Bounds.Y + 0.5);
+        }
+        finally
+        {
+            scope.Window.MouseUp(destination, MouseButton.Left);
+        }
+    }
+
+    [AvaloniaFact]
+    public void TheGhostOfAResizedBarStaysOnItsRowWhenThePointerDriftsToAnother()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Timeline);
+        var second = new AppointmentModel { Id = 2, Subject = "Second", Start = Monday.AddHours(11), End = Monday.AddHours(12), ResourceIds = { 1 } };
+        scope.Scheduler.Appointments = new[] { scope.Appointment, second };
+        scope.Scheduler.SelectedAppointment = scope.Appointment;
+        scope.Layout();
+        var frame = scope.Frame(scope.Appointment);
+        frame.BringIntoView();
+        scope.Layout();
+        var lane = Assert.IsAssignableFrom<Canvas>(frame.Parent);
+        var origin = scope.Point(frame, frame.Bounds.Width - 2, frame.Bounds.Height / 2);
+        var destination = origin + new Point(40, scope.Frame(second).Bounds.Y - frame.Bounds.Y);
+        try
+        {
+            scope.Window.MouseDown(origin, MouseButton.Left);
+            scope.Window.MouseMove(destination);
+            scope.Layout();
+            var ghost = lane.Children.OfType<Border>().Single(static child => child.ZIndex == 100);
+
+            // Resizing never changes the row, so the ghost stays on the bar's row.
+            Assert.InRange(ghost.Bounds.Y, frame.Bounds.Y - 0.5, frame.Bounds.Y + 0.5);
+        }
+        finally
+        {
+            scope.Window.MouseUp(destination, MouseButton.Left);
+        }
     }
 
     private static string Title(DaisySchedulerToolbar toolbar) =>

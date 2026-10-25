@@ -329,6 +329,9 @@ public partial class DaisyScheduler : TemplatedControl
         ToolbarButtons.CollectionChanged += (_, _) => RequestRender();
         ToolbarAdornments.CollectionChanged += (_, _) => RequestRender();
         Focusable = true;
+        AddHandler(PointerReleasedEvent, OnPendingTapReleased, handledEventsToo: true);
+        AddHandler(ScrollGestureInertiaStartingEvent, OnScrollFlingStarting, handledEventsToo: true);
+        AddHandler(ScrollGestureEndedEvent, OnScrollGestureEnded, handledEventsToo: true);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)

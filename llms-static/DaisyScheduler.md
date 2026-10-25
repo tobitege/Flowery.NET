@@ -83,6 +83,10 @@ Click an appointment to select it.
 Use Ctrl-click or Cmd-click to select multiple appointments.
 Double-click an appointment to request an edit.
 Drag a selected appointment edge to change its duration.
+On touch or pen, tap an appointment to select it and drag a selected one to move or resize it.
+On touch or pen, any other swipe scrolls the view; a tap on a free slot selects it, and a double tap asks to create one.
+On touch or pen, the resize edges are up to 12 DIP wide, at most a quarter of the appointment each (5 DIP with a mouse).
+A tap that stops a scrolling view selects nothing.
 Press Delete to request removal of the selection.
 Press Escape to cancel a drag or clear the selection.
 
@@ -109,7 +113,7 @@ Scheduler widths and time-axis metrics use the `DaisyScheduler*` tokens in `Them
 Hosts can override these resources. `ColumnMinWidth` and `AppointmentCornerRadius` override their token defaults when set.
 Day and Week columns reserve space for complete time ranges, status icons, and overlapping appointments.
 Short appointments give priority to the subject and time. Optional notes and tiles appear only when complete rows fit.
-Single-line chips and bars (Month, Agenda, Planner, Timeline) always show the whole start time. A Planner or Timeline bar is at least as wide as its start time, however short the appointment, and rows are packed for that width. Status icons and side tiles appear only when they fit beside it; the subject takes the rest and is hidden when not even two characters and an ellipsis fit.
+Single-line chips and bars (Month, Agenda, Planner, Timeline) always show the whole start time. A Planner or Timeline bar is at least as wide as its start time, however short the appointment; every appointment has a row of its own, so a widened bar does not overlap another. Status icons and side tiles appear only when they fit beside it; the subject takes the rest and is hidden when not even two characters and an ellipsis fit.
 Planner and Timeline hours are at least as wide as their header label and a one-hour bar with its whole start time, for the current size, font, culture and clock format, and widen to fill the visible width. `DaisySchedulerTimelineMinimumHourWidth` (default 0) can only raise that minimum for the Timeline.
 Window resizing keeps the existing appointment controls, selection, and scroll position; Planner and Timeline hours rescale in place.
 
@@ -136,7 +140,7 @@ Scheduler tooltips use `DaisyBase200Brush`, `DaisyBaseContentBrush`, and a borde
 | `FirstDayOfWeek` | Week start for Week, Month, Planner, and occupancy queries |
 | `WeekRule` | Rule for week 1 in occupancy queries. Default: `FirstFourDayWeek` |
 | `ResourceKindFilter` | Optional kind filter for resource lanes |
-| `VisibleResourceIds` | Show only these resources by `ResourceModel.Id`: their appointments, and in Planner and Timeline their lanes. Appointments without a resource are hidden while it is set. Null or empty shows everything |
+| `VisibleResourceIds` | Show only these resources by `ResourceModel.Id`: their appointments, their columns in Day and Week, and their lanes in Planner and Timeline. Appointments without a resource are hidden while it is set. Null or empty shows everything |
 | `ResourceGroups` | Named groups for the horizontal Timeline day view |
 | `CollapsedResourceGroupIds` | Bindable list of collapsed group IDs |
 | `GroupMode` | Group resource columns or lanes by resource or day |
@@ -305,7 +309,11 @@ A null renderer result uses the template or default content.
 The toolbar is its own control, `DaisySchedulerToolbar`. The first row holds the date range as a title, which opens a date
 picker, previous and next, Today, the host buttons and the settings; the second row holds the views as icon segments with
 tooltips. Heights, icons and the title follow the `Size` of the scheduler through the design tokens
-(`DaisySize{Size}Height`, `DaisySize{Size}HeaderFontSize` and `DaisySchedulerToolbarIconSize`).
+(`DaisySize{Size}Height`, `DaisySize{Size}HeaderFontSize` and `DaisySchedulerToolbarIconSize`). The title writes month
+and day in the order of the culture and counts years in its calendar. A culture that writes the year first keeps it first
+for a month, and for days only where it also writes the month before the day, such as Japanese; otherwise the year follows
+the days. Where the first row is too narrow, it wraps: the host buttons and the settings move right-aligned below the date
+and the navigation, which wrap as well where needed.
 
 To place the toolbar elsewhere, such as in a title bar, hide the built-in one and point another at the scheduler:
 

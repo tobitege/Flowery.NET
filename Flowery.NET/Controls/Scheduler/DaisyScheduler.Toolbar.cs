@@ -26,24 +26,38 @@ public partial class DaisyScheduler
     private void UpdateToolbar() => ToolbarChanged?.Invoke(this, EventArgs.Empty);
 
     /// <summary>The title of the shown dates: the emphasized part, such as the month, and the rest, such as the year.</summary>
-    // The month leads in bold and the year follows muted, where the culture writes the month first; a culture that writes
-    // the year first (such as Japanese or Chinese) keeps its own order in one text. A single day keeps the culture's long
-    // date with its weekday.
+    // The month or the days lead in bold and the year follows muted. A culture that writes the year first keeps it first
+    // in one text: for the month, and for days where it also writes the month before the day (such as Japanese or
+    // Chinese). Days are written in the culture's order of month and day, with the month abbreviated. A single day
+    // keeps the culture's long date with its weekday.
     internal (string Primary, string Secondary) ToolbarTitle()
     {
+        var format = Culture.DateTimeFormat;
+        var yearMonth = format.YearMonthPattern;
+        var yearFirst = yearMonth.IndexOf('y') < yearMonth.IndexOf('M');
         if (CurrentView == SchedulerView.Month)
-        {
-            var pattern = Culture.DateTimeFormat.YearMonthPattern;
-            return pattern.IndexOf('M') < pattern.IndexOf('y')
-                ? (SelectedDate.ToString("MMMM", Culture), SelectedDate.ToString("yyyy", Culture))
-                : (SelectedDate.ToString(pattern, Culture), string.Empty);
-        }
+            return yearFirst
+                ? (SelectedDate.ToString(yearMonth, Culture), string.Empty)
+                : (SelectedDate.ToString("MMMM", Culture), SelectedDate.ToString("yyyy", Culture));
         var dates = VisibleDates();
+        var (first, last) = (dates[0], dates[^1]);
         if (dates.Length == 1)
-            return (dates[0].ToString("D", Culture), string.Empty);
-        return dates[0].Year == dates[^1].Year
-            ? (dates[0].ToString("d MMM", Culture) + " – " + dates[^1].ToString("d MMM", Culture), dates[^1].ToString("yyyy", Culture))
-            : (dates[0].ToString("d MMM yyyy", Culture) + " – " + dates[^1].ToString("d MMM yyyy", Culture), string.Empty);
+            return (first.ToString("D", Culture), string.Empty);
+        var monthDay = format.MonthDayPattern.Replace("MMMM", "MMM");
+        // Years as the culture's calendar counts them, which need not change on 1 January.
+        var sameYear = format.Calendar.GetYear(first) == format.Calendar.GetYear(last);
+        // Only a culture that writes year, month and day in this order gets the year before the days; one that writes the
+        // year first but the day before the month (such as Persian) keeps the year after them.
+        if (yearFirst && monthDay.StartsWith('M'))
+        {
+            // The year as the culture writes it before the month, such as "yyyy年".
+            var withYear = yearMonth[..yearMonth.IndexOf('M')] + monthDay;
+            return (first.ToString(withYear, Culture) + " – " + last.ToString(sameYear ? monthDay : withYear, Culture), string.Empty);
+        }
+        var years = sameYear
+            ? last.ToString("yyyy", Culture)
+            : first.ToString("yyyy", Culture) + " – " + last.ToString("yyyy", Culture);
+        return (first.ToString(monthDay, Culture) + " – " + last.ToString(monthDay, Culture), years);
     }
 
     internal void GoToToday()

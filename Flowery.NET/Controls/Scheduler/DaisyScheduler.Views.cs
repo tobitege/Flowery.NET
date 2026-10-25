@@ -296,22 +296,18 @@ public partial class DaisyScheduler
                 foreach (var appointment in Items.Where(appointment => MatchesResource(appointment, resource)))
                 {
                     var copy = appointment.IsAllDay ? appointment.Clone() : TimeZoneConverter.ToZone(appointment, resource.TimeZoneId);
-                    if (rowGroup.Date is { } groupDate && !OnDate(copy, groupDate))
+                    if (copy.End <= start || copy.Start >= end || (rowGroup.Date is { } groupDate && !OnDate(copy, groupDate)))
                         continue;
                     shown.Add(copy);
                     originals[copy] = appointment;
                 }
-                // Rows are packed for the narrowest hours and the widest bar minimum, so neither wider hours nor a
-                // short bar widened to its start time make bars overlap.
-                var minimumWidths = shown.ToDictionary(appointment => appointment, BarMinimumWidth);
-                var widestMinimum = minimumWidths.Values.DefaultIfEmpty(ChipHeight).Max() + BarGap;
-                // The packing span of a short bar reaches as far as the widest bar minimum, so no bar overlaps another; the
-                // bar itself keeps its own duration and only its own minimum width.
-                var layouts = EventBlockLayout.LayoutRange(start, end, shown, widestMinimum / minimum);
+                // Every appointment has a row of its own (the occurrences of a series share it, a day apart), so a short
+                // bar widened to its whole start time never overlaps another bar. The rows follow the start, longer first.
+                shown.Sort(static (x, y) => x.Start != y.Start ? x.Start.CompareTo(y.Start) : y.End.CompareTo(x.End));
                 var rows = new List<AppointmentModel>();
-                foreach (var layout in layouts)
+                foreach (var bar in shown)
                 {
-                    var original = OriginalAppointment(originals[layout.Appointment]);
+                    var original = OriginalAppointment(originals[bar]);
                     if (!rows.Contains(original))
                         rows.Add(original);
                 }
@@ -323,16 +319,16 @@ public partial class DaisyScheduler
                     AddMinuteLine(canvas, hour * 60, 0, LineThickness, height);
                 for (var row = 1; row <= Math.Max(1, rows.Count); row++)
                     AddMinuteLine(canvas, 0, row * rowHeight - LineThickness, double.NaN, LineThickness, totalMinutes);
-                foreach (var layout in layouts)
+                foreach (var bar in shown)
                 {
-                    var original = OriginalAppointment(originals[layout.Appointment]);
-                    var block = CreateAppointment(originals[layout.Appointment], AppointmentSurface.Bar,
-                        original.IsAllDay ? null : lane, layout.Appointment, resource.Id);
+                    var original = OriginalAppointment(originals[bar]);
+                    var block = CreateAppointment(originals[bar], AppointmentSurface.Bar, original.IsAllDay ? null : lane, bar, resource.Id);
                     block.Height = ChipHeight;
-                    var endMinutes = Math.Min(totalMinutes, (layout.Appointment.End - start).TotalMinutes);
-                    MinuteCanvas.Place(block, layout.StartMinutes, Math.Max(0, endMinutes - layout.StartMinutes), trim: BarGap,
-                        minimumWidth: minimumWidths[layout.Appointment]);
-                    Canvas.SetTop(block, rows.IndexOf(original) * rowHeight + (rowHeight - ChipHeight) / 2);
+                    // A bar that starts before or ends after the shown days is clipped to them.
+                    var startMinutes = Math.Max(0, (bar.Start - start).TotalMinutes);
+                    var endMinutes = Math.Min(totalMinutes, (bar.End - start).TotalMinutes);
+                    MinuteCanvas.Place(block, startMinutes, endMinutes - startMinutes, trim: BarGap, minimumWidth: BarMinimumWidth(bar));
+                    Canvas.SetTop(block, BarTop(rows.IndexOf(original)));
                     canvas.Children.Add(block);
                 }
                 AttachLane(lane);

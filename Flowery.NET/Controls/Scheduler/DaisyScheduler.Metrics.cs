@@ -20,6 +20,9 @@ public partial class DaisyScheduler
     private double SelectionThickness => Token<Thickness>("DaisyBorderThicknessMedium").Left;
     private double EventCornerRadius => AppointmentCornerRadius ?? Token<CornerRadius>($"DaisySize{Size}CornerRadius").TopLeft;
     private double RowHeight => RoundToPixel(Token<double>($"DaisySize{Size}Height") + SpacingSmall);
+
+    // The top of a bar in a row of a Planner or Timeline lane, centered in the row.
+    private double BarTop(int row) => row * RowHeight + (RowHeight - ChipHeight) / 2;
     private double RoundToPixel(double length)
     {
         var scaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1;
