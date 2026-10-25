@@ -1,3 +1,5 @@
+using System.Reflection;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
@@ -130,6 +132,84 @@ namespace Flowery.NET.Tests
             {
                 window.Close();
             }
+        }
+
+        [AvaloniaFact]
+        public void Without_A_Live_Renderer_A_SkiaSharp_Glass_Uses_BitmapCapture_And_Shows_The_Captured_Backdrop()
+        {
+            var previous = DaisyGlassLiveRenderer.Current;
+            DaisyGlassLiveRenderer.Register(null);
+            var glass = new DaisyGlass { Width = 160, Height = 60, EnableBackdropBlur = true, BlurMode = GlassBlurMode.SkiaSharp };
+            var window = new Window { Content = glass };
+            try
+            {
+                window.Show();
+                Dispatcher.UIThread.RunJobs();
+                Assert.Equal(GlassBlurMode.BitmapCapture, glass.EffectiveBlurMode);
+                var panel = glass.GetVisualDescendants().OfType<Canvas>().Single(canvas => canvas.Name == "PART_BackdropBlurPanel");
+                Assert.True(panel.IsVisible);
+            }
+            finally
+            {
+                window.Close();
+                DaisyGlassLiveRenderer.Register(previous);
+            }
+        }
+
+        [AvaloniaFact]
+        public void A_Renderer_Registered_After_The_Glass_Was_Created_Draws_It_Once_It_Is_Shown()
+        {
+            var previous = DaisyGlassLiveRenderer.Current;
+            DaisyGlassLiveRenderer.Register(null);
+            var glass = new DaisyGlass { Width = 160, Height = 60, EnableBackdropBlur = true, BlurMode = GlassBlurMode.SkiaSharp };
+            var renderer = new CountingRenderer();
+            var window = new Window { Content = glass };
+            try
+            {
+                Assert.Equal(GlassBlurMode.BitmapCapture, glass.EffectiveBlurMode);
+                DaisyGlassLiveRenderer.Register(renderer);
+                window.Show();
+                Dispatcher.UIThread.RunJobs();
+                Assert.Equal(GlassBlurMode.SkiaSharp, glass.EffectiveBlurMode);
+
+                glass.Render(new DrawingGroup().Open());
+                Assert.Same(glass, renderer.Rendered);
+            }
+            finally
+            {
+                window.Close();
+                DaisyGlassLiveRenderer.Register(previous);
+            }
+        }
+
+        [AvaloniaTheory]
+        [InlineData(typeof(DaisyGlassButton))]
+        [InlineData(typeof(DaisyGlassBadge))]
+        [InlineData(typeof(DaisyGlassInput))]
+        [InlineData(typeof(DaisyGlassNavbar))]
+        [InlineData(typeof(DaisyGlassModal))]
+        public void Every_Glass_Control_Owns_Every_Glass_Property_It_Passes_To_Its_Glass(Type controlType)
+        {
+            var owner = (AvaloniaObject)Activator.CreateInstance(controlType)!;
+            using var bindings = BindSurface(new DaisyGlass(), owner);
+        }
+
+        [AvaloniaFact]
+        public void Binding_A_Glass_To_An_Owner_Without_The_Glass_Properties_Fails()
+        {
+            var error = Assert.Throws<TargetInvocationException>(() => BindSurface(new DaisyGlass(), new Border()));
+            Assert.IsType<InvalidOperationException>(error.InnerException);
+        }
+
+        private static IDisposable BindSurface(DaisyGlass glass, AvaloniaObject owner) =>
+            (IDisposable)typeof(DaisyGlass).GetMethod("BindSurface", BindingFlags.NonPublic | BindingFlags.Static)!
+                .Invoke(null, [glass, owner])!;
+
+        private sealed class CountingRenderer : DaisyGlassLiveRenderer
+        {
+            public DaisyGlass? Rendered { get; private set; }
+
+            public override void Render(DaisyGlass glass, DrawingContext context) => Rendered = glass;
         }
     }
 }

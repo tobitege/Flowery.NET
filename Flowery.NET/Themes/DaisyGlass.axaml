@@ -106,18 +106,11 @@
                                Opacity="{TemplateBinding GlassBackgroundOpacity}" />
                         <Canvas x:Name="PART_PatternLayer" IsHitTestVisible="False" />
 
-                        <!-- Top shine/reflection (always shown) -->
+                        <!-- Top shine/reflection (always shown); the text contrast of the glass controls reads the same brush. -->
                         <Border CornerRadius="{TemplateBinding CornerRadius}"
                                 VerticalAlignment="Top"
-                                Height="60">
-                            <Border.Background>
-                                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-                                    <GradientStop Offset="0" Color="#40FFFFFF" />
-                                    <GradientStop Offset="0.5" Color="#15FFFFFF" />
-                                    <GradientStop Offset="1" Color="#00FFFFFF" />
-                                </LinearGradientBrush>
-                            </Border.Background>
-                        </Border>
+                                Height="{x:Static controls:DaisyGlass.TopShineHeight}"
+                                Background="{x:Static controls:DaisyGlass.TopShineBrush}" />
 
                         <!-- Inner highlight border -->
                         <Border CornerRadius="{TemplateBinding CornerRadius}"

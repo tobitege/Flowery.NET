@@ -75,8 +75,8 @@ namespace Flowery.Helpers
         }
 
         /// <summary>
-        /// Computes the relative luminance of a color (0.0 to 1.0).
-        /// Based on WCAG 2.0 formula.
+        /// Computes the perceived brightness of a color (0.0 to 1.0) with the Rec. 601 weights on the gamma-encoded
+        /// channels. For WCAG contrast use <see cref="GetRelativeLuminance"/> and <see cref="GetContrastRatio"/>.
         /// </summary>
         public static double GetLuminance(Color color)
         {
@@ -126,22 +126,29 @@ namespace Flowery.Helpers
         }
 
         /// <summary>
-        /// Returns <paramref name="text"/> with at least <paramref name="ratio"/> contrast against
-        /// <paramref name="background"/>. A color that has it already comes back unchanged; otherwise it is mixed
-        /// toward white or black, whichever contrasts more with the background, only as far as needed, so its hue
-        /// stays. When even white or black cannot reach the ratio, that color is returned. The alpha is kept.
+        /// Returns <paramref name="text"/> with at least <paramref name="ratio"/> contrast against the opaque
+        /// <paramref name="background"/>, as drawn: a translucent text color is checked as it renders over the
+        /// background. A color that has the contrast already comes back unchanged; otherwise it is mixed toward white
+        /// or black, whichever contrasts more with the background, only as far as needed, so its hue stays. The alpha is
+        /// kept while that is enough, otherwise the color becomes opaque. When even opaque white or black cannot reach
+        /// the ratio, that color is returned.
         /// </summary>
         public static Color EnsureContrast(Color text, Color background, double ratio)
         {
             var opaqueText = Color.FromRgb(text.R, text.G, text.B);
-            if (GetContrastRatio(opaqueText, background) >= ratio)
+            var alpha = text.A / 255.0;
+            if (RenderedContrast(opaqueText, alpha, background) >= ratio)
                 return text;
 
             var target = GetContrastRatio(Colors.White, background) >= GetContrastRatio(Colors.Black, background)
                 ? Colors.White
                 : Colors.Black;
-            if (GetContrastRatio(target, background) < ratio)
-                return Color.FromArgb(text.A, target.R, target.G, target.B);
+            if (RenderedContrast(target, alpha, background) < ratio)
+            {
+                return text.A < 255
+                    ? EnsureContrast(Color.FromRgb(text.R, text.G, text.B), background, ratio)
+                    : target;
+            }
 
             // On the way to white or black the contrast may first drop, while the text passes the background's
             // luminance, and then only grows; it stays below the start, and so below the ratio, until it grows. The
@@ -150,7 +157,7 @@ namespace Flowery.Helpers
             for (var i = 0; i < 16; i++)
             {
                 var middle = (low + high) / 2;
-                if (GetContrastRatio(Mix(opaqueText, target, middle), background) >= ratio)
+                if (RenderedContrast(Mix(opaqueText, target, middle), alpha, background) >= ratio)
                     high = middle;
                 else
                     low = middle;
@@ -158,6 +165,9 @@ namespace Flowery.Helpers
             var mixed = Mix(opaqueText, target, high);
             return Color.FromArgb(text.A, mixed.R, mixed.G, mixed.B);
         }
+
+        private static double RenderedContrast(Color opaqueText, double alpha, Color background) =>
+            GetContrastRatio(Mix(Color.FromRgb(background.R, background.G, background.B), opaqueText, alpha), background);
 
         /// <summary>
         /// Paints <paramref name="over"/> at <paramref name="opacity"/>, times its own alpha, over the opaque

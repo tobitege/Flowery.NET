@@ -7,6 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Logging;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
@@ -493,8 +494,53 @@ namespace Flowery.Controls
         {
             var bindings = new IDisposable[SurfaceProperties.Length];
             for (var i = 0; i < SurfaceProperties.Length; i++)
+            {
+                // An owner that misses a property would read its default and press it onto the glass, over the theme.
+                if (!AvaloniaPropertyRegistry.Instance.IsRegistered(owner.GetType(), SurfaceProperties[i]))
+                {
+                    throw new InvalidOperationException(
+                        $"{owner.GetType().Name} must own DaisyGlass.{SurfaceProperties[i].Name} through AddOwner to bind its glass surface.");
+                }
                 bindings[i] = surface.Bind(SurfaceProperties[i], owner.GetObservable(SurfaceProperties[i]));
+            }
             return new SurfaceBindings(bindings);
+        }
+
+        /// <summary>
+        /// The height of the white shine that every glass draws at its top, in DIPs.
+        /// </summary>
+        public const double TopShineHeight = 60;
+
+        /// <summary>
+        /// The white shine that every glass draws at its top, <see cref="TopShineHeight"/> high. The glass template and
+        /// the text contrast of the glass controls both use it, so the contrast accounts for the shine behind the text.
+        /// </summary>
+        public static IBrush TopShineBrush { get; } = new ImmutableLinearGradientBrush(
+            [
+                new ImmutableGradientStop(0, Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF)),
+                new ImmutableGradientStop(0.5, Color.FromArgb(0x15, 0xFF, 0xFF, 0xFF)),
+                new ImmutableGradientStop(1, Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF))
+            ],
+            1, null, null, GradientSpreadMethod.Pad,
+            new RelativePoint(0, 0, RelativeUnit.Relative), new RelativePoint(0, 1, RelativeUnit.Relative));
+
+        /// <summary>
+        /// Returns the opacity of the white top shine at <paramref name="y"/> DIPs from the top of the glass.
+        /// </summary>
+        internal static double TopShineOpacityAt(double y)
+        {
+            if (y < 0 || y >= TopShineHeight || TopShineBrush is not IGradientBrush { GradientStops: { Count: > 0 } stops })
+                return 0;
+            var offset = y / TopShineHeight;
+            for (var i = 1; i < stops.Count; i++)
+            {
+                if (offset > stops[i].Offset)
+                    continue;
+                var span = stops[i].Offset - stops[i - 1].Offset;
+                var t = span > 0 ? (offset - stops[i - 1].Offset) / span : 1;
+                return (stops[i - 1].Color.A + (stops[i].Color.A - stops[i - 1].Color.A) * t) / 255.0;
+            }
+            return stops[^1].Color.A / 255.0;
         }
 
         private sealed class SurfaceBindings(IDisposable[] bindings) : IDisposable
