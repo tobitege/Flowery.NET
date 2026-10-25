@@ -1,3 +1,4 @@
+using Avalonia.Headless;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
@@ -130,6 +131,77 @@ public class DaisyGlassControlsTests
             var glass = Assert.Single(input.GetVisualDescendants().OfType<DaisyGlass>());
             input.GlassTintOpacity = 0.42;
             Assert.Equal(0.42, glass.GlassTintOpacity);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void After_A_Template_Change_Only_The_New_Input_Parts_Follow_Foreground()
+    {
+        var input = new DaisyGlassInput { Label = "Email", Watermark = "you@example.com" };
+        var window = Show(input);
+        try
+        {
+            var oldWatermark = Part<TextBlock>(input, "PART_Watermark");
+            input.LabelPosition = DaisyLabelPosition.Floating;
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+
+            input.Foreground = Brushes.Orange;
+            Assert.Same(Brushes.Orange, Part<TextPresenter>(input, "PART_TextPresenter").GetValue(TextElement.ForegroundProperty));
+            Assert.Same(Brushes.Orange, Part<TextBlock>(input, "PART_Watermark").Foreground);
+            Assert.Same(Brushes.Orange, Part<TextBlock>(input, "PART_FloatingLabel").Foreground);
+            // A binding of the old template that still listens to the input would keep its parts alive with it.
+            Assert.NotSame(Brushes.Orange, oldWatermark.Foreground);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaTheory]
+    [InlineData(DaisyButtonStyle.Default, true)]
+    [InlineData(DaisyButtonStyle.Soft, true)]
+    [InlineData(DaisyButtonStyle.Outline, false)]
+    [InlineData(DaisyButtonStyle.Dash, false)]
+    public void Hovering_A_Default_Glass_Button_Brightens_The_Glass_Except_For_Outline_And_Dash(DaisyButtonStyle style, bool brightens)
+    {
+        var button = new DaisyGlassButton { Content = "OK", ButtonStyle = style, Width = 120, Height = 40 };
+        var window = Show(button);
+        try
+        {
+            // The pointer is hit tested against the rendered scene.
+            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            window.MouseMove(button.TranslatePoint(new Point(60, 20), window)!.Value);
+            Dispatcher.UIThread.RunJobs();
+
+            // The hover color fades in through a transition; the value it fades to is the base value.
+            var tint = Part<Border>(button, "PART_Background").GetBaseValue(Border.BackgroundProperty).GetValueOrDefault() as ISolidColorBrush;
+            Assert.True(button.IsPointerOver);
+            Assert.True(brightens == (tint?.Color == Color.Parse("#80FFFFFF")), $"Hover tint {tint?.Color}.");
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Neumorphic_Shadow_Goes_On_The_Opaque_Border_Of_A_Glass_Button()
+    {
+        var button = new DaisyGlassButton { Content = "OK", Variant = DaisyButtonVariant.Primary };
+        DaisyNeumorphic.SetIsEnabled(button, true);
+        DaisyNeumorphic.SetMode(button, DaisyNeumorphicMode.Raised);
+        var window = Show(button);
+        try
+        {
+            Dispatcher.UIThread.RunJobs();
+            Assert.Equal(2, Part<Border>(button, "PART_Border").BoxShadow.Count);
+            Assert.Equal(0, Part<Border>(button, "PART_Background").BoxShadow.Count);
         }
         finally
         {

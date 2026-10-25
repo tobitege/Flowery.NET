@@ -2,6 +2,18 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
+    <Design.PreviewWith>
+        <Border Padding="20" Width="420">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Offset="0" Color="#FF6B8DD6" />
+                    <GradientStop Offset="1" Color="#FF8E37D7" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <controls:DaisyGlassNavbar NavbarStart="Flowery" NavbarEnd="Docs" />
+        </Border>
+    </Design.PreviewWith>
+
     <!-- Inherits sections, full width and shadow options from DaisyNavbar; only the surface differs. -->
     <ControlTheme x:Key="{x:Type controls:DaisyGlassNavbar}" TargetType="controls:DaisyGlassNavbar"
                   BasedOn="{StaticResource {x:Type controls:DaisyNavbar}}">

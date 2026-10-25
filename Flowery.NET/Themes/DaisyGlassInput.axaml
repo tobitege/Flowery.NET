@@ -2,6 +2,21 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
 
+    <Design.PreviewWith>
+        <Border Padding="20" Width="420">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Offset="0" Color="#FF6B8DD6" />
+                    <GradientStop Offset="1" Color="#FF8E37D7" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <StackPanel Spacing="8">
+                <controls:DaisyGlassInput Watermark="Email" />
+                <controls:DaisyGlassInput Text="flowery" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
     <!-- Uses the DaisyInput templates; DaisyGlassInput puts the glass behind PART_Background when a template is applied. -->
     <ControlTheme x:Key="{x:Type controls:DaisyGlassInput}" TargetType="controls:DaisyGlassInput"
                   BasedOn="{StaticResource {x:Type controls:DaisyInput}}">

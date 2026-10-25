@@ -118,11 +118,16 @@
             </ControlTemplate>
         </Setter>
 
-        <!-- The default variant is clear glass, so fills and patterns keep their colors; hover brightens the glass. -->
+        <!-- The default variant is clear glass, so fills and patterns keep their colors; hover brightens the glass.
+             Outline and Dash keep the hover of DaisyButton, a dark fill under light text: brightening it would put
+             that light text on light glass. -->
         <Style Selector="^[Variant=Default]">
             <Setter Property="Background" Value="Transparent" />
         </Style>
-        <Style Selector="^[Variant=Default]:pointerover /template/ Border#PART_Background">
+        <Style Selector="^[ButtonStyle=Default][Variant=Default]:pointerover /template/ Border#PART_Background">
+            <Setter Property="Background" Value="#80FFFFFF" />
+        </Style>
+        <Style Selector="^[ButtonStyle=Soft][Variant=Default]:pointerover /template/ Border#PART_Background">
             <Setter Property="Background" Value="#80FFFFFF" />
         </Style>
     </ControlTheme>
