@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Glass: in `SkiaSharp` mode, a glass disposes the rounded rectangles and gradient shaders it draws with, and the shader backgrounds dispose their uniforms. They were left to the finalizer, which then ran almost all the time while glass was on screen.
 - Gallery (desktop): the window keeps its saved size. It opens on the primary monitor and moves to its saved position; on a monitor with another scale that move rounded the size down by 2, so the window shrank with every start. The saved size is applied again once the window is open.
 - Glass: a `DaisyGlass` without a fixed size in `BitmapCapture` mode keeps its size. The captured backdrop reaches up to 20 past each edge and was part of the measure, so every capture widened the glass until it filled its background container.
+- Docs: the documentation site deploys again on every push to `avalonia12`, the default branch. It deployed only from `main`, which has not changed since March, so the site lacked the controls and changes since then, such as `DaisyScheduler`.
 
 ### Changed
 
