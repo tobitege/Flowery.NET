@@ -37,5 +37,23 @@ namespace Flowery.NET.Tests
             Assert.True(item.MatchesSearch("corner radii"));
             Assert.False(item.MatchesSearch("DaisyModal"));
         }
+
+        [Theory]
+        [InlineData("DaisyGlassInput", true)]
+        [InlineData("GlassNavbar", true)]
+        [InlineData("glass modal", true)]
+        [InlineData("InputDaisy", false)]
+        [InlineData("DaisyGlassButton", false)]
+        public void MatchesSearch_Finds_Each_Search_Term_On_Its_Own(string search, bool expected)
+        {
+            var item = new SidebarItem
+            {
+                Id = "glass-controls",
+                Name = "Glass Controls",
+                SearchTerms = "DaisyGlassNavbar DaisyGlassInput DaisyGlassBadge DaisyGlassModal"
+            };
+
+            Assert.Equal(expected, item.MatchesSearch(search));
+        }
     }
 }

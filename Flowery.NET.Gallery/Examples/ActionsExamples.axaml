@@ -1,7 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
-    xmlns:skia="clr-namespace:Flowery.Skia;assembly=Flowery.NET.Skia"
     xmlns:services="clr-namespace:Flowery.Services;assembly=Flowery.NET"
     xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
     x:Class="Flowery.NET.Gallery.Examples.ActionsExamples"
