@@ -122,6 +122,95 @@ public sealed partial class SchedulerTests
         Assert.Equal(0, writes);
     }
 
+    [AvaloniaTheory]
+    [InlineData(SchedulerView.Week, DayOfWeek.Monday, 0)]
+    [InlineData(SchedulerView.Week, DayOfWeek.Sunday, 0)]
+    [InlineData(SchedulerView.Planner, DayOfWeek.Monday, 0)]
+    [InlineData(SchedulerView.Planner, DayOfWeek.Sunday, 0)]
+    [InlineData(SchedulerView.Planner, DayOfWeek.Saturday, 0)]
+    [InlineData(SchedulerView.Planner, DayOfWeek.Wednesday, -7)]
+    public void WithoutWeekendsWeekAndPlannerShowMondayToFriday(SchedulerView view, DayOfWeek firstDay, int mondayOffset)
+    {
+        using var scope = new SchedulerScope(view);
+        Assert.True(scope.Scheduler.ShowWeekends);
+        scope.Scheduler.FirstDayOfWeek = firstDay;
+        scope.Scheduler.ShowWeekends = false;
+        scope.Layout();
+
+        // A week from Wednesday to Tuesday shares three weekdays with the Monday before it and two with the one after.
+        var monday = Monday.AddDays(mondayOffset);
+        var culture = scope.Scheduler.FormattingCulture;
+        var texts = scope.Scheduler.GetVisualDescendants().OfType<TextBlock>().Select(static text => text.Text).ToArray();
+        for (var day = 0; day < 5; day++)
+            Assert.Contains(monday.AddDays(day).ToString("ddd, d MMM", culture), texts);
+        Assert.DoesNotContain(monday.AddDays(-1).ToString("ddd, d MMM", culture), texts);
+        Assert.DoesNotContain(monday.AddDays(5).ToString("ddd, d MMM", culture), texts);
+    }
+
+    [AvaloniaFact]
+    public void WithoutWeekendsTheMonthShowsFiveColumns()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Month);
+        Grid MonthGrid() => scope.Scheduler.GetVisualDescendants().OfType<Grid>().First(static grid => grid.RowDefinitions.Count == 7);
+        Assert.Equal(7, MonthGrid().ColumnDefinitions.Count);
+
+        scope.Scheduler.ShowWeekends = false;
+        scope.Layout();
+
+        var grid = MonthGrid();
+        var culture = scope.Scheduler.FormattingCulture;
+        var headers = grid.Children.OfType<Border>().Where(static cell => Grid.GetRow(cell) == 0)
+            .Select(static cell => ((TextBlock)cell.Child!).Text).ToArray();
+        Assert.Equal(Enumerable.Range(0, 5).Select(day => Monday.AddDays(day).ToString("ddd", culture)), headers);
+        Assert.Equal(5, grid.ColumnDefinitions.Count);
+        Assert.Equal(5 + 6 * 5, grid.Children.Count);
+    }
+
+    [AvaloniaTheory]
+    [InlineData(SchedulerClockFormat.TwelveHour, "9a")]
+    [InlineData(SchedulerClockFormat.TwentyFourHour, "09:00")]
+    public void SingleLineChipShowsTheCompactStart(SchedulerClockFormat clock, string expected)
+    {
+        using var scope = new SchedulerScope(SchedulerView.Month);
+        scope.Scheduler.ClockFormat = clock;
+        scope.Layout();
+        var texts = scope.Frame(scope.Appointment).GetVisualDescendants().OfType<TextBlock>().Select(static text => text.Text).ToArray();
+        Assert.Contains(expected, texts);
+        Assert.Contains(scope.Appointment.Subject, texts);
+    }
+
+    [AvaloniaTheory]
+    [InlineData(SchedulerView.Month)]
+    [InlineData(SchedulerView.Week)]
+    [InlineData(SchedulerView.Timeline)]
+    public void SelectingAnAppointmentKeepsItsSizeAndItsContentInPlace(SchedulerView view)
+    {
+        using var scope = new SchedulerScope(view);
+        var frame = scope.Frame(scope.Appointment);
+        var content = frame.Child!;
+        var size = frame.Bounds.Size;
+        var position = content.TranslatePoint(default, scope.Scheduler);
+        var thickness = frame.BorderThickness;
+        var border = frame.BorderBrush;
+        var background = ((ISolidColorBrush)frame.Background!).Color;
+
+        scope.Click(frame);
+
+        Assert.Same(scope.Appointment, scope.Scheduler.SelectedAppointment);
+        Assert.Same(frame, scope.Frame(scope.Appointment));
+        Assert.Equal(size, frame.Bounds.Size);
+        Assert.Equal(position, content.TranslatePoint(default, scope.Scheduler));
+        Assert.Equal(thickness, frame.BorderThickness);
+        Assert.True(scope.Scheduler.TryFindResource("DaisyBaseContentBrush", scope.Scheduler.ActualThemeVariant, out var text));
+        Assert.Same(text, frame.BorderBrush);
+        Assert.NotEqual(background, ((ISolidColorBrush)frame.Background!).Color);
+
+        scope.Scheduler.SelectedAppointment = null;
+
+        Assert.Same(border, frame.BorderBrush);
+        Assert.Equal(background, ((ISolidColorBrush)frame.Background!).Color);
+    }
+
     [AvaloniaFact]
     public void LockedAppointmentCannotBeSelectedOrDeletedButAllowsContextRequest()
     {
@@ -401,14 +490,22 @@ public sealed partial class SchedulerTests
 
                 FloweryLocalization.SetCulture(language);
                 scope.Layout();
-                foreach (var button in scope.Scheduler.GetVisualDescendants().OfType<DaisyButton>())
+                var toolbar = scope.Scheduler.GetVisualDescendants().OfType<DaisySchedulerToolbar>().Single();
+                foreach (var button in toolbar.GetVisualDescendants().OfType<Button>())
                 {
+                    // View segments and icon buttons show their localized name as tooltip and automation name.
                     if (button.Tag is SchedulerView view)
-                        Assert.Equal(document.RootElement.GetProperty("Scheduler_" + view).GetString(), button.Content);
+                    {
+                        var label = document.RootElement.GetProperty("Scheduler_" + view).GetString();
+                        Assert.Equal(label, AutomationProperties.GetName(button));
+                        Assert.Equal(label, Assert.IsType<ToolTip>(ToolTip.GetTip(button)).Content);
+                        // Below the button: a tooltip at the pointer keeps the scaling of the first monitor it opened on.
+                        Assert.Equal(PlacementMode.Bottom, ToolTip.GetPlacement(button));
+                    }
                     else if (button.Tag is string action)
                     {
-                        if (action is "Today" or "Settings")
-                            Assert.Equal(document.RootElement.GetProperty("Scheduler_" + action).GetString(), button.Content);
+                        if (action == "Today")
+                            Assert.Equal(document.RootElement.GetProperty("Scheduler_Today").GetString(), Assert.IsType<TextBlock>(button.Content).Text);
                         var key = action == "Date" ? "ChooseDate" : action;
                         Assert.Equal(document.RootElement.GetProperty("Scheduler_" + key).GetString(), AutomationProperties.GetName(button));
                     }

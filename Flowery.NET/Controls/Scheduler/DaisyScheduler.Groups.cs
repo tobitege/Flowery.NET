@@ -23,6 +23,24 @@ public partial class DaisyScheduler
         set => SetValue(ResourceKindFilterProperty, value);
     }
 
+    public static readonly StyledProperty<IReadOnlyList<object>?> VisibleResourceIdsProperty =
+        AvaloniaProperty.Register<DaisyScheduler, IReadOnlyList<object>?>(nameof(VisibleResourceIds));
+
+    /// <summary>
+    /// Shows only these resources, by <see cref="ResourceModel.Id"/>: the appointments assigned to at least one of them,
+    /// their columns in Day and Week, and their lanes in Planner and Timeline. Appointments without a resource are hidden
+    /// while it is set. Null or empty shows everything.
+    /// </summary>
+    public IReadOnlyList<object>? VisibleResourceIds
+    {
+        get => GetValue(VisibleResourceIdsProperty);
+        set => SetValue(VisibleResourceIdsProperty, value);
+    }
+
+    // Whether an appointment or a resource passes VisibleResourceIds.
+    private bool ShowsResources(IEnumerable<object> ids) =>
+        VisibleResourceIds is not { Count: > 0 } visible || ids.Any(visible.Contains);
+
     public static readonly StyledProperty<IReadOnlyList<ResourceGroupModel>?> ResourceGroupsProperty =
         AvaloniaProperty.Register<DaisyScheduler, IReadOnlyList<ResourceGroupModel>?>(nameof(ResourceGroups), null);
 

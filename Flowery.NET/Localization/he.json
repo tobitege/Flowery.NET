@@ -157,6 +157,7 @@
   "Scheduler_Settings": "הגדרות",
   "Scheduler_ShowTiles": "הצג תגיות",
   "Scheduler_HideIdleResources": "הסתר משאבים ללא פגישות",
+  "Scheduler_ShowWeekends": "הצג סופי שבוע",
   "Scheduler_GroupByDay": "קבץ לפי יום",
   "Scheduler_TimeScale": "מרווח זמן",
   "Scheduler_Previous": "התקופה הקודמת",

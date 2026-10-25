@@ -42,6 +42,7 @@
   "Scheduler_Resources": "Resources",
   "Scheduler_ShowTiles": "Show tiles",
   "Scheduler_HideIdleResources": "Hide idle resources",
+  "Scheduler_ShowWeekends": "Show weekends",
   "Scheduler_GroupByDay": "Group by day",
   "Scheduler_TimeScale": "Time increment",
   "Clock_Hour": "hour",

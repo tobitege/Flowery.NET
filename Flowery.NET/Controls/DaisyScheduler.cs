@@ -18,6 +18,7 @@ using Avalonia.Threading;
 using Flowery.Controls.Scheduler.Contracts;
 using Flowery.Controls.Scheduler.Models;
 using Flowery.Controls.Scheduler.Rendering;
+using Flowery.Helpers;
 using Flowery.Localization;
 
 namespace Flowery.Controls;
@@ -28,7 +29,7 @@ namespace Flowery.Controls;
 /// Reassign the appointment list after editing a model to refresh the view.
 /// </summary>
 [TemplatePart("PART_ViewHost", typeof(Border))]
-[TemplatePart("PART_Toolbar", typeof(WrapPanel))]
+[TemplatePart("PART_Toolbar", typeof(DaisySchedulerToolbar))]
 public partial class DaisyScheduler : TemplatedControl
 {
     protected override Type StyleKeyOverride => typeof(DaisyScheduler);
@@ -113,6 +114,28 @@ public partial class DaisyScheduler : TemplatedControl
     {
         get => GetValue(HideIdleResourcesProperty);
         set => SetValue(HideIdleResourcesProperty, value);
+    }
+
+    public static readonly StyledProperty<bool> ShowToolbarProperty =
+        AvaloniaProperty.Register<DaisyScheduler, bool>(nameof(ShowToolbar), true);
+
+    /// <summary>Whether the scheduler shows its own <see cref="DaisySchedulerToolbar"/> (default true). Set it to false to
+    /// place a toolbar elsewhere, such as in a title bar, with its <see cref="DaisySchedulerToolbar.Scheduler"/> set.</summary>
+    public bool ShowToolbar
+    {
+        get => GetValue(ShowToolbarProperty);
+        set => SetValue(ShowToolbarProperty, value);
+    }
+
+    public static readonly StyledProperty<bool> ShowWeekendsProperty =
+        AvaloniaProperty.Register<DaisyScheduler, bool>(nameof(ShowWeekends), true);
+
+    /// <summary>Whether Month, Week and Planner show Saturday and Sunday (default true). Without them, Month and Week
+    /// show the other five days of each week, and the Planner shows Monday to Friday.</summary>
+    public bool ShowWeekends
+    {
+        get => GetValue(ShowWeekendsProperty);
+        set => SetValue(ShowWeekendsProperty, value);
     }
 
     public static readonly StyledProperty<TimeSpan> WorkDayStartProperty =
@@ -287,10 +310,6 @@ public partial class DaisyScheduler : TemplatedControl
 
     private readonly DaisyControlLifecycle _lifecycle;
     private Border? _viewHost;
-    private WrapPanel? _toolbar;
-    private WrapPanel? _views;
-    private WrapPanel? _customButtons;
-    private DaisyButton? _dateButton;
     private readonly List<AppointmentModel> _selection = new();
     private readonly Dictionary<AppointmentModel, object> _selectionResourceIds = new();
     private readonly List<(Border Frame, AppointmentModel Appointment)> _frames = new();
@@ -310,6 +329,9 @@ public partial class DaisyScheduler : TemplatedControl
         ToolbarButtons.CollectionChanged += (_, _) => RequestRender();
         ToolbarAdornments.CollectionChanged += (_, _) => RequestRender();
         Focusable = true;
+        AddHandler(PointerReleasedEvent, OnPendingTapReleased, handledEventsToo: true);
+        AddHandler(ScrollGestureInertiaStartingEvent, OnScrollFlingStarting, handledEventsToo: true);
+        AddHandler(ScrollGestureEndedEvent, OnScrollGestureEnded, handledEventsToo: true);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -333,15 +355,10 @@ public partial class DaisyScheduler : TemplatedControl
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         CancelGesture();
-        if (_toolbar is not null)
-            _toolbar.RemoveHandler(Button.ClickEvent, OnToolbarClick);
         base.OnApplyTemplate(e);
         _viewHost = e.NameScope.Find<Border>("PART_ViewHost");
-        _toolbar = e.NameScope.Find<WrapPanel>("PART_Toolbar");
-        _views = e.NameScope.Find<WrapPanel>("PART_Views");
-        _customButtons = e.NameScope.Find<WrapPanel>("PART_CustomButtons");
-        _dateButton = e.NameScope.Find<DaisyButton>("PART_Date");
-        _toolbar?.AddHandler(Button.ClickEvent, OnToolbarClick);
+        if (e.NameScope.Find<DaisySchedulerToolbar>("PART_Toolbar") is { } toolbar)
+            toolbar.Scheduler = this;
         RenderActiveView();
     }
 
@@ -402,10 +419,12 @@ public partial class DaisyScheduler : TemplatedControl
         _frames.Clear();
         _occurrenceSources.Clear();
         _lanes.Clear();
+        _minuteView = null;
         _visibleItems = GetVisibleOccurrences().ToArray();
         var appointments = Appointments ?? Array.Empty<AppointmentModel>();
+        // A selected appointment that VisibleResourceIds hides leaves the selection, so Delete never removes what is not shown.
         var retained = _selection.Select(old => appointments.FirstOrDefault(a => Same(a, old)))
-            .OfType<AppointmentModel>().Where(static a => !a.IsLocked).ToArray();
+            .OfType<AppointmentModel>().Where(a => !a.IsLocked && ShowsResources(a.ResourceIds)).ToArray();
         if (!_selection.SequenceEqual(retained))
         {
             _selection.Clear();
@@ -425,7 +444,7 @@ public partial class DaisyScheduler : TemplatedControl
         ApplySelection();
     }
 
-    private double Scale => Token<double>($"DaisySize{Size}FontSize") / Token<double>("DaisySizeMediumFontSize");
+    internal double Scale => Token<double>($"DaisySize{Size}FontSize") / Token<double>("DaisySizeMediumFontSize");
     private double ChipHeight => RoundToPixel(Token<double>($"DaisyBadge{Size}Height"));
     private CultureInfo Culture => FormattingCulture;
     private double SnapMinutes => Math.Clamp(TimeIncrement?.MinorTick.TotalMinutes ?? 30, 1, 1440);
@@ -448,7 +467,7 @@ public partial class DaisyScheduler : TemplatedControl
             start = start.AddDays(-1);
             end = end.AddDays(1);
         }
-        foreach (var source in Appointments ?? Array.Empty<AppointmentModel>())
+        foreach (var source in (Appointments ?? Array.Empty<AppointmentModel>()).Where(source => ShowsResources(source.ResourceIds)))
             foreach (var occurrence in Scheduler.Utilities.AppointmentOccurrences.InRange(source, start, end))
             {
                 if (!ReferenceEquals(source, occurrence))
@@ -462,17 +481,34 @@ public partial class DaisyScheduler : TemplatedControl
     private static DateTime WeekStart(DateTime date, DayOfWeek firstDay) =>
         date.Date.AddDays(-((7 + (int)date.DayOfWeek - (int)firstDay) % 7));
 
+    private static bool IsWeekend(DateTime date) => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+
+    // Without weekends the Planner shows Monday to Friday as one stretch of time: the five days that share the most
+    // days with the week. For a week that starts on Saturday, Sunday or Monday, these are its own weekdays.
+    private DateTime PlannerStart()
+    {
+        var weekStart = WeekStart(SelectedDate.Date, FirstDayOfWeek);
+        if (ShowWeekends)
+            return weekStart;
+        var monday = (7 + (int)DayOfWeek.Monday - (int)weekStart.DayOfWeek) % 7;
+        return weekStart.AddDays(monday <= 4 ? monday : monday - 7);
+    }
+
     private DateTime[] VisibleDates()
     {
         if (CurrentView is SchedulerView.Day or SchedulerView.Agenda && SelectedDates is { Count: > 0 })
             return SelectedDates.Select(static d => d.Date).Distinct().OrderBy(static d => d).ToArray();
-        var start = CurrentView is SchedulerView.Week or SchedulerView.Planner
-            ? WeekStart(SelectedDate.Date, FirstDayOfWeek) : SelectedDate.Date;
-        var count = CurrentView is SchedulerView.Week or SchedulerView.Planner ? 7 : CurrentView == SchedulerView.Calendar ? 1 : VisibleDays;
+        if (CurrentView == SchedulerView.Planner)
+        {
+            var plannerStart = PlannerStart();
+            return Enumerable.Range(0, ShowWeekends ? 7 : 5).Select(day => plannerStart.AddDays(day)).ToArray();
+        }
+        var start = CurrentView == SchedulerView.Week ? WeekStart(SelectedDate.Date, FirstDayOfWeek) : SelectedDate.Date;
+        var count = CurrentView == SchedulerView.Week ? 7 : CurrentView == SchedulerView.Calendar ? 1 : VisibleDays;
         var dates = new DateTime[count];
         for (var index = 0; index < count; index++)
             dates[index] = start.AddDays(index);
-        return dates;
+        return CurrentView == SchedulerView.Week && !ShowWeekends ? dates.Where(static date => !IsWeekend(date)).ToArray() : dates;
     }
 
     /// <summary>Navigate by the visible date span, week, or month.</summary>
@@ -552,14 +588,24 @@ public partial class DaisyScheduler : TemplatedControl
 
     private void ApplySelection()
     {
+        var content = Brush("DaisyBaseContentBrush");
         foreach (var (frame, appointment) in _frames)
         {
+            if (frame.DataContext is not AppointmentContext context)
+                continue;
             var selected = _selection.Any(item => Same(item, appointment));
-            frame.BorderBrush = Brush(selected ? "DaisyPrimaryBrush" : "DaisyBase300Brush");
-            frame.BorderThickness = new Thickness(selected ? SelectionThickness : LineThickness);
+            // Selection recolors the frame border and tints the background toward the theme text color; the border
+            // keeps its thickness, so the appointment neither moves nor resizes, and no bar color hides the selection.
+            frame.BorderBrush = selected ? content : context.BorderBrush;
+            frame.Background = selected ? SelectedBackground(context.BackBrush, content) : context.BackBrush;
             frame.ZIndex = selected ? 10 : 0;
         }
     }
+
+    private static IBrush SelectedBackground(IBrush background, IBrush content) =>
+        background is ISolidColorBrush back && content is ISolidColorBrush tint
+            ? new SolidColorBrush(FloweryColorHelpers.Blend(back.Color, tint.Color, 0.18))
+            : background;
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
@@ -586,7 +632,7 @@ public partial class DaisyScheduler : TemplatedControl
         }
     }
 
-    private IBrush Brush(string key) =>
+    internal IBrush Brush(string key) =>
         this.TryFindResource(key, ActualThemeVariant, out var resource) && resource is IBrush brush ? brush : Brushes.Transparent;
 
     private TextBlock Label(string text, bool secondary = false) => new()

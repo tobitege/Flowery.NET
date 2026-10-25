@@ -157,6 +157,7 @@
   "Scheduler_Settings": "設定",
   "Scheduler_ShowTiles": "タイルを表示",
   "Scheduler_HideIdleResources": "予定のないリソースを非表示",
+  "Scheduler_ShowWeekends": "週末を表示",
   "Scheduler_GroupByDay": "日ごとにグループ化",
   "Scheduler_TimeScale": "時間間隔",
   "Scheduler_Previous": "前の期間",

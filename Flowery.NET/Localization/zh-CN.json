@@ -157,6 +157,7 @@
   "Scheduler_Settings": "设置",
   "Scheduler_ShowTiles": "显示标签",
   "Scheduler_HideIdleResources": "隐藏没有预约的资源",
+  "Scheduler_ShowWeekends": "显示周末",
   "Scheduler_GroupByDay": "按日期分组",
   "Scheduler_TimeScale": "时间间隔",
   "Scheduler_Previous": "上一时间段",

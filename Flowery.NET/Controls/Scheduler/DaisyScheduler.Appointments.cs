@@ -1,6 +1,7 @@
 ﻿// Avalonia adaptation of Xtreme.Components Scheduler (MIT).
 // See ThirdPartyNotices/Xtreme.Components.txt for attribution and license.
 using System;
+using System.Globalization;
 using System.IO;
 using Avalonia;
 using Avalonia.Automation;
@@ -56,11 +57,108 @@ public partial class DaisyScheduler
         return frame;
     }
 
-    private Control BuildAppointmentContent(AppointmentContext context)
+    // The gap between two Planner or Timeline bars that touch.
+    private const double BarGap = 2;
+
+    // The horizontal space of a chip or bar around its content: both frame borders, the color bar and the content margins.
+    private double LineChrome => LineThickness * 2 + SpacingXS + (SpacingXS + LineThickness) * 2;
+
+    private Control BuildAppointmentContent(AppointmentContext context) =>
+        WrapContent(context, context.Surface == AppointmentSurface.Timed ? BuildTimedContent(context) : BuildLineContent(context));
+
+    // Day and Week blocks: subject, time and note in rows that give way from the bottom, status icons on the left and
+    // tiles on every side.
+    private Grid BuildTimedContent(AppointmentContext context)
     {
-        var main = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,Auto,*,Auto"), RowDefinitions = new RowDefinitions("Auto,*,Auto"), Margin = new Thickness(SpacingXS + LineThickness, SpacingXS / 2) };
-        var multiline = context.Surface == AppointmentSurface.Timed;
+        var main = ContentGrid();
         var text = new AppointmentTextPanel(SpacingXS / 2) { ClipToBounds = true };
+        text.Add(Title(context), 0);
+        var time = Label(context.TimeRange, true);
+        time.Foreground = context.Foreground;
+        text.Add(time, 1);
+        if (!string.IsNullOrWhiteSpace(context.Note))
+        {
+            var note = Label(context.Note, true);
+            note.Foreground = context.Foreground;
+            if (CurrentView == SchedulerView.Calendar)
+            {
+                note.TextWrapping = TextWrapping.Wrap;
+                note.TextTrimming = TextTrimming.None;
+            }
+            text.Add(note, 4);
+        }
+        Grid.SetColumn(text, 2);
+        Grid.SetRow(text, 1);
+        main.Children.Add(text);
+        var status = StatusIcons(context, Orientation.Vertical);
+        status.Margin = new Thickness(0, 0, SpacingXS, 0);
+        Grid.SetRow(status, 1);
+        main.Children.Add(status);
+        if (!ShowTiles)
+            return main;
+        foreach (var side in Enum.GetValues<TileSide>())
+        {
+            var strip = TileStrip(context, side, true);
+            if (side is TileSide.Left or TileSide.Right)
+            {
+                AddToSide(main, strip, side);
+                continue;
+            }
+            text.Add(strip, side == TileSide.Top ? 2 : 3, first: side == TileSide.Top);
+            if (side == TileSide.Bottom)
+                text.Bottom = strip;
+        }
+        return main;
+    }
+
+    // Month and Agenda chips, Planner and Timeline bars: one line that starts with the start time (see
+    // AppointmentLinePanel), with top and bottom tiles above and below it.
+    private Grid BuildLineContent(AppointmentContext context)
+    {
+        var main = ContentGrid();
+        StackPanel? leftTiles = null;
+        StackPanel? rightTiles = null;
+        if (ShowTiles)
+        {
+            foreach (var side in Enum.GetValues<TileSide>())
+            {
+                var strip = TileStrip(context, side, false);
+                if (side == TileSide.Left)
+                    leftTiles = strip;
+                else if (side == TileSide.Right)
+                    rightTiles = strip;
+                else
+                    AddToSide(main, strip, side);
+            }
+        }
+        TextBlock? start = null;
+        if (!context.IsAllDay)
+        {
+            start = Label(context.CompactStart);
+            start.Foreground = context.Foreground;
+            start.FontWeight = FontWeight.SemiBold;
+            start.TextTrimming = TextTrimming.None;
+        }
+        var status = StatusIcons(context, Orientation.Horizontal);
+        var title = Title(context);
+        var line = new AppointmentLinePanel(SpacingXS, status.Children.Count > 0 ? status : null, NonEmpty(leftTiles), start,
+            title, ShortestSubjectWidth(title), NonEmpty(rightTiles)) { VerticalAlignment = VerticalAlignment.Center };
+        Grid.SetRow(line, 1);
+        Grid.SetColumnSpan(line, 4);
+        main.Children.Add(line);
+        return main;
+    }
+
+    private static StackPanel? NonEmpty(StackPanel? panel) => panel is { Children.Count: > 0 } ? panel : null;
+
+    private Grid ContentGrid() => new()
+    {
+        ColumnDefinitions = new ColumnDefinitions("Auto,Auto,*,Auto"), RowDefinitions = new RowDefinitions("Auto,*,Auto"),
+        Margin = new Thickness(SpacingXS + LineThickness, SpacingXS / 2)
+    };
+
+    private TextBlock Title(AppointmentContext context)
+    {
         var title = Label(context.Subject);
         title.Foreground = context.Foreground;
         title.FontWeight = FontWeight.SemiBold;
@@ -69,31 +167,23 @@ public partial class DaisyScheduler
             title.TextWrapping = TextWrapping.Wrap;
             title.TextTrimming = TextTrimming.None;
         }
-        text.Add(title, 0);
-        if (multiline)
-        {
-            var time = Label(context.TimeRange, true);
-            time.Foreground = context.Foreground;
-            text.Add(time, 1);
-            if (!string.IsNullOrWhiteSpace(context.Note))
-            {
-                var note = Label(context.Note, true);
-                note.Foreground = context.Foreground;
-                if (CurrentView == SchedulerView.Calendar)
-                {
-                    note.TextWrapping = TextWrapping.Wrap;
-                    note.TextTrimming = TextTrimming.None;
-                }
-                text.Add(note, 4);
-            }
-        }
-        else if (!context.IsAllDay)
-            title.Text = context.StartTime + "  " + context.Subject;
-        Grid.SetColumn(text, 2);
-        Grid.SetRow(text, 1);
-        main.Children.Add(text);
+        return title;
+    }
 
-        var status = new StackPanel { Spacing = SpacingXS / 2, Margin = new Thickness(0, 0, SpacingXS, 0), Orientation = multiline ? Orientation.Vertical : Orientation.Horizontal };
+    // A subject is worth showing from its first two characters and an ellipsis on. Characters are text elements, so an
+    // emoji is not split, and the width is rounded up to device pixels as layout rounds it.
+    private double ShortestSubjectWidth(TextBlock title)
+    {
+        var subject = new StringInfo(title.Text ?? string.Empty);
+        var shortest = Label(subject.LengthInTextElements > 2 ? subject.SubstringByTextElements(0, 2) + "…" : subject.String);
+        shortest.FontWeight = title.FontWeight;
+        shortest.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        return RoundToPixel(shortest.DesiredSize.Width);
+    }
+
+    private StackPanel StatusIcons(AppointmentContext context, Orientation orientation)
+    {
+        var status = new StackPanel { Spacing = SpacingXS / 2, Orientation = orientation };
         var flags = AppointmentFlags(context.Appointment);
         if (flags.Length > 0)
         {
@@ -110,39 +200,42 @@ public partial class DaisyScheduler
             SetSchedulerTooltip(glyph, indicator.Tooltip);
             status.Children.Add(glyph);
         }
-        Grid.SetRow(status, 1);
-        main.Children.Add(status);
+        return status;
+    }
 
-        if (ShowTiles)
+    private StackPanel TileStrip(AppointmentContext context, TileSide side, bool multiline)
+    {
+        var strip = new StackPanel { Spacing = 3, Orientation = TileLayout.IsVertical(side, multiline) ? Orientation.Vertical : Orientation.Horizontal };
+        foreach (var (alignment, tiles) in TileLayout.Groups(context.Tiles, side, multiline))
         {
-            foreach (var side in Enum.GetValues<TileSide>())
-            {
-                var strip = new StackPanel { Spacing = 3, Orientation = TileLayout.IsVertical(side, multiline) ? Orientation.Vertical : Orientation.Horizontal };
-                foreach (var (alignment, tiles) in TileLayout.Groups(context.Tiles, side, multiline))
-                {
-                    var group = new StackPanel { Spacing = 2, Orientation = strip.Orientation };
-                    group.HorizontalAlignment = alignment switch { DecorationAlignment.Middle => HorizontalAlignment.Center, DecorationAlignment.Far => HorizontalAlignment.Right, _ => HorizontalAlignment.Left };
-                    group.VerticalAlignment = alignment switch { DecorationAlignment.Middle => VerticalAlignment.Center, DecorationAlignment.Far => VerticalAlignment.Bottom, _ => VerticalAlignment.Top };
-                    foreach (var tile in tiles)
-                        group.Children.Add(CreateDecoration(tile, context, true));
-                    strip.Children.Add(group);
-                }
-                if (multiline && side is TileSide.Top or TileSide.Bottom)
-                {
-                    text.Add(strip, side == TileSide.Top ? 2 : 3, first: side == TileSide.Top);
-                    if (side == TileSide.Bottom)
-                        text.Bottom = strip;
-                }
-                else
-                {
-                    Grid.SetColumn(strip, side switch { TileSide.Left => 1, TileSide.Right => 3, _ => 2 });
-                    Grid.SetRow(strip, side switch { TileSide.Top => 0, TileSide.Bottom => 2, _ => 1 });
-                    main.Children.Add(strip);
-                }
-            }
+            var group = new StackPanel { Spacing = 2, Orientation = strip.Orientation };
+            group.HorizontalAlignment = alignment switch { DecorationAlignment.Middle => HorizontalAlignment.Center, DecorationAlignment.Far => HorizontalAlignment.Right, _ => HorizontalAlignment.Left };
+            group.VerticalAlignment = alignment switch { DecorationAlignment.Middle => VerticalAlignment.Center, DecorationAlignment.Far => VerticalAlignment.Bottom, _ => VerticalAlignment.Top };
+            foreach (var tile in tiles)
+                group.Children.Add(CreateDecoration(tile, context, true));
+            strip.Children.Add(group);
         }
+        return strip;
+    }
+
+    private static void AddToSide(Grid main, Control strip, TileSide side)
+    {
+        Grid.SetColumn(strip, side switch { TileSide.Left => 1, TileSide.Right => 3, _ => 2 });
+        Grid.SetRow(strip, side switch { TileSide.Top => 0, TileSide.Bottom => 2, _ => 1 });
+        main.Children.Add(strip);
+    }
+
+    // The color bar on the left and the adornments over the content.
+    private Grid WrapContent(AppointmentContext context, Control main)
+    {
         var root = new Grid { ClipToBounds = true };
-        root.Children.Add(new Border { BorderBrush = context.BarBrush, BorderThickness = new Thickness(SpacingXS, 0, 0, 0), Child = main });
+        // The bar follows the rounded corners inside the frame border instead of covering them.
+        var inner = Math.Max(0, context.CornerRadius - LineThickness);
+        root.Children.Add(new Border
+        {
+            BorderBrush = context.BarBrush, BorderThickness = new Thickness(SpacingXS, 0, 0, 0),
+            CornerRadius = new CornerRadius(inner, 0, 0, inner), Child = main
+        });
         foreach (var adornment in context.Adornments)
         {
             var decoration = CreateDecoration(adornment, context, false);
@@ -270,7 +363,7 @@ public partial class DaisyScheduler
         return luminance > 0.179 ? Brushes.Black : Brushes.White;
     }
 
-    private sealed class OwnedImage(byte[] bytes) : Image
+    internal sealed class OwnedImage(byte[] bytes) : Image
     {
         private Bitmap? _bitmap;
 

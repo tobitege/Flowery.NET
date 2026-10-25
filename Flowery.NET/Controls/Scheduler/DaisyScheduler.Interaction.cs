@@ -5,6 +5,7 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.VisualTree;
 using Flowery.Controls.Scheduler.Contracts;
 using Flowery.Controls.Scheduler.Models;
 using Flowery.Controls.Scheduler.Utilities;
@@ -28,6 +29,7 @@ public partial class DaisyScheduler
         public AppointmentModel? Appointment { get; init; }
         public required DateTime OriginalStart { get; init; }
         public required DateTime OriginalEnd { get; init; }
+        public required double PressY { get; init; }
         public Lane? Target { get; set; }
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
@@ -35,7 +37,13 @@ public partial class DaisyScheduler
         public Border? Ghost { get; set; }
     }
 
+    // A touch or pen press is left to scrolling first: released where it was pressed, it selects its appointment or slot.
+    private sealed record PendingTap(IPointer Pointer, Point PressPoint, AppointmentTarget? Target, Lane? Lane, DateTime Slot, int ClickCount);
+
     private Gesture? _gesture;
+    private PendingTap? _pendingTap;
+    // A scroll view keeps moving after a swipe; a press then only stops it.
+    private bool _flinging;
 
     private void OnAppointmentPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -43,7 +51,7 @@ public partial class DaisyScheduler
             return;
         var appointment = target.Appointment;
         var point = e.GetCurrentPoint(frame);
-        var selectedBefore = _selection.Any(selected => Same(selected, appointment));
+        var selectedBefore = IsSelected(appointment);
         if (point.Properties.IsRightButtonPressed)
         {
             if (!appointment.IsLocked)
@@ -59,6 +67,13 @@ public partial class DaisyScheduler
         e.Handled = true;
         if (appointment.IsLocked)
             return;
+        // On touch or pen, a tap selects an appointment and a drag on a selected one moves or resizes it; a press on
+        // any other appointment is left to scrolling, so a swipe through the view selects nothing.
+        if (e.Pointer.Type != PointerType.Mouse && (_flinging || !selectedBefore))
+        {
+            _pendingTap = _flinging ? null : new PendingTap(e.Pointer, e.GetPosition(this), target, null, default, e.ClickCount);
+            return;
+        }
         RememberSelectionResource(target);
         var multiple = (e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Meta)) != 0;
         if (multiple || !selectedBefore)
@@ -77,11 +92,16 @@ public partial class DaisyScheduler
         {
             var axis = lane.Horizontal ? point.Position.X : point.Position.Y;
             var length = lane.Horizontal ? frame.Bounds.Width : frame.Bounds.Height;
-            if (axis < 5)
+            // Touch and pen need a wider edge than a mouse; a short appointment keeps half of its length for moving.
+            var edge = e.Pointer.Type == PointerType.Mouse ? 5 : Math.Min(12, length / 4);
+            if (axis < edge)
                 kind = GestureKind.ResizeStart;
-            else if (axis > length - 5)
+            else if (axis > length - edge)
                 kind = GestureKind.ResizeEnd;
         }
+        // The scroll gesture of the view must not take over the drag of a selected appointment on touch or pen.
+        if (e.Pointer.Type != PointerType.Mouse)
+            e.PreventGestureRecognition();
         BeginGesture(e, frame, lane, kind, appointment, target.Displayed);
     }
 
@@ -127,13 +147,52 @@ public partial class DaisyScheduler
         lane.Surface.AddHandler(DragDrop.DropEvent, OnLaneDrop);
     }
 
+    private bool IsSelected(AppointmentModel appointment)
+    {
+        foreach (var selected in _selection)
+            if (Same(selected, appointment))
+                return true;
+        return false;
+    }
+
+    // Decided on release, like a click of the mouse: Avalonia raises DoubleTapped on the second press already, before it
+    // is known whether that press becomes a tap or a swipe.
+    private void OnPendingTapReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_pendingTap is not { } tap || tap.Pointer != e.Pointer)
+            return;
+        _pendingTap = null;
+        var size = Application.Current?.PlatformSettings?.GetTapSize(e.Pointer.Type) ?? new Size(10, 10);
+        var moved = e.GetPosition(this) - tap.PressPoint;
+        if (Math.Abs(moved.X) > size.Width / 2 || Math.Abs(moved.Y) > size.Height / 2)
+            return;
+        e.Handled = true;
+        if (tap.Target is { } target)
+        {
+            RememberSelectionResource(target);
+            SelectAppointment(target.Appointment, (e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Meta)) != 0);
+        }
+        else if (tap.Lane is { } lane && TryStoredTime(tap.Slot, lane, out var slot))
+            SelectSlot(slot, lane.Resource, false, tap.ClickCount, e.GetPosition(TopLevel.GetTopLevel(this)));
+    }
+
+    private void OnScrollFlingStarting(object? sender, ScrollGestureInertiaStartingEventArgs e) => _flinging = true;
+
+    private void OnScrollGestureEnded(object? sender, ScrollGestureEndedEventArgs e) => _flinging = false;
+
     private void OnLanePressed(object? sender, PointerPressedEventArgs e)
     {
         if (IsReadOnly || sender is not Canvas { Tag: Lane lane } canvas || !e.GetCurrentPoint(canvas).Properties.IsLeftButtonPressed)
             return;
         Focus(NavigationMethod.Pointer);
-        BeginGesture(e, canvas, lane, GestureKind.Create, null);
         e.Handled = true;
+        // On touch or pen a swipe over a free slot scrolls, and a tap selects the slot; there is no create by dragging.
+        if (e.Pointer.Type != PointerType.Mouse)
+        {
+            _pendingTap = _flinging ? null : new PendingTap(e.Pointer, e.GetPosition(this), null, lane, SlotTime(lane, e.GetPosition(canvas)), e.ClickCount);
+            return;
+        }
+        BeginGesture(e, canvas, lane, GestureKind.Create, null);
     }
 
     private DateTime SlotTime(Lane lane, Point position)
@@ -154,7 +213,7 @@ public partial class DaisyScheduler
         {
             Pointer = e.Pointer, Source = lane, Target = lane, PressPoint = e.GetPosition(this),
             PressTime = slot, Kind = kind, ClickCount = e.ClickCount, Appointment = appointment,
-            OriginalStart = start, OriginalEnd = end, Start = start, End = end
+            OriginalStart = start, OriginalEnd = end, Start = start, End = end, PressY = e.GetPosition(lane.Surface).Y
         };
         e.Pointer.Capture(capture);
     }
@@ -195,11 +254,13 @@ public partial class DaisyScheduler
                     gesture.End = gesture.Start.AddMinutes(SnapMinutes);
                 break;
         }
-        ShowGhost(gesture);
+        ShowGhost(gesture, e.GetPosition(target.Surface).Y);
         e.Handled = true;
     }
 
-    private void ShowGhost(Gesture gesture)
+    // In a Planner or Timeline lane a moved ghost lies on the row under the pointer, like the bars of that row; a new or
+    // resized one stays on the pressed row, where the appointment stays.
+    private void ShowGhost(Gesture gesture, double pointerY)
     {
         var lane = gesture.Target ?? gesture.Source;
         if (gesture.Ghost is null)
@@ -216,13 +277,28 @@ public partial class DaisyScheduler
             (gesture.Ghost.Parent as Panel)?.Children.Remove(gesture.Ghost);
             lane.Surface.Children.Add(gesture.Ghost);
         }
-        gesture.Ghost.Child = Label(FormatTime(gesture.Start) + " – " + FormatTime(gesture.End));
-        var begin = (gesture.Start - lane.Origin).TotalMinutes * lane.PixelsPerMinute;
-        var length = Math.Max(ChipHeight, (gesture.End - gesture.Start).TotalMinutes * lane.PixelsPerMinute);
-        gesture.Ghost.Width = lane.Horizontal ? length : lane.Surface.Width - 4;
-        gesture.Ghost.Height = lane.Horizontal ? ChipHeight : length;
-        Canvas.SetLeft(gesture.Ghost, lane.Horizontal ? begin : 2);
-        Canvas.SetTop(gesture.Ghost, lane.Horizontal ? 4 : begin);
+        var times = Label(FormatTime(gesture.Start) + " – " + FormatTime(gesture.End));
+        gesture.Ghost.Child = times;
+        if (lane.Surface is MinuteCanvas)
+        {
+            // Placed like a bar: clipped to the shown days, as long as the rest of the appointment and never narrower
+            // than its whole times.
+            times.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            var startMinutes = Math.Max(0, (gesture.Start - lane.Origin).TotalMinutes);
+            var endMinutes = Math.Min(lane.DayCount * 1440, (gesture.End - lane.Origin).TotalMinutes);
+            MinuteCanvas.Place(gesture.Ghost, startMinutes, Math.Max(0, endMinutes - startMinutes),
+                minimumWidth: Math.Max(ChipHeight, RoundToPixel(times.DesiredSize.Width) + SelectionThickness * 2));
+            gesture.Ghost.Height = ChipHeight;
+            var rows = Math.Max(1, (int)Math.Round(lane.Surface.Bounds.Height / RowHeight));
+            var y = gesture.Kind == GestureKind.Move ? pointerY : gesture.PressY;
+            Canvas.SetTop(gesture.Ghost, BarTop(Math.Clamp((int)Math.Floor(y / RowHeight), 0, rows - 1)));
+            return;
+        }
+        // A day column of Day or Week.
+        gesture.Ghost.Width = lane.Surface.Width - 4;
+        gesture.Ghost.Height = Math.Max(ChipHeight, (gesture.End - gesture.Start).TotalMinutes * lane.PixelsPerMinute);
+        Canvas.SetLeft(gesture.Ghost, 2);
+        Canvas.SetTop(gesture.Ghost, (gesture.Start - lane.Origin).TotalMinutes * lane.PixelsPerMinute);
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
@@ -363,7 +439,9 @@ public partial class DaisyScheduler
         _gesture = null;
         if (gesture?.Ghost?.Parent is Panel panel)
             panel.Children.Remove(gesture.Ghost);
-        gesture?.Pointer.Capture(null);
+        // Only a capture of this scheduler is released: a scroll gesture that took the pointer over keeps it.
+        if (gesture?.Pointer.Captured is Visual captured && (ReferenceEquals(captured, this) || this.IsVisualAncestorOf(captured)))
+            gesture.Pointer.Capture(null);
     }
 
     private void OnLaneDragOver(object? sender, DragEventArgs e)

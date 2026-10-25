@@ -63,6 +63,6 @@ public sealed class AppointmentContext
     public string StartTime => Start.ToString(_timePattern, _culture);
     public string TimeRange => IsAllDay ? FloweryLocalization.GetStringInternal("Scheduler_AllDay") :
         StartTime + " – " + End.ToString(_timePattern, _culture);
-    public string CompactStart => _timePattern.Contains('H') ? StartTime : SchedulerTimeFormatter.Compact(Start);
+    public string CompactStart => SchedulerTimeFormatter.CompactStart(Start, _timePattern, _culture);
     public string CompactTimeRange => IsAllDay || _timePattern.Contains('H') ? TimeRange : SchedulerTimeFormatter.RangeFormatter(Start, End);
 }
