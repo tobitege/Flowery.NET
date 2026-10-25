@@ -37,6 +37,11 @@ public partial class GlassExamples : UserControl, IScrollableExample
             _ballInView = e.EffectiveViewport.Intersects(new Rect(GlassDemoBall.Bounds.Size));
             RequestBallFrame();
         };
+        OpenGlassDesignerButton.Click += async (_, _) =>
+        {
+            if (await DaisyGlassButtonDesigner.ShowOverlayAsync(this, GlassDesigner.Design) is { } design)
+                GlassDesigner.Design = design;
+        };
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
