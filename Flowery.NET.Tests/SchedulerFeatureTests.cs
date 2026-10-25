@@ -127,7 +127,7 @@ public sealed partial class SchedulerTests
         Assert.Single(dailyRows);
         var rows = new[] { dailyRows[0], Canvas.GetTop(scope.Frame(later)), Canvas.GetTop(scope.Frame(continuous)), Canvas.GetTop(scope.Frame(allDay)) };
         Assert.Equal(4, rows.Distinct().Count());
-        Assert.True(scope.Frame(continuous).Width > scope.Frame(later).Width);
+        Assert.True(scope.Frame(continuous).Bounds.Width > scope.Frame(later).Bounds.Width);
     }
 
     [AvaloniaFact]
@@ -203,7 +203,7 @@ public sealed partial class SchedulerTests
             var row = Assert.IsType<Border>(label.Parent);
             var cell = row.GetVisualAncestors().OfType<Border>().First();
             var frame = scope.Frame(appointment);
-            var canvas = Assert.IsType<Canvas>(frame.Parent);
+            var canvas = Assert.IsAssignableFrom<Canvas>(frame.Parent);
             var cellTop = cell.TranslatePoint(default, scope.Scheduler)!.Value.Y;
             var canvasTop = canvas.TranslatePoint(default, scope.Scheduler)!.Value.Y;
             var rowCenter = row.TranslatePoint(new Point(0, row.Bounds.Height / 2), scope.Scheduler)!.Value.Y;
@@ -220,7 +220,7 @@ public sealed partial class SchedulerTests
         using var scope = new SchedulerScope(SchedulerView.Timeline);
         scope.Scheduler.Size = DaisySize.Small;
         scope.Layout();
-        var originalWidth = Assert.IsType<Canvas>(scope.Frame(scope.Appointment).Parent).Width;
+        var originalWidth = Assert.IsAssignableFrom<Canvas>(scope.Frame(scope.Appointment).Parent).Bounds.Width;
         scope.Scheduler.Resources["DaisySizeSmallSecondaryFontSize"] = 10.5d;
         scope.Scheduler.Resources["DaisySpacingSmall"] = 12d;
         scope.Scheduler.Resources["DaisySchedulerTimelineMinimumHourWidth"] = 200d;
@@ -232,6 +232,6 @@ public sealed partial class SchedulerTests
         var badge = scope.Frame(scope.Appointment).GetVisualDescendants().OfType<TextBlock>().Single(text => text.Text == "Token badge");
         Assert.Equal(10.5, badge.FontSize);
         Assert.Equal(40, Assert.IsType<Border>(label.Parent).Height);
-        Assert.True(Assert.IsType<Canvas>(scope.Frame(scope.Appointment).Parent).Width > originalWidth);
+        Assert.True(Assert.IsAssignableFrom<Canvas>(scope.Frame(scope.Appointment).Parent).Bounds.Width > originalWidth);
     }
 }

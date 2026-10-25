@@ -2,7 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
              xmlns:loc="clr-namespace:Flowery.NET.Gallery.Localization"
-             xmlns:flowloc="clr-namespace:Flowery.Localization;assembly=Flowery.NET"
              x:Class="Flowery.NET.Gallery.Examples.SchedulerExamples">
     <Grid Margin="24,0,24,16" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12">
         <TextBlock Text="{loc:Localize Scheduler_Description}" TextWrapping="Wrap"
@@ -15,25 +14,13 @@
             <controls:DaisyCheckBox x:Name="AdornmentsOption" Content="{loc:Localize Scheduler_Adornments}" IsChecked="True" Margin="0,0,16,8" />
             <controls:DaisyCheckBox x:Name="DetailsOption" Content="{loc:Localize Scheduler_Details}" IsChecked="True" Margin="0,0,16,8" />
             <controls:DaisyCheckBox x:Name="ReadOnlyOption" Content="{loc:Localize Scheduler_ReadOnly}" Margin="0,0,16,8" />
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,16,8" VerticalAlignment="Center">
+                <TextBlock Text="{loc:Localize Scheduler_ShowFor}" VerticalAlignment="Center" controls:FlowerySizeManager.ResponsiveFont="Primary"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                <controls:DaisySelect x:Name="ShowForOption" MinWidth="140" SelectionChanged="OnShowForChanged"
+                                      AutomationProperties.Name="{loc:Localize Scheduler_ShowFor}" />
+            </StackPanel>
             <controls:DaisyButton Content="{loc:Localize Scheduler_Reset}" Variant="Ghost" Click="OnReset" />
-            <StackPanel Spacing="4" Margin="12,0,0,8">
-                <TextBlock Text="{flowloc:Localize Scheduler_ResourceKind}" Foreground="{DynamicResource DaisyBaseContentBrush}"
-                           controls:FlowerySizeManager.ResponsiveFont="Secondary" />
-                <controls:DaisySelect x:Name="ResourceKindOption" MinWidth="160" SelectionChanged="OnResourceKindChanged"
-                                      AutomationProperties.Name="{flowloc:Localize Scheduler_ResourceKind}" />
-            </StackPanel>
-            <StackPanel Spacing="4" Margin="12,0,12,8">
-                <TextBlock Text="{flowloc:Localize Scheduler_DateTimeFormat}" Foreground="{DynamicResource DaisyBaseContentBrush}"
-                           controls:FlowerySizeManager.ResponsiveFont="Secondary" />
-                <controls:DaisySelect x:Name="DateTimeFormatOption" MinWidth="190" SelectionChanged="OnDateTimeFormatChanged"
-                                      AutomationProperties.Name="{flowloc:Localize Scheduler_DateTimeFormat}" />
-            </StackPanel>
-            <StackPanel Spacing="4" Margin="0,0,12,8">
-                <TextBlock Text="{flowloc:Localize Scheduler_ClockFormat}" Foreground="{DynamicResource DaisyBaseContentBrush}"
-                           controls:FlowerySizeManager.ResponsiveFont="Secondary" />
-                <controls:DaisySelect x:Name="ClockFormatOption" MinWidth="160" SelectionChanged="OnClockFormatChanged"
-                                      AutomationProperties.Name="{flowloc:Localize Scheduler_ClockFormat}" />
-            </StackPanel>
         </WrapPanel>
         <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
             <controls:DaisyScheduler x:Name="DemoScheduler" CurrentView="Month" />
@@ -41,7 +28,8 @@
                     Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"
                     BorderThickness="1" CornerRadius="8" Padding="16">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Spacing="12">
+                    <!-- The right margin keeps the fields clear of the scrollbar, which lies over the content. -->
+                    <StackPanel Spacing="12" Margin="0,0,16,0">
                         <TextBlock Text="{loc:Localize Scheduler_Editor}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource DaisyBaseContentBrush}"
                                    controls:FlowerySizeManager.ResponsiveFont="SectionHeader" />
@@ -64,9 +52,9 @@
                                        controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisySelect x:Name="ColorInput" AutomationProperties.Name="{loc:Localize Scheduler_Color}" />
                         </StackPanel>
-                        <TextBlock x:Name="EditorError" TextWrapping="Wrap" Foreground="{DynamicResource DaisyErrorForegroundBrush}"
+                        <TextBlock x:Name="EditorError" TextWrapping="Wrap" IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Foreground="{DynamicResource DaisyErrorForegroundBrush}"
                                    controls:FlowerySizeManager.ResponsiveFont="Secondary" />
-                        <TextBlock x:Name="OverlapWarning" TextWrapping="Wrap" Foreground="{DynamicResource DaisyBaseContentBrush}"
+                        <TextBlock x:Name="OverlapWarning" TextWrapping="Wrap" IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Foreground="{DynamicResource DaisyBaseContentBrush}"
                                    controls:FlowerySizeManager.ResponsiveFont="Primary" />
                         <controls:DaisyButton x:Name="SaveAnywayButton" IsVisible="False" Content="{loc:Localize Scheduler_SaveAnyway}"
                                               Variant="Warning" Click="OnSaveAnyway" />

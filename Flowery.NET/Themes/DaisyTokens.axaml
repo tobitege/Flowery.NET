@@ -426,8 +426,8 @@
 
     <!-- ==================== SCHEDULER ==================== -->
     <!-- Fonts, chip heights, row heights, spacing and borders reuse the shared size tokens. -->
-    <sys:Double x:Key="DaisySchedulerTimelineMinimumHourWidth">96</sys:Double>
-    <sys:Double x:Key="DaisySchedulerPlannerPixelsPerMinute">0.35</sys:Double>
+    <!-- Planner and Timeline hours fit their start times and fill the visible width; this only raises that minimum. -->
+    <sys:Double x:Key="DaisySchedulerTimelineMinimumHourWidth">0</sys:Double>
     <sys:Double x:Key="DaisySchedulerTimelineResourceWidth">220</sys:Double>
     <sys:Double x:Key="DaisySchedulerPlannerResourceWidth">150</sys:Double>
     <sys:Double x:Key="DaisySchedulerMonthMinimumWidth">560</sys:Double>
@@ -441,8 +441,8 @@
     <sys:Double x:Key="DaisySchedulerSettingsMinimumWidth">230</sys:Double>
     <sys:Double x:Key="DaisySchedulerSettingsMaximumHeight">600</sys:Double>
     <Thickness x:Key="DaisySchedulerToolbarMargin">8</Thickness>
-    <Thickness x:Key="DaisySchedulerToolbarItemMargin">2</Thickness>
-    <Thickness x:Key="DaisySchedulerViewButtonsMargin">8,0</Thickness>
+    <!-- The icons of DaisySchedulerToolbar at Medium size; other sizes scale it like the font. -->
+    <sys:Double x:Key="DaisySchedulerToolbarIconSize">20</sys:Double>
 
     <!-- ==================== LARGE DISPLAY CONTROL SIZES ==================== -->
     <!-- Used for dashboard-style display controls like NumberFlow, counters, stats -->

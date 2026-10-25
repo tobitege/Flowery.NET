@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
@@ -321,11 +321,16 @@ public class Given_GlassBackdrop
         var canvas = new Canvas { Width = 400, Height = 260, Background = Brushes.Blue, Children = { mover, button, badge } };
         await RuntimeTestHelpers.AttachAsync(canvas);
 
+        // Every wait is logged: the redraw versions, the measured backdrop colors and the text colors, so a failure
+        // shows what started the glasses again.
+        var log = new List<string>();
+
         // Moving content behind both glasses makes them redraw in full for a moment.
         for (var step = 0; step < 10; step++)
         {
             Canvas.SetLeft(mover, 60 + step * 25);
             await RuntimeTestHelpers.WaitForRenderAsync();
+            log.Add(Snapshot($"move {step}", button, badge));
         }
 
         // Each full redraw raises the version of the glass's own redraw controller. Only these two glasses count:
@@ -336,23 +341,38 @@ public class Given_GlassBackdrop
         for (var frame = 0; frame < 120 && !stopped; frame++)
         {
             await RuntimeTestHelpers.WaitForRenderAsync();
+            log.Add(Snapshot($"wait {frame}", button, badge));
             var current = new[] { RedrawVersion(button), RedrawVersion(badge) };
             quiet = current.SequenceEqual(versions) ? quiet + 1 : 0;
             versions = current;
             stopped = quiet >= 10;
         }
-        Assert.True(stopped, "The overlapping glasses kept each other redrawing in full.");
+        Assert.True(stopped, "The overlapping glasses kept each other redrawing in full.\n" + string.Join("\n", log));
 
         // Once stopped, they stay stopped.
         for (var frame = 0; frame < 20; frame++)
+        {
             await RuntimeTestHelpers.WaitForRenderAsync();
-        Assert.Equal(versions, new[] { RedrawVersion(button), RedrawVersion(badge) });
+            log.Add(Snapshot($"after {frame}", button, badge));
+        }
+        Assert.True(versions.SequenceEqual([RedrawVersion(button), RedrawVersion(badge)]),
+            $"The glasses started redrawing in full again after {string.Join("/", versions)} redraws.\n" + string.Join("\n", log));
     }
+
+    private static string Snapshot(string step, DaisyGlassButton button, DaisyGlassBadge badge) =>
+        $"{step}: version {RedrawVersion(button)}/{RedrawVersion(badge)}, backdrop {Glass(button).BackdropColor}/"
+        + $"{Glass(badge).BackdropColor}, text {Text(button.EffectiveForeground)}/{Text(badge.EffectiveForeground)}, "
+        + $"measure {Glass(button).MeasureBackdropColor}/{Glass(badge).MeasureBackdropColor}";
+
+    private static DaisyGlass Glass(Control control) =>
+        control.GetVisualDescendants().OfType<DaisyGlass>().Single(part => part.Name == "PART_Glass");
+
+    private static string Text(IBrush? brush) => brush is ISolidColorBrush solid ? solid.Color.ToString() : brush?.ToString() ?? "null";
 
     // The Version of the SkiaGlassRedraw that the registered renderer keeps for the glass inside the control.
     private static int RedrawVersion(Control control)
     {
-        var glass = control.GetVisualDescendants().OfType<DaisyGlass>().Single(part => part.Name == "PART_Glass");
+        var glass = Glass(control);
         var renderer = DaisyGlassLiveRenderer.Current!;
         var redraws = renderer.GetType().GetField("_redraws", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(renderer)!;
         var arguments = new object?[] { glass, null };

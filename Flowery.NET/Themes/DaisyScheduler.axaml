@@ -4,6 +4,64 @@
     <SolidColorBrush x:Key="DaisySchedulerTodayBrush" Color="{DynamicResource DaisyPrimaryColor}" Opacity="0.08" />
     <SolidColorBrush x:Key="DaisySchedulerEventBackgroundBrush" Color="{DynamicResource DaisyBase200Color}" />
 
+    <!-- The buttons of DaisySchedulerToolbar: quiet until hovered, like the toolbar of a native calendar. The toolbar
+         sets their paddings and heights for the size of the scheduler. -->
+    <ControlTheme x:Key="DaisySchedulerToolbarButton" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="{DynamicResource DaisySizeSmallCornerRadius}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ContentPresenter Name="PART_ContentPresenter" Background="{TemplateBinding Background}"
+                                  BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                  CornerRadius="{TemplateBinding CornerRadius}" Padding="{TemplateBinding Padding}"
+                                  Foreground="{TemplateBinding Foreground}" Content="{TemplateBinding Content}"
+                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+        </Style>
+        <Style Selector="^:pressed">
+            <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="0.4" />
+        </Style>
+        <Style Selector="^.today">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyBase300Brush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="999" />
+        </Style>
+        <Style Selector="^.checked">
+            <Setter Property="Background" Value="{DynamicResource DaisyBase200Brush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyPrimaryBrush}" />
+        </Style>
+    </ControlTheme>
+
+    <!-- A view segment of DaisySchedulerToolbar: muted, with the selected one raised on the base surface. -->
+    <ControlTheme x:Key="DaisySchedulerToolbarSegment" TargetType="Button" BasedOn="{StaticResource DaisySchedulerToolbarButton}">
+        <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentMutedBrush}" />
+        <Style Selector="^:pointerover">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        </Style>
+        <Style Selector="^.selected">
+            <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />
+            <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        </Style>
+        <Style Selector="^.selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="BoxShadow" Value="0 1 3 0 #33000000" />
+        </Style>
+    </ControlTheme>
+
     <ControlTheme x:Key="{x:Type controls:DaisyScheduler}" TargetType="controls:DaisyScheduler">
         <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
@@ -17,15 +75,8 @@
                         BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                         CornerRadius="{TemplateBinding CornerRadius}" Padding="{TemplateBinding Padding}">
                     <Grid RowDefinitions="Auto,*">
-                        <WrapPanel x:Name="PART_Toolbar" Margin="{DynamicResource DaisySchedulerToolbarMargin}" Orientation="Horizontal">
-                            <controls:DaisyButton Tag="Previous" Content="‹" Variant="Ghost" Margin="{DynamicResource DaisySchedulerToolbarItemMargin}" />
-                            <controls:DaisyButton x:Name="PART_Date" Tag="Date" Variant="Ghost" Margin="{DynamicResource DaisySchedulerToolbarItemMargin}" />
-                            <controls:DaisyButton Tag="Next" Content="›" Variant="Ghost" Margin="{DynamicResource DaisySchedulerToolbarItemMargin}" />
-                            <controls:DaisyButton Tag="Today" Variant="Ghost" Margin="{DynamicResource DaisySchedulerToolbarItemMargin}" />
-                            <WrapPanel x:Name="PART_Views" Orientation="Horizontal" Margin="{DynamicResource DaisySchedulerViewButtonsMargin}" />
-                            <WrapPanel x:Name="PART_CustomButtons" Orientation="Horizontal" />
-                            <controls:DaisyButton Tag="Settings" Variant="Ghost" Margin="{DynamicResource DaisySchedulerToolbarItemMargin}" />
-                        </WrapPanel>
+                        <controls:DaisySchedulerToolbar x:Name="PART_Toolbar" Margin="{DynamicResource DaisySchedulerToolbarMargin}"
+                                                        IsVisible="{TemplateBinding ShowToolbar}" />
                         <Border x:Name="PART_ViewHost" Grid.Row="1" ClipToBounds="True" />
                     </Grid>
                 </Border>

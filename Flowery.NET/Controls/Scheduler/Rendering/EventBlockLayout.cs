@@ -9,10 +9,10 @@ namespace Flowery.Controls.Scheduler.Rendering;
 
 /// <summary>The computed placement of one appointment within a lane / column.</summary>
 /// <param name="Appointment">The laid-out appointment.</param>
-/// <param name="StartMinutes">Minutes from the lane origin (midnight for a day column, range-start for a timeline).</param>
+/// <param name="StartMinutes">Minutes from the lane origin (midnight for a day column, the start of the range for LayoutRange).</param>
 /// <param name="EndMinutes">Minutes from the lane origin of the end.</param>
-/// <param name="ColumnIndex">0-based slot within its overlap cluster (a side-by-side column in a day grid; a stacked sub-row in a timeline).</param>
-/// <param name="ColumnCount">Number of slots in its overlap cluster (the divisor for width / row height).</param>
+/// <param name="ColumnIndex">0-based slot within its overlap cluster (a side-by-side column in a day grid).</param>
+/// <param name="ColumnCount">Number of slots in its overlap cluster (the divisor for the width).</param>
 public readonly record struct EventLayout(
     AppointmentModel Appointment,
     double StartMinutes,
@@ -24,7 +24,7 @@ public readonly record struct EventLayout(
 /// Pure overlap-resolution. Splits mutually-overlapping appointments into parallel slots using
 /// the standard greedy interval-packing algorithm: events are grouped into maximal overlap
 /// clusters, and within a cluster each takes the first slot whose previous event has ended.
-/// Used both vertically (day-grid columns) and horizontally (timeline sub-rows).
+/// Used for the side-by-side columns of a day grid.
 /// </summary>
 /// <remarks>No UI dependencies — deterministic and unit-testable in isolation.</remarks>
 public static class EventBlockLayout
@@ -48,8 +48,8 @@ public static class EventBlockLayout
 
     /// <summary>
     /// Lay out the timed appointments that intersect <paramref name="rangeStart"/>..<paramref name="rangeEnd"/>,
-    /// with minutes measured from <paramref name="rangeStart"/>. Used by the continuous timeline,
-    /// where the range can span many days. Times are clipped to the range.
+    /// with minutes measured from <paramref name="rangeStart"/>. The range can span many days. Times are clipped to the
+    /// range.
     /// </summary>
     public static IReadOnlyList<EventLayout> LayoutRange(
         DateTime rangeStart, DateTime rangeEnd, IEnumerable<AppointmentModel> appointments,

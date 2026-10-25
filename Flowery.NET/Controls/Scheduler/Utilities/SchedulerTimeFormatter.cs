@@ -23,6 +23,10 @@ public static class SchedulerTimeFormatter
     /// <summary>A single time, compact: "10a", "12:30p".</summary>
     public static string Compact(DateTime t) => Core(t) + Suffix(t);
 
+    // The start time of a single-line chip or bar: compact on a 12-hour clock, as the pattern writes it on a 24-hour one.
+    internal static string CompactStart(DateTime time, string timePattern, IFormatProvider culture) =>
+        timePattern.Contains('H') ? time.ToString(timePattern, culture) : Compact(time);
+
     /// <summary>A start-end span, compact: "10a-12:30p" (or "9-10:30a" when both share am/pm).</summary>
     public static string CompactRange(DateTime start, DateTime end)
     {
