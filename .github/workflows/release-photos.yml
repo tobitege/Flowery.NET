@@ -51,12 +51,21 @@ jobs:
           - os: windows-2025-vs2026
             rid: win-x64
             artifact_name: Flowery.Photos-Windows-x64
+          - os: windows-2025-vs2026
+            rid: win-arm64
+            artifact_name: Flowery.Photos-Windows-arm64
           - os: ubuntu-24.04
             rid: linux-x64
             artifact_name: Flowery.Photos-Linux-x64
+          - os: ubuntu-24.04
+            rid: linux-arm64
+            artifact_name: Flowery.Photos-Linux-arm64
           - os: macos-15
             rid: osx-arm64
             artifact_name: Flowery.Photos-macOS-arm64
+          - os: macos-15
+            rid: osx-x64
+            artifact_name: Flowery.Photos-macOS-x64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -127,13 +136,20 @@ jobs:
       - name: Require all platform archives
         run: |
           test -s ./release-artifacts/Flowery.Photos-Windows-x64.zip
+          test -s ./release-artifacts/Flowery.Photos-Windows-arm64.zip
           test -s ./release-artifacts/Flowery.Photos-Linux-x64.tar.gz
+          test -s ./release-artifacts/Flowery.Photos-Linux-arm64.tar.gz
           test -s ./release-artifacts/Flowery.Photos-macOS-arm64.tar.gz
+          test -s ./release-artifacts/Flowery.Photos-macOS-x64.tar.gz
 
       - name: Create checksums
         working-directory: ./release-artifacts
         run: |
-          sha256sum -- Flowery.Photos-Windows-x64.zip Flowery.Photos-Linux-x64.tar.gz Flowery.Photos-macOS-arm64.tar.gz > SHA256SUMS.txt
+          sha256sum -- \
+            Flowery.Photos-Windows-x64.zip Flowery.Photos-Windows-arm64.zip \
+            Flowery.Photos-Linux-x64.tar.gz Flowery.Photos-Linux-arm64.tar.gz \
+            Flowery.Photos-macOS-arm64.tar.gz Flowery.Photos-macOS-x64.tar.gz \
+            > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
       # Signed build provenance for every release asset, verifiable with `gh attestation verify`.
@@ -142,8 +158,11 @@ jobs:
         with:
           subject-path: |
             ./release-artifacts/Flowery.Photos-Windows-x64.zip
+            ./release-artifacts/Flowery.Photos-Windows-arm64.zip
             ./release-artifacts/Flowery.Photos-Linux-x64.tar.gz
+            ./release-artifacts/Flowery.Photos-Linux-arm64.tar.gz
             ./release-artifacts/Flowery.Photos-macOS-arm64.tar.gz
+            ./release-artifacts/Flowery.Photos-macOS-x64.tar.gz
             ./release-artifacts/SHA256SUMS.txt
 
       - name: Build release notes
@@ -167,13 +186,16 @@ jobs:
             echo ''
             echo 'Extract the complete archive. Keep Assets/Fonts, its OFL.txt license, and Assets/Samples beside the executable.'
             echo 'The .NET runtime is included. Linux requires the system libraries used by Avalonia.'
-            echo 'The macOS archive contains a standalone executable, without an .app bundle, signing, or notarization.'
+            echo 'The macOS archives contain a standalone executable, without an .app bundle, signing, or notarization.'
             echo ''
             echo '| Platform | Download |'
             echo '| --- | --- |'
             echo '| Windows x64 | `Flowery.Photos-Windows-x64.zip` |'
+            echo '| Windows ARM64 | `Flowery.Photos-Windows-arm64.zip` |'
             echo '| Linux x64 | `Flowery.Photos-Linux-x64.tar.gz` |'
+            echo '| Linux ARM64 | `Flowery.Photos-Linux-arm64.tar.gz` |'
             echo '| macOS ARM64 | `Flowery.Photos-macOS-arm64.tar.gz` |'
+            echo '| macOS x64 | `Flowery.Photos-macOS-x64.tar.gz` |'
             echo ''
             echo '### Verify downloads'
             echo ''
@@ -203,8 +225,11 @@ jobs:
           name: Photos ${{ needs.prepare.outputs.display_version }}
           files: |
             ./release-artifacts/Flowery.Photos-Windows-x64.zip
+            ./release-artifacts/Flowery.Photos-Windows-arm64.zip
             ./release-artifacts/Flowery.Photos-Linux-x64.tar.gz
+            ./release-artifacts/Flowery.Photos-Linux-arm64.tar.gz
             ./release-artifacts/Flowery.Photos-macOS-arm64.tar.gz
+            ./release-artifacts/Flowery.Photos-macOS-x64.tar.gz
             ./release-artifacts/SHA256SUMS.txt
           fail_on_unmatched_files: true
           body_path: release_notes.md

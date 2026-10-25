@@ -53,9 +53,22 @@ class PhotosReleaseTests(unittest.TestCase):
 
     def test_complete_package_is_accepted_for_each_platform(self):
         root, output = self.package_fixture()
-        for rid in ('win-x64', 'linux-x64', 'osx-arm64'):
+        for rid in ('win-x64', 'win-arm64', 'linux-x64', 'linux-arm64', 'osx-arm64', 'osx-x64'):
             with self.subTest(rid=rid):
                 verify_publish(root, output, rid)
+
+    def test_unknown_runtime_is_rejected(self):
+        root, output = self.package_fixture()
+        for rid in ('win-x86', 'linux-musl-x64', 'browser-wasm'):
+            with self.subTest(rid=rid), self.assertRaisesRegex(ValueError, 'Unsupported Photos runtime'):
+                verify_publish(root, output, rid)
+
+    def test_windows_arm64_package_needs_the_exe(self):
+        root, output = self.package_fixture()
+        (output / 'Flowery.NET.Photos.Desktop.exe').unlink()
+        with self.assertRaisesRegex(ValueError, 'Missing executable'):
+            verify_publish(root, output, 'win-arm64')
+        verify_publish(root, output, 'linux-arm64')
 
     def test_missing_license_is_rejected(self):
         root, output = self.package_fixture()

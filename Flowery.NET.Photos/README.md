@@ -30,16 +30,19 @@ The release contains these downloads:
 | Platform | Archive | Executable |
 | --- | --- | --- |
 | Windows x64 | `Flowery.Photos-Windows-x64.zip` | `Flowery.NET.Photos.Desktop.exe` |
+| Windows ARM64 | `Flowery.Photos-Windows-arm64.zip` | `Flowery.NET.Photos.Desktop.exe` |
 | Linux x64 | `Flowery.Photos-Linux-x64.tar.gz` | `Flowery.NET.Photos.Desktop` |
+| Linux ARM64 | `Flowery.Photos-Linux-arm64.tar.gz` | `Flowery.NET.Photos.Desktop` |
 | macOS ARM64 | `Flowery.Photos-macOS-arm64.tar.gz` | `Flowery.NET.Photos.Desktop` |
+| macOS x64 | `Flowery.Photos-macOS-x64.tar.gz` | `Flowery.NET.Photos.Desktop` |
 
 Extract the complete archive before starting the app.
 Keep `Assets/Fonts`, its license file, and `Assets/Samples` beside the executable.
 The .NET runtime is included. Linux still requires the system libraries used by Avalonia.
-The macOS archive contains a standalone executable, without an `.app` bundle, signing, or notarization.
+The macOS archives contain a standalone executable, without an `.app` bundle, signing, or notarization.
 The Unix archives preserve executable permissions.
 
-**Release Gallery** also provides these three desktop platforms and retains its four Android APKs.
+**Release Gallery** also provides these six desktop platforms, four Android APKs, and a Browser (WebAssembly) zip.
 Its desktop archives use the prefix `Flowery.Gallery`.
 
 ## Build and run
