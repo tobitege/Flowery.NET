@@ -28,9 +28,6 @@ namespace Flowery.Skia
         private int _measureDue = 1;
         private bool _measureBackdrop;
 
-        /// <summary>Gets how many glasses redraw in full now, counted on the UI thread; for tests.</summary>
-        internal static int LiveCount { get; private set; }
-
         /// <summary>Incremented on the UI thread for each full redraw, so the new draw operation differs from the last.</summary>
         public int Version { get; private set; }
 
@@ -97,14 +94,12 @@ namespace Flowery.Skia
             if (_frameRequested || TopLevel.GetTopLevel(owner) is not { } topLevel)
                 return;
             _frameRequested = true;
-            LiveCount++;
             topLevel.RequestAnimationFrame(OnFrame);
         }
 
         private void OnFrame(TimeSpan time)
         {
             _frameRequested = false;
-            LiveCount--;
             if (DateTime.UtcNow > _liveUntil)
                 return;
             Version++;
