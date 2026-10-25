@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -12,23 +12,36 @@ namespace Flowery.Skia
     /// further, so a partial redraw would leave the old blur at the edges of the changed area. While the backdrop keeps
     /// changing, the whole glass is redrawn every frame; afterwards it returns to partial redraws.
     /// </summary>
+    /// <remarks>
+    /// Every full redraw goes through the <see cref="LiveGroup"/> of the top level and is counted in frames, not in
+    /// wall-clock time. A glass never redraws on its own: Avalonia repaints a glass in part whenever an overlapping
+    /// visual redraws, so a lone redraw of one glass would look like a backdrop change to the glasses it overlaps.
+    /// </remarks>
     internal sealed class SkiaGlassRedraw(Visual owner)
     {
-        // A measurement reads pixels back from the GPU, which stalls the frame: a few per second follow a change
-        // closely enough. A change behind the whole glass redraws all of it, which looks like any other full redraw, so
-        // without a known change a check every second still catches it, at a third of the cost for an animated glass.
-        private const long MeasureInterval = 300;
+        /// <summary>Frames a glass keeps redrawing in full after the last change behind it, about 0.3 s at 60 Hz.</summary>
+        internal const int LiveFrames = 18;
+
+        /// <summary>
+        /// Frames of full redraws between two measurements after a change. A measurement reads pixels back from the
+        /// GPU, which stalls the frame: a few per second follow a change closely enough.
+        /// </summary>
+        internal const int MeasureFrames = 18;
+
+        // A change behind the whole glass redraws all of it, which looks like any other full redraw, so without a known
+        // change a check every second still catches it, at a third of the cost for an animated glass. This check only
+        // decides whether a render that happens anyway measures; it never asks for a render.
         private const long IdleMeasureInterval = 1000;
-        private static readonly TimeSpan LiveTime = TimeSpan.FromMilliseconds(300);
         private static readonly ConditionalWeakTable<TopLevel, LiveGroup> LiveGroups = new();
 
         private int _changeQueued;
+        private int _holdQueued;
         private long _lastMeasure = long.MinValue / 2;
-        private int _measureLaterQueued;
+        private int _framesSinceMeasure = MeasureFrames;
         private int _measureDue = 1;
         private bool _measureBackdrop;
 
-        /// <summary>Incremented on the UI thread for each full redraw, so the new draw operation differs from the last.</summary>
+        /// <summary>Incremented on the UI thread for each full redraw; tests count the full redraws with it.</summary>
         public int Version { get; private set; }
 
         /// <summary>
@@ -46,6 +59,9 @@ namespace Flowery.Skia
             }
         }
 
+        // A measurement is due and has not run yet; the group keeps redrawing until it can.
+        private bool MeasurePending => MeasureBackdrop && Volatile.Read(ref _measureDue) == 1;
+
         /// <summary>Called on the render thread when a frame redrew only part of the glass.</summary>
         public void BackdropChanged()
         {
@@ -55,32 +71,34 @@ namespace Flowery.Skia
             Dispatcher.UIThread.Post(() =>
             {
                 _changeQueued = 0;
-                if (TopLevel.GetTopLevel(owner) is { } topLevel)
-                    LiveGroups.GetValue(topLevel, static top => new LiveGroup(top)).Join(this);
+                Group()?.Join(this, extend: true);
             }, DispatcherPriority.Render);
         }
 
         /// <summary>
         /// Called on the render thread with the whole backdrop at hand: returns whether to measure it now. After the
-        /// backdrop changed it measures at most every <see cref="MeasureInterval"/>, and a render too soon schedules a
-        /// render for later, so the last state behind the glass is measured too. Without a change it measures at most
-        /// every <see cref="IdleMeasureInterval"/> and schedules nothing, since a scheduled render redraws the glass,
-        /// which could make a glass around it redraw this one again.
+        /// backdrop changed it measures once <see cref="MeasureFrames"/> full redraws have passed since the last
+        /// measurement; a render too soon keeps the glass in its live group until then, so the last state behind the
+        /// glass is measured in a frame that redraws the whole group. Without a change it measures at most every
+        /// <see cref="IdleMeasureInterval"/> milliseconds and asks for nothing.
         /// </summary>
         public bool TryStartMeasure()
         {
             if (!MeasureBackdrop)
                 return false;
-            var due = Volatile.Read(ref _measureDue) == 1;
             var now = Environment.TickCount64;
-            var wait = Interlocked.Read(ref _lastMeasure) + (due ? MeasureInterval : IdleMeasureInterval) - now;
-            if (wait > 0)
+            if (Volatile.Read(ref _measureDue) == 1)
             {
-                if (due)
-                    MeasureLater(wait);
-                return false;
+                if (Volatile.Read(ref _framesSinceMeasure) < MeasureFrames)
+                {
+                    HoldForMeasure();
+                    return false;
+                }
             }
+            else if (now - Interlocked.Read(ref _lastMeasure) < IdleMeasureInterval)
+                return false;
             Interlocked.Exchange(ref _lastMeasure, now);
+            Volatile.Write(ref _framesSinceMeasure, 0);
             Volatile.Write(ref _measureDue, 0);
             return true;
         }
@@ -89,21 +107,25 @@ namespace Flowery.Skia
         public void ReportBackdropColor(Color color) =>
             Dispatcher.UIThread.Post(() => SkiaGlassRenderer.ReportMeasuredColor(owner, color), DispatcherPriority.Background);
 
+        private LiveGroup? Group() =>
+            TopLevel.GetTopLevel(owner) is { } topLevel ? LiveGroups.GetValue(topLevel, static top => new LiveGroup(top)) : null;
+
+        private void HoldForMeasure()
+        {
+            if (Interlocked.Exchange(ref _holdQueued, 1) == 1)
+                return;
+            Dispatcher.UIThread.Post(() =>
+            {
+                _holdQueued = 0;
+                Group()?.Join(this, extend: false);
+            }, DispatcherPriority.Render);
+        }
+
         private void Redraw()
         {
             Version++;
+            Interlocked.Increment(ref _framesSinceMeasure);
             owner.InvalidateVisual();
-        }
-
-        private void MeasureLater(long delay)
-        {
-            if (Interlocked.Exchange(ref _measureLaterQueued, 1) == 1)
-                return;
-            Dispatcher.UIThread.Post(() => DispatcherTimer.RunOnce(() =>
-            {
-                _measureLaterQueued = 0;
-                owner.InvalidateVisual();
-            }, TimeSpan.FromMilliseconds(delay)));
         }
 
         /// <summary>
@@ -114,16 +136,16 @@ namespace Flowery.Skia
         private sealed class LiveGroup(TopLevel topLevel)
         {
             private readonly HashSet<SkiaGlassRedraw> _members = [];
-            private DateTime _until;
+            private int _framesLeft;
             private bool _frameRequested;
 
-            // A glass that joins keeps the whole group redrawing for LiveTime.
-            public void Join(SkiaGlassRedraw redraw)
+            // A glass whose backdrop changed keeps the whole group redrawing for LiveFrames more frames; a glass that
+            // waits for a measurement only joins, and the group runs on until that measurement had its chance.
+            public void Join(SkiaGlassRedraw redraw, bool extend)
             {
                 _members.Add(redraw);
-                var until = DateTime.UtcNow + LiveTime;
-                if (until > _until)
-                    _until = until;
+                if (extend)
+                    _framesLeft = LiveFrames;
                 RequestFrame();
             }
 
@@ -138,11 +160,16 @@ namespace Flowery.Skia
             private void OnFrame(TimeSpan time)
             {
                 _frameRequested = false;
-                if (DateTime.UtcNow > _until)
+                // A pending measurement is allowed in the render of the frame that reaches MeasureFrames; a glass
+                // that was not rendered by then (hidden or clipped away) no longer holds the group.
+                if (_framesLeft == 0 && !_members.Any(static member =>
+                        member.MeasurePending && Volatile.Read(ref member._framesSinceMeasure) < MeasureFrames))
                 {
                     _members.Clear();
                     return;
                 }
+                if (_framesLeft > 0)
+                    _framesLeft--;
                 foreach (var member in _members)
                     member.Redraw();
                 RequestFrame();
