@@ -1,7 +1,9 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Media;
 using Avalonia.Threading;
+using Flowery.Controls;
 using Flowery.Enums;
 using Flowery.Skia;
 using SkiaSharp;
@@ -148,6 +150,299 @@ public class SkiaGlassRenderTests
             window.Close();
         }
     }
+
+    [AvaloniaFact]
+    public void A_New_Measured_Color_Is_Drawn_With_The_Group_Before_It_Stops()
+    {
+        // A new backdrop color can change the text over the glass. Drawn after the group stopped, that text would
+        // repaint part of the glass, which looks like a change behind it, and the glasses would start again.
+        var previous = DaisyGlassLiveRenderer.Current;
+        FlowerySkia.Register();
+        var glass = MeasuringGlass();
+        var window = new Window { Width = 200, Height = 100, Content = glass };
+        window.Show();
+        try
+        {
+            var redraw = new SkiaGlassRedraw(glass) { MeasureBackdrop = true };
+            Assert.True(redraw.TryStartMeasure());
+            redraw.BackdropChanged();
+
+            // Each render that measures hands over a new color, as the render thread does.
+            var measuredInFrame = 0;
+            var (measured, lastRedraw) = Run([redraw], 100, frame =>
+            {
+                if (!redraw.TryStartMeasure())
+                    return null;
+                measuredInFrame = frame;
+                redraw.ReportBackdropColor(Color.FromRgb(200, 10, 10));
+                return redraw.Version;
+            });
+
+            // The group stopped after the frame that drew the new color, not in the frame of the measurement.
+            Assert.Equal([SkiaGlassRedraw.MeasureFrames], measured);
+            Assert.Equal(Color.FromRgb(200, 10, 10), glass.BackdropColor);
+            Assert.InRange(lastRedraw[0], measuredInFrame + 1, measuredInFrame + 3);
+        }
+        finally
+        {
+            window.Close();
+            DaisyGlassLiveRenderer.Register(previous);
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Measured_Color_Holds_The_Group_Until_It_Arrived_And_An_Unchanged_One_Is_Not_Drawn_Again()
+    {
+        var previous = DaisyGlassLiveRenderer.Current;
+        FlowerySkia.Register();
+        var glass = MeasuringGlass();
+        var window = new Window { Width = 200, Height = 100, Content = glass };
+        window.Show();
+        try
+        {
+            var redraw = new SkiaGlassRedraw(glass) { MeasureBackdrop = true };
+            Assert.True(redraw.TryStartMeasure());
+            redraw.ReportBackdropColor(Colors.Teal);
+            // Posted, not yet applied: the color is on its way to the glass.
+            Assert.True(redraw.HoldsGroup);
+            Frame();
+            Frame();
+            Assert.Equal(Colors.Teal, glass.BackdropColor);
+            Assert.Equal(1, redraw.Version);
+            Assert.False(redraw.HoldsGroup);
+
+            // The same color again changes nothing, so nothing is drawn for it.
+            redraw.ReportBackdropColor(Colors.Teal);
+            Assert.True(redraw.HoldsGroup);
+            Frame();
+            Frame();
+            Assert.Equal(1, redraw.Version);
+            Assert.False(redraw.HoldsGroup);
+        }
+        finally
+        {
+            window.Close();
+            DaisyGlassLiveRenderer.Register(previous);
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Repaint_Of_The_Whole_Glass_Is_Measured_Once_A_Second_Without_Extra_Redraws()
+    {
+        // A layout pass, a hover color or an animated background repaints all of the glass: no old blur shows, but the
+        // backdrop may have changed.
+        var (previousClock, previousWake) = (SkiaGlassRedraw.Clock, SkiaGlassRedraw.Wake);
+        var now = 10_000L;
+        var wakes = new List<(TimeSpan Delay, Action Action)>();
+        SkiaGlassRedraw.Clock = () => now;
+        SkiaGlassRedraw.Wake = (delay, action) => wakes.Add((delay, action));
+        var glass = new Border { Width = 50, Height = 20 };
+        var window = new Window { Width = 200, Height = 100, Content = glass };
+        window.Show();
+        try
+        {
+            var redraw = new SkiaGlassRedraw(glass) { MeasureBackdrop = true };
+            Assert.True(redraw.TryStartMeasure());
+
+            // A second after the last measurement, a repaint is measured in its own render: no group, no redraw.
+            now += SkiaGlassRedraw.IdleMeasureInterval;
+            redraw.BackdropRepainted();
+            Assert.True(redraw.TryStartMeasure());
+            Frame();
+            Assert.Equal(0, redraw.Version);
+            Assert.Empty(wakes);
+
+            // Right after it, a repaint waits for a wake-up at the end of the second, without redrawing.
+            now += 100;
+            redraw.BackdropRepainted();
+            Assert.False(redraw.TryStartMeasure());
+            Assert.False(redraw.TryStartMeasure());
+            Frame();
+            var wake = Assert.Single(wakes);
+            Assert.Equal(TimeSpan.FromMilliseconds(SkiaGlassRedraw.IdleMeasureInterval - 100), wake.Delay);
+            Assert.False(redraw.HoldsGroup);
+            var (early, _) = Run([redraw], 10, static _ => null);
+            Assert.Empty(early);
+            Assert.Equal(0, redraw.Version);
+
+            // At the wake-up, one frame of the group redraws the glass, and its render measures.
+            now += SkiaGlassRedraw.IdleMeasureInterval;
+            wake.Action();
+            var (measured, lastRedraw) = Run([redraw], 10, _ => redraw.TryStartMeasure() ? redraw.Version : null);
+            Assert.Equal([1], measured);
+            Assert.Equal(1, redraw.Version);
+            Assert.Equal(1, lastRedraw[0]);
+            Assert.False(redraw.HoldsGroup);
+        }
+        finally
+        {
+            window.Close();
+            (SkiaGlassRedraw.Clock, SkiaGlassRedraw.Wake) = (previousClock, previousWake);
+        }
+    }
+
+    [AvaloniaFact]
+    public void At_The_Wake_Up_Overlapping_Glasses_Redraw_Together()
+    {
+        // A glass inside another, such as a badge in a glass card: a lone redraw of the inner one would repaint part of
+        // the outer one, which looks like a change behind it.
+        using var clock = new FakeClock();
+        var outer = new Border { Width = 120, Height = 60 };
+        var inner = new Border { Width = 40, Height = 20 };
+        Canvas.SetLeft(inner, 20);
+        Canvas.SetTop(inner, 20);
+        var window = new Window { Width = 200, Height = 100, Content = new Canvas { Children = { outer, inner } } };
+        window.Show();
+        try
+        {
+            var outerRedraw = new SkiaGlassRedraw(outer);
+            var innerRedraw = new SkiaGlassRedraw(inner) { MeasureBackdrop = true };
+            outerRedraw.Register();
+            innerRedraw.Register();
+            Assert.True(innerRedraw.TryStartMeasure());
+            clock.Now += 100;
+            innerRedraw.BackdropRepainted();
+            Assert.False(innerRedraw.TryStartMeasure());
+            Frame();
+
+            clock.Now += SkiaGlassRedraw.IdleMeasureInterval;
+            Assert.Single(clock.Wakes).Action();
+            var (measured, lastRedraw) = Run([innerRedraw, outerRedraw], 10, _ => innerRedraw.TryStartMeasure() ? innerRedraw.Version : null);
+
+            Assert.Equal([1], measured);
+            Assert.Equal((1, 1), (innerRedraw.Version, outerRedraw.Version));
+            Assert.Equal(lastRedraw[0], lastRedraw[1]);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Wake_Up_That_Comes_Before_The_Interval_Since_A_Later_Measurement_Waits_Again()
+    {
+        using var clock = new FakeClock();
+        var glass = new Border { Width = 50, Height = 20 };
+        var window = new Window { Width = 200, Height = 100, Content = glass };
+        window.Show();
+        try
+        {
+            var redraw = new SkiaGlassRedraw(glass) { MeasureBackdrop = true };
+            Assert.True(redraw.TryStartMeasure());
+            clock.Now += 100;
+            redraw.BackdropRepainted();
+            Assert.False(redraw.TryStartMeasure());
+            Frame();
+
+            // Measured in another render after the interval, then repainted again: the first wake-up comes too soon.
+            clock.Now += SkiaGlassRedraw.IdleMeasureInterval;
+            Assert.True(redraw.TryStartMeasure());
+            clock.Now += 100;
+            redraw.BackdropRepainted();
+            Assert.False(redraw.TryStartMeasure());
+            Frame();
+            clock.Wakes[0].Action();
+            Frame();
+            Assert.Equal(0, redraw.Version);
+            Assert.Equal(2, clock.Wakes.Count);
+
+            clock.Now += SkiaGlassRedraw.IdleMeasureInterval;
+            clock.Wakes[1].Action();
+            var (measured, _) = Run([redraw], 10, _ => redraw.TryStartMeasure() ? redraw.Version : null);
+            Assert.Equal([1], measured);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Glass_Not_Rendered_At_The_Wake_Up_Does_Not_Hold_The_Group()
+    {
+        using var clock = new FakeClock();
+        var glass = new Border { Width = 50, Height = 20 };
+        var window = new Window { Width = 200, Height = 100, Content = glass };
+        window.Show();
+        try
+        {
+            var redraw = new SkiaGlassRedraw(glass) { MeasureBackdrop = true };
+            Assert.True(redraw.TryStartMeasure());
+            clock.Now += 100;
+            redraw.BackdropRepainted();
+            Assert.False(redraw.TryStartMeasure());
+            Frame();
+            clock.Now += SkiaGlassRedraw.IdleMeasureInterval;
+            Assert.Single(clock.Wakes).Action();
+
+            // No render measures: the glass is redrawn once, then the group stops.
+            Run([redraw], 10, static _ => null);
+            Assert.Equal(1, redraw.Version);
+            Assert.False(redraw.HoldsGroup);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Repaint_Leaves_A_Due_Change_Paced_Like_A_Change()
+    {
+        var glass = new Border { Width = 50, Height = 20 };
+        var window = new Window { Width = 200, Height = 100, Content = glass };
+        window.Show();
+        try
+        {
+            var redraw = new SkiaGlassRedraw(glass) { MeasureBackdrop = true };
+            Assert.True(redraw.TryStartMeasure());
+            redraw.BackdropChanged();
+            redraw.BackdropRepainted();
+
+            var (measured, _) = Run([redraw], 100, _ => redraw.TryStartMeasure() ? redraw.Version : null);
+            Assert.Equal([SkiaGlassRedraw.MeasureFrames], measured);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Fact]
+    public void Only_A_Draw_Operation_With_A_New_Version_Is_A_Redraw_Of_The_Glass()
+    {
+        // A new size, for one, renders a new operation with the same version: that is a repaint, not a redraw.
+        var redraw = new SkiaGlassRedraw(new Border());
+        Assert.True(redraw.IsNewRedraw(0));
+        Assert.False(redraw.IsNewRedraw(0));
+        Assert.True(redraw.IsNewRedraw(1));
+    }
+
+    // Replaces the clock and the wake-up of the measurement pacing for one test.
+    private sealed class FakeClock : IDisposable
+    {
+        private readonly Func<long> _clock = SkiaGlassRedraw.Clock;
+        private readonly Action<TimeSpan, Action> _wake = SkiaGlassRedraw.Wake;
+
+        public FakeClock()
+        {
+            SkiaGlassRedraw.Clock = () => Now;
+            SkiaGlassRedraw.Wake = (delay, action) => Wakes.Add((delay, action));
+        }
+
+        public long Now { get; set; } = 10_000;
+
+        public List<(TimeSpan Delay, Action Action)> Wakes { get; } = [];
+
+        public void Dispose() => (SkiaGlassRedraw.Clock, SkiaGlassRedraw.Wake) = (_clock, _wake);
+    }
+
+    // A glass that measures its backdrop with the SkiaSharp renderer; a plain DaisyGlass does not blur its backdrop.
+    private static DaisyGlass MeasuringGlass() => new()
+    {
+        Width = 50, Height = 20, EnableBackdropBlur = true, BlurMode = GlassBlurMode.SkiaSharp, MeasureBackdropColor = true
+    };
 
     // Runs frames 1 to count. After each frame, render(frame) stands for the render of the glasses and returns a value
     // when it measured. Returns those values and the last frame in which each glass redrew in full.

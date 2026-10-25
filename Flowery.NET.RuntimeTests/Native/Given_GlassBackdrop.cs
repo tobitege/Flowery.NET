@@ -295,8 +295,7 @@ public class Given_GlassBackdrop
         if (mode == GlassBlurMode.BitmapCapture)
             glass.RefreshBackdrop();
         // A change behind the whole glass is measured within about a second.
-        for (var frame = 0; frame < 150 && !IsNear(glass.BackdropColor, text); frame++)
-            await RuntimeTestHelpers.WaitForRenderAsync();
+        await WaitForBackdropAsync(glass, text);
 
         Assert.True(IsNear(glass.BackdropColor, text), $"The glass measured {glass.BackdropColor} instead of {text}.");
         var surface = FloweryColorHelpers.Composite(Color.FromRgb(text.R, text.G, text.B), glass.GlassTint, glass.GlassTintOpacity);
@@ -359,6 +358,53 @@ public class Given_GlassBackdrop
             $"The glasses started redrawing in full again after {string.Join("/", versions)} redraws.\n" + string.Join("\n", log));
     }
 
+    [Fact]
+    public async Task When_A_Layout_Move_Repaints_A_Live_Glass_Its_Backdrop_Is_Measured_Without_A_Run_Of_Redraws()
+    {
+        // A sibling moved by layout makes Avalonia repaint its whole parent: the glass sees no partial render, only a
+        // repaint of all of it. That repaint has to make the glass measure the new backdrop, with a frame or two of
+        // its own at most, not a run of full redraws.
+        var block = new Border { Width = 320, Height = 140, Background = Brushes.White };
+        Canvas.SetLeft(block, 70);
+        Canvas.SetTop(block, 60);
+        var button = new DaisyGlassButton { Content = "Live", Width = 200, Height = 60, BlurMode = GlassBlurMode.SkiaSharp };
+        Canvas.SetLeft(button, 100);
+        Canvas.SetTop(button, 100);
+        var canvas = new Canvas { Width = 820, Height = 260, Background = Brushes.Blue, Children = { block, button } };
+        await RuntimeTestHelpers.AttachAsync(canvas);
+        var glass = Glass(button);
+        await WaitForBackdropAsync(glass, Colors.White);
+        Assert.True(IsNear(glass.BackdropColor, Colors.White), $"The glass measured {glass.BackdropColor} over the white block.");
+        // Quiet first: no redraws of its own for 10 waits in a row.
+        var log = new List<string>();
+        var quiet = 0;
+        for (var frame = 0; frame < 120 && quiet < 10; frame++)
+        {
+            var version = RedrawVersion(button);
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            quiet = RedrawVersion(button) == version ? quiet + 1 : 0;
+        }
+
+        var before = RedrawVersion(button);
+        var moved = System.Diagnostics.Stopwatch.StartNew();
+        Canvas.SetLeft(block, 480);
+        while (!IsNear(glass.BackdropColor, Colors.Blue) && moved.ElapsedMilliseconds < 3000)
+        {
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            log.Add($"{moved.ElapsedMilliseconds} ms: version {RedrawVersion(button) - before}, backdrop {glass.BackdropColor}");
+        }
+        var measuredAfter = moved.ElapsedMilliseconds;
+        for (var frame = 0; frame < 10; frame++)
+            await RuntimeTestHelpers.WaitForRenderAsync();
+
+        var redraws = RedrawVersion(button) - before;
+        Assert.True(IsNear(glass.BackdropColor, Colors.Blue),
+            $"The glass measured {glass.BackdropColor} {measuredAfter} ms after the block moved away, with {redraws} full " +
+            "redraws of its own.\n" + string.Join("\n", log));
+        // A frame or two of its own, never a run of full redraws, which lasts 18 frames.
+        Assert.True(redraws < 9, $"{redraws} full redraws.\n" + string.Join("\n", log));
+    }
+
     private static string Snapshot(string step, DaisyGlassButton button, DaisyGlassBadge badge) =>
         $"{step}: version {RedrawVersion(button)}/{RedrawVersion(badge)}, backdrop {Glass(button).BackdropColor}/"
         + $"{Glass(badge).BackdropColor}, text {Text(button.EffectiveForeground)}/{Text(badge.EffectiveForeground)}, "
@@ -379,6 +425,15 @@ public class Given_GlassBackdrop
         if (!(bool)redraws.GetType().GetMethod("TryGetValue")!.Invoke(redraws, arguments)!)
             return 0;
         return (int)arguments[1]!.GetType().GetProperty("Version")!.GetValue(arguments[1])!;
+    }
+
+    // A repaint is measured within a second, which is a matter of time, not of frames: frames come much faster than
+    // 60 a second where nothing is drawn, such as in a remote desktop session.
+    private static async Task WaitForBackdropAsync(DaisyGlass glass, Color expected)
+    {
+        var waited = System.Diagnostics.Stopwatch.StartNew();
+        while (!IsNear(glass.BackdropColor, expected) && waited.ElapsedMilliseconds < 3000)
+            await RuntimeTestHelpers.WaitForRenderAsync();
     }
 
     private static bool IsNear(Color? actual, Color expected) =>
