@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Media;
 using Flowery.Controls;
@@ -60,12 +60,16 @@ namespace Flowery.Skia
         }
 
         /// <summary>
-        /// Hands a backdrop color measured on the render thread to its glass on the UI thread.
+        /// Hands a backdrop color measured on the render thread to its glass on the UI thread; returns whether the glass
+        /// took it as a new backdrop color.
         /// </summary>
-        internal static void ReportMeasuredColor(Visual owner, Color color)
+        internal static bool ReportMeasuredColor(Visual owner, Color color)
         {
-            if (owner is DaisyGlass glass)
-                ReportBackdropColor(glass, color);
+            if (owner is not DaisyGlass glass)
+                return false;
+            var before = glass.BackdropColor;
+            ReportBackdropColor(glass, color);
+            return glass.BackdropColor != before;
         }
     }
 }

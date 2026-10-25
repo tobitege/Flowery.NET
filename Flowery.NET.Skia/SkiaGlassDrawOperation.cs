@@ -354,6 +354,11 @@ namespace Flowery.Skia
             _redrawsAll = first || CoversSeen(canvas, rect, _seen!.Value, _cells, _probe);
             if (!_redrawsAll)
                 _redraw.BackdropChanged();
+            // A later render of all of the glass is no redraw of its own, which renders a new operation: a layout pass of
+            // an ancestor, a layer of the glass or something over all of it repainted it, and the backdrop may have
+            // changed.
+            else if (!first)
+                _redraw.BackdropRepainted();
 
             var margin = (int)Math.Ceiling(_blurSigma * 3) + 1;
             var sample = glass;
