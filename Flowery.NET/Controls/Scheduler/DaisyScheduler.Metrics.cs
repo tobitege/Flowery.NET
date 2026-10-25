@@ -12,11 +12,11 @@ public partial class DaisyScheduler
     private T Token<T>(string key) => this.TryFindResource(key, ActualThemeVariant, out var resource) && resource is T value
         ? value : throw new InvalidOperationException("Missing Flowery design token: " + key);
 
-    private double SpacingXS => Token<double>("DaisySpacingXS");
+    internal double SpacingXS => Token<double>("DaisySpacingXS");
     private double SpacingSmall => Token<double>("DaisySpacingSmall");
     private double SpacingMedium => Token<double>("DaisySpacingMedium");
     private double SpacingLarge => Token<double>("DaisySpacingLarge");
-    private double LineThickness => Token<Thickness>("DaisyBorderThicknessThin").Left;
+    internal double LineThickness => Token<Thickness>("DaisyBorderThicknessThin").Left;
     private double SelectionThickness => Token<Thickness>("DaisyBorderThicknessMedium").Left;
     private double EventCornerRadius => AppointmentCornerRadius ?? Token<CornerRadius>($"DaisySize{Size}CornerRadius").TopLeft;
     private double RowHeight => RoundToPixel(Token<double>($"DaisySize{Size}Height") + SpacingSmall);

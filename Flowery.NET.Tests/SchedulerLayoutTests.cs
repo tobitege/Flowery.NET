@@ -35,7 +35,7 @@ public sealed partial class SchedulerTests
         scope.Layout();
         var frame = scope.Frame(scope.Appointment);
         var scroll = frame.GetVisualAncestors().OfType<ScrollViewer>().First();
-        var dateButton = scope.Scheduler.GetVisualDescendants().OfType<DaisyButton>().Single(button => Equals(button.Tag, "Date"));
+        var dateButton = scope.Scheduler.GetVisualDescendants().OfType<Button>().Single(button => Equals(button.Tag, "Date"));
         scope.Scheduler.SelectedAppointment = scope.Appointment;
         var before = renders;
         var detachments = 0;
@@ -104,6 +104,49 @@ public sealed partial class SchedulerTests
     // differ from the width in it by layout rounding.
     private static void AssertNotTrimmed(TextBlock text) =>
         Assert.False(text.TextLayout.TextLines.Any(static line => line.HasCollapsed), $"\"{text.Text}\" is trimmed at {text.Bounds.Width}.");
+
+    [AvaloniaTheory]
+    [InlineData(SchedulerView.Week)]
+    [InlineData(SchedulerView.Month)]
+    [InlineData(SchedulerView.Timeline)]
+    public void VisibleResourceIdsShowOnlyTheseResourcesAndTheirAppointments(SchedulerView view)
+    {
+        using var scope = new SchedulerScope(view);
+        var other = new AppointmentModel { Id = 2, Subject = "Other", Start = Monday.AddHours(11), End = Monday.AddHours(12), ResourceIds = { 2 } };
+        var unassigned = new AppointmentModel { Id = 3, Subject = "Unassigned", Start = Monday.AddHours(13), End = Monday.AddHours(14) };
+        scope.Scheduler.SchedulerResources = new[] { new ResourceModel { Id = 1, Name = "Alex" }, new ResourceModel { Id = 2, Name = "Bailey" } };
+        scope.Scheduler.Appointments = new[] { scope.Appointment, other, unassigned };
+        scope.Scheduler.VisibleResourceIds = new object[] { 2 };
+        scope.Layout();
+
+        Assert.Empty(scope.Frames(scope.Appointment));
+        Assert.Empty(scope.Frames(unassigned));
+        Assert.NotEmpty(scope.Frames(other));
+        if (view == SchedulerView.Timeline)
+            Assert.Single(scope.Scheduler.GetVisualDescendants().OfType<Canvas>().Where(DragDrop.GetAllowDrop));
+
+        // Null shows everything again.
+        scope.Scheduler.VisibleResourceIds = null;
+        scope.Layout();
+        Assert.NotEmpty(scope.Frames(scope.Appointment));
+    }
+
+    [AvaloniaFact]
+    public void ToolbarIconsAndButtonsFollowTheSchedulerSize()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Month);
+        var sizes = new Dictionary<DaisySize, (double Icon, double Button)>();
+        foreach (var size in new[] { DaisySize.Small, DaisySize.Large })
+        {
+            scope.Scheduler.Size = size;
+            scope.Layout();
+            var toolbar = scope.Scheduler.GetVisualDescendants().OfType<DaisySchedulerToolbar>().Single();
+            var segment = toolbar.GetVisualDescendants().OfType<Button>().First(button => button.Tag is SchedulerView);
+            sizes[size] = (Assert.IsType<Viewbox>(segment.Content).Bounds.Width, segment.Bounds.Height);
+        }
+        Assert.True(sizes[DaisySize.Large].Icon > sizes[DaisySize.Small].Icon, $"icons {sizes[DaisySize.Small].Icon} and {sizes[DaisySize.Large].Icon}");
+        Assert.True(sizes[DaisySize.Large].Button > sizes[DaisySize.Small].Button, $"buttons {sizes[DaisySize.Small].Button} and {sizes[DaisySize.Large].Button}");
+    }
 
     [AvaloniaTheory]
     [InlineData(SchedulerClockFormat.TwelveHour)]

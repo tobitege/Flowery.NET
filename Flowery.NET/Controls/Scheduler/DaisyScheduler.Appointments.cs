@@ -363,7 +363,7 @@ public partial class DaisyScheduler
         return luminance > 0.179 ? Brushes.Black : Brushes.White;
     }
 
-    private sealed class OwnedImage(byte[] bytes) : Image
+    internal sealed class OwnedImage(byte[] bytes) : Image
     {
         private Bitmap? _bitmap;
 

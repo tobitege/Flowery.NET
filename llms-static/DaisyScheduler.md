@@ -136,10 +136,12 @@ Scheduler tooltips use `DaisyBase200Brush`, `DaisyBaseContentBrush`, and a borde
 | `FirstDayOfWeek` | Week start for Week, Month, Planner, and occupancy queries |
 | `WeekRule` | Rule for week 1 in occupancy queries. Default: `FirstFourDayWeek` |
 | `ResourceKindFilter` | Optional kind filter for resource lanes |
+| `VisibleResourceIds` | Show only these resources by `ResourceModel.Id`: their appointments, and in Planner and Timeline their lanes. Appointments without a resource are hidden while it is set. Null or empty shows everything |
 | `ResourceGroups` | Named groups for the horizontal Timeline day view |
 | `CollapsedResourceGroupIds` | Bindable list of collapsed group IDs |
 | `GroupMode` | Group resource columns or lanes by resource or day |
 | `HideIdleResources` | Hide resources without appointments in the visible range |
+| `ShowToolbar` | Show the built-in `DaisySchedulerToolbar` (default `true`) |
 | `ShowWeekends` | Show Saturday and Sunday in Month, Week and Planner (default `true`). Without them, Month and Week show the other five days of each week, and the Planner shows Monday to Friday. Also in the settings menu. |
 | `TimeIncrement` | Grid scale and gesture snapping |
 | `TimeSlotStart`, `TimeSlotEnd`, `TimeSlotInterval` | Time choices for host editors. Default: 07:00 through 17:00, every 30 minutes |
@@ -298,7 +300,31 @@ Each template receives an `AppointmentContext` with the appointment, brushes, st
 `AppointmentRenderer` and `AppointmentTooltipRenderer` provide optional code renderers.
 A null renderer result uses the template or default content.
 
-`ToolbarButtons` and `ToolbarAdornments` accept host actions.
+## Toolbar
+
+The toolbar is its own control, `DaisySchedulerToolbar`. The first row holds the date range as a title, which opens a date
+picker, previous and next, Today, the host buttons and the settings; the second row holds the views as icon segments with
+tooltips. Heights, icons and the title follow the `Size` of the scheduler through the design tokens
+(`DaisySize{Size}Height`, `DaisySize{Size}HeaderFontSize` and `DaisySchedulerToolbarIconSize`).
+
+To place the toolbar elsewhere, such as in a title bar, hide the built-in one and point another at the scheduler:
+
+```xml
+<controls:DaisySchedulerToolbar Scheduler="{Binding #Scheduler}" />
+<controls:DaisyScheduler x:Name="Scheduler" ShowToolbar="False" />
+```
+
+`ToolbarButtons` and `ToolbarAdornments` accept host actions. `SchedulerToolbarButton.IconData` takes a 16-unit line icon as
+path data, drawn in the toolbar's text color; the button then shows only the icon, with its tooltip.
+`SchedulerToolbarIcons.Add`, `.Delete` and `.Edit` are ready-made icons in the same style:
+
+```csharp
+scheduler.ToolbarButtons.Add(new SchedulerToolbarButton
+{
+    Id = "new", Label = "New appointment", IconData = SchedulerToolbarIcons.Add
+});
+```
+
 `SetTileOptions()` supplies tile toggles for the settings menu.
 The control reports those toggles through `TileOptionToggled`.
 

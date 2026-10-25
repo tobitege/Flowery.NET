@@ -29,7 +29,7 @@ namespace Flowery.Controls;
 /// Reassign the appointment list after editing a model to refresh the view.
 /// </summary>
 [TemplatePart("PART_ViewHost", typeof(Border))]
-[TemplatePart("PART_Toolbar", typeof(WrapPanel))]
+[TemplatePart("PART_Toolbar", typeof(DaisySchedulerToolbar))]
 public partial class DaisyScheduler : TemplatedControl
 {
     protected override Type StyleKeyOverride => typeof(DaisyScheduler);
@@ -114,6 +114,17 @@ public partial class DaisyScheduler : TemplatedControl
     {
         get => GetValue(HideIdleResourcesProperty);
         set => SetValue(HideIdleResourcesProperty, value);
+    }
+
+    public static readonly StyledProperty<bool> ShowToolbarProperty =
+        AvaloniaProperty.Register<DaisyScheduler, bool>(nameof(ShowToolbar), true);
+
+    /// <summary>Whether the scheduler shows its own <see cref="DaisySchedulerToolbar"/> (default true). Set it to false to
+    /// place a toolbar elsewhere, such as in a title bar, with its <see cref="DaisySchedulerToolbar.Scheduler"/> set.</summary>
+    public bool ShowToolbar
+    {
+        get => GetValue(ShowToolbarProperty);
+        set => SetValue(ShowToolbarProperty, value);
     }
 
     public static readonly StyledProperty<bool> ShowWeekendsProperty =
@@ -299,10 +310,6 @@ public partial class DaisyScheduler : TemplatedControl
 
     private readonly DaisyControlLifecycle _lifecycle;
     private Border? _viewHost;
-    private WrapPanel? _toolbar;
-    private WrapPanel? _views;
-    private WrapPanel? _customButtons;
-    private DaisyButton? _dateButton;
     private readonly List<AppointmentModel> _selection = new();
     private readonly Dictionary<AppointmentModel, object> _selectionResourceIds = new();
     private readonly List<(Border Frame, AppointmentModel Appointment)> _frames = new();
@@ -345,15 +352,10 @@ public partial class DaisyScheduler : TemplatedControl
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         CancelGesture();
-        if (_toolbar is not null)
-            _toolbar.RemoveHandler(Button.ClickEvent, OnToolbarClick);
         base.OnApplyTemplate(e);
         _viewHost = e.NameScope.Find<Border>("PART_ViewHost");
-        _toolbar = e.NameScope.Find<WrapPanel>("PART_Toolbar");
-        _views = e.NameScope.Find<WrapPanel>("PART_Views");
-        _customButtons = e.NameScope.Find<WrapPanel>("PART_CustomButtons");
-        _dateButton = e.NameScope.Find<DaisyButton>("PART_Date");
-        _toolbar?.AddHandler(Button.ClickEvent, OnToolbarClick);
+        if (e.NameScope.Find<DaisySchedulerToolbar>("PART_Toolbar") is { } toolbar)
+            toolbar.Scheduler = this;
         RenderActiveView();
     }
 
@@ -438,7 +440,7 @@ public partial class DaisyScheduler : TemplatedControl
         ApplySelection();
     }
 
-    private double Scale => Token<double>($"DaisySize{Size}FontSize") / Token<double>("DaisySizeMediumFontSize");
+    internal double Scale => Token<double>($"DaisySize{Size}FontSize") / Token<double>("DaisySizeMediumFontSize");
     private double ChipHeight => RoundToPixel(Token<double>($"DaisyBadge{Size}Height"));
     private CultureInfo Culture => FormattingCulture;
     private double SnapMinutes => Math.Clamp(TimeIncrement?.MinorTick.TotalMinutes ?? 30, 1, 1440);
@@ -461,7 +463,7 @@ public partial class DaisyScheduler : TemplatedControl
             start = start.AddDays(-1);
             end = end.AddDays(1);
         }
-        foreach (var source in Appointments ?? Array.Empty<AppointmentModel>())
+        foreach (var source in (Appointments ?? Array.Empty<AppointmentModel>()).Where(source => ShowsResources(source.ResourceIds)))
             foreach (var occurrence in Scheduler.Utilities.AppointmentOccurrences.InRange(source, start, end))
             {
                 if (!ReferenceEquals(source, occurrence))
@@ -626,7 +628,7 @@ public partial class DaisyScheduler : TemplatedControl
         }
     }
 
-    private IBrush Brush(string key) =>
+    internal IBrush Brush(string key) =>
         this.TryFindResource(key, ActualThemeVariant, out var resource) && resource is IBrush brush ? brush : Brushes.Transparent;
 
     private TextBlock Label(string text, bool secondary = false) => new()

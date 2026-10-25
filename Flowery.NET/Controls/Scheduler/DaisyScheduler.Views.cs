@@ -43,7 +43,8 @@ public partial class DaisyScheduler
     private IReadOnlyList<ResourceModel> ActiveResources(DateTime start, DateTime end)
     {
         var resources = (SchedulerResources ?? Array.Empty<ResourceModel>())
-            .Where(resource => ResourceKindFilter is null || resource.Kind == ResourceKindFilter).ToArray();
+            .Where(resource => (ResourceKindFilter is null || resource.Kind == ResourceKindFilter) && ShowsResources([resource.Id]))
+            .ToArray();
         if (!HideIdleResources)
             return resources;
         if (CurrentView is SchedulerView.Planner or SchedulerView.Timeline)
