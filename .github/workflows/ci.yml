@@ -33,10 +33,13 @@ jobs:
         include:
           - os: windows-2025-vs2026
             rid: win-x64
+            cross_rid: win-arm64
           - os: ubuntu-24.04
             rid: linux-x64
+            cross_rid: linux-arm64
           - os: macos-15
             rid: osx-arm64
+            cross_rid: osx-x64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -48,17 +51,21 @@ jobs:
       - name: Run Photos tests
         run: dotnet test Flowery.NET.Photos.Tests/Flowery.NET.Photos.Tests.csproj -c ${{ matrix.configuration }}
 
-      - name: Verify Photos release package
+      # Publishes the runner's own runtime and cross-publishes the other architecture of the same OS.
+      - name: Verify Photos release packages
         if: matrix.configuration == 'Release'
         shell: bash
         run: |
-          dotnet publish Flowery.NET.Photos.Desktop/Flowery.NET.Photos.Desktop.csproj \
-            -c Release -r ${{ matrix.rid }} --self-contained true \
-            -p:PublishSingleFile=true \
-            -p:IncludeNativeLibrariesForSelfExtract=true \
-            -p:EnableCompressionInSingleFile=true \
-            -o ./publish
-          python Utils/photos_release.py verify --rid ${{ matrix.rid }}
+          for rid in ${{ matrix.rid }} ${{ matrix.cross_rid }}; do
+            rm -rf ./publish
+            dotnet publish Flowery.NET.Photos.Desktop/Flowery.NET.Photos.Desktop.csproj \
+              -c Release -r "$rid" --self-contained true \
+              -p:PublishSingleFile=true \
+              -p:IncludeNativeLibrariesForSelfExtract=true \
+              -p:EnableCompressionInSingleFile=true \
+              -o ./publish
+            python Utils/photos_release.py verify --rid "$rid"
+          done
 
   build-library:
     runs-on: ubuntu-24.04
@@ -124,10 +131,16 @@ jobs:
         include:
           - os: windows-2025-vs2026
             rid: win-x64
+          - os: windows-2025-vs2026
+            rid: win-arm64
           - os: ubuntu-24.04
             rid: linux-x64
+          - os: ubuntu-24.04
+            rid: linux-arm64
           - os: macos-15
             rid: osx-arm64
+          - os: macos-15
+            rid: osx-x64
 
     runs-on: ${{ matrix.os }}
 
@@ -149,3 +162,39 @@ jobs:
             -p:IncludeNativeLibrariesForSelfExtract=true \
             -p:EnableCompressionInSingleFile=true \
             -o ./publish
+
+  build-android:
+    # One ABI is enough to catch Android build breaks; releases build all four APKs.
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Android workload
+        run: dotnet workload install android
+
+      - name: Resolve Android target framework
+        id: android
+        shell: pwsh
+        run: |
+          $project = 'Flowery.NET.Gallery.Android/Flowery.NET.Gallery.Android.csproj'
+          $projectXml = [xml](Get-Content -LiteralPath $project -Raw)
+          $targetFramework = $projectXml.Project.PropertyGroup.TargetFramework | Select-Object -First 1
+          if ([string]::IsNullOrWhiteSpace($targetFramework)) {
+              throw "TargetFramework not found in $project."
+          }
+          "target_framework=$targetFramework" >> $env:GITHUB_OUTPUT
+
+      - name: Build Android APK
+        run: |
+          dotnet publish Flowery.NET.Gallery.Android/Flowery.NET.Gallery.Android.csproj \
+            -c Release \
+            -f ${{ steps.android.outputs.target_framework }} \
+            -r android-arm64 \
+            -p:AndroidPackageFormat=apk \
+            -o ./android-publish
+          find ./android-publish -name "*.apk" | grep -q . || { echo "::error::No Android APK was produced."; exit 1; }

@@ -252,12 +252,18 @@ jobs:
           | Platform | Download |
           |----------|----------|
           | Windows x64 | `Flowery.Gallery-Windows-x64.zip` |
+          | Windows ARM64 | `Flowery.Gallery-Windows-arm64.zip` |
           | Linux x64 | `Flowery.Gallery-Linux-x64.tar.gz` |
+          | Linux ARM64 | `Flowery.Gallery-Linux-arm64.tar.gz` |
           | macOS ARM64 | `Flowery.Gallery-macOS-arm64.tar.gz` |
+          | macOS x64 | `Flowery.Gallery-macOS-x64.tar.gz` |
           | Android arm | `Flowery.Gallery-Android-arm.apk` |
           | Android arm64 | `Flowery.Gallery-Android-arm64.apk` |
           | Android x86 | `Flowery.Gallery-Android-x86.apk` |
           | Android x64 | `Flowery.Gallery-Android-x64.apk` |
+          | Browser (WebAssembly) | `Flowery.Gallery-Browser.zip` |
+
+          The Browser zip contains a static website. Serve the extracted folder with any web server; opening `index.html` from disk does not work.
           GALLERY
 
           cat >> release_notes.md << 'VERIFY'

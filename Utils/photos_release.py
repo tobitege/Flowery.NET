@@ -8,6 +8,9 @@ import subprocess
 import xml.etree.ElementTree as ET
 
 
+PHOTOS_RUNTIMES = ('win-x64', 'win-arm64', 'linux-x64', 'linux-arm64', 'osx-arm64', 'osx-x64')
+
+
 def release_metadata(version, branch, tags):
     if branch not in ('avalonia12', 'main', 'alpha'):
         raise ValueError('Unsupported release branch')
@@ -23,12 +26,13 @@ def release_metadata(version, branch, tags):
 
 
 def verify_publish(root, output, rid):
-    if rid not in ('win-x64', 'linux-x64', 'osx-arm64'):
+    if rid not in PHOTOS_RUNTIMES:
         raise ValueError('Unsupported Photos runtime')
-    executable = output / ('Flowery.NET.Photos.Desktop.exe' if rid == 'win-x64' else 'Flowery.NET.Photos.Desktop')
+    windows = rid.startswith('win-')
+    executable = output / ('Flowery.NET.Photos.Desktop.exe' if windows else 'Flowery.NET.Photos.Desktop')
     if not executable.is_file() or executable.stat().st_size == 0:
         raise ValueError(f'Missing executable: {executable}')
-    if rid != 'win-x64' and not os.access(executable, os.X_OK):
+    if not windows and not os.access(executable, os.X_OK):
         raise ValueError(f'Executable permission is missing: {executable}')
     assets = root / 'Flowery.NET.Gallery' / 'Assets'
     fonts = sorted((assets / 'Fonts').glob('*.ttf')) + sorted((assets / 'Fonts').glob('*.otf'))

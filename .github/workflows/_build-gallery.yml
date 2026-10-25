@@ -20,12 +20,21 @@ jobs:
           - os: windows-2025-vs2026
             rid: win-x64
             artifact_name: Flowery.Gallery-Windows-x64
+          - os: windows-2025-vs2026
+            rid: win-arm64
+            artifact_name: Flowery.Gallery-Windows-arm64
           - os: ubuntu-24.04
             rid: linux-x64
             artifact_name: Flowery.Gallery-Linux-x64
+          - os: ubuntu-24.04
+            rid: linux-arm64
+            artifact_name: Flowery.Gallery-Linux-arm64
           - os: macos-15
             rid: osx-arm64
             artifact_name: Flowery.Gallery-macOS-arm64
+          - os: macos-15
+            rid: osx-x64
+            artifact_name: Flowery.Gallery-macOS-x64
 
     runs-on: ${{ matrix.os }}
     permissions:
@@ -145,4 +154,43 @@ jobs:
         with:
           name: ${{ matrix.artifact_name }}
           path: ./android-artifacts/${{ matrix.artifact_name }}.apk
+          if-no-files-found: error
+
+  build-browser:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.branch }}
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      # WasmBuildNative links the SkiaSharp and HarfBuzz native libraries into dotnet.native.wasm.
+      - name: Install WebAssembly build tools
+        run: dotnet workload install wasm-tools
+
+      - name: Publish Browser Gallery
+        run: |
+          dotnet publish Flowery.NET.Gallery.Browser/Flowery.NET.Gallery.Browser.csproj \
+            -c Release \
+            -o ./browser-publish
+
+      - name: Zip Browser artifact
+        shell: bash
+        run: |
+          test -f ./browser-publish/wwwroot/index.html
+          test -d ./browser-publish/wwwroot/_framework
+          cd ./browser-publish/wwwroot
+          zip -r -q ../../Flowery.Gallery-Browser.zip .
+
+      - name: Upload Browser artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: Flowery.Gallery-Browser
+          path: ./Flowery.Gallery-Browser.zip
           if-no-files-found: error
