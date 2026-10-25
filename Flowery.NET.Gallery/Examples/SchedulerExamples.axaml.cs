@@ -127,7 +127,35 @@ public partial class SchedulerExamples : UserControl
         _appointments.Add(new AppointmentModel { Id = Guid.NewGuid(), Subject = "Reserved maintenance", Start = monday.AddDays(2).AddHours(14), End = monday.AddDays(2).AddHours(16), IsLocked = true, ResourceIds = { 3 } });
         _appointments.Add(new AppointmentModel { Id = Guid.NewGuid(), Subject = "Training", Start = monday.AddHours(9), End = monday.AddDays(4).AddHours(12), SpanMode = AppointmentSpanMode.Daily, ResourceIds = { 1, "room-a" } });
         _appointments.Add(new AppointmentModel { Id = Guid.NewGuid(), Subject = "Exhibition setup", Start = monday.AddDays(1).AddHours(7), End = monday.AddDays(3).AddHours(17), ResourceIds = { "room-b" } });
+        SeedMonth(monday);
         Refresh();
+    }
+
+    // The other days of the current month get appointments too, weekends included, so the month view is filled and
+    // today has four appointments for four resources on any date. Weekdays of the current week keep the feature
+    // samples above, which have three or more per day.
+    private void SeedMonth(DateTime monday)
+    {
+        var subjects = new[] { "Customer visit", "Code review", "Planning", "Inventory check", "Support shift", "Design review", "Delivery", "Room booking" };
+        var resources = new object[] { 1, 2, 3, "room-a" };
+        var first = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        for (var day = first; day.Month == first.Month; day = day.AddDays(1))
+        {
+            if (day >= monday && day < monday.AddDays(5))
+                continue;
+            var count = day == DateTime.Today ? 4 : day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday ? 1 : 2;
+            for (var slot = 0; slot < count; slot++)
+            {
+                // Within a day, slots differ in subject, resource and time.
+                var start = day.AddHours(8 + slot * 2 + day.Day % 2);
+                _appointments.Add(new AppointmentModel
+                {
+                    Id = Guid.NewGuid(), Subject = subjects[(day.Day + slot * 3) % subjects.Length], Start = start,
+                    End = start.AddHours(1 + (day.Day + slot) % 2), ResourceIds = { resources[(day.Day + slot) % resources.Length] },
+                    Description = Text("SampleDescription")
+                });
+            }
+        }
     }
 
     private void Refresh()
