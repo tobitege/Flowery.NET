@@ -7,9 +7,9 @@
 	<key>CFBundleIdentifier</key>
 	<string>companyName.Flowery.NET.Gallery</string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.11.0</string>
+	<string>4.0.0</string>
 	<key>CFBundleVersion</key>
-	<string>3110</string>
+	<string>4000</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>MinimumOSVersion</key>

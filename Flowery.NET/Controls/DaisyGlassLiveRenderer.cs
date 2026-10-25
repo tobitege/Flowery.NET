@@ -15,10 +15,10 @@ namespace Flowery.Controls
         public static DaisyGlassLiveRenderer? Current { get; private set; }
 
         /// <summary>
-        /// Registers the renderer for every SkiaSharp glass. Register it at startup, before the first glass is created;
-        /// a glass created earlier keeps the blur mode it started with.
+        /// Registers the renderer for every SkiaSharp glass, or removes it with <c>null</c>. Register it at startup; a
+        /// glass picks it up when it enters the visual tree, so one created earlier but shown later still uses it.
         /// </summary>
-        public static void Register(DaisyGlassLiveRenderer renderer)
+        public static void Register(DaisyGlassLiveRenderer? renderer)
         {
             Current = renderer;
         }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -64,6 +65,12 @@ namespace Flowery.Controls
         private bool _captureScheduled;
         private int _captureGeneration;
         private CancellationTokenSource? _captureCancellation;
+
+        // Most card pattern tiles draw their strokes at this opacity; GlassPatternOpacity scales from it.
+        private const double CardPatternOpacity = 0.15;
+
+        // The missing-renderer warning is logged once per process.
+        private static int _fallbackWarned;
 
         private bool ShouldCaptureBackdrop => EnableBackdropBlur && EffectiveBlurMode == GlassBlurMode.BitmapCapture && !DaisyAccessibility.IsHighContrast;
 
@@ -381,11 +388,17 @@ namespace Flowery.Controls
             private set => SetAndRaise(EffectiveBlurModeProperty, ref _effectiveBlurMode, value);
         }
 
+        // Also run when the glass enters the visual tree, so a renderer registered after the glass was created still counts.
         private void UpdateEffectiveBlurMode()
         {
-            EffectiveBlurMode = BlurMode == GlassBlurMode.SkiaSharp && DaisyGlassLiveRenderer.Current == null
-                ? GlassBlurMode.BitmapCapture
-                : BlurMode;
+            var fallback = BlurMode == GlassBlurMode.SkiaSharp && DaisyGlassLiveRenderer.Current == null;
+            EffectiveBlurMode = fallback ? GlassBlurMode.BitmapCapture : BlurMode;
+            if (fallback && Interlocked.Exchange(ref _fallbackWarned, 1) == 0)
+            {
+                Logger.TryGet(LogEventLevel.Warning, LogArea.Control)?.Log(this,
+                    "DaisyGlass: BlurMode=SkiaSharp needs the Flowery.NET.Skia package, registered with FlowerySkia.Register() "
+                    + "or UseFlowerySkia(); the glass uses BitmapCapture instead.");
+            }
         }
 
         /// <summary>
@@ -558,8 +571,6 @@ namespace Flowery.Controls
             _patternLayer.Children.Add(pattern);
         }
 
-        private const double CardPatternOpacity = 0.15;
-
         private static void ScalePatternOpacity(Panel panel, double scale)
         {
             foreach (var child in panel.Children)
@@ -586,6 +597,8 @@ namespace Flowery.Controls
             base.OnAttachedToVisualTree(e);
             DaisyAccessibility.PreferencesChanged += OnAccessibilityChanged;
             PseudoClasses.Set(":highcontrast", DaisyAccessibility.IsHighContrast);
+            UpdateEffectiveBlurMode();
+            UpdateBackdropColorState();
             if (ShouldCaptureBackdrop)
             {
                 RequestBackdropCapture();
@@ -818,9 +831,18 @@ namespace Flowery.Controls
                     // The glass itself, without the blur padding around it, in bitmap pixels.
                     var scaleX = pixelWidth / capture.Width;
                     var scaleY = pixelHeight / capture.Height;
-                    backdrop.AverageColor = AverageColor(backdrop, new PixelRect(
+                    var area = new PixelRect(
                         (int)Math.Floor((topLeft.X - capture.X) * scaleX), (int)Math.Floor((topLeft.Y - capture.Y) * scaleY),
-                        (int)Math.Ceiling(bounds.Width * scaleX), (int)Math.Ceiling(bounds.Height * scaleY)));
+                        (int)Math.Ceiling(bounds.Width * scaleX), (int)Math.Ceiling(bounds.Height * scaleY));
+                    // A backend that cannot copy the pixels loses only the measurement, not the captured backdrop.
+                    try
+                    {
+                        backdrop.AverageColor = AverageColor(backdrop, area);
+                    }
+                    catch
+                    {
+                        backdrop.AverageColor = null;
+                    }
                 }
 
                 return bitmap;

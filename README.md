@@ -53,20 +53,35 @@ for code examples and comments!
 1. Install the NuGet package:
 
 ```bash
-dotnet add package Flowery.NET --version 3.6.0
+dotnet add package Flowery.NET --version 4.0.0
 ```
 
 For the optional Kanban board package, also install:
 
 ```bash
-dotnet add package Flowery.NET.Kanban --version 3.6.0
+dotnet add package Flowery.NET.Kanban --version 4.0.0
 ```
 
-For the live glass blur, liquid-glass optics and animated shader backgrounds of the `DaisyGlass` controls, also install the SkiaSharp effects package and register it at startup with `FlowerySkia.Register()` (or `UseFlowerySkia()` on the `AppBuilder`). Without it, a glass with `BlurMode="SkiaSharp"` uses the bitmap capture blur:
+For the live glass blur, liquid-glass optics and animated shader backgrounds of the `DaisyGlass` controls, also install the SkiaSharp effects package and register it at startup with `FlowerySkia.Register()` (or `UseFlowerySkia()` on the `AppBuilder`), both in the `Flowery.Skia` namespace. Without it, a glass with `BlurMode="SkiaSharp"` uses the bitmap capture blur:
 
 ```bash
-dotnet add package Flowery.NET.Skia --version 3.11.0
+dotnet add package Flowery.NET.Skia --version 4.0.0
 ```
+
+```csharp
+using Flowery.Skia;
+
+public static AppBuilder BuildAvaloniaApp()
+    => AppBuilder.Configure<App>()
+        .UsePlatformDetect()
+        .UseFlowerySkia();
+```
+
+> **Upgrading from 3.x:** Flowery.NET 4.0 no longer references SkiaSharp (`Avalonia.Skia`).
+>
+> - Apps that use the live glass blur (`BlurMode="SkiaSharp"`, which `DaisyGlassButton` and the other glass controls use by default) add Flowery.NET.Skia and register it as above. Without it, the glass falls back to the bitmap capture blur and Avalonia logs a warning once.
+> - Apps that use SkiaSharp themselves, which they got through Flowery.NET before, add their own `Avalonia.Skia` or `SkiaSharp` reference.
+> - The public types `SkiaBackdropBlurDrawOperation` and `SkiaBlurHelper` are gone; nothing in Flowery.NET used them.
 
 1. Add to your `App.axaml`:
 

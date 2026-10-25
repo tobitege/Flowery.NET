@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.11.0] - 2026-10-24
+## [4.0.0] - 2026-10-25
 
 ### Added
 
@@ -30,13 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Breaking:** Flowery.NET no longer depends on SkiaSharp (`Avalonia.Skia`); the live glass blur moved to Flowery.NET.Skia. Without that package, a glass with `BlurMode=SkiaSharp` uses the bitmap capture blur, and the liquid-glass optics are not drawn. Apps that use the live blur add the package and call `FlowerySkia.Register()`; apps that use SkiaSharp themselves reference it directly. The unused public `SkiaBackdropBlurDrawOperation` is removed.
+- **Breaking:** Flowery.NET no longer depends on SkiaSharp (`Avalonia.Skia`); the live glass blur moved to Flowery.NET.Skia. Without that package, a glass with `BlurMode=SkiaSharp` uses the bitmap capture blur, and the liquid-glass optics are not drawn. Apps that use the live blur add the package and call `FlowerySkia.Register()`; apps that use SkiaSharp themselves reference it directly. The unused public types `SkiaBackdropBlurDrawOperation` and `SkiaBlurHelper` are removed. The fallback logs a warning once, and the README describes the upgrade. A glass picks up a renderer registered after it was created when it enters the visual tree; `DaisyGlassLiveRenderer.Register(null)` removes the renderer. This release is 4.0.0 because of this change.
 - Glass: the liquid-glass rim of the `SkiaSharp` mode is drawn on the glass edge and fades inward. Its inner edge was a crisp line with a smaller corner radius, which read as a second, squarer rectangle inside small controls such as buttons and fields.
 - Gallery: new logo, a six-petal violet flower with one warm petal, shared by the Flowery family (Flowery.Uno uses blue, Flowery.WinUI teal). It replaces the Avalonia default icon and splash everywhere: the Desktop window and executable icon (`app_icon.ico`), the Android launcher icon (adaptive) and splash, the iOS app icon (`AppIcon` asset catalog) and launch screen, and the Browser favicon and splash. The Home banner (`flowery-banner.png`) is redrawn too. `app_icon.icns` is included for macOS app bundles.
 - Gallery: in the glass demos (Glass Card, Liquid Glass, Bitmap Capture and Full Width), every glass panel has a row of six stars. Two stay left of it and four run half behind its lower edge, so sharp and covered stars sit side by side; the panels are 100 apart to make room. The star and diamond rows in the demos' text columns are gone.
 - Gallery: the desktop app turns on region clipping (`CompositionOptions.UseRegionDirtyRectClipping`), so the animated glass buttons no longer keep the glass buttons around them redrawing. The Glass Button section uses about 18 % of one CPU core instead of about 78 % (Debug build, moving disc stopped).
 - Release: the library, Gallery and Photos release workflows attest the build provenance of every asset they upload, verifiable with `gh attestation verify <file> --repo tobitege/Flowery.NET`, and publish `SHA256SUMS.txt` with the SHA-256 checksum of each asset. The release notes explain both checks.
-- The library, FlowKanban, the Gallery (desktop, Android, iOS) and Flowery Photos are version 3.11.0.
+- The library, FlowKanban, the Gallery (desktop, Android, iOS) and Flowery Photos are version 4.0.0.
 
 ## [3.10.0] - 2026-10-22
 
