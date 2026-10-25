@@ -1,5 +1,7 @@
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Threading;
 using Flowery.Enums;
 using Flowery.Skia;
 using SkiaSharp;
@@ -49,6 +51,53 @@ public class SkiaGlassRenderTests
 
         redraw.MeasureBackdrop = true;
         Assert.True(redraw.TryStartMeasure());
+    }
+
+    [AvaloniaFact]
+    public void Glasses_That_Start_Redrawing_In_Full_In_Different_Frames_Stop_In_The_Same_Frame()
+    {
+        // A glass that stopped a frame before another would see that one's last redraw as a change behind it and start
+        // again; overlapping glasses would then keep each other redrawing.
+        var first = new Border { Width = 50, Height = 20 };
+        var second = new Border { Width = 50, Height = 20 };
+        var window = new Window { Width = 200, Height = 100, Content = new StackPanel { Children = { first, second } } };
+        window.Show();
+        try
+        {
+            var redraws = new[] { new SkiaGlassRedraw(first), new SkiaGlassRedraw(second) };
+            redraws[0].BackdropChanged();
+            Frame();
+            Frame();
+            redraws[1].BackdropChanged();
+
+            var lastRedraw = new int[2];
+            for (var frame = 1; frame <= 200; frame++)
+            {
+                var versions = redraws.Select(redraw => redraw.Version).ToArray();
+                Frame();
+                for (var i = 0; i < 2; i++)
+                {
+                    if (redraws[i].Version != versions[i])
+                        lastRedraw[i] = frame;
+                }
+            }
+
+            Assert.All(lastRedraw, frame => Assert.InRange(frame, 2, 199));
+            Assert.Equal(lastRedraw[0], lastRedraw[1]);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    // One frame of the render timer, about 120 per second.
+    private static void Frame()
+    {
+        Dispatcher.UIThread.RunJobs();
+        Thread.Sleep(8);
+        AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        Dispatcher.UIThread.RunJobs();
     }
 
     private static SKBitmap Draw(DaisyGlassAnimation effect, float time)

@@ -328,20 +328,37 @@ public class Given_GlassBackdrop
             await RuntimeTestHelpers.WaitForRenderAsync();
         }
 
-        var liveCount = typeof(FlowerySkia).Assembly.GetType("Flowery.Skia.SkiaGlassRedraw", throwOnError: true)!
-            .GetProperty("LiveCount", BindingFlags.NonPublic | BindingFlags.Static)!;
+        // Each full redraw raises the version of the glass's own redraw controller. Only these two glasses count:
+        // other glasses in the app may still be redrawing in full.
+        var versions = new[] { RedrawVersion(button), RedrawVersion(badge) };
         var stopped = false;
+        var quiet = 0;
         for (var frame = 0; frame < 120 && !stopped; frame++)
         {
             await RuntimeTestHelpers.WaitForRenderAsync();
-            stopped = (int)liveCount.GetValue(null)! == 0;
+            var current = new[] { RedrawVersion(button), RedrawVersion(badge) };
+            quiet = current.SequenceEqual(versions) ? quiet + 1 : 0;
+            versions = current;
+            stopped = quiet >= 10;
         }
         Assert.True(stopped, "The overlapping glasses kept each other redrawing in full.");
 
         // Once stopped, they stay stopped.
         for (var frame = 0; frame < 20; frame++)
             await RuntimeTestHelpers.WaitForRenderAsync();
-        Assert.Equal(0, (int)liveCount.GetValue(null)!);
+        Assert.Equal(versions, new[] { RedrawVersion(button), RedrawVersion(badge) });
+    }
+
+    // The Version of the SkiaGlassRedraw that the registered renderer keeps for the glass inside the control.
+    private static int RedrawVersion(Control control)
+    {
+        var glass = control.GetVisualDescendants().OfType<DaisyGlass>().Single(part => part.Name == "PART_Glass");
+        var renderer = DaisyGlassLiveRenderer.Current!;
+        var redraws = renderer.GetType().GetField("_redraws", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(renderer)!;
+        var arguments = new object?[] { glass, null };
+        if (!(bool)redraws.GetType().GetMethod("TryGetValue")!.Invoke(redraws, arguments)!)
+            return 0;
+        return (int)arguments[1]!.GetType().GetProperty("Version")!.GetValue(arguments[1])!;
     }
 
     private static bool IsNear(Color? actual, Color expected) =>
