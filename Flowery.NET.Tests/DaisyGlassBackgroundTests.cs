@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
