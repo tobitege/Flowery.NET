@@ -91,6 +91,13 @@ namespace Flowery.NET.Tests
             }
             Assert.DoesNotContain("Business", DaisyThemeManager.AddedThemes.Keys);
 
+            // A product theme compares by what callers see, like any other entry.
+            DaisyThemeManager.AddTheme("TheaterCinema", "Kino", false);
+            Assert.Equal(new DaisyAddedTheme("TheaterCinema", "Kino", false), DaisyThemeManager.AddedThemes["TheaterCinema"]);
+            Assert.True(DaisyThemeManager.RemoveAddedTheme("TheaterCinema"));
+            // Adding a product theme registered it, and removing the entry keeps it registered.
+            Assert.True(DaisyThemeManager.UnregisterTheme("TheaterCinema"));
+
             // The name from before RemoveAddedTheme still works.
             DaisyThemeManager.AddTheme("Business", "Firma", false);
 #pragma warning disable CS0618

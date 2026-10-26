@@ -32,8 +32,8 @@ namespace Flowery.Controls
     /// <param name="Preferred">Whether the theme is in the preferred group.</param>
     public sealed record DaisyAddedTheme(string Name, string DisplayName, bool Preferred)
     {
-        /// <summary>The palette of a product theme, or null for a registered theme.</summary>
-        internal ProductPalette? ProductPalette { get; init; }
+        // Derived from the name rather than stored, so it takes no part in the equality of the record.
+        internal ProductPalette? ProductPalette => ProductPaletteFactory.FindByName(Name);
     }
 
     /// <summary>
@@ -125,7 +125,7 @@ namespace Flowery.Controls
             var product = ProductPaletteFactory.FindByName(originalName);
             var name = registered?.Name ?? product?.Name
                 ?? throw new ArgumentException($"Unknown theme '{originalName}'.", nameof(originalName));
-            return new DaisyAddedTheme(name, displayName, preferred) { ProductPalette = product };
+            return new DaisyAddedTheme(name, displayName, preferred);
         }
 
         /// <summary>
