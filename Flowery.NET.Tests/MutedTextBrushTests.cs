@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -13,7 +13,7 @@ public class MutedTextBrushTests
     public void Dimmed_Text_Uses_Muted_Brushes_Instead_Of_Opacity()
     {
         var stat = new DaisyStat { Title = "Title", Value = "1", Description = "Description" };
-        var input = new DaisyInput { Watermark = "Search", HintText = "Hint" };
+        var input = new DaisyInput { PlaceholderText = "Search", HintText = "Hint" };
         var breadcrumbs = new DaisyBreadcrumbs
         {
             Items = { new DaisyBreadcrumbItem { Content = "Home" }, new DaisyBreadcrumbItem { Content = "Current" } }
