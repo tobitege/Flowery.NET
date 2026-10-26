@@ -410,6 +410,21 @@ public sealed partial class SchedulerTests
         Assert.Equal(1, edits);
     }
 
+    [AvaloniaFact]
+    public void OnTouchAHoldOnASchedulerTakenOutOfTheWindowSelectsNothing()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Week);
+        var frame = scope.Frame(scope.Appointment);
+        frame.BringIntoView();
+        scope.Layout();
+        var origin = scope.Point(frame, frame.Bounds.Width / 2, frame.Bounds.Height / 2);
+        scope.Window.TouchBegin(origin);
+        var scheduler = scope.Scheduler;
+        scope.Window.Content = null;
+        WaitForHold(scope);
+        Assert.Null(scheduler.SelectedAppointment);
+    }
+
     // Holds a touch contact on the middle of the target longer than the hold of the platform, then lifts it.
     private static void TouchHold(SchedulerScope scope, Control target)
     {

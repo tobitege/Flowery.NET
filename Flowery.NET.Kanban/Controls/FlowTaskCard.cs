@@ -86,6 +86,7 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnUnloaded(object? sender, RoutedEventArgs e)
         {
+            EndTouchPress();
             CancelTouchDrag();
 
             // Unsubscribe from parent
