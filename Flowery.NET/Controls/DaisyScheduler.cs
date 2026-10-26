@@ -378,6 +378,8 @@ public partial class DaisyScheduler : TemplatedControl
         _attached = false;
         FloweryLocalization.CultureChanged -= OnCultureChanged;
         CancelGesture();
+        CancelHold();
+        _pendingTap = null;
         base.OnDetachedFromVisualTree(e);
     }
 

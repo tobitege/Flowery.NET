@@ -53,7 +53,7 @@ public class KanbanAndroidRegressionTests
     }
 
     [AvaloniaFact]
-    public void With_Touch_Selection_A_Tap_Selects_A_Card_A_Double_Tap_Edits_It_And_Swipes_Do_Neither()
+    public void On_Touch_A_Tap_Edits_A_Card_A_Hold_Selects_It_And_Taps_Then_Toggle_The_Selection()
     {
         var task = new FlowTask { Title = "Task" };
         var other = new FlowTask { Title = "Other" };
@@ -71,30 +71,114 @@ public class KanbanAndroidRegressionTests
             board.CurrentView = FlowKanbanView.Board;
             Flush(window);
 
-            // As in DaisyScheduler: a tap selects, the second tap of a double tap edits and keeps the selection.
-            TouchTap(window, Card(window, task));
-            Assert.True(task.IsSelected);
-            Assert.Empty(edits);
+            // As in the apps of the platforms: a tap opens the card.
             TouchTap(window, Card(window, task));
             Assert.Equal([task], edits);
+            Assert.False(task.IsSelected);
+
+            // Holding it selects it, and its release is no tap.
+            TouchHold(window, Card(window, task));
             Assert.True(task.IsSelected);
-            // A third tap starts a new pair.
-            TouchTap(window, Card(window, task));
             Assert.Single(edits);
 
-            // A tap on another card selects that one alone.
+            // While cards are selected, a tap adds a card to the selection or takes it out.
             TouchTap(window, Card(window, other));
             Assert.True(other.IsSelected);
+            Assert.True(task.IsSelected);
+            TouchTap(window, Card(window, task));
+            Assert.False(task.IsSelected);
+            TouchTap(window, Card(window, other));
+            Assert.False(other.IsSelected);
+            Assert.Single(edits);
+
+            // Without a selection a tap opens again, and swipes neither open nor select.
+            TouchTap(window, Card(window, task));
+            Assert.Equal(2, edits.Count);
+            TouchSwipe(window, Card(window, task));
+            TouchSwipe(window, Card(window, task));
+            Assert.Equal(2, edits.Count);
+            Assert.False(task.IsSelected);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Tap_Or_Click_On_A_Free_Place_Clears_The_Selection_And_A_Swipe_There_Does_Not()
+    {
+        var task = new FlowTask { Title = "Task", IsSelected = true };
+        var (window, card) = CreateBoard(task);
+        try
+        {
+            // Below the card, inside its column.
+            var free = card.TranslatePoint(new Point(card.Bounds.Width / 2, card.Bounds.Height + 40), window)!.Value;
+
+            // A vertical swipe beside the column, where nothing scrolls that way, so the release reaches the board.
+            var beside = card.TranslatePoint(new Point(card.Bounds.Width + 150, card.Bounds.Height / 2), window)!.Value;
+            var touch = window.TouchBegin(beside, RawInputModifiers.None);
+            window.TouchMove(touch, beside + new Vector(0, 40));
+            window.TouchEnd(touch, beside + new Vector(0, 40), RawInputModifiers.None);
+            Flush(window);
+            Assert.True(task.IsSelected, "a swipe clears nothing");
+
+            // A tap on the selected card unselects it.
+            TouchTap(window, Card(window, task));
             Assert.False(task.IsSelected);
 
-            // Swipes over a card neither select nor edit it, and a tap after a swipe is no second tap.
-            TouchSwipe(window, Card(window, task));
-            TouchSwipe(window, Card(window, task));
+            task.IsSelected = true;
+            Flush(window);
+
+            touch = window.TouchBegin(free, RawInputModifiers.None);
+            window.TouchEnd(touch, free, RawInputModifiers.None);
+            Flush(window);
             Assert.False(task.IsSelected);
-            TouchSwipe(window, Card(window, task));
-            TouchTap(window, Card(window, task));
+
+            // Beside the column as well.
+            task.IsSelected = true;
+            Flush(window);
+            touch = window.TouchBegin(beside, RawInputModifiers.None);
+            window.TouchEnd(touch, beside, RawInputModifiers.None);
+            Flush(window);
+            Assert.False(task.IsSelected);
+
+            // A mouse drag over a free place clears nothing; the scroll gesture leaves the mouse alone.
+            task.IsSelected = true;
+            Flush(window);
+            window.MouseDown(beside, MouseButton.Left);
+            window.MouseMove(beside + new Vector(0, 40));
+            window.MouseUp(beside + new Vector(0, 40), MouseButton.Left);
+            Flush(window);
+            Assert.True(task.IsSelected, "a mouse drag clears nothing");
+
+            window.MouseDown(free, MouseButton.Left);
+            window.MouseUp(free, MouseButton.Left);
+            Flush(window);
+            Assert.False(task.IsSelected);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Tap_On_The_Column_Choice_Of_The_Compact_Layout_Keeps_The_Selection()
+    {
+        var task = new FlowTask { Title = "Task", IsSelected = true };
+        var (window, _) = CreateBoard(task);
+        try
+        {
+            var board = (FlowKanban)window.Content!;
+            board.SetCompactLayout(true);
+            Flush(window);
+            var choice = window.GetVisualDescendants().OfType<ComboBox>().Single(static box => box.Name == "PART_CompactColumnSelect");
+            var point = choice.TranslatePoint(new Point(choice.Bounds.Width / 2, choice.Bounds.Height / 2), window)!.Value;
+            var touch = window.TouchBegin(point, RawInputModifiers.None);
+            window.TouchEnd(touch, point, RawInputModifiers.None);
+            Flush(window);
             Assert.True(task.IsSelected);
-            Assert.Single(edits);
         }
         finally
         {
@@ -165,18 +249,16 @@ public class KanbanAndroidRegressionTests
             Assert.Same(first, done.Tasks.Last());
             Assert.Empty(Ghosts(board));
 
-            // An unselected card scrolls instead of moving.
-            TouchDrag(window, Card(window, second), BottomOf(Card(window, first), window));
+            // A swipe without a hold scrolls instead of moving the card.
+            TouchSwipe(window, Card(window, second));
             Assert.Equal([second], todo.Tasks);
 
             // A touch the system cancels (no release, the capture is lost) ends the drag without a move.
-            second.IsSelected = true;
             var card = Card(window, second);
-            card.UsesTouchSelection = true;
             IPointer? pointer = null;
             window.AddHandler(InputElement.PointerPressedEvent, (_, e) => pointer = e.Pointer, RoutingStrategies.Tunnel, true);
             var start = Spot(window, card);
-            var touch = window.TouchBegin(start, RawInputModifiers.None);
+            var touch = HoldStart(window, card);
             window.TouchMove(touch, start + new Vector(200, 0));
             Flush(window);
             Assert.Same(card, pointer!.Captured);
@@ -203,12 +285,11 @@ public class KanbanAndroidRegressionTests
     private static Point BottomOf(FlowTaskCard card, Window window) =>
         card.TranslatePoint(new Point(card.Bounds.Width / 2, card.Bounds.Height - 4), window)!.Value;
 
-    // The column builds its cards anew after a move, so the touch mode is set on the card that is dragged.
+    // Holds a card and drags it to the target.
     private static void TouchDrag(Window window, FlowTaskCard card, Point target)
     {
-        card.UsesTouchSelection = true;
         var start = Spot(window, card);
-        var touch = window.TouchBegin(start, RawInputModifiers.None);
+        var touch = HoldStart(window, card);
         for (var step = 1; step <= 10; step++)
         {
             window.TouchMove(touch, start + (target - start) * (step / 10.0));
@@ -253,6 +334,29 @@ public class KanbanAndroidRegressionTests
     // A point of the card away from its buttons.
     private static Point Spot(Window window, FlowTaskCard card) =>
         card.TranslatePoint(new Point(12, card.Bounds.Height / 2), window)!.Value;
+
+    // Puts a finger on the card and keeps it there longer than the hold of the platform. The column builds its cards anew
+    // after a selection or a move, so the touch mode is set on the card the finger is on.
+    private static IHeadlessTouchPointer HoldStart(Window window, FlowTaskCard card)
+    {
+        card.UsesTouchSelection = true;
+        var touch = window.TouchBegin(Spot(window, card), RawInputModifiers.None);
+        var hold = Application.Current!.PlatformSettings!.HoldWaitDuration;
+        Thread.Sleep(hold + TimeSpan.FromMilliseconds(150));
+        // The dispatcher looks for due timers only after it ran a job.
+        Dispatcher.UIThread.Post(static () => { });
+        Flush(window);
+        Flush(window);
+        return touch;
+    }
+
+    private static void TouchHold(Window window, FlowTaskCard card)
+    {
+        var point = Spot(window, card);
+        var touch = HoldStart(window, card);
+        window.TouchEnd(touch, point, RawInputModifiers.None);
+        Flush(window);
+    }
 
     private static void TouchTap(Window window, FlowTaskCard card)
     {
