@@ -101,6 +101,7 @@ public class ThemeSourceLifecycleTests
         private readonly string? _current = DaisyThemeManager.CurrentThemeName;
         private readonly Func<string, bool>? _applicator = DaisyThemeManager.CustomThemeApplicator;
         private readonly bool _suppressed = DaisyThemeManager.SuppressThemeApplication;
+        private readonly HashSet<string> _registered;
         private readonly List<string> _globalNames = [];
         public Window Window { get; } = new() { Width = 500, Height = 300 };
         public ComboBox Combo { get; }
@@ -110,7 +111,7 @@ public class ThemeSourceLifecycleTests
 
         public SourceScope(bool product)
         {
-            DaisyThemeManager.ExcludedThemes = Array.Empty<string>();
+            _registered = ThemeRegistrations.Capture();
             DaisyThemeManager.PreferredThemes = [];
             DaisyThemeManager.CustomThemeApplicator = Apply;
             DaisyThemeManager.SuppressThemeApplication = false;
@@ -138,6 +139,7 @@ public class ThemeSourceLifecycleTests
         {
             Window.Close();
             foreach (var name in _globalNames) DaisyThemeManager.RemoveThemeOverride(name);
+            ThemeRegistrations.RemoveAddedSince(_registered);
             DaisyThemeManager.ExcludedThemes = _excluded;
             DaisyThemeManager.PreferredThemes = _preferred;
             DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);

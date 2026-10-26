@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -17,11 +17,18 @@ namespace Flowery.NET.Tests
                 new DaisyThemeInfo("FactoryAccessorTheme", true),
                 () => expected);
 
-            Assert.NotNull(DaisyThemeManager.GetPaletteFactory("FactoryAccessorTheme"));
-            Assert.True(DaisyThemeManager.TryCreatePalette("FactoryAccessorTheme", out var palette));
-            Assert.Same(expected, palette);
-            Assert.False(DaisyThemeManager.TryCreatePalette("ThemeThatDoesNotExist", out var missing));
-            Assert.Null(missing);
+            try
+            {
+                Assert.NotNull(DaisyThemeManager.GetPaletteFactory("FactoryAccessorTheme"));
+                Assert.True(DaisyThemeManager.TryCreatePalette("FactoryAccessorTheme", out var palette));
+                Assert.Same(expected, palette);
+                Assert.False(DaisyThemeManager.TryCreatePalette("ThemeThatDoesNotExist", out var missing));
+                Assert.Null(missing);
+            }
+            finally
+            {
+                DaisyThemeManager.UnregisterTheme("FactoryAccessorTheme");
+            }
         }
 
         [AvaloniaFact]
@@ -30,6 +37,7 @@ namespace Flowery.NET.Tests
             var raised = 0;
             EventHandler handler = (_, _) => raised++;
             var previousNotifyInternal = DaisyThemeManager.NotifyForInternalThemesChanged;
+            var darkFactory = Assert.IsAssignableFrom<Func<ResourceDictionary>>(DaisyThemeManager.GetPaletteFactory("Dark"));
             DaisyThemeManager.NotifyForInternalThemesChanged = false;
             DaisyThemeManager.AvailableThemesChanged += handler;
             try
@@ -59,6 +67,36 @@ namespace Flowery.NET.Tests
             {
                 DaisyThemeManager.AvailableThemesChanged -= handler;
                 DaisyThemeManager.NotifyForInternalThemesChanged = previousNotifyInternal;
+                // The built-in theme keeps its registration, so only its palette can be put back.
+                DaisyThemeManager.RegisterTheme(new DaisyThemeInfo("Dark", true), darkFactory);
+                DaisyThemeManager.UnregisterTheme("AvailableThemesChangedNewTheme");
+            }
+        }
+
+        [AvaloniaFact]
+        public void UnregisterTheme_RemovesOnlyRegisteredThemes()
+        {
+            var raised = 0;
+            EventHandler handler = (_, _) => raised++;
+            DaisyThemeManager.RegisterTheme(new DaisyThemeInfo("UnregisteredLater", false), () => new ResourceDictionary());
+            DaisyThemeManager.AvailableThemesChanged += handler;
+            try
+            {
+                Assert.Contains(DaisyThemeManager.AvailableThemes, theme => theme.Name == "UnregisteredLater");
+                Assert.True(DaisyThemeManager.UnregisterTheme("UnregisteredLater"));
+                Assert.Equal(1, raised);
+                Assert.DoesNotContain(DaisyThemeManager.AvailableThemes, theme => theme.Name == "UnregisteredLater");
+                Assert.Null(DaisyThemeManager.GetThemeInfo("UnregisteredLater"));
+
+                Assert.False(DaisyThemeManager.UnregisterTheme("UnregisteredLater"));
+                Assert.False(DaisyThemeManager.UnregisterTheme("Dark"));
+                Assert.NotNull(DaisyThemeManager.GetThemeInfo("Dark"));
+                Assert.Equal(1, raised);
+            }
+            finally
+            {
+                DaisyThemeManager.AvailableThemesChanged -= handler;
+                DaisyThemeManager.UnregisterTheme("UnregisteredLater");
             }
         }
 
@@ -82,15 +120,22 @@ namespace Flowery.NET.Tests
                     ["DaisyAccentBrush"] = accent
                 });
 
-            DaisyThemeDropdown.InvalidateThemeCache();
-            var dropdown = new DaisyThemeDropdown();
-            var preview = FindPreview(dropdown, "PreviewFactoryTheme");
+            try
+            {
+                DaisyThemeDropdown.InvalidateThemeCache();
+                var dropdown = new DaisyThemeDropdown();
+                var preview = FindPreview(dropdown, "PreviewFactoryTheme");
 
-            Assert.Same(base100, preview.Base100);
-            Assert.Same(baseContent, preview.BaseContent);
-            Assert.Same(primary, preview.Primary);
-            Assert.Same(secondary, preview.Secondary);
-            Assert.Same(accent, preview.Accent);
+                Assert.Same(base100, preview.Base100);
+                Assert.Same(baseContent, preview.BaseContent);
+                Assert.Same(primary, preview.Primary);
+                Assert.Same(secondary, preview.Secondary);
+                Assert.Same(accent, preview.Accent);
+            }
+            finally
+            {
+                DaisyThemeManager.UnregisterTheme("PreviewFactoryTheme");
+            }
         }
 
         [AvaloniaFact]
@@ -127,6 +172,7 @@ namespace Flowery.NET.Tests
             finally
             {
                 window.Close();
+                DaisyThemeManager.UnregisterTheme("LatePreviewTheme");
             }
         }
 
@@ -176,6 +222,7 @@ namespace Flowery.NET.Tests
             {
                 DaisyThemeManager.AvailableThemesChanged -= handler;
                 window.Close();
+                DaisyThemeManager.UnregisterTheme("CorporateCopy");
             }
         }
 

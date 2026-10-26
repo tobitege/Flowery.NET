@@ -46,6 +46,7 @@ DaisyThemeLoader.ApplyThemeToApplication(theme);
 | `IsThemeVisible(name)` | Checks whether a name is eligible for display, even before registration. |
 | `PreferredThemes` | Collection of default preferred names for entries without an explicit `AddTheme` flag. Assign `[]` to clear these defaults. |
 | `RegisterTheme(info, paletteFactory)` | Adds or replaces a theme. Raises `AvailableThemesChanged` for new names; built-in names only when `NotifyForInternalThemesChanged` is true. |
+| `UnregisterTheme(string name)` | Removes a theme that `RegisterTheme` added and raises `AvailableThemesChanged`. Returns false for built-in and unknown names. A removed current theme stays applied. |
 | `GetPaletteFactory(string name)` | Returns the factory passed to `RegisterTheme`, or null if the theme is unknown. |
 | `TryCreatePalette(string name, out palette)` | Creates a palette from the registered factory. Used by theme previews. |
 | `AvailableThemesChanged` | Raised for registration notifications and changes to excluded or preferred names. Visibility and ordering changes always notify. |
