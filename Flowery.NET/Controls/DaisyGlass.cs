@@ -807,21 +807,21 @@ namespace Flowery.Controls
         /// <summary>Captures a new owned background image. Rejected and replaced images are disposed.</summary>
         protected virtual async Task<IImage?> CaptureBackdropAsync(CancellationToken cancellationToken)
         {
-            return await Task.Run<IImage?>(() =>
+            // Called on the UI thread, so the capture stays there. A detour through the thread pool read
+            // Dispatcher.UIThread on a pool thread, which can make that thread the owner of a new UI dispatcher (such as
+            // between isolated headless test sessions).
+            try
             {
-                try
+                return await Dispatcher.UIThread.InvokeAsync<IImage?>(() =>
                 {
-                    return Dispatcher.UIThread.Invoke(() =>
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        return CaptureBackdrop();
-                    });
-                }
-                catch
-                {
-                    return null;
-                }
-            }, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    return CaptureBackdrop();
+                });
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private RenderTargetBitmap? CaptureBackdrop()
