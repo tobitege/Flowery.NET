@@ -35,6 +35,7 @@
   "Scheduler_Save": "Speichern",
   "Scheduler_Cancel": "Abbrechen",
   "Scheduler_Help": "Klick zum Auswählen · Strg/Cmd-Klick für Mehrfachauswahl · Doppelklick zum Bearbeiten oder Erstellen · Entf zum Löschen · Rechtsklick für das Kontextmenü",
+  "Scheduler_TouchHelp": "Tippen zum Auswählen · Ausgewählten Termin ziehen zum Verschieben, seine Kante zum Ändern der Dauer · Doppeltippen zum Bearbeiten oder Erstellen · Der Papierkorb löscht die Auswahl",
   "Scheduler_New": "Neuer Termin",
   "Scheduler_Delete": "Löschen",
   "Scheduler_Unassigned": "Nicht zugewiesen",

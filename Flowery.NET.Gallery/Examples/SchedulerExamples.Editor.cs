@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -25,7 +26,12 @@ public partial class SchedulerExamples
         public override string ToString() => Label;
     }
 
+    // The editor fields as values, so a culture change that reformats a date does not count as an edit.
+    private sealed record EditorFields(string Subject, DateTime? Start, TimeSpan? StartTime, DateTime? End, TimeSpan? EndTime,
+        int SpanMode, string Description, bool? AllDay, int Resource, Color? Color);
+
     private CultureInfo _editorCulture = CultureInfo.InvariantCulture;
+    private EditorFields? _openedFields;
     private IReadOnlyList<AppointmentModel> _conflicts = Array.Empty<AppointmentModel>();
 
     private void OpenEditor(AppointmentModel appointment, bool isNew)
@@ -49,6 +55,31 @@ public partial class SchedulerExamples
         _conflicts = Array.Empty<AppointmentModel>();
         RefreshEditorChoices();
         EditorPanel.IsVisible = true;
+        _openedFields = ReadEditorFields();
+    }
+
+    private EditorFields ReadEditorFields() => new(SubjectInput.Text ?? string.Empty, ParseEditorDate(StartInput.Text),
+        (StartTimeInput.SelectedItem as TimeChoice)?.Time, ParseEditorDate(EndInput.Text), (EndTimeInput.SelectedItem as TimeChoice)?.Time,
+        SpanModeInput.SelectedIndex, DescriptionInput.Text ?? string.Empty, AllDayInput.IsChecked, ResourceInput.SelectedIndex,
+        (ColorInput.SelectedItem as ColorChoice)?.Color);
+
+    private DateTime? ParseEditorDate(string? text) =>
+        DateTime.TryParseExact(text, "d", _editorCulture, DateTimeStyles.None, out var date) ? date : null;
+
+    // Light dismiss: a press on the scheduler or Escape closes the editor while its fields are as they were opened. With
+    // changes it stays open until Save or Cancel.
+    private void DismissUnchangedEditor()
+    {
+        if (EditorPanel.IsVisible && ReadEditorFields() == _openedFields)
+            EditorPanel.IsVisible = false;
+    }
+
+    private void OnSchedulerPressed(object? sender, PointerPressedEventArgs e) => DismissUnchangedEditor();
+
+    private void OnPageKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+            DismissUnchangedEditor();
     }
 
     private void RefreshEditorChoices()

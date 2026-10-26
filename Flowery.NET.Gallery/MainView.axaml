@@ -126,26 +126,41 @@
                     <Border x:Name="CategoryTitleBar" Grid.Row="1"
                         Background="{DynamicResource DaisyBase200Brush}"
                         BorderBrush="{DynamicResource DaisyBase300Brush}" BorderThickness="0,0,0,1"
-                        Padding="24,4,24,20" IsVisible="False">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <!-- Futuristic painted chevrons -->
-                            <Viewbox x:Name="CategoryChevrons" Width="24" Height="14"
-                                VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal" Spacing="-6">
-                                    <Path Data="M0,0 L6,0 L12,7 L6,14 L0,14 L6,7 Z"
-                                        Fill="{DynamicResource DaisyPrimaryBrush}" Opacity="0.4" />
-                                    <Path Data="M0,0 L6,0 L12,7 L6,14 L0,14 L6,7 Z"
-                                        Fill="{DynamicResource DaisyPrimaryBrush}" Opacity="0.7" />
-                                    <Path Data="M0,0 L6,0 L12,7 L6,14 L0,14 L6,7 Z"
-                                        Fill="{DynamicResource DaisyPrimaryBrush}" Opacity="1.0" />
-                                </StackPanel>
-                            </Viewbox>
+                        Padding="24,4,24,20" IsVisible="False" Tapped="CategoryTitleBar_Tapped">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <!-- Takes the place of the hamburger button while the header is hidden for a collapsible intro. -->
+                            <controls:DaisyButton x:Name="CategoryMenuButton" Size="Small"
+                                Variant="Ghost" IsVisible="False"
+                                Click="HamburgerButton_Click"
+                                Margin="0,0,8,0" VerticalAlignment="Center">
+                                <PathIcon Width="18" Height="18"
+                                    Data="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+                            </controls:DaisyButton>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                                <!-- Futuristic painted chevrons -->
+                                <Viewbox x:Name="CategoryChevrons" Width="24" Height="14"
+                                    VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Spacing="-6">
+                                        <Path Data="M0,0 L6,0 L12,7 L6,14 L0,14 L6,7 Z"
+                                            Fill="{DynamicResource DaisyPrimaryBrush}" Opacity="0.4" />
+                                        <Path Data="M0,0 L6,0 L12,7 L6,14 L0,14 L6,7 Z"
+                                            Fill="{DynamicResource DaisyPrimaryBrush}" Opacity="0.7" />
+                                        <Path Data="M0,0 L6,0 L12,7 L6,14 L0,14 L6,7 Z"
+                                            Fill="{DynamicResource DaisyPrimaryBrush}" Opacity="1.0" />
+                                    </StackPanel>
+                                </Viewbox>
 
-                            <TextBlock x:Name="CategoryTitle" Text="" FontSize="22"
-                                FontWeight="SemiBold"
-                                VerticalAlignment="Center"
+                                <TextBlock x:Name="CategoryTitle" Text="" FontSize="22"
+                                    FontWeight="SemiBold"
+                                    VerticalAlignment="Center"
+                                    Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            </StackPanel>
+                            <!-- Shows whether the intro of the page is folded; the whole bar toggles it. -->
+                            <PathIcon x:Name="CategoryIntroToggle" Grid.Column="2" IsVisible="False"
+                                Width="12" Height="6" VerticalAlignment="Center"
+                                Data="M7 10l5 5 5-5z"
                                 Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                        </StackPanel>
+                        </Grid>
                     </Border>
 
                     <!-- Content fills remaining space -->

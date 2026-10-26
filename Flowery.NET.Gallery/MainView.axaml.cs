@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
@@ -62,9 +63,19 @@ public partial class MainView : UserControl
     private bool _stopCapture;
     private bool _isHeaderCollapsed;
     private readonly bool _isMobilePlatform;
+    private readonly bool _collapsesIntros;
+    private ICollapsibleIntroExample? _collapsibleIntro;
+    private Thickness _categoryTitleBarPadding = new(24, 4, 24, 20);
 
-    public MainView()
+    public MainView() : this(OperatingSystem.IsAndroid())
     {
+    }
+
+    /// <param name="collapsesIntros">Hide the header and let the category title bar fold the intro of a page that has one
+    /// (<see cref="ICollapsibleIntroExample"/>), as on Android.</param>
+    public MainView(bool collapsesIntros)
+    {
+        _collapsesIntros = collapsesIntros;
         InitializeComponent();
         DaisyNeumorphic.GlobalIntensity = 0.25;
 
@@ -196,7 +207,7 @@ public partial class MainView : UserControl
                 DaisySize.ExtraLarge => new Thickness(32, 8, 32, 28),
                 _ => new Thickness(24, 4, 24, 20)
             };
-            CategoryTitleBar.Padding = padding;
+            SetCategoryTitleBarPadding(padding);
         }
 
         // Update CategoryChevrons size
@@ -285,6 +296,7 @@ public partial class MainView : UserControl
         MainSplitView.DisplayMode = shouldCollapse ? SplitViewDisplayMode.Overlay : SplitViewDisplayMode.Inline;
         HamburgerButton.IsVisible = shouldCollapse;
         MainSplitView.IsPaneOpen = !shouldCollapse;
+        UpdateCollapsibleIntro();
     }
 
     private void HamburgerButton_Click(object? sender, RoutedEventArgs e)
@@ -322,10 +334,12 @@ public partial class MainView : UserControl
 
         if (TryGetCategoryFactory(tabHeader, sectionId, out var cacheKey, out var factory))
         {
+            var created = false;
             if (!_categoryControlCache.TryGetValue(cacheKey, out var newContent))
             {
                 newContent = factory();
                 _categoryControlCache[cacheKey] = newContent;
+                created = true;
             }
 
             var contentChanged = !ReferenceEquals(_activeCategoryContent, newContent);
@@ -340,6 +354,13 @@ public partial class MainView : UserControl
                 newContent.IsVisible = true;
                 _activeCategoryContent = newContent;
             }
+
+            // A page with a collapsible intro gives the height to its demo: the header hides, and the category title bar
+            // folds the intro, which starts folded.
+            _collapsibleIntro = _collapsesIntros ? newContent as ICollapsibleIntroExample : null;
+            if (created && _collapsibleIntro != null)
+                _collapsibleIntro.IsIntroVisible = false;
+            UpdateCollapsibleIntro();
 
             if (sectionId != null && newContent is IScrollableExample scrollable)
             {
@@ -385,6 +406,32 @@ public partial class MainView : UserControl
         return _categoryControls.TryGetValue(tabHeader, out factory!);
     }
 
+    private void UpdateCollapsibleIntro()
+    {
+        var intro = _collapsibleIntro;
+        HeaderBorder.IsVisible = intro == null;
+        CategoryMenuButton.IsVisible = intro != null && HamburgerButton.IsVisible;
+        CategoryIntroToggle.IsVisible = intro != null;
+        CategoryIntroToggle.RenderTransform = new RotateTransform(intro?.IsIntroVisible == true ? 180 : 0);
+        SetCategoryTitleBarPadding(_categoryTitleBarPadding);
+    }
+
+    // While the bar folds an intro it is a compact toggle, with the same small space above and below the title.
+    private void SetCategoryTitleBarPadding(Thickness padding)
+    {
+        _categoryTitleBarPadding = padding;
+        CategoryTitleBar.Padding = _collapsibleIntro == null ? padding : new Thickness(padding.Left, 6, padding.Right, 6);
+    }
+
+    private void CategoryTitleBar_Tapped(object? sender, TappedEventArgs e)
+    {
+        // A tap on the menu button opens the sidebar only.
+        if (_collapsibleIntro is not { } intro || (e.Source as Visual)?.FindAncestorOfType<Button>(includeSelf: true) != null)
+            return;
+        intro.IsIntroVisible = !intro.IsIntroVisible;
+        UpdateCollapsibleIntro();
+    }
+
     private ScrollViewer? _currentScrollViewer;
 
     private void AttachScrollHandler(Control content)
@@ -407,8 +454,8 @@ public partial class MainView : UserControl
 
     private void OnContentScrollChanged(object? sender, ScrollChangedEventArgs e)
     {
-        // Only allow scroll-based collapse in landscape mode
-        if (!_isLandscape)
+        // Only allow scroll-based collapse in landscape mode, and not while the header is hidden for a collapsible intro
+        if (!_isLandscape || _collapsibleIntro != null)
             return;
 
         if (sender is not ScrollViewer scrollViewer)
@@ -443,7 +490,7 @@ public partial class MainView : UserControl
                 HeaderAccentBar.Height = 2;
             // Compact category title bar
             if (CategoryTitleBar != null)
-                CategoryTitleBar.Padding = new Thickness(16, 2, 16, 6);
+                SetCategoryTitleBarPadding(new Thickness(16, 2, 16, 6));
             if (CategoryTitle != null)
                 CategoryTitle.FontSize = 16;
             if (CategoryChevrons != null)
@@ -464,7 +511,7 @@ public partial class MainView : UserControl
                 HeaderAccentBar.Height = 3;
             // Full category title bar
             if (CategoryTitleBar != null)
-                CategoryTitleBar.Padding = new Thickness(24, 4, 24, 20);
+                SetCategoryTitleBarPadding(new Thickness(24, 4, 24, 20));
             if (CategoryTitle != null)
                 CategoryTitle.FontSize = 22;
             if (CategoryChevrons != null)
