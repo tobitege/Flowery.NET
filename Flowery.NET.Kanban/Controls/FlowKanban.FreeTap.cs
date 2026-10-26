@@ -43,14 +43,16 @@
             _freeTapPointer = null;
             var tapSize = Application.Current?.PlatformSettings?.GetTapSize(e.Pointer.Type) ?? new Size(10, 10);
             var moved = e.GetPosition(this) - _freeTapStart;
-            if (Math.Abs(moved.X) <= tapSize.Width / 2 && Math.Abs(moved.Y) <= tapSize.Height / 2 && HasSelection)
+            // Without HasSelection: it misses a selection the board was loaded with.
+            if (Math.Abs(moved.X) <= tapSize.Width / 2 && Math.Abs(moved.Y) <= tapSize.Height / 2)
                 DeselectAllTasks();
         }
 
-        // Free: neither a card nor a control that takes the press itself.
+        // Free: neither a card nor a control that takes the press itself (a ComboBox, such as the column choice of the
+        // compact layout, has no button in its template).
         private bool IsFreePlace(object? source) =>
             source is Visual visual && !visual.GetSelfAndVisualAncestors()
                 .TakeWhile(ancestor => !ReferenceEquals(ancestor, this))
-                .Any(static ancestor => ancestor is FlowTaskCard or Button or TextBox or ScrollBar or Thumb);
+                .Any(static ancestor => ancestor is FlowTaskCard or Button or TextBox or ComboBox or ScrollBar or Thumb);
     }
 }

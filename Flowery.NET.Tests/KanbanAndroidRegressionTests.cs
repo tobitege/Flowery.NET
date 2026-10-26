@@ -157,6 +157,29 @@ public class KanbanAndroidRegressionTests
         }
     }
 
+    [AvaloniaFact]
+    public void A_Tap_On_The_Column_Choice_Of_The_Compact_Layout_Keeps_The_Selection()
+    {
+        var task = new FlowTask { Title = "Task", IsSelected = true };
+        var (window, _) = CreateBoard(task);
+        try
+        {
+            var board = (FlowKanban)window.Content!;
+            board.SetCompactLayout(true);
+            Flush(window);
+            var choice = window.GetVisualDescendants().OfType<ComboBox>().Single(static box => box.Name == "PART_CompactColumnSelect");
+            var point = choice.TranslatePoint(new Point(choice.Bounds.Width / 2, choice.Bounds.Height / 2), window)!.Value;
+            var touch = window.TouchBegin(point, RawInputModifiers.None);
+            window.TouchEnd(touch, point, RawInputModifiers.None);
+            Flush(window);
+            Assert.True(task.IsSelected);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     private sealed class EditRecorder(List<FlowTask> edits) : System.Windows.Input.ICommand
     {
         public event EventHandler? CanExecuteChanged { add { } remove { } }
