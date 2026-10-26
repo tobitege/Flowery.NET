@@ -38,9 +38,9 @@ public partial class DaisyScheduler
     }
 
     // A touch or pen press is left to scrolling first: released where it was pressed, it selects its appointment, slot
-    // or day.
+    // or day, or counts toward a double tap on a column heading.
     private sealed record PendingTap(IPointer Pointer, Point PressPoint, AppointmentTarget? Target, Lane? Lane, DateTime Slot,
-        int ClickCount, DayTarget? Day = null);
+        int ClickCount, DayTarget? Day = null, bool Heading = false);
 
     private Gesture? _gesture;
     private PendingTap? _pendingTap;
@@ -194,6 +194,8 @@ public partial class DaisyScheduler
             SelectSlot(slot, lane.Resource, false, _taps, e.GetPosition(TopLevel.GetTopLevel(this)));
         else if (tap.Day is { } day)
             SelectSlot(day.Date, day.Resource, true, _taps, e.GetPosition(TopLevel.GetTopLevel(this)));
+        else if (tap.Heading && _taps == 2)
+            ToggleWideColumns(e);
     }
 
     private void OnScrollFlingStarting(object? sender, ScrollGestureInertiaStartingEventArgs e) => _flinging = true;

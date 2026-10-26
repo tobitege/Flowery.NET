@@ -160,6 +160,7 @@
   "Scheduler_ShowWeekends": "Показувати вихідні",
   "Scheduler_GroupByDay": "Групувати за днями",
   "Scheduler_TimeScale": "Часовий інтервал",
+  "Scheduler_ColumnZoom": "Ширина стовпців",
   "Scheduler_Previous": "Попередній період",
   "Scheduler_Next": "Наступний період",
   "Scheduler_ChooseDate": "Вибрати дату",

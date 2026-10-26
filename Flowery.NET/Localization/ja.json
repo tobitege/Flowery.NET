@@ -160,6 +160,7 @@
   "Scheduler_ShowWeekends": "週末を表示",
   "Scheduler_GroupByDay": "日ごとにグループ化",
   "Scheduler_TimeScale": "時間間隔",
+  "Scheduler_ColumnZoom": "列の幅",
   "Scheduler_Previous": "前の期間",
   "Scheduler_Next": "次の期間",
   "Scheduler_ChooseDate": "日付を選択",

@@ -160,6 +160,7 @@
   "Scheduler_ShowWeekends": "주말 표시",
   "Scheduler_GroupByDay": "날짜별 그룹화",
   "Scheduler_TimeScale": "시간 간격",
+  "Scheduler_ColumnZoom": "열 너비",
   "Scheduler_Previous": "이전 기간",
   "Scheduler_Next": "다음 기간",
   "Scheduler_ChooseDate": "날짜 선택",

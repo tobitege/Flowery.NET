@@ -175,6 +175,32 @@ public partial class DaisyScheduler : TemplatedControl
         set => SetValue(ColumnMinWidthProperty, value);
     }
 
+    public static readonly StyledProperty<double> ColumnZoomProperty =
+        AvaloniaProperty.Register<DaisyScheduler, double>(nameof(ColumnZoom), MinimumColumnZoom,
+            validate: static value => double.IsFinite(value),
+            coerce: static (_, value) => Math.Clamp(value, MinimumColumnZoom, MaximumColumnZoom));
+
+    /// <summary>Widens the day columns of Month, Day and Week and the hours of Planner and Timeline by this factor of the
+    /// width that fits them into the view, at least their minimum width; from 1 (default) to 4. Users change it with two
+    /// fingers, Ctrl and the mouse wheel, a double tap on a column heading or the settings menu.</summary>
+    public double ColumnZoom
+    {
+        get => GetValue(ColumnZoomProperty);
+        set => SetValue(ColumnZoomProperty, value);
+    }
+
+    public static readonly StyledProperty<string?> StateKeyProperty =
+        AvaloniaProperty.Register<DaisyScheduler, string?>(nameof(StateKey));
+
+    /// <summary>Remembers the settings of the user under this key in <see cref="Flowery.Services.StateStorageProvider"/>:
+    /// the scheduler loads them when it is attached and saves every change. For now this is the column zoom. Null
+    /// (default) keeps nothing.</summary>
+    public string? StateKey
+    {
+        get => GetValue(StateKeyProperty);
+        set => SetValue(StateKeyProperty, value);
+    }
+
     public static readonly StyledProperty<double?> AppointmentCornerRadiusProperty =
         AvaloniaProperty.Register<DaisyScheduler, double?>(nameof(AppointmentCornerRadius), null,
             validate: static value => value is null || double.IsFinite(value.Value) && value.Value >= 0);
@@ -332,6 +358,10 @@ public partial class DaisyScheduler : TemplatedControl
         AddHandler(PointerReleasedEvent, OnPendingTapReleased, handledEventsToo: true);
         AddHandler(ScrollGestureInertiaStartingEvent, OnScrollFlingStarting, handledEventsToo: true);
         AddHandler(ScrollGestureEndedEvent, OnScrollGestureEnded, handledEventsToo: true);
+        AddHandler(PinchEvent, OnPinch);
+        AddHandler(PinchEndedEvent, OnPinchEnded, handledEventsToo: true);
+        // Tunnel: the scroll viewer of the view would scroll on the wheel first.
+        AddHandler(PointerWheelChangedEvent, OnZoomWheel, Avalonia.Interactivity.RoutingStrategies.Tunnel);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -339,6 +369,7 @@ public partial class DaisyScheduler : TemplatedControl
         base.OnAttachedToVisualTree(e);
         _attached = true;
         FloweryLocalization.CultureChanged += OnCultureChanged;
+        LoadState();
         RequestRender();
     }
 
@@ -377,6 +408,18 @@ public partial class DaisyScheduler : TemplatedControl
         }
         if (change.Property == SelectedAppointmentsProperty)
             return;
+        // A new zoom only resizes the columns of the shown view; the view is not built again.
+        if (change.Property == ColumnZoomProperty)
+        {
+            ZoomColumns();
+            SaveState();
+            return;
+        }
+        if (change.Property == StateKeyProperty)
+        {
+            LoadState();
+            return;
+        }
         if (change.Property == CurrentViewProperty)
         {
             CancelGesture();

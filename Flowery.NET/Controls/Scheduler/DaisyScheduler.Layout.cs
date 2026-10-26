@@ -20,9 +20,10 @@ public partial class DaisyScheduler
     {
         if (_bodyScroll is not { Viewport.Width: > 0, Viewport.Height: > 0 } scroll)
             return;
+        var zoom = ColumnZoom;
         if (_monthGrid is { } month)
         {
-            month.Width = Math.Max(month.MinWidth, scroll.Viewport.Width);
+            month.Width = Math.Max(month.MinWidth, scroll.Viewport.Width) * zoom;
             month.Height = Math.Max(month.MinHeight, scroll.Viewport.Height);
         }
         RescaleHours(scroll.Viewport.Width);
@@ -34,7 +35,7 @@ public partial class DaisyScheduler
         var extra = Math.Max(0, (scroll.Viewport.Width - minimumWidth) / _timeColumns.Count);
         foreach (var column in _timeColumns)
         {
-            var width = column.MinimumWidth + extra;
+            var width = (column.MinimumWidth + extra) * zoom;
             column.Header.Width = new GridLength(width);
             column.Body.Width = new GridLength(width);
             column.Surface.Width = width;

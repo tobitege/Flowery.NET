@@ -160,6 +160,7 @@
   "Scheduler_ShowWeekends": "显示周末",
   "Scheduler_GroupByDay": "按日期分组",
   "Scheduler_TimeScale": "时间间隔",
+  "Scheduler_ColumnZoom": "列宽",
   "Scheduler_Previous": "上一时间段",
   "Scheduler_Next": "下一时间段",
   "Scheduler_ChooseDate": "选择日期",

@@ -55,6 +55,18 @@ Scheduler.AppointmentMoveRequested += (_, request) =>
 | Timeline | One day on a horizontal axis, with named, collapsible resource groups | Move between lanes, resize, create, external drop |
 | Calendar | Month navigator with week numbers beside a daily appointment list | Edit and context requests |
 
+### Column zoom
+
+On a phone the columns of Month and Week are narrow enough that appointments show only their start. `ColumnZoom`
+widens them, and the view scrolls sideways. Drag the right edge of a column heading with the mouse, spread two fingers
+or use Ctrl and the mouse wheel to zoom where they are, or double-tap a column heading to switch between the fitted
+columns and twice their width. Set `StateKey` to keep the
+user's zoom for the next start:
+
+```xml
+<controls:DaisyScheduler StateKey="planning" />
+```
+
 ### Calendar navigator and daily list
 
 Set CurrentView=Calendar and ResourceKindFilter=Person or Room to show appointments assigned to that resource kind.
@@ -153,6 +165,8 @@ Scheduler tooltips use `DaisyBase200Brush`, `DaisyBaseContentBrush`, and a borde
 | `ClockFormat` | Regional default, 12 hours, or 24 hours |
 | `AppointmentColors` | Optional host editor palette. Null or empty hides the Gallery color selector |
 | `ColumnMinWidth` | Minimum width before horizontal scrolling |
+| `ColumnZoom` | Widens the day columns of Month, Day and Week and the hours of Planner and Timeline by this factor of the width that fits them into the view, from 1 (default) to 4. Users change it by dragging the right edge of a column heading with the mouse, as in a table (every column follows), with Ctrl (Cmd) and the mouse wheel, by spreading or pinching two fingers, by a double click or two taps on a column heading (fitted and twice as wide), and in the settings menu. The view keeps the day under the fingers or the pointer in place and is not built again. |
+| `StateKey` | Remembers the user's settings under this key in `StateStorageProvider` (per user): the scheduler loads them when it is attached and saves every change, for now the column zoom. Null (default) keeps nothing. |
 | `WorkDayStart`, `WorkDayEnd` | Working-hours band in Day and Week |
 | `SingleClickCreates` | Request creation on a single click of an empty slot |
 | `SelectedAppointment` | Single selected appointment, or null |

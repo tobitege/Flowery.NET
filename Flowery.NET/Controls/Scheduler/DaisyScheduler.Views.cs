@@ -6,6 +6,7 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -35,10 +36,10 @@ public partial class DaisyScheduler
 
     private double MinuteScale => _minuteView?.GetValue(MinuteCanvas.PixelsPerMinuteProperty) ?? 0;
 
-    // Planner and Timeline hours fill the visible width. A new width only sets the scale; every surface arranges its
-    // children by minutes, so appointment frames, the selection, focus and running gestures stay.
+    // Planner and Timeline hours fill the visible width, times the column zoom. A new width only sets the scale; every
+    // surface arranges its children by minutes, so appointment frames, the selection, focus and running gestures stay.
     private void RescaleHours(double visibleWidth) =>
-        _minuteView?.SetValue(MinuteCanvas.PixelsPerMinuteProperty, Math.Max(_minuteMinimum, visibleWidth / _minuteTotal));
+        _minuteView?.SetValue(MinuteCanvas.PixelsPerMinuteProperty, Math.Max(_minuteMinimum, visibleWidth / _minuteTotal) * ColumnZoom);
 
     private IReadOnlyList<ResourceModel> ActiveResources(DateTime start, DateTime end)
     {
@@ -92,6 +93,8 @@ public partial class DaisyScheduler
             var text = Label(start.AddDays(columns[column]).ToString("ddd", Culture), true);
             text.HorizontalAlignment = HorizontalAlignment.Center;
             var header = Cell(text, header: true);
+            AttachColumnEdge(header);
+            AttachColumnHeading(header);
             Grid.SetColumn(header, column);
             grid.Children.Add(header);
         }
@@ -193,9 +196,13 @@ public partial class DaisyScheduler
             header.ColumnDefinitions.Add(new ColumnDefinition(width, GridUnitType.Pixel));
             body.ColumnDefinitions.Add(new ColumnDefinition(width, GridUnitType.Pixel));
             var heading = new StackPanel { Spacing = 4 };
-            heading.Children.Add(Label(date.ToString("ddd, d MMM", Culture)));
+            // The date and resource, not the all-day row below them, where a double tap creates an appointment.
+            var title = new StackPanel { Spacing = 4, Background = Brushes.Transparent };
+            title.Children.Add(Label(date.ToString("ddd, d MMM", Culture)));
             if (resource is not null)
-                heading.Children.Add(Label(resource.Name, true));
+                title.Children.Add(Label(resource.Name, true));
+            AttachColumnHeading(title);
+            heading.Children.Add(title);
             var banners = new StackPanel { Spacing = 2, MinHeight = ChipHeight };
             foreach (var appointment in Items.Where(appointment => IsBanner(appointment) && OnDate(appointment, date) && MatchesResource(appointment, resource)))
                 banners.Children.Add(CreateAppointment(appointment, AppointmentSurface.Chip, resourceId: resource?.Id));
@@ -203,6 +210,7 @@ public partial class DaisyScheduler
             AttachEmptyDay(allDay, date, resource);
             heading.Children.Add(allDay);
             var headerCell = Cell(heading, header: true, today: date == DateTime.Today);
+            AttachColumnEdge(headerCell);
             Grid.SetColumn(headerCell, index);
             header.Children.Add(headerCell);
 
@@ -264,6 +272,8 @@ public partial class DaisyScheduler
             var date = start.AddDays(day);
             var dayHeader = Cell(Label(date.ToString("ddd, d MMM", Culture)), header: true, today: date == DateTime.Today);
             dayHeader.Height = ChipHeight;
+            AttachColumnEdge(dayHeader);
+            AttachColumnHeading(dayHeader);
             MinuteCanvas.Place(dayHeader, day * 1440, 1440);
             header.Children.Add(dayHeader);
             for (var hour = 0; hour < 24; hour++)
@@ -383,6 +393,7 @@ public partial class DaisyScheduler
             HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto
         };
+        _bodyScroll.GestureRecognizers.Add(new PinchGestureRecognizer());
         _bodyScroll.Loaded += OnBodyLoaded;
         _bodyScroll.ScrollChanged += OnBodyScrolled;
         return _bodyScroll;

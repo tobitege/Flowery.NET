@@ -34,6 +34,9 @@ public partial class DaisyScheduler
             .Append(TimeSlotInterval).Distinct().Order().Select(step => new PreferenceChoice(step,
                 string.Format(Culture, Text("Minutes"), step.TotalMinutes))).ToArray();
         AddPreference(settings, "TimeSlotInterval", TimeSlotIntervalProperty, TimeSlotInterval, intervals);
+        var zooms = new[] { 1, 1.5, 2, 3, 4 }.Append(ColumnZoom).Distinct().Order()
+            .Select(zoom => new PreferenceChoice(zoom, zoom.ToString("P0", Culture))).ToArray();
+        AddPreference(settings, "ColumnZoom", ColumnZoomProperty, ColumnZoom, zooms);
     }
 
     private PreferenceChoice[] TimeChoices(TimeSpan current) => Enumerable.Range(0, 48)
@@ -73,6 +76,7 @@ public partial class DaisyScheduler
             case TimeSpan time when property == TimeSlotStartProperty: SetCurrentValue(TimeSlotStartProperty, time); break;
             case TimeSpan time when property == TimeSlotEndProperty: SetCurrentValue(TimeSlotEndProperty, time); break;
             case TimeSpan time: SetCurrentValue(TimeSlotIntervalProperty, time); break;
+            case double zoom: SetCurrentValue(ColumnZoomProperty, zoom); break;
         }
     }
 }
