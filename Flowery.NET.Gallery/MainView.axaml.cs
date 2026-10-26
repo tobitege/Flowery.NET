@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Platform;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -65,6 +66,7 @@ public partial class MainView : UserControl
     private readonly bool _isMobilePlatform;
     private readonly bool _collapsesIntros;
     private ICollapsibleIntroExample? _collapsibleIntro;
+    private IInputPane? _inputPane;
     private Thickness _categoryTitleBarPadding = new(24, 4, 24, 20);
 
     public MainView() : this(OperatingSystem.IsAndroid())
@@ -143,12 +145,21 @@ public partial class MainView : UserControl
         // Catch up with changes made while the view was detached.
         ApplyCulture();
         ApplySizeToGalleryElements(FlowerySizeManager.CurrentSize);
+        _inputPane = TopLevel.GetTopLevel(this)?.InputPane;
+        if (_inputPane != null)
+        {
+            _inputPane.StateChanged += OnInputPaneStateChanged;
+            KeepClearOfInputPane(_inputPane.OccludedRect);
+        }
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         FloweryLocalization.CultureChanged -= OnCultureChanged;
         FlowerySizeManager.SizeChanged -= OnGlobalSizeChanged;
+        if (_inputPane != null)
+            _inputPane.StateChanged -= OnInputPaneStateChanged;
+        _inputPane = null;
         base.OnDetachedFromVisualTree(e);
     }
 
@@ -357,7 +368,21 @@ public partial class MainView : UserControl
 
             // A page with a collapsible intro gives the height to its demo: the header hides, and the category title bar
             // folds the intro, which starts folded.
-            _collapsibleIntro = _collapsesIntros ? newContent as ICollapsibleIntroExample : null;
+            var intro = _collapsesIntros ? newContent as ICollapsibleIntroExample : null;
+            if (!ReferenceEquals(intro, _collapsibleIntro))
+            {
+                if (_collapsibleIntro != null)
+                {
+                    _collapsibleIntro.FoldsIntro = false;
+                    _collapsibleIntro.IntroVisibilityChanged -= OnIntroVisibilityChanged;
+                }
+                if (intro != null)
+                {
+                    intro.FoldsIntro = true;
+                    intro.IntroVisibilityChanged += OnIntroVisibilityChanged;
+                }
+                _collapsibleIntro = intro;
+            }
             if (created && _collapsibleIntro != null)
                 _collapsibleIntro.IsIntroVisible = false;
             UpdateCollapsibleIntro();
@@ -406,6 +431,27 @@ public partial class MainView : UserControl
         return _categoryControls.TryGetValue(tabHeader, out factory!);
     }
 
+    private void OnInputPaneStateChanged(object? sender, InputPaneStateEventArgs e) => KeepClearOfInputPane(e.EndRect);
+
+    /// <summary>
+    /// Keeps the view, the sidebar and the modal included, clear of an on-screen keyboard that covers
+    /// <paramref name="occludedRect"/>, in the coordinates of the top level and empty while it is closed, and brings the
+    /// focused control into view. The keyboard covers the view without making it smaller, so fields and buttons under it
+    /// could not be scrolled into view.
+    /// </summary>
+    public void KeepClearOfInputPane(Rect occludedRect)
+    {
+        // The padding of the view keeps it clear of the system bars (the safe area); the keyboard covers that part too.
+        var topLevel = TopLevel.GetTopLevel(this);
+        var bottom = Bounds.Height - Padding.Bottom;
+        if (topLevel != null && this.TranslatePoint(new Point(0, bottom), topLevel) is { } corner)
+            bottom = corner.Y;
+        var covered = occludedRect.Height > 0 ? Math.Max(0, bottom - occludedRect.Top) : 0;
+        LayoutRoot.Margin = new Thickness(0, 0, 0, covered);
+        if (covered > 0 && topLevel?.FocusManager?.GetFocusedElement() is Control focused)
+            global::Avalonia.Threading.Dispatcher.UIThread.Post(focused.BringIntoView, global::Avalonia.Threading.DispatcherPriority.Loaded);
+    }
+
     private void UpdateCollapsibleIntro()
     {
         var intro = _collapsibleIntro;
@@ -429,8 +475,9 @@ public partial class MainView : UserControl
         if (_collapsibleIntro is not { } intro || (e.Source as Visual)?.FindAncestorOfType<Button>(includeSelf: true) != null)
             return;
         intro.IsIntroVisible = !intro.IsIntroVisible;
-        UpdateCollapsibleIntro();
     }
+
+    private void OnIntroVisibilityChanged(object? sender, EventArgs e) => UpdateCollapsibleIntro();
 
     private ScrollViewer? _currentScrollViewer;
 
