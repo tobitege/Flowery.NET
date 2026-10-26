@@ -25,6 +25,7 @@ See [FlowKanbanDialogBase](FlowKanbanDialogBase.md) for modal focus behavior.
 
 As in DaisyScheduler, a tap selects a card (with Ctrl, adds it) and a double tap edits it; a long press on its title edits it as well, and swipes over unselected cards scroll the board.
 Taps are decided on release and only those that did not move count, so swipes over a card never select or edit it.
+A tap or click on a free place of the board (not on a card or a control) clears the selection, on touch and with the mouse; a swipe or a mouse drag there does not.
 A finger on a selected card drags it: a copy follows the finger, the column under it shows the drop position, and the release moves the card as a drop does (WIP limits, lanes).
 Near an edge of the board or a column, the view scrolls along. Avalonia has no platform drag and drop on Android, so the board moves the card itself.
 The sidebar scrolls when the board is lower than its buttons.

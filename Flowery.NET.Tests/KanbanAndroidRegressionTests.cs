@@ -102,6 +102,61 @@ public class KanbanAndroidRegressionTests
         }
     }
 
+    [AvaloniaFact]
+    public void A_Tap_Or_Click_On_A_Free_Place_Clears_The_Selection_And_A_Swipe_There_Does_Not()
+    {
+        var task = new FlowTask { Title = "Task", IsSelected = true };
+        var (window, card) = CreateBoard(task);
+        try
+        {
+            // Below the card, inside its column.
+            var free = card.TranslatePoint(new Point(card.Bounds.Width / 2, card.Bounds.Height + 40), window)!.Value;
+
+            // A vertical swipe beside the column, where nothing scrolls that way, so the release reaches the board.
+            var beside = card.TranslatePoint(new Point(card.Bounds.Width + 150, card.Bounds.Height / 2), window)!.Value;
+            var touch = window.TouchBegin(beside, RawInputModifiers.None);
+            window.TouchMove(touch, beside + new Vector(0, 40));
+            window.TouchEnd(touch, beside + new Vector(0, 40), RawInputModifiers.None);
+            Flush(window);
+            Assert.True(task.IsSelected, "a swipe clears nothing");
+
+            // A tap on the selected card keeps it selected.
+            TouchTap(window, Card(window, task));
+            Assert.True(task.IsSelected);
+
+            touch = window.TouchBegin(free, RawInputModifiers.None);
+            window.TouchEnd(touch, free, RawInputModifiers.None);
+            Flush(window);
+            Assert.False(task.IsSelected);
+
+            // Beside the column as well.
+            task.IsSelected = true;
+            Flush(window);
+            touch = window.TouchBegin(beside, RawInputModifiers.None);
+            window.TouchEnd(touch, beside, RawInputModifiers.None);
+            Flush(window);
+            Assert.False(task.IsSelected);
+
+            // A mouse drag over a free place clears nothing; the scroll gesture leaves the mouse alone.
+            task.IsSelected = true;
+            Flush(window);
+            window.MouseDown(beside, MouseButton.Left);
+            window.MouseMove(beside + new Vector(0, 40));
+            window.MouseUp(beside + new Vector(0, 40), MouseButton.Left);
+            Flush(window);
+            Assert.True(task.IsSelected, "a mouse drag clears nothing");
+
+            window.MouseDown(free, MouseButton.Left);
+            window.MouseUp(free, MouseButton.Left);
+            Flush(window);
+            Assert.False(task.IsSelected);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     private sealed class EditRecorder(List<FlowTask> edits) : System.Windows.Input.ICommand
     {
         public event EventHandler? CanExecuteChanged { add { } remove { } }
