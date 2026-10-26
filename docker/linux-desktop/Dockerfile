@@ -1,17 +1,19 @@
 # syntax=docker/dockerfile:1.7
 
-# A Linux desktop (XFCE) for running the Flowery.NET Gallery and other Avalonia apps, viewed in a browser through noVNC.
+# A Linux desktop (XFCE) for running .NET UI apps, such as the Flowery Galleries, viewed in a browser through noVNC.
+# Flowery.NET and Flowery.Uno keep this folder the same and build the image under the same tag; change both together.
 #
-# The image holds no .NET SDK or app: publish the app self-contained for linux-x64 and mount it at /opt/app
-# (scripts/run-linux-desktop.ps1 does both). Build it with:
+# The image holds no .NET SDK or app: publish the app self-contained for Linux, mount it at /opt/app and pass the path of
+# its executable as APP_PATH (scripts/run-linux-desktop.ps1 of each repository does that). Build it with:
 #   docker build -t flowery-linux-desktop docker/linux-desktop
 FROM debian:bookworm-slim
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-# XFCE as the desktop, TigerVNC as its X server, noVNC to show it in a browser. Avalonia needs X11 with its input and
-# cursor extensions, fontconfig with fonts (an emoji font too, the Gallery shows emoji), and ICU for globalization; Mesa gives OpenGL without a GPU. xwd with netpbm
-# takes PNG screenshots and xdotool drives input, for checks from outside the container.
+# XFCE as the desktop, TigerVNC as its X server, noVNC to show it in a browser. The apps need X11 with its input and
+# cursor extensions, fontconfig with fonts (an emoji font too, the Galleries show emoji), and ICU for globalization; Mesa
+# gives OpenGL without a GPU. xwd with netpbm takes PNG screenshots and xdotool drives input, for checks from outside the
+# container.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         xfce4 xfce4-terminal dbus-x11 \
@@ -25,7 +27,7 @@ RUN apt-get update \
 
 RUN useradd --create-home --shell /bin/bash flowery
 
-# http://localhost:6080/ opens the desktop instead of a directory listing.
+# The root of noVNC opens the desktop instead of a directory listing.
 RUN echo '<!DOCTYPE html><meta http-equiv="refresh" content="0; url=vnc.html?autoconnect=true&amp;resize=scale">' \
         > /usr/share/novnc/index.html
 
@@ -35,10 +37,9 @@ RUN sed -i 's/\r$//' /usr/local/bin/start-desktop.sh && chmod +x /usr/local/bin/
 
 USER flowery
 WORKDIR /home/flowery
-# English unless the run passes another culture as LANG (scripts/run-linux-desktop.ps1 passes the one of Windows).
+# English unless the run passes another culture as LANG; the image has no locales, so only the app follows it.
 ENV DISPLAY=:1 \
-    LANG=en_US.UTF-8 \
-    APP_PATH=/opt/app/Flowery.NET.Gallery.Desktop
+    LANG=en_US.UTF-8
 
 # 6080: noVNC in a browser; 5901: VNC for a native viewer.
 EXPOSE 6080 5901
