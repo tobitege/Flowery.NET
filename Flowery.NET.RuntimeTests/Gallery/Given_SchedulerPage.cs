@@ -1,4 +1,5 @@
-﻿using Avalonia;
+﻿using System.Globalization;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -70,6 +71,43 @@ public class Given_SchedulerPage
 
         var desktop = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples(touchHelp: false));
         Assert.Equal(GalleryLocalization.GetString("Scheduler_Help"), desktop.FindControl<TextBlock>("StatusText")!.Text);
+    }
+
+    [Fact]
+    public async Task When_An_Appointment_Is_Created_Its_Dates_Are_Picked_In_The_Format_Of_The_Scheduler()
+    {
+        // The picker formats with the culture of the UI; the scheduler's US format must win over a German UI.
+        var culture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
+        try
+        {
+            var page = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples());
+            var scheduler = page.FindControl<DaisyScheduler>("DemoScheduler")!;
+            scheduler.DateTimeFormat = SchedulerDateTimeFormat.US;
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            await OpenNewAsync(scheduler);
+            var start = page.FindControl<DaisyCalendarDatePicker>("StartInput")!;
+            var end = page.FindControl<DaisyCalendarDatePicker>("EndInput")!;
+            Assert.Equal(scheduler.SelectedDate.Date, start.SelectedDate);
+
+            var day = new DateTime(2026, 10, 28);
+            start.SelectedDate = day;
+            end.SelectedDate = day;
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            Assert.Equal("10/28/2026", start.GetVisualDescendants().OfType<TextBox>().First().Text);
+
+            // The picked date is saved without any text being parsed.
+            page.FindControl<TextBox>("SubjectInput")!.Text = "Picked";
+            page.FindControl<Border>("EditorPanel")!.GetVisualDescendants().OfType<Button>()
+                .First(static button => Equals(button.Content, GalleryLocalization.GetString("Scheduler_Save")))
+                .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            Assert.Equal(day, scheduler.Appointments!.Single(static appointment => appointment.Subject == "Picked").Start.Date);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = culture;
+        }
     }
 
     [Fact]

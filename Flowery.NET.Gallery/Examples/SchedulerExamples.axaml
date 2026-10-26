@@ -38,15 +38,21 @@
                                    Foreground="{DynamicResource DaisyBaseContentBrush}"
                                    controls:FlowerySizeManager.ResponsiveFont="SectionHeader" />
                         <controls:DaisyInput x:Name="SubjectInput" Label="{loc:Localize Scheduler_Subject}" />
-                        <!-- Date and time share a row; the time sits level with the date field below its label. -->
+                        <!-- Date and time share a row below their label. -->
+                        <TextBlock Text="{loc:Localize Scheduler_Start}" Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                   controls:FlowerySizeManager.ResponsiveFont="Primary" Margin="0,0,0,-8" />
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                            <controls:DaisyInput x:Name="StartInput" Label="{loc:Localize Scheduler_Start}" />
-                            <controls:DaisySelect x:Name="StartTimeInput" Grid.Column="1" VerticalAlignment="Bottom"
+                            <controls:DaisyCalendarDatePicker x:Name="StartInput" HorizontalAlignment="Stretch"
+                                                              AutomationProperties.Name="{loc:Localize Scheduler_Start}" />
+                            <controls:DaisySelect x:Name="StartTimeInput" Grid.Column="1"
                                                   AutomationProperties.Name="{loc:Localize Scheduler_StartTime}" />
                         </Grid>
+                        <TextBlock Text="{loc:Localize Scheduler_End}" Foreground="{DynamicResource DaisyBaseContentBrush}"
+                                   controls:FlowerySizeManager.ResponsiveFont="Primary" Margin="0,0,0,-8" />
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                            <controls:DaisyInput x:Name="EndInput" Label="{loc:Localize Scheduler_End}" />
-                            <controls:DaisySelect x:Name="EndTimeInput" Grid.Column="1" VerticalAlignment="Bottom"
+                            <controls:DaisyCalendarDatePicker x:Name="EndInput" HorizontalAlignment="Stretch"
+                                                              AutomationProperties.Name="{loc:Localize Scheduler_End}" />
+                            <controls:DaisySelect x:Name="EndTimeInput" Grid.Column="1"
                                                   AutomationProperties.Name="{loc:Localize Scheduler_EndTime}" />
                         </Grid>
                         <controls:DaisySelect x:Name="SpanModeInput" AutomationProperties.Name="{loc:Localize Scheduler_SpanMode}" />

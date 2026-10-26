@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
@@ -26,11 +25,10 @@ public partial class SchedulerExamples
         public override string ToString() => Label;
     }
 
-    // The editor fields as values, so a culture change that reformats a date does not count as an edit.
+    // The editor fields as values, to tell an edit from fields that were only shown again.
     private sealed record EditorFields(string Subject, DateTime? Start, TimeSpan? StartTime, DateTime? End, TimeSpan? EndTime,
         int SpanMode, string Description, bool? AllDay, int Resource, Color? Color);
 
-    private CultureInfo _editorCulture = CultureInfo.InvariantCulture;
     private EditorFields? _openedFields;
     private IReadOnlyList<AppointmentModel> _conflicts = Array.Empty<AppointmentModel>();
 
@@ -39,9 +37,8 @@ public partial class SchedulerExamples
         _editing = appointment;
         _isNew = isNew;
         SubjectInput.Text = appointment.Subject;
-        _editorCulture = DemoScheduler.FormattingCulture;
-        StartInput.Text = DemoScheduler.FormatDate(appointment.Start);
-        EndInput.Text = DemoScheduler.FormatDate(appointment.End);
+        StartInput.SelectedDate = appointment.Start.Date;
+        EndInput.SelectedDate = appointment.End.Date;
         StartTimeInput.ItemsSource = null;
         EndTimeInput.ItemsSource = null;
         ColorInput.ItemsSource = null;
@@ -61,13 +58,10 @@ public partial class SchedulerExamples
         _openedFields = ReadEditorFields();
     }
 
-    private EditorFields ReadEditorFields() => new(SubjectInput.Text ?? string.Empty, ParseEditorDate(StartInput.Text),
-        (StartTimeInput.SelectedItem as TimeChoice)?.Time, ParseEditorDate(EndInput.Text), (EndTimeInput.SelectedItem as TimeChoice)?.Time,
+    private EditorFields ReadEditorFields() => new(SubjectInput.Text ?? string.Empty, StartInput.SelectedDate,
+        (StartTimeInput.SelectedItem as TimeChoice)?.Time, EndInput.SelectedDate, (EndTimeInput.SelectedItem as TimeChoice)?.Time,
         SpanModeInput.SelectedIndex, DescriptionInput.Text ?? string.Empty, AllDayInput.IsChecked, ResourceInput.SelectedIndex,
         (ColorInput.SelectedItem as ColorChoice)?.Color);
-
-    private DateTime? ParseEditorDate(string? text) =>
-        DateTime.TryParseExact(text, "d", _editorCulture, DateTimeStyles.None, out var date) ? date : null;
 
     // Light dismiss: a press on the scheduler or Escape closes the editor while its fields are as they were opened. With
     // changes it stays open until Save or Cancel.
@@ -93,13 +87,8 @@ public partial class SchedulerExamples
         var endTime = (EndTimeInput.SelectedItem as TimeChoice)?.Time ?? _editing.End.TimeOfDay;
         var color = ColorInput.SelectedItem is ColorChoice selected ? selected.Color : _editing.BackColor;
         var mode = SpanModeInput.SelectedIndex < 0 ? (int)_editing.SpanMode : SpanModeInput.SelectedIndex;
-        if (DateTime.TryParseExact(StartInput.Text, "d", _editorCulture, DateTimeStyles.None, out var startDate))
-            StartInput.Text = DemoScheduler.FormatDate(startDate);
-        if (DateTime.TryParseExact(EndInput.Text, "d", _editorCulture, DateTimeStyles.None, out var endDate))
-            EndInput.Text = DemoScheduler.FormatDate(endDate);
-        _editorCulture = DemoScheduler.FormattingCulture;
-        StartInput.PlaceholderText = _editorCulture.DateTimeFormat.ShortDatePattern;
-        EndInput.PlaceholderText = _editorCulture.DateTimeFormat.ShortDatePattern;
+        ShowDatesLikeTheScheduler(StartInput);
+        ShowDatesLikeTheScheduler(EndInput);
         FillTimeChoices(StartTimeInput, startTime);
         FillTimeChoices(EndTimeInput, endTime);
         SpanModeInput.ItemsSource = new[] { Text("Continuous"), Text("Daily") };
@@ -125,6 +114,17 @@ public partial class SchedulerExamples
         ShowConflicts();
     }
 
+    // The pickers write the date in the scheduler's regional format, which may differ from the UI culture: its pattern is
+    // used with the scheduler's own date separator, quoted, since the picker formats with the current culture.
+    private void ShowDatesLikeTheScheduler(DaisyCalendarDatePicker picker)
+    {
+        var format = DemoScheduler.FormattingCulture.DateTimeFormat;
+        picker.SelectedDateFormat = CalendarDatePickerFormat.Custom;
+        picker.CustomDateFormatString = format.ShortDatePattern.Replace("/", "'" + format.DateSeparator + "'");
+        picker.PlaceholderText = format.ShortDatePattern;
+        picker.FirstDayOfWeek = DemoScheduler.FirstDayOfWeek;
+    }
+
     private void FillTimeChoices(DaisySelect select, TimeSpan selected)
     {
         var times = DemoScheduler.GetTimeSlots().Append(selected).Distinct().Order().ToArray();
@@ -147,8 +147,7 @@ public partial class SchedulerExamples
         if (_editing is null || DemoScheduler.IsReadOnly)
             return;
         if (string.IsNullOrWhiteSpace(SubjectInput.Text) ||
-            !DateTime.TryParseExact(StartInput.Text, "d", _editorCulture, DateTimeStyles.None, out var start) ||
-            !DateTime.TryParseExact(EndInput.Text, "d", _editorCulture, DateTimeStyles.None, out var end) ||
+            StartInput.SelectedDate is not { } start || EndInput.SelectedDate is not { } end ||
             StartTimeInput.SelectedItem is not TimeChoice startTime || EndTimeInput.SelectedItem is not TimeChoice endTime)
         {
             EditorError.Text = Text("InvalidInput");
