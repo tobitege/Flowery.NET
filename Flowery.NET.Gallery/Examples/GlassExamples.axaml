@@ -532,8 +532,7 @@
                                VerticalOffset="8"
                                ShouldUseOverlayLayer="True"
                                IsLightDismissEnabled="True">
-                            <controls:DaisyGlassMenu x:Name="GlassInterfaceMenu" Classes="glassScene" Width="230"
-                                                     SelectionChanged="GlassInterfaceMenu_SelectionChanged">
+                            <controls:DaisyGlassMenu x:Name="GlassInterfaceMenu" Classes="glassScene" Width="230">
                                 <ListBoxItem>
                                     <StackPanel Orientation="Horizontal" Spacing="12">
                                         <PathIcon Width="16" Height="16" Data="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" />

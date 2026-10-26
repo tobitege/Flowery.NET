@@ -47,7 +47,8 @@ namespace Flowery.Controls
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
-            StopSquash();
+            // A squash cut short would stay: the pill is not placed again while its item keeps its position.
+            EndSquash();
             base.OnDetachedFromVisualTree(e);
         }
 
@@ -96,7 +97,7 @@ namespace Flowery.Controls
                 return;
 
             _indicatorOrigin = origin;
-            if (animate)
+            if (animate && DaisyAccessibility.GetMotionEnabled(this))
             {
                 _indicator.RenderTransform = CreateTransform(origin, SquashScaleX, SquashScaleY);
                 StartSquash();
@@ -124,18 +125,23 @@ namespace Flowery.Controls
 
         private void StopSquash() => _squashTimer?.Stop();
 
-        private void OnSquashTimerTick(object? sender, EventArgs e)
+        private void OnSquashTimerTick(object? sender, EventArgs e) => EndSquash();
+
+        private void EndSquash()
         {
+            if (_squashTimer is not { IsEnabled: true })
+                return;
             StopSquash();
             if (_indicator != null && _indicatorOrigin is { } origin)
                 _indicator.RenderTransform = CreateTransform(origin, 1, 1);
         }
 
+        // The scale comes first, around the center of the pill, so it does not scale the translation.
         private static ITransform CreateTransform(Point origin, double scaleX, double scaleY)
         {
             var builder = TransformOperations.CreateBuilder(2);
-            builder.AppendTranslate(origin.X, origin.Y);
             builder.AppendScale(scaleX, scaleY);
+            builder.AppendTranslate(origin.X, origin.Y);
             return builder.Build();
         }
 

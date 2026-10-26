@@ -29,7 +29,7 @@ A glass sees only what is drawn in its own window. A `Popup` normally opens its 
 ```xml
 <Popup x:Name="MenuPopup" PlacementTarget="{Binding #MoreButton}" Placement="Bottom" VerticalOffset="8"
        ShouldUseOverlayLayer="True" IsLightDismissEnabled="True">
-    <controls:DaisyGlassMenu Width="230" Foreground="White" SelectionChanged="Menu_SelectionChanged">
+    <controls:DaisyGlassMenu x:Name="Menu" Width="230" Foreground="White">
         <ListBoxItem>
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <PathIcon Width="16" Height="16" Data="{StaticResource DaisyIconEdit}" />
@@ -44,4 +44,4 @@ A glass sees only what is drawn in its own window. A `Popup` normally opens its 
 
 ## Tips & Best Practices
 
-- For a context menu, act on `SelectionChanged`, then clear `SelectedItem` and close the popup, so the menu keeps no selection.
+- For a context menu, act on a tap (`Tapped`) or on Enter for the selected item, then clear `SelectedItem` and close the popup. Do not act on `SelectionChanged`: the arrow keys move the selection, so keyboard users would run the first command they move to.

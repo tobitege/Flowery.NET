@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -38,6 +39,15 @@ public partial class GlassExamples : UserControl, IScrollableExample
             RequestBallFrame();
         };
         GlassInterfaceDarkToggle.IsCheckedChanged += (_, _) => UpdateGlassInterfaceMode();
+        // The menu acts on a tap or Enter; the arrow keys only move through it.
+        GlassInterfaceMenu.AddHandler(TappedEvent, (_, _) => InvokeGlassInterfaceMenuItem(), handledEventsToo: true);
+        GlassInterfaceMenu.KeyDown += (_, e) =>
+        {
+            if (e.Key is not (Key.Enter or Key.Space))
+                return;
+            InvokeGlassInterfaceMenuItem();
+            e.Handled = true;
+        };
         OpenGlassDesignerButton.Click += async (_, _) =>
         {
             if (await DaisyGlassButtonDesigner.ShowOverlayAsync(this, GlassDesigner.Design) is { } design)
@@ -127,8 +137,8 @@ public partial class GlassExamples : UserControl, IScrollableExample
 
     public void OpenGlassInterfaceMenu_Click(object? sender, RoutedEventArgs e) => GlassInterfaceMenuPopup.IsOpen = true;
 
-    // The menu acts on a click and keeps no selection.
-    public void GlassInterfaceMenu_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    // A demo action: closes the menu, which keeps no selection.
+    private void InvokeGlassInterfaceMenuItem()
     {
         if (GlassInterfaceMenu.SelectedItem == null)
             return;

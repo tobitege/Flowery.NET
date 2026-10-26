@@ -101,6 +101,31 @@ public class DaisyGlassInterfaceTests
         }
     }
 
+    [AvaloniaTheory]
+    [InlineData(typeof(DaisyGlassToggle))]
+    [InlineData(typeof(DaisyToggle))]
+    public void Dragging_The_Knob_Of_A_Toggle_Does_Not_Throw(Type toggleType)
+    {
+        var toggle = (ToggleSwitch)Activator.CreateInstance(toggleType)!;
+        var window = Show(toggle);
+        try
+        {
+            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            var knobs = Part<Canvas>(toggle, "PART_MovingKnobs");
+            var start = knobs.TranslatePoint(new Point(8, knobs.Bounds.Height / 2), window)!.Value;
+            window.MouseDown(start, MouseButton.Left, RawInputModifiers.None);
+            window.MouseMove(start + new Vector(10, 0), RawInputModifiers.LeftMouseButton);
+            window.MouseMove(start + new Vector(30, 0), RawInputModifiers.LeftMouseButton);
+            window.MouseUp(start + new Vector(30, 0), MouseButton.Left, RawInputModifiers.None);
+            Dispatcher.UIThread.RunJobs();
+            Assert.True(toggle.IsChecked);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     [AvaloniaFact]
     public void A_Glass_Menu_Marks_Destructive_Items_And_Keeps_Separators_Out_Of_Reach()
     {
@@ -154,8 +179,11 @@ public class DaisyGlassInterfaceTests
         var transform = Assert.IsType<TransformOperations>(pill.GetBaseValue(Visual.RenderTransformProperty).GetValueOrDefault());
         Assert.True(pill.IsVisible);
         Assert.Equal(container.Bounds.Width, pill.Width);
-        Assert.Equal(origin.X, transform.Operations[0].Data.Translate.X, 3);
-        Assert.Equal(origin.Y, transform.Operations[0].Data.Translate.Y, 3);
+        // The translation sits after the squash, so the squash does not move the pill.
+        var translate = transform.Operations.Single(operation => operation.Type == TransformOperation.OperationType.Translate);
+        Assert.Equal(TransformOperation.OperationType.Translate, transform.Operations[^1].Type);
+        Assert.Equal(origin.X, translate.Data.Translate.X, 3);
+        Assert.Equal(origin.Y, translate.Data.Translate.Y, 3);
     }
 
     // The backdrop holds everything painted before the glass, so the control's own parts must come later.

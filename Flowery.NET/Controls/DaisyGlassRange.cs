@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
@@ -26,6 +27,7 @@ namespace Flowery.Controls
         private Thumb? _thumb;
         private Control? _lens;
         private Control? _progress;
+        private RepeatButton[] _trackButtons = [];
 
         public DaisyGlassRange()
         {
@@ -49,6 +51,14 @@ namespace Flowery.Controls
             _thumb = e.NameScope.Find<Thumb>("PART_Thumb");
             _lens = e.NameScope.Find<Control>("PART_Lens");
             _progress = e.NameScope.Find<Control>("PART_Progress");
+
+            // A press on the track captures the pointer in one of its buttons; losing that capture ends the lens too.
+            foreach (var button in _trackButtons)
+                button.PointerCaptureLost -= OnAnyPointerCaptureLost;
+            _trackButtons = [.. new[] { "PART_DecreaseButton", "PART_IncreaseButton" }
+                .Select(name => e.NameScope.Find<RepeatButton>(name)).OfType<RepeatButton>()];
+            foreach (var button in _trackButtons)
+                button.PointerCaptureLost += OnAnyPointerCaptureLost;
             if (_thumb != null)
             {
                 _thumb.PropertyChanged += OnThumbPropertyChanged;

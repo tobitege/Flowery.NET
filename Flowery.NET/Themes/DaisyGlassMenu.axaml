@@ -60,10 +60,11 @@
                 <Setter Property="Foreground" Value="{DynamicResource DaisyErrorBrush}" />
             </Style>
 
-            <!-- A thin divider that takes neither the pointer nor the focus. -->
+            <!-- A thin divider that takes neither the pointer nor the focus, and that screen readers skip. -->
             <Style Selector="^.menu-separator">
                 <Setter Property="IsHitTestVisible" Value="False" />
                 <Setter Property="Focusable" Value="False" />
+                <Setter Property="AutomationProperties.AccessibilityView" Value="Raw" />
                 <Setter Property="MinHeight" Value="0" />
                 <Setter Property="Template">
                     <ControlTemplate>

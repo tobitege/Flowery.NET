@@ -58,7 +58,9 @@
                                 CornerRadius="9999"
                                 BorderThickness="1"
                                 BorderBrush="{TemplateBinding BorderBrush}" />
-                        <!-- ToggleSwitch needs PART_MovingKnobs. -->
+                        <!-- ToggleSwitch needs PART_MovingKnobs, and measures a drag of the knob against PART_SwitchKnob:
+                             a drag over half the track switches the toggle. -->
+                        <Panel x:Name="PART_SwitchKnob" IsHitTestVisible="False" />
                         <Canvas x:Name="PART_MovingKnobs">
                             <Border x:Name="PART_Knob"
                                     Width="26" Height="26"
