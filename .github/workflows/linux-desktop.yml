@@ -1,9 +1,9 @@
 name: Linux Desktop
 
-# Runs the Desktop Gallery on the XFCE desktop of docker/linux-desktop, the image that
-# scripts/run-linux-desktop.ps1 uses locally, and checks that it starts, opens a page and keeps
-# running without exceptions. Screenshots and the app log are uploaded as an artifact. The image
-# is built on the runner and pushed nowhere.
+# Starts the Desktop Gallery on the XFCE desktop of docker/linux-desktop with
+# scripts/run-linux-desktop.ps1, as locally, and checks that it starts, opens a page and keeps
+# running without exceptions. Screenshots and the logs are uploaded as an artifact. The image is
+# built on the runner and pushed nowhere.
 
 on:
   workflow_dispatch:
@@ -15,13 +15,16 @@ on:
     paths:
       - .github/workflows/linux-desktop.yml
       - docker/linux-desktop/**
+      - scripts/run-linux-desktop.ps1
       - Flowery.Capture.NET/**
       - Flowery.NET/**
       - Flowery.NET.Skia/**
       - Flowery.NET.Kanban/**
       - Flowery.NET.Gallery/**
       - Flowery.NET.Gallery.Desktop/**
-      - Directory.Build.props
+      - '*.props'
+      - Directory.*
+      - NuGet.Config
       - global.json
 
 concurrency:
@@ -39,26 +42,34 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Flowery.Uno builds the same image under the same tag and checks its build context against this repository's
+      # default branch, so a change here has to follow there. A difference only warns: as an error in both
+      # repositories, no change could be merged in either.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: tobitege/Flowery.Uno
+          path: flowery-uno
+          sparse-checkout: docker/linux-desktop
+          persist-credentials: false
+
+      - name: Compare docker/linux-desktop with Flowery.Uno
+        run: |
+          if ! diff -r --strip-trailing-cr docker/linux-desktop flowery-uno/docker/linux-desktop; then
+            echo "::warning::docker/linux-desktop differs from Flowery.Uno's; change Flowery.Uno the same way"
+          fi
+
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
 
-      - name: Publish the Gallery for linux-x64
-        run: |
-          dotnet publish Flowery.NET.Gallery.Desktop/Flowery.NET.Gallery.Desktop.csproj \
-            -c Release -r linux-x64 --self-contained true \
-            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
-            -o bin/linux-desktop
+      # The script that is run locally: it publishes the Gallery for the architecture of the Docker host, builds the
+      # image (missing on the runner) and starts the desktop with the Gallery.
+      - name: Start the desktop with scripts/run-linux-desktop.ps1
+        shell: pwsh
+        run: ./scripts/run-linux-desktop.ps1 -NoBrowser -Culture en-US
 
-      - name: Build the desktop image
-        run: docker build -t flowery-linux-desktop docker/linux-desktop
-
-      - name: Start the desktop with the Gallery
+      - name: Wait for the Gallery window
         run: |
-          docker run -d --name flowery-desktop \
-            -v "$PWD/bin/linux-desktop:/opt/app:ro" --shm-size=512m \
-            flowery-linux-desktop
-          # The Gallery window appears once the desktop and the app have started.
           for attempt in $(seq 1 60); do
             if docker exec flowery-desktop xdotool search --name 'Flowery.NET.Gallery' >/dev/null 2>&1; then
               echo "Gallery window after ${attempt} s"
@@ -76,8 +87,6 @@ jobs:
           docker exec flowery-desktop sh -c '
             W=$(xdotool search --name "Flowery.NET.Gallery" | head -1)
             xdotool windowactivate "$W" windowmove "$W" 0 30 windowsize "$W" 1600 960'
-          sleep 3
-          shot home
           # The home page shows a purple banner at (900, 330); another page does not.
           on_home() {
             docker exec flowery-desktop sh -c 'xwd -root -silent | xwdtopnm 2>/dev/null' | python3 -c '
@@ -102,7 +111,18 @@ jobs:
           r, g, b = data[pixel], data[pixel + size], data[pixel + 2 * size]
           sys.exit(0 if b > 150 and r > 90 and g < 140 else 1)'
           }
-          if ! on_home; then
+          # The window appears before the Gallery has drawn into it.
+          home=
+          for attempt in $(seq 1 30); do
+            sleep 1
+            if on_home; then
+              echo "Home page after ${attempt} s"
+              home=yes
+              break
+            fi
+          done
+          shot home
+          if [ -z "$home" ]; then
             echo "::error::The home page did not show its banner"
             exit 1
           fi

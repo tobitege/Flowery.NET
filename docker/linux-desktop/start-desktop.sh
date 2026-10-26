@@ -1,5 +1,6 @@
 #!/bin/sh
-# Starts an XFCE desktop on display :1 with TigerVNC, noVNC on port 6080, and the app at $APP_PATH when it exists.
+# Starts an XFCE desktop on display :1 with TigerVNC, noVNC on port 6080, and the app at $APP_PATH when it is set and
+# exists.
 set -eu
 
 GEOMETRY="${GEOMETRY:-1600x1000}"
@@ -18,11 +19,11 @@ vncserver :1 -geometry "$GEOMETRY" -depth 24 -localhost no -SecurityTypes None -
 
 websockify --web /usr/share/novnc 6080 localhost:5901 >/tmp/novnc.log 2>&1 &
 
-if [ -x "$APP_PATH" ]; then
+if [ -x "${APP_PATH:-}" ]; then
     # Give the desktop a moment, then start the app; its output goes to a log for checks.
     (sleep 3 && "$APP_PATH" >/tmp/app.log 2>&1) &
 fi
 
-echo "Desktop ready: http://localhost:6080/vnc.html?autoconnect=true&resize=scale"
+echo "Desktop ready: noVNC on port 6080 of the container (vnc.html?autoconnect=true&resize=scale)"
 # Keep the container alive as long as the VNC server runs.
 exec tail -F "$HOME/.vnc/"*.log
