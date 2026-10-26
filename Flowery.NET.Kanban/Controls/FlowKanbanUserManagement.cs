@@ -674,7 +674,7 @@ namespace Flowery.NET.Kanban.Controls
             if (provider == null)
                 return;
 
-            FlowKanbanDispatcher.RunOrPost(() =>
+            FlowKanbanDispatcher.RunOrPost(Dispatcher, () =>
             {
                 if (ReferenceEquals(_trackedProvider, provider))
                 {
