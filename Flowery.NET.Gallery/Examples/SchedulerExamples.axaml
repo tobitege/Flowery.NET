@@ -3,7 +3,7 @@
              xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
              xmlns:loc="clr-namespace:Flowery.NET.Gallery.Localization"
              x:Class="Flowery.NET.Gallery.Examples.SchedulerExamples">
-    <Grid Margin="24,0,24,16" RowDefinitions="Auto,*,Auto" RowSpacing="12">
+    <Grid x:Name="PageGrid" Margin="24,0,24,16" RowDefinitions="Auto,*,Auto" RowSpacing="12">
         <!-- On Android the category title bar folds this panel away; see ICollapsibleIntroExample. -->
         <StackPanel x:Name="IntroPanel" Spacing="12">
             <TextBlock Text="{loc:Localize Scheduler_Description}" TextWrapping="Wrap"
@@ -70,7 +70,7 @@
                 </ScrollViewer>
             </Border>
         </Grid>
-        <TextBlock x:Name="StatusText" Grid.Row="2" Text="{loc:Localize Scheduler_Help}" TextWrapping="Wrap"
+        <TextBlock x:Name="StatusText" Grid.Row="2" TextWrapping="Wrap"
                    Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
                    controls:FlowerySizeManager.ResponsiveFont="Secondary" />
     </Grid>

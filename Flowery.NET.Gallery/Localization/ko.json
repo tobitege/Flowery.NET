@@ -309,6 +309,7 @@
   "Scheduler_Cancel": "취소",
   "Scheduler_Unassigned": "미지정",
   "Scheduler_Help": "클릭하여 선택 · Ctrl/Cmd+클릭으로 여러 개 선택 · 두 번 클릭하여 편집 또는 생성 · Delete로 삭제 · 마우스 오른쪽 버튼으로 메뉴 열기",
+  "Scheduler_TouchHelp": "탭하여 선택 · 선택한 일정을 드래그하여 이동, 가장자리를 드래그하여 길이 변경 · 두 번 탭하여 편집 또는 생성 · 휴지통으로 선택 항목 삭제",
   "Scheduler_InvalidInput": "제목과 올바른 시작 및 종료 시간을 입력하세요. 종료는 시작보다 늦어야 합니다.",
   "Scheduler_Edit": "편집",
   "Scheduler_Duplicate": "복제",

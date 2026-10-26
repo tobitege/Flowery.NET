@@ -309,6 +309,7 @@
   "Scheduler_Cancel": "Annuler",
   "Scheduler_Unassigned": "Non attribué",
   "Scheduler_Help": "Clic pour sélectionner · Ctrl/Cmd-clic pour une sélection multiple · Double-clic pour modifier ou créer · Suppr pour supprimer · Clic droit pour le menu contextuel",
+  "Scheduler_TouchHelp": "Touchez pour sélectionner · Faites glisser un rendez-vous sélectionné pour le déplacer, ou son bord pour changer sa durée · Touchez deux fois pour modifier ou créer · La corbeille supprime la sélection",
   "Scheduler_InvalidInput": "Saisissez un objet et des dates valides. La fin doit être après le début.",
   "Scheduler_Edit": "Modifier",
   "Scheduler_Duplicate": "Dupliquer",

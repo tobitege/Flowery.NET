@@ -29,6 +29,8 @@ public partial class SchedulerExamples : UserControl, ICollapsibleIntroExample
     private AppointmentModel? _editing;
     private bool _isNew;
     private int _editingResourceIndex;
+    private readonly string _helpKey;
+    private const double CompactWidth = 600;
 
     public bool IsIntroVisible
     {
@@ -36,9 +38,16 @@ public partial class SchedulerExamples : UserControl, ICollapsibleIntroExample
         set => IntroPanel.IsVisible = value;
     }
 
-    public SchedulerExamples()
+    public SchedulerExamples() : this(OperatingSystem.IsAndroid())
     {
+    }
+
+    /// <param name="touchHelp">Explain the touch gestures below the scheduler instead of mouse and keyboard, as on Android.</param>
+    public SchedulerExamples(bool touchHelp)
+    {
+        _helpKey = touchHelp ? "TouchHelp" : "Help";
         InitializeComponent();
+        StatusText.Text = Text(_helpKey);
         DemoScheduler.ResourceGroups = new[]
         {
             new ResourceGroupModel { Id = "all", Name = Text("AllPeople"), Kind = ResourceKind.Person },
@@ -62,8 +71,18 @@ public partial class SchedulerExamples : UserControl, ICollapsibleIntroExample
         DemoScheduler.SelectionChanged += OnSelectionChanged;
         DemoScheduler.ExternalAppointmentDropped += OnExternalDrop;
         DemoScheduler.PropertyChanged += OnSchedulerPropertyChanged;
+        // Tunnel: the scheduler handles its presses itself.
+        DemoScheduler.AddHandler(PointerPressedEvent, OnSchedulerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
+        AddHandler(KeyDownEvent, OnPageKeyDown, handledEventsToo: true);
         RefreshShowFor();
         SeedAppointments();
+    }
+
+    // A phone-wide page gives the scheduler the width of the side margins the other pages keep.
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+        PageGrid.Margin = e.NewSize.Width < CompactWidth ? new Thickness(8, 0, 8, 8) : new Thickness(24, 0, 24, 16);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -311,7 +330,7 @@ public partial class SchedulerExamples : UserControl, ICollapsibleIntroExample
 
     private void OnSelectionChanged(object? sender, IReadOnlyList<AppointmentModel> selected)
     {
-        StatusText.Text = selected.Count == 0 ? Text("Help") : string.Join(", ", selected.Select(static appointment => appointment.Subject));
+        StatusText.Text = selected.Count == 0 ? Text(_helpKey) : string.Join(", ", selected.Select(static appointment => appointment.Subject));
     }
 
     private void OnCreate(object? sender, AppointmentCreateArgs e)

@@ -309,6 +309,7 @@
   "Scheduler_Cancel": "Cancelar",
   "Scheduler_Unassigned": "Sin asignar",
   "Scheduler_Help": "Clic para seleccionar · Ctrl/Cmd-clic para selección múltiple · Doble clic para editar o crear · Supr para eliminar · Clic derecho para el menú contextual",
+  "Scheduler_TouchHelp": "Toca para seleccionar · Arrastra una cita seleccionada para moverla, o su borde para cambiar su duración · Toca dos veces para editar o crear · La papelera elimina la selección",
   "Scheduler_InvalidInput": "Introduzca un asunto y fechas válidas. El fin debe ser posterior al inicio.",
   "Scheduler_Edit": "Editar",
   "Scheduler_Duplicate": "Duplicar",
