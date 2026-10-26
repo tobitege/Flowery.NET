@@ -13,7 +13,7 @@ using Flowery.NET.Gallery.Localization;
 
 namespace Flowery.NET.Gallery.Examples;
 
-public partial class SchedulerExamples : UserControl
+public partial class SchedulerExamples : UserControl, ICollapsibleIntroExample
 {
     private readonly List<AppointmentModel> _appointments = new();
     private readonly ResourceModel[] _resources =
@@ -29,6 +29,12 @@ public partial class SchedulerExamples : UserControl
     private AppointmentModel? _editing;
     private bool _isNew;
     private int _editingResourceIndex;
+
+    public bool IsIntroVisible
+    {
+        get => IntroPanel.IsVisible;
+        set => IntroPanel.IsVisible = value;
+    }
 
     public SchedulerExamples()
     {

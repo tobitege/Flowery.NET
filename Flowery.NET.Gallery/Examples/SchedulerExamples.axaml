@@ -3,30 +3,34 @@
              xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
              xmlns:loc="clr-namespace:Flowery.NET.Gallery.Localization"
              x:Class="Flowery.NET.Gallery.Examples.SchedulerExamples">
-    <Grid Margin="24,0,24,16" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="12">
-        <TextBlock Text="{loc:Localize Scheduler_Description}" TextWrapping="Wrap"
-                   controls:FlowerySizeManager.ResponsiveFont="Primary"
-                   Foreground="{DynamicResource DaisyBaseContentMutedBrush}" />
-        <WrapPanel Grid.Row="1" Orientation="Horizontal">
-            <controls:DaisyCheckBox x:Name="ResourcesOption" Content="{loc:Localize Scheduler_Resources}" Margin="0,0,16,8" />
-            <controls:DaisyCheckBox x:Name="TilesOption" Content="{loc:Localize Scheduler_Tiles}" IsChecked="True" Margin="0,0,16,8" />
-            <controls:DaisyCheckBox x:Name="IconsOption" Content="{loc:Localize Scheduler_Icons}" IsChecked="True" Margin="0,0,16,8" />
-            <controls:DaisyCheckBox x:Name="AdornmentsOption" Content="{loc:Localize Scheduler_Adornments}" IsChecked="True" Margin="0,0,16,8" />
-            <controls:DaisyCheckBox x:Name="DetailsOption" Content="{loc:Localize Scheduler_Details}" IsChecked="True" Margin="0,0,16,8" />
-            <controls:DaisyCheckBox x:Name="ReadOnlyOption" Content="{loc:Localize Scheduler_ReadOnly}" Margin="0,0,16,8" />
-            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,16,8" VerticalAlignment="Center">
-                <TextBlock Text="{loc:Localize Scheduler_ShowFor}" VerticalAlignment="Center" controls:FlowerySizeManager.ResponsiveFont="Primary"
-                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                <controls:DaisySelect x:Name="ShowForOption" MinWidth="140" SelectionChanged="OnShowForChanged"
-                                      AutomationProperties.Name="{loc:Localize Scheduler_ShowFor}" />
-            </StackPanel>
-            <controls:DaisyButton Content="{loc:Localize Scheduler_Reset}" Variant="Ghost" Click="OnReset" />
-        </WrapPanel>
-        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+    <Grid Margin="24,0,24,16" RowDefinitions="Auto,*,Auto" RowSpacing="12">
+        <!-- On Android the category title bar folds this panel away; see ICollapsibleIntroExample. -->
+        <StackPanel x:Name="IntroPanel" Spacing="12">
+            <TextBlock Text="{loc:Localize Scheduler_Description}" TextWrapping="Wrap"
+                       controls:FlowerySizeManager.ResponsiveFont="Primary"
+                       Foreground="{DynamicResource DaisyBaseContentMutedBrush}" />
+            <WrapPanel Orientation="Horizontal">
+                <controls:DaisyCheckBox x:Name="ResourcesOption" Content="{loc:Localize Scheduler_Resources}" Margin="0,0,16,8" />
+                <controls:DaisyCheckBox x:Name="TilesOption" Content="{loc:Localize Scheduler_Tiles}" IsChecked="True" Margin="0,0,16,8" />
+                <controls:DaisyCheckBox x:Name="IconsOption" Content="{loc:Localize Scheduler_Icons}" IsChecked="True" Margin="0,0,16,8" />
+                <controls:DaisyCheckBox x:Name="AdornmentsOption" Content="{loc:Localize Scheduler_Adornments}" IsChecked="True" Margin="0,0,16,8" />
+                <controls:DaisyCheckBox x:Name="DetailsOption" Content="{loc:Localize Scheduler_Details}" IsChecked="True" Margin="0,0,16,8" />
+                <controls:DaisyCheckBox x:Name="ReadOnlyOption" Content="{loc:Localize Scheduler_ReadOnly}" Margin="0,0,16,8" />
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,16,8" VerticalAlignment="Center">
+                    <TextBlock Text="{loc:Localize Scheduler_ShowFor}" VerticalAlignment="Center" controls:FlowerySizeManager.ResponsiveFont="Primary"
+                               Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                    <controls:DaisySelect x:Name="ShowForOption" MinWidth="140" SelectionChanged="OnShowForChanged"
+                                          AutomationProperties.Name="{loc:Localize Scheduler_ShowFor}" />
+                </StackPanel>
+                <controls:DaisyButton Content="{loc:Localize Scheduler_Reset}" Variant="Ghost" Click="OnReset" />
+            </WrapPanel>
+        </StackPanel>
+        <Grid Grid.Row="1">
             <controls:DaisyScheduler x:Name="DemoScheduler" CurrentView="Month" />
-            <Border x:Name="EditorPanel" Grid.Column="1" IsVisible="False" Width="280"
+            <!-- The editor lies over the right side of the scheduler while an appointment is created or edited. -->
+            <Border x:Name="EditorPanel" IsVisible="False" Width="280" HorizontalAlignment="Right"
                     Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"
-                    BorderThickness="1" CornerRadius="8" Padding="16">
+                    BorderThickness="1" CornerRadius="8" Padding="16" BoxShadow="0 4 16 0 #50000000">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <!-- The right margin keeps the fields clear of the scrollbar, which lies over the content. -->
                     <StackPanel Spacing="12" Margin="0,0,16,0">
@@ -66,7 +70,7 @@
                 </ScrollViewer>
             </Border>
         </Grid>
-        <TextBlock x:Name="StatusText" Grid.Row="3" Text="{loc:Localize Scheduler_Help}" TextWrapping="Wrap"
+        <TextBlock x:Name="StatusText" Grid.Row="2" Text="{loc:Localize Scheduler_Help}" TextWrapping="Wrap"
                    Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
                    controls:FlowerySizeManager.ResponsiveFont="Secondary" />
     </Grid>
