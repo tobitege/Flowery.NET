@@ -15,16 +15,16 @@ internal sealed class ThemeDropdownSource<T> where T : IThemeListItem
 {
     private readonly ComboBox _owner;
     private readonly Func<IEnumerable<T>> _defaults;
-    private readonly Func<DaisyThemeManager.ThemeEntry, T> _createOverride;
+    private readonly Func<DaisyAddedTheme, T> _createOverride;
     private readonly Action _refresh;
-    private readonly Dictionary<string, DaisyThemeManager.ThemeEntry> _overrides = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, DaisyAddedTheme> _overrides = new(StringComparer.OrdinalIgnoreCase);
     private IEnumerable? _source;
     private INotifyCollectionChanged? _observed;
     private bool _attached;
     private bool _writingView;
 
     internal ThemeDropdownSource(ComboBox owner, Func<IEnumerable<T>> defaults,
-        Func<DaisyThemeManager.ThemeEntry, T> createOverride, Action refresh)
+        Func<DaisyAddedTheme, T> createOverride, Action refresh)
     {
         _owner = owner;
         _defaults = defaults;
@@ -51,7 +51,7 @@ internal sealed class ThemeDropdownSource<T> where T : IThemeListItem
 
     internal void Add(string name, string label, bool preferred)
     {
-        var entry = DaisyThemeManager.CreateThemeEntry(name, label, preferred);
+        var entry = DaisyThemeManager.CreateAddedTheme(name, label, preferred);
         if (_overrides.TryGetValue(entry.Name, out var old) && old == entry) return;
         _overrides[entry.Name] = entry;
         _refresh();

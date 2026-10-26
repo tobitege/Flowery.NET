@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -20,6 +22,18 @@ namespace Flowery.Controls
     {
         public string Name { get; } = name;
         public bool IsDark { get; } = isDark;
+    }
+
+    /// <summary>
+    /// A theme that <see cref="DaisyThemeManager.AddTheme"/> added to both theme dropdowns.
+    /// </summary>
+    /// <param name="Name">Original registered or product theme name.</param>
+    /// <param name="DisplayName">Text the dropdowns display.</param>
+    /// <param name="Preferred">Whether the theme is in the preferred group.</param>
+    public sealed record DaisyAddedTheme(string Name, string DisplayName, bool Preferred)
+    {
+        // Derived from the name rather than stored, so it takes no part in the equality of the record.
+        internal ProductPalette? ProductPalette => ProductPaletteFactory.FindByName(Name);
     }
 
     /// <summary>
@@ -48,9 +62,17 @@ namespace Flowery.Controls
         private static string _baseThemeName = "Dark";
         private static HashSet<string> _excludedThemes = new(StringComparer.OrdinalIgnoreCase);
         private static HashSet<string> _preferredThemes = new(StringComparer.OrdinalIgnoreCase);
-        internal sealed record ThemeEntry(string Name, string DisplayName, bool Preferred, ProductPalette? ProductPalette);
-        private static readonly Dictionary<string, ThemeEntry> AddedThemes = new(StringComparer.OrdinalIgnoreCase);
-        internal static IReadOnlyDictionary<string, ThemeEntry> ThemeOverrides => AddedThemes;
+        // The only store of the added themes. Every change replaces it as a whole, so a reader on any thread holds a
+        // consistent set that later changes do not alter.
+        private static ImmutableDictionary<string, DaisyAddedTheme> _addedThemes =
+            ImmutableDictionary.Create<string, DaisyAddedTheme>(StringComparer.OrdinalIgnoreCase);
+        internal static IReadOnlyDictionary<string, DaisyAddedTheme> ThemeOverrides => AddedThemes;
+
+        /// <summary>
+        /// The themes added with <see cref="AddTheme"/>, by original name, matched case-insensitively. A snapshot that
+        /// later changes do not alter, so any thread can read it.
+        /// </summary>
+        public static IReadOnlyDictionary<string, DaisyAddedTheme> AddedThemes => Volatile.Read(ref _addedThemes);
 
         /// <summary>
         /// Adds or updates a theme in both dropdowns globally. Local dropdown overrides take
@@ -62,9 +84,9 @@ namespace Flowery.Controls
         /// <param name="preferred">Whether to place the theme in the preferred group, sorted by display name.</param>
         public static void AddTheme(string originalName, string displayName, bool preferred)
         {
-            var entry = CreateThemeEntry(originalName, displayName, preferred);
-            if (AddedThemes.TryGetValue(entry.Name, out var existing) && existing == entry) return;
-            AddedThemes[entry.Name] = entry;
+            var entry = CreateAddedTheme(originalName, displayName, preferred);
+            if (_addedThemes.TryGetValue(entry.Name, out var existing) && existing == entry) return;
+            Volatile.Write(ref _addedThemes, _addedThemes.SetItem(entry.Name, entry));
             if (GetThemeInfo(entry.Name) == null && entry.ProductPalette is { } product)
                 EnsureProductThemeRegistered(product);
             else
@@ -72,18 +94,30 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Removes global display and ordering overrides. Registered themes remain registered.
-        /// Call on the UI thread once controls exist. Returns true when an override was removed.
+        /// Removes a theme that <see cref="AddTheme"/> added from both dropdowns. Registered themes remain registered.
+        /// Call on the UI thread once controls exist. Returns true when an entry was removed.
         /// </summary>
-        public static bool RemoveThemeOverride(string originalName)
+        public static bool RemoveAddedTheme(string originalName)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(originalName);
-            if (!AddedThemes.Remove(originalName)) return false;
+            if (!RemoveEntry(originalName)) return false;
             NotifyThemeListChanged();
             return true;
         }
 
-        internal static ThemeEntry CreateThemeEntry(string originalName, string displayName, bool preferred)
+        /// <inheritdoc cref="RemoveAddedTheme"/>
+        [Obsolete("Use RemoveAddedTheme, the counterpart of AddTheme.")]
+        public static bool RemoveThemeOverride(string originalName) => RemoveAddedTheme(originalName);
+
+        private static bool RemoveEntry(string name)
+        {
+            var remaining = _addedThemes.Remove(name);
+            if (ReferenceEquals(remaining, _addedThemes)) return false;
+            Volatile.Write(ref _addedThemes, remaining);
+            return true;
+        }
+
+        internal static DaisyAddedTheme CreateAddedTheme(string originalName, string displayName, bool preferred)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(originalName);
             ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
@@ -91,7 +125,7 @@ namespace Flowery.Controls
             var product = ProductPaletteFactory.FindByName(originalName);
             var name = registered?.Name ?? product?.Name
                 ?? throw new ArgumentException($"Unknown theme '{originalName}'.", nameof(originalName));
-            return new ThemeEntry(name, displayName, preferred, product);
+            return new DaisyAddedTheme(name, displayName, preferred);
         }
 
         /// <summary>
@@ -354,7 +388,7 @@ namespace Flowery.Controls
                 || string.Equals(_currentThemeName, themeName, StringComparison.OrdinalIgnoreCase)
                 || !ThemesByName.Remove(themeName))
                 return false;
-            AddedThemes.Remove(themeName);
+            RemoveEntry(themeName);
             NotifyThemeListChanged();
             return true;
         }

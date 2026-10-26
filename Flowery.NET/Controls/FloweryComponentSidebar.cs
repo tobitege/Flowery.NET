@@ -1017,23 +1017,16 @@ namespace Flowery.Controls
     {
         public static readonly IconKeyConverter Instance = new();
 
-        private static readonly Dictionary<string, StreamGeometry> IconCache = new();
-
+        // No cache: the geometry belongs to the resources of the current application and to the thread that loaded
+        // them, and a static cache would keep handing out the first one after those resources change.
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             if (value is not string iconKey || string.IsNullOrEmpty(iconKey))
                 return null;
 
-            if (IconCache.TryGetValue(iconKey, out var cached))
-                return cached;
-
-            if (Application.Current?.TryFindResource(iconKey, out var resource) == true && resource is StreamGeometry geometry)
-            {
-                IconCache[iconKey] = geometry;
-                return geometry;
-            }
-
-            return null;
+            return Application.Current?.TryFindResource(iconKey, out var resource) == true && resource is StreamGeometry geometry
+                ? geometry
+                : null;
         }
 
         public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
