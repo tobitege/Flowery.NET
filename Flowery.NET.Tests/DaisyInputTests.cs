@@ -1,172 +1,58 @@
-﻿using Avalonia.Controls;
+﻿using System.Globalization;
+using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Controls.Custom;
-using System.Linq;
 using Xunit;
 
 namespace Flowery.NET.Tests
 {
-    public class DaisySelectTests
-    {
-        [AvaloniaFact]
-        public void Should_Have_Default_Variant_As_Bordered()
-        {
-            var select = new DaisySelect();
-            Assert.Equal(DaisySelectVariant.Bordered, select.Variant);
-        }
-
-        [AvaloniaFact]
-        public void Should_Initialize()
-        {
-            var select = new DaisySelect();
-            var window = new Window { Content = select };
-            window.Show();
-
-            Assert.NotNull(select);
-        }
-    }
-
-    public class DaisyTextAreaTests
-    {
-        [AvaloniaFact]
-        public void Should_Have_AcceptsReturn_True()
-        {
-            var textArea = new DaisyTextArea();
-            Assert.True(textArea.AcceptsReturn);
-        }
-    }
-
     [Collection("LocalizationTests")]
-    public class DaisyMaskInputTests
+    public class DaisyInputTests
     {
-        private static void TypeText(Window window, string text)
+        [AvaloniaFact]
+        public void Inputs_Start_With_Their_Defaults_And_Apply_Their_Templates()
         {
-            foreach (var c in text)
-                window.KeyTextInput(c.ToString());
+            var select = new DaisySelect();
+            var maskInput = new DaisyMaskInput { Mask = "00:00:00", PlaceholderText = "00:00:00" };
+            Assert.Equal(DaisySelectVariant.Bordered, select.Variant);
+            Assert.True(new DaisyTextArea().AcceptsReturn);
+            Assert.Equal(DaisyInputVariant.Bordered, maskInput.Variant);
+            Assert.Equal(DaisySize.Medium, maskInput.Size);
+
+            using var window = new TestWindow(select);
+            Assert.NotEmpty(select.GetVisualChildren());
+            window.Show(maskInput);
+            Assert.NotEmpty(maskInput.GetVisualChildren());
         }
 
         [AvaloniaFact]
-        public void Should_Have_Default_Variant_As_Bordered()
+        public void Mask_Modes_Place_Typed_Digits_Into_Their_Mask_And_Drop_The_Rest()
         {
-            var input = new DaisyMaskInput();
-            Assert.Equal(DaisyInputVariant.Bordered, input.Variant);
-        }
-
-        [AvaloniaFact]
-        public void Should_Have_Default_Size_As_Medium()
-        {
-            var input = new DaisyMaskInput();
-            Assert.Equal(DaisySize.Medium, input.Size);
-        }
-
-        [AvaloniaFact]
-        public void Should_Initialize()
-        {
-            var input = new DaisyMaskInput
+            var dateSeparator = CultureInfo.CurrentCulture.DateTimeFormat.DateSeparator;
+            var cases = new (DaisyMaskInputMode Mode, int YearDigits, string Typed, string Text)[]
             {
-                Mask = "00:00:00",
-                PlaceholderText = "00:00:00"
+                (DaisyMaskInputMode.Timer, 2, "123456", "12:34:56"),
+                (DaisyMaskInputMode.Timer, 2, "12ab3456", "12:34:56"),
+                (DaisyMaskInputMode.CreditCardNumber, 2, "1234567890123456", "1234 5678 9012 3456"),
+                (DaisyMaskInputMode.CreditCardNumber, 2, "12345678901234567890", "1234 5678 9012 3456"),
+                // The mask's slash is the date separator of the current culture.
+                (DaisyMaskInputMode.ExpiryDate, 2, "1226", $"12{dateSeparator}26"),
+                (DaisyMaskInputMode.ExpiryDate, 4, "122026", $"12{dateSeparator}2026"),
+                (DaisyMaskInputMode.Cvc, 2, "12345", "123")
             };
-
-            var window = new Window { Content = input };
-            window.Show();
-
-            try
+            using var window = new TestWindow(new Border());
+            foreach (var (mode, yearDigits, typed, text) in cases)
             {
-                Assert.NotNull(input);
-            }
-            finally
-            {
-                window.Close();
-            }
-        }
-
-        [AvaloniaFact]
-        public void Should_Apply_Time_Mask_When_Typing()
-        {
-            var input = new DaisyMaskInput { Mode = DaisyMaskInputMode.Timer };
-            var window = new Window { Content = input };
-            window.Show();
-
-            try
-            {
+                var input = new DaisyMaskInput { Mode = mode, ExpiryYearDigits = yearDigits };
+                window.Show(input);
                 input.Focus();
-                TypeText(window, "123456");
+                foreach (var character in typed)
+                    window.Window.KeyTextInput(character.ToString());
 
-                var digits = new string((input.Text ?? string.Empty).Where(char.IsDigit).ToArray());
-                Assert.Equal("123456", digits);
-            }
-            finally
-            {
-                window.Close();
-            }
-        }
-
-        [AvaloniaFact]
-        public void Should_Ignore_Invalid_Characters_For_Digit_Masks()
-        {
-            var input = new DaisyMaskInput { Mode = DaisyMaskInputMode.Timer };
-            var window = new Window { Content = input };
-            window.Show();
-
-            try
-            {
-                input.Focus();
-                TypeText(window, "12ab34");
-
-                var text = input.Text ?? string.Empty;
-                Assert.DoesNotContain(text, c => char.IsLetter(c));
-
-                var digits = new string(text.Where(char.IsDigit).ToArray());
-                Assert.Equal("1234", digits);
-            }
-            finally
-            {
-                window.Close();
-            }
-        }
-
-        [AvaloniaFact]
-        public void Should_Apply_Card_Number_Mask_When_Typing()
-        {
-            var input = new DaisyMaskInput { Mode = DaisyMaskInputMode.CreditCardNumber };
-            var window = new Window { Content = input };
-            window.Show();
-
-            try
-            {
-                input.Focus();
-                TypeText(window, "1234567890123456");
-
-                var digits = new string((input.Text ?? string.Empty).Where(char.IsDigit).ToArray());
-                Assert.Equal("1234567890123456", digits);
-            }
-            finally
-            {
-                window.Close();
-            }
-        }
-
-        [AvaloniaFact]
-        public void Should_Not_Accept_More_Digits_Than_Mask_Allows()
-        {
-            var input = new DaisyMaskInput { Mode = DaisyMaskInputMode.CreditCardNumber };
-            var window = new Window { Content = input };
-            window.Show();
-
-            try
-            {
-                input.Focus();
-                TypeText(window, "12345678901234567890");
-
-                var digits = new string((input.Text ?? string.Empty).Where(char.IsDigit).ToArray());
-                Assert.Equal("1234567890123456", digits);
-            }
-            finally
-            {
-                window.Close();
+                Assert.True(text == input.Text, $"Typing '{typed}' into {mode} gave '{input.Text}', not '{text}'.");
             }
         }
     }

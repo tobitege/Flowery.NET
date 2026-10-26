@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
@@ -44,8 +44,7 @@ namespace Flowery.NET.Tests
                 Height = 96
             };
 
-            var window = new Window { Content = glass };
-            window.Show();
+            using var window = new TestWindow(glass);
 
             Assert.Equal(GlassBlurMode.SkiaSharp, glass.BlurMode);
             Assert.True(glass.EnableBackdropBlur);
