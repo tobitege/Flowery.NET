@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.HeadlessTestingFramework;
 using Avalonia.Input;
 using Avalonia.Input.Raw;
 using Avalonia.Threading;
@@ -138,20 +139,19 @@ public sealed partial class SchedulerTests
     }
 
     [AvaloniaFact]
-    public void APinchScalesTheZoomItStartedAt()
+    public void TwoFingersOnTheBodyZoomThroughThePinchRecognizer()
     {
         using var scope = new SchedulerScope(SchedulerView.Week);
         var body = BodyScroll(scope);
         var middle = new Point(body.Viewport.Width / 2, body.Viewport.Height / 2);
 
-        body.RaiseEvent(new PinchEventArgs(2, middle) { RoutedEvent = InputElement.PinchEvent });
-        Assert.Equal(2, scope.Scheduler.ColumnZoom);
-        body.RaiseEvent(new PinchEventArgs(1.5, middle) { RoutedEvent = InputElement.PinchEvent });
-        Assert.Equal(1.5, scope.Scheduler.ColumnZoom);
-        body.RaiseEvent(new PinchEndedEventArgs { RoutedEvent = InputElement.PinchEndedEvent });
+        MultiTouchTestHelperFactory.SimulatePinchZoomIn(body, middle, startDistance: 60, endDistance: 120);
+        Assert.Equal(2, scope.Scheduler.ColumnZoom, 2);
 
-        body.RaiseEvent(new PinchEventArgs(2, middle) { RoutedEvent = InputElement.PinchEvent });
-        Assert.Equal(3, scope.Scheduler.ColumnZoom);
+        // Lifting both fingers ends the pinch, so the next one scales the zoom it starts at.
+        MultiTouchTestHelperFactory.SimulatePinchZoomOut(body, middle, startDistance: 120, endDistance: 90);
+        Assert.Equal(1.5, scope.Scheduler.ColumnZoom, 2);
+        Assert.Null(scope.Scheduler.SelectedAppointment);
     }
 
     [AvaloniaFact]

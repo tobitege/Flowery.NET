@@ -580,6 +580,14 @@ public sealed partial class SchedulerTests
         public void Click(Control control, MouseButton button = MouseButton.Left)
         {
             var point = Point(control, control.Bounds.Width / 2, control.Bounds.Height / 2);
+            // A click outside the window or the visible part of a scrolled view would miss without a trace.
+            for (var frame = 0; frame < 2; frame++)
+            {
+                Dispatcher.UIThread.RunJobs();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            }
+            Assert.True(Window.InputHitTest(point) is Visual hit && (hit == control || control.IsVisualAncestorOf(hit)),
+                $"{control} cannot be clicked at {point}: {Window.InputHitTest(point)} is there.");
             Window.MouseDown(point, button);
             Window.MouseUp(point, button);
             Layout();

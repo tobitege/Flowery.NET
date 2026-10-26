@@ -129,6 +129,7 @@ public class ThemeDropdownSeparatorTests
         private readonly string? _current = DaisyThemeManager.CurrentThemeName;
         private readonly Func<string, bool>? _applicator = DaisyThemeManager.CustomThemeApplicator;
         private readonly bool _suppressed = DaisyThemeManager.SuppressThemeApplication;
+        private readonly HashSet<string> _registered;
         public Window Window { get; } = new() { Width = 600, Height = 400 };
         public ComboBox Combo { get; }
         public int ApplyCalls { get; private set; }
@@ -136,7 +137,7 @@ public class ThemeDropdownSeparatorTests
 
         public SeparatorScope(bool product)
         {
-            DaisyThemeManager.ExcludedThemes = Array.Empty<string>();
+            _registered = ThemeRegistrations.Capture();
             DaisyThemeManager.PreferredThemes = [];
             DaisyThemeManager.CustomThemeApplicator = Apply;
             DaisyThemeManager.SuppressThemeApplication = false;
@@ -170,9 +171,11 @@ public class ThemeDropdownSeparatorTests
         public void Dispose()
         {
             Window.Close();
+            // The current theme cannot be unregistered, so it is restored first.
+            DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);
+            ThemeRegistrations.RemoveAddedSince(_registered);
             DaisyThemeManager.ExcludedThemes = _excluded;
             DaisyThemeManager.PreferredThemes = _preferred;
-            DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);
             DaisyThemeManager.CustomThemeApplicator = _applicator;
             DaisyThemeManager.SuppressThemeApplication = _suppressed;
         }

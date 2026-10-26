@@ -191,13 +191,14 @@ public class DaisyThemeDropdownAddThemeTests
         private readonly string? _current = DaisyThemeManager.CurrentThemeName;
         private readonly Func<string, bool>? _applicator = DaisyThemeManager.CustomThemeApplicator;
         private readonly bool _suppressed = DaisyThemeManager.SuppressThemeApplication;
+        private readonly HashSet<string> _registered;
         private readonly HashSet<string> _globalNames = new(StringComparer.OrdinalIgnoreCase);
         public Window Window { get; } = new() { Width = 600, Height = 350 };
         public int ApplyCalls { get; private set; }
 
         public ThemeScope()
         {
-            DaisyThemeManager.ExcludedThemes = Array.Empty<string>();
+            _registered = ThemeRegistrations.Capture();
             DaisyThemeManager.PreferredThemes = [];
             DaisyThemeManager.CustomThemeApplicator = Apply;
             DaisyThemeManager.SuppressThemeApplication = false;
@@ -230,9 +231,11 @@ public class DaisyThemeDropdownAddThemeTests
         {
             Window.Close();
             foreach (var name in _globalNames) DaisyThemeManager.RemoveThemeOverride(name);
+            // The current theme cannot be unregistered, so it is restored first.
+            DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);
+            ThemeRegistrations.RemoveAddedSince(_registered);
             DaisyThemeManager.ExcludedThemes = _excluded;
             DaisyThemeManager.PreferredThemes = _preferred;
-            DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);
             DaisyThemeManager.CustomThemeApplicator = _applicator;
             DaisyThemeManager.SuppressThemeApplication = _suppressed;
         }

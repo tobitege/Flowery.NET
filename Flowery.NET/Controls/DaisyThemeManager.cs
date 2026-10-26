@@ -342,6 +342,23 @@ namespace Flowery.Controls
             }
         }
 
+        /// <summary>
+        /// Removes a theme that <see cref="RegisterTheme"/> added, with its <see cref="AddTheme"/> entry, and raises
+        /// <see cref="AvailableThemesChanged"/>. Built-in themes and the current theme stay registered; apply another
+        /// theme first. Returns true if the theme was removed.
+        /// </summary>
+        public static bool UnregisterTheme(string themeName)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(themeName);
+            if (InternalThemeNames.Contains(themeName)
+                || string.Equals(_currentThemeName, themeName, StringComparison.OrdinalIgnoreCase)
+                || !ThemesByName.Remove(themeName))
+                return false;
+            AddedThemes.Remove(themeName);
+            NotifyThemeListChanged();
+            return true;
+        }
+
         internal static void EnsureProductThemeRegistered(ProductPalette palette)
         {
             if (GetThemeInfo(palette.Name) != null)

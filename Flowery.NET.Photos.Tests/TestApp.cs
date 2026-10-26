@@ -4,7 +4,7 @@ using Avalonia.Media.Fonts;
 using Flowery.NET.Photos.Services;
 
 [assembly: Avalonia.Headless.AvaloniaTestApplication(typeof(Flowery.NET.Photos.Tests.TestAppBuilder))]
-[assembly: Xunit.CollectionBehavior(DisableTestParallelization = true)]
+[assembly: Xunit.v3.Parallelization(Mode = Xunit.Sdk.ParallelMode.None)]
 
 namespace Flowery.NET.Photos.Tests;
 

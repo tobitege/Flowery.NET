@@ -194,7 +194,7 @@ namespace Flowery.NET.Tests
 
         private static void Click(Button button)
         {
-            button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            button.PointerClick();
         }
     }
 }

@@ -23,15 +23,9 @@ namespace Flowery.NET.Tests
             tabs.Items.Add(new TabItem { Header = "Andere" });
             tabs.SelectedItem = selected;
 
-            var window = new Window
-            {
-                Width = 600,
-                Height = 200,
-                Content = tabs
-            };
-            window.Show();
+            using var window = new TestWindow(tabs, 600, 200);
             Dispatcher.UIThread.RunJobs();
-            window.UpdateLayout();
+            window.Window.UpdateLayout();
 
             var headerText = selected.GetVisualDescendants()
                 .OfType<TextBlock>()

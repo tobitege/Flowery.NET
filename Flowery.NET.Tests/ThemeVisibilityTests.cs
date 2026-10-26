@@ -219,6 +219,7 @@ public class ThemeVisibilityTests
         private readonly string? _current = DaisyThemeManager.CurrentThemeName;
         private readonly Func<string, bool>? _applicator = DaisyThemeManager.CustomThemeApplicator;
         private readonly bool _suppressed = DaisyThemeManager.SuppressThemeApplication;
+        private readonly HashSet<string> _registered;
         public Window Window { get; } = new() { Width = 500, Height = 300 };
         public int ApplyCalls { get; private set; }
         public int ThemeChanges { get; private set; }
@@ -227,7 +228,7 @@ public class ThemeVisibilityTests
 
         public ThemeScope()
         {
-            DaisyThemeManager.ExcludedThemes = Array.Empty<string>();
+            _registered = ThemeRegistrations.Capture();
             DaisyThemeManager.PreferredThemes = [];
             DaisyThemeManager.CustomThemeApplicator = Apply;
             DaisyThemeManager.SuppressThemeApplication = false;
@@ -255,9 +256,11 @@ public class ThemeVisibilityTests
             Window.Close();
             DaisyThemeManager.ThemeChanged -= OnThemeChanged;
             DaisyThemeManager.AvailableThemesChanged -= OnListChanged;
+            // The current theme cannot be unregistered, so it is restored first.
+            DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);
+            ThemeRegistrations.RemoveAddedSince(_registered);
             DaisyThemeManager.ExcludedThemes = _excluded;
             DaisyThemeManager.PreferredThemes = _preferred;
-            DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);
             DaisyThemeManager.CustomThemeApplicator = _applicator;
             DaisyThemeManager.SuppressThemeApplication = _suppressed;
         }

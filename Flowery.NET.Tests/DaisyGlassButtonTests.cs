@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
@@ -137,8 +137,13 @@ public class DaisyGlassButtonTests
         try
         {
             // Hit testing uses the rendered scene, which holds the button only after a frame was rendered.
-            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-            Dispatcher.UIThread.RunJobs();
+            // A batch left by an earlier window is rendered first and holds back the button's commit,
+            // so commit and render twice.
+            for (var frame = 0; frame < 2; frame++)
+            {
+                Dispatcher.UIThread.RunJobs();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            }
             var hit = button.InputHitTest(new Point(6, 24));
             Assert.True(hit is Visual visual && (ReferenceEquals(visual, button) || button.IsVisualAncestorOf(visual)),
                 $"The edge of the button was not hit-testable: {hit}.");

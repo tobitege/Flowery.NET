@@ -41,7 +41,8 @@ public partial class SchedulerTests
         Assert.True(scroll.Extent.Height > scroll.Viewport.Height);
         Assert.True(scroll.Extent.Width <= scroll.Viewport.Width + 1);
         var frame = scope.Frame(room);
-        frame.RaiseEvent(new Avalonia.Input.KeyEventArgs { RoutedEvent = Avalonia.Input.InputElement.KeyDownEvent, Key = Avalonia.Input.Key.Enter });
+        Assert.True(frame.Focus(), "The appointment cannot take the keyboard focus.");
+        frame.Press(Avalonia.Input.PhysicalKey.Enter);
         Assert.Same(room, scope.Scheduler.SelectedAppointment);
         Assert.Equal(3, scope.Scheduler.Appointments.Count);
     }
@@ -60,11 +61,11 @@ public partial class SchedulerTests
         scope.Layout();
         Assert.Equal("1", FirstWeek());
         var down = scope.Scheduler.GetVisualDescendants().OfType<DaisyButton>().Single(button => Equals(button.Content, "↓"));
-        down.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        down.PointerClick();
         scope.Layout();
         Assert.Equal(2, scope.Scheduler.SelectedDate.Month);
         var date = Days().Children.OfType<DaisyButton>().First(button => Equals(button.Content, "15"));
-        date.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        date.PointerClick();
         scope.Layout();
         Assert.Equal(new DateTime(2021, 2, 15), scope.Scheduler.SelectedDate.Date);
         Assert.False(string.IsNullOrEmpty(AutomationProperties.GetName(date)));

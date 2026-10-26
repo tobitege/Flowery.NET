@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
@@ -13,20 +12,8 @@ using Xunit;
 namespace Flowery.NET.Tests
 {
     [Collection("LocalizationTests")]
-    public class ButtonIconTests : IDisposable
+    public class ButtonIconTests
     {
-        private readonly CultureInfo _originalCulture;
-
-        public ButtonIconTests()
-        {
-            _originalCulture = FloweryLocalization.CurrentCulture;
-        }
-
-        public void Dispose()
-        {
-            FloweryLocalization.SetCulture(_originalCulture);
-        }
-
         [AvaloniaFact]
         public void DaisyButton_ResolvesSymbolAndSizeAwareSpacing()
         {
@@ -162,6 +149,7 @@ namespace Flowery.NET.Tests
         [AvaloniaFact]
         public void DaisyLoginButton_UsesLocalizedLabelAndBrandIcon()
         {
+            using var culture = new CultureScope();
             FloweryLocalization.SetCulture("de");
             var button = new DaisyLoginButton
             {

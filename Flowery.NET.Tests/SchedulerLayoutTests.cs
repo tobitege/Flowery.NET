@@ -230,6 +230,8 @@ public sealed partial class SchedulerTests
             scope.Layout();
             Assert.Same(frame, scope.Frame(scope.Appointment));
             Assert.Equal(scroll.Viewport.Width, lane.Bounds.Width, 3);
+            // Filled hours leave nothing to scroll sideways.
+            Assert.Equal(scroll.Viewport.Width, scroll.Extent.Width, 3);
             Assert.True(lane.Bounds.Width > minimum);
             AssertHourBar(frame, lane, hours);
         }
@@ -312,7 +314,7 @@ public sealed partial class SchedulerTests
         var title = Title(toolbar);
 
         next.Focus();
-        next.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        next.PointerClick();
         scope.Scheduler.ShowWeekends = false;
         scope.Scheduler.CurrentView = SchedulerView.Month;
         scope.Layout();
@@ -344,7 +346,7 @@ public sealed partial class SchedulerTests
             Dispatcher.UIThread.RunJobs();
             window.UpdateLayout();
 
-            ToolbarButton(toolbar, "Next").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            ToolbarButton(toolbar, "Next").PointerClick();
             Assert.Equal(Monday.AddDays(7), scheduler.SelectedDate.Date);
             var builtIn = scheduler.GetVisualDescendants().OfType<DaisySchedulerToolbar>().Single();
             Assert.False(builtIn.IsVisible);
@@ -370,8 +372,8 @@ public sealed partial class SchedulerTests
         var toolbar = scope.Scheduler.GetVisualDescendants().OfType<DaisySchedulerToolbar>().Single();
         Button Host(string id) => toolbar.GetVisualDescendants().OfType<Button>().Single(button => button.Tag is SchedulerToolbarButton model && model.Id == id);
 
-        Host("new").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        Host("flag").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Host("new").PointerClick();
+        Host("flag").PointerClick();
         Assert.Equal(["new"], clicked);
         Assert.Equal(["flag"], toggled);
         Assert.Contains("checked", Host("flag").Classes);

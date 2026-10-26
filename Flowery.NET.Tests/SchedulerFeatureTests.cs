@@ -170,7 +170,11 @@ public sealed partial class SchedulerTests
         scope.Scheduler.CollapsedResourceGroupIds = Array.Empty<object>();
         scope.Layout();
         Assert.Equal(2, scope.Frames(scope.Appointment).Count());
-        scope.Click(scope.Frames(scope.Appointment).First());
+        // Wider hours, such as a 12-hour clock, can place the appointment beyond the visible width.
+        var frame = scope.Frames(scope.Appointment).First();
+        frame.BringIntoView();
+        scope.Layout();
+        scope.Click(frame);
         Assert.Same(scope.Appointment, scope.Scheduler.SelectedAppointment);
         scope.Scheduler.Navigate(1);
         scope.Layout();

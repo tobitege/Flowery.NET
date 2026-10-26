@@ -3,10 +3,11 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Avalonia.Automation;
+using System.Text.RegularExpressions;
 using Avalonia.Automation.Peers;
-using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Flowery.Controls;
 using Flowery.Localization;
@@ -22,111 +23,199 @@ namespace Flowery.NET.Tests
 
     // Run sequentially to avoid culture interference
     [Collection("LocalizationTests")]
-    public class LocalizationTests : IDisposable
+    public partial class LocalizationTests
     {
-        private readonly CultureInfo _originalCulture;
-
-        public LocalizationTests()
-        {
-            _originalCulture = FloweryLocalization.CurrentCulture;
-        }
-
-        public void Dispose()
-        {
-            // Restore original culture after each test
-            FloweryLocalization.SetCulture(_originalCulture);
-        }
+        // These login buttons show the provider's own wording in every language.
+        private static readonly HashSet<string> UntranslatedKeys = ["LoginButton_Kakao", "LoginButton_Line"];
 
         [AvaloniaFact]
-        public void GetString_WithDefaultCulture_ReturnsEnglishValue()
+        public void GetString_Resolves_The_Current_Culture_And_Falls_Back()
         {
-            // Arrange
+            using var culture = new CultureScope();
             FloweryLocalization.SetCulture("en-US");
+            Assert.Equal("Pick one", FloweryLocalization.GetString("Select_Placeholder"));
+            Assert.Equal("Synthwave", FloweryLocalization.GetThemeDisplayName("Synthwave"));
+            Assert.Equal("NonExistentKey_12345", FloweryLocalization.GetString("NonExistentKey_12345"));
 
-            // Act
-            var result = FloweryLocalization.GetString("Select_Placeholder");
-
-            // Assert
-            Assert.Equal("Pick one", result);
-        }
-
-        [AvaloniaFact]
-        public void GetString_WithGermanCulture_ReturnsGermanValue()
-        {
-            // Arrange
             FloweryLocalization.SetCulture("de-DE");
+            Assert.Equal("Auswählen", FloweryLocalization.GetString("Select_Placeholder"));
+            FloweryLocalization.SetCulture("es-ES");
+            Assert.Equal("Cargando", FloweryLocalization.GetString("Accessibility_Loading"));
+            Assert.Equal("En línea", FloweryLocalization.GetString("Accessibility_StatusOnline"));
 
-            // Act
-            var result = FloweryLocalization.GetString("Select_Placeholder");
-
-            // Assert
-            Assert.Equal("Auswählen", result);
-        }
-
-        [AvaloniaFact]
-        public void GetString_WithUnknownKey_ReturnsKey()
-        {
-            // Arrange
-            var key = "NonExistentKey_12345";
-
-            // Act
-            var result = FloweryLocalization.GetString(key);
-
-            // Assert
-            Assert.Equal(key, result);
-        }
-
-        [AvaloniaFact]
-        public void GetString_WithUnresolvedCustomValue_FallsBackToRegisteredAssembly()
-        {
+            // A custom resolver that does not know a key leaves it to the registered assemblies.
             FloweryLocalization.SetCulture("en-US");
             FloweryLocalization.RegisterAssembly(typeof(FlowKanban).Assembly);
             var originalResolver = FloweryLocalization.CustomResolver;
-
             try
             {
                 FloweryLocalization.CustomResolver = key => key;
-
-                var result = FloweryLocalization.GetString("Kanban_AddCard");
-
-                Assert.Equal("Add Card", result);
+                Assert.Equal("Add Card", FloweryLocalization.GetString("Kanban_AddCard"));
             }
             finally
             {
                 FloweryLocalization.CustomResolver = originalResolver;
             }
+
+            // Every shipped language loads at run time, region codes such as zh-CN included.
+            foreach (var (assembly, key) in new[] { (typeof(FloweryLocalization).Assembly, "Accessibility_Loading"), (typeof(FlowKanban).Assembly, "Common_Delete") })
+            {
+                foreach (var (language, catalog) in LoadCatalogs(assembly))
+                {
+                    FloweryLocalization.SetCulture(language);
+                    var value = FloweryLocalization.GetString(key);
+                    Assert.True(catalog[key] == value, $"{language} resolves {key} to '{value}', not '{catalog[key]}'.");
+                }
+            }
         }
 
         [AvaloniaFact]
-        public void KanbanLocalization_SingleUserNoticeIsPresentForEveryCulture()
+        public void SetCulture_Raises_CultureChanged_And_Keeps_The_Regional_Formatting_Culture()
         {
-            const string key = "Kanban_Users_SingleUserNotice";
-            const string resourcePrefix = "Flowery.NET.Kanban.Localization.";
-            var assembly = typeof(FlowKanban).Assembly;
-            var resources = assembly.GetManifestResourceNames()
-                .Where(name => name.StartsWith(resourcePrefix, StringComparison.Ordinal))
-                .Where(name => name.EndsWith(".json", StringComparison.Ordinal))
-                .OrderBy(name => name, StringComparer.Ordinal)
-                .ToArray();
+            using var culture = new CultureScope();
+            var originalFormattingCulture = CultureInfo.CurrentCulture;
+            var originalDefaultFormattingCulture = CultureInfo.DefaultThreadCurrentCulture;
+            CultureInfo? changedTo = null;
+            void OnCultureChanged(object? sender, CultureInfo culture) => changedTo = culture;
+            FloweryLocalization.SetCulture("en-US");
+            FloweryLocalization.CultureChanged += OnCultureChanged;
 
-            Assert.Equal(12, resources.Length);
-            foreach (var resourceName in resources)
+            try
             {
-                using var stream = assembly.GetManifestResourceStream(resourceName)
-                    ?? throw new InvalidOperationException($"Missing resource stream: {resourceName}");
-                using var document = JsonDocument.Parse(stream);
-                Assert.True(
-                    document.RootElement.TryGetProperty(key, out var value),
-                    $"{resourceName} does not contain {key}.");
-                Assert.False(
-                    string.IsNullOrWhiteSpace(value.GetString()),
-                    $"{resourceName} contains an empty {key} value.");
+                FloweryLocalization.SetCulture("fr-FR");
+                Assert.Equal("fr-FR", changedTo?.Name);
+                Assert.Equal("fr-FR", FloweryLocalization.CurrentCulture.Name);
+
+                var regionalCulture = new CultureInfo("de-DE");
+                CultureInfo.CurrentCulture = regionalCulture;
+                CultureInfo.DefaultThreadCurrentCulture = regionalCulture;
+                FloweryLocalization.SetCulture("en-US");
+
+                Assert.Equal("de-DE", CultureInfo.CurrentCulture.Name);
+                Assert.Equal("de-DE", CultureInfo.DefaultThreadCurrentCulture?.Name);
             }
+            finally
+            {
+                FloweryLocalization.CultureChanged -= OnCultureChanged;
+                CultureInfo.DefaultThreadCurrentCulture = originalDefaultFormattingCulture;
+                CultureInfo.CurrentCulture = originalFormattingCulture;
+            }
+        }
+
+        [AvaloniaFact]
+        public void Every_Key_In_The_Code_Exists_In_English()
+        {
+            var english = EnglishTexts();
+            // Keys reach the lookups directly, after a line break and through helpers, so every literal shaped like
+            // a key of a known group counts, and so does every key passed to a lookup.
+            var groups = english.Keys.Where(static key => key.Contains('_')).Select(static key => key[..key.IndexOf('_')])
+                .ToHashSet(StringComparer.Ordinal);
+
+            var missing = new SortedSet<string>(StringComparer.Ordinal);
+            foreach (var file in SourceFiles())
+            {
+                var text = File.ReadAllText(file);
+                foreach (Match match in KeyLiteral().Matches(text))
+                {
+                    var key = match.Groups["key"].Value;
+                    if (groups.Contains(key[..key.IndexOf('_')]) && !english.ContainsKey(key))
+                        missing.Add($"{key} ({Path.GetFileName(file)})");
+                }
+                foreach (Match match in Lookup().Matches(text))
+                {
+                    if (!english.ContainsKey(match.Groups["key"].Value))
+                        missing.Add($"{match.Groups["key"].Value} ({Path.GetFileName(file)})");
+                }
+            }
+
+            Assert.True(missing.Count == 0, "English lacks: " + string.Join(", ", missing));
+        }
+
+        [AvaloniaFact]
+        public void Every_Fallback_In_The_Code_Is_The_English_Text()
+        {
+            // A key used for two messages shows the English text of one of them in both places, which only the
+            // fallbacks in the code still tell apart.
+            var english = EnglishTexts();
+            var different = new SortedSet<string>(StringComparer.Ordinal);
+            foreach (var file in SourceFiles())
+            {
+                foreach (Match match in LookupWithFallback().Matches(File.ReadAllText(file)))
+                {
+                    var key = match.Groups["key"].Value;
+                    if (english.TryGetValue(key, out var texts) && !texts.Contains(match.Groups["fallback"].Value))
+                        different.Add($"{key} in {Path.GetFileName(file)}: '{match.Groups["fallback"].Value}', English '{string.Join("' or '", texts)}'");
+                }
+            }
+
+            Assert.True(different.Count == 0, "Fallbacks that differ from English: " + string.Join("; ", different));
+        }
+
+        [AvaloniaFact]
+        public void Every_Language_Has_Every_English_Key()
+        {
+            var gaps = new List<string>();
+            foreach (var assembly in new[] { typeof(FloweryLocalization).Assembly, typeof(FlowKanban).Assembly })
+            {
+                var catalogs = LoadCatalogs(assembly);
+                Assert.Equal(12, catalogs.Count);
+                foreach (var (language, catalog) in catalogs.Where(pair => pair.Key != "en"))
+                {
+                    var missing = catalogs["en"].Keys
+                        .Where(key => !UntranslatedKeys.Contains(key))
+                        .Where(key => !catalog.TryGetValue(key, out var value) || string.IsNullOrWhiteSpace(value))
+                        .ToList();
+                    if (missing.Count > 0)
+                        gaps.Add($"{assembly.GetName().Name} {language}: {string.Join(", ", missing)}");
+                }
+            }
+
+            Assert.True(gaps.Count == 0, "Untranslated keys:" + Environment.NewLine + string.Join(Environment.NewLine, gaps));
+        }
+
+        [AvaloniaFact]
+        public void Every_Shipped_Theme_Has_A_Display_Name()
+        {
+            using var culture = new CultureScope();
+            FloweryLocalization.SetCulture("en-US");
+            // A theme ships with the library when the library holds its palette; others are registered at run time.
+            var shipped = Directory.EnumerateFiles(Path.Combine(RepositoryRoot(), "Flowery.NET", "Themes", "Palettes"), "Daisy*.axaml")
+                .Select(file => Path.GetFileNameWithoutExtension(file)["Daisy".Length..])
+                .ToList();
+            Assert.True(shipped.Count >= 35, $"Only {shipped.Count} shipped themes were found.");
+            var unnamed = shipped
+                .Select(name => $"Theme_{name}")
+                .Where(key => FloweryLocalization.GetString(key) == key)
+                .ToList();
+
+            Assert.True(unnamed.Count == 0, "No display name for: " + string.Join(", ", unnamed));
+        }
+
+        [AvaloniaFact]
+        public void Controls_Announce_Themselves_In_The_Current_Language()
+        {
+            using var scope = new CultureScope();
+            FloweryLocalization.SetCulture("en-US");
+            var indicator = new DaisyStatusIndicator { Color = DaisyColor.Error };
+            using var window = new TestWindow(indicator);
+
+            // Peers can cache their name, so each language gets a new one.
+            foreach (var (culture, name) in new[] { ("en-US", "Error"), ("de", "Fehler"), ("es", "Error") })
+            {
+                FloweryLocalization.SetCulture(culture);
+                Assert.Equal(name, ControlAutomationPeer.CreatePeerForElement(indicator).GetName());
+            }
+
+            FloweryLocalization.SetCulture("fr");
+            var loading = new DaisyLoading();
+            window.Show(loading);
+            Assert.Equal("Chargement", ControlAutomationPeer.CreatePeerForElement(loading).GetName());
         }
 
         [AvaloniaFact]
         public void RegisterAssembly_ConcurrentCallsPublishAtomicSnapshotAndLogResourceErrors()
         {
+            using var culture = new CultureScope();
             const string key = "FloweryLocalization_ConcurrentProbe";
             const string expectedValue = "Concurrent probe";
             const string invalidResourceName = "Flowery.NET.Tests.Localization.de.json";
@@ -184,280 +273,45 @@ namespace Flowery.NET.Tests
                 diagnostics.LastIndexOf(invalidResourceName, StringComparison.Ordinal));
         }
 
-        [AvaloniaFact]
-        public void SetCulture_FiresCultureChangedEvent()
+        /// <summary>Reads the localization catalogs an assembly ships, keyed by language.</summary>
+        private static Dictionary<string, Dictionary<string, string?>> LoadCatalogs(Assembly assembly)
         {
-            // Arrange
-            var eventFired = false;
-            CultureInfo? newCulture = null;
-            FloweryLocalization.SetCulture("en-US"); // Ensure starting state
-
-            FloweryLocalization.CultureChanged += (s, c) =>
+            var prefix = $"{assembly.GetName().Name}.Localization.";
+            var catalogs = new Dictionary<string, Dictionary<string, string?>>(StringComparer.Ordinal);
+            foreach (var resourceName in assembly.GetManifestResourceNames()
+                         .Where(name => name.StartsWith(prefix, StringComparison.Ordinal) && name.EndsWith(".json", StringComparison.Ordinal)))
             {
-                eventFired = true;
-                newCulture = c;
-            };
-
-            // Act
-            FloweryLocalization.SetCulture("fr-FR");
-
-            // Assert
-            Assert.True(eventFired);
-            Assert.Equal("fr-FR", newCulture?.Name);
-            Assert.Equal("fr-FR", FloweryLocalization.CurrentCulture.Name);
-        }
-
-        [AvaloniaFact]
-        public void SetCulture_PreservesRegionalFormattingCulture()
-        {
-            var originalFormattingCulture = CultureInfo.CurrentCulture;
-            var originalDefaultFormattingCulture = CultureInfo.DefaultThreadCurrentCulture;
-
-            try
-            {
-                FloweryLocalization.SetCulture("fr-FR");
-                var regionalCulture = new CultureInfo("de-DE");
-                CultureInfo.CurrentCulture = regionalCulture;
-                CultureInfo.DefaultThreadCurrentCulture = regionalCulture;
-
-                FloweryLocalization.SetCulture("en-US");
-
-                Assert.Equal("de-DE", CultureInfo.CurrentCulture.Name);
-                Assert.Equal("de-DE", CultureInfo.DefaultThreadCurrentCulture?.Name);
+                using var stream = assembly.GetManifestResourceStream(resourceName)!;
+                using var document = JsonDocument.Parse(stream);
+                catalogs[resourceName[prefix.Length..^".json".Length]] = document.RootElement.EnumerateObject()
+                    .ToDictionary(property => property.Name, property => property.Value.GetString(), StringComparer.Ordinal);
             }
-            finally
-            {
-                CultureInfo.DefaultThreadCurrentCulture = originalDefaultFormattingCulture;
-                CultureInfo.CurrentCulture = originalFormattingCulture;
-            }
+
+            return catalogs;
         }
 
-        [AvaloniaFact]
-        public void GetThemeDisplayName_ReturnsLocalizedThemeName()
-        {
-            // Arrange
-            FloweryLocalization.SetCulture("en-US");
+        private static string RepositoryRoot([CallerFilePath] string testFile = "") =>
+            Path.GetDirectoryName(Path.GetDirectoryName(testFile))!;
 
-            // Act
-            var result = FloweryLocalization.GetThemeDisplayName("Synthwave");
+        // Shared keys, such as Common_Cancel, are in both assemblies.
+        private static Dictionary<string, HashSet<string?>> EnglishTexts() =>
+            LoadCatalogs(typeof(FloweryLocalization).Assembly)["en"]
+                .Concat(LoadCatalogs(typeof(FlowKanban).Assembly)["en"])
+                .GroupBy(static pair => pair.Key, StringComparer.Ordinal)
+                .ToDictionary(static group => group.Key, static group => group.Select(static pair => pair.Value).ToHashSet(), StringComparer.Ordinal);
 
-            // Assert
-            Assert.Equal("Synthwave", result);
-        }
+        private static IEnumerable<string> SourceFiles() => new[] { "Flowery.NET", "Flowery.NET.Kanban" }
+            .SelectMany(static project => Directory.EnumerateFiles(Path.Combine(RepositoryRoot(), project), "*.cs", SearchOption.AllDirectories));
 
-        [AvaloniaFact]
-        public void AccessibilityStrings_AreLocalized()
-        {
-            // Arrange
-            FloweryLocalization.SetCulture("es-ES");
+        // A lookup by a literal key; a key ending in an underscore is the prefix of a key composed at run time.
+        [GeneratedRegex("""GetString(?:Internal)?\(\s*"(?<key>[A-Za-z0-9_]*[A-Za-z0-9])"\s*[,)]""")]
+        private static partial Regex Lookup();
 
-            // Act
-            var loading = FloweryLocalization.GetString("Accessibility_Loading");
-            var status = FloweryLocalization.GetString("Accessibility_StatusOnline");
+        [GeneratedRegex("""GetString(?:Internal)?\(\s*"(?<key>[A-Za-z0-9_]+)"\s*,\s*"(?<fallback>[^"\\]*)"\s*\)""")]
+        private static partial Regex LookupWithFallback();
 
-            // Assert
-            Assert.Equal("Cargando", loading);
-            Assert.Equal("En línea", status);
-        }
-
-        /// <summary>
-        /// Integration test: Verifies that controls actually use localized strings at runtime.
-        /// This ensures FloweryLocalization integration works end-to-end.
-        /// </summary>
-        [AvaloniaFact]
-        public void DaisyStatusIndicator_Should_Use_Localized_Strings()
-        {
-            // Arrange - Start with English
-            FloweryLocalization.SetCulture("en-US");
-            var indicator = new DaisyStatusIndicator { Color = DaisyColor.Error };
-            var window = new Window { Content = indicator };
-            window.Show();
-
-            // Act & Assert - Verify English
-            var peerEn = ControlAutomationPeer.CreatePeerForElement(indicator);
-            Assert.Equal("Error", peerEn?.GetName());
-
-            // Act - Switch to German
-            FloweryLocalization.SetCulture("de");
-
-            // Assert - Verify German (need new peer instance as they can cache)
-            var peerDe = ControlAutomationPeer.CreatePeerForElement(indicator);
-            Assert.Equal("Fehler", peerDe?.GetName());
-
-            // Act - Switch to Spanish
-            FloweryLocalization.SetCulture("es");
-
-            // Assert - Verify Spanish
-            var peerEs = ControlAutomationPeer.CreatePeerForElement(indicator);
-            Assert.Equal("Error", peerEs?.GetName()); // Spanish uses "Error"
-        }
-
-        /// <summary>
-        /// Integration test: Verifies DaisyLoading uses localized strings.
-        /// </summary>
-        [AvaloniaFact]
-        public void DaisyLoading_Should_Use_Localized_Strings()
-        {
-            // Arrange
-            FloweryLocalization.SetCulture("fr");
-            var loading = new DaisyLoading();
-            var window = new Window { Content = loading };
-            window.Show();
-
-            // Act - Must use automation peer, not AutomationProperties directly
-            var peer = ControlAutomationPeer.CreatePeerForElement(loading);
-            var name = peer?.GetName();
-
-            // Assert
-            Assert.Equal("Chargement", name);
-        }
-
-        #region High-Signal Tests
-
-        /// <summary>
-        /// Validates that all supported languages load without errors.
-        /// Catches malformed localization JSON files or missing resources.
-        /// </summary>
-        [AvaloniaTheory]
-        [InlineData("de")]
-        [InlineData("fr")]
-        [InlineData("es")]
-        [InlineData("zh-CN")]
-        [InlineData("ko")]
-        [InlineData("ja")]
-        [InlineData("ar")]
-        [InlineData("tr")]
-        [InlineData("uk")]
-        public void AllLanguages_Should_Load_Without_Errors(string culture)
-        {
-            // Arrange & Act
-            FloweryLocalization.SetCulture(culture);
-            var result = FloweryLocalization.GetString("Accessibility_Loading");
-
-            // Assert
-            Assert.NotEmpty(result);
-            Assert.NotEqual("Accessibility_Loading", result); // Should not fallback to key
-        }
-
-        /// <summary>
-        /// Validates that all accessibility resource keys exist in default resources.
-        /// Prevents runtime errors from missing keys.
-        /// </summary>
-        [AvaloniaTheory]
-        [InlineData("Accessibility_Loading")]
-        [InlineData("Accessibility_Progress")]
-        [InlineData("Accessibility_Rating")]
-        [InlineData("Accessibility_LoadingPlaceholder")]
-        [InlineData("Accessibility_Status")]
-        [InlineData("Accessibility_StatusOnline")]
-        [InlineData("Accessibility_StatusError")]
-        [InlineData("Accessibility_StatusWarning")]
-        [InlineData("Accessibility_StatusInfo")]
-        [InlineData("Accessibility_StatusActive")]
-        [InlineData("Accessibility_StatusSecondary")]
-        [InlineData("Accessibility_StatusHighlighted")]
-        [InlineData("Accessibility_Countdown")]
-        [InlineData("Accessibility_NumberFlow")]
-        [InlineData("Accessibility_NumberInput")]
-        [InlineData("Accessibility_OneTimeCode")]
-        [InlineData("Accessibility_OtpDigitPosition")]
-        [InlineData("Accessibility_Password")]
-        [InlineData("Accessibility_ShowPassword")]
-        [InlineData("Accessibility_HidePassword")]
-        [InlineData("Accessibility_IncreaseValue")]
-        [InlineData("Accessibility_DecreaseValue")]
-        [InlineData("Accessibility_ClearValue")]
-        [InlineData("Accessibility_PreviousSlide")]
-        [InlineData("Accessibility_NextSlide")]
-        [InlineData("Accessibility_PreviousItem")]
-        [InlineData("Accessibility_NextItem")]
-        [InlineData("Select_Placeholder")]
-        public void AllAccessibilityKeys_Should_Exist(string key)
-        {
-            // Arrange
-            FloweryLocalization.SetCulture("en-US");
-
-            // Act
-            var result = FloweryLocalization.GetString(key);
-
-            // Assert
-            Assert.NotEqual(key, result); // Should not fallback to key itself
-            Assert.NotEmpty(result);
-        }
-
-        [AvaloniaTheory]
-        [InlineData("ar")]
-        [InlineData("de")]
-        [InlineData("en")]
-        [InlineData("es")]
-        [InlineData("fr")]
-        [InlineData("he")]
-        [InlineData("it")]
-        [InlineData("ja")]
-        [InlineData("ko")]
-        [InlineData("tr")]
-        [InlineData("uk")]
-        [InlineData("zh-CN")]
-        public void Kanban_Common_Automation_Labels_Should_Be_Localized(string culture)
-        {
-            FloweryLocalization.RegisterAssembly(typeof(FlowKanban).Assembly);
-            FloweryLocalization.SetCulture(culture);
-
-            var result = FloweryLocalization.GetString("Common_Delete");
-
-            Assert.NotEqual("Common_Delete", result);
-            Assert.NotEmpty(result);
-        }
-
-        /// <summary>
-        /// Validates that all theme names have localization entries.
-        /// Uses the names of built-in themes.
-        /// </summary>
-        [AvaloniaTheory]
-        [InlineData("Light")]
-        [InlineData("Dark")]
-        [InlineData("Cupcake")]
-        [InlineData("Bumblebee")]
-        [InlineData("Emerald")]
-        [InlineData("Corporate")]
-        [InlineData("Synthwave")]
-        [InlineData("Retro")]
-        [InlineData("Cyberpunk")]
-        [InlineData("Valentine")]
-        [InlineData("Halloween")]
-        [InlineData("Garden")]
-        [InlineData("Forest")]
-        [InlineData("Aqua")]
-        [InlineData("Lofi")]
-        [InlineData("Pastel")]
-        [InlineData("Fantasy")]
-        [InlineData("Wireframe")]
-        [InlineData("Black")]
-        [InlineData("Luxury")]
-        [InlineData("Dracula")]
-        [InlineData("Cmyk")] // Note: lowercase 'myk'
-        [InlineData("Autumn")]
-        [InlineData("Business")]
-        [InlineData("Acid")]
-        [InlineData("Lemonade")]
-        [InlineData("Night")]
-        [InlineData("Coffee")]
-        [InlineData("Winter")]
-        [InlineData("Dim")]
-        [InlineData("Nord")]
-        [InlineData("Sunset")]
-        [InlineData("Abyss")]
-        [InlineData("Caramellatte")]
-        [InlineData("Silk")]
-        public void AllThemeNames_Should_Have_Localization_Entries(string themeName)
-        {
-            // Arrange & Act
-            var result = FloweryLocalization.GetThemeDisplayName(themeName);
-
-            // Assert
-            Assert.NotEmpty(result);
-        }
-
-        #endregion
+        // A literal shaped like a key, except automation ids and the prefix of a key composed at run time.
+        [GeneratedRegex("""(?<!SetAutomationId\([^,]+,\s*)"(?<key>[A-Z][A-Za-z0-9]*_[A-Za-z0-9_]*[A-Za-z0-9])"(?!\s*\+)""")]
+        private static partial Regex KeyLiteral();
     }
 }

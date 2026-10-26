@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Automation;
 using Avalonia.Controls;
@@ -35,21 +35,22 @@ public class DaisyResizableColumnsHostTests
         var host = new DaisyResizableColumnsHost { MinColumnWidth = 100, MaxColumnWidth = 500, ColumnWidth = 200 };
         var widths = new List<double>();
         host.ColumnWidthChanged += (_, width) => widths.Add(width);
+        using var window = new TestWindow(host);
 
-        Press(host, Key.Right);
+        PressOn(host, PhysicalKey.ArrowRight);
         Assert.Equal(208, host.ColumnWidth);
 
-        Press(host, Key.Left);
-        Press(host, Key.Left);
+        PressOn(host, PhysicalKey.ArrowLeft);
+        PressOn(host, PhysicalKey.ArrowLeft);
         Assert.Equal(192, host.ColumnWidth);
 
-        Press(host, Key.PageUp);
+        PressOn(host, PhysicalKey.PageUp);
         Assert.Equal(224, host.ColumnWidth);
 
-        Press(host, Key.End);
+        PressOn(host, PhysicalKey.End);
         Assert.Equal(500, host.ColumnWidth);
 
-        Press(host, Key.Home);
+        PressOn(host, PhysicalKey.Home);
         Assert.Equal(100, host.ColumnWidth);
 
         Assert.Equal(new[] { 208.0, 200.0, 192.0, 224.0, 500.0, 100.0 }, widths);
@@ -59,12 +60,14 @@ public class DaisyResizableColumnsHostTests
     public void Disabled_Grip_Ignores_The_Keyboard()
     {
         var host = new DaisyResizableColumnsHost { ColumnWidth = 200 };
-        Assert.True(host.Focusable);
+        using var window = new TestWindow(host);
+        Assert.True(host.Focus());
 
         host.IsGripEnabled = false;
         Assert.False(host.Focusable);
 
-        Press(host, Key.Right);
+        // A key still sent to the host must not resize it.
+        host.Press(PhysicalKey.ArrowRight);
         Assert.Equal(200, host.ColumnWidth);
     }
 
@@ -109,8 +112,11 @@ public class DaisyResizableColumnsHostTests
         Assert.Equal("Kanban columns", AutomationProperties.GetName(host));
     }
 
-    private static void Press(DaisyResizableColumnsHost host, Key key) =>
-        host.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key });
+    private static void PressOn(DaisyResizableColumnsHost host, PhysicalKey key)
+    {
+        Assert.True(host.Focus(), "The host cannot take the keyboard focus.");
+        host.Press(key);
+    }
 
     private static void Layout(Window window)
     {

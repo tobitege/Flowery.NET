@@ -81,14 +81,14 @@ namespace Flowery.NET.Tests
             }
             using var host = new TestHost(control);
             host.OpenMenu();
-            Assert.IsType<MenuItem>(host.Menu.Items[2]).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            Assert.IsType<MenuItem>(host.Menu.Items[2]).PointerClick();
             Assert.Equal(3, Assert.Single(selected).Id);
             Assert.Equal("Archive", selected[0].Name);
             Assert.Equal(2, control.ActiveViewId);
             Assert.Equal(3, control.Views!.Count);
             host.Menu.Hide();
             host.OpenMenu();
-            Assert.IsType<MenuItem>(host.Menu.Items[4]).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            Assert.IsType<MenuItem>(host.Menu.Items[4]).PointerClick();
             Assert.Equal(1, manageRequests);
             if (useCommands)
             {
@@ -244,6 +244,7 @@ namespace Flowery.NET.Tests
             host.Settle();
             Assert.False(host.Menu.IsOpen);
             Assert.NotSame(oldPrevious, host.Previous);
+            // The old button is no longer shown, so only a raised event can reach its handler.
             oldPrevious.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             host.Click(host.Previous);
             Assert.Equal(2, requests);

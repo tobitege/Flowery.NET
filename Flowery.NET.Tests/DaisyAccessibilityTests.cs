@@ -1,12 +1,12 @@
-﻿using System;
+﻿﻿using System;
 using System.Globalization;
 using System.Linq;
 using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
-using Avalonia.Interactivity;
-using Avalonia.VisualTree;
+using Avalonia.HeadlessTestingFramework;
+using Avalonia.HeadlessTestingFramework.Appium;
 using Flowery.Controls;
 using Flowery.Localization;
 using Xunit;
@@ -29,360 +29,95 @@ namespace Flowery.NET.Tests
         {
             FloweryLocalization.SetCulture(_originalCulture);
         }
-        #region DaisyLoading Tests
 
         [AvaloniaFact]
-        public void DaisyLoading_Should_Have_Default_AccessibleText()
+        public void Status_Controls_Name_Themselves_Until_AccessibleText_Replaces_The_Name()
         {
-            var loading = new DaisyLoading();
-            var window = new Window { Content = loading };
-            window.Show();
+            var cases = new (Control Control, string Name)[]
+            {
+                (new DaisyLoading(), "Loading"),
+                (new DaisySkeleton(), "Loading placeholder"),
+                (new DaisyProgress(), "Progress"),
+                (new DaisyRadialProgress(), "Progress"),
+                (new DaisyCountdown(), "Countdown"),
+                (new DaisyRating(), "Rating"),
+                (new DaisyStatusIndicator { Color = DaisyColor.Success }, "Online")
+            };
+            using var window = new TestWindow(new Border());
+            foreach (var (control, name) in cases)
+            {
+                window.Show(control);
+                var type = control.GetType().Name;
+                Assert.Null(DaisyAccessibility.GetAccessibleText(control));
+                Assert.True(name == AutomationProperties.GetName(control), $"{type} is named '{AutomationProperties.GetName(control)}'.");
 
-            Assert.Null(loading.AccessibleText);
-            Assert.Equal("Loading", AutomationProperties.GetName(loading));
-        }
+                DaisyAccessibility.SetAccessibleText(control, "Custom name");
+                Assert.True("Custom name" == AutomationProperties.GetName(control), $"{type} kept '{AutomationProperties.GetName(control)}'.");
+            }
 
-        [AvaloniaFact]
-        public void DaisyLoading_Should_Update_AutomationName_When_AccessibleText_Changes()
-        {
-            var loading = new DaisyLoading();
-            var window = new Window { Content = loading };
-            window.Show();
-
-            loading.AccessibleText = "Loading your profile";
-
-            Assert.Equal("Loading your profile", AutomationProperties.GetName(loading));
-        }
-
-        [AvaloniaFact]
-        public void DaisyLoading_AutomationPeer_Should_Return_ProgressBar_Type()
-        {
-            var loading = new DaisyLoading();
-            var window = new Window { Content = loading };
-            window.Show();
-
-            var peer = ControlAutomationPeer.CreatePeerForElement(loading);
-
-            Assert.NotNull(peer);
-            Assert.Equal(AutomationControlType.ProgressBar, peer.GetAutomationControlType());
-        }
-
-        #endregion
-
-        #region DaisyStatusIndicator Tests
-
-        [AvaloniaFact]
-        public void DaisyStatusIndicator_Should_Have_Color_Based_Default_Text()
-        {
-            var indicator = new DaisyStatusIndicator { Color = DaisyColor.Success };
-            var window = new Window { Content = indicator };
-            window.Show();
-
-            Assert.Equal("Online", AutomationProperties.GetName(indicator));
-        }
-
-        [AvaloniaFact]
-        public void DaisyStatusIndicator_Should_Map_Colors_To_Semantic_Text()
-        {
-            var window = new Window();
-            window.Show();
-
-            var testCases = new[]
+            // The colour of a status indicator decides what it announces, whether it is set first or changed later.
+            var indicator = new DaisyStatusIndicator();
+            window.Show(indicator);
+            foreach (var (color, text) in new[]
             {
                 (DaisyColor.Success, "Online"),
                 (DaisyColor.Error, "Error"),
                 (DaisyColor.Warning, "Warning"),
                 (DaisyColor.Info, "Information"),
                 (DaisyColor.Primary, "Active"),
-                (DaisyColor.Neutral, "Status"),
-            };
-
-            foreach (var (color, expectedText) in testCases)
+                (DaisyColor.Neutral, "Status")
+            })
             {
-                var indicator = new DaisyStatusIndicator { Color = color };
-                window.Content = indicator;
-
-                Assert.Equal(expectedText, AutomationProperties.GetName(indicator));
+                indicator.Color = color;
+                Assert.Equal(text, AutomationProperties.GetName(indicator));
+                var fresh = new DaisyStatusIndicator { Color = color };
+                window.Show(fresh);
+                Assert.Equal(text, AutomationProperties.GetName(fresh));
+                window.Show(indicator);
             }
+            Assert.Equal(AutomationLiveSetting.Polite, AutomationProperties.GetLiveSetting(new DaisyCountdown()));
         }
 
         [AvaloniaFact]
-        public void DaisyStatusIndicator_Custom_AccessibleText_Should_Override_Color_Default()
+        public void Automation_Peers_Report_The_Role_And_The_Current_Value()
         {
-            var indicator = new DaisyStatusIndicator
-            {
-                Color = DaisyColor.Success,
-                AccessibleText = "User is available"
-            };
-            var window = new Window { Content = indicator };
-            window.Show();
+            using var window = new TestWindow(new Border());
 
-            Assert.Equal("User is available", AutomationProperties.GetName(indicator));
-        }
+            Assert.Equal(AutomationControlType.ProgressBar, Peer(window, new DaisyLoading()).GetAutomationControlType());
+            Assert.Equal(AutomationControlType.StatusBar, Peer(window, new DaisyStatusIndicator()).GetAutomationControlType());
 
-        [AvaloniaFact]
-        public void DaisyStatusIndicator_AutomationPeer_Should_Return_StatusBar_Type()
-        {
-            var indicator = new DaisyStatusIndicator();
-            var window = new Window { Content = indicator };
-            window.Show();
-
-            var peer = ControlAutomationPeer.CreatePeerForElement(indicator);
-
-            Assert.NotNull(peer);
-            Assert.Equal(AutomationControlType.StatusBar, peer.GetAutomationControlType());
-        }
-
-        #endregion
-
-        #region DaisyProgress Tests
-
-        [AvaloniaFact]
-        public void DaisyProgress_Should_Have_Default_AccessibleText()
-        {
-            var progress = new DaisyProgress();
-            var window = new Window { Content = progress };
-            window.Show();
-
-            Assert.Null(progress.AccessibleText);
-            Assert.Equal("Progress", AutomationProperties.GetName(progress));
-        }
-
-        [AvaloniaFact]
-        public void DaisyProgress_AutomationPeer_Should_Include_Percentage()
-        {
             var progress = new DaisyProgress { Value = 50, Minimum = 0, Maximum = 100 };
-            var window = new Window { Content = progress };
-            window.Show();
+            var peer = Peer(window, progress);
+            Assert.Contains("50%", peer.GetName());
+            progress.Value = 75;
+            DaisyAccessibility.SetAccessibleText(progress, "Uploading file");
+            Assert.Contains("Uploading file", peer.GetName());
+            Assert.Contains("75%", peer.GetName());
 
-            var peer = ControlAutomationPeer.CreatePeerForElement(progress);
-            var name = peer?.GetName();
+            Assert.Contains("70%", Peer(window, new DaisyRadialProgress { Value = 70 }).GetName());
+            Assert.Contains("30", Peer(window, new DaisyCountdown { Value = 30 }).GetName());
+            Assert.Contains("seconds", Peer(window, new DaisyCountdown { ClockUnit = CountdownClockUnit.Seconds }).GetName());
 
-            Assert.NotNull(name);
-            Assert.Contains("50%", name);
-        }
-
-        [AvaloniaFact]
-        public void DaisyProgress_AutomationPeer_Should_Include_Custom_Text_With_Percentage()
-        {
-            var progress = new DaisyProgress
-            {
-                Value = 75,
-                Minimum = 0,
-                Maximum = 100,
-                AccessibleText = "Uploading file"
-            };
-            var window = new Window { Content = progress };
-            window.Show();
-
-            var peer = ControlAutomationPeer.CreatePeerForElement(progress);
-            var name = peer?.GetName();
-
-            Assert.NotNull(name);
-            Assert.Contains("Uploading file", name);
-            Assert.Contains("75%", name);
-        }
-
-        #endregion
-
-        #region DaisyRadialProgress Tests
-
-        [AvaloniaFact]
-        public void DaisyRadialProgress_Should_Have_Default_AccessibleText()
-        {
-            var progress = new DaisyRadialProgress();
-            var window = new Window { Content = progress };
-            window.Show();
-
-            Assert.Null(progress.AccessibleText);
-            Assert.Equal("Progress", AutomationProperties.GetName(progress));
-        }
-
-        [AvaloniaFact]
-        public void DaisyRadialProgress_AutomationPeer_Should_Include_Percentage()
-        {
-            var progress = new DaisyRadialProgress { Value = 70 };
-            var window = new Window { Content = progress };
-            window.Show();
-
-            var peer = ControlAutomationPeer.CreatePeerForElement(progress);
-            var name = peer?.GetName();
-
-            Assert.NotNull(name);
-            Assert.Contains("70%", name);
-        }
-
-        #endregion
-
-        #region DaisyCountdown Tests
-
-        [AvaloniaFact]
-        public void DaisyCountdown_Should_Have_Default_AccessibleText()
-        {
-            var countdown = new DaisyCountdown();
-            var window = new Window { Content = countdown };
-            window.Show();
-
-            Assert.Null(countdown.AccessibleText);
-            Assert.Equal("Countdown", AutomationProperties.GetName(countdown));
-        }
-
-        [AvaloniaFact]
-        public void DaisyCountdown_AutomationPeer_Should_Include_Value()
-        {
-            var countdown = new DaisyCountdown { Value = 30 };
-            var window = new Window { Content = countdown };
-            window.Show();
-
-            var peer = ControlAutomationPeer.CreatePeerForElement(countdown);
-            var name = peer?.GetName();
-
-            Assert.NotNull(name);
-            Assert.Contains("30", name);
-        }
-
-        [AvaloniaFact]
-        public void DaisyCountdown_AutomationPeer_Should_Include_Unit_When_ClockUnit_Set()
-        {
-            var countdown = new DaisyCountdown { ClockUnit = CountdownClockUnit.Seconds };
-            var window = new Window { Content = countdown };
-            window.Show();
-
-            var peer = ControlAutomationPeer.CreatePeerForElement(countdown);
-            var name = peer?.GetName();
-
-            Assert.NotNull(name);
-            Assert.Contains("seconds", name);
-        }
-
-        [AvaloniaFact]
-        public void DaisyCountdown_Should_Have_Polite_LiveSetting()
-        {
-            var countdown = new DaisyCountdown();
-            var window = new Window { Content = countdown };
-            window.Show();
-
-            Assert.Equal(AutomationLiveSetting.Polite, AutomationProperties.GetLiveSetting(countdown));
-        }
-
-        #endregion
-
-        #region DaisySkeleton Tests
-
-        [AvaloniaFact]
-        public void DaisySkeleton_Should_Have_Default_AccessibleText()
-        {
-            var skeleton = new DaisySkeleton();
-            var window = new Window { Content = skeleton };
-            window.Show();
-
-            Assert.Null(skeleton.AccessibleText);
-            Assert.Equal("Loading placeholder", AutomationProperties.GetName(skeleton));
-        }
-
-        [AvaloniaFact]
-        public void DaisySkeleton_Should_Update_AutomationName_When_AccessibleText_Changes()
-        {
-            var skeleton = new DaisySkeleton();
-            var window = new Window { Content = skeleton };
-            window.Show();
-
-            skeleton.AccessibleText = "Loading user avatar";
-
-            Assert.Equal("Loading user avatar", AutomationProperties.GetName(skeleton));
-        }
-
-        #endregion
-
-        #region DaisyRating Tests
-
-        [AvaloniaFact]
-        public void DaisyRating_Should_Have_Default_AccessibleText()
-        {
-            var rating = new DaisyRating();
-            var window = new Window { Content = rating };
-            window.Show();
-
-            Assert.Null(rating.AccessibleText);
-            Assert.Equal("Rating", AutomationProperties.GetName(rating));
-        }
-
-        [AvaloniaFact]
-        public void DaisyRating_AutomationPeer_Should_Include_Star_Count()
-        {
             var rating = new DaisyRating { Value = 3, Maximum = 5 };
-            var window = new Window { Content = rating };
-            window.Show();
-
-            var peer = ControlAutomationPeer.CreatePeerForElement(rating);
-            var name = peer?.GetName();
-
-            Assert.NotNull(name);
-            Assert.Contains("3", name);
-            Assert.Contains("5", name);
-            Assert.Contains("stars", name);
-        }
-
-        [AvaloniaFact]
-        public void DaisyRating_AutomationPeer_Should_Return_Slider_Type()
-        {
-            var rating = new DaisyRating();
-            var window = new Window { Content = rating };
-            window.Show();
-
-            var peer = ControlAutomationPeer.CreatePeerForElement(rating);
-
-            Assert.NotNull(peer);
+            peer = Peer(window, rating);
             Assert.Equal(AutomationControlType.Slider, peer.GetAutomationControlType());
+            Assert.Contains("3", peer.GetName());
+            Assert.Contains("5", peer.GetName());
+            Assert.Contains("stars", peer.GetName());
+            rating.Value = 4;
+            DaisyAccessibility.SetAccessibleText(rating, "Product rating");
+            Assert.Contains("Product rating", peer.GetName());
+            Assert.Contains("4", peer.GetName());
         }
 
         [AvaloniaFact]
-        public void DaisyRating_AutomationPeer_Should_Include_Custom_Text()
-        {
-            var rating = new DaisyRating
-            {
-                Value = 4,
-                Maximum = 5,
-                AccessibleText = "Product rating"
-            };
-            var window = new Window { Content = rating };
-            window.Show();
-
-            var peer = ControlAutomationPeer.CreatePeerForElement(rating);
-            var name = peer?.GetName();
-
-            Assert.NotNull(name);
-            Assert.Contains("Product rating", name);
-            Assert.Contains("4", name);
-        }
-
-        #endregion
-
-        #region DaisyAccessibility Helper Tests
-
-        [AvaloniaFact]
-        public void DaisyAccessibility_GetEffectiveAccessibleText_Should_Return_Custom_When_Set()
-        {
-            var loading = new DaisyLoading { AccessibleText = "Custom text" };
-
-            var result = DaisyAccessibility.GetEffectiveAccessibleText(loading, "Default");
-
-            Assert.Equal("Custom text", result);
-        }
-
-        [AvaloniaFact]
-        public void DaisyAccessibility_GetEffectiveAccessibleText_Should_Return_Default_When_Null()
+        public void Accessibility_Helpers_Fall_Back_To_The_Default_And_Forward_Form_Metadata()
         {
             var loading = new DaisyLoading();
+            Assert.Equal("Default", DaisyAccessibility.GetEffectiveAccessibleText(loading, "Default"));
+            loading.AccessibleText = "Custom text";
+            Assert.Equal("Custom text", DaisyAccessibility.GetEffectiveAccessibleText(loading, "Default"));
 
-            var result = DaisyAccessibility.GetEffectiveAccessibleText(loading, "Default");
-
-            Assert.Equal("Default", result);
-        }
-
-        [AvaloniaFact]
-        public void DaisyAccessibility_ApplyAutomationProperties_Should_Forward_Form_Metadata()
-        {
             var label = new TextBlock { Text = "Account password" };
             var source = new Border();
             var target = new TextBox();
@@ -392,10 +127,7 @@ namespace Flowery.NET.Tests
             AutomationProperties.SetAutomationId(source, "account-password");
             AutomationProperties.SetIsRequiredForForm(source, true);
 
-            DaisyAccessibility.ApplyAutomationProperties(
-                source,
-                target,
-                automationIdSuffix: "input");
+            DaisyAccessibility.ApplyAutomationProperties(source, target, automationIdSuffix: "input");
 
             Assert.Equal("Password", AutomationProperties.GetName(target));
             Assert.Equal("At least twelve characters", AutomationProperties.GetHelpText(target));
@@ -405,8 +137,9 @@ namespace Flowery.NET.Tests
         }
 
         [AvaloniaFact]
-        public void DaisyNumberFlow_AutomationPeer_Should_Expose_Formatted_Value_And_Child_Actions()
+        public void Template_Parts_Are_Found_By_Automation_Id_And_Named_After_Their_Owner()
         {
+            // UI automation finds the parts by the owner's automation id, not by their template names.
             var numberFlow = new DaisyNumberFlow
             {
                 Value = 12.5m,
@@ -418,32 +151,39 @@ namespace Flowery.NET.Tests
             };
             AutomationProperties.SetName(numberFlow, "Quantity");
             AutomationProperties.SetAutomationId(numberFlow, "quantity");
-            var window = new Window { Content = numberFlow };
-            window.Show();
-            numberFlow.UpdateLayout();
+            using var window = new TestWindow(numberFlow);
+            var driver = new AvaloniaDriver(window.Window);
 
-            try
-            {
-                var peer = ControlAutomationPeer.CreatePeerForElement(numberFlow);
-                var increment = GetTemplatePart<DaisyButton>(numberFlow, "PART_IncrementButton");
-                var decrement = GetTemplatePart<DaisyButton>(numberFlow, "PART_DecrementButton");
+            var peer = ControlAutomationPeer.CreatePeerForElement(numberFlow);
+            Assert.Equal(AutomationControlType.Spinner, peer.GetAutomationControlType());
+            Assert.Equal("Quantity: $12.5 kg", peer.GetName());
+            AssertNamed(driver, "quantity-increment", "Increase Quantity");
+            AssertNamed(driver, "quantity-decrement", "Decrease Quantity");
 
-                Assert.NotNull(peer);
-                Assert.Equal(AutomationControlType.Spinner, peer.GetAutomationControlType());
-                Assert.Equal("Quantity: $12.5 kg", peer.GetName());
-                Assert.Equal("Increase Quantity", AutomationProperties.GetName(increment));
-                Assert.Equal("quantity-increment", AutomationProperties.GetAutomationId(increment));
-                Assert.Equal("Decrease Quantity", AutomationProperties.GetName(decrement));
-                Assert.Equal("quantity-decrement", AutomationProperties.GetAutomationId(decrement));
-            }
-            finally
-            {
-                window.Close();
-            }
+            var numberInput = new DaisyNumericUpDown { PlaceholderText = "Amount", ShowClearButton = true };
+            AutomationProperties.SetAutomationId(numberInput, "amount");
+            window.Show(numberInput);
+            AssertNamed(driver, "amount-input", "Amount");
+            AssertNamed(driver, "amount-increment", "Increase Amount");
+            AssertNamed(driver, "amount-decrement", "Decrease Amount");
+            AssertNamed(driver, "amount-clear", "Clear Amount");
+
+            var carousel = new DaisyCarousel();
+            AutomationProperties.SetAutomationId(carousel, "gallery");
+            window.Show(carousel);
+            AssertNamed(driver, "gallery-previous", "Previous slide");
+            AssertNamed(driver, "gallery-next", "Next slide");
+
+            var stack = new DaisyStack { ShowNavigation = true };
+            stack.Items.Add(new Border());
+            AutomationProperties.SetAutomationId(stack, "stack");
+            window.Show(stack);
+            AssertNamed(driver, "stack-previous", "Previous item");
+            AssertNamed(driver, "stack-next", "Next item");
         }
 
         [AvaloniaFact]
-        public void DaisyPasswordBox_Should_Expose_Inner_Input_And_Reveal_Action()
+        public void Password_Box_Forwards_Its_Form_Metadata_And_Renames_The_Reveal_Button_When_Clicked()
         {
             var label = new TextBlock { Text = "Account password" };
             var passwordBox = new DaisyPasswordBox
@@ -454,38 +194,22 @@ namespace Flowery.NET.Tests
             };
             AutomationProperties.SetAutomationId(passwordBox, "account-password");
             AutomationProperties.SetLabeledBy(passwordBox, label);
-            var panel = new StackPanel();
-            panel.Children.Add(label);
-            panel.Children.Add(passwordBox);
-            var window = new Window { Content = panel };
-            window.Show();
-            passwordBox.UpdateLayout();
+            using var window = new TestWindow(new StackPanel { Children = { label, passwordBox } });
+            var driver = new AvaloniaDriver(window.Window);
 
-            try
-            {
-                var input = GetTemplatePart<TextBox>(passwordBox, "PART_TextBox");
-                var reveal = GetTemplatePart<Button>(passwordBox, "PART_RevealButton");
+            var input = driver.FindElement(By.AutomationId("account-password-input")).Control;
+            Assert.Equal("Password", AutomationProperties.GetName(input));
+            Assert.Equal("At least twelve characters", AutomationProperties.GetHelpText(input));
+            Assert.Same(label, AutomationProperties.GetLabeledBy(input));
+            Assert.True(AutomationProperties.GetIsRequiredForForm(input));
 
-                Assert.Equal("Password", AutomationProperties.GetName(input));
-                Assert.Equal("At least twelve characters", AutomationProperties.GetHelpText(input));
-                Assert.Same(label, AutomationProperties.GetLabeledBy(input));
-                Assert.Equal("account-password-input", AutomationProperties.GetAutomationId(input));
-                Assert.True(AutomationProperties.GetIsRequiredForForm(input));
-                Assert.Equal("Show password", AutomationProperties.GetName(reveal));
-                Assert.Equal("account-password-reveal", AutomationProperties.GetAutomationId(reveal));
-
-                reveal.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-
-                Assert.Equal("Hide password", AutomationProperties.GetName(reveal));
-            }
-            finally
-            {
-                window.Close();
-            }
+            AssertNamed(driver, "account-password-reveal", "Show password");
+            driver.FindElement(By.AutomationId("account-password-reveal")).Control.PointerClick();
+            AssertNamed(driver, "account-password-reveal", "Hide password");
         }
 
         [AvaloniaFact]
-        public void DaisyOtpInput_Should_Expose_Positioned_Named_Slots()
+        public void Otp_Input_Slots_Know_Their_Position()
         {
             var input = new DaisyOtpInput { Length = 4 };
             AutomationProperties.SetName(input, "Security code");
@@ -494,102 +218,23 @@ namespace Flowery.NET.Tests
             var slots = input.Children.OfType<TextBox>().ToArray();
 
             Assert.Equal(4, slots.Length);
-            for (int i = 0; i < slots.Length; i++)
+            for (var i = 0; i < slots.Length; i++)
             {
-                Assert.Equal(
-                    $"Security code, digit {i + 1} of 4",
-                    AutomationProperties.GetName(slots[i]));
-                Assert.Equal(
-                    $"security-code-slot-{i + 1}",
-                    AutomationProperties.GetAutomationId(slots[i]));
+                Assert.Equal($"Security code, digit {i + 1} of 4", AutomationProperties.GetName(slots[i]));
+                Assert.Equal($"security-code-slot-{i + 1}", AutomationProperties.GetAutomationId(slots[i]));
                 Assert.Equal(i + 1, AutomationProperties.GetPositionInSet(slots[i]));
                 Assert.Equal(4, AutomationProperties.GetSizeOfSet(slots[i]));
-                Assert.Equal(
-                    "Enter the code from your authenticator",
-                    AutomationProperties.GetHelpText(slots[i]));
+                Assert.Equal("Enter the code from your authenticator", AutomationProperties.GetHelpText(slots[i]));
             }
         }
 
-        [AvaloniaFact]
-        public void DaisyNumericUpDown_Should_Expose_Editor_And_Icon_Actions()
+        private static AutomationPeer Peer(TestWindow window, Control control)
         {
-            var numberInput = new DaisyNumericUpDown
-            {
-                PlaceholderText = "Amount",
-                ShowClearButton = true
-            };
-            AutomationProperties.SetAutomationId(numberInput, "amount");
-            var window = new Window { Content = numberInput };
-            window.Show();
-            numberInput.UpdateLayout();
-
-            try
-            {
-                var input = GetTemplatePart<TextBox>(numberInput, "PART_DaisyTextBox");
-                var increment = GetTemplatePart<Button>(numberInput, "PART_IncreaseButton");
-                var decrement = GetTemplatePart<Button>(numberInput, "PART_DecreaseButton");
-                var clear = GetTemplatePart<Button>(numberInput, "PART_ClearButton");
-
-                Assert.Equal("Amount", AutomationProperties.GetName(input));
-                Assert.Equal("amount-input", AutomationProperties.GetAutomationId(input));
-                Assert.Equal("Increase Amount", AutomationProperties.GetName(increment));
-                Assert.Equal("amount-increment", AutomationProperties.GetAutomationId(increment));
-                Assert.Equal("Decrease Amount", AutomationProperties.GetName(decrement));
-                Assert.Equal("amount-decrement", AutomationProperties.GetAutomationId(decrement));
-                Assert.Equal("Clear Amount", AutomationProperties.GetName(clear));
-                Assert.Equal("amount-clear", AutomationProperties.GetAutomationId(clear));
-            }
-            finally
-            {
-                window.Close();
-            }
+            window.Show(control);
+            return ControlAutomationPeer.CreatePeerForElement(control);
         }
 
-        [AvaloniaFact]
-        public void Navigation_Controls_Should_Name_Icon_Only_Buttons()
-        {
-            var carousel = new DaisyCarousel();
-            AutomationProperties.SetAutomationId(carousel, "gallery");
-            var window = new Window { Content = carousel };
-            window.Show();
-            carousel.UpdateLayout();
-
-            try
-            {
-                var previousSlide = GetTemplatePart<Button>(carousel, "PART_PreviousButton");
-                var nextSlide = GetTemplatePart<Button>(carousel, "PART_NextButton");
-                Assert.Equal("Previous slide", AutomationProperties.GetName(previousSlide));
-                Assert.Equal("gallery-previous", AutomationProperties.GetAutomationId(previousSlide));
-                Assert.Equal("Next slide", AutomationProperties.GetName(nextSlide));
-                Assert.Equal("gallery-next", AutomationProperties.GetAutomationId(nextSlide));
-
-                var stack = new DaisyStack { ShowNavigation = true };
-                stack.Items.Add(new Border());
-                AutomationProperties.SetAutomationId(stack, "stack");
-                window.Content = stack;
-                stack.UpdateLayout();
-
-                var previousItem = GetTemplatePart<Button>(stack, "PART_PreviousButton");
-                var nextItem = GetTemplatePart<Button>(stack, "PART_NextButton");
-                Assert.Equal("Previous item", AutomationProperties.GetName(previousItem));
-                Assert.Equal("stack-previous", AutomationProperties.GetAutomationId(previousItem));
-                Assert.Equal("Next item", AutomationProperties.GetName(nextItem));
-                Assert.Equal("stack-next", AutomationProperties.GetAutomationId(nextItem));
-            }
-            finally
-            {
-                window.Close();
-            }
-        }
-
-        #endregion
-
-        private static T GetTemplatePart<T>(Control owner, string name) where T : Control
-        {
-            return owner.GetVisualDescendants()
-                .OfType<T>()
-                .Single(control => string.Equals(control.Name, name, StringComparison.Ordinal));
-        }
-
+        private static void AssertNamed(AvaloniaDriver driver, string automationId, string name) =>
+            Assert.Equal(name, driver.FindElement(By.AutomationId(automationId)).GetAttribute("accessibilityname"));
     }
 }
