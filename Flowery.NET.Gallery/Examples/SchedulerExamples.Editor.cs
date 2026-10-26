@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
@@ -26,22 +26,25 @@ public partial class SchedulerExamples
         public override string ToString() => Label;
     }
 
-    // The editor fields as values, so a culture change that reformats a date does not count as an edit.
+    // The editor fields as values, to tell an edit from fields that were only shown again.
     private sealed record EditorFields(string Subject, DateTime? Start, TimeSpan? StartTime, DateTime? End, TimeSpan? EndTime,
         int SpanMode, string Description, bool? AllDay, int Resource, Color? Color);
 
-    private CultureInfo _editorCulture = CultureInfo.InvariantCulture;
     private EditorFields? _openedFields;
+    // The last valid start and end of the editor, whose duration a moved start or end keeps.
+    private (DateTime Start, DateTime End)? _editorSpan;
+    // Set while the editor fills its fields, so their change events do not move the other end.
+    private bool _fillingEditor;
     private IReadOnlyList<AppointmentModel> _conflicts = Array.Empty<AppointmentModel>();
 
     private void OpenEditor(AppointmentModel appointment, bool isNew)
     {
+        _fillingEditor = true;
         _editing = appointment;
         _isNew = isNew;
         SubjectInput.Text = appointment.Subject;
-        _editorCulture = DemoScheduler.FormattingCulture;
-        StartInput.Text = DemoScheduler.FormatDate(appointment.Start);
-        EndInput.Text = DemoScheduler.FormatDate(appointment.End);
+        StartInput.SelectedDate = appointment.Start.Date;
+        EndInput.SelectedDate = appointment.End.Date;
         StartTimeInput.ItemsSource = null;
         EndTimeInput.ItemsSource = null;
         ColorInput.ItemsSource = null;
@@ -54,6 +57,9 @@ public partial class SchedulerExamples
         EditorError.Text = string.Empty;
         _conflicts = Array.Empty<AppointmentModel>();
         RefreshEditorChoices();
+        _editorSpan = null;
+        _fillingEditor = false;
+        KeepSpanValid(movedStart: true);
         EditorPanel.IsVisible = true;
         // The editor needs the height more than the description and the options.
         if (FoldsIntro)
@@ -61,13 +67,10 @@ public partial class SchedulerExamples
         _openedFields = ReadEditorFields();
     }
 
-    private EditorFields ReadEditorFields() => new(SubjectInput.Text ?? string.Empty, ParseEditorDate(StartInput.Text),
-        (StartTimeInput.SelectedItem as TimeChoice)?.Time, ParseEditorDate(EndInput.Text), (EndTimeInput.SelectedItem as TimeChoice)?.Time,
+    private EditorFields ReadEditorFields() => new(SubjectInput.Text ?? string.Empty, StartInput.SelectedDate,
+        (StartTimeInput.SelectedItem as TimeChoice)?.Time, EndInput.SelectedDate, (EndTimeInput.SelectedItem as TimeChoice)?.Time,
         SpanModeInput.SelectedIndex, DescriptionInput.Text ?? string.Empty, AllDayInput.IsChecked, ResourceInput.SelectedIndex,
         (ColorInput.SelectedItem as ColorChoice)?.Color);
-
-    private DateTime? ParseEditorDate(string? text) =>
-        DateTime.TryParseExact(text, "d", _editorCulture, DateTimeStyles.None, out var date) ? date : null;
 
     // Light dismiss: a press on the scheduler or Escape closes the editor while its fields are as they were opened. With
     // changes it stays open until Save or Cancel.
@@ -87,19 +90,84 @@ public partial class SchedulerExamples
 
     private void RefreshEditorChoices()
     {
+        var filling = _fillingEditor;
+        _fillingEditor = true;
+        try
+        {
+            FillEditorChoices();
+        }
+        finally
+        {
+            _fillingEditor = filling;
+        }
+    }
+
+    // Moving the start onto or past the end moves the end along, keeping the duration; moving the end onto or before the
+    // start moves the start. An all-day appointment may end on its start day.
+    private void OnStartEdited(object? sender, SelectionChangedEventArgs e) => KeepSpanValid(movedStart: true);
+    private void OnEndEdited(object? sender, SelectionChangedEventArgs e) => KeepSpanValid(movedStart: false);
+
+    private void OnStartDateChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == CalendarDatePicker.SelectedDateProperty)
+            KeepSpanValid(movedStart: true);
+    }
+
+    private void OnEndDateChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == CalendarDatePicker.SelectedDateProperty)
+            KeepSpanValid(movedStart: false);
+    }
+
+    private void KeepSpanValid(bool movedStart)
+    {
+        if (_fillingEditor || EditorTime(StartInput, StartTimeInput) is not { } start || EditorTime(EndInput, EndTimeInput) is not { } end)
+            return;
+        var allDay = AllDayInput.IsChecked == true;
+        if ((allDay ? end < start : end <= start) && _editorSpan is { } span)
+        {
+            var duration = span.End - span.Start;
+            // An all-day range may end on its start day; with times the range lasts at least one time slot.
+            if (!allDay && duration <= TimeSpan.Zero)
+                duration = DemoScheduler.TimeSlotInterval;
+            _fillingEditor = true;
+            try
+            {
+                if (movedStart)
+                    ShowEditorTime(EndInput, EndTimeInput, end = start + duration);
+                else
+                    ShowEditorTime(StartInput, StartTimeInput, start = end - duration);
+            }
+            finally
+            {
+                _fillingEditor = false;
+            }
+        }
+        if (allDay ? end >= start : end > start)
+            _editorSpan = (start, end);
+    }
+
+    private DateTime? EditorTime(DaisyCalendarDatePicker date, DaisySelect time) => date.SelectedDate is { } day
+        ? day.Date + (AllDayInput.IsChecked == true ? TimeSpan.Zero : (time.SelectedItem as TimeChoice)?.Time ?? TimeSpan.Zero)
+        : null;
+
+    private void ShowEditorTime(DaisyCalendarDatePicker date, DaisySelect time, DateTime value)
+    {
+        date.SelectedDate = value.Date;
+        if (AllDayInput.IsChecked != true)
+            FillTimeChoices(time, value.TimeOfDay);
+    }
+
+    private void FillEditorChoices()
+    {
         if (_editing is null)
             return;
         var startTime = (StartTimeInput.SelectedItem as TimeChoice)?.Time ?? _editing.Start.TimeOfDay;
         var endTime = (EndTimeInput.SelectedItem as TimeChoice)?.Time ?? _editing.End.TimeOfDay;
         var color = ColorInput.SelectedItem is ColorChoice selected ? selected.Color : _editing.BackColor;
         var mode = SpanModeInput.SelectedIndex < 0 ? (int)_editing.SpanMode : SpanModeInput.SelectedIndex;
-        if (DateTime.TryParseExact(StartInput.Text, "d", _editorCulture, DateTimeStyles.None, out var startDate))
-            StartInput.Text = DemoScheduler.FormatDate(startDate);
-        if (DateTime.TryParseExact(EndInput.Text, "d", _editorCulture, DateTimeStyles.None, out var endDate))
-            EndInput.Text = DemoScheduler.FormatDate(endDate);
-        _editorCulture = DemoScheduler.FormattingCulture;
-        StartInput.PlaceholderText = _editorCulture.DateTimeFormat.ShortDatePattern;
-        EndInput.PlaceholderText = _editorCulture.DateTimeFormat.ShortDatePattern;
+        ShowDatesLikeTheScheduler(StartInput);
+        ShowDatesLikeTheScheduler(EndInput);
         FillTimeChoices(StartTimeInput, startTime);
         FillTimeChoices(EndTimeInput, endTime);
         SpanModeInput.ItemsSource = new[] { Text("Continuous"), Text("Daily") };
@@ -125,6 +193,17 @@ public partial class SchedulerExamples
         ShowConflicts();
     }
 
+    // The pickers write the date in the scheduler's regional format, which may differ from the UI culture: its pattern is
+    // used with the scheduler's own date separator, quoted, since the picker formats with the current culture.
+    private void ShowDatesLikeTheScheduler(DaisyCalendarDatePicker picker)
+    {
+        var format = DemoScheduler.FormattingCulture.DateTimeFormat;
+        picker.SelectedDateFormat = CalendarDatePickerFormat.Custom;
+        picker.CustomDateFormatString = format.ShortDatePattern.Replace("/", "'" + format.DateSeparator + "'");
+        picker.PlaceholderText = format.ShortDatePattern;
+        picker.FirstDayOfWeek = DemoScheduler.FirstDayOfWeek;
+    }
+
     private void FillTimeChoices(DaisySelect select, TimeSpan selected)
     {
         var times = DemoScheduler.GetTimeSlots().Append(selected).Distinct().Order().ToArray();
@@ -137,6 +216,8 @@ public partial class SchedulerExamples
     {
         StartTimeInput.IsEnabled = AllDayInput.IsChecked != true;
         EndTimeInput.IsEnabled = AllDayInput.IsChecked != true;
+        // With times, an all-day range that ended on its start day lasts one time slot.
+        KeepSpanValid(movedStart: true);
     }
 
     private void OnSave(object? sender, RoutedEventArgs e) => SaveEditor(false);
@@ -147,8 +228,7 @@ public partial class SchedulerExamples
         if (_editing is null || DemoScheduler.IsReadOnly)
             return;
         if (string.IsNullOrWhiteSpace(SubjectInput.Text) ||
-            !DateTime.TryParseExact(StartInput.Text, "d", _editorCulture, DateTimeStyles.None, out var start) ||
-            !DateTime.TryParseExact(EndInput.Text, "d", _editorCulture, DateTimeStyles.None, out var end) ||
+            StartInput.SelectedDate is not { } start || EndInput.SelectedDate is not { } end ||
             StartTimeInput.SelectedItem is not TimeChoice startTime || EndTimeInput.SelectedItem is not TimeChoice endTime)
         {
             EditorError.Text = Text("InvalidInput");

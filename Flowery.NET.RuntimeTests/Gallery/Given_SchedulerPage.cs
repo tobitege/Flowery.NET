@@ -1,4 +1,5 @@
-﻿using Avalonia;
+﻿using System.Globalization;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -70,6 +71,94 @@ public class Given_SchedulerPage
 
         var desktop = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples(touchHelp: false));
         Assert.Equal(GalleryLocalization.GetString("Scheduler_Help"), desktop.FindControl<TextBlock>("StatusText")!.Text);
+    }
+
+    [Fact]
+    public async Task When_An_Appointment_Is_Created_Its_Dates_Are_Picked_In_The_Format_Of_The_Scheduler()
+    {
+        // The picker formats with the culture of the UI; the scheduler's US format must win over a German UI.
+        var culture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
+        try
+        {
+            var page = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples());
+            var scheduler = page.FindControl<DaisyScheduler>("DemoScheduler")!;
+            scheduler.DateTimeFormat = SchedulerDateTimeFormat.US;
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            await OpenNewAsync(scheduler);
+            var start = page.FindControl<DaisyCalendarDatePicker>("StartInput")!;
+            var end = page.FindControl<DaisyCalendarDatePicker>("EndInput")!;
+            Assert.Equal(scheduler.SelectedDate.Date, start.SelectedDate);
+
+            var day = new DateTime(2026, 10, 28);
+            start.SelectedDate = day;
+            end.SelectedDate = day;
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            Assert.Equal("10/28/2026", start.GetVisualDescendants().OfType<TextBox>().First().Text);
+
+            // The picked date is saved without any text being parsed.
+            page.FindControl<TextBox>("SubjectInput")!.Text = "Picked";
+            page.FindControl<Border>("EditorPanel")!.GetVisualDescendants().OfType<Button>()
+                .First(static button => Equals(button.Content, GalleryLocalization.GetString("Scheduler_Save")))
+                .RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            Assert.Equal(day, scheduler.Appointments!.Single(static appointment => appointment.Subject == "Picked").Start.Date);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = culture;
+        }
+    }
+
+    [Fact]
+    public async Task When_The_Start_Passes_The_End_The_End_Moves_Along_And_The_Other_Way_Round()
+    {
+        var page = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples());
+        var scheduler = page.FindControl<DaisyScheduler>("DemoScheduler")!;
+        await OpenNewAsync(scheduler);
+        var start = page.FindControl<DaisyCalendarDatePicker>("StartInput")!;
+        var end = page.FindControl<DaisyCalendarDatePicker>("EndInput")!;
+        var startTime = page.FindControl<DaisySelect>("StartTimeInput")!;
+        var endTime = page.FindControl<DaisySelect>("EndTimeInput")!;
+        var day = start.SelectedDate!.Value;
+        string Time(int hours, int minutes) => scheduler.FormatTime(day.AddHours(hours).AddMinutes(minutes));
+        // A new appointment lasts one time slot interval from the first time slot.
+        var duration = scheduler.TimeSlotInterval;
+
+        start.SelectedDate = day.AddDays(2);
+        Assert.Equal(day.AddDays(2), end.SelectedDate);
+
+        end.SelectedDate = day.AddDays(-1);
+        Assert.Equal(day.AddDays(-1), start.SelectedDate);
+
+        // On the same day, a start time after the end time moves the end time along.
+        startTime.SelectedItem = startTime.Items.Cast<object>().Single(item => item.ToString() == Time(12, 0));
+        Assert.Equal(scheduler.FormatTime(day.AddHours(12) + duration), endTime.SelectedItem?.ToString());
+        // A start that stays before the end leaves it.
+        startTime.SelectedItem = startTime.Items.Cast<object>().Single(item => item.ToString() == Time(11, 0));
+        Assert.Equal(scheduler.FormatTime(day.AddHours(12) + duration), endTime.SelectedItem?.ToString());
+    }
+
+    [Fact]
+    public async Task When_An_All_Day_Range_On_One_Day_Gets_Times_It_Lasts_One_Time_Slot()
+    {
+        var page = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples());
+        var scheduler = page.FindControl<DaisyScheduler>("DemoScheduler")!;
+        var day = scheduler.SelectedDate.Date;
+        // An all-day appointment as the scheduler creates it from its all-day row: its end is the next midnight.
+        typeof(SchedulerExamples).GetMethod("OpenEditor", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .Invoke(page, [new AppointmentModel { Id = Guid.NewGuid(), Start = day, End = day.AddDays(1), IsAllDay = true }, true]);
+        await RuntimeTestHelpers.WaitForRenderAsync();
+        var end = page.FindControl<DaisyCalendarDatePicker>("EndInput")!;
+        var endTime = page.FindControl<DaisySelect>("EndTimeInput")!;
+
+        // All day it may end on its start day.
+        end.SelectedDate = day;
+        Assert.Equal(day, end.SelectedDate);
+
+        page.FindControl<CheckBox>("AllDayInput")!.IsChecked = false;
+        Assert.Equal(day, end.SelectedDate);
+        Assert.Equal(scheduler.FormatTime(day + scheduler.TimeSlotInterval), endTime.SelectedItem?.ToString());
     }
 
     [Fact]
