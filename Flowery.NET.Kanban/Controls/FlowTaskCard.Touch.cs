@@ -1,14 +1,19 @@
 ﻿namespace Flowery.NET.Kanban.Controls
 {
-    // Avalonia has no platform drag and drop on Android (DragDrop.DoDragDropAsync returns None there), so with touch
-    // selection a finger on a selected card moves it inside the board itself: a copy of the card follows the finger, the
-    // column under it shows where the card lands, and the release drops it there through the same path as a drag.
-    // Swipes over unselected cards keep scrolling the board.
+    // Touch on a phone or tablet follows the platforms (Android, iOS, the Kanban and calendar apps): a tap opens the card's
+    // editor, or toggles its selection while cards are selected; holding the card selects it, and moving the finger then
+    // drags it. A press may start a swipe through the board, so a tap is decided on release, and a swipe neither opens,
+    // selects nor drags. Avalonia has no platform drag and drop on Android (DragDrop.DoDragDropAsync returns None there),
+    // so the card moves itself: a copy follows the finger, the column under it shows where the card lands, and the
+    // release drops it there through the same path as a drag.
     public partial class FlowTaskCard
     {
         private const double AutoScrollEdge = 40;
         private const double AutoScrollStep = 12;
 
+        private IPointer? _tapPointer;
+        private Point _tapStart;
+        private DispatcherTimer? _holdTimer;
         private TouchDrag? _touchDrag;
 
         private sealed class TouchDrag(IPointer pointer, Point start, string taskId)
@@ -29,33 +34,96 @@
 
         private FlowTask? CardTask => CloseCommandParameter as FlowTask ?? Task ?? _trackedTask;
 
-        // A press on a selected card keeps the scroll gesture away; the drag itself starts once the finger moves.
-        private void BeginTouchDrag(PointerPressedEventArgs e)
+        private void BeginTouchPress(PointerPressedEventArgs e)
         {
             CancelTouchDrag();
-            if (CardTask is not { IsSelected: true } task || string.IsNullOrWhiteSpace(task.Id))
+            _tapPointer = e.Pointer;
+            _tapStart = e.GetPosition(this);
+            _holdTimer ??= new DispatcherTimer();
+            _holdTimer.Stop();
+            _holdTimer.Interval = Application.Current?.PlatformSettings?.HoldWaitDuration ?? TimeSpan.FromMilliseconds(500);
+            _holdTimer.Tick -= OnHoldTimerTick;
+            _holdTimer.Tick += OnHoldTimerTick;
+            _holdTimer.Start();
+        }
+
+        // Held without moving: the card is selected, and the finger may drag it now.
+        private void OnHoldTimerTick(object? sender, EventArgs e)
+        {
+            _holdTimer?.Stop();
+            // A swipe ended the press before (OnCardPointerMoved), long before the scroll gesture takes the finger.
+            if (_tapPointer is not { } pointer || CardTask is not { } task || string.IsNullOrWhiteSpace(task.Id))
                 return;
 
-            e.PreventGestureRecognition();
-            _touchDrag = new TouchDrag(e.Pointer, e.GetPosition(this), task.Id);
+            _tapPointer = null;
+            if (!task.IsSelected)
+                SelectTask(task, KeyModifiers.Control);
+            _touchDrag = new TouchDrag(pointer, _tapStart, task.Id);
         }
 
         private void OnCardPointerMoved(object? sender, PointerEventArgs e)
         {
+            if (ReferenceEquals(_tapPointer, e.Pointer))
+            {
+                // Moved before the hold: a swipe, which the board scrolls.
+                if (!IsWithin(e.GetPosition(this), _tapStart, TapSize(e.Pointer)))
+                    EndTouchPress();
+                return;
+            }
+
             if (_touchDrag is not { } drag || !ReferenceEquals(drag.Pointer, e.Pointer))
                 return;
 
-            if (!drag.IsMoving)
-            {
-                var tapSize = Application.Current?.PlatformSettings?.GetTapSize(e.Pointer.Type) ?? new Size(10, 10);
-                if (IsWithin(e.GetPosition(this), drag.Start, tapSize) || !StartTouchDrag(drag))
-                    return;
-            }
+            // The held card keeps the finger; the scroll gesture must not take it.
+            e.PreventGestureRecognition();
+            if (!drag.IsMoving && (IsWithin(e.GetPosition(this), drag.Start, TapSize(e.Pointer)) || !StartTouchDrag(drag)))
+                return;
 
             drag.Point = e.GetPosition(drag.TopLevel);
             UpdateTouchDrag(drag);
             e.Handled = true;
         }
+
+        private void OnCardPointerReleased(object? sender, PointerReleasedEventArgs e)
+        {
+            if (_touchDrag is { } drag && ReferenceEquals(drag.Pointer, e.Pointer))
+            {
+                // The hold selected the card, so its release is no tap; a moved card lands where the finger left it.
+                EndTouchDrag(drag, e);
+                e.Handled = true;
+                return;
+            }
+
+            if (!ReferenceEquals(_tapPointer, e.Pointer))
+                return;
+
+            EndTouchPress();
+            if (!IsWithin(e.GetPosition(this), _tapStart, TapSize(e.Pointer)) || CardTask is not { } task)
+                return;
+
+            e.Handled = true;
+            if (IsSelectionActive())
+                SelectTask(task, KeyModifiers.Control);
+            else
+                TryExecuteEdit();
+        }
+
+        private void EndTouchPress()
+        {
+            _tapPointer = null;
+            _holdTimer?.Stop();
+        }
+
+        // While cards are selected, a tap adds a card to the selection or takes it out.
+        private bool IsSelectionActive() =>
+            _parentKanban?.Board.Columns.Any(static column => column.Tasks.Any(static task => task.IsSelected))
+            ?? CardTask?.IsSelected == true;
+
+        private static Size TapSize(IPointer pointer) =>
+            Application.Current?.PlatformSettings?.GetTapSize(pointer.Type) ?? new Size(10, 10);
+
+        private static bool IsWithin(Point point, Point origin, Size tapSize) =>
+            Math.Abs(point.X - origin.X) <= tapSize.Width / 2 && Math.Abs(point.Y - origin.Y) <= tapSize.Height / 2;
 
         private bool StartTouchDrag(TouchDrag drag)
         {
@@ -63,11 +131,6 @@
             drag.Layer = OverlayLayer.GetOverlayLayer(this);
             if (drag.TopLevel is null || drag.Layer is null)
                 return false;
-
-            // The finger moves the card, so it neither edits it nor counts as a tap.
-            CancelTitleLongPress();
-            _tapPointer = null;
-            _lastTapTime = 0;
 
             drag.Ghost = new Border
             {
@@ -134,24 +197,18 @@
                 position < AutoScrollEdge ? -AutoScrollStep : position > length - AutoScrollEdge ? AutoScrollStep : 0;
         }
 
-        // Ends a touch drag; returns whether the finger moved a card, so the release is no tap.
-        private bool EndTouchDrag(PointerReleasedEventArgs e)
+        private void EndTouchDrag(TouchDrag drag, PointerReleasedEventArgs e)
         {
-            if (_touchDrag is not { } drag || !ReferenceEquals(drag.Pointer, e.Pointer))
-                return false;
-
             if (!drag.IsMoving)
             {
-                _touchDrag = null;
-                return false;
+                CancelTouchDrag();
+                return;
             }
 
             drag.Point = e.GetPosition(drag.TopLevel);
             var column = ColumnAt(drag);
             CancelTouchDrag();
             column?.DropTask(drag.TaskId, visual => PointIn(drag, visual));
-            e.Handled = true;
-            return true;
         }
 
         private void OnCardPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)

@@ -309,7 +309,7 @@
   "Scheduler_Cancel": "Annuler",
   "Scheduler_Unassigned": "Non attribué",
   "Scheduler_Help": "Clic pour sélectionner · Ctrl/Cmd-clic pour une sélection multiple · Double-clic pour modifier ou créer · Suppr pour supprimer · Clic droit pour le menu contextuel · Faites glisser le bord droit d'un en-tête, utilisez Ctrl+molette ou double-cliquez sur un en-tête pour élargir les colonnes",
-  "Scheduler_TouchHelp": "Touchez pour sélectionner · Faites glisser un rendez-vous sélectionné pour le déplacer, ou son bord pour changer sa durée · Touchez deux fois pour modifier ou créer · La corbeille supprime la sélection · Écartez deux doigts ou touchez deux fois un en-tête pour élargir les colonnes",
+  "Scheduler_TouchHelp": "Touchez pour ouvrir · Maintenez pour sélectionner, puis faites glisser pour déplacer, ou faites glisser un bord pour changer la durée · Avec une sélection, touchez pour ajouter ou retirer · Touchez deux fois un créneau libre pour créer · La corbeille supprime la sélection · Écartez deux doigts ou touchez deux fois un en-tête pour élargir les colonnes",
   "Scheduler_InvalidInput": "Saisissez un objet et des dates valides. La fin doit être après le début.",
   "Scheduler_Edit": "Modifier",
   "Scheduler_Duplicate": "Dupliquer",

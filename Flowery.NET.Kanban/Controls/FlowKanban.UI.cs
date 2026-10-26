@@ -1006,6 +1006,8 @@ namespace Flowery.NET.Kanban.Controls
             if (_boardContentHost != null)
             {
                 _boardContentHost.SizeChanged += OnBoardContentSizeChanged;
+                // In every layout, the compact one of a phone too, unlike the column reordering below.
+                AttachFreeTapHandlers();
                 if (_isColumnReorderActive)
                 {
                     AttachBoardDragHandlers();
@@ -1030,6 +1032,7 @@ namespace Flowery.NET.Kanban.Controls
             if (_boardContentHost != null)
             {
                 _boardContentHost.SizeChanged -= OnBoardContentSizeChanged;
+                DetachFreeTapHandlers();
                 DetachBoardDragHandlers();
                 _boardContentHost = null;
             }

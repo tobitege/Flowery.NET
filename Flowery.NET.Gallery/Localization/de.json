@@ -35,7 +35,7 @@
   "Scheduler_Save": "Speichern",
   "Scheduler_Cancel": "Abbrechen",
   "Scheduler_Help": "Klick zum Auswählen · Strg/Cmd-Klick für Mehrfachauswahl · Doppelklick zum Bearbeiten oder Erstellen · Entf zum Löschen · Rechtsklick für das Kontextmenü · Rechte Kante eines Spaltenkopfs ziehen, Strg+Mausrad oder Doppelklick auf einen Spaltenkopf verbreitert die Spalten",
-  "Scheduler_TouchHelp": "Tippen zum Auswählen · Ausgewählten Termin ziehen zum Verschieben, seine Kante zum Ändern der Dauer · Doppeltippen zum Bearbeiten oder Erstellen · Der Papierkorb löscht die Auswahl · Mit zwei Fingern spreizen oder einen Spaltenkopf doppelt antippen, um die Spalten zu verbreitern",
+  "Scheduler_TouchHelp": "Tippen zum Öffnen · Halten zum Auswählen, dann ziehen zum Verschieben oder an der Kante zum Ändern der Dauer · Bei einer Auswahl tippen zum Hinzufügen oder Entfernen · Doppeltippen auf eine freie Zeit zum Erstellen · Der Papierkorb löscht die Auswahl · Mit zwei Fingern spreizen oder einen Spaltenkopf doppelt antippen, um die Spalten zu verbreitern",
   "Scheduler_New": "Neuer Termin",
   "Scheduler_Delete": "Löschen",
   "Scheduler_Unassigned": "Nicht zugewiesen",
