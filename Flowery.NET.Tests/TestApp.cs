@@ -6,6 +6,9 @@ using Avalonia.Themes.Fluent;
 
 [assembly: AvaloniaTestApplication(typeof(Flowery.NET.Tests.TestAppBuilder))]
 [assembly: AvaloniaTestIsolation(AvaloniaTestIsolationLevel.PerAssembly)]
+// Plain facts run on the UI thread too. On a thread of their own, the first one to create a cached brush or resource
+// would own it, and every UI test using it later would fail.
+[assembly: AvaloniaTestFramework]
 
 namespace Flowery.NET.Tests
 {
