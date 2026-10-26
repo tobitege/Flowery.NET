@@ -1,4 +1,4 @@
-using Flowery.Controls.Custom;
+﻿using Flowery.Controls.Custom;
 using Flowery.Controls.Custom.Weather;
 
 namespace Flowery.Controls
@@ -190,6 +190,11 @@ namespace Flowery.Controls
 
             // The FAB container has no surface; its action buttons draw the effect themselves.
             RegisterExclusion<DaisyFab>();
+
+            // The glass range and toggle replace the templates of their base controls, and a shadow under their
+            // translucent glass would show through it.
+            RegisterExclusion<DaisyGlassRange>();
+            RegisterExclusion<DaisyGlassToggle>();
         }
     }
 }
