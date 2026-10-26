@@ -162,6 +162,7 @@
   "Scheduler_ShowWeekends": "إظهار عطلات نهاية الأسبوع",
   "Scheduler_GroupByDay": "تجميع حسب اليوم",
   "Scheduler_TimeScale": "الفاصل الزمني",
+  "Scheduler_ColumnZoom": "عرض الأعمدة",
   "Scheduler_Previous": "الفترة السابقة",
   "Scheduler_Next": "الفترة التالية",
   "Scheduler_ChooseDate": "اختيار التاريخ",

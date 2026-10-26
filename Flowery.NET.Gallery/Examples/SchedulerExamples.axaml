@@ -26,7 +26,7 @@
             </WrapPanel>
         </StackPanel>
         <Grid Grid.Row="1">
-            <controls:DaisyScheduler x:Name="DemoScheduler" CurrentView="Month" />
+            <controls:DaisyScheduler x:Name="DemoScheduler" CurrentView="Month" StateKey="gallery" />
             <!-- The editor lies over the right side of the scheduler while an appointment is created or edited. -->
             <Border x:Name="EditorPanel" IsVisible="False" Width="280" HorizontalAlignment="Right"
                     Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"

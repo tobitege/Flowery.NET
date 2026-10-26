@@ -160,6 +160,7 @@
   "Scheduler_ShowWeekends": "Hafta sonlarını göster",
   "Scheduler_GroupByDay": "Güne göre grupla",
   "Scheduler_TimeScale": "Zaman aralığı",
+  "Scheduler_ColumnZoom": "Sütun genişliği",
   "Scheduler_Previous": "Önceki dönem",
   "Scheduler_Next": "Sonraki dönem",
   "Scheduler_ChooseDate": "Tarih seç",

@@ -45,6 +45,7 @@
   "Scheduler_ShowWeekends": "Show weekends",
   "Scheduler_GroupByDay": "Group by day",
   "Scheduler_TimeScale": "Time increment",
+  "Scheduler_ColumnZoom": "Column width",
   "Clock_Hour": "hour",
   "Clock_Hours": "hours",
   "Clock_Hours_Short": "h",

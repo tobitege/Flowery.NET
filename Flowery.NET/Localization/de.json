@@ -50,6 +50,7 @@
   "Scheduler_ShowWeekends": "Wochenenden anzeigen",
   "Scheduler_GroupByDay": "Nach Tag gruppieren",
   "Scheduler_TimeScale": "Zeitraster",
+  "Scheduler_ColumnZoom": "Spaltenbreite",
   "Clock_Hour": "Stunde",
   "Clock_Hours": "Stunden",
   "Clock_Hours_Short": "Std",

@@ -160,6 +160,7 @@
   "Scheduler_ShowWeekends": "Mostrar fines de semana",
   "Scheduler_GroupByDay": "Agrupar por día",
   "Scheduler_TimeScale": "Intervalo de tiempo",
+  "Scheduler_ColumnZoom": "Ancho de columna",
   "Scheduler_Previous": "Período anterior",
   "Scheduler_Next": "Período siguiente",
   "Scheduler_ChooseDate": "Elegir fecha",
