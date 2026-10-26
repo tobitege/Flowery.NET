@@ -2004,151 +2004,156 @@
                                 BorderThickness="1,0,0,0"
                                 Padding="12"
                                 Width="56">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <!-- Action Buttons -->
-                                <StackPanel Spacing="12"
-                                            HorizontalAlignment="Center">
-                                    <controls:DaisyButton
-                                                          Command="{TemplateBinding ShowHomeCommand}"
-                                                          AutomationProperties.Name="{Binding [Kanban_Home]}"
-                                                          AutomationProperties.AutomationId="Kanban_Home"
-                                                          Variant="Neutral"
-                                                          Shape="Square"
-                                                          Size="Small">
-                                        <ToolTip.Tip>
-                                            <ToolTip Content="{Binding [Kanban_Home]}" />
-                                        </ToolTip.Tip>
-                                        <controls:DaisyIconText IconData="{StaticResource DaisyIconHome}"
-                                                                IconSize="14" />
-                                    </controls:DaisyButton>
-                                    <controls:DaisyButton
-                                                          Command="{TemplateBinding SettingsCommand}"
-                                                          AutomationProperties.Name="{Binding [Kanban_Settings_Title]}"
-                                                          AutomationProperties.AutomationId="Kanban_Settings"
-                                                          Variant="Neutral"
-                                                          Shape="Square"
-                                                          Size="Small">
-                                        <ToolTip.Tip>
-                                            <ToolTip Content="{Binding [Kanban_Settings_Title]}" />
-                                        </ToolTip.Tip>
-                                        <controls:DaisyIconText IconData="{StaticResource DaisyIconSettings}"
-                                                                IconSize="14" />
-                                    </controls:DaisyButton>
+                            <!-- Scrolls instead of letting the groups overlap when the board is lower than the buttons; at least as high as
+                                 the view, so the statistics stay at the bottom. -->
+                            <ScrollViewer VerticalScrollBarVisibility="Hidden"
+                                          HorizontalScrollBarVisibility="Disabled">
+                                <Grid MinHeight="{Binding Bounds.Height, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <!-- Action Buttons -->
                                     <StackPanel Spacing="12"
+                                                HorizontalAlignment="Center">
+                                        <controls:DaisyButton
+                                                              Command="{TemplateBinding ShowHomeCommand}"
+                                                              AutomationProperties.Name="{Binding [Kanban_Home]}"
+                                                              AutomationProperties.AutomationId="Kanban_Home"
+                                                              Variant="Neutral"
+                                                              Shape="Square"
+                                                              Size="Small">
+                                            <ToolTip.Tip>
+                                                <ToolTip Content="{Binding [Kanban_Home]}" />
+                                            </ToolTip.Tip>
+                                            <controls:DaisyIconText IconData="{StaticResource DaisyIconHome}"
+                                                                    IconSize="14" />
+                                        </controls:DaisyButton>
+                                        <controls:DaisyButton
+                                                              Command="{TemplateBinding SettingsCommand}"
+                                                              AutomationProperties.Name="{Binding [Kanban_Settings_Title]}"
+                                                              AutomationProperties.AutomationId="Kanban_Settings"
+                                                              Variant="Neutral"
+                                                              Shape="Square"
+                                                              Size="Small">
+                                            <ToolTip.Tip>
+                                                <ToolTip Content="{Binding [Kanban_Settings_Title]}" />
+                                            </ToolTip.Tip>
+                                            <controls:DaisyIconText IconData="{StaticResource DaisyIconSettings}"
+                                                                    IconSize="14" />
+                                        </controls:DaisyButton>
+                                        <StackPanel Spacing="12"
+                                                    IsVisible="{Binding IsBoardViewActive, RelativeSource={RelativeSource TemplatedParent}}">
+                                            <controls:DaisyButton
+                                                                  Command="{TemplateBinding UndoCommand}"
+                                                                  IsEnabled="{Binding CommandHistory.CanUndo, RelativeSource={RelativeSource TemplatedParent}}"
+                                                                  AutomationProperties.Name="{Binding [Kanban_Undo]}"
+                                                                  AutomationProperties.AutomationId="Kanban_Undo"
+                                                                  Variant="Neutral"
+                                                                  Shape="Square"
+                                                                  Size="Small"
+                                                                  IsVisible="{Binding EnableUndoRedo, RelativeSource={RelativeSource TemplatedParent}}">
+                                                <ToolTip.Tip>
+                                                    <ToolTip Content="{Binding [Kanban_Undo]}" />
+                                                </ToolTip.Tip>
+                                                <controls:DaisyIconText IconData="{StaticResource DaisyIconArrowLeft}"
+                                                                        IconSize="14" />
+                                            </controls:DaisyButton>
+                                            <controls:DaisyButton
+                                                                  Command="{TemplateBinding RedoCommand}"
+                                                                  IsEnabled="{Binding CommandHistory.CanRedo, RelativeSource={RelativeSource TemplatedParent}}"
+                                                                  AutomationProperties.Name="{Binding [Kanban_Redo]}"
+                                                                  AutomationProperties.AutomationId="Kanban_Redo"
+                                                                  Variant="Neutral"
+                                                                  Shape="Square"
+                                                                  Size="Small"
+                                                                  IsVisible="{Binding EnableUndoRedo, RelativeSource={RelativeSource TemplatedParent}}">
+                                                <ToolTip.Tip>
+                                                    <ToolTip Content="{Binding [Kanban_Redo]}" />
+                                                </ToolTip.Tip>
+                                                <controls:DaisyIconText IconData="{StaticResource DaisyIconArrowRight}"
+                                                                        IconSize="14" />
+                                            </controls:DaisyButton>
+                                            <controls:DaisyDivider />
+                                            <controls:DaisyButton
+                                                                  Command="{TemplateBinding ZoomInCommand}"
+                                                                  AutomationProperties.Name="{Binding [Kanban_ZoomIn]}"
+                                                                  AutomationProperties.AutomationId="Kanban_ZoomIn"
+                                                                  Variant="Neutral"
+                                                                  Shape="Square"
+                                                                  Size="Small">
+                                                <ToolTip.Tip>
+                                                    <ToolTip Content="{Binding [Kanban_ZoomIn]}" />
+                                                </ToolTip.Tip>
+                                                <controls:DaisyIconText IconData="{StaticResource DaisyIconZoomIn}"
+                                                                        IconSize="14" />
+                                            </controls:DaisyButton>
+                                            <controls:DaisyButton
+                                                                  Command="{TemplateBinding ZoomOutCommand}"
+                                                                  AutomationProperties.Name="{Binding [Kanban_ZoomOut]}"
+                                                                  AutomationProperties.AutomationId="Kanban_ZoomOut"
+                                                                  Variant="Neutral"
+                                                                  Shape="Square"
+                                                                  Size="Small">
+                                                <ToolTip.Tip>
+                                                    <ToolTip Content="{Binding [Kanban_ZoomOut]}" />
+                                                </ToolTip.Tip>
+                                                <controls:DaisyIconText IconData="{StaticResource DaisyIconZoomOut}"
+                                                                        IconSize="14" />
+                                            </controls:DaisyButton>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <!-- Statistics Icon with Tooltip (at bottom of sidebar) -->
+                                    <StackPanel Grid.Row="1"
+                                                HorizontalAlignment="Center"
+                                                Spacing="8"
                                                 IsVisible="{Binding IsBoardViewActive, RelativeSource={RelativeSource TemplatedParent}}">
-                                        <controls:DaisyButton
-                                                              Command="{TemplateBinding UndoCommand}"
-                                                              IsEnabled="{Binding CommandHistory.CanUndo, RelativeSource={RelativeSource TemplatedParent}}"
-                                                              AutomationProperties.Name="{Binding [Kanban_Undo]}"
-                                                              AutomationProperties.AutomationId="Kanban_Undo"
-                                                              Variant="Neutral"
-                                                              Shape="Square"
-                                                              Size="Small"
-                                                              IsVisible="{Binding EnableUndoRedo, RelativeSource={RelativeSource TemplatedParent}}">
-                                            <ToolTip.Tip>
-                                                <ToolTip Content="{Binding [Kanban_Undo]}" />
-                                            </ToolTip.Tip>
-                                            <controls:DaisyIconText IconData="{StaticResource DaisyIconArrowLeft}"
-                                                                    IconSize="14" />
-                                        </controls:DaisyButton>
-                                        <controls:DaisyButton
-                                                              Command="{TemplateBinding RedoCommand}"
-                                                              IsEnabled="{Binding CommandHistory.CanRedo, RelativeSource={RelativeSource TemplatedParent}}"
-                                                              AutomationProperties.Name="{Binding [Kanban_Redo]}"
-                                                              AutomationProperties.AutomationId="Kanban_Redo"
-                                                              Variant="Neutral"
-                                                              Shape="Square"
-                                                              Size="Small"
-                                                              IsVisible="{Binding EnableUndoRedo, RelativeSource={RelativeSource TemplatedParent}}">
-                                            <ToolTip.Tip>
-                                                <ToolTip Content="{Binding [Kanban_Redo]}" />
-                                            </ToolTip.Tip>
-                                            <controls:DaisyIconText IconData="{StaticResource DaisyIconArrowRight}"
-                                                                    IconSize="14" />
-                                        </controls:DaisyButton>
                                         <controls:DaisyDivider />
                                         <controls:DaisyButton
-                                                              Command="{TemplateBinding ZoomInCommand}"
-                                                              AutomationProperties.Name="{Binding [Kanban_ZoomIn]}"
-                                                              AutomationProperties.AutomationId="Kanban_ZoomIn"
+                                                              Command="{TemplateBinding ShowKeyboardHelpCommand}"
+                                                              AutomationProperties.Name="{Binding [Kanban_KeyboardHelp_Title]}"
+                                                              AutomationProperties.AutomationId="Kanban_KeyboardHelp"
                                                               Variant="Neutral"
                                                               Shape="Square"
-                                                              Size="Small">
+                                                              Size="Small"
+                                                              IsVisible="{Binding Tag.IsKeyboardHelpVisible, ElementName=PART_BoardRoot}">
                                             <ToolTip.Tip>
-                                                <ToolTip Content="{Binding [Kanban_ZoomIn]}" />
+                                                <ToolTip Content="{Binding [Kanban_KeyboardHelp_Title]}" />
                                             </ToolTip.Tip>
-                                            <controls:DaisyIconText IconData="{StaticResource DaisyIconZoomIn}"
+                                            <controls:DaisyIconText IconSymbol="Help"
                                                                     IconSize="14" />
                                         </controls:DaisyButton>
                                         <controls:DaisyButton
-                                                              Command="{TemplateBinding ZoomOutCommand}"
-                                                              AutomationProperties.Name="{Binding [Kanban_ZoomOut]}"
-                                                              AutomationProperties.AutomationId="Kanban_ZoomOut"
+                                                              x:Name="PART_StatsButton"
+                                                              Command="{TemplateBinding ShowMetricsCommand}"
+                                                              Variant="Neutral"
+                                                              Shape="Square"
+                                                              Size="Small"
+                                                              AutomationProperties.AutomationId="Kanban_Statistics"
+                                                              AutomationProperties.Name="{Binding DataContext[Kanban_BoardStatistics], ElementName=PART_BoardRoot}">
+                                            <ToolTip.Tip>
+                                                <ToolTip Content="{Binding DataContext[Kanban_BoardStatistics], ElementName=PART_BoardRoot}" />
+                                            </ToolTip.Tip>
+                                            <controls:DaisyIconText IconData="{StaticResource DaisyIconChart}"
+                                                                    IconSize="14" />
+                                        </controls:DaisyButton>
+                                        <!-- Status Bar Toggle -->
+                                        <controls:DaisyButton
+                                                              Command="{TemplateBinding ToggleStatusBarCommand}"
+                                                              AutomationProperties.Name="{Binding [Kanban_ToggleStatusBar]}"
+                                                              AutomationProperties.AutomationId="Kanban_ToggleStatusBar"
                                                               Variant="Neutral"
                                                               Shape="Square"
                                                               Size="Small">
                                             <ToolTip.Tip>
-                                                <ToolTip Content="{Binding [Kanban_ZoomOut]}" />
+                                                <ToolTip Content="{Binding [Kanban_ToggleStatusBar]}" />
                                             </ToolTip.Tip>
-                                            <controls:DaisyIconText IconData="{StaticResource DaisyIconZoomOut}"
+                                            <controls:DaisyIconText IconData="{StaticResource DaisyIconPanelBottom}"
                                                                     IconSize="14" />
                                         </controls:DaisyButton>
                                     </StackPanel>
-                                </StackPanel>
-                                <!-- Statistics Icon with Tooltip (at bottom of sidebar) -->
-                                <StackPanel Grid.Row="1"
-                                            HorizontalAlignment="Center"
-                                            Spacing="8"
-                                            IsVisible="{Binding IsBoardViewActive, RelativeSource={RelativeSource TemplatedParent}}">
-                                    <controls:DaisyDivider />
-                                    <controls:DaisyButton
-                                                          Command="{TemplateBinding ShowKeyboardHelpCommand}"
-                                                          AutomationProperties.Name="{Binding [Kanban_KeyboardHelp_Title]}"
-                                                          AutomationProperties.AutomationId="Kanban_KeyboardHelp"
-                                                          Variant="Neutral"
-                                                          Shape="Square"
-                                                          Size="Small"
-                                                          IsVisible="{Binding Tag.IsKeyboardHelpVisible, ElementName=PART_BoardRoot}">
-                                        <ToolTip.Tip>
-                                            <ToolTip Content="{Binding [Kanban_KeyboardHelp_Title]}" />
-                                        </ToolTip.Tip>
-                                        <controls:DaisyIconText IconSymbol="Help"
-                                                                IconSize="14" />
-                                    </controls:DaisyButton>
-                                    <controls:DaisyButton
-                                                          x:Name="PART_StatsButton"
-                                                          Command="{TemplateBinding ShowMetricsCommand}"
-                                                          Variant="Neutral"
-                                                          Shape="Square"
-                                                          Size="Small"
-                                                          AutomationProperties.AutomationId="Kanban_Statistics"
-                                                          AutomationProperties.Name="{Binding DataContext[Kanban_BoardStatistics], ElementName=PART_BoardRoot}">
-                                        <ToolTip.Tip>
-                                            <ToolTip Content="{Binding DataContext[Kanban_BoardStatistics], ElementName=PART_BoardRoot}" />
-                                        </ToolTip.Tip>
-                                        <controls:DaisyIconText IconData="{StaticResource DaisyIconChart}"
-                                                                IconSize="14" />
-                                    </controls:DaisyButton>
-                                    <!-- Status Bar Toggle -->
-                                    <controls:DaisyButton
-                                                          Command="{TemplateBinding ToggleStatusBarCommand}"
-                                                          AutomationProperties.Name="{Binding [Kanban_ToggleStatusBar]}"
-                                                          AutomationProperties.AutomationId="Kanban_ToggleStatusBar"
-                                                          Variant="Neutral"
-                                                          Shape="Square"
-                                                          Size="Small">
-                                        <ToolTip.Tip>
-                                            <ToolTip Content="{Binding [Kanban_ToggleStatusBar]}" />
-                                        </ToolTip.Tip>
-                                        <controls:DaisyIconText IconData="{StaticResource DaisyIconPanelBottom}"
-                                                                IconSize="14" />
-                                    </controls:DaisyButton>
-                                </StackPanel>
-                            </Grid>
+                                </Grid>
+                            </ScrollViewer>
                         </Border>
                         <!-- Status Bar -->
                                 <Border x:Name="PART_StatusBarBorder"

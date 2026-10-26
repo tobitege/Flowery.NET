@@ -21,6 +21,12 @@ Enter commits a subtask rename; Escape cancels it. Save reads the current tag an
 
 See [FlowKanbanDialogBase](FlowKanbanDialogBase.md) for modal focus behavior.
 
+## Touch (Android and iOS)
+
+A double tap on a card toggles its selection, and a long press on its title edits it; a press starts no drag, so swipes scroll the board.
+The double tap is decided on release and counts only taps that did not move, so swipes over a card never select it.
+The sidebar scrolls when the board is lower than its buttons.
+
 ## Neumorphic Effect
 
 The board root sets `DaisyNeumorphic.ScopeEnabled="False"`, so columns, cards and their Daisy controls stay flat when a global [neumorphic](DaisyNeumorphic.md) mode is active.

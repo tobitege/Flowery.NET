@@ -1,4 +1,5 @@
-﻿using Flowery.Controls;
+﻿using Avalonia.Controls.Platform;
+using Flowery.Controls;
 
 namespace Flowery.NET.Kanban.Controls;
 
@@ -47,6 +48,9 @@ public class FlowKanbanDialogBase : DaisyModal
     private TopLevel? _topLevel;
     private OverlayLayer? _overlayLayer;
     private Border? _backdrop;
+    private IInputPane? _inputPane;
+    private double _keyboardInset;
+    private double _safeTopInset;
     private IInputElement? _focusedElementBeforeOpen;
     private bool _isTopLevelClosing;
     private bool _isAutoHeight;
@@ -420,6 +424,12 @@ public class FlowKanbanDialogBase : DaisyModal
         _backdrop.PointerPressed += OnBackdropPointerPressed;
         _overlayLayer.LayoutUpdated += OnOverlayLayerLayoutUpdated;
         _overlayLayer.Children.Add(_backdrop);
+        _inputPane = _topLevel.InputPane;
+        if (_inputPane is { })
+        {
+            _inputPane.StateChanged += OnInputPaneStateChanged;
+            KeepClearOfInputPane(_inputPane.OccludedRect);
+        }
         ApplyTheming();
         Focus();
         Dispatcher.UIThread.Post(() =>
@@ -453,6 +463,15 @@ public class FlowKanbanDialogBase : DaisyModal
             backdrop.PointerPressed -= OnBackdropPointerPressed;
             overlayLayer.Children.Remove(backdrop);
         }
+
+        if (_inputPane is { } inputPane)
+        {
+            inputPane.StateChanged -= OnInputPaneStateChanged;
+            _inputPane = null;
+        }
+        _keyboardInset = 0;
+        _safeTopInset = 0;
+        _dialogHost.Margin = default;
 
         if (_topLevel is { } topLevel)
         {
@@ -490,12 +509,43 @@ public class FlowKanbanDialogBase : DaisyModal
 
     private void ApplyDialogSize()
     {
+        // Above an on-screen keyboard the dialog is at most as high as the part of the overlay the keyboard leaves.
+        var height = DialogHeight;
+        if (_keyboardInset > 0 && _overlayLayer is { } overlayLayer)
+            height = Math.Min(height,
+                Math.Max(0, overlayLayer.Bounds.Height - _keyboardInset - _safeTopInset - DialogBoundsMargin * 2));
         _dialogHost.Width = DialogWidth;
         _dialogHost.MinWidth = Math.Min(AbsoluteMinWidth, DialogWidth);
         _dialogHost.MaxWidth = MaxDialogWidth;
-        _dialogHost.Height = _isAutoHeight ? double.NaN : DialogHeight;
-        _dialogHost.MinHeight = _isAutoHeight ? 0 : Math.Min(AbsoluteMinHeight, DialogHeight);
-        _dialogHost.MaxHeight = DialogHeight;
+        _dialogHost.Height = _isAutoHeight ? double.NaN : height;
+        _dialogHost.MinHeight = _isAutoHeight ? 0 : Math.Min(AbsoluteMinHeight, height);
+        _dialogHost.MaxHeight = height;
+    }
+
+    private void OnInputPaneStateChanged(object? sender, InputPaneStateEventArgs e) => KeepClearOfInputPane(e.EndRect);
+
+    /// <summary>
+    /// Keeps the dialog clear of an on-screen keyboard that covers <paramref name="occludedRect"/>, in the coordinates of
+    /// the top level and empty while it is closed, and brings the focused field into view. The keyboard covers the overlay
+    /// without making it smaller, so fields and buttons under it could not be reached.
+    /// </summary>
+    internal void KeepClearOfInputPane(Rect occludedRect)
+    {
+        if (_overlayLayer is not { } overlayLayer || _topLevel is not { } topLevel)
+            return;
+
+        var bottom = overlayLayer.TranslatePoint(new Point(0, overlayLayer.Bounds.Height), topLevel)?.Y
+            ?? overlayLayer.Bounds.Height;
+        _keyboardInset = occludedRect.Height > 0 ? Math.Max(0, bottom - occludedRect.Top) : 0;
+        // The overlay reaches under the status bar on Android; the dialog moved up keeps clear of it.
+        _safeTopInset = _keyboardInset > 0 ? topLevel.InsetsManager?.SafeAreaPadding.Top ?? 0 : 0;
+        _dialogHost.Margin = new Thickness(0, _safeTopInset, 0, _keyboardInset);
+        if (_keyboardInset > 0)
+            _dialogTranslation.Y = 0;
+        ApplyDialogSize();
+        if (_keyboardInset > 0 && topLevel.FocusManager?.GetFocusedElement() is Control focused
+            && this.IsVisualAncestorOf(focused))
+            Dispatcher.UIThread.Post(focused.BringIntoView, DispatcherPriority.Loaded);
     }
 
     private void ApplyTheming()
