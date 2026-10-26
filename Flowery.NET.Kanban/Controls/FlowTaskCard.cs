@@ -57,6 +57,7 @@ namespace Flowery.NET.Kanban.Controls
             PointerPressed += OnCardPointerPressed;
             // A scroll gesture through the board marks the release handled.
             AddHandler(PointerReleasedEvent, OnCardPointerReleased, RoutingStrategies.Bubble, handledEventsToo: true);
+            PointerMoved += OnCardPointerMoved;
             UpdateSelectionBadgePlacement();
         }
 
@@ -94,6 +95,8 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnUnloaded(object? sender, RoutedEventArgs e)
         {
+            CancelTouchDrag();
+
             // Unsubscribe from parent
             if (_parentKanban != null)
             {
@@ -780,6 +783,7 @@ namespace Flowery.NET.Kanban.Controls
                     _lastTapTime = 0;
                 _tapPointer = e.Pointer;
                 _tapStart = e.GetPosition(this);
+                BeginTouchDrag(e);
                 return;
             }
 
@@ -815,6 +819,8 @@ namespace Flowery.NET.Kanban.Controls
         // move count: Avalonia's click count and DoubleTapped count swipes at the same spot as well.
         private void OnCardPointerReleased(object? sender, PointerReleasedEventArgs e)
         {
+            if (EndTouchDrag(e))
+                return;
             if (!UsesTouchSelection || !ReferenceEquals(_tapPointer, e.Pointer))
                 return;
 
@@ -839,7 +845,7 @@ namespace Flowery.NET.Kanban.Controls
 
             // A third tap starts a new pair instead of toggling again.
             _lastTapTime = 0;
-            if ((CloseCommandParameter as FlowTask ?? Task ?? _trackedTask) is { } task)
+            if (CardTask is { } task)
             {
                 task.IsSelected = !task.IsSelected;
                 e.Handled = true;

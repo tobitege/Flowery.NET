@@ -23,8 +23,10 @@ See [FlowKanbanDialogBase](FlowKanbanDialogBase.md) for modal focus behavior.
 
 ## Touch (Android and iOS)
 
-A double tap on a card toggles its selection, and a long press on its title edits it; a press starts no drag, so swipes scroll the board.
+A double tap on a card toggles its selection, and a long press on its title edits it; swipes over unselected cards scroll the board.
 The double tap is decided on release and counts only taps that did not move, so swipes over a card never select it.
+A finger on a selected card drags it: a copy follows the finger, the column under it shows the drop position, and the release moves the card as a drop does (WIP limits, lanes).
+Near an edge of the board or a column, the view scrolls along. Avalonia has no platform drag and drop on Android, so the board moves the card itself.
 The sidebar scrolls when the board is lower than its buttons.
 
 ## Neumorphic Effect

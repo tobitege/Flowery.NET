@@ -1,9 +1,11 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Raw;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
@@ -110,6 +112,63 @@ public class KanbanAndroidRegressionTests
         {
             window.Close();
         }
+    }
+
+    [AvaloniaFact]
+    public void With_Touch_Selection_A_Finger_Drags_A_Selected_Card_To_Another_Column_And_Within_Its_Own()
+    {
+        var first = new FlowTask { Title = "First", IsSelected = true };
+        var second = new FlowTask { Title = "Second" };
+        var todo = new FlowKanbanColumnData { Title = "Todo", Tasks = { first, second } };
+        var done = new FlowKanbanColumnData { Title = "Done", Tasks = { new FlowTask { Title = "Shipped" } } };
+        var window = CreateWindow(new FlowKanban { AutoSaveAfterEdits = false, Board = new FlowKanbanData { Columns = { todo, done } } }, 700);
+        try
+        {
+            var board = (FlowKanban)window.Content!;
+            board.CurrentView = FlowKanbanView.Board;
+            Flush(window);
+
+            // Within its column: below the second card.
+            var secondCard = Card(window, second);
+            TouchDrag(window, Card(window, first), BottomOf(secondCard, window));
+            Assert.Equal([second, first], todo.Tasks);
+
+            // To the other column, below its card; no copy of the card stays in the overlay.
+            TouchDrag(window, Card(window, first), BottomOf(Card(window, done.Tasks[0]), window));
+            Assert.Equal([second], todo.Tasks);
+            Assert.Same(first, done.Tasks.Last());
+            Assert.Empty(OverlayLayer.GetOverlayLayer(board)!.Children.OfType<Border>().Where(static border => border.Background is VisualBrush));
+
+            // An unselected card scrolls instead of moving.
+            TouchDrag(window, Card(window, second), BottomOf(Card(window, first), window));
+            Assert.Equal([second], todo.Tasks);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    private static FlowTaskCard Card(Window window, FlowTask task) =>
+        window.GetVisualDescendants().OfType<FlowTaskCard>().Single(card => ReferenceEquals(card.Task, task));
+
+    // A point just above the bottom edge of a card, in the window.
+    private static Point BottomOf(FlowTaskCard card, Window window) =>
+        card.TranslatePoint(new Point(card.Bounds.Width / 2, card.Bounds.Height - 4), window)!.Value;
+
+    // The column builds its cards anew after a move, so the touch mode is set on the card that is dragged.
+    private static void TouchDrag(Window window, FlowTaskCard card, Point target)
+    {
+        card.UsesTouchSelection = true;
+        var start = Spot(window, card);
+        var touch = window.TouchBegin(start, RawInputModifiers.None);
+        for (var step = 1; step <= 10; step++)
+        {
+            window.TouchMove(touch, start + (target - start) * (step / 10.0));
+            Flush(window);
+        }
+        window.TouchEnd(touch, target, RawInputModifiers.None);
+        Flush(window);
     }
 
     private static (Window Window, FlowTaskCard Card) CreateBoard(FlowTask task, double height = 700)
