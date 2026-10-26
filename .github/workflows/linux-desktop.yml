@@ -1,0 +1,110 @@
+name: Linux Desktop
+
+# Runs the Desktop Gallery on the XFCE desktop of docker/linux-desktop, the image that
+# scripts/run-linux-desktop.ps1 uses locally, and checks that it starts, opens a page and keeps
+# running without exceptions. Screenshots and the app log are uploaded as an artifact. The image
+# is built on the runner and pushed nowhere.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - alpha
+      - avalonia12
+    paths:
+      - .github/workflows/linux-desktop.yml
+      - docker/linux-desktop/**
+      - Flowery.Capture.NET/**
+      - Flowery.NET/**
+      - Flowery.NET.Skia/**
+      - Flowery.NET.Kanban/**
+      - Flowery.NET.Gallery/**
+      - Flowery.NET.Gallery.Desktop/**
+      - Directory.Build.props
+      - global.json
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gallery-on-xfce:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Publish the Gallery for linux-x64
+        run: |
+          dotnet publish Flowery.NET.Gallery.Desktop/Flowery.NET.Gallery.Desktop.csproj \
+            -c Release -r linux-x64 --self-contained true \
+            -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
+            -o bin/linux-desktop
+
+      - name: Build the desktop image
+        run: docker build -t flowery-linux-desktop docker/linux-desktop
+
+      - name: Start the desktop with the Gallery
+        run: |
+          docker run -d --name flowery-desktop \
+            -v "$PWD/bin/linux-desktop:/opt/app:ro" --shm-size=512m \
+            flowery-linux-desktop
+          # The Gallery window appears once the desktop and the app have started.
+          for attempt in $(seq 1 60); do
+            if docker exec flowery-desktop xdotool search --name 'Flowery.NET.Gallery' >/dev/null 2>&1; then
+              echo "Gallery window after ${attempt} s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::The Gallery window did not appear within 60 s"
+          exit 1
+
+      - name: Open the Scheduler page and check the Gallery
+        run: |
+          mkdir -p artifacts
+          shot() { docker exec flowery-desktop sh -c 'xwd -root -silent | xwdtopnm 2>/dev/null | pnmtopng' > "artifacts/$1.png"; }
+          docker exec flowery-desktop sh -c '
+            W=$(xdotool search --name "Flowery.NET.Gallery" | head -1)
+            xdotool windowactivate "$W" windowmove "$W" 0 30 windowsize "$W" 1600 960'
+          sleep 3
+          shot home
+          # The sidebar search finds the Scheduler; its first result opens the page.
+          docker exec flowery-desktop sh -c '
+            xdotool mousemove 110 82 click 1 sleep 0.5 type --delay 40 Scheduler
+            sleep 1
+            xdotool mousemove 55 160 click 1'
+          sleep 3
+          shot scheduler
+          if ! docker exec flowery-desktop pgrep -f /opt/app/Flowery.NET.Gallery.Desktop >/dev/null; then
+            echo "::error::The Gallery is no longer running"
+            exit 1
+          fi
+          if docker exec flowery-desktop grep -E 'Unhandled exception|Exception:' /tmp/app.log; then
+            echo "::error::The Gallery logged an exception"
+            exit 1
+          fi
+
+      - name: Collect the logs
+        if: always()
+        run: |
+          mkdir -p artifacts
+          docker exec flowery-desktop cat /tmp/app.log > artifacts/app.log 2>&1 || true
+          docker logs flowery-desktop > artifacts/desktop.log 2>&1 || true
+
+      - name: Upload screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: linux-desktop-gallery
+          path: artifacts/
+          retention-days: 14
