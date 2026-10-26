@@ -224,6 +224,7 @@ pwsh ./scripts/run-linux-desktop.ps1 -RebuildImage
 | `-SkipPublish` | switch | false | Reuse the app in `bin/linux-desktop` |
 | `-RebuildImage` | switch | false | Build the image again |
 | `-Geometry` | string | `1600x1000` | Size of the desktop |
+| `-Culture` | string | culture of Windows | Culture of the desktop and the app, passed as `LANG`; English without one |
 | `-NoBrowser` | switch | false | Do not open the browser |
 
 ### Checks From Outside the Container

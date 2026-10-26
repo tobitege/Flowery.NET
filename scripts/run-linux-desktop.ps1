@@ -25,6 +25,9 @@
 .PARAMETER Geometry
     Size of the desktop (default: 1600x1000).
 
+.PARAMETER Culture
+    Culture of the desktop and the app, such as de-DE (default: the culture of Windows; English without one).
+
 .PARAMETER NoBrowser
     Do not open the browser.
 
@@ -37,6 +40,7 @@ param(
     [switch]$SkipPublish,
     [switch]$RebuildImage,
     [string]$Geometry = "1600x1000",
+    [string]$Culture = (Get-Culture).Name,
     [switch]$NoBrowser
 )
 
@@ -83,10 +87,18 @@ if ($LASTEXITCODE -eq 0) {
     docker rm -f $container | Out-Null
 }
 
+# .NET on Linux reads its culture from LANG, such as de_DE.UTF-8.
+if ([string]::IsNullOrWhiteSpace($Culture)) {
+    $Culture = "en-US"
+}
+$lang = $Culture.Replace("-", "_") + ".UTF-8"
+
 Write-Host "Starting container: $container" -ForegroundColor Cyan
+Write-Host "  Culture: $Culture" -ForegroundColor Gray
 docker run -d --name $container `
     -p 127.0.0.1:6080:6080 -p 127.0.0.1:5901:5901 `
     -e "GEOMETRY=$Geometry" `
+    -e "LANG=$lang" `
     -v "${appDir}:/opt/app:ro" `
     --shm-size=512m `
     $image | Out-Null

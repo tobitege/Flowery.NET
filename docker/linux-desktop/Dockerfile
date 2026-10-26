@@ -35,7 +35,9 @@ RUN sed -i 's/\r$//' /usr/local/bin/start-desktop.sh && chmod +x /usr/local/bin/
 
 USER flowery
 WORKDIR /home/flowery
+# English unless the run passes another culture as LANG (scripts/run-linux-desktop.ps1 passes the one of Windows).
 ENV DISPLAY=:1 \
+    LANG=en_US.UTF-8 \
     APP_PATH=/opt/app/Flowery.NET.Gallery.Desktop
 
 # 6080: noVNC in a browser; 5901: VNC for a native viewer.

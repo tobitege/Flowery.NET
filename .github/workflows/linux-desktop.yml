@@ -78,13 +78,52 @@ jobs:
             xdotool windowactivate "$W" windowmove "$W" 0 30 windowsize "$W" 1600 960'
           sleep 3
           shot home
-          # The sidebar search finds the Scheduler; its first result opens the page.
-          docker exec flowery-desktop sh -c '
-            xdotool mousemove 110 82 click 1 sleep 0.5 type --delay 40 Scheduler
+          # The home page shows a purple banner at (900, 330); another page does not.
+          on_home() {
+            docker exec flowery-desktop sh -c 'xwd -root -silent | xwdtopnm 2>/dev/null' | python3 -c '
+          import sys
+          data = sys.stdin.buffer.read()
+          fields, pos = [], 0
+          while len(fields) < 4:
+              while data[pos:pos + 1].isspace():
+                  pos += 1
+              if data[pos:pos + 1] == b"#":
+                  pos = data.index(b"\n", pos)
+                  continue
+              end = pos
+              while not data[end:end + 1].isspace():
+                  end += 1
+              fields.append(data[pos:end])
+              pos = end
+          width = int(fields[1])
+          # xwdtopnm writes 16-bit samples, big-endian; their high byte is enough.
+          size = 2 if int(fields[3]) > 255 else 1
+          pixel = pos + 1 + (330 * width + 900) * 3 * size
+          r, g, b = data[pixel], data[pixel + size], data[pixel + 2 * size]
+          sys.exit(0 if b > 150 and r > 90 and g < 140 else 1)'
+          }
+          if ! on_home; then
+            echo "::error::The home page did not show its banner"
+            exit 1
+          fi
+          # The sidebar search finds the Scheduler; its first result opens the page. A slow runner may
+          # filter the list after the first click, so the click repeats until the page changed.
+          docker exec flowery-desktop sh -c 'xdotool mousemove 110 82 click 1 sleep 0.5 type --delay 40 Scheduler'
+          opened=
+          for attempt in $(seq 1 10); do
             sleep 1
-            xdotool mousemove 55 160 click 1'
-          sleep 3
+            docker exec flowery-desktop xdotool mousemove 55 160 click 1
+            sleep 1
+            if ! on_home; then
+              opened=yes
+              break
+            fi
+          done
           shot scheduler
+          if [ -z "$opened" ]; then
+            echo "::error::The Scheduler page did not open"
+            exit 1
+          fi
           if ! docker exec flowery-desktop pgrep -f /opt/app/Flowery.NET.Gallery.Desktop >/dev/null; then
             echo "::error::The Gallery is no longer running"
             exit 1
