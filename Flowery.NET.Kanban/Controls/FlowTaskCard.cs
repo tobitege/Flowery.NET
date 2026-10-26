@@ -816,7 +816,7 @@ namespace Flowery.NET.Kanban.Controls
             return false;
         }
 
-        // As in DaisyScheduler, a tap selects the card and a double tap edits it. A press may start a swipe through the
+        // A tap selects the card or, when it is selected, unselects it, and a double tap edits it. A press may start a swipe through the
         // board, so both are decided on release, and only taps that did not move count: Avalonia's click count and
         // DoubleTapped count swipes at the same spot as well.
         private void OnCardPointerReleased(object? sender, PointerReleasedEventArgs e)
@@ -846,12 +846,16 @@ namespace Flowery.NET.Kanban.Controls
             {
                 _lastTapTime = e.Timestamp;
                 _lastTapPoint = point;
-                SelectTask(task, e.KeyModifiers);
+                // A tap on a selected card unselects it; the check mark and the delete button on it do not.
+                SelectTask(task, task.IsSelected ? KeyModifiers.Control : e.KeyModifiers);
                 return;
             }
 
-            // A third tap starts a new pair instead of editing again.
+            // A third tap starts a new pair instead of editing again. The card stays selected after a double tap, also
+            // when its first tap unselected it.
             _lastTapTime = 0;
+            if (!task.IsSelected)
+                SelectTask(task, KeyModifiers.Control);
             TryExecuteEdit();
         }
 
@@ -1722,8 +1726,9 @@ namespace Flowery.NET.Kanban.Controls
         }
 
         /// <summary>
-        /// On a phone or tablet, as in DaisyScheduler: a tap selects the card, a double tap (or a long press on the title)
-        /// edits it, and a finger on a selected card drags it (FlowTaskCard.TouchDrag.cs); swipes over other cards scroll.
+        /// On a phone or tablet: a tap selects the card or unselects a selected one, a double tap (or a long press on the
+        /// title) edits it, and a finger on a selected card drags it (FlowTaskCard.TouchDrag.cs); swipes over other cards
+        /// scroll.
         /// </summary>
         internal bool UsesTouchSelection { get; set; } = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
     }

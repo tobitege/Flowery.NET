@@ -71,16 +71,21 @@ public class KanbanAndroidRegressionTests
             board.CurrentView = FlowKanbanView.Board;
             Flush(window);
 
-            // As in DaisyScheduler: a tap selects, the second tap of a double tap edits and keeps the selection.
+            // A tap selects, the second tap of a double tap edits and keeps the selection.
             TouchTap(window, Card(window, task));
             Assert.True(task.IsSelected);
             Assert.Empty(edits);
             TouchTap(window, Card(window, task));
             Assert.Equal([task], edits);
             Assert.True(task.IsSelected);
-            // A third tap starts a new pair.
+            // A third tap starts a new pair: on the selected card, it unselects it.
             TouchTap(window, Card(window, task));
+            Assert.False(task.IsSelected);
             Assert.Single(edits);
+            // The second tap of that pair edits the card and selects it again.
+            TouchTap(window, Card(window, task));
+            Assert.Equal(2, edits.Count);
+            Assert.True(task.IsSelected);
 
             // A tap on another card selects that one alone.
             TouchTap(window, Card(window, other));
@@ -94,7 +99,7 @@ public class KanbanAndroidRegressionTests
             TouchSwipe(window, Card(window, task));
             TouchTap(window, Card(window, task));
             Assert.True(task.IsSelected);
-            Assert.Single(edits);
+            Assert.Equal(2, edits.Count);
         }
         finally
         {
@@ -120,9 +125,12 @@ public class KanbanAndroidRegressionTests
             Flush(window);
             Assert.True(task.IsSelected, "a swipe clears nothing");
 
-            // A tap on the selected card keeps it selected.
+            // A tap on the selected card unselects it.
             TouchTap(window, Card(window, task));
-            Assert.True(task.IsSelected);
+            Assert.False(task.IsSelected);
+
+            task.IsSelected = true;
+            Flush(window);
 
             touch = window.TouchBegin(free, RawInputModifiers.None);
             window.TouchEnd(touch, free, RawInputModifiers.None);
