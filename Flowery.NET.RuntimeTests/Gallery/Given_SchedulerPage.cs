@@ -140,6 +140,28 @@ public class Given_SchedulerPage
     }
 
     [Fact]
+    public async Task When_An_All_Day_Range_On_One_Day_Gets_Times_It_Lasts_One_Time_Slot()
+    {
+        var page = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples());
+        var scheduler = page.FindControl<DaisyScheduler>("DemoScheduler")!;
+        var day = scheduler.SelectedDate.Date;
+        // An all-day appointment as the scheduler creates it from its all-day row: its end is the next midnight.
+        typeof(SchedulerExamples).GetMethod("OpenEditor", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .Invoke(page, [new AppointmentModel { Id = Guid.NewGuid(), Start = day, End = day.AddDays(1), IsAllDay = true }, true]);
+        await RuntimeTestHelpers.WaitForRenderAsync();
+        var end = page.FindControl<DaisyCalendarDatePicker>("EndInput")!;
+        var endTime = page.FindControl<DaisySelect>("EndTimeInput")!;
+
+        // All day it may end on its start day.
+        end.SelectedDate = day;
+        Assert.Equal(day, end.SelectedDate);
+
+        page.FindControl<CheckBox>("AllDayInput")!.IsChecked = false;
+        Assert.Equal(day, end.SelectedDate);
+        Assert.Equal(scheduler.FormatTime(day + scheduler.TimeSlotInterval), endTime.SelectedItem?.ToString());
+    }
+
+    [Fact]
     public async Task When_The_Page_Is_Phone_Wide_The_Scheduler_Takes_Most_Of_Its_Width()
     {
         var page = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples { Width = 400, HorizontalAlignment = HorizontalAlignment.Left });

@@ -127,6 +127,9 @@ public partial class SchedulerExamples
         if ((allDay ? end < start : end <= start) && _editorSpan is { } span)
         {
             var duration = span.End - span.Start;
+            // An all-day range may end on its start day; with times the range lasts at least one time slot.
+            if (!allDay && duration <= TimeSpan.Zero)
+                duration = DemoScheduler.TimeSlotInterval;
             _fillingEditor = true;
             try
             {
@@ -213,6 +216,8 @@ public partial class SchedulerExamples
     {
         StartTimeInput.IsEnabled = AllDayInput.IsChecked != true;
         EndTimeInput.IsEnabled = AllDayInput.IsChecked != true;
+        // With times, an all-day range that ended on its start day lasts one time slot.
+        KeepSpanValid(movedStart: true);
     }
 
     private void OnSave(object? sender, RoutedEventArgs e) => SaveEditor(false);
