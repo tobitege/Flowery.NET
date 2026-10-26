@@ -123,7 +123,7 @@ else {
     $created = [DateTime]::ParseExact($imageCreated.Substring(0, 19), "yyyy-MM-ddTHH:mm:ss",
         [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]"AssumeUniversal, AdjustToUniversal")
     $ageDays = ([DateTime]::UtcNow - $created).TotalDays
-    if ($ageDays -gt $maxImageAgeDays) { "built $([int]$ageDays) days ago" }
+    if ($ageDays -gt $maxImageAgeDays) { "built $([Math]::Floor($ageDays)) days ago" }
 }
 if ($buildReason) {
     Write-Host "Building image: $image ($buildReason)" -ForegroundColor Cyan

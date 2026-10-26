@@ -246,7 +246,7 @@ docker exec flowery-desktop xdotool mousemove 110 82 click 1 type Scheduler
 docker rm -f flowery-desktop
 ```
 
-On pull requests that touch the library or the Gallery, the `Linux Desktop` workflow (`.github/workflows/linux-desktop.yml`) runs this script on the runner, which builds the image there, then opens the Scheduler page and fails when the Gallery stops or logs an exception. Its artifact holds the screenshots and the app log.
+On pull requests that touch the library or the Gallery, the `Linux Desktop` workflow (`.github/workflows/linux-desktop.yml`) runs this script on the runner (which builds the image there), opens the Scheduler page and fails when the Gallery stops or logs an exception. Its artifact holds the screenshots and the app log.
 
 ---
 
