@@ -45,6 +45,7 @@ internal sealed class GlobalState
     private string[] Excluded { get; init; } = [];
     private string[] Preferred { get; init; } = [];
     private string[] Registered { get; init; } = [];
+    private IReadOnlyDictionary<string, DaisyAddedTheme> Added { get; init; } = new Dictionary<string, DaisyAddedTheme>();
     private bool SuppressThemes { get; init; }
     private bool NotifyInternalThemes { get; init; }
     private Func<string, bool>? ThemeApplicator { get; init; }
@@ -76,6 +77,7 @@ internal sealed class GlobalState
         Excluded = [.. DaisyThemeManager.ExcludedThemes.Order(StringComparer.OrdinalIgnoreCase)],
         Preferred = [.. DaisyThemeManager.PreferredThemes.Order(StringComparer.OrdinalIgnoreCase)],
         Registered = [.. DaisyThemeManager.AvailableThemes.Select(static theme => theme.Name).Order(StringComparer.OrdinalIgnoreCase)],
+        Added = DaisyThemeManager.AddedThemes,
         SuppressThemes = DaisyThemeManager.SuppressThemeApplication,
         NotifyInternalThemes = DaisyThemeManager.NotifyForInternalThemesChanged,
         ThemeApplicator = DaisyThemeManager.CustomThemeApplicator,
@@ -121,6 +123,8 @@ internal sealed class GlobalState
         Check("preferred themes", Preferred.SequenceEqual(after.Preferred, StringComparer.OrdinalIgnoreCase), string.Join(",", Preferred), string.Join(",", after.Preferred));
         Check("registered themes", Registered.SequenceEqual(after.Registered, StringComparer.OrdinalIgnoreCase),
             string.Join(",", Registered.Except(after.Registered)), string.Join(",", after.Registered.Except(Registered)));
+        Check("added themes", Added.Count == after.Added.Count && Added.All(pair => after.Added.TryGetValue(pair.Key, out var entry) && entry == pair.Value),
+            string.Join(",", Added.Values.Select(static entry => entry.Name)), string.Join(",", after.Added.Values.Select(static entry => entry.Name)));
         Check("SuppressThemeApplication", SuppressThemes == after.SuppressThemes, SuppressThemes, after.SuppressThemes);
         Check("NotifyForInternalThemesChanged", NotifyInternalThemes == after.NotifyInternalThemes, NotifyInternalThemes, after.NotifyInternalThemes);
         Check("CustomThemeApplicator", ThemeApplicator == after.ThemeApplicator, ThemeApplicator, after.ThemeApplicator);
@@ -166,6 +170,10 @@ internal sealed class GlobalState
         var added = ThemeRegistrations.Capture().Except(Registered, StringComparer.OrdinalIgnoreCase).ToList();
         foreach (var name in added)
             DaisyThemeManager.UnregisterTheme(name);
+        foreach (var name in DaisyThemeManager.AddedThemes.Keys.Except(Added.Keys, StringComparer.OrdinalIgnoreCase).ToList())
+            DaisyThemeManager.RemoveThemeOverride(name);
+        foreach (var entry in Added.Values)
+            DaisyThemeManager.AddTheme(entry.Name, entry.DisplayName, entry.Preferred);
         DaisyThemeManager.ExcludedThemes = Excluded;
         DaisyThemeManager.PreferredThemes = Preferred;
         FloweryLocalization.CustomResolver = Resolver;

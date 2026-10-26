@@ -41,6 +41,7 @@ DaisyThemeLoader.ApplyThemeToApplication(theme);
 | `AvailableThemes` | Read-only list of visible registered themes, ordered by preference and name or configured display text. |
 | `AddTheme(originalName, displayName, preferred)` | Adds or updates global list entries for both dropdown types without applying a theme. |
 | `RemoveThemeOverride(originalName)` | Removes a global display/order override without unregistering the theme. |
+| `AddedThemes` | The themes added with `AddTheme`, by original name (case-insensitive), as `DaisyAddedTheme(Name, DisplayName, Preferred)`. A snapshot that later changes do not alter, safe to read on any thread. |
 | `ExcludedThemes` | Assign a collection of hidden names. The getter returns a read-only snapshot. |
 | `HideTheme(name)` / `ShowTheme(name)` | Add or remove an exclusion at runtime. Return true when the exclusion changes. |
 | `IsThemeVisible(name)` | Checks whether a name is eligible for display, even before registration. |

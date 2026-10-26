@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -21,6 +23,14 @@ namespace Flowery.Controls
         public string Name { get; } = name;
         public bool IsDark { get; } = isDark;
     }
+
+    /// <summary>
+    /// A theme that <see cref="DaisyThemeManager.AddTheme"/> added to both theme dropdowns.
+    /// </summary>
+    /// <param name="Name">Original registered or product theme name.</param>
+    /// <param name="DisplayName">Text the dropdowns display.</param>
+    /// <param name="Preferred">Whether the theme is in the preferred group.</param>
+    public sealed record DaisyAddedTheme(string Name, string DisplayName, bool Preferred);
 
     /// <summary>
     /// Centralized theme manager for DaisyUI themes (flowery-net).
@@ -49,8 +59,15 @@ namespace Flowery.Controls
         private static HashSet<string> _excludedThemes = new(StringComparer.OrdinalIgnoreCase);
         private static HashSet<string> _preferredThemes = new(StringComparer.OrdinalIgnoreCase);
         internal sealed record ThemeEntry(string Name, string DisplayName, bool Preferred, ProductPalette? ProductPalette);
-        private static readonly Dictionary<string, ThemeEntry> AddedThemes = new(StringComparer.OrdinalIgnoreCase);
-        internal static IReadOnlyDictionary<string, ThemeEntry> ThemeOverrides => AddedThemes;
+        private static readonly Dictionary<string, ThemeEntry> AddedThemeEntries = new(StringComparer.OrdinalIgnoreCase);
+        private static FrozenDictionary<string, DaisyAddedTheme> _addedThemes = FrozenDictionary<string, DaisyAddedTheme>.Empty;
+        internal static IReadOnlyDictionary<string, ThemeEntry> ThemeOverrides => AddedThemeEntries;
+
+        /// <summary>
+        /// The themes added with <see cref="AddTheme"/>, by original name, matched case-insensitively. A snapshot that
+        /// later changes do not alter, so any thread can read it.
+        /// </summary>
+        public static IReadOnlyDictionary<string, DaisyAddedTheme> AddedThemes => Volatile.Read(ref _addedThemes);
 
         /// <summary>
         /// Adds or updates a theme in both dropdowns globally. Local dropdown overrides take
@@ -63,8 +80,9 @@ namespace Flowery.Controls
         public static void AddTheme(string originalName, string displayName, bool preferred)
         {
             var entry = CreateThemeEntry(originalName, displayName, preferred);
-            if (AddedThemes.TryGetValue(entry.Name, out var existing) && existing == entry) return;
-            AddedThemes[entry.Name] = entry;
+            if (AddedThemeEntries.TryGetValue(entry.Name, out var existing) && existing == entry) return;
+            AddedThemeEntries[entry.Name] = entry;
+            PublishAddedThemes();
             if (GetThemeInfo(entry.Name) == null && entry.ProductPalette is { } product)
                 EnsureProductThemeRegistered(product);
             else
@@ -78,10 +96,16 @@ namespace Flowery.Controls
         public static bool RemoveThemeOverride(string originalName)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(originalName);
-            if (!AddedThemes.Remove(originalName)) return false;
+            if (!AddedThemeEntries.Remove(originalName)) return false;
+            PublishAddedThemes();
             NotifyThemeListChanged();
             return true;
         }
+
+        private static void PublishAddedThemes() =>
+            Volatile.Write(ref _addedThemes, AddedThemeEntries.Values
+                .Select(static entry => new DaisyAddedTheme(entry.Name, entry.DisplayName, entry.Preferred))
+                .ToFrozenDictionary(static entry => entry.Name, StringComparer.OrdinalIgnoreCase));
 
         internal static ThemeEntry CreateThemeEntry(string originalName, string displayName, bool preferred)
         {
@@ -354,7 +378,8 @@ namespace Flowery.Controls
                 || string.Equals(_currentThemeName, themeName, StringComparison.OrdinalIgnoreCase)
                 || !ThemesByName.Remove(themeName))
                 return false;
-            AddedThemes.Remove(themeName);
+            if (AddedThemeEntries.Remove(themeName))
+                PublishAddedThemes();
             NotifyThemeListChanged();
             return true;
         }

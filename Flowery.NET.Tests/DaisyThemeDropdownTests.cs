@@ -74,6 +74,32 @@ namespace Flowery.NET.Tests
         }
 
         [AvaloniaFact]
+        public void AddedThemes_Is_A_Snapshot_Any_Thread_Can_Read()
+        {
+            var before = DaisyThemeManager.AddedThemes;
+            DaisyThemeManager.AddTheme("business", "Firma", true);
+            try
+            {
+                var added = DaisyThemeManager.AddedThemes;
+                Assert.Equal(new DaisyAddedTheme("Business", "Firma", true), added["BUSINESS"]);
+                Assert.DoesNotContain("Business", before.Keys);
+                Assert.Same(added, System.Threading.Tasks.Task.Run(static () => DaisyThemeManager.AddedThemes).Result);
+            }
+            finally
+            {
+                Assert.True(DaisyThemeManager.RemoveThemeOverride("Business"));
+            }
+            Assert.DoesNotContain("Business", DaisyThemeManager.AddedThemes.Keys);
+
+            // Unregistering a theme removes its entry too.
+            DaisyThemeManager.RegisterTheme(new DaisyThemeInfo("AddedLater", false), () => new ResourceDictionary());
+            DaisyThemeManager.AddTheme("AddedLater", "Later", false);
+            Assert.True(DaisyThemeManager.AddedThemes.ContainsKey("addedlater"));
+            Assert.True(DaisyThemeManager.UnregisterTheme("AddedLater"));
+            Assert.False(DaisyThemeManager.AddedThemes.ContainsKey("AddedLater"));
+        }
+
+        [AvaloniaFact]
         public void UnregisterTheme_RemovesOnlyRegisteredThemes()
         {
             var previous = DaisyThemeManager.CurrentThemeName;
