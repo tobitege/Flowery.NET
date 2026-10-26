@@ -1,4 +1,4 @@
-using Avalonia.Headless;
+﻿using Avalonia.Headless;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
@@ -141,7 +141,7 @@ public class DaisyGlassControlsTests
     [AvaloniaFact]
     public void After_A_Template_Change_Only_The_New_Input_Parts_Follow_Foreground()
     {
-        var input = new DaisyGlassInput { Label = "Email", Watermark = "you@example.com" };
+        var input = new DaisyGlassInput { Label = "Email", PlaceholderText = "you@example.com" };
         var window = Show(input);
         try
         {
