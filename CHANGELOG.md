@@ -61,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Accessibility: the names of the number input (`DaisyNumericUpDown`) and its increase, decrease and clear buttons, of the increase and decrease buttons of `DaisyNumberFlow` and `DaisyRange`, and of the previous and next buttons of `DaisyCarousel`, `DaisyStack` and `DaisyTabsHeaderButtons` are translated into the 11 other languages; screen readers announced them in English. `DaisyNumberFlow` keeps its English name as the control name.
 - `FlowKanban`: the access token dialog of a user provider, the error when a provider cannot connect or disconnect, and the error when an identity link cannot be loaded or saved were in English in every language; their texts were missing from the language files. They are added in all 12 languages.
 - `FlowKanban`: cards and columns could no longer be drawn when a background thread was the first to use the card or column class. Their shared transparent and drag highlight brushes then belonged to that thread, and drawing them on the UI thread failed. They are immutable brushes now, which belong to no thread.
-- `FloweryComponentSidebar`: item icons are looked up in the application resources each time. A static cache kept the first geometry found for a key, so after the resources changed, or in another application on another thread, the sidebar drew a geometry those resources no longer held.
+- `FloweryComponentSidebar`: item icons are looked up in the application resources each time. A static cache kept the first geometry found for a key and gave it to every item created later, also after the resources changed or in another application on another thread.
 
 ### Changed
 

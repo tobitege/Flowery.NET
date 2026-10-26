@@ -173,7 +173,11 @@ internal sealed class GlobalState
         foreach (var name in DaisyThemeManager.AddedThemes.Keys.Except(Added.Keys, StringComparer.OrdinalIgnoreCase).ToList())
             DaisyThemeManager.RemoveThemeOverride(name);
         foreach (var entry in Added.Values)
-            DaisyThemeManager.AddTheme(entry.Name, entry.DisplayName, entry.Preferred);
+        {
+            // A theme the test unregistered can no longer be added; the rest of the state is still put back.
+            try { DaisyThemeManager.AddTheme(entry.Name, entry.DisplayName, entry.Preferred); }
+            catch (ArgumentException) { }
+        }
         DaisyThemeManager.ExcludedThemes = Excluded;
         DaisyThemeManager.PreferredThemes = Preferred;
         FloweryLocalization.CustomResolver = Resolver;
