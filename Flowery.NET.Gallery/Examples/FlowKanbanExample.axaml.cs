@@ -16,11 +16,12 @@ public partial class FlowKanbanExample : UserControl, ICollapsibleIntroExample
 {
     private const double CompactWidth = 600;
 
-    // What the board supports by touch (see FlowTaskCard): no card dragging, a long press on the title edits.
+    // What the board supports by touch (see FlowTaskCard), as the scheduler: a tap selects, a double tap edits, a finger drags
+    // a selected card.
     private const string TouchFeatures =
         "• Tap '+ Add Card' to type a new task directly\n" +
-        "• Long-press a card title to edit title, description, and color\n" +
-        "• Double-tap cards to select them, then move, prioritize, tag, schedule, or delete them with the bar below the board\n" +
+        "• Tap a card to select it, double-tap it to edit title, description, and color\n" +
+        "• Drag a selected card with your finger to another column, or move, prioritize, tag, schedule, or delete the selection with the bar below the board\n" +
         "• Color-coded task cards using DaisyColor palette\n" +
         "• JSON persistence via Save/Load buttons in sidebar\n" +
         "• Built on FlowKanbanData, FlowKanbanColumnData, and FlowTask models";

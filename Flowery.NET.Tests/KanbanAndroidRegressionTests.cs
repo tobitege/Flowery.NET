@@ -1,9 +1,12 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Raw;
+using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
@@ -50,35 +53,60 @@ public class KanbanAndroidRegressionTests
     }
 
     [AvaloniaFact]
-    public void With_Touch_Selection_A_Double_Tap_Toggles_A_Card_And_Swipes_Never_Count()
+    public void With_Touch_Selection_A_Tap_Selects_A_Card_A_Double_Tap_Edits_It_And_Swipes_Do_Neither()
     {
         var task = new FlowTask { Title = "Task" };
-        var (window, card) = CreateBoard(task);
+        var other = new FlowTask { Title = "Other" };
+        var column = new FlowKanbanColumnData { Title = "Todo", Tasks = { task, other } };
+        var edits = new List<FlowTask>();
+        var board = new FlowKanban
+        {
+            AutoSaveAfterEdits = false,
+            Board = new FlowKanbanData { Columns = { column } },
+            EditCardCommand = new EditRecorder(edits)
+        };
+        var window = CreateWindow(board, 700);
         try
         {
-            TouchTap(window, card);
-            Assert.False(task.IsSelected);
-            TouchTap(window, card);
+            board.CurrentView = FlowKanbanView.Board;
+            Flush(window);
+
+            // As in DaisyScheduler: a tap selects, the second tap of a double tap edits and keeps the selection.
+            TouchTap(window, Card(window, task));
+            Assert.True(task.IsSelected);
+            Assert.Empty(edits);
+            TouchTap(window, Card(window, task));
+            Assert.Equal([task], edits);
             Assert.True(task.IsSelected);
             // A third tap starts a new pair.
-            TouchTap(window, card);
-            Assert.True(task.IsSelected);
-            TouchTap(window, card);
+            TouchTap(window, Card(window, task));
+            Assert.Single(edits);
+
+            // A tap on another card selects that one alone.
+            TouchTap(window, Card(window, other));
+            Assert.True(other.IsSelected);
             Assert.False(task.IsSelected);
 
-            // Two swipes at the same spot are no double tap, and neither is a tap after a swipe.
-            TouchSwipe(window, card);
-            TouchSwipe(window, card);
+            // Swipes over a card neither select nor edit it, and a tap after a swipe is no second tap.
+            TouchSwipe(window, Card(window, task));
+            TouchSwipe(window, Card(window, task));
             Assert.False(task.IsSelected);
-            TouchTap(window, card);
-            TouchSwipe(window, card);
-            TouchTap(window, card);
-            Assert.False(task.IsSelected);
+            TouchSwipe(window, Card(window, task));
+            TouchTap(window, Card(window, task));
+            Assert.True(task.IsSelected);
+            Assert.Single(edits);
         }
         finally
         {
             window.Close();
         }
+    }
+
+    private sealed class EditRecorder(List<FlowTask> edits) : System.Windows.Input.ICommand
+    {
+        public event EventHandler? CanExecuteChanged { add { } remove { } }
+        public bool CanExecute(object? parameter) => true;
+        public void Execute(object? parameter) => edits.Add((FlowTask)parameter!);
     }
 
     [AvaloniaFact]
@@ -110,6 +138,84 @@ public class KanbanAndroidRegressionTests
         {
             window.Close();
         }
+    }
+
+    [AvaloniaFact]
+    public void With_Touch_Selection_A_Finger_Drags_A_Selected_Card_To_Another_Column_And_Within_Its_Own()
+    {
+        var first = new FlowTask { Title = "First", IsSelected = true };
+        var second = new FlowTask { Title = "Second" };
+        var todo = new FlowKanbanColumnData { Title = "Todo", Tasks = { first, second } };
+        var done = new FlowKanbanColumnData { Title = "Done", Tasks = { new FlowTask { Title = "Shipped" } } };
+        var window = CreateWindow(new FlowKanban { AutoSaveAfterEdits = false, Board = new FlowKanbanData { Columns = { todo, done } } }, 700);
+        try
+        {
+            var board = (FlowKanban)window.Content!;
+            board.CurrentView = FlowKanbanView.Board;
+            Flush(window);
+
+            // Within its column: below the second card.
+            var secondCard = Card(window, second);
+            TouchDrag(window, Card(window, first), BottomOf(secondCard, window));
+            Assert.Equal([second, first], todo.Tasks);
+
+            // To the other column, below its card; no copy of the card stays in the overlay.
+            TouchDrag(window, Card(window, first), BottomOf(Card(window, done.Tasks[0]), window));
+            Assert.Equal([second], todo.Tasks);
+            Assert.Same(first, done.Tasks.Last());
+            Assert.Empty(Ghosts(board));
+
+            // An unselected card scrolls instead of moving.
+            TouchDrag(window, Card(window, second), BottomOf(Card(window, first), window));
+            Assert.Equal([second], todo.Tasks);
+
+            // A touch the system cancels (no release, the capture is lost) ends the drag without a move.
+            second.IsSelected = true;
+            var card = Card(window, second);
+            card.UsesTouchSelection = true;
+            IPointer? pointer = null;
+            window.AddHandler(InputElement.PointerPressedEvent, (_, e) => pointer = e.Pointer, RoutingStrategies.Tunnel, true);
+            var start = Spot(window, card);
+            var touch = window.TouchBegin(start, RawInputModifiers.None);
+            window.TouchMove(touch, start + new Vector(200, 0));
+            Flush(window);
+            Assert.Same(card, pointer!.Captured);
+            Assert.NotEmpty(Ghosts(board));
+            pointer.Capture(null);
+            Flush(window);
+            Assert.Empty(Ghosts(board));
+            Assert.Equal([second], todo.Tasks);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    // The copies of dragged cards in the overlay.
+    private static IEnumerable<Border> Ghosts(Visual board) =>
+        OverlayLayer.GetOverlayLayer(board)!.Children.OfType<Border>().Where(static border => border.Background is VisualBrush);
+
+    private static FlowTaskCard Card(Window window, FlowTask task) =>
+        window.GetVisualDescendants().OfType<FlowTaskCard>().Single(card => ReferenceEquals(card.Task, task));
+
+    // A point just above the bottom edge of a card, in the window.
+    private static Point BottomOf(FlowTaskCard card, Window window) =>
+        card.TranslatePoint(new Point(card.Bounds.Width / 2, card.Bounds.Height - 4), window)!.Value;
+
+    // The column builds its cards anew after a move, so the touch mode is set on the card that is dragged.
+    private static void TouchDrag(Window window, FlowTaskCard card, Point target)
+    {
+        card.UsesTouchSelection = true;
+        var start = Spot(window, card);
+        var touch = window.TouchBegin(start, RawInputModifiers.None);
+        for (var step = 1; step <= 10; step++)
+        {
+            window.TouchMove(touch, start + (target - start) * (step / 10.0));
+            Flush(window);
+        }
+        window.TouchEnd(touch, target, RawInputModifiers.None);
+        Flush(window);
     }
 
     private static (Window Window, FlowTaskCard Card) CreateBoard(FlowTask task, double height = 700)
@@ -150,6 +256,7 @@ public class KanbanAndroidRegressionTests
 
     private static void TouchTap(Window window, FlowTaskCard card)
     {
+        card.UsesTouchSelection = true;
         var point = Spot(window, card);
         var touch = window.TouchBegin(point, RawInputModifiers.None);
         window.TouchEnd(touch, point, RawInputModifiers.None);
@@ -158,6 +265,7 @@ public class KanbanAndroidRegressionTests
 
     private static void TouchSwipe(Window window, FlowTaskCard card)
     {
+        card.UsesTouchSelection = true;
         var point = Spot(window, card);
         var touch = window.TouchBegin(point, RawInputModifiers.None);
         for (var step = 1; step <= 4; step++)

@@ -53,9 +53,9 @@ public class Given_KanbanPage
     {
         var touch = await RuntimeTestHelpers.AttachAsync(new FlowKanbanExample(touchHelp: true));
         var touchFeatures = touch.FindControl<TextBlock>("FeaturesText")!.Text!;
-        Assert.Contains("Long-press a card title", touchFeatures);
+        Assert.Contains("Tap a card to select it, double-tap it to edit", touchFeatures);
+        Assert.Contains("Drag a selected card with your finger", touchFeatures);
         Assert.DoesNotContain("Click", touchFeatures);
-        Assert.DoesNotContain("Drag", touchFeatures);
 
         var desktop = await RuntimeTestHelpers.AttachAsync(new FlowKanbanExample(touchHelp: false));
         Assert.Contains("Double-click any card", desktop.FindControl<TextBlock>("FeaturesText")!.Text);

@@ -1730,27 +1730,12 @@ namespace Flowery.NET.Kanban.Controls
             if (!IsTaskDragData(e.DataTransfer))
                 return;
 
-            EnsureTasksParts();
-
             e.DragEffects = DragDropEffects.Move;
-            _isDragHighlightActive = true;
-            SetDragHighlightBorder(isActive: true);
 
             // Get the dragged task ID if not already cached
             _draggedTaskId ??= GetTaskIdFromDataTransfer(e.DataTransfer);
 
-            // Calculate and show drop indicator
-            if (_tasksItemsControl != null && ColumnData != null)
-            {
-                var dropPosition = e.GetPosition(_tasksItemsControl);
-                int insertIndex = CalculateInsertIndex(dropPosition.Y, out var indicatorY);
-
-                if (insertIndex != _currentDropIndex || Math.Abs(indicatorY - _currentDropIndicatorY) > 0.5)
-                {
-                    ShowDropIndicator(insertIndex, indicatorY);
-                }
-            }
-
+            PreviewTaskDrop(e.GetPosition);
             e.Handled = true;
         }
 
@@ -1761,12 +1746,7 @@ namespace Flowery.NET.Kanban.Controls
             if (!IsTaskDragData(e.DataTransfer))
                 return;
 
-            // Reset visual feedback
-            HideDropIndicator();
-            _isDragHighlightActive = false;
-            SetDragHighlightBorder(isActive: false);
-            UpdateFocusVisualState();
-
+            EndTaskDropPreview();
             e.Handled = true;
         }
 
@@ -1777,78 +1757,115 @@ namespace Flowery.NET.Kanban.Controls
             if (!IsTaskDragData(e.DataTransfer))
                 return;
 
+            if (DropTask(GetTaskIdFromDataTransfer(e.DataTransfer), e.GetPosition))
+                e.Handled = true;
+        }
+
+        // A drag over the column and a touch drag of a card (FlowTaskCard, where Android has no platform drag and drop)
+        // share these: the highlight and the drop indicator at the position, given relative to a visual.
+        internal void PreviewTaskDrop(Func<Visual, Point> positionIn)
+        {
+            if (!IsDropEnabled)
+                return;
+
             EnsureTasksParts();
 
-            // Capture the drop index before hiding indicator
-            int insertIndex = _currentDropIndex;
+            _isDragHighlightActive = true;
+            SetDragHighlightBorder(isActive: true);
 
+            // Calculate and show drop indicator
+            if (_tasksItemsControl != null && ColumnData != null)
+            {
+                int insertIndex = CalculateInsertIndex(positionIn(_tasksItemsControl).Y, out var indicatorY);
+
+                if (insertIndex != _currentDropIndex || Math.Abs(indicatorY - _currentDropIndicatorY) > 0.5)
+                {
+                    ShowDropIndicator(insertIndex, indicatorY);
+                }
+            }
+        }
+
+        internal void EndTaskDropPreview()
+        {
             // Reset visual feedback
             HideDropIndicator();
             _isDragHighlightActive = false;
             SetDragHighlightBorder(isActive: false);
             UpdateFocusVisualState();
+        }
+
+        /// <summary>
+        /// Moves the task with <paramref name="taskId"/> to the drop position, as a drop on the column. Returns whether
+        /// the drop is handled; one without a column, an unknown task or at the task's own place is left to others.
+        /// </summary>
+        internal bool DropTask(string? taskId, Func<Visual, Point> positionIn)
+        {
+            if (!IsDropEnabled)
+                return false;
+
+            EnsureTasksParts();
+
+            // Capture the drop index before hiding indicator
+            int insertIndex = _currentDropIndex;
+
+            EndTaskDropPreview();
 
             if (ColumnData == null || ParentKanban == null)
-                return;
+                return false;
+            if (string.IsNullOrWhiteSpace(taskId))
+                return true;
 
-            // Get the dragged task ID from the data package
-            var taskId = GetTaskIdFromDataTransfer(e.DataTransfer);
+            // Find the task in any column
+            FlowTask? draggedTask = null;
+            FlowKanbanColumnData? sourceColumn = null;
+            int sourceIndex = -1;
 
-            if (!string.IsNullOrWhiteSpace(taskId))
+            foreach (var column in ParentKanban.Board.Columns)
             {
-                // Find the task in any column
-                FlowTask? draggedTask = null;
-                FlowKanbanColumnData? sourceColumn = null;
-                int sourceIndex = -1;
-
-                foreach (var column in ParentKanban.Board.Columns)
+                for (int i = 0; i < column.Tasks.Count; i++)
                 {
-                    for (int i = 0; i < column.Tasks.Count; i++)
+                    if (column.Tasks[i].Id == taskId)
                     {
-                        if (column.Tasks[i].Id == taskId)
-                        {
-                            draggedTask = column.Tasks[i];
-                            sourceColumn = column;
-                            sourceIndex = i;
-                            break;
-                        }
+                        draggedTask = column.Tasks[i];
+                        sourceColumn = column;
+                        sourceIndex = i;
+                        break;
                     }
-                    if (draggedTask != null) break;
                 }
-
-                if (draggedTask == null || sourceColumn == null)
-                    return;
-
-                // Use the calculated position, or recalculate if needed
-                if (insertIndex < 0)
-                {
-                    var dropTarget = (Control?)_tasksItemsControl ?? this;
-                    var dropPosition = e.GetPosition(dropTarget);
-                    insertIndex = CalculateInsertIndex(dropPosition.Y, out _);
-                }
-
-                // The drop index is relative to this cell's (possibly lane-filtered)
-                // task views; translate it into an index in the column's task list.
-                var targetIndex = MapViewIndexToColumnIndex(insertIndex);
-
-                var targetLaneId = LaneFilterId;
-                var isLaneReassignment = ParentKanban.IsLaneGroupingEnabled
-                    && !string.IsNullOrWhiteSpace(targetLaneId)
-                    && !AreLaneIdsEquivalent(draggedTask.LaneId, targetLaneId);
-
-                if (sourceColumn == ColumnData && targetIndex == sourceIndex && !isLaneReassignment)
-                    return;
-
-                var manager = new FlowKanbanManager(ParentKanban, autoAttach: false);
-                int? moveIndex = targetIndex >= 0 ? targetIndex : null;
-                var result = manager.TryMoveTaskWithWipEnforcement(draggedTask, ColumnData, moveIndex, targetLaneId, enforceHard: false);
-                if (result == MoveResult.AllowedWithWipWarning)
-                {
-                    ParentKanban.ShowWipWarning(ColumnData, targetLaneId);
-                }
+                if (draggedTask != null) break;
             }
 
-            e.Handled = true;
+            if (draggedTask == null || sourceColumn == null)
+                return false;
+
+            // Use the calculated position, or recalculate if needed
+            if (insertIndex < 0)
+            {
+                var dropTarget = (Control?)_tasksItemsControl ?? this;
+                insertIndex = CalculateInsertIndex(positionIn(dropTarget).Y, out _);
+            }
+
+            // The drop index is relative to this cell's (possibly lane-filtered)
+            // task views; translate it into an index in the column's task list.
+            var targetIndex = MapViewIndexToColumnIndex(insertIndex);
+
+            var targetLaneId = LaneFilterId;
+            var isLaneReassignment = ParentKanban.IsLaneGroupingEnabled
+                && !string.IsNullOrWhiteSpace(targetLaneId)
+                && !AreLaneIdsEquivalent(draggedTask.LaneId, targetLaneId);
+
+            if (sourceColumn == ColumnData && targetIndex == sourceIndex && !isLaneReassignment)
+                return false;
+
+            var manager = new FlowKanbanManager(ParentKanban, autoAttach: false);
+            int? moveIndex = targetIndex >= 0 ? targetIndex : null;
+            var result = manager.TryMoveTaskWithWipEnforcement(draggedTask, ColumnData, moveIndex, targetLaneId, enforceHard: false);
+            if (result == MoveResult.AllowedWithWipWarning)
+            {
+                ParentKanban.ShowWipWarning(ColumnData, targetLaneId);
+            }
+
+            return true;
         }
 
         private int MapViewIndexToColumnIndex(int viewIndex)

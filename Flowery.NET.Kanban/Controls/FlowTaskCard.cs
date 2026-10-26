@@ -57,6 +57,8 @@ namespace Flowery.NET.Kanban.Controls
             PointerPressed += OnCardPointerPressed;
             // A scroll gesture through the board marks the release handled.
             AddHandler(PointerReleasedEvent, OnCardPointerReleased, RoutingStrategies.Bubble, handledEventsToo: true);
+            PointerMoved += OnCardPointerMoved;
+            PointerCaptureLost += OnCardPointerCaptureLost;
             UpdateSelectionBadgePlacement();
         }
 
@@ -94,6 +96,8 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnUnloaded(object? sender, RoutedEventArgs e)
         {
+            CancelTouchDrag();
+
             // Unsubscribe from parent
             if (_parentKanban != null)
             {
@@ -780,6 +784,7 @@ namespace Flowery.NET.Kanban.Controls
                     _lastTapTime = 0;
                 _tapPointer = e.Pointer;
                 _tapStart = e.GetPosition(this);
+                BeginTouchDrag(e);
                 return;
             }
 
@@ -787,23 +792,8 @@ namespace Flowery.NET.Kanban.Controls
             if (task == null)
                 return;
 
-            var column = FindAncestor<FlowKanbanColumn>(this);
-            if (column != null)
-            {
-                var modifiers = e.KeyModifiers;
-                if (column.HandleTaskSelection(task, modifiers.HasFlag(KeyModifiers.Shift), modifiers.HasFlag(KeyModifiers.Control)))
-                {
-                    e.Handled = true;
-                }
-            }
-            else if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
-            {
-                task.IsSelected = !task.IsSelected;
-            }
-            else if (!e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-            {
-                task.IsSelected = true;
-            }
+            if (SelectTask(task, e.KeyModifiers))
+                e.Handled = true;
 
             if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             {
@@ -811,10 +801,28 @@ namespace Flowery.NET.Kanban.Controls
             }
         }
 
-        // A press may start a swipe through the board, so a double tap is decided on release, and only taps that did not
-        // move count: Avalonia's click count and DoubleTapped count swipes at the same spot as well.
+        // Selects the card as a click does: alone, or with Ctrl added to the selection and with Shift as a range. Returns
+        // whether the column handled it.
+        private bool SelectTask(FlowTask task, KeyModifiers modifiers)
+        {
+            var column = FindAncestor<FlowKanbanColumn>(this);
+            if (column != null)
+                return column.HandleTaskSelection(task, modifiers.HasFlag(KeyModifiers.Shift), modifiers.HasFlag(KeyModifiers.Control));
+
+            if (modifiers.HasFlag(KeyModifiers.Control))
+                task.IsSelected = !task.IsSelected;
+            else if (!modifiers.HasFlag(KeyModifiers.Shift))
+                task.IsSelected = true;
+            return false;
+        }
+
+        // As in DaisyScheduler, a tap selects the card and a double tap edits it. A press may start a swipe through the
+        // board, so both are decided on release, and only taps that did not move count: Avalonia's click count and
+        // DoubleTapped count swipes at the same spot as well.
         private void OnCardPointerReleased(object? sender, PointerReleasedEventArgs e)
         {
+            if (EndTouchDrag(e))
+                return;
             if (!UsesTouchSelection || !ReferenceEquals(_tapPointer, e.Pointer))
                 return;
 
@@ -828,22 +836,23 @@ namespace Flowery.NET.Kanban.Controls
                 return;
             }
 
+            if (CardTask is not { } task)
+                return;
+
+            e.Handled = true;
             var doubleTapTime = settings?.GetDoubleTapTime(e.Pointer.Type) ?? TimeSpan.FromMilliseconds(500);
             if (_lastTapTime == 0 || e.Timestamp - _lastTapTime > (ulong)doubleTapTime.TotalMilliseconds
                 || !IsWithin(point, _lastTapPoint, tapSize))
             {
                 _lastTapTime = e.Timestamp;
                 _lastTapPoint = point;
+                SelectTask(task, e.KeyModifiers);
                 return;
             }
 
-            // A third tap starts a new pair instead of toggling again.
+            // A third tap starts a new pair instead of editing again.
             _lastTapTime = 0;
-            if ((CloseCommandParameter as FlowTask ?? Task ?? _trackedTask) is { } task)
-            {
-                task.IsSelected = !task.IsSelected;
-                e.Handled = true;
-            }
+            TryExecuteEdit();
         }
 
         private static bool IsWithin(Point point, Point origin, Size tapSize) =>
@@ -1713,8 +1722,8 @@ namespace Flowery.NET.Kanban.Controls
         }
 
         /// <summary>
-        /// On a phone or tablet: a double tap selects the card, a long press on the title edits it, and a press starts no
-        /// drag, so swipes scroll the board.
+        /// On a phone or tablet, as in DaisyScheduler: a tap selects the card, a double tap (or a long press on the title)
+        /// edits it, and a finger on a selected card drags it (FlowTaskCard.TouchDrag.cs); swipes over other cards scroll.
         /// </summary>
         internal bool UsesTouchSelection { get; set; } = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
     }
