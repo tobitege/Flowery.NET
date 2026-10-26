@@ -57,7 +57,6 @@ namespace Flowery.NET.Kanban.Controls
             PointerPressed += OnCardPointerPressed;
             // A scroll gesture through the board marks the release handled.
             AddHandler(PointerReleasedEvent, OnCardPointerReleased, RoutingStrategies.Bubble, handledEventsToo: true);
-            PointerCaptureLost += OnCardPointerCaptureLost;
             UpdateSelectionBadgePlacement();
         }
 
@@ -775,7 +774,8 @@ namespace Flowery.NET.Kanban.Controls
         {
             if (UsesTouchSelection)
             {
-                // A press that never came back here as a release became a swipe; it breaks a run of taps.
+                // A press that never came back here as a release became a swipe (the scroll gesture took the pointer); it
+                // breaks a run of taps.
                 if (_tapPointer is not null)
                     _lastTapTime = 0;
                 _tapPointer = e.Pointer;
@@ -844,15 +844,6 @@ namespace Flowery.NET.Kanban.Controls
                 task.IsSelected = !task.IsSelected;
                 e.Handled = true;
             }
-        }
-
-        private void OnCardPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
-        {
-            // The scroll gesture took the pointer: a swipe, not a tap.
-            if (!ReferenceEquals(_tapPointer, e.Pointer))
-                return;
-            _tapPointer = null;
-            _lastTapTime = 0;
         }
 
         private static bool IsWithin(Point point, Point origin, Size tapSize) =>
