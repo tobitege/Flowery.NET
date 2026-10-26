@@ -34,7 +34,8 @@ namespace Flowery.NET.Kanban.Controls
         private bool _isPointerOver;
         private bool _isKeyboardFocusVisible;
         private bool _isLocalizationSubscribed;
-        private static readonly IBrush TransparentBorderBrush = new SolidColorBrush(Colors.Transparent);
+        // Immutable, so it belongs to no thread.
+        private static readonly IBrush TransparentBorderBrush = Brushes.Transparent;
 
         public FlowTaskCard()
         {

@@ -69,8 +69,9 @@ namespace Flowery.NET.Kanban.Controls
         // Drag highlight border: reserve 2px always (transparent by default),
         // and show a green outline during drag operations.
         private static readonly Thickness s_dragHighlightBorderThickness = new(2);
-        private static readonly SolidColorBrush s_dragHighlightTransparentBrush = new(Colors.Transparent);
-        private static readonly SolidColorBrush s_dragHighlightFallbackBrush = new(Colors.LimeGreen);
+        // Immutable brushes belong to no thread, so the first thread to touch the class cannot claim them.
+        private static readonly IBrush s_dragHighlightTransparentBrush = Brushes.Transparent;
+        private static readonly IBrush s_dragHighlightFallbackBrush = Brushes.LimeGreen;
 
         private static IBrush GetDragHighlightBrush()
         {
