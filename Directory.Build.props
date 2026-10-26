@@ -3,6 +3,8 @@
     <Version Condition="'$(Version)' == ''">4.0.0</Version>
     <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">4.0.0.0</AssemblyVersion>
     <FileVersion Condition="'$(FileVersion)' == ''">4.0.0.0</FileVersion>
+    <!-- The SDK sets its Debug default only after this file, so a build without -c would write to bin\<project>\. -->
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <BaseOutputPath>$(MSBuildThisFileDirectory)bin\$(Configuration)\</BaseOutputPath>
     <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <OutputPath>$(BaseOutputPath)$(MSBuildProjectName)\</OutputPath>
