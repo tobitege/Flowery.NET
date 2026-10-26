@@ -3,7 +3,7 @@
 
 # Overview
 
-DaisyGlassRange is a [DaisyRange](DaisyRange.md) with a thin translucent track, a colored progress and a white pill thumb. While the slider is pressed, on the thumb or anywhere on the track, the thumb grows with a spring and clears into a glass lens, so the track and the progress show through it; the pseudo-class `:lens` marks that state. `Minimum`, `Maximum`, `Value`, `Variant` and `Size` work as on DaisyRange. The glass properties are those of [DaisyGlass](DaisyGlass.md) and apply to the lens.
+DaisyGlassRange is a [DaisyRange](DaisyRange.md) with a thin translucent track, a colored progress and a thumb of frosted glass, a pill like a [DaisyGlassButton](DaisyGlassButton.md). While the slider is pressed, on the thumb or anywhere on the track, the thumb grows with a spring and clears into a glass lens, so the track and the progress show through it; the pseudo-class `:lens` marks that state. `Minimum`, `Maximum`, `Value`, `Variant` and `Size` work as on DaisyRange. The glass properties are those of [DaisyGlass](DaisyGlass.md) and apply to the thumb at rest; the lens has its own optics: little blur, a light tint and a strong liquid rim, in the `GlassTint` of the control.
 
 ## Key Properties
 
@@ -11,12 +11,13 @@ DaisyGlassRange is a [DaisyRange](DaisyRange.md) with a thin translucent track, 
 | -------- | ------- | ----------- |
 | `ProgressBrush` | `DaisyPrimaryBrush` | Fill of the track up to the middle of the thumb. The variants set it to their color. |
 | `ShowProgress` | `True` | Shows the progress. |
-| `ThumbBrush` | White | Color of the thumb at rest. |
+| `ThumbBrush` | Transparent | A color over the glass of the thumb at rest. |
+| `BorderBrush` | `#33FFFFFF` | Outline of the thumb at rest. |
 | `Background` | `DaisyBaseContentBrush` | Track color, drawn at 22 % so it shows on light and dark backdrops. |
 | `Size` | `Medium` | Track height and thumb size, `ExtraSmall` to `ExtraLarge`. |
-| `EnableBackdropBlur` / `BlurMode` | `True` / `SkiaSharp` | The lens shows the live backdrop. |
-| `GlassBlur` | 3 | Little blur, so the track stays readable through the lens. |
-| `GlassDepth`, `GlassCurvature`, `GlassBend`, `GlassDispersion` | 0.9, 0.85, 0.7, 0.4 | A strong liquid rim for the lens. |
+| `EnableBackdropBlur` / `BlurMode` | `True` / `SkiaSharp` | The thumb and the lens show the live backdrop. |
+| `GlassBlur` | 30 | Blur of the thumb at rest. |
+| `GlassTint` / `GlassTintOpacity` | `DaisyGlassTintColor` / 0.15 | Tint of the thumb at rest; the lens takes the same tint color. |
 
 ## Quick Examples
 

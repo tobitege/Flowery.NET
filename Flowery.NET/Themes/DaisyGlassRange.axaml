@@ -18,21 +18,17 @@
     </Design.PreviewWith>
 
     <ControlTheme x:Key="{x:Type controls:DaisyGlassRange}" TargetType="controls:DaisyGlassRange">
-        <!-- The lens: clear glass with a strong liquid rim and little blur, so the track stays readable through it. -->
+        <!-- The thumb at rest: frosted glass like DaisyGlassButton. -->
         <Setter Property="EnableBackdropBlur" Value="True" />
         <Setter Property="BlurMode" Value="SkiaSharp" />
-        <Setter Property="GlassBlur" Value="3" />
-        <Setter Property="GlassSaturation" Value="1.2" />
+        <Setter Property="GlassBlur" Value="30" />
         <Setter Property="GlassTint" Value="{DynamicResource DaisyGlassTintColor}" />
-        <Setter Property="GlassTintOpacity" Value="0.06" />
-        <Setter Property="GlassReflectOpacity" Value="0.35" />
-        <Setter Property="GlassDepth" Value="0.9" />
-        <Setter Property="GlassCurvature" Value="0.85" />
-        <Setter Property="GlassBend" Value="0.7" />
-        <Setter Property="GlassDispersion" Value="0.4" />
+        <Setter Property="GlassTintOpacity" Value="0.15" />
+        <Setter Property="GlassReflectOpacity" Value="0.15" />
 
         <Setter Property="Background" Value="{DynamicResource DaisyBaseContentBrush}" />
-        <Setter Property="ThumbBrush" Value="White" />
+        <Setter Property="BorderBrush" Value="#33FFFFFF" />
+        <Setter Property="ThumbBrush" Value="Transparent" />
         <Setter Property="ProgressBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
         <Setter Property="ShowProgress" Value="True" />
         <Setter Property="FontSize" Value="12" />
@@ -80,7 +76,7 @@
                             </RepeatButton>
                         </Track.IncreaseButton>
                         <Track.Thumb>
-                            <!-- Takes the pointer only; the lens below draws the thumb. -->
+                            <!-- Takes the pointer only; the glass below draws the thumb. -->
                             <Thumb x:Name="PART_Thumb" Width="38" Height="24">
                                 <Thumb.Template>
                                     <ControlTemplate>
@@ -91,7 +87,7 @@
                         </Track.Thumb>
                     </Track>
 
-                    <!-- The control keeps the lens over the thumb. It lies above the track and the progress,
+                    <!-- The control keeps the glass over the thumb. It lies above the track and the progress,
                          so its glass shows them, and passes the pointer to the thumb. -->
                     <Canvas IsHitTestVisible="False">
                         <Panel x:Name="PART_Lens">
@@ -105,30 +101,52 @@
                                         </ThicknessTransition>
                                     </Transitions>
                                 </Panel.Transitions>
+                                <!-- The pressed lens: clear glass with a strong liquid rim and little blur,
+                                     so the track stays readable through it. -->
+                                <controls:DaisyGlass x:Name="PART_LensGlass"
+                                                     Padding="0"
+                                                     CornerRadius="9999"
+                                                     EnableBackdropBlur="{TemplateBinding EnableBackdropBlur}"
+                                                     BlurMode="{TemplateBinding BlurMode}"
+                                                     GlassTint="{TemplateBinding GlassTint}"
+                                                     GlassBlur="3"
+                                                     GlassSaturation="1.2"
+                                                     GlassTintOpacity="0.06"
+                                                     GlassReflectOpacity="0.35"
+                                                     GlassDepth="0.9"
+                                                     GlassCurvature="0.85"
+                                                     GlassBend="0.7"
+                                                     GlassDispersion="0.4"
+                                                     Opacity="0">
+                                    <controls:DaisyGlass.Transitions>
+                                        <Transitions>
+                                            <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                                        </Transitions>
+                                    </controls:DaisyGlass.Transitions>
+                                </controls:DaisyGlass>
+                                <!-- The thumb at rest. The control binds its glass properties to it. -->
                                 <controls:DaisyGlass x:Name="PART_Glass"
                                                      Padding="0"
-                                                     CornerRadius="9999" />
+                                                     CornerRadius="9999">
+                                    <controls:DaisyGlass.Transitions>
+                                        <Transitions>
+                                            <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                                        </Transitions>
+                                    </controls:DaisyGlass.Transitions>
+                                </controls:DaisyGlass>
                                 <Border x:Name="PART_ThumbFill"
                                         CornerRadius="9999"
-                                        Background="{TemplateBinding ThumbBrush}"
-                                        BoxShadow="0 2 8 0 #40000000">
+                                        Background="{TemplateBinding ThumbBrush}">
                                     <Border.Transitions>
                                         <Transitions>
                                             <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
                                         </Transitions>
                                     </Border.Transitions>
                                 </Border>
-                                <Border x:Name="PART_LensRim"
+                                <Border x:Name="PART_ThumbRim"
                                         CornerRadius="9999"
                                         BorderThickness="1"
-                                        BorderBrush="#66FFFFFF"
-                                        Opacity="0">
-                                    <Border.Transitions>
-                                        <Transitions>
-                                            <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
-                                        </Transitions>
-                                    </Border.Transitions>
-                                </Border>
+                                        BorderBrush="{TemplateBinding BorderBrush}" />
                             </Panel>
                         </Panel>
                     </Canvas>
@@ -144,11 +162,17 @@
         <Style Selector="^:lens /template/ Panel#PART_LensBody">
             <Setter Property="Margin" Value="-10,-8" />
         </Style>
-        <Style Selector="^:lens /template/ Border#PART_ThumbFill">
-            <Setter Property="Opacity" Value="0.06" />
-        </Style>
-        <Style Selector="^:lens /template/ Border#PART_LensRim">
+        <Style Selector="^:lens /template/ controls|DaisyGlass#PART_LensGlass">
             <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^:lens /template/ controls|DaisyGlass#PART_Glass">
+            <Setter Property="Opacity" Value="0" />
+        </Style>
+        <Style Selector="^:lens /template/ Border#PART_ThumbFill">
+            <Setter Property="Opacity" Value="0" />
+        </Style>
+        <Style Selector="^:lens /template/ Border#PART_ThumbRim">
+            <Setter Property="BorderBrush" Value="#66FFFFFF" />
         </Style>
 
         <Style Selector="^:disabled">

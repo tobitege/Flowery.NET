@@ -77,6 +77,12 @@
         <!-- The scene keeps its own blue, whatever the primary color of the app theme. -->
         <Style Selector=".glassScene controls|DaisyGlassRange">
             <Setter Property="ProgressBrush" Value="#0A84FF" />
+            <Setter Property="GlassTint" Value="#0B1B5E" />
+            <Setter Property="GlassTintOpacity" Value="0.3" />
+        </Style>
+        <Style Selector=".glassScene.light controls|DaisyGlassRange">
+            <Setter Property="GlassTint" Value="White" />
+            <Setter Property="GlassTintOpacity" Value="0.45" />
         </Style>
         <Style Selector=".glassScene ListBoxItem.menu-destructive PathIcon">
             <Setter Property="Foreground" Value="{DynamicResource DaisyErrorBrush}" />

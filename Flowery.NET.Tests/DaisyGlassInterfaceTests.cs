@@ -51,6 +51,7 @@ public class DaisyGlassInterfaceTests
         {
             var glass = Part<DaisyGlass>(range, "PART_Glass");
             Assert.True(glass.EnableBackdropBlur);
+            Assert.Equal(30, glass.GlassBlur);
             var thumb = Part<Thumb>(range, "PART_Thumb");
             var lens = Part<Panel>(range, "PART_Lens");
             Assert.Equal(thumb.Bounds.X, Canvas.GetLeft(lens));
@@ -63,6 +64,9 @@ public class DaisyGlassInterfaceTests
             Dispatcher.UIThread.RunJobs();
             Assert.Contains(":lens", range.Classes);
             Assert.True(Part<Panel>(range, "PART_LensBody").GetBaseValue(Layoutable.MarginProperty).GetValueOrDefault().Left < 0);
+            // The frosted thumb gives way to the clear lens.
+            Assert.Equal(0, glass.GetBaseValue(Visual.OpacityProperty).GetValueOrDefault());
+            Assert.Equal(1, Part<DaisyGlass>(range, "PART_LensGlass").GetBaseValue(Visual.OpacityProperty).GetValueOrDefault());
 
             window.MouseUp(center, MouseButton.Left, RawInputModifiers.None);
             Dispatcher.UIThread.RunJobs();
