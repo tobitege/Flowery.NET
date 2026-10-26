@@ -171,10 +171,11 @@ public class ThemeDropdownSeparatorTests
         public void Dispose()
         {
             Window.Close();
+            // The current theme cannot be unregistered, so it is restored first.
+            DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);
             ThemeRegistrations.RemoveAddedSince(_registered);
             DaisyThemeManager.ExcludedThemes = _excluded;
             DaisyThemeManager.PreferredThemes = _preferred;
-            DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);
             DaisyThemeManager.CustomThemeApplicator = _applicator;
             DaisyThemeManager.SuppressThemeApplication = _suppressed;
         }

@@ -76,6 +76,7 @@ namespace Flowery.NET.Tests
         [AvaloniaFact]
         public void UnregisterTheme_RemovesOnlyRegisteredThemes()
         {
+            var previous = DaisyThemeManager.CurrentThemeName;
             var raised = 0;
             EventHandler handler = (_, _) => raised++;
             DaisyThemeManager.RegisterTheme(new DaisyThemeInfo("UnregisteredLater", false), () => new ResourceDictionary());
@@ -92,10 +93,23 @@ namespace Flowery.NET.Tests
                 Assert.False(DaisyThemeManager.UnregisterTheme("Dark"));
                 Assert.NotNull(DaisyThemeManager.GetThemeInfo("Dark"));
                 Assert.Equal(1, raised);
+
+                // The current theme stays, and a theme leaves the dropdowns with its added entry.
+                DaisyThemeManager.RegisterTheme(new DaisyThemeInfo("UnregisteredLater", true), () => new ResourceDictionary());
+                DaisyThemeManager.AddTheme("UnregisteredLater", "Later", true);
+                DaisyThemeManager.SetCurrentTheme("UnregisteredLater");
+                Assert.False(DaisyThemeManager.UnregisterTheme("UnregisteredLater"));
+                Assert.True(DaisyThemeManager.IsDarkTheme("UnregisteredLater"));
+                DaisyThemeManager.SetCurrentTheme(previous ?? string.Empty);
+                Assert.True(DaisyThemeManager.UnregisterTheme("UnregisteredLater"));
+                Assert.False(DaisyThemeManager.RemoveThemeOverride("UnregisteredLater"));
+                Assert.Null(FindPreviewOrDefault(new DaisyThemeDropdown(), "UnregisteredLater"));
             }
             finally
             {
                 DaisyThemeManager.AvailableThemesChanged -= handler;
+                DaisyThemeManager.SetCurrentTheme(previous ?? string.Empty);
+                DaisyThemeManager.RemoveThemeOverride("UnregisteredLater");
                 DaisyThemeManager.UnregisterTheme("UnregisteredLater");
             }
         }

@@ -139,10 +139,11 @@ public class ThemeSourceLifecycleTests
         {
             Window.Close();
             foreach (var name in _globalNames) DaisyThemeManager.RemoveThemeOverride(name);
+            // The current theme cannot be unregistered, so it is restored first.
+            DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);
             ThemeRegistrations.RemoveAddedSince(_registered);
             DaisyThemeManager.ExcludedThemes = _excluded;
             DaisyThemeManager.PreferredThemes = _preferred;
-            DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);
             DaisyThemeManager.CustomThemeApplicator = _applicator;
             DaisyThemeManager.SuppressThemeApplication = _suppressed;
         }
