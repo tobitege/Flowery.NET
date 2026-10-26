@@ -97,6 +97,46 @@ public sealed partial class SchedulerTests
         Assert.Equal(2, scope.Scheduler.ColumnZoom);
     }
 
+    [AvaloniaTheory]
+    [InlineData(SchedulerView.Week)]
+    [InlineData(SchedulerView.Month)]
+    [InlineData(SchedulerView.Planner)]
+    public void DraggingTheRightEdgeOfAColumnHeadingWithTheMouseResizesEveryColumn(SchedulerView view)
+    {
+        using var scope = new SchedulerScope(view);
+        var body = BodyScroll(scope);
+        var format = view == SchedulerView.Month ? "ddd" : "ddd, d MMM";
+        var cell = scope.Scheduler.GetVisualDescendants().OfType<TextBlock>()
+            .First(text => text.Text == Monday.ToString(format, scope.Scheduler.FormattingCulture)).FindAncestorOfType<Border>()!;
+        // A Planner day is wider than the view: scroll its right edge into the middle. The heading follows the body.
+        body.Offset = new Vector(Math.Max(0, cell.TranslatePoint(default, body)!.Value.X + body.Offset.X + cell.Bounds.Width - body.Viewport.Width / 2), 0);
+        scope.Layout();
+        var width = cell.Bounds.Width;
+        var left = cell.TranslatePoint(default, body)!.Value.X;
+        var drag = Math.Min(width / 2, 300);
+
+        // A drag from inside the heading changes nothing.
+        var inside = scope.Point(cell, width / 2, cell.Bounds.Height / 2);
+        scope.Window.MouseDown(inside, MouseButton.Left);
+        scope.Window.MouseMove(inside + new Vector(drag, 0));
+        scope.Window.MouseUp(inside + new Vector(drag, 0), MouseButton.Left);
+        scope.Layout();
+        Assert.Equal(1, scope.Scheduler.ColumnZoom);
+
+        var edge = scope.Point(cell, width - 2, cell.Bounds.Height / 2);
+        scope.Window.MouseMove(edge);
+        Assert.NotNull(cell.Cursor);
+        scope.Window.MouseDown(edge, MouseButton.Left);
+        scope.Window.MouseMove(edge + new Vector(drag, 0));
+        scope.Window.MouseUp(edge + new Vector(drag, 0), MouseButton.Left);
+        scope.Layout();
+
+        Assert.Equal((width + drag) / width, scope.Scheduler.ColumnZoom, 2);
+        Assert.Equal(width + drag, cell.Bounds.Width, tolerance: 2);
+        // The left edge of the column stays where it was.
+        Assert.Equal(left, cell.TranslatePoint(default, body)!.Value.X, tolerance: 2);
+    }
+
     [AvaloniaFact]
     public void APinchScalesTheZoomItStartedAt()
     {

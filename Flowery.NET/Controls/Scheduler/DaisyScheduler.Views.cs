@@ -93,6 +93,7 @@ public partial class DaisyScheduler
             var text = Label(start.AddDays(columns[column]).ToString("ddd", Culture), true);
             text.HorizontalAlignment = HorizontalAlignment.Center;
             var header = Cell(text, header: true);
+            AttachColumnEdge(header);
             AttachColumnHeading(header);
             Grid.SetColumn(header, column);
             grid.Children.Add(header);
@@ -209,6 +210,7 @@ public partial class DaisyScheduler
             AttachEmptyDay(allDay, date, resource);
             heading.Children.Add(allDay);
             var headerCell = Cell(heading, header: true, today: date == DateTime.Today);
+            AttachColumnEdge(headerCell);
             Grid.SetColumn(headerCell, index);
             header.Children.Add(headerCell);
 
@@ -270,6 +272,7 @@ public partial class DaisyScheduler
             var date = start.AddDays(day);
             var dayHeader = Cell(Label(date.ToString("ddd, d MMM", Culture)), header: true, today: date == DateTime.Today);
             dayHeader.Height = ChipHeight;
+            AttachColumnEdge(dayHeader);
             AttachColumnHeading(dayHeader);
             MinuteCanvas.Place(dayHeader, day * 1440, 1440);
             header.Children.Add(dayHeader);

@@ -4,6 +4,7 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Flowery.Controls.Scheduler.Models;
 using Flowery.Services;
@@ -98,6 +99,61 @@ public partial class DaisyScheduler
             _pendingTap = _flinging ? null : new PendingTap(e.Pointer, e.GetPosition(this), null, null, default, e.ClickCount, Heading: true);
         else if (e.ClickCount == 2)
             ToggleWideColumns(e);
+    }
+
+    // The right edge of a column heading resizes the column with the mouse, as in a table; every column follows, since
+    // the zoom is the same for all. The left edge of the dragged column stays.
+    private sealed record EdgeDrag(IPointer Pointer, double PressX, double Width, double Zoom, double Left);
+
+    private static readonly Cursor ResizeCursor = new(StandardCursorType.SizeWestEast);
+    private EdgeDrag? _edgeDrag;
+
+    private void AttachColumnEdge(Control heading)
+    {
+        // Tunnel: an edge press must not reach the heading or the all-day row inside it.
+        heading.AddHandler(PointerPressedEvent, OnColumnEdgePressed, RoutingStrategies.Tunnel);
+        heading.PointerMoved += OnColumnEdgeMoved;
+        heading.PointerReleased += OnColumnEdgeReleased;
+        heading.PointerCaptureLost += (_, _) => _edgeDrag = null;
+    }
+
+    private bool OnColumnEdge(Control heading, PointerEventArgs e) =>
+        e.Pointer.Type == PointerType.Mouse && e.GetPosition(heading).X >= heading.Bounds.Width - ColumnEdgeWidth;
+
+    private double ColumnEdgeWidth => SpacingXS + LineThickness * 2;
+
+    private void OnColumnEdgePressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Control heading || _bodyScroll is not { } scroll || !OnColumnEdge(heading, e) ||
+            !e.GetCurrentPoint(heading).Properties.IsLeftButtonPressed)
+            return;
+        e.Handled = true;
+        _edgeDrag = new EdgeDrag(e.Pointer, e.GetPosition(this).X, heading.Bounds.Width, ColumnZoom,
+            heading.TranslatePoint(default, scroll)?.X ?? 0);
+        e.Pointer.Capture(heading);
+    }
+
+    private void OnColumnEdgeMoved(object? sender, PointerEventArgs e)
+    {
+        if (sender is not Control heading)
+            return;
+        if (_edgeDrag is not { } drag || drag.Pointer != e.Pointer)
+        {
+            heading.Cursor = OnColumnEdge(heading, e) ? ResizeCursor : null;
+            return;
+        }
+        var width = Math.Max(1, drag.Width + e.GetPosition(this).X - drag.PressX);
+        ZoomByUser(drag.Zoom * width / drag.Width, drag.Left);
+        e.Handled = true;
+    }
+
+    private void OnColumnEdgeReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_edgeDrag is not { } drag || drag.Pointer != e.Pointer)
+            return;
+        _edgeDrag = null;
+        e.Pointer.Capture(null);
+        e.Handled = true;
     }
 
     private void ToggleWideColumns(PointerEventArgs e)
