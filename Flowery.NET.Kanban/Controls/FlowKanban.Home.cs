@@ -483,7 +483,7 @@ namespace Flowery.NET.Kanban.Controls
                 return (false, error);
 
             var applied = false;
-            await FlowKanbanDispatcher.InvokeAsync(() =>
+            await FlowKanbanDispatcher.InvokeAsync(Dispatcher, () =>
             {
                 if (generation != _boardLoadGeneration || !ReferenceEquals(store, BoardStore)) return;
                 ApplyLoadedBoard(data, boardId);

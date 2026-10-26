@@ -74,7 +74,7 @@ namespace Flowery.NET.Kanban.Controls
             if (adapter is null)
                 return;
 
-            FlowKanbanDispatcher.RunOrPost(() =>
+            FlowKanbanDispatcher.RunOrPost(Dispatcher, () =>
             {
                 if (!IsLoaded || !ReferenceEquals(_trackedAssigneeAdapter, adapter))
                     return;
@@ -89,7 +89,7 @@ namespace Flowery.NET.Kanban.Controls
         /// </summary>
         public async Task RefreshAssigneesAsync(CancellationToken cancellationToken = default)
         {
-            var adapter = await FlowKanbanDispatcher.InvokeAsync(() => AssigneeAdapter)
+            var adapter = await FlowKanbanDispatcher.InvokeAsync(Dispatcher, () => AssigneeAdapter)
                 .ConfigureAwait(false);
             var version = Interlocked.Increment(ref _assigneeRefreshVersion);
             var cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -135,7 +135,7 @@ namespace Flowery.NET.Kanban.Controls
                     return;
 
                 var resolvedAssignees = NormalizeResolvedAssignees(suppliedAssignees);
-                var unresolvedIds = await FlowKanbanDispatcher.InvokeAsync(() =>
+                var unresolvedIds = await FlowKanbanDispatcher.InvokeAsync(Dispatcher, () =>
                         CollectUnresolvedAssigneeIds(resolvedAssignees))
                     .ConfigureAwait(false);
 
@@ -264,7 +264,7 @@ namespace Flowery.NET.Kanban.Controls
             IReadOnlyList<FlowKanbanAssignee> resolvedAssignees,
             CancellationToken cancellationToken)
         {
-            await FlowKanbanDispatcher.InvokeAsync(() =>
+            await FlowKanbanDispatcher.InvokeAsync(Dispatcher, () =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!IsCurrentAssigneeRefresh(version)
@@ -316,7 +316,7 @@ namespace Flowery.NET.Kanban.Controls
             Exception exception,
             string? assigneeId = null)
         {
-            await FlowKanbanDispatcher.InvokeAsync(() =>
+            await FlowKanbanDispatcher.InvokeAsync(Dispatcher, () =>
             {
                 if (!IsCurrentAssigneeRefresh(version)
                     || !ReferenceEquals(adapter, AssigneeAdapter))

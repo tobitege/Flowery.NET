@@ -7,37 +7,40 @@ internal static class FlowKanbanDispatcher
         Dispatcher.UIThread.Post(action);
     }
 
-    internal static void RunOrPost(Action action)
+    // The methods below are called from other threads as well. They take the dispatcher of the control instead of
+    // reading Dispatcher.UIThread there: between isolated headless test sessions, the thread that reads it first owns
+    // the next UI dispatcher.
+    internal static void RunOrPost(Dispatcher dispatcher, Action action)
     {
         ArgumentNullException.ThrowIfNull(action);
-        if (Dispatcher.UIThread.CheckAccess())
+        if (dispatcher.CheckAccess())
         {
             action();
             return;
         }
 
-        Dispatcher.UIThread.Post(action);
+        dispatcher.Post(action);
     }
 
-    internal static async Task InvokeAsync(Action action)
+    internal static async Task InvokeAsync(Dispatcher dispatcher, Action action)
     {
         ArgumentNullException.ThrowIfNull(action);
-        if (Dispatcher.UIThread.CheckAccess())
+        if (dispatcher.CheckAccess())
         {
             action();
             return;
         }
 
-        await Dispatcher.UIThread.InvokeAsync(action);
+        await dispatcher.InvokeAsync(action);
     }
 
-    internal static async Task<T> InvokeAsync<T>(Func<T> function)
+    internal static async Task<T> InvokeAsync<T>(Dispatcher dispatcher, Func<T> function)
     {
         ArgumentNullException.ThrowIfNull(function);
-        if (Dispatcher.UIThread.CheckAccess())
+        if (dispatcher.CheckAccess())
             return function();
 
-        return await Dispatcher.UIThread.InvokeAsync(function);
+        return await dispatcher.InvokeAsync(function);
     }
 
     internal static DispatcherTimer CreateTimer(EventHandler tickHandler)
