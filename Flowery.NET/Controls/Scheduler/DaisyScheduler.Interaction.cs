@@ -5,6 +5,7 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls.Scheduler.Contracts;
 using Flowery.Controls.Scheduler.Models;
@@ -49,6 +50,10 @@ public partial class DaisyScheduler
     private int _taps;
     // A scroll view keeps moving after a swipe; a press then only stops it.
     private bool _flinging;
+    // A touch or pen press on an appointment, until it is held long enough to select and drag it.
+    private sealed record Hold(PointerPressedEventArgs Press, Border Frame, AppointmentTarget Target, GestureKind Kind);
+    private Hold? _hold;
+    private DispatcherTimer? _holdTimer;
 
     private void OnAppointmentPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -72,11 +77,14 @@ public partial class DaisyScheduler
         e.Handled = true;
         if (appointment.IsLocked)
             return;
-        // On touch or pen, a tap selects an appointment and a drag on a selected one moves or resizes it; a press on
-        // any other appointment is left to scrolling, so a swipe through the view selects nothing.
-        if (e.Pointer.Type != PointerType.Mouse && (_flinging || !selectedBefore))
+        // On touch or pen, as in the apps of the platforms: a tap opens an appointment, or toggles its selection while
+        // appointments are selected; holding one selects it, and the finger then moves it, or resizes it from an edge.
+        // Every press is left to scrolling first, so a swipe through the view opens, selects and moves nothing.
+        if (e.Pointer.Type != PointerType.Mouse)
         {
             _pendingTap = _flinging ? null : new PendingTap(e.Pointer, e.GetPosition(this), target, null, default, e.ClickCount);
+            if (_pendingTap is not null)
+                StartHold(e, frame, target);
             return;
         }
         RememberSelectionResource(target);
@@ -85,32 +93,63 @@ public partial class DaisyScheduler
             SelectAppointment(appointment, multiple);
         else
             Focus(NavigationMethod.Pointer);
-        // On touch or pen the press before must have been a tap, not a swipe; a third tap starts anew.
-        var doubleClick = e.Pointer.Type == PointerType.Mouse ? e.ClickCount == 2 : e.ClickCount > 1 && _taps > 0;
-        if (doubleClick && !multiple)
+        if (e.ClickCount == 2 && !multiple)
         {
-            _taps = 0;
             AppointmentEditRequested?.Invoke(this, new AppointmentEditRequestedArgs { Appointment = appointment });
             return;
         }
         if (IsReadOnly || target.Lane is not { } lane || multiple && selectedBefore)
             return;
-        var kind = GestureKind.Move;
-        if (selectedBefore)
-        {
-            var axis = lane.Horizontal ? point.Position.X : point.Position.Y;
-            var length = lane.Horizontal ? frame.Bounds.Width : frame.Bounds.Height;
-            // Touch and pen need a wider edge than a mouse; a short appointment keeps half of its length for moving.
-            var edge = e.Pointer.Type == PointerType.Mouse ? 5 : Math.Min(12, length / 4);
-            if (axis < edge)
-                kind = GestureKind.ResizeStart;
-            else if (axis > length - edge)
-                kind = GestureKind.ResizeEnd;
-        }
-        // The scroll gesture of the view must not take over the drag of a selected appointment on touch or pen.
-        if (e.Pointer.Type != PointerType.Mouse)
-            e.PreventGestureRecognition();
-        BeginGesture(e, frame, lane, kind, appointment, target.Displayed);
+        BeginGesture(e, frame, lane, selectedBefore ? EdgeKind(lane, frame, point.Position, e.Pointer.Type) : GestureKind.Move,
+            appointment, target.Displayed);
+    }
+
+    // A press near an edge of an appointment resizes it, elsewhere it moves it. Touch and pen need a wider edge than a
+    // mouse; a short appointment keeps half of its length for moving.
+    private static GestureKind EdgeKind(Lane lane, Border frame, Point position, PointerType type)
+    {
+        var axis = lane.Horizontal ? position.X : position.Y;
+        var length = lane.Horizontal ? frame.Bounds.Width : frame.Bounds.Height;
+        var edge = type == PointerType.Mouse ? 5 : Math.Min(12, length / 4);
+        return axis < edge ? GestureKind.ResizeStart : axis > length - edge ? GestureKind.ResizeEnd : GestureKind.Move;
+    }
+
+    private void StartHold(PointerPressedEventArgs e, Border frame, AppointmentTarget target)
+    {
+        var kind = target.Lane is { } lane ? EdgeKind(lane, frame, e.GetPosition(frame), e.Pointer.Type) : GestureKind.Move;
+        _hold = new Hold(e, frame, target, kind);
+        _holdTimer ??= new DispatcherTimer();
+        _holdTimer.Stop();
+        _holdTimer.Interval = Application.Current?.PlatformSettings?.HoldWaitDuration ?? TimeSpan.FromMilliseconds(500);
+        _holdTimer.Tick -= OnHoldTimerTick;
+        _holdTimer.Tick += OnHoldTimerTick;
+        _holdTimer.Start();
+    }
+
+    private void CancelHold()
+    {
+        _hold = null;
+        _holdTimer?.Stop();
+    }
+
+    // Held without moving: the appointment is selected, and the finger moves or resizes it now.
+    private void OnHoldTimerTick(object? sender, EventArgs e)
+    {
+        var hold = _hold;
+        CancelHold();
+        if (hold is null || _pendingTap is not { } tap || tap.Pointer != hold.Press.Pointer)
+            return;
+        _pendingTap = null;
+        _taps = 0;
+        var appointment = hold.Target.Appointment;
+        RememberSelectionResource(hold.Target);
+        if (!IsSelected(appointment))
+            SelectAppointment(appointment, _selection.Count > 0);
+        if (IsReadOnly || hold.Target.Lane is not { } lane)
+            return;
+        // The scroll gesture of the view must not take the finger that holds the appointment.
+        hold.Press.PreventGestureRecognition();
+        BeginGesture(hold.Press, hold.Frame, lane, hold.Kind, appointment, hold.Target.Displayed);
     }
 
     private void OnAppointmentKeyDown(object? sender, KeyEventArgs e)
@@ -176,6 +215,7 @@ public partial class DaisyScheduler
         if (_pendingTap is not { } tap || tap.Pointer != e.Pointer)
             return;
         _pendingTap = null;
+        CancelHold();
         var size = Application.Current?.PlatformSettings?.GetTapSize(e.Pointer.Type) ?? new Size(10, 10);
         var moved = e.GetPosition(this) - tap.PressPoint;
         if (Math.Abs(moved.X) > size.Width / 2 || Math.Abs(moved.Y) > size.Height / 2)
@@ -187,8 +227,12 @@ public partial class DaisyScheduler
         _taps = tap.ClickCount > 1 && _taps > 0 ? _taps + 1 : 1;
         if (tap.Target is { } target)
         {
+            _taps = 0;
             RememberSelectionResource(target);
-            SelectAppointment(target.Appointment, (e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Meta)) != 0);
+            if (_selection.Count > 0 || (e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Meta)) != 0)
+                SelectAppointment(target.Appointment, true);
+            else
+                AppointmentEditRequested?.Invoke(this, new AppointmentEditRequestedArgs { Appointment = target.Appointment });
         }
         else if (tap.Lane is { } lane && TryStoredTime(tap.Slot, lane, out var slot))
             SelectSlot(slot, lane.Resource, false, _taps, e.GetPosition(TopLevel.GetTopLevel(this)));
@@ -243,6 +287,14 @@ public partial class DaisyScheduler
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
+        // Moved before the hold: a swipe, which the view scrolls (long before the scroll gesture takes the finger).
+        if (_hold is { } hold && hold.Press.Pointer == e.Pointer)
+        {
+            var size = Application.Current?.PlatformSettings?.GetTapSize(e.Pointer.Type) ?? new Size(10, 10);
+            var moved = e.GetPosition(this) - hold.Press.GetPosition(this);
+            if (Math.Abs(moved.X) > size.Width / 2 || Math.Abs(moved.Y) > size.Height / 2)
+                CancelHold();
+        }
         if (_gesture is not { } gesture || gesture.Pointer != e.Pointer || IsReadOnly)
             return;
         var distance = e.GetPosition(this) - gesture.PressPoint;

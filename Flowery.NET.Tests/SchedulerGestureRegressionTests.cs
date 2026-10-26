@@ -6,6 +6,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Raw;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls.Scheduler.Contracts;
 using Flowery.Controls.Scheduler.Models;
@@ -225,29 +226,33 @@ public sealed partial class SchedulerTests
     [AvaloniaTheory]
     [InlineData(SchedulerView.Week)]
     [InlineData(SchedulerView.Timeline)]
-    public void OnTouchATapSelectsADragOnASelectedAppointmentMovesItAndEveryOtherSwipeScrolls(SchedulerView view)
+    public void OnTouchATapOpensAnAppointmentAHeldOneMovesWithTheFingerAndEverySwipeScrolls(SchedulerView view)
     {
         using var scope = new SchedulerScope(view);
-        // Three hours long, so a drag beside the tap stays clear of the resize edges.
+        // Three hours long, so a drag in the middle stays clear of the resize edges.
         scope.Appointment.End = scope.Appointment.Start.AddHours(3);
         scope.Scheduler.Appointments = new[] { scope.Appointment };
         scope.Layout();
         var moves = 0;
+        var edits = 0;
         scope.Scheduler.AppointmentMoveRequested += (_, _) => moves++;
+        scope.Scheduler.AppointmentEditRequested += (_, _) => edits++;
         var direction = view == SchedulerView.Week ? new Vector(0, 1) : new Vector(1, 0);
         var frame = scope.Frame(scope.Appointment);
         var lane = Assert.IsAssignableFrom<Canvas>(frame.Parent);
 
-        // A tap selects the appointment; a drag on it then moves it, and the view stays. The drag starts away from the
-        // tap, so the two do not count as a double tap.
+        // As in the apps of the platforms: a tap opens the appointment.
         Assert.Equal(0, TouchDrag(scope, frame, frame.Bounds.Center - frame.Bounds.Position, direction, 0));
-        Assert.Same(scope.Appointment, scope.Scheduler.SelectedAppointment);
+        Assert.Equal(1, edits);
+        Assert.Null(scope.Scheduler.SelectedAppointment);
+
+        // Holding it selects it, and the finger then moves it while the view stays.
         frame = scope.Frame(scope.Appointment);
-        Assert.Equal(0, TouchDrag(scope, frame, frame.Bounds.Center - frame.Bounds.Position + new Vector(40, 0), direction));
+        Assert.Equal(0, TouchDrag(scope, frame, frame.Bounds.Center - frame.Bounds.Position, direction, hold: true));
+        Assert.Same(scope.Appointment, scope.Scheduler.SelectedAppointment);
         Assert.Equal(1, moves);
 
-        // A swipe over an appointment that is not selected scrolls the whole way and selects nothing; so does one over a
-        // free slot.
+        // A swipe without a hold scrolls the whole way, over the appointment and over a free slot, and opens nothing.
         scope.Scheduler.SelectedAppointment = null;
         scope.Layout();
         frame = scope.Frame(scope.Appointment);
@@ -255,17 +260,15 @@ public sealed partial class SchedulerTests
         Assert.Null(scope.Scheduler.SelectedAppointment);
         var free = frame.Bounds.Center + direction * (view == SchedulerView.Week ? frame.Bounds.Height : frame.Bounds.Width);
         Assert.True(TouchDrag(scope, lane, free, direction) > 60, "swipe over a free slot");
-        Assert.Equal(1, moves);
+        Assert.Equal((1, 1), (moves, edits));
     }
 
     [AvaloniaTheory]
     [InlineData(SchedulerView.Week)]
     [InlineData(SchedulerView.Timeline)]
-    public void OnTouchTheEdgeOfASelectedAppointmentIsWideEnoughToResizeItWhereAMouseMovesIt(SchedulerView view)
+    public void OnTouchTheEdgeOfAHeldAppointmentIsWideEnoughToResizeItWhereAMouseMovesIt(SchedulerView view)
     {
         using var scope = new SchedulerScope(view);
-        scope.Scheduler.SelectedAppointment = scope.Appointment;
-        scope.Layout();
         var moves = 0;
         var resizes = 0;
         scope.Scheduler.AppointmentMoveRequested += (_, _) => moves++;
@@ -275,7 +278,7 @@ public sealed partial class SchedulerTests
         // 8 pixels inside the end: within the edge for a finger, beyond it for a mouse.
         var nearEnd = frame.Bounds.Center - frame.Bounds.Position + direction * ((view == SchedulerView.Week ? frame.Bounds.Height : frame.Bounds.Width) / 2 - 8);
 
-        TouchDrag(scope, frame, nearEnd, direction);
+        TouchDrag(scope, frame, nearEnd, direction, hold: true);
         Assert.Equal((0, 1), (moves, resizes));
 
         frame = scope.Frame(scope.Appointment);
@@ -287,7 +290,7 @@ public sealed partial class SchedulerTests
     }
 
     [AvaloniaFact]
-    public void OnTouchACtrlTapAddsToTheSelectionADoubleTapEditsAndALockedAppointmentStaysUnselected()
+    public void OnTouchAHoldSelectsTapsThenToggleTheSelectionAndALockedAppointmentStaysClosedAndUnselected()
     {
         using var scope = new SchedulerScope(SchedulerView.Week);
         var second = new AppointmentModel { Id = 2, Subject = "Second", Start = Monday.AddDays(1).AddHours(9), End = Monday.AddDays(1).AddHours(10), ResourceIds = { 1 } };
@@ -296,32 +299,35 @@ public sealed partial class SchedulerTests
         scope.Layout();
         var edits = 0;
         scope.Scheduler.AppointmentEditRequested += (_, _) => edits++;
+        int[] Selected() => scope.Scheduler.SelectedAppointments.Select(static appointment => (int)appointment.Id!).Order().ToArray();
 
+        // Holding selects; while appointments are selected, a tap adds one to the selection or takes it out.
+        TouchHold(scope, scope.Frame(scope.Appointment));
+        Assert.Equal([1], Selected());
+        TouchTap(scope, scope.Frame(second));
+        Assert.Equal([1, 2], Selected());
         TouchTap(scope, scope.Frame(scope.Appointment));
-        TouchTap(scope, scope.Frame(second), RawInputModifiers.Control);
-        Assert.Equal([1, 2], scope.Scheduler.SelectedAppointments.Select(static appointment => (int)appointment.Id!).Order());
-
-        // The first tap selects the appointment, the second one close behind it asks to edit it, and a third one does not
-        // again. With two selected SelectedAppointment is null already, so one is selected before none.
-        scope.Scheduler.SelectedAppointment = second;
-        scope.Scheduler.SelectedAppointment = null;
-        scope.Layout();
+        Assert.Equal([2], Selected());
         TouchTap(scope, scope.Frame(second));
+        Assert.Empty(Selected());
         Assert.Equal(0, edits);
-        TouchTap(scope, scope.Frame(second));
+
+        // Without a selection a tap opens again.
         TouchTap(scope, scope.Frame(second));
         Assert.Equal(1, edits);
 
-        scope.Scheduler.SelectedAppointment = null;
-        scope.Layout();
         TouchTap(scope, scope.Frame(locked));
-        Assert.Null(scope.Scheduler.SelectedAppointment);
+        TouchHold(scope, scope.Frame(locked));
+        Assert.Equal(1, edits);
+        Assert.Empty(Selected());
     }
 
     [AvaloniaFact]
-    public void OnTouchATapThatStopsAScrollingViewSelectsNothing()
+    public void OnTouchATapThatStopsAScrollingViewOpensNothing()
     {
         using var scope = new SchedulerScope(SchedulerView.Week);
+        var edits = 0;
+        scope.Scheduler.AppointmentEditRequested += (_, _) => edits++;
         var frame = scope.Frame(scope.Appointment);
         frame.BringIntoView();
         scope.Layout();
@@ -331,11 +337,11 @@ public sealed partial class SchedulerTests
 
         presenter.RaiseEvent(starting);
         TouchTap(scope, frame);
-        Assert.Null(scope.Scheduler.SelectedAppointment);
+        Assert.Equal(0, edits);
 
         presenter.RaiseEvent(new ScrollGestureEndedEventArgs(1));
         TouchTap(scope, scope.Frame(scope.Appointment));
-        Assert.Same(scope.Appointment, scope.Scheduler.SelectedAppointment);
+        Assert.Equal(1, edits);
     }
 
     [AvaloniaFact]
@@ -387,7 +393,7 @@ public sealed partial class SchedulerTests
     }
 
     [AvaloniaFact]
-    public void OnTouchSwipesOverAnAppointmentDoNotKeepADoubleTapFromEditingIt()
+    public void OnTouchSwipesOverAnAppointmentOpenNothingAndATapAfterThemDoes()
     {
         using var scope = new SchedulerScope(SchedulerView.Week);
         var edits = 0;
@@ -395,14 +401,35 @@ public sealed partial class SchedulerTests
         var frame = scope.Frame(scope.Appointment);
         var middle = frame.Bounds.Center - frame.Bounds.Position;
 
-        // A week does not scroll sideways, so the swipes start where the taps come.
+        // A week does not scroll sideways, so the swipes start where the tap comes.
         TouchDrag(scope, frame, middle, new Vector(1, 0), pixels: 40);
         TouchDrag(scope, frame, middle, new Vector(1, 0), pixels: 40);
-        TouchTap(scope, scope.Frame(scope.Appointment), middle);
-        Assert.Same(scope.Appointment, scope.Scheduler.SelectedAppointment);
         Assert.Equal(0, edits);
+        Assert.Null(scope.Scheduler.SelectedAppointment);
         TouchTap(scope, scope.Frame(scope.Appointment), middle);
         Assert.Equal(1, edits);
+    }
+
+    // Holds a touch contact on the middle of the target longer than the hold of the platform, then lifts it.
+    private static void TouchHold(SchedulerScope scope, Control target)
+    {
+        var point = target.Bounds.Center - target.Bounds.Position;
+        target.BringIntoView(new Rect(point, new Size(1, 1)));
+        scope.Layout();
+        var origin = scope.Point(target, point.X, point.Y);
+        var touch = scope.Window.TouchBegin(origin);
+        WaitForHold(scope);
+        scope.Window.TouchEnd(touch, origin);
+        scope.Layout();
+    }
+
+    private static void WaitForHold(SchedulerScope scope)
+    {
+        Thread.Sleep(Application.Current!.PlatformSettings!.HoldWaitDuration + TimeSpan.FromMilliseconds(150));
+        // The dispatcher looks for due timers only after it ran a job.
+        Dispatcher.UIThread.Post(static () => { });
+        scope.Layout();
+        scope.Layout();
     }
 
     // Taps a touch contact on the middle of the target, or on a point of it.
@@ -419,9 +446,9 @@ public sealed partial class SchedulerTests
         scope.Layout();
     }
 
-    // Drags a touch contact from a point of the target by the given pixels (none is a tap); returns how far the view
-    // scrolled against the drag.
-    private static double TouchDrag(SchedulerScope scope, Control target, Point point, Vector direction, int pixels = 80)
+    // Drags a touch contact from a point of the target by the given pixels (none is a tap), after holding it first if
+    // asked; returns how far the view scrolled against the drag.
+    private static double TouchDrag(SchedulerScope scope, Control target, Point point, Vector direction, int pixels = 80, bool hold = false)
     {
         // With room around the point, so the contact stays inside the view.
         target.BringIntoView(new Rect(point, new Size(1, 1)).Inflate(120));
@@ -430,6 +457,8 @@ public sealed partial class SchedulerTests
         var before = scroll.Offset;
         var origin = scope.Point(target, point.X, point.Y);
         var touch = scope.Window.TouchBegin(origin);
+        if (hold)
+            WaitForHold(scope);
         for (var step = 1; step <= pixels / 10; step++)
             scope.Window.TouchMove(touch, origin + direction * (step * 10));
         scope.Window.TouchEnd(touch, origin + direction * pixels);

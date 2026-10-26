@@ -22,8 +22,6 @@ namespace Flowery.NET.Kanban.Controls
             CardSizeProperty.Changed.AddClassHandler<FlowTaskCard>((control, _) => control.ApplySizing());
         }
 
-        private const int TitleLongPressMilliseconds = 500;
-        private const double TitleLongPressMoveThreshold = 8;
         private FlowKanban? _parentKanban;
         private DaisyButton? _closeButton;
         private TextBlock? _titleTextBlock;
@@ -36,14 +34,6 @@ namespace Flowery.NET.Kanban.Controls
         private bool _isPointerOver;
         private bool _isKeyboardFocusVisible;
         private bool _isLocalizationSubscribed;
-        private DispatcherTimer? _titleLongPressTimer;
-        private bool _isTitlePressTracking;
-        private int _titlePressPointerId;
-        private Point _titlePressStartPoint;
-        private IPointer? _tapPointer;
-        private Point _tapStart;
-        private ulong _lastTapTime;
-        private Point _lastTapPoint;
         private static readonly IBrush TransparentBorderBrush = new SolidColorBrush(Colors.Transparent);
 
         public FlowTaskCard()
@@ -748,7 +738,7 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnDoubleTapped(object? sender, TappedEventArgs e)
         {
-            // With touch selection the card counts its own taps on release (OnCardPointerReleased).
+            // With touch selection a tap edits the card and no double tap is needed (FlowTaskCard.Touch.cs).
             if (UsesTouchSelection)
                 return;
 
@@ -778,13 +768,7 @@ namespace Flowery.NET.Kanban.Controls
         {
             if (UsesTouchSelection)
             {
-                // A press that never came back here as a release became a swipe (the scroll gesture took the pointer); it
-                // breaks a run of taps.
-                if (_tapPointer is not null)
-                    _lastTapTime = 0;
-                _tapPointer = e.Pointer;
-                _tapStart = e.GetPosition(this);
-                BeginTouchDrag(e);
+                BeginTouchPress(e);
                 return;
             }
 
@@ -815,52 +799,6 @@ namespace Flowery.NET.Kanban.Controls
                 task.IsSelected = true;
             return false;
         }
-
-        // A tap selects the card or, when it is selected, unselects it, and a double tap edits it. A press may start a swipe through the
-        // board, so both are decided on release, and only taps that did not move count: Avalonia's click count and
-        // DoubleTapped count swipes at the same spot as well.
-        private void OnCardPointerReleased(object? sender, PointerReleasedEventArgs e)
-        {
-            if (EndTouchDrag(e))
-                return;
-            if (!UsesTouchSelection || !ReferenceEquals(_tapPointer, e.Pointer))
-                return;
-
-            _tapPointer = null;
-            var point = e.GetPosition(this);
-            var settings = Application.Current?.PlatformSettings;
-            var tapSize = settings?.GetTapSize(e.Pointer.Type) ?? new Size(10, 10);
-            if (!IsWithin(point, _tapStart, tapSize))
-            {
-                _lastTapTime = 0;
-                return;
-            }
-
-            if (CardTask is not { } task)
-                return;
-
-            e.Handled = true;
-            var doubleTapTime = settings?.GetDoubleTapTime(e.Pointer.Type) ?? TimeSpan.FromMilliseconds(500);
-            if (_lastTapTime == 0 || e.Timestamp - _lastTapTime > (ulong)doubleTapTime.TotalMilliseconds
-                || !IsWithin(point, _lastTapPoint, tapSize))
-            {
-                _lastTapTime = e.Timestamp;
-                _lastTapPoint = point;
-                // A tap on a selected card unselects it; the check mark and the delete button on it do not.
-                SelectTask(task, task.IsSelected ? KeyModifiers.Control : e.KeyModifiers);
-                return;
-            }
-
-            // A third tap starts a new pair instead of editing again. The card stays selected after a double tap, also
-            // when its first tap unselected it.
-            _lastTapTime = 0;
-            if (!task.IsSelected)
-                SelectTask(task, KeyModifiers.Control);
-            TryExecuteEdit();
-        }
-
-        private static bool IsWithin(Point point, Point origin, Size tapSize) =>
-            Math.Abs(point.X - origin.X) <= tapSize.Width / 2 && Math.Abs(point.Y - origin.Y) <= tapSize.Height / 2;
 
         internal bool TryExecuteEdit()
         {
@@ -1389,10 +1327,6 @@ namespace Flowery.NET.Kanban.Controls
 
             _titleTextBlock.SizeChanged += OnTitleSizeChanged;
             _titleTextBlock.Loaded += OnTitleLoaded;
-            _titleTextBlock.PointerPressed += OnTitlePointerPressed;
-            _titleTextBlock.PointerMoved += OnTitlePointerMoved;
-            _titleTextBlock.PointerReleased += OnTitlePointerReleased;
-            _titleTextBlock.PointerCaptureLost += OnTitlePointerCaptureLost;
             UpdateTitleToolTip();
             SyncTitleForeground();
         }
@@ -1403,14 +1337,8 @@ namespace Flowery.NET.Kanban.Controls
             {
                 _titleTextBlock.SizeChanged -= OnTitleSizeChanged;
                 _titleTextBlock.Loaded -= OnTitleLoaded;
-                _titleTextBlock.PointerPressed -= OnTitlePointerPressed;
-                _titleTextBlock.PointerMoved -= OnTitlePointerMoved;
-                _titleTextBlock.PointerReleased -= OnTitlePointerReleased;
-                _titleTextBlock.PointerCaptureLost -= OnTitlePointerCaptureLost;
                 _titleTextBlock = null;
             }
-
-            CancelTitleLongPress();
         }
 
         private void OnTitleSizeChanged(object? sender, SizeChangedEventArgs e)
@@ -1445,84 +1373,6 @@ namespace Flowery.NET.Kanban.Controls
             var isTrimmed = IsTitleTrimmed(title, _titleTextBlock, availableWidth);
 
             ToolTip.SetTip(_titleTextBlock, isTrimmed ? title : null);
-        }
-
-        private void OnTitlePointerPressed(object? sender, PointerEventArgs e)
-        {
-            if (!UsesTouchSelection)
-                return;
-
-            if (e.Pointer.Type != PointerType.Touch)
-                return;
-
-            if (sender is not Control element)
-                return;
-
-            _titlePressPointerId = e.Pointer.Id;
-            _titlePressStartPoint = e.GetCurrentPoint(element).Position;
-            _isTitlePressTracking = true;
-            StartTitleLongPressTimer();
-        }
-
-        private void OnTitlePointerMoved(object? sender, PointerEventArgs e)
-        {
-            if (!_isTitlePressTracking || e.Pointer.Id != _titlePressPointerId)
-                return;
-
-            if (sender is not Control element)
-                return;
-
-            var current = e.GetCurrentPoint(element).Position;
-            var dx = current.X - _titlePressStartPoint.X;
-            var dy = current.Y - _titlePressStartPoint.Y;
-            if ((dx * dx) + (dy * dy) > (TitleLongPressMoveThreshold * TitleLongPressMoveThreshold))
-            {
-                CancelTitleLongPress();
-            }
-        }
-
-        private void OnTitlePointerReleased(object? sender, PointerEventArgs e)
-        {
-            if (e.Pointer.Id != _titlePressPointerId)
-                return;
-
-            CancelTitleLongPress();
-        }
-
-        private void OnTitlePointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
-        {
-            CancelTitleLongPress();
-        }
-
-        private void StartTitleLongPressTimer()
-        {
-            _titleLongPressTimer ??= new DispatcherTimer();
-            _titleLongPressTimer.Stop();
-            _titleLongPressTimer.Interval = TimeSpan.FromMilliseconds(TitleLongPressMilliseconds);
-            _titleLongPressTimer.Tick -= OnTitleLongPressTimerTick;
-            _titleLongPressTimer.Tick += OnTitleLongPressTimerTick;
-            _titleLongPressTimer.Start();
-        }
-
-        private void OnTitleLongPressTimerTick(object? sender, EventArgs args)
-        {
-            _titleLongPressTimer?.Stop();
-
-            if (!_isTitlePressTracking)
-                return;
-
-            _isTitlePressTracking = false;
-            if (TryExecuteEdit())
-            {
-                Focus();
-            }
-        }
-
-        private void CancelTitleLongPress()
-        {
-            _isTitlePressTracking = false;
-            _titlePressPointerId = 0;
-            _titleLongPressTimer?.Stop();
         }
 
         private void SyncTitleForeground()
@@ -1726,9 +1576,8 @@ namespace Flowery.NET.Kanban.Controls
         }
 
         /// <summary>
-        /// On a phone or tablet: a tap selects the card or unselects a selected one, a double tap (or a long press on the
-        /// title) edits it, and a finger on a selected card drags it (FlowTaskCard.TouchDrag.cs); swipes over other cards
-        /// scroll.
+        /// On a phone or tablet, as the platforms do: a tap edits the card, or toggles its selection while cards are
+        /// selected; holding it selects it, and the finger then drags it (FlowTaskCard.Touch.cs); swipes scroll.
         /// </summary>
         internal bool UsesTouchSelection { get; set; } = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
     }
