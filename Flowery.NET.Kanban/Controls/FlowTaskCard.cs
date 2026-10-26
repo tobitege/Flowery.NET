@@ -40,6 +40,10 @@ namespace Flowery.NET.Kanban.Controls
         private bool _isTitlePressTracking;
         private int _titlePressPointerId;
         private Point _titlePressStartPoint;
+        private IPointer? _tapPointer;
+        private Point _tapStart;
+        private ulong _lastTapTime;
+        private Point _lastTapPoint;
         private static readonly IBrush TransparentBorderBrush = new SolidColorBrush(Colors.Transparent);
 
         public FlowTaskCard()
@@ -51,6 +55,9 @@ namespace Flowery.NET.Kanban.Controls
             LostFocus += OnCardLostFocus;
             KeyDown += OnCardKeyDown;
             PointerPressed += OnCardPointerPressed;
+            // A scroll gesture through the board marks the release handled.
+            AddHandler(PointerReleasedEvent, OnCardPointerReleased, RoutingStrategies.Bubble, handledEventsToo: true);
+            PointerCaptureLost += OnCardPointerCaptureLost;
             UpdateSelectionBadgePlacement();
         }
 
@@ -738,16 +745,9 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnDoubleTapped(object? sender, TappedEventArgs e)
         {
-            if (IsMobileSelectionMode())
-            {
-                var task = CloseCommandParameter as FlowTask ?? Task ?? _trackedTask;
-                if (task != null)
-                {
-                    task.IsSelected = !task.IsSelected;
-                    e.Handled = true;
-                }
+            // With touch selection the card counts its own taps on release (OnCardPointerReleased).
+            if (UsesTouchSelection)
                 return;
-            }
 
             if (TryExecuteEdit())
                 e.Handled = true;
@@ -773,8 +773,15 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnCardPointerPressed(object? sender, PointerPressedEventArgs e)
         {
-            if (IsMobileSelectionMode())
+            if (UsesTouchSelection)
+            {
+                // A press that never came back here as a release became a swipe; it breaks a run of taps.
+                if (_tapPointer is not null)
+                    _lastTapTime = 0;
+                _tapPointer = e.Pointer;
+                _tapStart = e.GetPosition(this);
                 return;
+            }
 
             var task = CloseCommandParameter as FlowTask ?? Task ?? _trackedTask;
             if (task == null)
@@ -803,6 +810,53 @@ namespace Flowery.NET.Kanban.Controls
                 _ = StartTaskDragAsync(e, task);
             }
         }
+
+        // A press may start a swipe through the board, so a double tap is decided on release, and only taps that did not
+        // move count: Avalonia's click count and DoubleTapped count swipes at the same spot as well.
+        private void OnCardPointerReleased(object? sender, PointerReleasedEventArgs e)
+        {
+            if (!UsesTouchSelection || !ReferenceEquals(_tapPointer, e.Pointer))
+                return;
+
+            _tapPointer = null;
+            var point = e.GetPosition(this);
+            var settings = Application.Current?.PlatformSettings;
+            var tapSize = settings?.GetTapSize(e.Pointer.Type) ?? new Size(10, 10);
+            if (!IsWithin(point, _tapStart, tapSize))
+            {
+                _lastTapTime = 0;
+                return;
+            }
+
+            var doubleTapTime = settings?.GetDoubleTapTime(e.Pointer.Type) ?? TimeSpan.FromMilliseconds(500);
+            if (_lastTapTime == 0 || e.Timestamp - _lastTapTime > (ulong)doubleTapTime.TotalMilliseconds
+                || !IsWithin(point, _lastTapPoint, tapSize))
+            {
+                _lastTapTime = e.Timestamp;
+                _lastTapPoint = point;
+                return;
+            }
+
+            // A third tap starts a new pair instead of toggling again.
+            _lastTapTime = 0;
+            if ((CloseCommandParameter as FlowTask ?? Task ?? _trackedTask) is { } task)
+            {
+                task.IsSelected = !task.IsSelected;
+                e.Handled = true;
+            }
+        }
+
+        private void OnCardPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+        {
+            // The scroll gesture took the pointer: a swipe, not a tap.
+            if (!ReferenceEquals(_tapPointer, e.Pointer))
+                return;
+            _tapPointer = null;
+            _lastTapTime = 0;
+        }
+
+        private static bool IsWithin(Point point, Point origin, Size tapSize) =>
+            Math.Abs(point.X - origin.X) <= tapSize.Width / 2 && Math.Abs(point.Y - origin.Y) <= tapSize.Height / 2;
 
         internal bool TryExecuteEdit()
         {
@@ -1391,7 +1445,7 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnTitlePointerPressed(object? sender, PointerEventArgs e)
         {
-            if (!IsMobileSelectionMode())
+            if (!UsesTouchSelection)
                 return;
 
             if (e.Pointer.Type != PointerType.Touch)
@@ -1667,10 +1721,11 @@ namespace Flowery.NET.Kanban.Controls
             return string.Concat(first, last).ToUpper(CultureInfo.CurrentUICulture);
         }
 
-        private static bool IsMobileSelectionMode()
-        {
-            return OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
-        }
+        /// <summary>
+        /// On a phone or tablet: a double tap selects the card, a long press on the title edits it, and a press starts no
+        /// drag, so swipes scroll the board.
+        /// </summary>
+        internal bool UsesTouchSelection { get; set; } = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
     }
 
     internal sealed class FlowTaskCardAutomationPeer : ControlAutomationPeer, IInvokeProvider, ISelectionItemProvider

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -11,14 +12,49 @@ using Flowery.Services;
 
 namespace Flowery.NET.Gallery.Examples;
 
-public partial class FlowKanbanExample : UserControl
+public partial class FlowKanbanExample : UserControl, ICollapsibleIntroExample
 {
+    private const double CompactWidth = 600;
+
+    // What the board supports by touch (see FlowTaskCard): no card dragging, a long press on the title edits.
+    private const string TouchFeatures =
+        "• Tap '+ Add Card' to type a new task directly\n" +
+        "• Long-press a card title to edit title, description, and color\n" +
+        "• Double-tap cards to select them, then move, prioritize, tag, schedule, or delete them with the bar below the board\n" +
+        "• Color-coded task cards using DaisyColor palette\n" +
+        "• JSON persistence via Save/Load buttons in sidebar\n" +
+        "• Built on FlowKanbanData, FlowKanbanColumnData, and FlowTask models";
+
     private readonly FlowKanbanAssigneeAdapter _assigneeAdapter;
     private FlowKanbanManager? _kanbanManager;
 
-    public FlowKanbanExample()
+    public bool IsIntroVisible
+    {
+        get => DescriptionText.IsVisible;
+        set
+        {
+            if (DescriptionText.IsVisible == value)
+                return;
+            DescriptionText.IsVisible = value;
+            FeaturesCollapse.IsVisible = value;
+            IntroVisibilityChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    public bool FoldsIntro { get; set; }
+
+    public event EventHandler? IntroVisibilityChanged;
+
+    public FlowKanbanExample() : this(OperatingSystem.IsAndroid())
+    {
+    }
+
+    /// <param name="touchHelp">List the touch gestures in the features instead of mouse and keyboard, as on Android.</param>
+    public FlowKanbanExample(bool touchHelp)
     {
         InitializeComponent();
+        if (touchHelp)
+            FeaturesText.Text = TouchFeatures;
 
         _assigneeAdapter = new FlowKanbanAssigneeAdapter(CreateAssignees());
 
@@ -26,6 +62,13 @@ public partial class FlowKanbanExample : UserControl
         DemoKanban.EditCardCommand = new SimpleCommand(OnEditCardRequested);
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
+    }
+
+    // A phone-wide page gives the board the width of the side margins the other pages keep.
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+        PageGrid.Margin = e.NewSize.Width < CompactWidth ? new Thickness(8, 0, 8, 8) : new Thickness(24, 0, 24, 24);
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
