@@ -55,7 +55,7 @@ namespace Flowery.NET.Tests
                 Assert.True("Custom name" == AutomationProperties.GetName(control), $"{type} kept '{AutomationProperties.GetName(control)}'.");
             }
 
-            // The colour of a status indicator decides what it announces.
+            // The colour of a status indicator decides what it announces, whether it is set first or changed later.
             var indicator = new DaisyStatusIndicator();
             window.Show(indicator);
             foreach (var (color, text) in new[]
@@ -70,6 +70,10 @@ namespace Flowery.NET.Tests
             {
                 indicator.Color = color;
                 Assert.Equal(text, AutomationProperties.GetName(indicator));
+                var fresh = new DaisyStatusIndicator { Color = color };
+                window.Show(fresh);
+                Assert.Equal(text, AutomationProperties.GetName(fresh));
+                window.Show(indicator);
             }
             Assert.Equal(AutomationLiveSetting.Polite, AutomationProperties.GetLiveSetting(new DaisyCountdown()));
         }

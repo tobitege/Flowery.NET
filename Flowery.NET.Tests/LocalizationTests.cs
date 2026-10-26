@@ -68,6 +68,17 @@ namespace Flowery.NET.Tests
             {
                 FloweryLocalization.CustomResolver = originalResolver;
             }
+
+            // Every shipped language loads at run time, region codes such as zh-CN included.
+            foreach (var (assembly, key) in new[] { (typeof(FloweryLocalization).Assembly, "Accessibility_Loading"), (typeof(FlowKanban).Assembly, "Common_Delete") })
+            {
+                foreach (var (language, catalog) in LoadCatalogs(assembly))
+                {
+                    FloweryLocalization.SetCulture(language);
+                    var value = FloweryLocalization.GetString(key);
+                    Assert.True(catalog[key] == value, $"{language} resolves {key} to '{value}', not '{catalog[key]}'.");
+                }
+            }
         }
 
         [AvaloniaFact]
@@ -103,10 +114,14 @@ namespace Flowery.NET.Tests
         }
 
         [AvaloniaFact]
-        public void Every_Key_The_Code_Asks_For_Exists_In_English()
+        public void Every_Key_In_The_Code_Exists_In_English()
         {
             var english = LoadCatalogs(typeof(FloweryLocalization).Assembly)["en"].Keys
                 .Concat(LoadCatalogs(typeof(FlowKanban).Assembly)["en"].Keys)
+                .ToHashSet(StringComparer.Ordinal);
+            // Keys reach the lookups directly, after a line break and through helpers, so every literal shaped like
+            // a key of a known group counts.
+            var groups = english.Where(static key => key.Contains('_')).Select(static key => key[..key.IndexOf('_')])
                 .ToHashSet(StringComparer.Ordinal);
             var sources = new[] { "Flowery.NET", "Flowery.NET.Kanban" }
                 .SelectMany(project => Directory.EnumerateFiles(Path.Combine(RepositoryRoot(), project), "*.cs", SearchOption.AllDirectories));
@@ -114,11 +129,10 @@ namespace Flowery.NET.Tests
             var missing = new SortedSet<string>(StringComparer.Ordinal);
             foreach (var file in sources)
             {
-                foreach (Match match in RequestedKey().Matches(File.ReadAllText(file)))
+                foreach (Match match in KeyLiteral().Matches(File.ReadAllText(file)))
                 {
                     var key = match.Groups["key"].Value;
-                    // A key ending in an underscore is the prefix of keys composed at run time.
-                    if (!key.EndsWith('_') && !english.Contains(key))
+                    if (groups.Contains(key[..key.IndexOf('_')]) && !english.Contains(key))
                         missing.Add($"{key} ({Path.GetFileName(file)})");
                 }
             }
@@ -265,7 +279,8 @@ namespace Flowery.NET.Tests
         private static string RepositoryRoot([CallerFilePath] string testFile = "") =>
             Path.GetDirectoryName(Path.GetDirectoryName(testFile))!;
 
-        [GeneratedRegex("""GetString(?:Internal)?\("(?<key>[A-Za-z0-9_]+)"[,)]""")]
-        private static partial Regex RequestedKey();
+        // A literal shaped like a key, except automation ids and the prefix of a key composed at run time.
+        [GeneratedRegex("""(?<!SetAutomationId\([^,]+,\s*)"(?<key>[A-Z][A-Za-z0-9]*_[A-Za-z0-9_]*[A-Za-z0-9])"(?!\s*\+)""")]
+        private static partial Regex KeyLiteral();
     }
 }
