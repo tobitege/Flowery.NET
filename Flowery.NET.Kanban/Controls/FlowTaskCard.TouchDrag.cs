@@ -78,6 +78,9 @@
                 IsHitTestVisible = false
             };
             drag.Layer.Children.Add(drag.Ghost);
+            // The card holds the pointer from here on, so it also learns when the system cancels the touch: the release
+            // never comes then, and the lost capture ends the drag.
+            drag.Pointer.Capture(this);
 
             drag.ScrollTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(30) };
             drag.ScrollTimer.Tick += OnTouchDragScrollTick;
@@ -151,6 +154,12 @@
             return true;
         }
 
+        private void OnCardPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+        {
+            if (_touchDrag is { IsMoving: true } drag && ReferenceEquals(drag.Pointer, e.Pointer))
+                CancelTouchDrag();
+        }
+
         private void CancelTouchDrag()
         {
             if (_touchDrag is not { } drag)
@@ -164,7 +173,11 @@
             }
             drag.Column?.EndTaskDropPreview();
             if (drag.Ghost is { } ghost)
+            {
                 drag.Layer?.Children.Remove(ghost);
+                if (ReferenceEquals(drag.Pointer.Captured, this))
+                    drag.Pointer.Capture(null);
+            }
         }
 
         private static FlowKanbanColumn? ColumnAt(TouchDrag drag) =>

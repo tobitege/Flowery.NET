@@ -5,6 +5,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Raw;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -137,10 +138,27 @@ public class KanbanAndroidRegressionTests
             TouchDrag(window, Card(window, first), BottomOf(Card(window, done.Tasks[0]), window));
             Assert.Equal([second], todo.Tasks);
             Assert.Same(first, done.Tasks.Last());
-            Assert.Empty(OverlayLayer.GetOverlayLayer(board)!.Children.OfType<Border>().Where(static border => border.Background is VisualBrush));
+            Assert.Empty(Ghosts(board));
 
             // An unselected card scrolls instead of moving.
             TouchDrag(window, Card(window, second), BottomOf(Card(window, first), window));
+            Assert.Equal([second], todo.Tasks);
+
+            // A touch the system cancels (no release, the capture is lost) ends the drag without a move.
+            second.IsSelected = true;
+            var card = Card(window, second);
+            card.UsesTouchSelection = true;
+            IPointer? pointer = null;
+            window.AddHandler(InputElement.PointerPressedEvent, (_, e) => pointer = e.Pointer, RoutingStrategies.Tunnel, true);
+            var start = Spot(window, card);
+            var touch = window.TouchBegin(start, RawInputModifiers.None);
+            window.TouchMove(touch, start + new Vector(200, 0));
+            Flush(window);
+            Assert.Same(card, pointer!.Captured);
+            Assert.NotEmpty(Ghosts(board));
+            pointer.Capture(null);
+            Flush(window);
+            Assert.Empty(Ghosts(board));
             Assert.Equal([second], todo.Tasks);
         }
         finally
@@ -148,6 +166,10 @@ public class KanbanAndroidRegressionTests
             window.Close();
         }
     }
+
+    // The copies of dragged cards in the overlay.
+    private static IEnumerable<Border> Ghosts(Visual board) =>
+        OverlayLayer.GetOverlayLayer(board)!.Children.OfType<Border>().Where(static border => border.Background is VisualBrush);
 
     private static FlowTaskCard Card(Window window, FlowTask task) =>
         window.GetVisualDescendants().OfType<FlowTaskCard>().Single(card => ReferenceEquals(card.Task, task));

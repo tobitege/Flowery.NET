@@ -58,6 +58,7 @@ namespace Flowery.NET.Kanban.Controls
             // A scroll gesture through the board marks the release handled.
             AddHandler(PointerReleasedEvent, OnCardPointerReleased, RoutingStrategies.Bubble, handledEventsToo: true);
             PointerMoved += OnCardPointerMoved;
+            PointerCaptureLost += OnCardPointerCaptureLost;
             UpdateSelectionBadgePlacement();
         }
 
