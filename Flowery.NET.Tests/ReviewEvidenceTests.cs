@@ -151,7 +151,7 @@ public class ReviewEvidenceTests
         using var scope = new Scope(number);
         var name = increase ? "PART_IncreaseButton" : "PART_DecreaseButton";
         var button = number.GetVisualDescendants().OfType<Button>().Single(control => control.Name == name);
-        button.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        button.PointerClick();
         Assert.Equal(decimal.Parse(expected, culture), number.Value);
     }
 

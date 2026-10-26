@@ -323,18 +323,18 @@ public class DaisyGlassButtonDesignerTests
 
             var applied = DaisyGlassButtonDesigner.ShowOverlayAsync(host, new DaisyGlassButtonDesign { Content = "Over" });
             Dispatcher.UIThread.RunJobs();
-            OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            OverlayButton(overlay, "GlassDesigner_Apply").PointerClick();
             Assert.Equal("Over", (await applied)!.Content);
             Assert.Empty(overlay.Children);
 
             var cancelled = DaisyGlassButtonDesigner.ShowOverlayAsync(host);
             Dispatcher.UIThread.RunJobs();
-            OverlayButton(overlay, "GlassDesigner_Cancel").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            OverlayButton(overlay, "GlassDesigner_Cancel").PointerClick();
             Assert.Null(await cancelled);
 
             var escaped = DaisyGlassButtonDesigner.ShowOverlayAsync(host);
             Dispatcher.UIThread.RunJobs();
-            ((Control)overlay.Children[0]).RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape });
+            host.Press(PhysicalKey.Escape);
             Assert.Null(await escaped);
             Assert.Empty(overlay.Children);
         }
@@ -361,7 +361,7 @@ public class DaisyGlassButtonDesignerTests
             var design = designer.Design;
             design.GlassBlur = 70;
             designer.Design = design;
-            OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            OverlayButton(overlay, "GlassDesigner_Apply").PointerClick();
 
             Assert.True(await edit);
             Assert.Equal(70, button.GlassBlur);
@@ -388,7 +388,7 @@ public class DaisyGlassButtonDesignerTests
             var design = designer.Design;
             design.Content = "New";
             designer.Design = design;
-            OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            OverlayButton(overlay, "GlassDesigner_Apply").PointerClick();
             Assert.True(await edit);
             Assert.Equal("New", button.Content);
 
@@ -396,7 +396,7 @@ public class DaisyGlassButtonDesignerTests
             button.Content = icon;
             edit = DaisyGlassButtonDesigner.EditAsync(button);
             Dispatcher.UIThread.RunJobs();
-            OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            OverlayButton(overlay, "GlassDesigner_Apply").PointerClick();
             Assert.True(await edit);
             Assert.Same(icon, button.Content);
         }
@@ -438,7 +438,7 @@ public class DaisyGlassButtonDesignerTests
             var overlay = OverlayLayer.GetOverlayLayer(button)!;
             var edit = DaisyGlassButtonDesigner.EditAsync(button);
             Dispatcher.UIThread.RunJobs();
-            OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            OverlayButton(overlay, "GlassDesigner_Apply").PointerClick();
             Assert.True(await edit);
 
             // Nothing changed, so nothing was written: the style and the size still apply, the fill and the background
@@ -457,7 +457,7 @@ public class DaisyGlassButtonDesignerTests
             var design = designer.Design;
             design.Variant = DaisyButtonVariant.Primary;
             designer.Design = design;
-            OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            OverlayButton(overlay, "GlassDesigner_Apply").PointerClick();
             Assert.True(await edit);
             Assert.Equal(DaisyButtonVariant.Primary, button.Variant);
             Assert.NotEqual(BindingPriority.LocalValue, button.GetDiagnostic(DaisyGlassButton.SizeProperty).Priority);
@@ -479,7 +479,7 @@ public class DaisyGlassButtonDesignerTests
             var overlay = OverlayLayer.GetOverlayLayer(button)!;
             var edit = DaisyGlassButtonDesigner.EditAsync(button);
             Dispatcher.UIThread.RunJobs();
-            OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            OverlayButton(overlay, "GlassDesigner_Apply").PointerClick();
             Assert.True(await edit);
             Assert.Null(button.Content);
         }
@@ -556,7 +556,7 @@ public class DaisyGlassButtonDesignerTests
             Assert.Equal(KeyboardNavigationMode.Cycle, KeyboardNavigation.GetTabNavigation(backdrop));
             Assert.False(box.IsFocused);
 
-            OverlayButton(overlay, "GlassDesigner_Cancel").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            OverlayButton(overlay, "GlassDesigner_Cancel").PointerClick();
             Assert.Null(await open);
             Assert.True(box.IsFocused);
         }
@@ -668,7 +668,7 @@ public class DaisyGlassButtonDesignerTests
                 var design = designer.Design;
                 change(design);
                 designer.Design = design;
-                OverlayButton(overlay, "GlassDesigner_Apply").RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+                OverlayButton(overlay, "GlassDesigner_Apply").PointerClick();
                 Assert.True(await edit);
             }
 

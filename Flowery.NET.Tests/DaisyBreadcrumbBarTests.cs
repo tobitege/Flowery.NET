@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Avalonia.Automation;
@@ -43,7 +43,7 @@ public class DaisyBreadcrumbBarTests
         var window = Show(bar, 600);
         try
         {
-            GetItems(bar)[1].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            GetItems(bar)[1].PointerClick();
 
             var click = Assert.Single(clicks);
             Assert.Equal(1, click.Index);
