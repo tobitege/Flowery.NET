@@ -199,6 +199,52 @@ pwsh ./scripts/build-desktop.ps1 -NoRestore
 
 ---
 
+## run-linux-desktop.ps1
+
+Runs the Desktop Gallery on a Linux desktop (XFCE) in Docker, shown in the browser through noVNC. It publishes the Gallery self-contained for `linux-x64` to `bin/linux-desktop`, builds the image `flowery-linux-desktop` from `docker/linux-desktop` when it is missing (about 1 GB, no .NET SDK inside), and starts the container `flowery-desktop` with the published app mounted read-only. Requires Docker Desktop with Linux containers.
+
+### Linux Desktop Usage
+
+```powershell
+# Publish, start the desktop and open http://localhost:6080 in the browser
+pwsh ./scripts/run-linux-desktop.ps1
+
+# Reuse the published app and use a smaller desktop
+pwsh ./scripts/run-linux-desktop.ps1 -SkipPublish -Geometry 1280x800
+
+# Build the image again after a change in docker/linux-desktop
+pwsh ./scripts/run-linux-desktop.ps1 -RebuildImage
+```
+
+### Linux Desktop Parameters
+
+| Parameter | Type | Default | Description |
+| --------- | ---- | ------- | ----------- |
+| `-Configuration` | string | `Release` | Build configuration to publish |
+| `-SkipPublish` | switch | false | Reuse the app in `bin/linux-desktop` |
+| `-RebuildImage` | switch | false | Build the image again |
+| `-Geometry` | string | `1600x1000` | Size of the desktop |
+| `-NoBrowser` | switch | false | Do not open the browser |
+
+### Checks From Outside the Container
+
+The desktop listens on `127.0.0.1` only: noVNC on port 6080 and VNC on 5901 (no password). The Gallery's output is in `/tmp/app.log`.
+
+```powershell
+# Screenshot as PNG
+docker exec flowery-desktop sh -c 'xwd -root -silent | xwdtopnm | pnmtopng' > shot.png
+
+# Mouse and keyboard input with xdotool
+docker exec flowery-desktop xdotool mousemove 110 82 click 1 type Scheduler
+
+# Stop the desktop
+docker rm -f flowery-desktop
+```
+
+The image has no emoji font, so emoji in the Gallery show as empty boxes there.
+
+---
+
 ## run_browser.ps1
 
 Starts the pre-compiled Flowery.NET.Gallery.Browser WASM application and optionally opens it in your default browser.
