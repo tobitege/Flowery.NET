@@ -41,7 +41,10 @@
             <Setter Property="Foreground" Value="#0B1533" />
             <Setter Property="IndicatorBrush" Value="#260B1533" />
         </Style>
+        <!-- The scene picks its text colors for dark and light glass, so the buttons keep them as they are
+             instead of adjusting them to a backdrop measured a moment before the switch. -->
         <Style Selector=".glassScene controls|DaisyGlassButton">
+            <Setter Property="GlassTextContrast" Value="False" />
             <Setter Property="GlassTint" Value="#0B1B5E" />
             <Setter Property="GlassTintOpacity" Value="0.3" />
             <Setter Property="Foreground" Value="White" />
