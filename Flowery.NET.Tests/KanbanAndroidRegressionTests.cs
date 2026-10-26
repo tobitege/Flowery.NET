@@ -118,6 +118,9 @@ public class KanbanAndroidRegressionTests
         column.Tasks.Add(task);
         var board = new FlowKanban { AutoSaveAfterEdits = false, Board = new FlowKanbanData { Columns = { column } } };
         var window = CreateWindow(board, height);
+        // Without a stored view the board opens on its home view, as on a fresh machine.
+        board.CurrentView = FlowKanbanView.Board;
+        Flush(window);
         var card = window.GetVisualDescendants().OfType<FlowTaskCard>().Single();
         card.UsesTouchSelection = true;
         return (window, card);
