@@ -49,6 +49,7 @@ internal sealed class GlobalState
     private bool NotifyInternalThemes { get; init; }
     private Func<string, bool>? ThemeApplicator { get; init; }
     private ThemeVariant? Variant { get; init; }
+    private (object? Base, object? Primary) Palette { get; init; }
     private IResourceProvider[] Dictionaries { get; init; } = [];
     private IStyle[] Styles { get; init; } = [];
     private CultureInfo Localization { get; init; } = CultureInfo.InvariantCulture;
@@ -73,12 +74,14 @@ internal sealed class GlobalState
     {
         Theme = DaisyThemeManager.CurrentThemeName,
         Excluded = [.. DaisyThemeManager.ExcludedThemes.Order(StringComparer.OrdinalIgnoreCase)],
-        Preferred = [.. DaisyThemeManager.PreferredThemes],
+        Preferred = [.. DaisyThemeManager.PreferredThemes.Order(StringComparer.OrdinalIgnoreCase)],
         Registered = [.. DaisyThemeManager.AvailableThemes.Select(static theme => theme.Name).Order(StringComparer.OrdinalIgnoreCase)],
         SuppressThemes = DaisyThemeManager.SuppressThemeApplication,
         NotifyInternalThemes = DaisyThemeManager.NotifyForInternalThemesChanged,
         ThemeApplicator = DaisyThemeManager.CustomThemeApplicator,
         Variant = Application.Current!.RequestedThemeVariant,
+        // Another palette can be left behind under the same theme name, so two of its colors count as well.
+        Palette = (Resource("DaisyBase100Color"), Resource("DaisyPrimaryColor")),
         Dictionaries = [.. Application.Current.Resources.MergedDictionaries],
         Styles = [.. Application.Current.Styles],
         Localization = FloweryLocalization.CurrentCulture,
@@ -101,6 +104,9 @@ internal sealed class GlobalState
         GlassRenderer = DaisyGlassLiveRenderer.Current
     };
 
+    private static object? Resource(string key) =>
+        Application.Current is { } app && app.TryFindResource(key, app.ActualThemeVariant, out var value) ? value : null;
+
     public List<string> ChangesTo(GlobalState after)
     {
         var changes = new List<string>();
@@ -120,6 +126,7 @@ internal sealed class GlobalState
         Check("CustomThemeApplicator", ThemeApplicator == after.ThemeApplicator, ThemeApplicator, after.ThemeApplicator);
         Check("RequestedThemeVariant", Equals(Variant, after.Variant), Variant, after.Variant);
         // A theme applied again is a new instance of the same palette, so the dictionaries compare by count.
+        Check("palette colors", Equals(Palette, after.Palette), Palette, after.Palette);
         Check("merged dictionaries", Dictionaries.Length == after.Dictionaries.Length, Dictionaries.Length, after.Dictionaries.Length);
         Check("application styles", Styles.SequenceEqual(after.Styles), Styles.Length, after.Styles.Length);
         Check("localization culture", Equals(Localization, after.Localization), Localization.Name, after.Localization.Name);
