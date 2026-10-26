@@ -1,3 +1,7 @@
+﻿using System.Globalization;
+using Avalonia;
+using Avalonia.Headless.XUnit;
+using Avalonia.Media;
 using Flowery.Controls;
 using Xunit;
 
@@ -54,6 +58,29 @@ namespace Flowery.NET.Tests
             };
 
             Assert.Equal(expected, item.MatchesSearch(search));
+        }
+
+        [AvaloniaFact]
+        public void Icon_Keys_Resolve_To_The_Geometry_The_Resources_Hold_Now()
+        {
+            var resources = Application.Current!.Resources;
+            var shipped = IconKeyConverter.Instance.Convert("DaisyIconHome", typeof(Geometry), null, CultureInfo.InvariantCulture);
+            Assert.IsType<StreamGeometry>(shipped);
+
+            // A geometry resolved earlier must not outlive the resources it came from.
+            var replacement = StreamGeometry.Parse("M0,0 L1,1");
+            resources["DaisyIconHome"] = replacement;
+            try
+            {
+                Assert.Same(replacement, IconKeyConverter.Instance.Convert("DaisyIconHome", typeof(Geometry), null, CultureInfo.InvariantCulture));
+            }
+            finally
+            {
+                resources.Remove("DaisyIconHome");
+            }
+
+            Assert.Same(shipped, IconKeyConverter.Instance.Convert("DaisyIconHome", typeof(Geometry), null, CultureInfo.InvariantCulture));
+            Assert.Null(IconKeyConverter.Instance.Convert("NoSuchIcon", typeof(Geometry), null, CultureInfo.InvariantCulture));
         }
     }
 }
