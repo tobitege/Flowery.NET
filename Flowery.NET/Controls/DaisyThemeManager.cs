@@ -266,6 +266,7 @@ namespace Flowery.Controls
                 new DaisyThemeInfo("Fantasy", false),
                 new DaisyThemeInfo("Forest", true),
                 new DaisyThemeInfo("Garden", false),
+                new DaisyThemeInfo("Glassy", true),
                 new DaisyThemeInfo("Halloween", true),
                 new DaisyThemeInfo("Lemonade", false),
                 new DaisyThemeInfo("Light", false),

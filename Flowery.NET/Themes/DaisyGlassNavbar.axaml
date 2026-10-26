@@ -20,7 +20,7 @@
         <Setter Property="EnableBackdropBlur" Value="True" />
         <Setter Property="BlurMode" Value="SkiaSharp" />
         <Setter Property="GlassBlur" Value="40" />
-        <Setter Property="GlassTint" Value="White" />
+        <Setter Property="GlassTint" Value="{DynamicResource DaisyGlassTintColor}" />
         <Setter Property="GlassTintOpacity" Value="0.1" />
         <Setter Property="GlassReflectOpacity" Value="0.1" />
         <!-- A drop shadow under translucent glass shows through it; the glass border separates the bar instead. -->

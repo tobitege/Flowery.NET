@@ -187,6 +187,10 @@ namespace Flowery.NET.Tests
         [InlineData(typeof(DaisyGlassInput))]
         [InlineData(typeof(DaisyGlassNavbar))]
         [InlineData(typeof(DaisyGlassModal))]
+        [InlineData(typeof(DaisyGlassSegmented))]
+        [InlineData(typeof(DaisyGlassRange))]
+        [InlineData(typeof(DaisyGlassToggle))]
+        [InlineData(typeof(DaisyGlassMenu))]
         public void Every_Glass_Control_Owns_Every_Glass_Property_It_Passes_To_Its_Glass(Type controlType)
         {
             var owner = (AvaloniaObject)Activator.CreateInstance(controlType)!;

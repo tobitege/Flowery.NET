@@ -264,6 +264,7 @@ xmlns:kanban="clr-namespace:Flowery.NET.Kanban.Controls;assembly=Flowery.NET.Kan
 ### Glass Effect
 
 - **Glass** (`DaisyGlass`): Glassmorphism/frosted effect container with multiple blur modes (Simulated, BitmapCapture, SkiaSharp GPU-accelerated).
+- **Glass controls**: `DaisyGlassButton`, `DaisyGlassBadge`, `DaisyGlassInput`, `DaisyGlassNavbar`, `DaisyGlassModal`, `DaisyGlassSegmented` (a sliding pill), `DaisyGlassRange` (a thumb that turns into a lens), `DaisyGlassToggle` and `DaisyGlassMenu` on the same live glass. The dark Glassy theme tints them navy.
 
 ### Neumorphic Effect
 

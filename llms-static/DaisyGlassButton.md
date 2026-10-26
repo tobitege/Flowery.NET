@@ -5,7 +5,7 @@
 
 DaisyGlassButton is a DaisyButton on a glass surface that blurs whatever lies behind it. By default it blurs the live backdrop on every frame (`BlurMode="SkiaSharp"`), so content that moves behind the button stays blurred. Variants, styles, sizes, shapes, icons and states work exactly as on [DaisyButton](DaisyButton.md); the glass properties are those of [DaisyGlass](DaisyGlass.md), including gradients and patterns.
 
-The same glass is available on [DaisyGlassBadge](DaisyGlassBadge.md), [DaisyGlassInput](DaisyGlassInput.md), [DaisyGlassNavbar](DaisyGlassNavbar.md) and [DaisyGlassModal](DaisyGlassModal.md).
+The same glass is available on [DaisyGlassBadge](DaisyGlassBadge.md), [DaisyGlassInput](DaisyGlassInput.md), [DaisyGlassNavbar](DaisyGlassNavbar.md), [DaisyGlassModal](DaisyGlassModal.md), [DaisyGlassSegmented](DaisyGlassSegmented.md), [DaisyGlassRange](DaisyGlassRange.md), [DaisyGlassToggle](DaisyGlassToggle.md) and [DaisyGlassMenu](DaisyGlassMenu.md).
 
 To shape a glass button visually and take its XAML, C# or JSON, use [DaisyGlassButtonDesigner](DaisyGlassButtonDesigner.md).
 

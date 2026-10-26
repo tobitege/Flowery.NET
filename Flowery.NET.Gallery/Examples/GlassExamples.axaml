@@ -23,6 +23,64 @@
         <Style Selector="Grid.glassStars.gold > TextBlock">
             <Setter Property="Foreground" Value="#FFD700" />
         </Style>
+        <!-- Glass Interface: dark glass over the dark backdrop; the class light switches to light glass. -->
+        <Style Selector=".glassScene PathIcon">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector=".glassScene.light PathIcon">
+            <Setter Property="Foreground" Value="#0B1533" />
+        </Style>
+        <Style Selector=".glassScene controls|DaisyGlassSegmented">
+            <Setter Property="GlassTint" Value="#0B1B5E" />
+            <Setter Property="GlassTintOpacity" Value="0.3" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector=".glassScene.light controls|DaisyGlassSegmented">
+            <Setter Property="GlassTint" Value="White" />
+            <Setter Property="GlassTintOpacity" Value="0.45" />
+            <Setter Property="Foreground" Value="#0B1533" />
+            <Setter Property="IndicatorBrush" Value="#260B1533" />
+        </Style>
+        <Style Selector=".glassScene controls|DaisyGlassButton">
+            <Setter Property="GlassTint" Value="#0B1B5E" />
+            <Setter Property="GlassTintOpacity" Value="0.3" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#33FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector=".glassScene.light controls|DaisyGlassButton">
+            <Setter Property="GlassTint" Value="White" />
+            <Setter Property="GlassTintOpacity" Value="0.45" />
+            <Setter Property="Foreground" Value="#0B1533" />
+            <Setter Property="GlassTextShadowOpacity" Value="0" />
+        </Style>
+        <Style Selector=".glassScene controls|DaisyGlassInput">
+            <Setter Property="GlassTint" Value="#0B1B5E" />
+            <Setter Property="GlassTintOpacity" Value="0.3" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector=".glassScene.light controls|DaisyGlassInput">
+            <Setter Property="GlassTint" Value="White" />
+            <Setter Property="GlassTintOpacity" Value="0.45" />
+            <Setter Property="Foreground" Value="#0B1533" />
+        </Style>
+        <Style Selector="controls|DaisyGlassMenu.glassScene">
+            <Setter Property="GlassTint" Value="#0B1B5E" />
+            <Setter Property="GlassTintOpacity" Value="0.45" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="controls|DaisyGlassMenu.glassScene.light">
+            <Setter Property="GlassTint" Value="White" />
+            <Setter Property="GlassTintOpacity" Value="0.65" />
+            <Setter Property="Foreground" Value="#0B1533" />
+        </Style>
+        <!-- The scene keeps its own blue, whatever the primary color of the app theme. -->
+        <Style Selector=".glassScene controls|DaisyGlassRange">
+            <Setter Property="ProgressBrush" Value="#0A84FF" />
+        </Style>
+        <Style Selector=".glassScene ListBoxItem.menu-destructive PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyErrorBrush}" />
+        </Style>
     </UserControl.Styles>
 
     <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled"
@@ -284,6 +342,216 @@
                                                            Foreground="#1E1B4B" GlassTextShadowOpacity="0.2" Click="CloseGlassModal_Click" />
                             </StackPanel>
                         </controls:DaisyGlassModal>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
+            <!-- Glass Interface -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="glass-interface" Title="Glass Interface" />
+                <TextBlock
+                    Text="DaisyGlassSegmented, DaisyGlassRange, DaisyGlassToggle and DaisyGlassMenu with glass buttons and a glass search field over a calm wave backdrop. Press the slider thumb to turn it into a lens, open the menu with the dots button, and flip the switch at the top right between dark and light glass. The Glassy theme tints every glass control navy."
+                    Opacity="0.7" TextWrapping="Wrap" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                <Border x:Name="GlassInterfaceStage" Classes="glassScene" CornerRadius="16" ClipToBounds="True" Height="540">
+                    <Grid>
+                        <!-- Dark backdrop: violet into deep blue, with a bright sweep from the lower left to the upper right. -->
+                        <Viewbox x:Name="GlassInterfaceDarkSky" Stretch="UniformToFill" IsHitTestVisible="False">
+                            <Viewbox.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.45" />
+                                </Transitions>
+                            </Viewbox.Transitions>
+                            <Canvas Width="1600" Height="900" ClipToBounds="True">
+                                <Rectangle Width="1600" Height="900">
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                            <GradientStop Offset="0" Color="#4A2BD6" />
+                                            <GradientStop Offset="0.45" Color="#2A36CC" />
+                                            <GradientStop Offset="0.7" Color="#0C2DAA" />
+                                            <GradientStop Offset="1" Color="#061A78" />
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <Ellipse Canvas.Left="-260" Canvas.Top="120" Width="900" Height="700" Opacity="0.55">
+                                    <Ellipse.Fill>
+                                        <RadialGradientBrush>
+                                            <GradientStop Offset="0" Color="#9A7BFF" />
+                                            <GradientStop Offset="1" Color="#009A7BFF" />
+                                        </RadialGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <Path Data="M0,900 C380,700 720,300 1020,150 C1260,30 1460,0 1640,-30 L1640,900 Z">
+                                    <Path.Fill>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                            <GradientStop Offset="0" Color="#5C86F2" />
+                                            <GradientStop Offset="0.5" Color="#2148D0" />
+                                            <GradientStop Offset="1" Color="#0A228E" />
+                                        </LinearGradientBrush>
+                                    </Path.Fill>
+                                    <Path.Effect>
+                                        <BlurEffect Radius="6" />
+                                    </Path.Effect>
+                                </Path>
+                                <Path Data="M0,900 C380,700 720,300 1020,150 C1260,30 1460,0 1640,-30"
+                                      Stroke="#C4D4FF" StrokeThickness="5" Opacity="0.85">
+                                    <Path.Effect>
+                                        <BlurEffect Radius="3" />
+                                    </Path.Effect>
+                                </Path>
+                                <Ellipse Canvas.Left="820" Canvas.Top="260" Width="760" Height="520" Opacity="0.5">
+                                    <Ellipse.Fill>
+                                        <RadialGradientBrush>
+                                            <GradientStop Offset="0" Color="#8FB0FF" />
+                                            <GradientStop Offset="1" Color="#008FB0FF" />
+                                        </RadialGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <Path Data="M0,900 C360,780 700,660 1050,640 C1300,628 1460,580 1640,500 L1640,900 Z" Opacity="0.85">
+                                    <Path.Fill>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                            <GradientStop Offset="0" Color="#0A1F86" />
+                                            <GradientStop Offset="1" Color="#1C49D6" />
+                                        </LinearGradientBrush>
+                                    </Path.Fill>
+                                    <Path.Effect>
+                                        <BlurEffect Radius="40" />
+                                    </Path.Effect>
+                                </Path>
+                            </Canvas>
+                        </Viewbox>
+
+                        <!-- Light backdrop: warm sand into sky blue, with the same sweep. -->
+                        <Viewbox x:Name="GlassInterfaceLightSky" Stretch="UniformToFill" IsHitTestVisible="False" Opacity="0">
+                            <Viewbox.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.45" />
+                                </Transitions>
+                            </Viewbox.Transitions>
+                            <Canvas Width="1600" Height="900" ClipToBounds="True">
+                                <Rectangle Width="1600" Height="900">
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                            <GradientStop Offset="0" Color="#EFE6C8" />
+                                            <GradientStop Offset="0.45" Color="#C9D8EE" />
+                                            <GradientStop Offset="0.7" Color="#7FB0F0" />
+                                            <GradientStop Offset="1" Color="#2563EB" />
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <Ellipse Canvas.Left="-260" Canvas.Top="60" Width="900" Height="700" Opacity="0.6">
+                                    <Ellipse.Fill>
+                                        <RadialGradientBrush>
+                                            <GradientStop Offset="0" Color="#FFF4C7" />
+                                            <GradientStop Offset="1" Color="#00FFF4C7" />
+                                        </RadialGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <Path Data="M0,900 C380,700 720,300 1020,150 C1260,30 1460,0 1640,-30 L1640,900 Z">
+                                    <Path.Fill>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                            <GradientStop Offset="0" Color="#B4CEFA" />
+                                            <GradientStop Offset="0.5" Color="#4A8AF5" />
+                                            <GradientStop Offset="1" Color="#1D4ED8" />
+                                        </LinearGradientBrush>
+                                    </Path.Fill>
+                                    <Path.Effect>
+                                        <BlurEffect Radius="6" />
+                                    </Path.Effect>
+                                </Path>
+                                <Path Data="M0,900 C380,700 720,300 1020,150 C1260,30 1460,0 1640,-30"
+                                      Stroke="#FFFFFF" StrokeThickness="5" Opacity="0.9">
+                                    <Path.Effect>
+                                        <BlurEffect Radius="3" />
+                                    </Path.Effect>
+                                </Path>
+                                <Ellipse Canvas.Left="820" Canvas.Top="260" Width="760" Height="520" Opacity="0.55">
+                                    <Ellipse.Fill>
+                                        <RadialGradientBrush>
+                                            <GradientStop Offset="0" Color="#D6E6FF" />
+                                            <GradientStop Offset="1" Color="#00D6E6FF" />
+                                        </RadialGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <Path Data="M0,900 C360,780 700,660 1050,640 C1300,628 1460,580 1640,500 L1640,900 Z" Opacity="0.85">
+                                    <Path.Fill>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                            <GradientStop Offset="0" Color="#1E40AF" />
+                                            <GradientStop Offset="1" Color="#60A5FA" />
+                                        </LinearGradientBrush>
+                                    </Path.Fill>
+                                    <Path.Effect>
+                                        <BlurEffect Radius="40" />
+                                    </Path.Effect>
+                                </Path>
+                            </Canvas>
+                        </Viewbox>
+
+                        <!-- Dark and light glass -->
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="20"
+                                    HorizontalAlignment="Right" VerticalAlignment="Top">
+                            <PathIcon Data="{StaticResource DaisyIconSun}" Width="16" Height="16" VerticalAlignment="Center" />
+                            <controls:DaisyGlassToggle x:Name="GlassInterfaceDarkToggle" IsChecked="True" VerticalAlignment="Center"
+                                                       AutomationProperties.Name="Dark glass" />
+                            <PathIcon Data="{StaticResource DaisyIconMoon}" Width="16" Height="16" VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <StackPanel Width="360" Spacing="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <controls:DaisyGlassSegmented HorizontalAlignment="Center">
+                                <ListBoxItem Content="Day" />
+                                <ListBoxItem Content="Week" />
+                                <ListBoxItem Content="Month" />
+                            </controls:DaisyGlassSegmented>
+                            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+                                <controls:DaisyGlassButton Shape="Circle" Size="Large" IconSymbol="Share" AutomationProperties.Name="Share" />
+                                <controls:DaisyGlassButton Content="Continue" Size="Large" CornerRadius="9999" Padding="22,0" />
+                                <controls:DaisyGlassButton x:Name="GlassInterfaceMoreButton" Shape="Circle" Size="Large" AutomationProperties.Name="More"
+                                                           Click="OpenGlassInterfaceMenu_Click">
+                                    <PathIcon Width="18" Height="18"
+                                              Data="M6,10A2,2,0,1,1,6,14A2,2,0,1,1,6,10M12,10A2,2,0,1,1,12,14A2,2,0,1,1,12,10M18,10A2,2,0,1,1,18,14A2,2,0,1,1,18,10Z" />
+                                </controls:DaisyGlassButton>
+                            </StackPanel>
+                            <controls:DaisyGlassRange Value="35" Maximum="100" AutomationProperties.Name="Volume" />
+                            <controls:DaisyGlassInput PlaceholderText="Search" StartIcon="{StaticResource DaisyIconSearch}" CornerRadius="9999" />
+                        </StackPanel>
+
+                        <!-- In the overlay layer of the window, so the glass of the menu sees the backdrop. -->
+                        <Popup x:Name="GlassInterfaceMenuPopup"
+                               PlacementTarget="{Binding #GlassInterfaceMoreButton}"
+                               Placement="Bottom"
+                               VerticalOffset="8"
+                               ShouldUseOverlayLayer="True"
+                               IsLightDismissEnabled="True">
+                            <controls:DaisyGlassMenu x:Name="GlassInterfaceMenu" Classes="glassScene" Width="230"
+                                                     SelectionChanged="GlassInterfaceMenu_SelectionChanged">
+                                <ListBoxItem>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <PathIcon Width="16" Height="16" Data="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" />
+                                        <TextBlock Text="Pin" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </ListBoxItem>
+                                <ListBoxItem>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource DaisyIconEdit}" />
+                                        <TextBlock Text="Rename" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </ListBoxItem>
+                                <ListBoxItem>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource DaisyIconCopy}" />
+                                        <TextBlock Text="Duplicate" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </ListBoxItem>
+                                <ListBoxItem Classes="menu-separator" />
+                                <ListBoxItem Classes="menu-destructive">
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource DaisyIconDelete}" />
+                                        <TextBlock Text="Delete" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </ListBoxItem>
+                            </controls:DaisyGlassMenu>
+                        </Popup>
                     </Grid>
                 </Border>
             </StackPanel>

@@ -60,6 +60,8 @@
                 <ResourceInclude Source="/Themes/DaisyGlassInput.axaml" />
                 <ResourceInclude Source="/Themes/DaisyGlassNavbar.axaml" />
                 <ResourceInclude Source="/Themes/DaisyGlassModal.axaml" />
+                <ResourceInclude Source="/Themes/DaisyGlassRange.axaml" />
+                <ResourceInclude Source="/Themes/DaisyGlassToggle.axaml" />
                 <ResourceInclude Source="/Themes/DaisyToast.axaml" />
                 <ResourceInclude Source="/Themes/DaisyAvatar.axaml" />
                 <ResourceInclude Source="/Themes/DaisyAvatarGroup.axaml" />
@@ -109,6 +111,8 @@
     <StyleInclude Source="/Themes/DaisySelect.axaml" />
     <StyleInclude Source="/Themes/DaisyCalendarDatePicker.axaml" />
     <StyleInclude Source="/Themes/DaisyMenu.axaml" />
+    <StyleInclude Source="/Themes/DaisyGlassMenu.axaml" />
+    <StyleInclude Source="/Themes/DaisyGlassSegmented.axaml" />
     <StyleInclude Source="/Themes/DaisyTabs.axaml" />
     <StyleInclude Source="/Themes/DaisyThemeDropdown.axaml" />
     <StyleInclude Source="/Themes/DaisyProductThemeDropdown.axaml" />

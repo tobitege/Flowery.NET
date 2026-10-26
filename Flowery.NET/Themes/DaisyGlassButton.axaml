@@ -24,7 +24,7 @@
         <Setter Property="EnableBackdropBlur" Value="True" />
         <Setter Property="BlurMode" Value="SkiaSharp" />
         <Setter Property="GlassBlur" Value="30" />
-        <Setter Property="GlassTint" Value="White" />
+        <Setter Property="GlassTint" Value="{DynamicResource DaisyGlassTintColor}" />
         <Setter Property="GlassTintOpacity" Value="0.15" />
         <Setter Property="GlassReflectOpacity" Value="0.15" />
 
