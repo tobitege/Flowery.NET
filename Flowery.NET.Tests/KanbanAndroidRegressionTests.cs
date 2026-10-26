@@ -53,35 +53,60 @@ public class KanbanAndroidRegressionTests
     }
 
     [AvaloniaFact]
-    public void With_Touch_Selection_A_Double_Tap_Toggles_A_Card_And_Swipes_Never_Count()
+    public void With_Touch_Selection_A_Tap_Selects_A_Card_A_Double_Tap_Edits_It_And_Swipes_Do_Neither()
     {
         var task = new FlowTask { Title = "Task" };
-        var (window, card) = CreateBoard(task);
+        var other = new FlowTask { Title = "Other" };
+        var column = new FlowKanbanColumnData { Title = "Todo", Tasks = { task, other } };
+        var edits = new List<FlowTask>();
+        var board = new FlowKanban
+        {
+            AutoSaveAfterEdits = false,
+            Board = new FlowKanbanData { Columns = { column } },
+            EditCardCommand = new EditRecorder(edits)
+        };
+        var window = CreateWindow(board, 700);
         try
         {
-            TouchTap(window, card);
-            Assert.False(task.IsSelected);
-            TouchTap(window, card);
+            board.CurrentView = FlowKanbanView.Board;
+            Flush(window);
+
+            // As in DaisyScheduler: a tap selects, the second tap of a double tap edits and keeps the selection.
+            TouchTap(window, Card(window, task));
+            Assert.True(task.IsSelected);
+            Assert.Empty(edits);
+            TouchTap(window, Card(window, task));
+            Assert.Equal([task], edits);
             Assert.True(task.IsSelected);
             // A third tap starts a new pair.
-            TouchTap(window, card);
-            Assert.True(task.IsSelected);
-            TouchTap(window, card);
+            TouchTap(window, Card(window, task));
+            Assert.Single(edits);
+
+            // A tap on another card selects that one alone.
+            TouchTap(window, Card(window, other));
+            Assert.True(other.IsSelected);
             Assert.False(task.IsSelected);
 
-            // Two swipes at the same spot are no double tap, and neither is a tap after a swipe.
-            TouchSwipe(window, card);
-            TouchSwipe(window, card);
+            // Swipes over a card neither select nor edit it, and a tap after a swipe is no second tap.
+            TouchSwipe(window, Card(window, task));
+            TouchSwipe(window, Card(window, task));
             Assert.False(task.IsSelected);
-            TouchTap(window, card);
-            TouchSwipe(window, card);
-            TouchTap(window, card);
-            Assert.False(task.IsSelected);
+            TouchSwipe(window, Card(window, task));
+            TouchTap(window, Card(window, task));
+            Assert.True(task.IsSelected);
+            Assert.Single(edits);
         }
         finally
         {
             window.Close();
         }
+    }
+
+    private sealed class EditRecorder(List<FlowTask> edits) : System.Windows.Input.ICommand
+    {
+        public event EventHandler? CanExecuteChanged { add { } remove { } }
+        public bool CanExecute(object? parameter) => true;
+        public void Execute(object? parameter) => edits.Add((FlowTask)parameter!);
     }
 
     [AvaloniaFact]
@@ -231,6 +256,7 @@ public class KanbanAndroidRegressionTests
 
     private static void TouchTap(Window window, FlowTaskCard card)
     {
+        card.UsesTouchSelection = true;
         var point = Spot(window, card);
         var touch = window.TouchBegin(point, RawInputModifiers.None);
         window.TouchEnd(touch, point, RawInputModifiers.None);
@@ -239,6 +265,7 @@ public class KanbanAndroidRegressionTests
 
     private static void TouchSwipe(Window window, FlowTaskCard card)
     {
+        card.UsesTouchSelection = true;
         var point = Spot(window, card);
         var touch = window.TouchBegin(point, RawInputModifiers.None);
         for (var step = 1; step <= 4; step++)
