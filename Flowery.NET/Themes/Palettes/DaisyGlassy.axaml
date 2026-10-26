@@ -39,12 +39,12 @@
     <Color x:Key="DaisyNeutralContentColor">#E8EEFF</Color>
     <SolidColorBrush x:Key="DaisyNeutralContentBrush" Color="{StaticResource DaisyNeutralContentColor}" />
 
-    <!-- Base -->
+    <!-- Base: Base300 is the border and hover color, so it is lighter than the surfaces (3:1 against them, 4.5:1 for text on it). -->
     <Color x:Key="DaisyBase100Color">#101C4E</Color>
     <SolidColorBrush x:Key="DaisyBase100Brush" Color="{StaticResource DaisyBase100Color}" />
     <Color x:Key="DaisyBase200Color">#0C1740</Color>
     <SolidColorBrush x:Key="DaisyBase200Brush" Color="{StaticResource DaisyBase200Color}" />
-    <Color x:Key="DaisyBase300Color">#091233</Color>
+    <Color x:Key="DaisyBase300Color">#5A6A9E</Color>
     <SolidColorBrush x:Key="DaisyBase300Brush" Color="{StaticResource DaisyBase300Color}" />
     <Color x:Key="DaisyBaseContentColor">#E8EEFF</Color>
     <SolidColorBrush x:Key="DaisyBaseContentBrush" Color="{StaticResource DaisyBaseContentColor}" />
