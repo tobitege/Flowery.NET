@@ -25,6 +25,10 @@ RUN apt-get update \
 
 RUN useradd --create-home --shell /bin/bash flowery
 
+# http://localhost:6080/ opens the desktop instead of a directory listing.
+RUN echo '<!DOCTYPE html><meta http-equiv="refresh" content="0; url=vnc.html?autoconnect=true&amp;resize=scale">' \
+        > /usr/share/novnc/index.html
+
 COPY start-desktop.sh /usr/local/bin/start-desktop.sh
 # The script may arrive with Windows line endings from a checkout on Windows.
 RUN sed -i 's/\r$//' /usr/local/bin/start-desktop.sh && chmod +x /usr/local/bin/start-desktop.sh
