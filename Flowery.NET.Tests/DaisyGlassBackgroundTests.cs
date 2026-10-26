@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
@@ -117,11 +117,15 @@ public class DaisyGlassBackgroundTests
     [AvaloniaFact]
     public void A_Background_That_Cannot_Move_Asks_For_No_Frames_Until_It_Can()
     {
-        var background = new DaisyGlassGradientBackground { Speed = 0 };
-        var glass = new DaisyGlass { Width = 160, Height = 60, GlassBackground = background };
-        var window = Show(glass);
+        // Motion stays on whatever the system says; a remote desktop session, for one, turns animations off.
+        var previous = DaisyAccessibility.ReducedMotionOverride;
+        Window? window = null;
         try
         {
+            DaisyAccessibility.ReducedMotionOverride = false;
+            var background = new DaisyGlassGradientBackground { Speed = 0 };
+            var glass = new DaisyGlass { Width = 160, Height = 60, GlassBackground = background };
+            window = Show(glass);
             var layer = Assert.IsAssignableFrom<DaisyGlassAnimationLayer>(Assert.Single(Part<Panel>(glass, "PART_BackgroundHost").Children));
             var frameRequested = typeof(DaisyGlassAnimationLayer).GetField("_frameRequested", BindingFlags.NonPublic | BindingFlags.Instance)!;
             Assert.False((bool)frameRequested.GetValue(layer)!);
@@ -131,7 +135,8 @@ public class DaisyGlassBackgroundTests
         }
         finally
         {
-            window.Close();
+            window?.Close();
+            DaisyAccessibility.ReducedMotionOverride = previous;
         }
     }
 

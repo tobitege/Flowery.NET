@@ -1,4 +1,4 @@
-using Avalonia.Media;
+﻿using Avalonia.Media;
 
 namespace Flowery.Controls
 {
@@ -27,6 +27,24 @@ namespace Flowery.Controls
         /// Draws the backdrop of <paramref name="glass"/> into <paramref name="context"/>, below its content and layers.
         /// </summary>
         public abstract void Render(DaisyGlass glass, DrawingContext context);
+
+        /// <summary>
+        /// Creates a background that draws its effects with shaders, or returns <c>null</c> when the renderer has none.
+        /// The renderer of Flowery.NET.Skia returns a <c>DaisyGlassShaderBackground</c>; <see cref="DaisyGlassButtonDesigner"/>
+        /// offers shader backgrounds only while such a renderer is registered.
+        /// </summary>
+        public virtual DaisyGlassBackground? CreateShaderBackground() => null;
+
+        /// <summary>
+        /// Gets whether <see cref="CreateShaderBackground"/> creates a background. The renderer of Flowery.NET.Skia returns
+        /// true.
+        /// </summary>
+        public virtual bool SupportsShaderBackground => false;
+
+        /// <summary>
+        /// Returns whether <paramref name="background"/> is a background <see cref="CreateShaderBackground"/> creates.
+        /// </summary>
+        public virtual bool IsShaderBackground(DaisyGlassBackground background) => false;
 
         /// <summary>
         /// Reports the average color behind <paramref name="glass"/>, measured by the renderer while

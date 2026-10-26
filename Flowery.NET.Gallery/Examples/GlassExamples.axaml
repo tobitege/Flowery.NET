@@ -176,6 +176,18 @@
 
             <controls:DaisyDivider />
 
+            <!-- Glass Button Designer -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="glass-designer" Title="Glass Button Designer" />
+                <TextBlock
+                    Text="DaisyGlassButtonDesigner shapes a glass button visually: presets, variant and shape, the glass, gradients, patterns and animated backgrounds. It writes the result as XAML, C# or JSON, or applies it to a button. Embed it in a page, or open it over the app."
+                    Opacity="0.7" TextWrapping="Wrap" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                <controls:DaisyButton x:Name="OpenGlassDesignerButton" Content="Open over the app" ButtonStyle="Soft" HorizontalAlignment="Left" />
+                <controls:DaisyGlassButtonDesigner x:Name="GlassDesigner" />
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
             <!-- Glass Controls -->
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="glass-controls" Title="Glass Controls" />

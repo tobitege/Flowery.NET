@@ -7,6 +7,8 @@ DaisyGlassButton is a DaisyButton on a glass surface that blurs whatever lies be
 
 The same glass is available on [DaisyGlassBadge](DaisyGlassBadge.md), [DaisyGlassInput](DaisyGlassInput.md), [DaisyGlassNavbar](DaisyGlassNavbar.md) and [DaisyGlassModal](DaisyGlassModal.md).
 
+To shape a glass button visually and take its XAML, C# or JSON, use [DaisyGlassButtonDesigner](DaisyGlassButtonDesigner.md).
+
 ## How the Surface Is Built
 
 From back to front: the blurred backdrop, the glass tint, the fill (`GlassFill` or a `GlassGradient` preset), the pattern, the variant color, the borders, then the content with a light text shadow. The glass is painted first, so its backdrop holds only what lies behind the button, never the button's own tint or text.

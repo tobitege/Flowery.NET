@@ -60,6 +60,12 @@ namespace Flowery.Skia
                 glass.GlassDispersion));
         }
 
+        public override DaisyGlassBackground CreateShaderBackground() => new DaisyGlassShaderBackground();
+
+        public override bool SupportsShaderBackground => true;
+
+        public override bool IsShaderBackground(DaisyGlassBackground background) => background is DaisyGlassShaderBackground;
+
         /// <summary>
         /// Hands a backdrop color measured on the render thread to its glass on the UI thread; returns whether the glass
         /// took it as a new backdrop color.
