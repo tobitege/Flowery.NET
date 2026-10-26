@@ -23,27 +23,15 @@ namespace Flowery.NET.Tests
 
     // Run sequentially to avoid culture interference
     [Collection("LocalizationTests")]
-    public partial class LocalizationTests : IDisposable
+    public partial class LocalizationTests
     {
         // These login buttons show the provider's own wording in every language.
         private static readonly HashSet<string> UntranslatedKeys = ["LoginButton_Kakao", "LoginButton_Line"];
 
-        private readonly CultureInfo _originalCulture;
-
-        public LocalizationTests()
-        {
-            _originalCulture = FloweryLocalization.CurrentCulture;
-        }
-
-        public void Dispose()
-        {
-            // Restore original culture after each test
-            FloweryLocalization.SetCulture(_originalCulture);
-        }
-
         [AvaloniaFact]
         public void GetString_Resolves_The_Current_Culture_And_Falls_Back()
         {
+            using var culture = new CultureScope();
             FloweryLocalization.SetCulture("en-US");
             Assert.Equal("Pick one", FloweryLocalization.GetString("Select_Placeholder"));
             Assert.Equal("Synthwave", FloweryLocalization.GetThemeDisplayName("Synthwave"));
@@ -84,6 +72,7 @@ namespace Flowery.NET.Tests
         [AvaloniaFact]
         public void SetCulture_Raises_CultureChanged_And_Keeps_The_Regional_Formatting_Culture()
         {
+            using var culture = new CultureScope();
             var originalFormattingCulture = CultureInfo.CurrentCulture;
             var originalDefaultFormattingCulture = CultureInfo.DefaultThreadCurrentCulture;
             CultureInfo? changedTo = null;
@@ -165,6 +154,7 @@ namespace Flowery.NET.Tests
         [AvaloniaFact]
         public void Every_Shipped_Theme_Has_A_Display_Name()
         {
+            using var culture = new CultureScope();
             FloweryLocalization.SetCulture("en-US");
             // A theme ships with the library when the library holds its palette; others are registered at run time.
             var shipped = Directory.EnumerateFiles(Path.Combine(RepositoryRoot(), "Flowery.NET", "Themes", "Palettes"), "Daisy*.axaml")
@@ -182,6 +172,7 @@ namespace Flowery.NET.Tests
         [AvaloniaFact]
         public void Controls_Announce_Themselves_In_The_Current_Language()
         {
+            using var scope = new CultureScope();
             FloweryLocalization.SetCulture("en-US");
             var indicator = new DaisyStatusIndicator { Color = DaisyColor.Error };
             using var window = new TestWindow(indicator);
@@ -202,6 +193,7 @@ namespace Flowery.NET.Tests
         [AvaloniaFact]
         public void RegisterAssembly_ConcurrentCallsPublishAtomicSnapshotAndLogResourceErrors()
         {
+            using var culture = new CultureScope();
             const string key = "FloweryLocalization_ConcurrentProbe";
             const string expectedValue = "Concurrent probe";
             const string invalidResourceName = "Flowery.NET.Tests.Localization.de.json";
