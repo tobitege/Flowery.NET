@@ -288,7 +288,9 @@ public partial class DaisyScheduler
                     ? SpanWidth(span, pixelsPerMinute) : double.PositiveInfinity;
                 child.Measure(new Size(width, double.PositiveInfinity));
             }
-            return new Size(totalMinutes * pixelsPerMinute, 0);
+            // The scale fills a visible width as width / minutes. Multiplying back can land a hair above that width,
+            // and layout rounds it up to a whole extra pixel the view could then scroll by.
+            return new Size(Math.Round(totalMinutes * pixelsPerMinute, 6), 0);
         }
 
         protected override Size ArrangeOverride(Size finalSize)
