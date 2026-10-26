@@ -977,7 +977,7 @@ namespace Flowery.NET.Kanban.Controls
                 System.Diagnostics.Debug.WriteLine($"FlowKanban user refresh failed: {ex.GetType().Name} - {ex.Message}");
                 if (!token.IsCancellationRequested && ReferenceEquals(_refreshCts, refreshCts))
                     LoadErrorMessage = FloweryLocalization.GetString(
-                        "Kanban_Users_LoadFailed", "Users could not be loaded. Try again.");
+                        "Kanban_Users_LoadFailed", "Could not load users. Try again.");
             }
             finally
             {
@@ -1382,7 +1382,7 @@ namespace Flowery.NET.Kanban.Controls
                 if (IsProviderConnectionCurrent(cancellation, providerKey, provider))
                 {
                     var errorMessage = FloweryLocalization.GetString(
-                        "Kanban_Users_ProviderToken_Error_Generic",
+                        "Kanban_Users_Provider_Error_Connection",
                         "The provider connection failed.");
                     await ProviderErrorDialog.ShowAsync(provider.DisplayName, errorMessage, xamlRoot);
                 }
@@ -1438,7 +1438,7 @@ namespace Flowery.NET.Kanban.Controls
             {
                 System.Diagnostics.Debug.WriteLine($"FlowKanban disconnect failed: {ex.GetType().Name} - {ex.Message}");
                 var errorMessage = FloweryLocalization.GetString(
-                    "Kanban_Users_ProviderToken_Error_Generic",
+                    "Kanban_Users_Provider_Error_Connection",
                     "The provider connection failed.");
                 await ProviderErrorDialog.ShowAsync(provider.DisplayName, errorMessage, xamlRoot);
             }

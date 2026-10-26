@@ -251,6 +251,7 @@
   "Kanban_Users_ProviderToken_Hint": "このプロバイダーに必要なアクセス権だけを持つトークンを使用してください。",
   "Kanban_Users_ProviderToken_Error_Access": "このトークンには必要なアクセス権がありません。",
   "Kanban_Users_ProviderToken_Error_Generic": "トークンを検証できませんでした。",
+  "Kanban_Users_Provider_Error_Connection": "プロバイダーへの接続に失敗しました。",
   "Kanban_Users_Reconnect_Button": "再接続",
   "Kanban_Users_LinkLocal_Label": "連携済みローカルユーザー",
   "Kanban_Users_LinkLocal_Button": "ローカルユーザーを連携",

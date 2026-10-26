@@ -251,6 +251,7 @@
   "Kanban_Users_ProviderToken_Hint": "请使用仅具有此提供方所需访问权限的令牌。",
   "Kanban_Users_ProviderToken_Error_Access": "该令牌未授予所需的访问权限。",
   "Kanban_Users_ProviderToken_Error_Generic": "无法验证令牌。",
+  "Kanban_Users_Provider_Error_Connection": "与提供方的连接失败。",
   "Kanban_Users_Reconnect_Button": "重新连接",
   "Kanban_Users_LinkLocal_Label": "已关联的本地用户",
   "Kanban_Users_LinkLocal_Button": "关联本地用户",

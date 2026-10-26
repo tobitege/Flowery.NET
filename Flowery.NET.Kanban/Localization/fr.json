@@ -251,6 +251,7 @@
   "Kanban_Users_ProviderToken_Hint": "Utilisez un jeton qui n'accorde que l'accès requis par ce fournisseur.",
   "Kanban_Users_ProviderToken_Error_Access": "Le jeton n'accorde pas l'accès requis.",
   "Kanban_Users_ProviderToken_Error_Generic": "Le jeton n'a pas pu être validé.",
+  "Kanban_Users_Provider_Error_Connection": "La connexion au fournisseur a échoué.",
   "Kanban_Users_Reconnect_Button": "Reconnecter",
   "Kanban_Users_LinkLocal_Label": "Utilisateur local lié",
   "Kanban_Users_LinkLocal_Button": "Lier un utilisateur local",

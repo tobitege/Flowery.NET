@@ -251,6 +251,7 @@
   "Kanban_Users_ProviderToken_Hint": "Verwende ein Token, das nur den Zugriff hat, den dieser Anbieter benötigt.",
   "Kanban_Users_ProviderToken_Error_Access": "Das Token gewährt nicht den benötigten Zugriff.",
   "Kanban_Users_ProviderToken_Error_Generic": "Das Token konnte nicht validiert werden.",
+  "Kanban_Users_Provider_Error_Connection": "Die Verbindung zum Anbieter ist fehlgeschlagen.",
   "Kanban_Users_Reconnect_Button": "Erneut verbinden",
   "Kanban_Users_LinkLocal_Label": "Verknüpfter lokaler Benutzer",
   "Kanban_Users_LinkLocal_Button": "Lokalen Benutzer verknüpfen",

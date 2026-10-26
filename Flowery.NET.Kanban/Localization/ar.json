@@ -251,6 +251,7 @@
   "Kanban_Users_ProviderToken_Hint": "استخدم رمزًا لا يمنح إلا الوصول الذي يتطلبه هذا الموفّر.",
   "Kanban_Users_ProviderToken_Error_Access": "لا يمنح الرمز الوصول المطلوب.",
   "Kanban_Users_ProviderToken_Error_Generic": "تعذر التحقق من الرمز.",
+  "Kanban_Users_Provider_Error_Connection": "فشل الاتصال بالموفّر.",
   "Kanban_Users_Reconnect_Button": "إعادة الاتصال",
   "Kanban_Users_LinkLocal_Label": "مستخدم محلي مرتبط",
   "Kanban_Users_LinkLocal_Button": "ربط مستخدم محلي",

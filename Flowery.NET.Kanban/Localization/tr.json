@@ -251,6 +251,7 @@
   "Kanban_Users_ProviderToken_Hint": "Yalnızca bu sağlayıcının gerektirdiği erişime sahip bir belirteç kullanın.",
   "Kanban_Users_ProviderToken_Error_Access": "Belirteç gerekli erişimi sağlamıyor.",
   "Kanban_Users_ProviderToken_Error_Generic": "Belirteç doğrulanamadı.",
+  "Kanban_Users_Provider_Error_Connection": "Sağlayıcı bağlantısı başarısız oldu.",
   "Kanban_Users_Reconnect_Button": "Yeniden bağlan",
   "Kanban_Users_LinkLocal_Label": "Bağlı yerel kullanıcı",
   "Kanban_Users_LinkLocal_Button": "Yerel kullanıcı bağla",

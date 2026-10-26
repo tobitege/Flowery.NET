@@ -105,28 +105,50 @@ namespace Flowery.NET.Tests
         [AvaloniaFact]
         public void Every_Key_In_The_Code_Exists_In_English()
         {
-            var english = LoadCatalogs(typeof(FloweryLocalization).Assembly)["en"].Keys
-                .Concat(LoadCatalogs(typeof(FlowKanban).Assembly)["en"].Keys)
-                .ToHashSet(StringComparer.Ordinal);
+            var english = EnglishTexts();
             // Keys reach the lookups directly, after a line break and through helpers, so every literal shaped like
-            // a key of a known group counts.
-            var groups = english.Where(static key => key.Contains('_')).Select(static key => key[..key.IndexOf('_')])
+            // a key of a known group counts, and so does every key passed to a lookup.
+            var groups = english.Keys.Where(static key => key.Contains('_')).Select(static key => key[..key.IndexOf('_')])
                 .ToHashSet(StringComparer.Ordinal);
-            var sources = new[] { "Flowery.NET", "Flowery.NET.Kanban" }
-                .SelectMany(project => Directory.EnumerateFiles(Path.Combine(RepositoryRoot(), project), "*.cs", SearchOption.AllDirectories));
 
             var missing = new SortedSet<string>(StringComparer.Ordinal);
-            foreach (var file in sources)
+            foreach (var file in SourceFiles())
             {
-                foreach (Match match in KeyLiteral().Matches(File.ReadAllText(file)))
+                var text = File.ReadAllText(file);
+                foreach (Match match in KeyLiteral().Matches(text))
                 {
                     var key = match.Groups["key"].Value;
-                    if (groups.Contains(key[..key.IndexOf('_')]) && !english.Contains(key))
+                    if (groups.Contains(key[..key.IndexOf('_')]) && !english.ContainsKey(key))
                         missing.Add($"{key} ({Path.GetFileName(file)})");
+                }
+                foreach (Match match in Lookup().Matches(text))
+                {
+                    if (!english.ContainsKey(match.Groups["key"].Value))
+                        missing.Add($"{match.Groups["key"].Value} ({Path.GetFileName(file)})");
                 }
             }
 
             Assert.True(missing.Count == 0, "English lacks: " + string.Join(", ", missing));
+        }
+
+        [AvaloniaFact]
+        public void Every_Fallback_In_The_Code_Is_The_English_Text()
+        {
+            // A key used for two messages shows the English text of one of them in both places, which only the
+            // fallbacks in the code still tell apart.
+            var english = EnglishTexts();
+            var different = new SortedSet<string>(StringComparer.Ordinal);
+            foreach (var file in SourceFiles())
+            {
+                foreach (Match match in LookupWithFallback().Matches(File.ReadAllText(file)))
+                {
+                    var key = match.Groups["key"].Value;
+                    if (english.TryGetValue(key, out var texts) && !texts.Contains(match.Groups["fallback"].Value))
+                        different.Add($"{key} in {Path.GetFileName(file)}: '{match.Groups["fallback"].Value}', English '{string.Join("' or '", texts)}'");
+                }
+            }
+
+            Assert.True(different.Count == 0, "Fallbacks that differ from English: " + string.Join("; ", different));
         }
 
         [AvaloniaFact]
@@ -270,6 +292,23 @@ namespace Flowery.NET.Tests
 
         private static string RepositoryRoot([CallerFilePath] string testFile = "") =>
             Path.GetDirectoryName(Path.GetDirectoryName(testFile))!;
+
+        // Shared keys, such as Common_Cancel, are in both assemblies.
+        private static Dictionary<string, HashSet<string?>> EnglishTexts() =>
+            LoadCatalogs(typeof(FloweryLocalization).Assembly)["en"]
+                .Concat(LoadCatalogs(typeof(FlowKanban).Assembly)["en"])
+                .GroupBy(static pair => pair.Key, StringComparer.Ordinal)
+                .ToDictionary(static group => group.Key, static group => group.Select(static pair => pair.Value).ToHashSet(), StringComparer.Ordinal);
+
+        private static IEnumerable<string> SourceFiles() => new[] { "Flowery.NET", "Flowery.NET.Kanban" }
+            .SelectMany(static project => Directory.EnumerateFiles(Path.Combine(RepositoryRoot(), project), "*.cs", SearchOption.AllDirectories));
+
+        // A lookup by a literal key; a key ending in an underscore is the prefix of a key composed at run time.
+        [GeneratedRegex("""GetString(?:Internal)?\(\s*"(?<key>[A-Za-z0-9_]*[A-Za-z0-9])"\s*[,)]""")]
+        private static partial Regex Lookup();
+
+        [GeneratedRegex("""GetString(?:Internal)?\(\s*"(?<key>[A-Za-z0-9_]+)"\s*,\s*"(?<fallback>[^"\\]*)"\s*\)""")]
+        private static partial Regex LookupWithFallback();
 
         // A literal shaped like a key, except automation ids and the prefix of a key composed at run time.
         [GeneratedRegex("""(?<!SetAutomationId\([^,]+,\s*)"(?<key>[A-Z][A-Za-z0-9]*_[A-Za-z0-9_]*[A-Za-z0-9])"(?!\s*\+)""")]

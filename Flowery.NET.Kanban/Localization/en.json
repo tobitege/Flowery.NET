@@ -251,6 +251,7 @@
   "Kanban_Users_ProviderToken_Hint": "Use a token with only the access required by this provider.",
   "Kanban_Users_ProviderToken_Error_Access": "The token does not grant the required access.",
   "Kanban_Users_ProviderToken_Error_Generic": "The token could not be validated.",
+  "Kanban_Users_Provider_Error_Connection": "The provider connection failed.",
   "Kanban_Users_Reconnect_Button": "Reconnect",
   "Kanban_Users_LinkLocal_Label": "Linked local user",
   "Kanban_Users_LinkLocal_Button": "Link local user",

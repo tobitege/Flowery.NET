@@ -251,6 +251,7 @@
   "Kanban_Users_ProviderToken_Hint": "Usa un token con solo l'accesso richiesto da questo provider.",
   "Kanban_Users_ProviderToken_Error_Access": "Il token non concede l'accesso richiesto.",
   "Kanban_Users_ProviderToken_Error_Generic": "Non è stato possibile validare il token.",
+  "Kanban_Users_Provider_Error_Connection": "La connessione al provider non è riuscita.",
   "Kanban_Users_Reconnect_Button": "Riconnetti",
   "Kanban_Users_LinkLocal_Label": "Utente locale collegato",
   "Kanban_Users_LinkLocal_Button": "Collega utente locale",

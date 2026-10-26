@@ -251,6 +251,7 @@
   "Kanban_Users_ProviderToken_Hint": "이 프로바이더에 필요한 액세스 권한만 있는 토큰을 사용하세요.",
   "Kanban_Users_ProviderToken_Error_Access": "토큰에 필요한 액세스 권한이 없습니다.",
   "Kanban_Users_ProviderToken_Error_Generic": "토큰을 확인할 수 없습니다.",
+  "Kanban_Users_Provider_Error_Connection": "프로바이더 연결에 실패했습니다.",
   "Kanban_Users_Reconnect_Button": "다시 연결",
   "Kanban_Users_LinkLocal_Label": "연결된 로컬 사용자",
   "Kanban_Users_LinkLocal_Button": "로컬 사용자 연결",
