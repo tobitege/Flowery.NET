@@ -241,8 +241,6 @@ docker exec flowery-desktop xdotool mousemove 110 82 click 1 type Scheduler
 docker rm -f flowery-desktop
 ```
 
-The image has no emoji font, so emoji in the Gallery show as empty boxes there.
-
 ---
 
 ## run_browser.ps1

@@ -10,14 +10,14 @@ FROM debian:bookworm-slim
 ARG DEBIAN_FRONTEND=noninteractive
 
 # XFCE as the desktop, TigerVNC as its X server, noVNC to show it in a browser. Avalonia needs X11 with its input and
-# cursor extensions, fontconfig with fonts, and ICU for globalization; Mesa gives OpenGL without a GPU. xwd with netpbm
+# cursor extensions, fontconfig with fonts (an emoji font too, the Gallery shows emoji), and ICU for globalization; Mesa gives OpenGL without a GPU. xwd with netpbm
 # takes PNG screenshots and xdotool drives input, for checks from outside the container.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         xfce4 xfce4-terminal dbus-x11 \
         tigervnc-standalone-server tigervnc-tools novnc python3-websockify \
         libx11-6 libice6 libsm6 libxi6 libxcursor1 libxrandr2 libxext6 libxrender1 \
-        libfontconfig1 fonts-dejavu-core fonts-noto-core libicu72 \
+        libfontconfig1 fonts-dejavu-core fonts-noto-core fonts-noto-color-emoji libicu72 \
         libgl1 libegl1 libgl1-mesa-dri \
         x11-apps netpbm xdotool procps ca-certificates \
     && apt-get clean \
