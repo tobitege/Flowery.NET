@@ -7,8 +7,8 @@
         <Nullable>enable</Nullable>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <LangVersion>latest</LangVersion>
-        <!-- A publish for a runtime downloads only the .NET runtime pack, not the ASP.NET Core and Windows Desktop packs
-             the SDK fetches in case a reference needs them; the app uses neither. -->
+        <!-- A publish for a runtime downloads no ASP.NET Core or Windows Desktop runtime pack, which the SDK fetches in
+             case a reference needs them; the app uses neither framework. -->
         <DisableTransitiveFrameworkReferenceDownloads>true</DisableTransitiveFrameworkReferenceDownloads>
     </PropertyGroup>
 
