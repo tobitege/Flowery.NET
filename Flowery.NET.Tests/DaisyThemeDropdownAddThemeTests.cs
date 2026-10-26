@@ -114,8 +114,8 @@ public class DaisyThemeDropdownAddThemeTests
         Assert.Equal("Global update", StandardItems(standard).Single(static item => item.Name == "Business").DisplayName);
         Assert.Equal("Only here", StandardItems(local).Single(static item => item.Name == "Business").DisplayName);
         Assert.Equal("Local cinema", ProductItems(localProduct).Single(static item => item.Name == "TheaterCinema").DisplayName);
-        Assert.True(local.RemoveThemeOverride("BUSINESS"));
-        Assert.True(localProduct.RemoveThemeOverride("THEATERCINEMA"));
+        Assert.True(local.RemoveAddedTheme("BUSINESS"));
+        Assert.True(localProduct.RemoveAddedTheme("THEATERCINEMA"));
         Assert.Equal("Global update", StandardItems(local).Single(static item => item.Name == "Business").DisplayName);
         Assert.Equal("Global cinema", ProductItems(localProduct).Single(static item => item.Name == "TheaterCinema").DisplayName);
 
@@ -230,7 +230,7 @@ public class DaisyThemeDropdownAddThemeTests
         public void Dispose()
         {
             Window.Close();
-            foreach (var name in _globalNames) DaisyThemeManager.RemoveThemeOverride(name);
+            foreach (var name in _globalNames) DaisyThemeManager.RemoveAddedTheme(name);
             // The current theme cannot be unregistered, so it is restored first.
             DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);
             ThemeRegistrations.RemoveAddedSince(_registered);

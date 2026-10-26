@@ -164,9 +164,13 @@ namespace Flowery.Controls
             _themeSource.Add(originalName, displayName, preferred);
 
         /// <summary>
-        /// Removes a local entry override and restores the manager's list entry, if available.
+        /// Removes a local entry that <see cref="AddTheme"/> added and restores the manager's list entry, if available.
         /// </summary>
-        public bool RemoveThemeOverride(string originalName) => _themeSource.Remove(originalName);
+        public bool RemoveAddedTheme(string originalName) => _themeSource.Remove(originalName);
+
+        /// <inheritdoc cref="RemoveAddedTheme"/>
+        [Obsolete("Use RemoveAddedTheme, the counterpart of AddTheme.")]
+        public bool RemoveThemeOverride(string originalName) => RemoveAddedTheme(originalName);
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {

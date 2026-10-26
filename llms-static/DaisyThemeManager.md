@@ -40,7 +40,7 @@ DaisyThemeLoader.ApplyThemeToApplication(theme);
 | ------ | ----------- |
 | `AvailableThemes` | Read-only list of visible registered themes, ordered by preference and name or configured display text. |
 | `AddTheme(originalName, displayName, preferred)` | Adds or updates global list entries for both dropdown types without applying a theme. |
-| `RemoveThemeOverride(originalName)` | Removes a global display/order override without unregistering the theme. |
+| `RemoveAddedTheme(originalName)` | Removes a theme that `AddTheme` added without unregistering it. `RemoveThemeOverride`, its former name, is obsolete. |
 | `AddedThemes` | The themes added with `AddTheme`, by original name (case-insensitive), as `DaisyAddedTheme(Name, DisplayName, Preferred)`. A snapshot that later changes do not alter, safe to read on any thread. |
 | `ExcludedThemes` | Assign a collection of hidden names. The getter returns a read-only snapshot. |
 | `HideTheme(name)` / `ShowTheme(name)` | Add or remove an exclusion at runtime. Return true when the exclusion changes. |
@@ -102,15 +102,15 @@ Apply these changes on the UI thread once controls exist. Attached dropdowns ref
 The display text is local UI text; `SelectedTheme` and `ApplyTheme` still use the original name.
 
 **Alias responsibility:** Alternate display names do not become theme identifiers. Your application must keep its own original-name/display-name mapping if it needs to reuse, persist, or look up aliases.
-Use original names for `ApplyTheme`, `HideTheme`, `ShowTheme`, `ExcludedThemes`, `PreferredThemes`, and `RemoveThemeOverride`.
+Use original names for `ApplyTheme`, `HideTheme`, `ShowTheme`, `ExcludedThemes`, `PreferredThemes`, and `RemoveAddedTheme`.
 Dropdown selection properties and theme-name event arguments also contain original names. For example, display `DarkAndRed`, but pass `TheaterCinema` to theme operations.
 
 ```csharp
 // Return this entry to the manager's settings.
-themeDropdown.RemoveThemeOverride("Business");
+themeDropdown.RemoveAddedTheme("Business");
 
 // Remove the global display/order override. Registered themes remain registered.
-DaisyThemeManager.RemoveThemeOverride("TheaterCinema");
+DaisyThemeManager.RemoveAddedTheme("TheaterCinema");
 ```
 
 ### Before Creating Controls

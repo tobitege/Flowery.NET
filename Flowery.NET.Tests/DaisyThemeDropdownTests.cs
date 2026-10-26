@@ -87,9 +87,19 @@ namespace Flowery.NET.Tests
             }
             finally
             {
-                Assert.True(DaisyThemeManager.RemoveThemeOverride("Business"));
+                Assert.True(DaisyThemeManager.RemoveAddedTheme("Business"));
             }
             Assert.DoesNotContain("Business", DaisyThemeManager.AddedThemes.Keys);
+
+            // The name from before RemoveAddedTheme still works.
+            DaisyThemeManager.AddTheme("Business", "Firma", false);
+#pragma warning disable CS0618
+            Assert.True(DaisyThemeManager.RemoveThemeOverride("Business"));
+            var dropdown = new DaisyThemeDropdown();
+            dropdown.AddTheme("Business", "Firma", false);
+            Assert.True(dropdown.RemoveThemeOverride("Business"));
+#pragma warning restore CS0618
+            Assert.Empty(DaisyThemeManager.AddedThemes);
 
             // Unregistering a theme removes its entry too.
             DaisyThemeManager.RegisterTheme(new DaisyThemeInfo("AddedLater", false), () => new ResourceDictionary());
@@ -128,14 +138,14 @@ namespace Flowery.NET.Tests
                 Assert.True(DaisyThemeManager.IsDarkTheme("UnregisteredLater"));
                 DaisyThemeManager.SetCurrentTheme(previous ?? string.Empty);
                 Assert.True(DaisyThemeManager.UnregisterTheme("UnregisteredLater"));
-                Assert.False(DaisyThemeManager.RemoveThemeOverride("UnregisteredLater"));
+                Assert.False(DaisyThemeManager.RemoveAddedTheme("UnregisteredLater"));
                 Assert.Null(FindPreviewOrDefault(new DaisyThemeDropdown(), "UnregisteredLater"));
             }
             finally
             {
                 DaisyThemeManager.AvailableThemesChanged -= handler;
                 DaisyThemeManager.SetCurrentTheme(previous ?? string.Empty);
-                DaisyThemeManager.RemoveThemeOverride("UnregisteredLater");
+                DaisyThemeManager.RemoveAddedTheme("UnregisteredLater");
                 DaisyThemeManager.UnregisterTheme("UnregisteredLater");
             }
         }

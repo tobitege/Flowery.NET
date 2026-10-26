@@ -40,10 +40,10 @@ internal static class ThemeListResolver
         [.. Order(themes, static info => info.Name, static info => info.Name, DaisyThemeManager.ThemeOverrides, true)];
 
     internal static List<T> Resolve<T>(IEnumerable<T> source,
-        IReadOnlyDictionary<string, DaisyThemeManager.ThemeEntry> localOverrides,
-        Func<DaisyThemeManager.ThemeEntry, T> createOverride) where T : IThemeListItem
+        IReadOnlyDictionary<string, DaisyAddedTheme> localOverrides,
+        Func<DaisyAddedTheme, T> createOverride) where T : IThemeListItem
     {
-        var overrides = new Dictionary<string, DaisyThemeManager.ThemeEntry>(DaisyThemeManager.ThemeOverrides, StringComparer.OrdinalIgnoreCase);
+        var overrides = new Dictionary<string, DaisyAddedTheme>(DaisyThemeManager.ThemeOverrides, StringComparer.OrdinalIgnoreCase);
         foreach (var entry in localOverrides)
             overrides[entry.Key] = entry.Value;
 
@@ -64,7 +64,7 @@ internal static class ThemeListResolver
     }
 
     private static IEnumerable<T> Order<T>(IEnumerable<T> source, Func<T, string> name, Func<T, string> displayName,
-        IReadOnlyDictionary<string, DaisyThemeManager.ThemeEntry> overrides, bool alphabetical)
+        IReadOnlyDictionary<string, DaisyAddedTheme> overrides, bool alphabetical)
     {
         var ordered = source.Where(item => DaisyThemeManager.IsThemeVisible(name(item)))
             .OrderByDescending(item => IsPreferred(name(item), overrides));
@@ -75,12 +75,12 @@ internal static class ThemeListResolver
                 StringComparer.CurrentCultureIgnoreCase);
     }
 
-    private static bool IsPreferred(string name, IReadOnlyDictionary<string, DaisyThemeManager.ThemeEntry> overrides) =>
+    private static bool IsPreferred(string name, IReadOnlyDictionary<string, DaisyAddedTheme> overrides) =>
         overrides.TryGetValue(name, out var entry)
             ? entry.Preferred
             : DaisyThemeManager.IsThemePreferred(name);
 
-    internal static ThemePreviewInfo CreatePreview(DaisyThemeManager.ThemeEntry entry) =>
+    internal static ThemePreviewInfo CreatePreview(DaisyAddedTheme entry) =>
         CreatePreview(entry.Name, entry.DisplayName, entry.ProductPalette);
 
     private static ThemePreviewInfo CreatePreview(string name, string? displayName, ProductPalette? product)

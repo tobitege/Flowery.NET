@@ -71,7 +71,7 @@ Preferred entries appear first; both groups are sorted alphabetically by display
 When both groups are present, the popup shows a separator between them. The separator is not an item and cannot select or apply a theme.
 A repeated original name updates its text and flag without adding a duplicate.
 These settings affect only this dropdown and override global `DaisyThemeManager.AddTheme` settings for the same original name.
-Global exclusions remain effective. `RemoveThemeOverride(originalName)` restores the global or standard entry, if available.
+Global exclusions remain effective. `RemoveAddedTheme(originalName)` (formerly `RemoveThemeOverride`) restores the global or standard entry, if available.
 
 Adding or renaming entries does not apply a theme. Selecting `DarkAndRed` applies `TheaterCinema`; `SelectedTheme` holds `TheaterCinema`.
 **Alias responsibility:** Your application must keep its own original-name/display-name mapping if it needs to reuse, persist, or look up aliases.

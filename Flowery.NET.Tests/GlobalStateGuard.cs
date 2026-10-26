@@ -171,7 +171,7 @@ internal sealed class GlobalState
         foreach (var name in added)
             DaisyThemeManager.UnregisterTheme(name);
         foreach (var name in DaisyThemeManager.AddedThemes.Keys.Except(Added.Keys, StringComparer.OrdinalIgnoreCase).ToList())
-            DaisyThemeManager.RemoveThemeOverride(name);
+            DaisyThemeManager.RemoveAddedTheme(name);
         foreach (var entry in Added.Values)
         {
             // A theme the test unregistered can no longer be added; the rest of the state is still put back.

@@ -49,7 +49,7 @@ namespace Flowery.Controls
             BaseContent = ParseBrush(palette.Text);
         }
 
-        internal ProductThemePreviewInfo(DaisyThemeManager.ThemeEntry entry)
+        internal ProductThemePreviewInfo(DaisyAddedTheme entry)
         {
             var preview = ThemeListResolver.CreatePreview(entry);
             Palette = entry.ProductPalette;
@@ -125,8 +125,12 @@ namespace Flowery.Controls
         public void AddTheme(string originalName, string displayName, bool preferred) =>
             _themeSource.Add(originalName, displayName, preferred);
 
-        /// <summary>Removes a local override and restores the global or product list entry, if available.</summary>
-        public bool RemoveThemeOverride(string originalName) => _themeSource.Remove(originalName);
+        /// <summary>Removes a local entry that <see cref="AddTheme"/> added and restores the global or product list entry, if available.</summary>
+        public bool RemoveAddedTheme(string originalName) => _themeSource.Remove(originalName);
+
+        /// <inheritdoc cref="RemoveAddedTheme"/>
+        [Obsolete("Use RemoveAddedTheme, the counterpart of AddTheme.")]
+        public bool RemoveThemeOverride(string originalName) => RemoveAddedTheme(originalName);
 
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {

@@ -57,7 +57,7 @@ productThemeDropdown.AddTheme("TheaterCinema", "Cinema", false);
 The product catalog remains available. Preferred entries appear first, with each group sorted by display text.
 When both groups are present, the popup shows a separator between them. It cannot be selected and does not change keyboard navigation.
 Repeated names update an entry without duplication. Exclusions remain effective.
-`RemoveThemeOverride(originalName)` restores the global or catalog entry, if available.
+`RemoveAddedTheme(originalName)` (formerly `RemoveThemeOverride`) restores the global or catalog entry, if available.
 `SelectedTheme` and `ProductThemeSelected` use the original name, not the label.
 **Alias responsibility:** Your application must keep its own original-name/display-name mapping if it needs to reuse, persist, or look up aliases.
 Aliases are display text only. For example, display `DarkAndRed`, but use `TheaterCinema` for selection, exclusions, preferences, and theme operations.
