@@ -301,9 +301,13 @@ public sealed partial class SchedulerTests
         TouchTap(scope, scope.Frame(second), RawInputModifiers.Control);
         Assert.Equal([1, 2], scope.Scheduler.SelectedAppointments.Select(static appointment => (int)appointment.Id!).Order());
 
-        // The first tap selects the appointment, the second one close behind it asks to edit it.
+        // The first tap selects the appointment, the second one close behind it asks to edit it, and a third one does not
+        // again. With two selected SelectedAppointment is null already, so one is selected before none.
+        scope.Scheduler.SelectedAppointment = second;
         scope.Scheduler.SelectedAppointment = null;
         scope.Layout();
+        TouchTap(scope, scope.Frame(second));
+        Assert.Equal(0, edits);
         TouchTap(scope, scope.Frame(second));
         TouchTap(scope, scope.Frame(second));
         Assert.Equal(1, edits);
@@ -356,6 +360,49 @@ public sealed partial class SchedulerTests
         TouchTap(scope, lane, free);
         TouchTap(scope, lane, free);
         Assert.Equal(1, creates);
+    }
+
+    [AvaloniaTheory]
+    [InlineData(SchedulerView.Month)]
+    [InlineData(SchedulerView.Week)]
+    public void OnTouchSwipesOverAFreeDayNeverCreateAnAppointmentAndADoubleTapThereDoes(SchedulerView view)
+    {
+        using var scope = new SchedulerScope(view);
+        var creates = new List<bool>();
+        scope.Scheduler.AppointmentCreateRequested += (_, args) => creates.Add(args.IsAllDay);
+        // A month day or the all-day row of a week day, pressed below what it shows.
+        var day = scope.Scheduler.GetVisualDescendants().OfType<Control>()
+            .First(control => control.Tag?.GetType().Name == "DayTarget" && control.Bounds.Height > 0);
+        var free = new Point(day.Bounds.Width / 2, day.Bounds.Height - 3);
+
+        TouchDrag(scope, day, free, new Vector(0, 1), pixels: 40);
+        TouchDrag(scope, day, free, new Vector(0, 1), pixels: 40);
+        Assert.Empty(creates);
+
+        // The swipes counted as presses at the same spot; the taps after them still need two.
+        TouchTap(scope, day, free);
+        Assert.Empty(creates);
+        TouchTap(scope, day, free);
+        Assert.Equal([true], creates);
+    }
+
+    [AvaloniaFact]
+    public void OnTouchSwipesOverAnAppointmentDoNotKeepADoubleTapFromEditingIt()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Week);
+        var edits = 0;
+        scope.Scheduler.AppointmentEditRequested += (_, _) => edits++;
+        var frame = scope.Frame(scope.Appointment);
+        var middle = frame.Bounds.Center - frame.Bounds.Position;
+
+        // A week does not scroll sideways, so the swipes start where the taps come.
+        TouchDrag(scope, frame, middle, new Vector(1, 0), pixels: 40);
+        TouchDrag(scope, frame, middle, new Vector(1, 0), pixels: 40);
+        TouchTap(scope, scope.Frame(scope.Appointment), middle);
+        Assert.Same(scope.Appointment, scope.Scheduler.SelectedAppointment);
+        Assert.Equal(0, edits);
+        TouchTap(scope, scope.Frame(scope.Appointment), middle);
+        Assert.Equal(1, edits);
     }
 
     // Taps a touch contact on the middle of the target, or on a point of it.

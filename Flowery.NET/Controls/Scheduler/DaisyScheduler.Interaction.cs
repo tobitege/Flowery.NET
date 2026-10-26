@@ -37,11 +37,16 @@ public partial class DaisyScheduler
         public Border? Ghost { get; set; }
     }
 
-    // A touch or pen press is left to scrolling first: released where it was pressed, it selects its appointment or slot.
-    private sealed record PendingTap(IPointer Pointer, Point PressPoint, AppointmentTarget? Target, Lane? Lane, DateTime Slot, int ClickCount);
+    // A touch or pen press is left to scrolling first: released where it was pressed, it selects its appointment, slot
+    // or day.
+    private sealed record PendingTap(IPointer Pointer, Point PressPoint, AppointmentTarget? Target, Lane? Lane, DateTime Slot,
+        int ClickCount, DayTarget? Day = null);
 
     private Gesture? _gesture;
     private PendingTap? _pendingTap;
+    // The touch or pen taps in a row: Avalonia counts every press at the same spot, a swipe too, and a double tap needs
+    // two taps.
+    private int _taps;
     // A scroll view keeps moving after a swipe; a press then only stops it.
     private bool _flinging;
 
@@ -80,8 +85,11 @@ public partial class DaisyScheduler
             SelectAppointment(appointment, multiple);
         else
             Focus(NavigationMethod.Pointer);
-        if (e.ClickCount == 2 && !multiple)
+        // On touch or pen the press before must have been a tap, not a swipe; a third tap starts anew.
+        var doubleClick = e.Pointer.Type == PointerType.Mouse ? e.ClickCount == 2 : e.ClickCount > 1 && _taps > 0;
+        if (doubleClick && !multiple)
         {
+            _taps = 0;
             AppointmentEditRequested?.Invoke(this, new AppointmentEditRequestedArgs { Appointment = appointment });
             return;
         }
@@ -134,8 +142,14 @@ public partial class DaisyScheduler
     {
         if (IsReadOnly || sender is not Control { Tag: DayTarget target } control || !e.GetCurrentPoint(control).Properties.IsLeftButtonPressed)
             return;
-        SelectSlot(target.Date, target.Resource, true, e.ClickCount, e.GetPosition(TopLevel.GetTopLevel(this)));
         e.Handled = true;
+        // On touch or pen a swipe over a free day scrolls, and a tap selects the day, as in a lane.
+        if (e.Pointer.Type != PointerType.Mouse)
+        {
+            _pendingTap = _flinging ? null : new PendingTap(e.Pointer, e.GetPosition(this), null, null, default, e.ClickCount, target);
+            return;
+        }
+        SelectSlot(target.Date, target.Resource, true, e.ClickCount, e.GetPosition(TopLevel.GetTopLevel(this)));
     }
 
     private void AttachLane(Lane lane)
@@ -165,15 +179,21 @@ public partial class DaisyScheduler
         var size = Application.Current?.PlatformSettings?.GetTapSize(e.Pointer.Type) ?? new Size(10, 10);
         var moved = e.GetPosition(this) - tap.PressPoint;
         if (Math.Abs(moved.X) > size.Width / 2 || Math.Abs(moved.Y) > size.Height / 2)
+        {
+            _taps = 0;
             return;
+        }
         e.Handled = true;
+        _taps = tap.ClickCount > 1 && _taps > 0 ? _taps + 1 : 1;
         if (tap.Target is { } target)
         {
             RememberSelectionResource(target);
             SelectAppointment(target.Appointment, (e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Meta)) != 0);
         }
         else if (tap.Lane is { } lane && TryStoredTime(tap.Slot, lane, out var slot))
-            SelectSlot(slot, lane.Resource, false, tap.ClickCount, e.GetPosition(TopLevel.GetTopLevel(this)));
+            SelectSlot(slot, lane.Resource, false, _taps, e.GetPosition(TopLevel.GetTopLevel(this)));
+        else if (tap.Day is { } day)
+            SelectSlot(day.Date, day.Resource, true, _taps, e.GetPosition(TopLevel.GetTopLevel(this)));
     }
 
     private void OnScrollFlingStarting(object? sender, ScrollGestureInertiaStartingEventArgs e) => _flinging = true;
