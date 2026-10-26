@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
@@ -30,10 +31,15 @@ public partial class SchedulerExamples
         int SpanMode, string Description, bool? AllDay, int Resource, Color? Color);
 
     private EditorFields? _openedFields;
+    // The last valid start and end of the editor, whose duration a moved start or end keeps.
+    private (DateTime Start, DateTime End)? _editorSpan;
+    // Set while the editor fills its fields, so their change events do not move the other end.
+    private bool _fillingEditor;
     private IReadOnlyList<AppointmentModel> _conflicts = Array.Empty<AppointmentModel>();
 
     private void OpenEditor(AppointmentModel appointment, bool isNew)
     {
+        _fillingEditor = true;
         _editing = appointment;
         _isNew = isNew;
         SubjectInput.Text = appointment.Subject;
@@ -51,6 +57,9 @@ public partial class SchedulerExamples
         EditorError.Text = string.Empty;
         _conflicts = Array.Empty<AppointmentModel>();
         RefreshEditorChoices();
+        _editorSpan = null;
+        _fillingEditor = false;
+        KeepSpanValid(movedStart: true);
         EditorPanel.IsVisible = true;
         // The editor needs the height more than the description and the options.
         if (FoldsIntro)
@@ -80,6 +89,73 @@ public partial class SchedulerExamples
     }
 
     private void RefreshEditorChoices()
+    {
+        var filling = _fillingEditor;
+        _fillingEditor = true;
+        try
+        {
+            FillEditorChoices();
+        }
+        finally
+        {
+            _fillingEditor = filling;
+        }
+    }
+
+    // Moving the start onto or past the end moves the end along, keeping the duration; moving the end onto or before the
+    // start moves the start. An all-day appointment may end on its start day.
+    private void OnStartEdited(object? sender, SelectionChangedEventArgs e) => KeepSpanValid(movedStart: true);
+    private void OnEndEdited(object? sender, SelectionChangedEventArgs e) => KeepSpanValid(movedStart: false);
+
+    private void OnStartDateChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == CalendarDatePicker.SelectedDateProperty)
+            KeepSpanValid(movedStart: true);
+    }
+
+    private void OnEndDateChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == CalendarDatePicker.SelectedDateProperty)
+            KeepSpanValid(movedStart: false);
+    }
+
+    private void KeepSpanValid(bool movedStart)
+    {
+        if (_fillingEditor || EditorTime(StartInput, StartTimeInput) is not { } start || EditorTime(EndInput, EndTimeInput) is not { } end)
+            return;
+        var allDay = AllDayInput.IsChecked == true;
+        if ((allDay ? end < start : end <= start) && _editorSpan is { } span)
+        {
+            var duration = span.End - span.Start;
+            _fillingEditor = true;
+            try
+            {
+                if (movedStart)
+                    ShowEditorTime(EndInput, EndTimeInput, end = start + duration);
+                else
+                    ShowEditorTime(StartInput, StartTimeInput, start = end - duration);
+            }
+            finally
+            {
+                _fillingEditor = false;
+            }
+        }
+        if (allDay ? end >= start : end > start)
+            _editorSpan = (start, end);
+    }
+
+    private DateTime? EditorTime(DaisyCalendarDatePicker date, DaisySelect time) => date.SelectedDate is { } day
+        ? day.Date + (AllDayInput.IsChecked == true ? TimeSpan.Zero : (time.SelectedItem as TimeChoice)?.Time ?? TimeSpan.Zero)
+        : null;
+
+    private void ShowEditorTime(DaisyCalendarDatePicker date, DaisySelect time, DateTime value)
+    {
+        date.SelectedDate = value.Date;
+        if (AllDayInput.IsChecked != true)
+            FillTimeChoices(time, value.TimeOfDay);
+    }
+
+    private void FillEditorChoices()
     {
         if (_editing is null)
             return;

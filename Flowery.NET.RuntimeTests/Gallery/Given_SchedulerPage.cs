@@ -111,6 +111,35 @@ public class Given_SchedulerPage
     }
 
     [Fact]
+    public async Task When_The_Start_Passes_The_End_The_End_Moves_Along_And_The_Other_Way_Round()
+    {
+        var page = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples());
+        var scheduler = page.FindControl<DaisyScheduler>("DemoScheduler")!;
+        await OpenNewAsync(scheduler);
+        var start = page.FindControl<DaisyCalendarDatePicker>("StartInput")!;
+        var end = page.FindControl<DaisyCalendarDatePicker>("EndInput")!;
+        var startTime = page.FindControl<DaisySelect>("StartTimeInput")!;
+        var endTime = page.FindControl<DaisySelect>("EndTimeInput")!;
+        var day = start.SelectedDate!.Value;
+        string Time(int hours, int minutes) => scheduler.FormatTime(day.AddHours(hours).AddMinutes(minutes));
+        // A new appointment lasts one time slot interval from the first time slot.
+        var duration = scheduler.TimeSlotInterval;
+
+        start.SelectedDate = day.AddDays(2);
+        Assert.Equal(day.AddDays(2), end.SelectedDate);
+
+        end.SelectedDate = day.AddDays(-1);
+        Assert.Equal(day.AddDays(-1), start.SelectedDate);
+
+        // On the same day, a start time after the end time moves the end time along.
+        startTime.SelectedItem = startTime.Items.Cast<object>().Single(item => item.ToString() == Time(12, 0));
+        Assert.Equal(scheduler.FormatTime(day.AddHours(12) + duration), endTime.SelectedItem?.ToString());
+        // A start that stays before the end leaves it.
+        startTime.SelectedItem = startTime.Items.Cast<object>().Single(item => item.ToString() == Time(11, 0));
+        Assert.Equal(scheduler.FormatTime(day.AddHours(12) + duration), endTime.SelectedItem?.ToString());
+    }
+
+    [Fact]
     public async Task When_The_Page_Is_Phone_Wide_The_Scheduler_Takes_Most_Of_Its_Width()
     {
         var page = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples { Width = 400, HorizontalAlignment = HorizontalAlignment.Left });

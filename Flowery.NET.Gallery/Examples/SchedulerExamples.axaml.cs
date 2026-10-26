@@ -84,6 +84,9 @@ public partial class SchedulerExamples : UserControl, ICollapsibleIntroExample
         // Tunnel: the scheduler handles its presses itself.
         DemoScheduler.AddHandler(PointerPressedEvent, OnSchedulerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
         AddHandler(KeyDownEvent, OnPageKeyDown, handledEventsToo: true);
+        // The pickers raise SelectedDateChanged only for a date picked by the user, not for one the editor sets.
+        StartInput.PropertyChanged += OnStartDateChanged;
+        EndInput.PropertyChanged += OnEndDateChanged;
         RefreshShowFor();
         SeedAppointments();
     }
