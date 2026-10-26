@@ -35,8 +35,18 @@ public partial class SchedulerExamples : UserControl, ICollapsibleIntroExample
     public bool IsIntroVisible
     {
         get => IntroPanel.IsVisible;
-        set => IntroPanel.IsVisible = value;
+        set
+        {
+            if (IntroPanel.IsVisible == value)
+                return;
+            IntroPanel.IsVisible = value;
+            IntroVisibilityChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
+
+    public bool FoldsIntro { get; set; }
+
+    public event EventHandler? IntroVisibilityChanged;
 
     public SchedulerExamples() : this(OperatingSystem.IsAndroid())
     {

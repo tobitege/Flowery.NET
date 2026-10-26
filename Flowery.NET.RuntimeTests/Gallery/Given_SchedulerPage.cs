@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Controls.Scheduler.Models;
@@ -111,6 +112,21 @@ public class Given_SchedulerPage
         await NavigateAsync(mainView, "Sidebar_Scheduler");
         Assert.False(header.IsVisible);
         Assert.False(intro.IsVisible);
+
+        // The editor folds a shown intro, and the arrow of the bar follows.
+        Tap(mainView, bar);
+        Assert.True(intro.IsVisible);
+        await OpenNewAsync(VisiblePage(mainView).FindControl<DaisyScheduler>("DemoScheduler")!);
+        Assert.False(intro.IsVisible);
+        Assert.Equal(0, Assert.IsType<RotateTransform>(mainView.FindControl<PathIcon>("CategoryIntroToggle")!.RenderTransform).Angle);
+    }
+
+    [Fact]
+    public async Task When_The_Title_Bar_Does_Not_Fold_The_Intro_The_Editor_Leaves_It_Shown()
+    {
+        var page = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples());
+        await OpenNewAsync(page.FindControl<DaisyScheduler>("DemoScheduler")!);
+        Assert.True(page.FindControl<Control>("IntroPanel")!.IsVisible);
     }
 
     private static async Task OpenNewAsync(DaisyScheduler scheduler)

@@ -55,6 +55,9 @@ public partial class SchedulerExamples
         _conflicts = Array.Empty<AppointmentModel>();
         RefreshEditorChoices();
         EditorPanel.IsVisible = true;
+        // The editor needs the height more than the description and the options.
+        if (FoldsIntro)
+            IsIntroVisible = false;
         _openedFields = ReadEditorFields();
     }
 

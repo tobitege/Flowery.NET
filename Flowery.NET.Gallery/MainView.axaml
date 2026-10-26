@@ -11,7 +11,7 @@
     x:Class="Flowery.NET.Gallery.MainView"
     Background="{DynamicResource DaisyBase100Brush}">
 
-    <Grid ColumnDefinitions="*">
+    <Grid x:Name="LayoutRoot" ColumnDefinitions="*">
         <SplitView x:Name="MainSplitView"
             IsPaneOpen="False"
             DisplayMode="Overlay"
