@@ -1577,6 +1577,17 @@ namespace Flowery.NET.Kanban.Controls
             _autoSaveTimer?.Stop();
         }
 
+        // Saves an edit that still waits for its auto-save now, so a board that leaves the tree loses no edit and its
+        // timer does not fire later into whatever storage is current then.
+        private void FlushAutoSave()
+        {
+            if (_autoSaveTimer is not { IsEnabled: true } timer)
+                return;
+
+            timer.Stop();
+            ExecuteSave();
+        }
+
         private void OnAutoSaveTimerTick(object? sender, EventArgs e)
         {
             _autoSaveTimer?.Stop();

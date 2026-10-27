@@ -244,6 +244,42 @@ namespace Flowery.NET.Tests
         }
 
         [AvaloniaFact]
+        public void When_BoardUnloadsWithAPendingAutoSave_TheEditIsSavedAtOnceAndNotLater()
+        {
+            var previousStorage = StateStorageProvider.Instance;
+            StateStorageProvider.Configure(new InMemoryStateStorage());
+            var column = CreateColumn("Todo", CreateTask("Task"));
+            var store = new CountingBoardStore();
+            var kanban = new FlowKanban { Board = CreateBoard(column), BoardStore = store };
+            Window? window = ShowKanban(kanban);
+
+            try
+            {
+                Dispatcher.UIThread.RunJobs();
+                store.Reset();
+
+                column.IsCollapsed = !column.IsCollapsed;
+                var timer = (DispatcherTimer?)typeof(FlowKanban).GetField("_autoSaveTimer",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(kanban);
+                Assert.True(timer?.IsEnabled, "the edit did not start an auto-save");
+                Assert.Equal(0, store.SaveCount);
+
+                // Before, the timer stayed on and saved later, into the storage of whatever ran then.
+                window.Close();
+                window = null;
+                Dispatcher.UIThread.RunJobs();
+
+                Assert.Equal(1, store.SaveCount);
+                Assert.False(timer!.IsEnabled);
+            }
+            finally
+            {
+                window?.Close();
+                StateStorageProvider.Configure(previousStorage);
+            }
+        }
+
+        [AvaloniaFact]
         public async Task When_ReplacingTasks_OnlyNewCollectionUpdatesSearchMetricsWipAndAutoSave()
         {
             var previousStorage = StateStorageProvider.Instance;
