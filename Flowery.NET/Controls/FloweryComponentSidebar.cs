@@ -215,6 +215,10 @@ namespace Flowery.Controls
     {
     }
 
+    public class SidebarGlassModeItem : SidebarItem
+    {
+    }
+
     public class SidebarLanguage
     {
         public string Code { get; set; } = string.Empty;
@@ -458,6 +462,32 @@ namespace Flowery.Controls
         /// </summary>
         public IReadOnlyList<DaisyNeumorphicMode> AvailableNeumorphicModes { get; } = Enum.GetValues<DaisyNeumorphicMode>();
 
+        private bool _isGlassModeEnabled = DaisyGlassSurface.GlobalEnabled;
+
+        /// <summary>
+        /// Defines the <see cref="IsGlassModeEnabled"/> property.
+        /// </summary>
+        public static readonly DirectProperty<FloweryComponentSidebar, bool> IsGlassModeEnabledProperty =
+            AvaloniaProperty.RegisterDirect<FloweryComponentSidebar, bool>(
+                nameof(IsGlassModeEnabled),
+                o => o.IsGlassModeEnabled,
+                (o, v) => o.IsGlassModeEnabled = v);
+
+        /// <summary>
+        /// Gets or sets the glass mode. Bound to <see cref="DaisyGlassSurface.GlobalEnabled"/>.
+        /// </summary>
+        public bool IsGlassModeEnabled
+        {
+            get => _isGlassModeEnabled;
+            set
+            {
+                if (SetAndRaise(IsGlassModeEnabledProperty, ref _isGlassModeEnabled, value))
+                {
+                    DaisyGlassSurface.GlobalEnabled = value;
+                }
+            }
+        }
+
         static FloweryComponentSidebar()
         {
             SearchTextProperty.Changed.AddClassHandler<FloweryComponentSidebar>((s, e) => s.OnSearchTextChanged());
@@ -477,10 +507,12 @@ namespace Flowery.Controls
             FloweryLocalization.CultureChanged += OnLocalizationCultureChanged;
             Flowery.Services.FloweryScaleManager.IsEnabledChanged += OnScalingEnabledChanged;
             DaisyNeumorphic.GlobalChanged += OnNeumorphicGlobalChanged;
+            DaisyGlassSurface.GlobalChanged += OnGlassGlobalChanged;
             foreach (var category in _allCategories)
                 category.PropertyChanged += OnCategoryPropertyChanged;
             OnScalingEnabledChanged(this, Flowery.Services.FloweryScaleManager.IsEnabled);
             OnNeumorphicGlobalChanged(this, EventArgs.Empty);
+            OnGlassGlobalChanged(this, EventArgs.Empty);
             UpdateSelectedLanguageFromCulture(FloweryLocalization.CurrentCulture);
         }
 
@@ -489,9 +521,19 @@ namespace Flowery.Controls
             FloweryLocalization.CultureChanged -= OnLocalizationCultureChanged;
             Flowery.Services.FloweryScaleManager.IsEnabledChanged -= OnScalingEnabledChanged;
             DaisyNeumorphic.GlobalChanged -= OnNeumorphicGlobalChanged;
+            DaisyGlassSurface.GlobalChanged -= OnGlassGlobalChanged;
             foreach (var category in _allCategories)
                 category.PropertyChanged -= OnCategoryPropertyChanged;
             base.OnDetachedFromVisualTree(e);
+        }
+
+        private void OnGlassGlobalChanged(object? sender, EventArgs e)
+        {
+            var enabled = DaisyGlassSurface.GlobalEnabled;
+            if (_isGlassModeEnabled != enabled)
+            {
+                SetAndRaise(IsGlassModeEnabledProperty, ref _isGlassModeEnabled, enabled);
+            }
         }
 
         private void OnNeumorphicGlobalChanged(object? sender, EventArgs e)

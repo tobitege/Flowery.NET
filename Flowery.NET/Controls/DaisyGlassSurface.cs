@@ -10,7 +10,9 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Styling;
 using Avalonia.VisualTree;
+using Flowery.Controls.Custom;
 using Flowery.Enums;
 
 namespace Flowery.Controls
@@ -30,12 +32,16 @@ namespace Flowery.Controls
     /// surface part of the template (<see cref="PartNameProperty"/>), which then turns transparent. The surface has to
     /// sit in a <see cref="Panel"/> of the template, and it has to stretch or have a size, since the glass has no content
     /// of its own. The glass follows the corner radius, margin, alignment, size, minimum and maximum size, visibility and
-    /// grid cell of the surface. Turning the behavior off
-    /// removes the glass and restores the surface; a new template gets one new glass.
+    /// grid cell of the surface. It blurs the backdrop with <c>SkiaSharp</c> (<c>BitmapCapture</c> without
+    /// Flowery.NET.Skia) unless the settings say otherwise. Turning the behavior off removes the glass and restores the
+    /// surface; a new template gets one new glass. <see cref="DaisyOtpInput"/> passes the behavior on to each digit box.
     /// </para>
     /// <para>
     /// The glass settings are nullable: a setting that is not set keeps the value of the glass itself, from the
     /// <see cref="DaisyGlass"/> theme.
+    /// </para>
+    /// <para>
+    /// The glass mode (<see cref="GlobalEnabled"/>) turns the behavior on for all input controls at once.
     /// </para>
     /// </remarks>
     public static class DaisyGlassSurface
@@ -45,6 +51,9 @@ namespace Flowery.Controls
             ["PART_Background", "Background", "PART_Surface", "PART_SelectedContainer", "PART_SolidBackground"];
 
         private const string GlassPartName = "PART_Glass";
+
+        // The class of an inserted glass, which the DaisyGlass theme gives a real blur.
+        private const string SurfaceClass = "glass-surface";
 
         private static readonly ConditionalWeakTable<TemplatedControl, SurfaceState> States = new();
 
@@ -384,6 +393,131 @@ namespace Flowery.Controls
 
         #endregion
 
+        #region Glass mode
+
+        // The input controls the glass mode puts on glass.
+        private static readonly Type[] GlobalTypes =
+        [
+            typeof(DaisyInput), typeof(DaisyTextArea), typeof(DaisyPasswordBox), typeof(DaisyMaskInput),
+            typeof(DaisyNumericUpDown), typeof(DaisySelect), typeof(DaisyCalendarDatePicker), typeof(DaisyFileInput),
+            typeof(DaisyTagPicker), typeof(DaisyOtpInput)
+        ];
+
+        private static bool _globalEnabled;
+        private static Styles? _globalStyles;
+        private static Application? _stylesApp;
+        private static readonly CurrentValue<GlassBlurMode> GlobalBlurModes = new(GlassBlurMode.SkiaSharp);
+
+        /// <summary>
+        /// Fired when <see cref="GlobalEnabled"/> or <see cref="GlobalBlurMode"/> changes.
+        /// </summary>
+        public static event EventHandler? GlobalChanged;
+
+        /// <summary>
+        /// The glass mode: when true, the input controls (<see cref="DaisyInput"/>, <see cref="DaisyTextArea"/>,
+        /// <see cref="DaisyPasswordBox"/>, <see cref="DaisyMaskInput"/>, <see cref="DaisyNumericUpDown"/>,
+        /// <see cref="DaisySelect"/>, <see cref="DaisyCalendarDatePicker"/>, <see cref="DaisyFileInput"/>,
+        /// <see cref="DaisyTagPicker"/> and <see cref="DaisyOtpInput"/>) are on glass, and the glass tint
+        /// (<c>DaisyGlassTintColor</c>) follows <c>Base100</c> of the active theme unless the theme sets its own tint.
+        /// It works with every theme. An <see cref="IsEnabledProperty"/> set on a control wins over it.
+        /// </summary>
+        public static bool GlobalEnabled
+        {
+            get => _globalEnabled;
+            set
+            {
+                if (_globalEnabled == value)
+                    return;
+                _globalEnabled = value;
+                UpdateGlobalStyles();
+            }
+        }
+
+        /// <summary>
+        /// The blur mode, while the glass mode is on, of every glass the behavior inserts behind a surface part: that of
+        /// the input controls, and that of any other control with <see cref="IsEnabledProperty"/> and no glass of its
+        /// own in the template, such as a card (default <c>SkiaSharp</c>, which falls back to <c>BitmapCapture</c>
+        /// without Flowery.NET.Skia). A <see cref="BlurModeProperty"/> set on a control wins over it; the glass of the
+        /// glass themes keeps its own blur mode.
+        /// </summary>
+        public static GlassBlurMode GlobalBlurMode
+        {
+            get => GlobalBlurModes.Value;
+            set
+            {
+                if (GlobalBlurModes.Value == value)
+                    return;
+                GlobalBlurModes.Value = value;
+                GlobalChanged?.Invoke(null, EventArgs.Empty);
+            }
+        }
+
+        // A value that tells its subscribers the current value and every change.
+        private sealed class CurrentValue<T>(T value) : IObservable<T>
+        {
+            private readonly List<IObserver<T>> _observers = [];
+            private T _value = value;
+
+            public T Value
+            {
+                get => _value;
+                set
+                {
+                    _value = value;
+                    foreach (var observer in _observers.ToArray())
+                        observer.OnNext(value);
+                }
+            }
+
+            public IDisposable Subscribe(IObserver<T> observer)
+            {
+                _observers.Add(observer);
+                observer.OnNext(_value);
+                return new Unsubscriber(_observers, observer);
+            }
+
+            private sealed class Unsubscriber(List<IObserver<T>> observers, IObserver<T> observer) : IDisposable
+            {
+                public void Dispose() => observers.Remove(observer);
+            }
+        }
+
+        private static void UpdateGlobalStyles()
+        {
+            // The theme manager brings the styles in line, together with the tint of the glass mode.
+            DaisyThemeManager.RefreshGlassResources();
+            GlobalChanged?.Invoke(null, EventArgs.Empty);
+        }
+
+        // The glass mode is made of app styles: a value set on a control, and the styles of its window, win over them.
+        // The blur mode reaches the styles through a binding, so a change keeps the styles and the glasses in place.
+        // A mode switched on before the app exists, or styles that left the app, are added when this runs again: on
+        // every theme change and when DaisyUITheme loads.
+        internal static void ApplyGlobalStyles()
+        {
+            var app = Application.Current;
+            if (_globalStyles != null && (!_globalEnabled || !ReferenceEquals(_stylesApp, app) || !_stylesApp!.Styles.Contains(_globalStyles)))
+            {
+                _stylesApp?.Styles.Remove(_globalStyles);
+                _globalStyles = null;
+                _stylesApp = null;
+            }
+            if (!_globalEnabled || _globalStyles != null || app == null)
+                return;
+
+            _globalStyles = [];
+            foreach (var type in GlobalTypes)
+                _globalStyles.Add(new Style(x => x.Is(type)) { Setters = { new Setter(IsEnabledProperty, true) } });
+            _globalStyles.Add(new Style(x => x.OfType<DaisyGlass>().Class(SurfaceClass))
+            {
+                Setters = { new Setter(DaisyGlass.BlurModeProperty, GlobalBlurModes.ToBinding()) }
+            });
+            app.Styles.Add(_globalStyles);
+            _stylesApp = app;
+        }
+
+        #endregion
+
         static DaisyGlassSurface()
         {
             IsEnabledProperty.Changed.AddClassHandler<Control>(OnIsEnabledChanged);
@@ -395,6 +529,34 @@ namespace Flowery.Controls
         /// </summary>
         public static DaisyGlass? GetGlass(Control control) =>
             control is TemplatedControl templated && States.TryGetValue(templated, out var state) ? state.ActiveGlass : null;
+
+        /// <summary>
+        /// Puts <paramref name="target"/>, a part that a control builds itself such as a digit box of
+        /// <see cref="DaisyOtpInput"/>, on glass whenever <paramref name="source"/> is: the switch, the options and the
+        /// glass settings of the source pass on to the target, whose surface part is <paramref name="partName"/>.
+        /// Dispose the result when the target goes.
+        /// </summary>
+        internal static IDisposable Forward(Control source, Control target, string partName)
+        {
+            target.SetValue(PartNameProperty, partName);
+            var bindings = new List<IDisposable>();
+            foreach (var property in new AvaloniaProperty[] { IsEnabledProperty, FollowForegroundProperty, ClearSurfaceProperty }
+                         .Concat(SettingMap.Keys))
+            {
+                bindings.Add(target.Bind(property, source.GetObservable(property)));
+            }
+            return new CompositeDisposable(bindings);
+        }
+
+        private sealed class CompositeDisposable(List<IDisposable> items) : IDisposable
+        {
+            public void Dispose()
+            {
+                foreach (var item in items)
+                    item.Dispose();
+                items.Clear();
+            }
+        }
 
         private static void OnIsEnabledChanged(Control control, AvaloniaPropertyChangedEventArgs e)
         {
@@ -482,6 +644,7 @@ namespace Flowery.Controls
                 if (glass == null && surface is { Parent: Panel host })
                 {
                     glass = new DaisyGlass { Name = GlassPartName, Padding = default, IsHitTestVisible = false };
+                    glass.Classes.Add(SurfaceClass);
                     MirrorLayout(glass, surface);
                     host.Children.Insert(host.Children.IndexOf(surface), glass);
                     _glass = glass;

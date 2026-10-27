@@ -20,6 +20,7 @@ Similarly, set `AvailableLanguages` to enable the language selector functionalit
 | `SelectedLanguage` (`SidebarLanguage?`) | Currently selected language; syncs with `FloweryLocalization`. |
 | `NeumorphicMode` (`DaisyNeumorphicMode`) | Global neumorphic mode; two-way synced with `DaisyNeumorphic.GlobalMode`. |
 | `AvailableNeumorphicModes` (`IReadOnlyList<DaisyNeumorphicMode>`) | Modes offered by the neumorphic selector (`None`, `Raised`, `Inset`, `Flat`). |
+| `IsGlassModeEnabled` (`bool`) | The glass mode; two-way synced with `DaisyGlassSurface.GlobalEnabled`. |
 
 ## Data Models
 
@@ -28,6 +29,7 @@ Similarly, set `AvailableLanguages` to enable the language selector functionalit
 - `SidebarLanguageSelectorItem`: Special item type that renders as a language dropdown instead of a button
 - `SidebarThemeSelectorItem`: Special item type for theme selection
 - `SidebarNeumorphicSelectorItem`: Special item type that renders a dropdown for the global neumorphic mode (see [DaisyNeumorphic](DaisyNeumorphic.md)). The sidebar itself sets `DaisyNeumorphic.ScopeEnabled="False"`, so its own controls stay flat.
+- `SidebarGlassModeItem`: Special item type that renders a switch for the glass mode (see [DaisyGlassSurface](DaisyGlassSurface.md)).
 - `SidebarLanguage`: `Code` (e.g., "en", "de"), `DisplayName` (e.g., "English", "Deutsch")
 
 ## Language/Translation Support

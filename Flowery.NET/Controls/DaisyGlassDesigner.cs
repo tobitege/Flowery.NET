@@ -13,7 +13,10 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.TextFormatting;
+using Avalonia.Platform.Storage;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls.ColorPicker;
 using Flowery.Enums;
@@ -31,7 +34,9 @@ namespace Flowery.Controls
     /// </summary>
     public class DaisyGlassDesigner : UserControl
     {
-        private enum Tab { Presets, Button, Glass, Fill, Pattern, Motion }
+        // In the order of the tab bar. Fill and Motion sit next to each other, since the animated background lies over the
+        // fill.
+        private enum Tab { Presets, Button, Glass, Pattern, Fill, Motion }
 
         private enum CodeKind { Xaml, CSharp, Json }
 
@@ -49,6 +54,8 @@ namespace Flowery.Controls
 
         // The preview and the disc survive a rebuild for another language; the other parts are built again.
         private readonly DaisyButton _preview;
+        private string _previewText = "Get started";
+        private TextBox? _textBox;
         private readonly Border _blob;
         private Border _stage = null!;
         private DaisyGlassDesignerFieldPanel _fields = null!;
@@ -58,6 +65,7 @@ namespace Flowery.Controls
         private StackPanel _importPanel = null!;
         private TextBox _importBox = null!;
         private TextBlock _importError = null!;
+        private TextBlock _fileError = null!;
         private readonly Dictionary<Tab, RadioButton> _tabButtons = new();
         private CancellationTokenSource? _motion;
         private DaisyToggle? _move;
@@ -77,10 +85,16 @@ namespace Flowery.Controls
         {
             _preview = new DaisyButton
             {
-                Content = "Get started",
+                Content = _previewText,
                 Theme = GlassButtonTheme(),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
+            };
+            // The size and the theme set the font of the preview, which the size of a square or circle follows.
+            _preview.PropertyChanged += (_, e) =>
+            {
+                if (e.Property == FontSizeProperty || e.Property == FontFamilyProperty || e.Property == FontWeightProperty)
+                    UpdatePreviewShapeSize();
             };
             _blob = new Border
             {
@@ -126,6 +140,7 @@ namespace Flowery.Controls
                     {
                         CreateHeader(),
                         _stage,
+                        CreateTextRow(),
                         CreateTabBar(),
                         new Border { Padding = new Thickness(24, 0), Child = _fields },
                         _codeDrawer
@@ -159,8 +174,14 @@ namespace Flowery.Controls
         /// </summary>
         public string PreviewText
         {
-            get => _preview.Content as string ?? "";
-            set => _preview.Content = value;
+            get => _previewText;
+            set
+            {
+                _previewText = value ?? "";
+                if (_textBox != null && _textBox.Text != _previewText)
+                    _textBox.Text = _previewText;
+                UpdatePreviewContent();
+            }
         }
 
         /// <summary>
@@ -196,7 +217,39 @@ namespace Flowery.Controls
         public DaisyButtonShape PreviewShape
         {
             get => _preview.Shape;
-            set => _preview.Shape = value;
+            set
+            {
+                _preview.Shape = value;
+                UpdatePreviewContent();
+            }
+        }
+
+        private void UpdatePreviewContent()
+        {
+            _preview.Content = _previewText;
+            // A block button takes the full width; the preview centers every other shape.
+            var block = _preview.Shape == DaisyButtonShape.Block;
+            _preview.HorizontalAlignment = block ? HorizontalAlignment.Stretch : HorizontalAlignment.Center;
+            _preview.Margin = block ? new Thickness(32, 0) : default;
+            UpdatePreviewShapeSize();
+        }
+
+        // A square or circle DaisyButton is as wide as it is high and made for an icon. In the preview it grows until the
+        // whole text fits inside the shape, with room around it.
+        private void UpdatePreviewShapeSize()
+        {
+            _preview.ClearValue(HeightProperty);
+            if (_preview.Shape is not (DaisyButtonShape.Square or DaisyButtonShape.Circle))
+                return;
+            using var layout = new TextLayout(_previewText, new Typeface(_preview.FontFamily, _preview.FontStyle, _preview.FontWeight),
+                _preview.FontSize, null);
+            var room = _preview.FontSize;
+            var side = _preview.Shape == DaisyButtonShape.Circle
+                ? Math.Sqrt(layout.Width * layout.Width + layout.Height * layout.Height) + room
+                : layout.Width + 2 * room;
+            // The square style binds the width to the height.
+            if (side > _preview.Height || double.IsNaN(_preview.Height))
+                _preview.Height = Math.Ceiling(side);
         }
 
         /// <summary>
@@ -460,14 +513,6 @@ namespace Flowery.Controls
 
         private Control CreateHeader()
         {
-            var reset = new DaisyButton
-            {
-                Content = L("GlassDesigner_Reset", "Reset"),
-                ButtonStyle = DaisyButtonStyle.Soft,
-                Size = DaisySize.Small
-            };
-            reset.Click += (_, _) => Reset();
-
             var code = new ToggleButton
             {
                 Classes = { "gbd-code-toggle" },
@@ -495,19 +540,13 @@ namespace Flowery.Controls
                     }
                 }
             };
-            var actions = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 8,
-                VerticalAlignment = VerticalAlignment.Center,
-                Children = { reset, code }
-            };
-            Grid.SetColumn(actions, 1);
+            code.VerticalAlignment = VerticalAlignment.Center;
+            Grid.SetColumn(code, 1);
             return new Grid
             {
                 Margin = new Thickness(24, 24, 24, 0),
                 ColumnDefinitions = new ColumnDefinitions("*,Auto"),
-                Children = { titles, actions }
+                Children = { titles, code }
             };
         }
 
@@ -553,6 +592,8 @@ namespace Flowery.Controls
                         return;
                     _backdrop = backdrop;
                     _stage.Background = StageBrush(backdrop);
+                    // The light backdrop needs dark text and symbols.
+                    _stage.Classes.Set("paper", backdrop == Backdrop.Paper);
                 };
                 backdrops.Children.Add(swatch);
             }
@@ -581,7 +622,7 @@ namespace Flowery.Controls
                 }
             };
 
-            return new Border
+            var stage = new Border
             {
                 Classes = { "gbd-stage" },
                 Margin = new Thickness(24, 0),
@@ -590,6 +631,8 @@ namespace Flowery.Controls
                 Background = StageBrush(_backdrop),
                 Child = new Panel { Children = { orbs, behind, _preview, controls } }
             };
+            stage.Classes.Set("paper", _backdrop == Backdrop.Paper);
+            return stage;
         }
 
         private static Border Orb(uint color, double size, HorizontalAlignment horizontal, VerticalAlignment vertical, Thickness margin) => new()
@@ -652,6 +695,26 @@ namespace Flowery.Controls
             _motion = null;
         }
 
+        // The text of the preview button, above the tabs, so it can be changed on every tab.
+        private Control CreateTextRow()
+        {
+            var text = new TextBox { Text = PreviewText, Width = 320, HorizontalAlignment = HorizontalAlignment.Left };
+            AutomationProperties.SetName(text, L("GlassDesigner_Text", "Text"));
+            // The text box reports a change later; by then it shows the preview text, also when code changed that.
+            text.TextChanged += (_, _) => PreviewText = text.Text ?? "";
+            _textBox = text;
+            return new StackPanel
+            {
+                Margin = new Thickness(24, 0),
+                Spacing = 6,
+                Children =
+                {
+                    new TextBlock { Classes = { "gbd-label" }, Text = L("GlassDesigner_Text", "Text").ToUpper(FloweryLocalization.CurrentCulture) },
+                    text
+                }
+            };
+        }
+
         private Control CreateTabBar()
         {
             var tabs = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2 };
@@ -674,13 +737,273 @@ namespace Flowery.Controls
                 tabs.Children.Add(button);
             }
 
-            return new ScrollViewer
+            // Open, save and reset sit next to the tabs, so they are at hand on every tab, also when the stage is
+            // scrolled away.
+            var open = ActionButton("GlassDesigner_Open", "Open…", DaisyIconSymbol.Folder);
+            open.Click += async (_, _) => await OpenFileAsync();
+            var save = ActionButton("GlassDesigner_Save", "Save…", DaisyIconSymbol.Save);
+            save.Click += async (_, _) => await SaveFileAsync();
+            var help = new DaisyButton
+            {
+                IconSymbol = DaisyIconSymbol.Help,
+                ButtonStyle = DaisyButtonStyle.Soft,
+                Size = DaisySize.Small,
+                Shape = DaisyButtonShape.Square
+            };
+            var helpLabel = L("GlassDesigner_HelpTitle", "How to use a design");
+            ToolTip.SetTip(help, helpLabel);
+            AutomationProperties.SetName(help, helpLabel);
+            help.Click += (_, _) => ShowHelp();
+            var reset = ActionButton("GlassDesigner_Reset", "Reset", DaisyIconSymbol.Undo);
+            reset.Click += (_, _) =>
+            {
+                _fileError.IsVisible = false;
+                Reset();
+            };
+            var actions = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 8,
+                Margin = new Thickness(12, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Children = { open, save, help, reset }
+            };
+            Grid.SetColumn(actions, 1);
+
+            _fileError = new TextBlock { Classes = { "gbd-error" }, TextWrapping = TextWrapping.Wrap, IsVisible = false, Margin = new Thickness(0, 8, 0, 0) };
+            Grid.SetRow(_fileError, 1);
+            Grid.SetColumnSpan(_fileError, 2);
+
+            return new Grid
             {
                 Margin = new Thickness(24, 0),
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
-                Content = new Border { Classes = { "gbd-tabs" }, HorizontalAlignment = HorizontalAlignment.Left, Child = tabs }
+                ColumnDefinitions = new ColumnDefinitions("*,Auto"),
+                RowDefinitions = new RowDefinitions("Auto,Auto"),
+                Children =
+                {
+                    new ScrollViewer
+                    {
+                        HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                        VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                        Content = new Border { Classes = { "gbd-tabs" }, HorizontalAlignment = HorizontalAlignment.Left, Child = tabs }
+                    },
+                    actions,
+                    _fileError
+                }
             };
+        }
+
+        private static DaisyButton ActionButton(string key, string fallback, DaisyIconSymbol icon) => new()
+        {
+            Content = L(key, fallback),
+            IconSymbol = icon,
+            ButtonStyle = DaisyButtonStyle.Soft,
+            Size = DaisySize.Small
+        };
+
+        // ---------------------------------------------------------------- Files
+
+        private static FilePickerFileType DesignFileType() => new(L("GlassDesigner_FileType", "Glass design"))
+        {
+            Patterns = ["*.json"],
+            MimeTypes = ["application/json"]
+        };
+
+        // Opens a design from a JSON file that the user picks.
+        private async Task OpenFileAsync()
+        {
+            if (TopLevel.GetTopLevel(this)?.StorageProvider is not { CanOpen: true } storage)
+                return;
+            var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = L("GlassDesigner_Open", "Open…"),
+                AllowMultiple = false,
+                FileTypeFilter = [DesignFileType()]
+            });
+            if (files is not [var file])
+                return;
+            try
+            {
+                await using var stream = await file.OpenReadAsync();
+                await LoadAsync(stream);
+                _fileError.IsVisible = false;
+            }
+            catch (Exception ex) when (ex is JsonException or System.IO.IOException or UnauthorizedAccessException)
+            {
+                ShowFileError(L("GlassDesigner_OpenError", "This file is not a design: {0}"), ex.Message);
+            }
+        }
+
+        // Saves the design as a JSON file where the user picks.
+        private async Task SaveFileAsync()
+        {
+            if (TopLevel.GetTopLevel(this)?.StorageProvider is not { CanSave: true } storage)
+                return;
+            var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = L("GlassDesigner_Save", "Save…"),
+                SuggestedFileName = "glass-design",
+                DefaultExtension = "json",
+                FileTypeChoices = [DesignFileType()],
+                ShowOverwritePrompt = true
+            });
+            if (file is null)
+                return;
+            try
+            {
+                await using var stream = await file.OpenWriteAsync();
+                await SaveAsync(stream);
+                _fileError.IsVisible = false;
+            }
+            catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
+            {
+                ShowFileError(L("GlassDesigner_SaveError", "The design could not be saved: {0}"), ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Loads a design from a stream of JSON, as written by <see cref="SaveAsync"/>. The Open button of the designer
+        /// uses it with a file the user picks.
+        /// </summary>
+        /// <exception cref="JsonException">The stream holds no valid design; the design stays as it is.</exception>
+        public async Task LoadAsync(System.IO.Stream stream)
+        {
+            ArgumentNullException.ThrowIfNull(stream);
+            using var reader = new System.IO.StreamReader(stream, leaveOpen: true);
+            ImportJson(await reader.ReadToEndAsync());
+        }
+
+        /// <summary>
+        /// Writes the design as JSON (UTF-8) to a stream, replacing what a seekable stream held. The Save button of the
+        /// designer uses it with a file the user picks.
+        /// </summary>
+        public async Task SaveAsync(System.IO.Stream stream)
+        {
+            ArgumentNullException.ThrowIfNull(stream);
+            if (stream.CanSeek)
+                stream.SetLength(0);
+            await using var writer = new System.IO.StreamWriter(stream, new System.Text.UTF8Encoding(false), leaveOpen: true);
+            await writer.WriteAsync(Json);
+        }
+
+        // ---------------------------------------------------------------- Help
+
+        private static readonly Uri DocsUri = new("https://tobitege.github.io/Flowery.NET/#DaisyGlassDesigner");
+
+        private const string HelpSample =
+            "using var stream = AssetLoader.Open(new Uri(\"avares://MyApp/Assets/Glass/MyLook.json\"));\n" +
+            "using var reader = new StreamReader(stream);\n" +
+            "DaisyGlassDesign.FromJson(reader.ReadToEnd()).ApplyTo(myButton);";
+
+        /// <summary>
+        /// Opens a glass dialog over the app that explains how to use a design: the code of the Code drawer, or a saved
+        /// JSON file loaded at run time, with a link to the docs.
+        /// </summary>
+        internal DaisyModal? ShowHelp()
+        {
+            if (OverlayLayer.GetOverlayLayer(this) is not { } overlay)
+                return null;
+
+            Paragraph[] paragraphs =
+            [
+                new("GlassDesigner_HelpCode", "Code: open the Code drawer and copy the XAML or C# into your page. It sets the attached glass properties of DaisyGlassSurface on the control."),
+                new("GlassDesigner_HelpFile", "File: save the design as JSON and add the file to your project, for example as Assets/Glass/MyLook.json with the build action AvaloniaResource. Then apply it at run time:")
+            ];
+            var content = new StackPanel { Spacing = 12 };
+            content.Children.Add(new TextBlock
+            {
+                Text = L("GlassDesigner_HelpTitle", "How to use a design"),
+                FontSize = 20,
+                FontWeight = FontWeight.Bold,
+                TextWrapping = TextWrapping.Wrap
+            });
+            foreach (var paragraph in paragraphs)
+                content.Children.Add(new TextBlock { Text = L(paragraph.Key, paragraph.Fallback), TextWrapping = TextWrapping.Wrap, Opacity = 0.9 });
+            content.Children.Add(new Border
+            {
+                Background = new SolidColorBrush(Color.FromArgb(0x40, 0, 0, 0)),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(12, 10),
+                Child = new SelectableTextBlock
+                {
+                    Text = HelpSample,
+                    FontFamily = new FontFamily("Cascadia Mono, Consolas, Menlo, monospace"),
+                    FontSize = 12,
+                    TextWrapping = TextWrapping.Wrap
+                }
+            });
+            content.Children.Add(new TextBlock
+            {
+                Text = L("GlassDesigner_HelpDocs", "The docs of DaisyGlassDesigner and DaisyGlassSurface describe every setting and more ways to use a design."),
+                TextWrapping = TextWrapping.Wrap,
+                Opacity = 0.9
+            });
+
+            var docs = new DaisyButton { Content = L("GlassDesigner_HelpOpenDocs", "Open the docs"), IconSymbol = DaisyIconSymbol.Document, ButtonStyle = DaisyButtonStyle.Soft };
+            var close = new DaisyButton { Content = L("GlassDesigner_HelpClose", "Close"), Variant = DaisyButtonVariant.Primary };
+            AutomationProperties.SetAutomationId(close, "GlassDesigner_HelpClose");
+            content.Children.Add(new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Spacing = 8,
+                Children = { docs, close }
+            });
+
+            var modal = new DaisyModal
+            {
+                Theme = Application.Current?.FindResource("DaisyGlassModalTheme") as ControlTheme,
+                DialogMaxWidth = 560,
+                Width = overlay.Bounds.Width,
+                Height = overlay.Bounds.Height,
+                Focusable = true,
+                Content = content,
+                IsOpen = true
+            };
+
+            void Resize(object? sender, EventArgs e)
+            {
+                modal.Width = overlay.Bounds.Width;
+                modal.Height = overlay.Bounds.Height;
+            }
+
+            // Like the designer over the app: the keyboard stays inside the dialog, and the focus goes back where it was.
+            KeyboardNavigation.SetTabNavigation(modal, KeyboardNavigationMode.Cycle);
+            var previousFocus = TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement();
+
+            void Close()
+            {
+                overlay.LayoutUpdated -= Resize;
+                overlay.Children.Remove(modal);
+                previousFocus?.Focus();
+            }
+
+            overlay.LayoutUpdated += Resize;
+            close.Click += (_, _) => Close();
+            docs.Click += async (_, _) =>
+            {
+                if (TopLevel.GetTopLevel(this)?.Launcher is { } launcher)
+                    await launcher.LaunchUriAsync(DocsUri);
+            };
+            modal.KeyDown += (_, e) =>
+            {
+                if (e.Key != Key.Escape)
+                    return;
+                e.Handled = true;
+                Close();
+            };
+            overlay.Children.Add(modal);
+            // Once the dialog is laid out, so its button can take the focus.
+            Dispatcher.UIThread.Post(() => close.Focus(), DispatcherPriority.Loaded);
+            return modal;
+        }
+
+        private readonly record struct Paragraph(string Key, string Fallback);
+
+        private void ShowFileError(string format, string message)
+        {
+            _fileError.Text = string.Format(CultureInfo.CurrentCulture, format, message);
+            _fileError.IsVisible = true;
         }
 
         private void ShowTab(Tab tab)
@@ -723,6 +1046,7 @@ namespace Flowery.Controls
                     Theme = GlassButtonTheme(),
                     Variant = preview.Variant,
                     ButtonStyle = preview.Style,
+                    Shape = preview.Shape,
                     IsHitTestVisible = false,
                     Size = DaisySize.Small,
                     HorizontalAlignment = HorizontalAlignment.Center,
@@ -767,10 +1091,8 @@ namespace Flowery.Controls
 
         private IEnumerable<Control> CreateButtonFields()
         {
-            // The preview options change the preview button only; they are not part of the design.
-            var text = new TextBox { Text = PreviewText };
-            text.TextChanged += (_, _) => PreviewText = text.Text ?? "";
-            yield return Field("GlassDesigner_Text", "Text", text);
+            // The preview options change the preview button only; they are not part of the design. Its text sits above
+            // the tabs.
             yield return ChipField("GlassDesigner_Variant", "Variant", Enum.GetValues<DaisyButtonVariant>(), PreviewVariant, v => PreviewVariant = v, wide: true);
             yield return ChipField("GlassDesigner_Style", "Style", Enum.GetValues<DaisyButtonStyle>(), PreviewButtonStyle, v => PreviewButtonStyle = v);
             yield return ChipField("GlassDesigner_Size", "Size", Enum.GetValues<DaisySize>(), PreviewSize, v => PreviewSize = v);
@@ -812,7 +1134,11 @@ namespace Flowery.Controls
                 d.FillKind = v;
                 if (v == DaisyGlassFillKind.Preset && d.FillPreset == DaisyGlassGradient.None)
                     d.FillPreset = DaisyGlassGradient.Aurora;
-            }, wide: true, rebuildTab: true);
+            }, wide: true, rebuildTab: true,
+                hint: L("GlassDesigner_FillLayerHint", "Lies under the animated background of the Animation tab, which covers it at its opacity."));
+
+            if (_design.FillKind != DaisyGlassFillKind.Keep)
+                yield return FillPalettes();
 
             switch (_design.FillKind)
             {
@@ -828,6 +1154,55 @@ namespace Flowery.Controls
 
             if (_design.FillKind != DaisyGlassFillKind.None)
                 yield return Slider("GlassDesigner_FillOpacity", "Fill opacity", 0, 1, 0.01, d => d.FillOpacity, (d, v) => d.FillOpacity = v);
+        }
+
+        // Color suggestions for a gradient fill. A palette sets the colors, which stay editable below.
+        private static readonly (string Name, uint[] Colors)[] Palettes =
+        [
+            ("Sunrise", [0xFFFF7E5F, 0xFFFEB47B, 0xFFFFE29F]),
+            ("Lagoon", [0xFF0EA5E9, 0xFF6366F1, 0xFF22D3EE]),
+            ("Forest", [0xFF134E5E, 0xFF3A8D6F, 0xFF71B280]),
+            ("Berry", [0xFF8E2DE2, 0xFFD946EF, 0xFFFF6CAB]),
+            ("Spring", [0xFFA8FF78, 0xFF78FFD6]),
+            ("Candy", [0xFFFF9A9E, 0xFFFAD0C4, 0xFFA18CD1]),
+            ("Ember", [0xFFF97316, 0xFFDC2626, 0xFF7F1D1D]),
+            ("Twilight", [0xFF0F2027, 0xFF203A43, 0xFF2C5364]),
+            ("Neon", [0xFF00F5A0, 0xFF00D9F5, 0xFF7B61FF]),
+            ("Pearl", [0xFFFFFFFF, 0xFFE2E8F0, 0xFFCBD5E1])
+        ];
+
+        private Control FillPalettes()
+        {
+            var tiles = new WrapPanel { Orientation = Orientation.Horizontal };
+            foreach (var (name, colors) in Palettes)
+            {
+                var brush = new LinearGradientBrush
+                {
+                    StartPoint = new RelativePoint(0, 0.5, RelativeUnit.Relative),
+                    EndPoint = new RelativePoint(1, 0.5, RelativeUnit.Relative)
+                };
+                for (var i = 0; i < colors.Length; i++)
+                    brush.GradientStops.Add(new GradientStop(Color.FromUInt32(colors[i]), (double)i / (colors.Length - 1)));
+                var tile = new Button
+                {
+                    Classes = { "gbd-tile" },
+                    Margin = new Thickness(0, 0, 6, 6),
+                    Content = new Border { CornerRadius = new CornerRadius(12), Width = 76, Height = 34, Background = brush }
+                };
+                ToolTip.SetTip(tile, name);
+                AutomationProperties.SetName(tile, name);
+                tile.Click += (_, _) => Change(d =>
+                {
+                    d.FillStops.Clear();
+                    foreach (var color in colors)
+                        d.FillStops.Add(new DaisyGlassFillStop { Color = Color.FromUInt32(color) });
+                    Spread(d.FillStops);
+                    if (d.FillKind is not (DaisyGlassFillKind.Linear or DaisyGlassFillKind.Radial or DaisyGlassFillKind.Conic))
+                        d.FillKind = DaisyGlassFillKind.Linear;
+                }, rebuildTab: true);
+                tiles.Children.Add(tile);
+            }
+            return Field("GlassDesigner_FillPalettes", "Palettes", tiles, wide: true);
         }
 
         private Control GradientPresets()
@@ -957,7 +1332,8 @@ namespace Flowery.Controls
             yield return Chips("GlassDesigner_Renderer", "Animated background", renderers, d => d.BackgroundRenderer, (d, v) => d.BackgroundRenderer = v,
                 wide: true, rebuildTab: true,
                 isEnabled: renderer => renderer != DaisyGlassBackgroundRenderer.Shader || shaderAvailable,
-                hint: shaderAvailable ? null : L("GlassDesigner_ShaderHint", "Shader needs Flowery.NET.Skia."));
+                hint: L("GlassDesigner_BackgroundLayerHint", "Lies over the fill of the Fill tab; at an opacity of 1 it hides the fill.")
+                      + (shaderAvailable ? "" : " " + L("GlassDesigner_ShaderHint", "Shader needs Flowery.NET.Skia.")));
 
             if (_design.BackgroundRenderer == DaisyGlassBackgroundRenderer.None)
                 yield break;
@@ -967,11 +1343,43 @@ namespace Flowery.Controls
                 yield break;
             }
 
-            yield return Chips("GlassDesigner_Effect", "Effect", Enum.GetValues<DaisyGlassAnimation>(), d => d.BackgroundEffect, (d, v) => d.BackgroundEffect = v);
+            yield return Chips("GlassDesigner_Effect", "Effect", Enum.GetValues<DaisyGlassAnimation>(), d => d.BackgroundEffect, (d, v) => d.BackgroundEffect = v,
+                rebuildTab: true);
+            if (_design.BackgroundEffect == DaisyGlassAnimation.LiquidColor)
+                yield return EffectColorField();
             yield return Slider("GlassDesigner_Speed", "Speed", 0, 3, 0.05, d => d.BackgroundSpeed, (d, v) => d.BackgroundSpeed = v);
             yield return Chips("GlassDesigner_FrameRate", "Frame rate", [15d, 24d, 30d, 60d, 0d], d => d.BackgroundFrameRate, (d, v) => d.BackgroundFrameRate = v,
                 label: rate => rate == 0 ? L("GlassDesigner_EveryFrame", "Every frame") : rate.ToString(CultureInfo.CurrentCulture));
             yield return Slider("GlassDesigner_BackgroundOpacity", "Background opacity", 0, 1, 0.01, d => d.BackgroundOpacity, (d, v) => d.BackgroundOpacity = v);
+        }
+
+        // The color of the LiquidColor effect: the accent color of the system, or a color picked with the swatch.
+        private Border EffectColorField()
+        {
+            var accent = new RadioButton
+            {
+                Classes = { "gbd-chip" },
+                GroupName = "gbd-effect-color-" + _groups,
+                Content = L("GlassDesigner_AccentColor", "Accent color"),
+                IsChecked = _design.BackgroundColor is null,
+                Margin = new Thickness(0, 0, 10, 0),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            accent.IsCheckedChanged += (_, _) =>
+            {
+                if (accent.IsChecked == true && _design.BackgroundColor is not null)
+                    Change(d => d.BackgroundColor = null, rebuildTab: true);
+            };
+            var color = _design.BackgroundColor ?? DaisyGlassBackground.AccentColor();
+            var swatch = Swatch(color);
+            swatch.Click += async (_, _) =>
+            {
+                if (await PickColorAsync(color) is { } picked)
+                    Change(d => d.BackgroundColor = picked, rebuildTab: true);
+            };
+            var row = new StackPanel { Orientation = Orientation.Horizontal, Children = { accent, swatch } };
+            var hex = new TextBlock { Classes = { "gbd-value" }, Text = DaisyGlassDesign.FormatColor(color) };
+            return Field("GlassDesigner_EffectColor", "Effect color", row, new Border { Classes = { "gbd-pill" }, Child = hex });
         }
 
         // ---------------------------------------------------------------- Field builders
@@ -981,7 +1389,17 @@ namespace Flowery.Controls
             var label = L(key, fallback);
             AutomationProperties.SetName(editor, label);
             var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-            header.Children.Add(new TextBlock { Classes = { "gbd-label" }, Text = label.ToUpper(FloweryLocalization.CurrentCulture), VerticalAlignment = VerticalAlignment.Center });
+            // A long label, as in some languages, ends in an ellipsis before the value instead of running under it.
+            var title = new TextBlock
+            {
+                Classes = { "gbd-label" },
+                Text = label.ToUpper(FloweryLocalization.CurrentCulture),
+                VerticalAlignment = VerticalAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                Margin = new Thickness(0, 0, 8, 0)
+            };
+            ToolTip.SetTip(title, label);
+            header.Children.Add(title);
             if (value is not null)
             {
                 Grid.SetColumn(value, 1);

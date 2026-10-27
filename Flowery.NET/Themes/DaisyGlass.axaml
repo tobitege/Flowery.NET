@@ -106,11 +106,14 @@
                                Opacity="{TemplateBinding GlassBackgroundOpacity}" />
                         <Canvas x:Name="PART_PatternLayer" IsHitTestVisible="False" />
 
-                        <!-- Top shine/reflection (always shown); the text contrast of the glass controls reads the same brush. -->
-                        <Border CornerRadius="{TemplateBinding CornerRadius}"
-                                VerticalAlignment="Top"
-                                Height="{x:Static controls:DaisyGlass.TopShineHeight}"
-                                Background="{x:Static controls:DaisyGlass.TopShineBrush}" />
+                        <!-- Top shine/reflection (always shown); the text contrast of the glass controls reads the same brush.
+                             In a Canvas, so its fixed height does not make a lower glass, such as a button group, taller. -->
+                        <Canvas x:Name="PART_ShineLayer" IsHitTestVisible="False">
+                            <Border CornerRadius="{TemplateBinding CornerRadius}"
+                                    Width="{Binding #PART_ShineLayer.Bounds.Width}"
+                                    Height="{x:Static controls:DaisyGlass.TopShineHeight}"
+                                    Background="{x:Static controls:DaisyGlass.TopShineBrush}" />
+                        </Canvas>
 
                         <!-- Inner highlight border -->
                         <Border CornerRadius="{TemplateBinding CornerRadius}"
@@ -164,6 +167,12 @@
         </Style>
         <Style Selector="^:highcontrast /template/ Border#PART_ContrastSurface">
             <Setter Property="IsVisible" Value="True" />
+        </Style>
+
+        <!-- A glass that DaisyGlassSurface puts behind the field of a control blurs what lies behind it. -->
+        <Style Selector="^.glass-surface">
+            <Setter Property="EnableBackdropBlur" Value="True" />
+            <Setter Property="BlurMode" Value="SkiaSharp" />
         </Style>
     </ControlTheme>
 </ResourceDictionary>

@@ -5,6 +5,8 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Diagnostics;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -173,6 +175,162 @@ public class DaisyGlassDesignTests
         }
     }
 
+    [AvaloniaTheory]
+    [InlineData("#FF0EA5E9")]
+    [InlineData(null)]
+    public void The_Color_Of_A_Liquid_Background_Goes_Through_Json_Xaml_And_The_Control(string? color)
+    {
+        var design = new DaisyGlassDesign
+        {
+            BackgroundRenderer = DaisyGlassBackgroundRenderer.Gradient,
+            BackgroundEffect = DaisyGlassAnimation.LiquidColor,
+            BackgroundColor = color is null ? null : Color.Parse(color)
+        };
+        Assert.Equal(design.BackgroundColor, DaisyGlassDesign.FromJson(design.ToJson()).BackgroundColor);
+        Assert.Equal(color is not null, design.ToXaml().Contains("EffectColor=\"#FF0EA5E9\""));
+        Assert.Equal(color is not null, design.ToCSharp().Contains("EffectColor = Color.Parse(\"#FF0EA5E9\")"));
+
+        var xaml = design.ToXaml().Replace("<controls:DaisyButton ",
+            "<controls:DaisyButton xmlns=\"https://github.com/avaloniaui\" " +
+            "xmlns:controls=\"clr-namespace:Flowery.Controls;assembly=Flowery.NET\" ");
+        var button = (DaisyButton)Avalonia.Markup.Xaml.AvaloniaRuntimeXamlLoader.Load(xaml);
+        var window = Show(button);
+        try
+        {
+            Assert.Equal(design.BackgroundColor, DaisyGlassSurface.GetBackground(button)!.EffectColor);
+            Assert.Equal(design.ToJson(), DaisyGlassDesign.FromControl(button).ToJson());
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Liquid_Color_Effect_Offers_The_Accent_Color_Or_A_Picked_One()
+    {
+        var designer = new DaisyGlassDesigner
+        {
+            Design = new DaisyGlassDesign { BackgroundRenderer = DaisyGlassBackgroundRenderer.Gradient, BackgroundEffect = DaisyGlassAnimation.LiquidColor }
+        };
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            designer.GetVisualDescendants().OfType<RadioButton>()
+                .Single(tab => Avalonia.Automation.AutomationProperties.GetAutomationId(tab) == "GlassDesigner_TabMotion").IsChecked = true;
+            window.UpdateLayout();
+            var accent = designer.GetVisualDescendants().OfType<RadioButton>().Single(chip => chip.GroupName?.StartsWith("gbd-effect-color-") == true);
+            Assert.True(accent.IsChecked);
+
+            designer.Design = new DaisyGlassDesign
+            {
+                BackgroundRenderer = DaisyGlassBackgroundRenderer.Gradient, BackgroundEffect = DaisyGlassAnimation.LiquidColor,
+                BackgroundColor = Colors.Teal
+            };
+            window.UpdateLayout();
+            accent = designer.GetVisualDescendants().OfType<RadioButton>().Single(chip => chip.GroupName?.StartsWith("gbd-effect-color-") == true);
+            Assert.False(accent.IsChecked);
+            accent.IsChecked = true;
+            Assert.Null(designer.Design.BackgroundColor);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task A_Design_Saved_To_A_File_Opens_As_The_Same_Design()
+    {
+        var saved = new DaisyGlassDesigner { Design = Custom(DaisyGlassFillKind.Conic) };
+        var window = Show(saved, 1100, 1300);
+        try
+        {
+            // A longer file is replaced, not overwritten in part.
+            using var file = new MemoryStream(new byte[4096]);
+            await saved.SaveAsync(file);
+            Assert.Equal(saved.Json, System.Text.Encoding.UTF8.GetString(file.ToArray()));
+
+            var opened = new DaisyGlassDesigner();
+            window.Content = opened;
+            file.Position = 0;
+            await opened.LoadAsync(file);
+            Assert.Equal(saved.Json, opened.Json);
+
+            // A file that is no design leaves the design as it is.
+            await Assert.ThrowsAsync<System.Text.Json.JsonException>(() => opened.LoadAsync(new MemoryStream("{ \"blur\": -5 }"u8.ToArray())));
+            Assert.Equal(saved.Json, opened.Json);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Help_Button_Explains_In_A_Glass_Dialog_How_To_Use_A_Design()
+    {
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            var help = designer.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.IconSymbol == DaisyIconSymbol.Help);
+            Assert.True(help.Focus());
+            help.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent, help));
+            Dispatcher.UIThread.RunJobs();
+
+            var overlay = OverlayLayer.GetOverlayLayer(designer)!;
+            var modal = Assert.Single(overlay.Children.OfType<DaisyModal>());
+            Assert.True(modal.IsOpen);
+            Assert.Same(Application.Current!.FindResource("DaisyGlassModalTheme"), modal.Theme);
+            Assert.Contains(modal.GetLogicalDescendants().OfType<SelectableTextBlock>(), block => block.Text!.Contains("DaisyGlassDesign.FromJson"));
+            // The keyboard stays inside the dialog, and closing it gives the focus back.
+            Assert.Equal(KeyboardNavigationMode.Cycle, KeyboardNavigation.GetTabNavigation(modal));
+            Assert.False(help.IsFocused);
+
+            OverlayButton(overlay, "GlassDesigner_HelpClose").PointerClick();
+            Assert.Empty(overlay.Children.OfType<DaisyModal>());
+            Assert.True(help.IsFocused);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Palette_Sets_The_Fill_Colors_Which_Stay_Editable()
+    {
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            designer.GetVisualDescendants().OfType<RadioButton>()
+                .Single(tab => Avalonia.Automation.AutomationProperties.GetAutomationId(tab) == "GlassDesigner_TabFill").IsChecked = true;
+            window.UpdateLayout();
+            var ember = designer.GetVisualDescendants().OfType<Button>().Single(tile => ToolTip.GetTip(tile) as string == "Ember");
+            ember.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent, ember));
+            window.UpdateLayout();
+
+            var design = designer.Design;
+            Assert.Equal(DaisyGlassFillKind.Linear, design.FillKind);
+            Assert.Equal([Color.Parse("#F97316"), Color.Parse("#DC2626"), Color.Parse("#7F1D1D")], design.FillStops.Select(stop => stop.Color));
+            Assert.Equal([0, 0.5, 1], design.FillStops.Select(stop => stop.Offset));
+            // The colors show as swatches to edit, and the text of the preview stays at hand above the tabs.
+            Assert.Contains(designer.GetVisualDescendants().OfType<Button>(), button => button.Classes.Contains("gbd-swatch"));
+            var text = designer.GetVisualDescendants().OfType<TextBox>().First(box => box.Text == designer.PreviewText);
+            text.Text = "Save";
+            Dispatcher.UIThread.RunJobs();
+            Assert.Equal("Save", designer.PreviewButton.Content);
+            designer.PreviewText = "Load";
+            Assert.Equal("Load", text.Text);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     [AvaloniaFact]
     public void A_Preset_Shows_On_The_Button_It_Was_Made_For()
     {
@@ -183,6 +341,10 @@ public class DaisyGlassDesignTests
             designer.UpdateLayout();
             var neon = designer.GetVisualDescendants().OfType<Button>()
                 .Single(tile => tile.Classes.Contains("gbd-tile") && ToolTip.GetTip(tile) as string == "Neon");
+            // The tile shows the preset on its own button, shape included.
+            var sunset = designer.GetVisualDescendants().OfType<Button>()
+                .Single(tile => tile.Classes.Contains("gbd-tile") && ToolTip.GetTip(tile) as string == "Sunset");
+            Assert.Equal(DaisyButtonShape.Wide, sunset.GetVisualDescendants().OfType<DaisyButton>().Single().Shape);
             neon.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent, neon));
 
             Assert.Equal(DaisyButtonVariant.Accent, designer.PreviewVariant);
@@ -292,6 +454,30 @@ public class DaisyGlassDesignTests
             Assert.Equal(DaisyButtonShape.Wide, designer.PreviewShape);
             Assert.Equal(12, designer.Design.Blur);
             Assert.Equal(12, DaisyGlassSurface.GetGlass(designer.PreviewButton)!.GlassBlur);
+
+            // A square or circle preview grows until the whole text fits inside it.
+            var wide = designer.PreviewButton.Bounds.Width;
+            foreach (var shape in new[] { DaisyButtonShape.Square, DaisyButtonShape.Circle })
+            {
+                designer.PreviewShape = shape;
+                window.UpdateLayout();
+                var bounds = designer.PreviewButton.Bounds;
+                Assert.Equal("Delete", designer.PreviewButton.Content);
+                Assert.Equal(bounds.Height, bounds.Width);
+                var text = designer.PreviewButton.GetVisualDescendants().OfType<TextBlock>().First(block => block.Text == "Delete");
+                Assert.True(bounds.Width > text.Bounds.Width + 8, $"{shape}: {bounds.Width} for text {text.Bounds.Width}");
+            }
+            designer.PreviewSize = DaisySize.Small;
+            window.UpdateLayout();
+            Assert.True(designer.PreviewButton.Bounds.Width < wide + 40);
+            designer.PreviewShape = DaisyButtonShape.Default;
+            window.UpdateLayout();
+            Assert.Equal(28, designer.PreviewButton.Bounds.Height);
+
+            // A block button takes the width of the stage.
+            designer.PreviewShape = DaisyButtonShape.Block;
+            window.UpdateLayout();
+            Assert.True(designer.PreviewButton.Bounds.Width > 3 * wide, $"{designer.PreviewButton.Bounds.Width}");
         }
         finally
         {

@@ -79,6 +79,13 @@
         <Setter Property="Foreground" Value="White" />
         <Setter Property="Opacity" Value="0.8" />
     </Style>
+    <!-- The light Paper backdrop gets dark text and symbols. -->
+    <Style Selector="controls|DaisyGlassDesigner Border.gbd-stage.paper TextBlock.gbd-stage-word">
+        <Setter Property="Foreground" Value="#1E293B" />
+    </Style>
+    <Style Selector="controls|DaisyGlassDesigner Border.gbd-stage.paper TextBlock.gbd-stage-line">
+        <Setter Property="Foreground" Value="#334155" />
+    </Style>
     <Style Selector="controls|DaisyGlassDesigner Border.gbd-stage-bar">
         <Setter Property="Background" Value="#59000000" />
         <Setter Property="BorderBrush" Value="#40FFFFFF" />

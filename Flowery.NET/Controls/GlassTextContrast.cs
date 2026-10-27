@@ -15,15 +15,48 @@ namespace Flowery.Controls
     /// <summary>
     /// Keeps the text of a glass control readable over whatever lies behind it. The glass measures the color of its
     /// backdrop; this estimates the color right behind the text from it, with the glass tint, fill, animated
-    /// background, top shine and the control's own tint layer on top, and moves the text color toward white or black
-    /// until it has WCAG contrast against that color (4.5, or 3 for large text). A foreground set on the control itself
-    /// is kept as it is.
+    /// background, top shine and the control's own tint layer on top. Glass text is light: dark text becomes white, and
+    /// light text moves toward white until it has a contrast of 3 against that color, which the shadow under the text
+    /// makes readable. Only where white stays below 2.5 does the text move toward black, until it has WCAG contrast (4.5,
+    /// or 3 for large text). A foreground set on the control itself is kept as it is.
     /// </summary>
     internal sealed class GlassTextContrast : IDisposable, IWeakEventSubscriber<AvaloniaPropertyChangedEventArgs>
     {
         // Covers what the estimate leaves out: the liquid-glass highlights of the SkiaSharp mode and the blur, which
         // spreads brighter or darker spots of the backdrop over the average.
         private const double RatioReserve = 0.25;
+
+        // Glass reads with light text, and the glass themes draw a dark shadow under it. The text moves toward white until
+        // it has the 3:1 of large text; it stays light while white reaches at least LightTextMinimum, as over a colorful
+        // backdrop under the shine, and turns dark only over a backdrop where even white cannot be read.
+        private const double LightTextRatio = 3.0 + RatioReserve;
+        private const double LightTextMinimum = 2.5;
+
+        // The text switches between light and dark only this far past LightTextMinimum, so a backdrop that wavers around
+        // it, such as an animated one, does not flip the text, and with it the glass, on every measurement.
+        private const double SwitchBand = 0.3;
+
+        // wasLight is the side the text is on, or null before the first adjustment.
+        internal static Color Adjust(Color text, Color surface, double ratio, bool? wasLight)
+        {
+            var minimum = wasLight switch
+            {
+                true => LightTextMinimum - SwitchBand,
+                false => LightTextMinimum + SwitchBand,
+                null => LightTextMinimum
+            };
+            if (FloweryColorHelpers.GetContrastRatio(Colors.White, surface) < minimum)
+                return FloweryColorHelpers.EnsureContrast(text, surface, ratio);
+            // Dark text, such as that of a light theme, becomes white; light text keeps its hue.
+            var light = FloweryColorHelpers.GetRelativeLuminance(Color.FromRgb(text.R, text.G, text.B))
+                        > FloweryColorHelpers.GetRelativeLuminance(surface)
+                ? text
+                : Color.FromArgb(text.A, 255, 255, 255);
+            return FloweryColorHelpers.EnsureContrast(light, surface, Math.Min(ratio, LightTextRatio), Colors.White);
+        }
+
+        private static bool IsLighter(Color text, Color surface) =>
+            FloweryColorHelpers.GetRelativeLuminance(Color.FromRgb(text.R, text.G, text.B)) > FloweryColorHelpers.GetRelativeLuminance(surface);
 
         private readonly TemplatedControl _owner;
         private readonly DaisyGlass _glass;
@@ -34,6 +67,7 @@ namespace Flowery.Controls
         private IBrush? _lastSource;
         private Color _lastColor;
         private IBrush? _lastBrush;
+        private bool? _textLight;
 
         private GlassTextContrast(TemplatedControl owner, DaisyGlass glass, Border? tint, bool enabled, Action<IBrush?> apply)
         {
@@ -122,7 +156,9 @@ namespace Flowery.Controls
             // The brush opacity goes into the alpha, so a translucent text is checked as it renders.
             var text = WithOpacity(solid.Color, solid.Opacity);
             var ratio = (IsLargeText() ? 3.0 : 4.5) + RatioReserve;
-            var color = FloweryColorHelpers.EnsureContrast(text, surface, ratio);
+            var wasLight = _textLight;
+            var color = Adjust(text, surface, ratio, wasLight);
+            _textLight = IsLighter(color, surface);
             if (color == text)
             {
                 _apply(foreground);
@@ -131,8 +167,9 @@ namespace Flowery.Controls
             // An adjusted color that still has the contrast stays, so small changes in the measured backdrop do not
             // redraw the text, which would redraw the glass and could measure it again.
             if (_lastBrush != null && ReferenceEquals(_lastSource, foreground)
-                && FloweryColorHelpers.EnsureContrast(_lastColor, surface, ratio) == _lastColor)
+                && Adjust(_lastColor, surface, ratio, wasLight) == _lastColor)
             {
+                _textLight = IsLighter(_lastColor, surface);
                 _apply(_lastBrush);
                 return;
             }
@@ -174,7 +211,7 @@ namespace Flowery.Controls
 
         void IWeakEventSubscriber<AvaloniaPropertyChangedEventArgs>.OnEvent(object? sender, WeakEvent ev, AvaloniaPropertyChangedEventArgs e)
         {
-            if (e.Property == DaisyGlassBackground.EffectProperty)
+            if (e.Property == DaisyGlassBackground.EffectProperty || e.Property == DaisyGlassBackground.EffectColorProperty)
                 Update();
         }
 
@@ -193,7 +230,7 @@ namespace Flowery.Controls
             if (AverageColor(_glass.EffectiveGlassFill) is { } fill)
                 color = FloweryColorHelpers.Composite(color, fill, _glass.GlassFillOpacity);
             if (_glass.GlassBackground is { } background)
-                color = FloweryColorHelpers.Composite(color, AverageColor(background.Effect), _glass.GlassBackgroundOpacity);
+                color = FloweryColorHelpers.Composite(color, AverageColor(background), _glass.GlassBackgroundOpacity);
             // The text sits in the middle of the glass, where the top shine still adds some white.
             color = FloweryColorHelpers.Composite(color, Colors.White, DaisyGlass.TopShineOpacityAt(_glass.Bounds.Height / 2));
             if (_tint != null && AverageColor(_tint.Background) is { } tint)
@@ -219,12 +256,17 @@ namespace Flowery.Controls
         }
 
         // The average color of each animated effect over its run, drawn as gradients or shaders.
-        private static Color AverageColor(DaisyGlassAnimation effect) => effect switch
+        private static Color AverageColor(DaisyGlassBackground background) => background.Effect switch
         {
             DaisyGlassAnimation.Aurora => Color.FromRgb(25, 70, 80),
             DaisyGlassAnimation.LiquidGold => Color.FromRgb(185, 135, 35),
+            // Mostly the color itself, between its deep and its pale shades.
+            DaisyGlassAnimation.LiquidColor => Scale(background.GetEffectColor(), 0.8),
             _ => Color.FromRgb(150, 120, 190)
         };
+
+        private static Color Scale(Color color, double factor) =>
+            Color.FromRgb((byte)(color.R * factor), (byte)(color.G * factor), (byte)(color.B * factor));
 
         private static Color WithOpacity(Color color, double opacity) =>
             Color.FromArgb((byte)Math.Round(color.A * Math.Clamp(opacity, 0, 1)), color.R, color.G, color.B);

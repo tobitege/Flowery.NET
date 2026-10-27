@@ -132,6 +132,18 @@
                                                             </DataTemplate>
 
                                                             <DataTemplate
+                                                                x:DataType="controls:SidebarGlassModeItem">
+                                                                <StackPanel Margin="8,6,0,8"
+                                                                    Spacing="6">
+                                                                    <controls:DaisyToggle
+                                                                        Content="Glass Mode"
+                                                                        Margin="10,0,16,0"
+                                                                        Variant="Primary"
+                                                                        IsChecked="{Binding IsGlassModeEnabled, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}, Mode=TwoWay}" />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+
+                                                            <DataTemplate
                                                                 x:DataType="controls:SidebarScalingSelectorItem">
                                                                 <StackPanel Margin="8,6,0,8"
                                                                     Spacing="6">

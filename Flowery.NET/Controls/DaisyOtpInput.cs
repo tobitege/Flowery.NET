@@ -26,6 +26,8 @@ namespace Flowery.Controls
         private const double BaseTextFontSize = 14.0;
 
         private readonly List<TextBox> _slots = new();
+        // Passes DaisyGlassSurface on to each slot, which has the field surface.
+        private readonly List<IDisposable> _slotGlass = new();
         private bool _isUpdating;
         private int _pasteVersion;
 
@@ -233,6 +235,9 @@ namespace Flowery.Controls
                 }
 
                 _slots.Clear();
+                foreach (var glass in _slotGlass)
+                    glass.Dispose();
+                _slotGlass.Clear();
 
                 var length = Length;
                 var interval = SeparatorInterval;
@@ -278,6 +283,7 @@ namespace Flowery.Controls
             box.PastingFromClipboard += OnSlotPastingFromClipboard;
             box.KeyDown += OnSlotKeyDown;
             box.GotFocus += OnSlotGotFocus;
+            _slotGlass.Add(DaisyGlassSurface.Forward(this, box, "PART_BorderElement"));
             UpdateSlotAutomationProperties(box, index);
 
             return box;
