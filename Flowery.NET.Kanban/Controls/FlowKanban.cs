@@ -1482,6 +1482,8 @@ namespace Flowery.NET.Kanban.Controls
             if (string.IsNullOrWhiteSpace(boardId))
                 return false;
 
+            // Before the read, so reopening the open board loads its waiting edit too.
+            FlushAutoSave();
             if (!BoardStore.TryLoadBoard(boardId, out var data, out var error))
             {
                 if (error != null)
