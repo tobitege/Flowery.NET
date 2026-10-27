@@ -45,6 +45,38 @@ public class DaisyGlassBackgroundTests
         Assert.Equal(Colors.Teal, background.GetEffectColor());
     }
 
+    [AvaloniaFact]
+    public void Without_An_Accent_Color_Of_The_System_The_Primary_Color_Of_The_Theme_Stands_In()
+    {
+        var app = Avalonia.Application.Current!;
+        Assert.True(app.TryFindResource("DaisyPrimaryColor", app.ActualThemeVariant, out var primary));
+        Assert.Equal(primary, DaisyGlassBackground.ResolveAccentColor(null, app));
+        // A transparent accent is no accent.
+        Assert.Equal(primary, DaisyGlassBackground.ResolveAccentColor(Colors.Transparent, app));
+        Assert.Equal(Colors.Orange, DaisyGlassBackground.ResolveAccentColor(Colors.Orange, app));
+        Assert.Equal(Colors.DodgerBlue, DaisyGlassBackground.ResolveAccentColor(null, null));
+    }
+
+    [AvaloniaFact]
+    public void A_New_Theme_Reads_The_Accent_Color_Again()
+    {
+        var previous = DaisyThemeManager.CurrentThemeName;
+        try
+        {
+            var changes = 0;
+            void Count(object? sender, EventArgs e) => changes++;
+            DaisyGlassBackground.AccentColor();
+            DaisyGlassBackground.AccentColorChanged += Count;
+            Assert.True(DaisyThemeManager.ApplyTheme(previous == "Dracula" ? "Light" : "Dracula"));
+            DaisyGlassBackground.AccentColorChanged -= Count;
+            Assert.Equal(1, changes);
+        }
+        finally
+        {
+            DaisyThemeManager.ApplyTheme(previous ?? "Light");
+        }
+    }
+
     private static SKBitmap DrawLiquid(Color color)
     {
         var bitmap = new SKBitmap(new SKImageInfo(64, 32, SKColorType.Rgba8888, SKAlphaType.Premul));

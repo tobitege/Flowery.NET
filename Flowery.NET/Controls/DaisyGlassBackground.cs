@@ -3,6 +3,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Platform;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using Flowery.Enums;
 
@@ -84,18 +86,68 @@ namespace Flowery.Controls
         /// </summary>
         public Color GetEffectColor() => EffectColor ?? AccentColor();
 
+        // The accent color is read once and again after a change of the system colors or of the theme, not on every frame.
+        private static Color? _accentColor;
+        private static IPlatformSettings? _watchedSettings;
+        private static bool _watchingThemes;
+
+        /// <summary>
+        /// Fired when the accent color of the system or the theme changes, which <see cref="AccentColor"/> follows.
+        /// </summary>
+        internal static event EventHandler? AccentColorChanged;
+
         /// <summary>
         /// The accent color of the system, or the primary color of the theme where the system has none.
         /// </summary>
         public static Color AccentColor()
         {
+            WatchAccentColor();
+            if (_accentColor is { } cached)
+                return cached;
             var app = Application.Current;
-            if (app?.PlatformSettings?.GetColorValues() is { AccentColor1: var accent } && accent.A > 0)
+            var color = ResolveAccentColor(app?.PlatformSettings?.GetColorValues().AccentColor1, app);
+            if (app != null)
+                _accentColor = color;
+            return color;
+        }
+
+        /// <summary>
+        /// The accent color of the system when it has one (an alpha above 0), else <c>DaisyPrimaryColor</c> of
+        /// <paramref name="resources"/>, else a plain blue.
+        /// </summary>
+        internal static Color ResolveAccentColor(Color? systemAccent, IResourceHost? resources)
+        {
+            if (systemAccent is { A: > 0 } accent)
                 return accent;
-            if (app != null && app.TryFindResource("DaisyPrimaryColor", app.ActualThemeVariant, out var primary)
-                && primary is Color color)
+            var variant = (resources as IThemeVariantHost)?.ActualThemeVariant;
+            if (resources != null && resources.TryFindResource("DaisyPrimaryColor", variant, out var primary) && primary is Color color)
                 return color;
             return Colors.DodgerBlue;
+        }
+
+        internal static void WatchAccentColor()
+        {
+            if (!_watchingThemes)
+            {
+                _watchingThemes = true;
+                DaisyThemeManager.ThemeChanged += (_, _) => OnAccentColorChanged();
+            }
+            var settings = Application.Current?.PlatformSettings;
+            if (ReferenceEquals(settings, _watchedSettings))
+                return;
+            if (_watchedSettings != null)
+                _watchedSettings.ColorValuesChanged -= OnColorValuesChanged;
+            _watchedSettings = settings;
+            if (settings != null)
+                settings.ColorValuesChanged += OnColorValuesChanged;
+        }
+
+        private static void OnColorValuesChanged(object? sender, PlatformColorValues e) => OnAccentColorChanged();
+
+        private static void OnAccentColorChanged()
+        {
+            _accentColor = null;
+            AccentColorChanged?.Invoke(null, EventArgs.Empty);
         }
 
         /// <summary>
@@ -163,8 +215,8 @@ namespace Flowery.Controls
             DaisyAccessibility.PreferencesChanged += OnPreferencesChanged;
             Source.PropertyChanged += OnSourceChanged;
             EffectiveViewportChanged += OnEffectiveViewportChanged;
-            if (Application.Current?.PlatformSettings is { } settings)
-                settings.ColorValuesChanged += OnColorValuesChanged;
+            DaisyGlassBackground.WatchAccentColor();
+            DaisyGlassBackground.AccentColorChanged += OnAccentColorChanged;
             RequestFrame();
         }
 
@@ -174,8 +226,7 @@ namespace Flowery.Controls
             DaisyAccessibility.PreferencesChanged -= OnPreferencesChanged;
             Source.PropertyChanged -= OnSourceChanged;
             EffectiveViewportChanged -= OnEffectiveViewportChanged;
-            if (Application.Current?.PlatformSettings is { } settings)
-                settings.ColorValuesChanged -= OnColorValuesChanged;
+            DaisyGlassBackground.AccentColorChanged -= OnAccentColorChanged;
             StopWaiting();
             _lastFrame = null;
             base.OnDetachedFromVisualTree(e);
@@ -197,8 +248,9 @@ namespace Flowery.Controls
             RequestFrame();
         }
 
-        // A new accent color of the system shows at once on a background that follows it.
-        private void OnColorValuesChanged(object? sender, Avalonia.Platform.PlatformColorValues e)
+        // A new accent color of the system, or a new theme for its fallback, shows at once on a background that follows
+        // it, also on a still frame.
+        private void OnAccentColorChanged(object? sender, EventArgs e)
         {
             if (Source is { Effect: DaisyGlassAnimation.LiquidColor, EffectColor: null })
                 InvalidateVisual();

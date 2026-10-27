@@ -42,4 +42,8 @@
     <PackageReference Include="Avalonia" Version="12.1.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Flowery.NET.Tests" />
+  </ItemGroup>
+
 </Project>

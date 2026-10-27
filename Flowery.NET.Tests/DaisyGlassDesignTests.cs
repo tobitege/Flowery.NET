@@ -5,6 +5,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Diagnostics;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Styling;
@@ -274,6 +275,7 @@ public class DaisyGlassDesignTests
         try
         {
             var help = designer.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.IconSymbol == DaisyIconSymbol.Help);
+            Assert.True(help.Focus());
             help.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent, help));
             Dispatcher.UIThread.RunJobs();
 
@@ -282,9 +284,13 @@ public class DaisyGlassDesignTests
             Assert.True(modal.IsOpen);
             Assert.Same(Application.Current!.FindResource("DaisyGlassModalTheme"), modal.Theme);
             Assert.Contains(modal.GetLogicalDescendants().OfType<SelectableTextBlock>(), block => block.Text!.Contains("DaisyGlassDesign.FromJson"));
+            // The keyboard stays inside the dialog, and closing it gives the focus back.
+            Assert.Equal(KeyboardNavigationMode.Cycle, KeyboardNavigation.GetTabNavigation(modal));
+            Assert.False(help.IsFocused);
 
             OverlayButton(overlay, "GlassDesigner_HelpClose").PointerClick();
             Assert.Empty(overlay.Children.OfType<DaisyModal>());
+            Assert.True(help.IsFocused);
         }
         finally
         {

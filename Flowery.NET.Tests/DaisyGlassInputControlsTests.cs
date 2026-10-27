@@ -149,6 +149,88 @@ public class DaisyGlassInputControlsTests
         }
     }
 
+    [AvaloniaFact]
+    public void The_Glass_Mode_Comes_Back_When_Its_Styles_Left_The_App()
+    {
+        // As when the mode was switched on before the app existed: the next theme change adds the styles.
+        var previous = DaisyThemeManager.CurrentThemeName;
+        var app = Application.Current!;
+        var input = new DaisyInput();
+        var window = Show(input);
+        try
+        {
+            DaisyGlassSurface.GlobalEnabled = true;
+            var mode = app.Styles.OfType<Avalonia.Styling.Styles>().Last();
+            app.Styles.Remove(mode);
+            Dispatcher.UIThread.RunJobs();
+            Assert.Null(DaisyGlassSurface.GetGlass(input));
+
+            Assert.True(DaisyThemeManager.ApplyTheme(previous == "Dracula" ? "Light" : "Dracula"));
+            Dispatcher.UIThread.RunJobs();
+            Assert.NotNull(DaisyGlassSurface.GetGlass(input));
+        }
+        finally
+        {
+            DaisyGlassSurface.GlobalEnabled = false;
+            DaisyThemeManager.ApplyTheme(previous ?? "Light");
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Tint_Of_The_App_Stays_And_The_Theme_Tint_Survives_High_Contrast()
+    {
+        var previous = DaisyThemeManager.CurrentThemeName;
+        var app = Application.Current!;
+        var own = new ResourceDictionary { ["DaisyGlassTintColor"] = Colors.Crimson };
+        try
+        {
+            Assert.True(DaisyThemeManager.ApplyTheme("Dracula"));
+            DaisyGlassSurface.GlobalEnabled = true;
+            var base100 = Resource(app, "DaisyBase100Color");
+            Assert.Equal(base100, Resource(app, "DaisyGlassTintColor"));
+
+            // High contrast covers Base100; switched off again, the tint is that of the theme, not of the contrast palette.
+            DaisyAccessibility.HighContrastOverride = true;
+            DaisyAccessibility.HighContrastOverride = false;
+            Assert.Equal(base100, Resource(app, "DaisyGlassTintColor"));
+
+            // A tint the app brings itself, such as one included in App.axaml, is kept.
+            app.Resources.MergedDictionaries.Add(own);
+            DaisyGlassSurface.GlobalEnabled = false;
+            DaisyGlassSurface.GlobalEnabled = true;
+            Assert.Equal(Colors.Crimson, Resource(app, "DaisyGlassTintColor"));
+        }
+        finally
+        {
+            app.Resources.MergedDictionaries.Remove(own);
+            DaisyAccessibility.HighContrastOverride = null;
+            DaisyGlassSurface.GlobalEnabled = false;
+            DaisyThemeManager.ApplyTheme(previous ?? "Light");
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Sidebar_Switch_And_The_Glass_Mode_Follow_Each_Other()
+    {
+        var sidebar = new FloweryComponentSidebar();
+        var window = Show(sidebar);
+        try
+        {
+            sidebar.IsGlassModeEnabled = true;
+            Assert.True(DaisyGlassSurface.GlobalEnabled);
+            DaisyGlassSurface.GlobalEnabled = false;
+            Assert.False(sidebar.IsGlassModeEnabled);
+            DaisyGlassSurface.GlobalEnabled = true;
+            Assert.True(sidebar.IsGlassModeEnabled);
+        }
+        finally
+        {
+            DaisyGlassSurface.GlobalEnabled = false;
+            window.Close();
+        }
+    }
+
     private static Color Resource(Application app, string key)
     {
         Assert.True(app.TryFindResource(key, app.ActualThemeVariant, out var value));

@@ -570,21 +570,42 @@ namespace Flowery.Controls
         /// </summary>
         internal static void RefreshGlassResources()
         {
+            DaisyGlassSurface.ApplyGlobalStyles();
             if (Application.Current is not { } app) return;
             var dictionaries = app.Resources.MergedDictionaries;
             if (_glassPalette != null) dictionaries.Remove(_glassPalette);
             _glassPalette = null;
-            if (!DaisyGlassSurface.GlobalEnabled
-                || _currentPalette?.TryGetResource(GlassTintKey, null, out _) == true
-                || !app.TryFindResource("DaisyBase100Color", app.ActualThemeVariant, out var base100)
-                || base100 is not Color color)
+            if (!DaisyGlassSurface.GlobalEnabled) return;
+
+            // A tint of the app or its palette stays, also one applied by a CustomThemeApplicator or included in the
+            // app itself; the default tint lives with the styles of DaisyUITheme, not in the app resources.
+            var variant = app.ActualThemeVariant;
+            if (app.Resources.TryGetResource(GlassTintKey, variant, out _)) return;
+            // Base100 of the palette itself, not that of the contrast palette over it.
+            object? base100 = null;
+            if (_currentPalette?.TryGetResource("DaisyBase100Color", variant, out base100) != true
+                && !app.TryFindResource("DaisyBase100Color", variant, out base100))
                 return;
+            if (base100 is not Color color) return;
+
             _glassPalette = new ResourceDictionary { [GlassTintKey] = color };
-            var palette = _currentPalette != null ? dictionaries.IndexOf(_currentPalette) : -1;
-            dictionaries.Insert(palette >= 0 ? palette + 1 : dictionaries.Count, _glassPalette);
+            // Right after the palette, and in any case before the contrast palette.
+            var index = _currentPalette != null ? dictionaries.IndexOf(_currentPalette) + 1 : 0;
+            if (index <= 0)
+                index = _contrastPalette != null && dictionaries.Contains(_contrastPalette)
+                    ? dictionaries.IndexOf(_contrastPalette)
+                    : dictionaries.Count;
+            dictionaries.Insert(index, _glassPalette);
         }
 
         internal static void ApplyContrastResources(bool enabled, bool dark)
+        {
+            ApplyContrastPalette(enabled, dark);
+            // The tint of the glass mode reads Base100 of the palette, which a contrast palette covers or uncovers.
+            RefreshGlassResources();
+        }
+
+        private static void ApplyContrastPalette(bool enabled, bool dark)
         {
             if (Application.Current is not { } app) return;
             var dictionaries = app.Resources.MergedDictionaries;

@@ -16,6 +16,7 @@ using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls.ColorPicker;
 using Flowery.Enums;
@@ -966,10 +967,15 @@ namespace Flowery.Controls
                 modal.Height = overlay.Bounds.Height;
             }
 
+            // Like the designer over the app: the keyboard stays inside the dialog, and the focus goes back where it was.
+            KeyboardNavigation.SetTabNavigation(modal, KeyboardNavigationMode.Cycle);
+            var previousFocus = TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement();
+
             void Close()
             {
                 overlay.LayoutUpdated -= Resize;
                 overlay.Children.Remove(modal);
+                previousFocus?.Focus();
             }
 
             overlay.LayoutUpdated += Resize;
@@ -987,7 +993,8 @@ namespace Flowery.Controls
                 Close();
             };
             overlay.Children.Add(modal);
-            close.Focus();
+            // Once the dialog is laid out, so its button can take the focus.
+            Dispatcher.UIThread.Post(() => close.Focus(), DispatcherPriority.Loaded);
             return modal;
         }
 
@@ -1156,7 +1163,7 @@ namespace Flowery.Controls
             ("Lagoon", [0xFF0EA5E9, 0xFF6366F1, 0xFF22D3EE]),
             ("Forest", [0xFF134E5E, 0xFF3A8D6F, 0xFF71B280]),
             ("Berry", [0xFF8E2DE2, 0xFFD946EF, 0xFFFF6CAB]),
-            ("Mint", [0xFFA8FF78, 0xFF78FFD6]),
+            ("Spring", [0xFFA8FF78, 0xFF78FFD6]),
             ("Candy", [0xFFFF9A9E, 0xFFFAD0C4, 0xFFA18CD1]),
             ("Ember", [0xFFF97316, 0xFFDC2626, 0xFF7F1D1D]),
             ("Twilight", [0xFF0F2027, 0xFF203A43, 0xFF2C5364]),

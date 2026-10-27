@@ -405,6 +405,7 @@ namespace Flowery.Controls
 
         private static bool _globalEnabled;
         private static Styles? _globalStyles;
+        private static Application? _stylesApp;
         private static readonly CurrentValue<GlassBlurMode> GlobalBlurModes = new(GlassBlurMode.SkiaSharp);
 
         /// <summary>
@@ -433,9 +434,11 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// The blur mode of the glass the glass mode puts behind the input controls (default <c>SkiaSharp</c>, which
-        /// falls back to <c>BitmapCapture</c> without Flowery.NET.Skia). A <see cref="BlurModeProperty"/> set on a
-        /// control wins over it.
+        /// The blur mode, while the glass mode is on, of every glass the behavior inserts behind a surface part: that of
+        /// the input controls, and that of any other control with <see cref="IsEnabledProperty"/> and no glass of its
+        /// own in the template, such as a card (default <c>SkiaSharp</c>, which falls back to <c>BitmapCapture</c>
+        /// without Flowery.NET.Skia). A <see cref="BlurModeProperty"/> set on a control wins over it; the glass of the
+        /// glass themes keeps its own blur mode.
         /// </summary>
         public static GlassBlurMode GlobalBlurMode
         {
@@ -479,32 +482,38 @@ namespace Flowery.Controls
             }
         }
 
-        // The glass mode is made of app styles: a value set on a control, and the styles of its window, win over them.
-        // The blur mode reaches the styles through a binding, so a change keeps the styles and the glasses in place.
         private static void UpdateGlobalStyles()
         {
-            if (Application.Current is { } app)
-            {
-                if (_globalEnabled && _globalStyles == null)
-                {
-                    _globalStyles = [];
-                    foreach (var type in GlobalTypes)
-                        _globalStyles.Add(new Style(x => x.Is(type)) { Setters = { new Setter(IsEnabledProperty, true) } });
-                    _globalStyles.Add(new Style(x => x.OfType<DaisyGlass>().Class(SurfaceClass))
-                    {
-                        Setters = { new Setter(DaisyGlass.BlurModeProperty, GlobalBlurModes.ToBinding()) }
-                    });
-                    app.Styles.Add(_globalStyles);
-                }
-                else if (!_globalEnabled && _globalStyles != null)
-                {
-                    app.Styles.Remove(_globalStyles);
-                    _globalStyles = null;
-                }
-
-                DaisyThemeManager.RefreshGlassResources();
-            }
+            // The theme manager brings the styles in line, together with the tint of the glass mode.
+            DaisyThemeManager.RefreshGlassResources();
             GlobalChanged?.Invoke(null, EventArgs.Empty);
+        }
+
+        // The glass mode is made of app styles: a value set on a control, and the styles of its window, win over them.
+        // The blur mode reaches the styles through a binding, so a change keeps the styles and the glasses in place.
+        // A mode switched on before the app exists, or styles that left the app, are added when this runs again: on
+        // every theme change and when DaisyUITheme loads.
+        internal static void ApplyGlobalStyles()
+        {
+            var app = Application.Current;
+            if (_globalStyles != null && (!_globalEnabled || !ReferenceEquals(_stylesApp, app) || !_stylesApp!.Styles.Contains(_globalStyles)))
+            {
+                _stylesApp?.Styles.Remove(_globalStyles);
+                _globalStyles = null;
+                _stylesApp = null;
+            }
+            if (!_globalEnabled || _globalStyles != null || app == null)
+                return;
+
+            _globalStyles = [];
+            foreach (var type in GlobalTypes)
+                _globalStyles.Add(new Style(x => x.Is(type)) { Setters = { new Setter(IsEnabledProperty, true) } });
+            _globalStyles.Add(new Style(x => x.OfType<DaisyGlass>().Class(SurfaceClass))
+            {
+                Setters = { new Setter(DaisyGlass.BlurModeProperty, GlobalBlurModes.ToBinding()) }
+            });
+            app.Styles.Add(_globalStyles);
+            _stylesApp = app;
         }
 
         #endregion

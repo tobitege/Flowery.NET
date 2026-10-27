@@ -32,9 +32,20 @@ namespace Flowery.Controls
         private const double LightTextRatio = 3.0 + RatioReserve;
         private const double LightTextMinimum = 2.5;
 
-        private static Color Adjust(Color text, Color surface, double ratio)
+        // The text switches between light and dark only this far past LightTextMinimum, so a backdrop that wavers around
+        // it, such as an animated one, does not flip the text, and with it the glass, on every measurement.
+        private const double SwitchBand = 0.3;
+
+        // wasLight is the side the text is on, or null before the first adjustment.
+        internal static Color Adjust(Color text, Color surface, double ratio, bool? wasLight)
         {
-            if (FloweryColorHelpers.GetContrastRatio(Colors.White, surface) < LightTextMinimum)
+            var minimum = wasLight switch
+            {
+                true => LightTextMinimum - SwitchBand,
+                false => LightTextMinimum + SwitchBand,
+                null => LightTextMinimum
+            };
+            if (FloweryColorHelpers.GetContrastRatio(Colors.White, surface) < minimum)
                 return FloweryColorHelpers.EnsureContrast(text, surface, ratio);
             // Dark text, such as that of a light theme, becomes white; light text keeps its hue.
             var light = FloweryColorHelpers.GetRelativeLuminance(Color.FromRgb(text.R, text.G, text.B))
@@ -43,6 +54,9 @@ namespace Flowery.Controls
                 : Color.FromArgb(text.A, 255, 255, 255);
             return FloweryColorHelpers.EnsureContrast(light, surface, Math.Min(ratio, LightTextRatio), Colors.White);
         }
+
+        private static bool IsLighter(Color text, Color surface) =>
+            FloweryColorHelpers.GetRelativeLuminance(Color.FromRgb(text.R, text.G, text.B)) > FloweryColorHelpers.GetRelativeLuminance(surface);
 
         private readonly TemplatedControl _owner;
         private readonly DaisyGlass _glass;
@@ -53,6 +67,7 @@ namespace Flowery.Controls
         private IBrush? _lastSource;
         private Color _lastColor;
         private IBrush? _lastBrush;
+        private bool? _textLight;
 
         private GlassTextContrast(TemplatedControl owner, DaisyGlass glass, Border? tint, bool enabled, Action<IBrush?> apply)
         {
@@ -141,7 +156,9 @@ namespace Flowery.Controls
             // The brush opacity goes into the alpha, so a translucent text is checked as it renders.
             var text = WithOpacity(solid.Color, solid.Opacity);
             var ratio = (IsLargeText() ? 3.0 : 4.5) + RatioReserve;
-            var color = Adjust(text, surface, ratio);
+            var wasLight = _textLight;
+            var color = Adjust(text, surface, ratio, wasLight);
+            _textLight = IsLighter(color, surface);
             if (color == text)
             {
                 _apply(foreground);
@@ -150,8 +167,9 @@ namespace Flowery.Controls
             // An adjusted color that still has the contrast stays, so small changes in the measured backdrop do not
             // redraw the text, which would redraw the glass and could measure it again.
             if (_lastBrush != null && ReferenceEquals(_lastSource, foreground)
-                && Adjust(_lastColor, surface, ratio) == _lastColor)
+                && Adjust(_lastColor, surface, ratio, wasLight) == _lastColor)
             {
+                _textLight = IsLighter(_lastColor, surface);
                 _apply(_lastBrush);
                 return;
             }
@@ -193,7 +211,7 @@ namespace Flowery.Controls
 
         void IWeakEventSubscriber<AvaloniaPropertyChangedEventArgs>.OnEvent(object? sender, WeakEvent ev, AvaloniaPropertyChangedEventArgs e)
         {
-            if (e.Property == DaisyGlassBackground.EffectProperty)
+            if (e.Property == DaisyGlassBackground.EffectProperty || e.Property == DaisyGlassBackground.EffectColorProperty)
                 Update();
         }
 

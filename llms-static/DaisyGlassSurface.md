@@ -30,7 +30,8 @@ DaisyGlassSurface.GlobalEnabled = true;
 DaisyGlassSurface.GlobalBlurMode = GlassBlurMode.SkiaSharp;   // the default
 ```
 
-- It is an app style, so `DaisyGlassSurface.IsEnabled="False"` on a control, or a style of its window, wins over it. A `BlurMode` set on a control wins over `GlobalBlurMode`.
+- It is an app style, so `DaisyGlassSurface.IsEnabled="False"` on a control, or a style of its window, wins over it. A `BlurMode` set on a control wins over `GlobalBlurMode`. `GlobalBlurMode` applies to every glass the behavior inserts behind a surface part, also that of a card with `IsEnabled`; the glass of the glass themes keeps its own blur mode.
+- The mode can be switched on before the app exists, for example in `Program.Main`; it takes effect once `DaisyUITheme` loads or a theme is applied.
 - While it is on, the glass tint (`DaisyGlassTintColor`) is `Base100` of the active theme, so the glass takes the hue of the theme and the theme text on it keeps its contrast. A theme that sets its own tint, such as Glassy, keeps it. A theme switch computes the tint again.
 - `GlobalChanged` fires after every change. `FloweryComponentSidebar` offers the mode as a switch (`SidebarGlassModeItem`).
 - Glass only reads as glass over a varied backdrop. Over a flat theme surface it is a slightly tinted field with shine and rim.

@@ -98,6 +98,32 @@ public class GlassTextContrastTests
         }
     }
 
+    [Theory]
+    // Ratio of white against the surface, the side the text is on before, and whether it is light after.
+    [InlineData(2.6, null, true)]
+    [InlineData(2.4, null, false)]
+    [InlineData(2.4, true, true)]
+    [InlineData(2.6, false, false)]
+    [InlineData(2.1, true, false)]
+    [InlineData(2.9, false, true)]
+    public void The_Text_Switches_Between_Light_And_Dark_Only_Past_A_Band(double whiteRatio, bool? wasLight, bool light)
+    {
+        // A backdrop that wavers around the switch point must not flip the text on every measurement.
+        var surface = Gray(1.05 / whiteRatio - 0.05);
+        Assert.Equal(whiteRatio, FloweryColorHelpers.GetContrastRatio(Colors.White, surface), 1);
+        var text = GlassTextContrast.Adjust(Color.Parse("#334155"), surface, 4.75, wasLight);
+        Assert.Equal(light, FloweryColorHelpers.GetRelativeLuminance(text) > FloweryColorHelpers.GetRelativeLuminance(surface));
+    }
+
+    // The gray with the given relative luminance.
+    private static Color Gray(double luminance)
+    {
+        var linear = luminance;
+        var srgb = linear <= 0.0031308 ? 12.92 * linear : 1.055 * Math.Pow(linear, 1 / 2.4) - 0.055;
+        var value = (byte)Math.Round(srgb * 255);
+        return Color.FromRgb(value, value, value);
+    }
+
     [AvaloniaTheory]
     [InlineData("#7C3AED", true)]
     [InlineData("#1E3A8A", true)]
