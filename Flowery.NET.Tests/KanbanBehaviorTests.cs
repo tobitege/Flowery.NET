@@ -243,8 +243,10 @@ namespace Flowery.NET.Tests
             }
         }
 
-        [AvaloniaFact]
-        public void When_BoardUnloadsWithAPendingAutoSave_TheEditIsSavedAtOnceAndNotLater()
+        [AvaloniaTheory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void When_BoardUnloadsWithAPendingAutoSave_TheEditIsSavedAtOnceAndNotLater(bool onHomeView)
         {
             var previousStorage = StateStorageProvider.Instance;
             StateStorageProvider.Configure(new InMemoryStateStorage());
@@ -255,12 +257,20 @@ namespace Flowery.NET.Tests
 
             try
             {
+                // The board opens on its home view once it is shown.
+                kanban.CurrentView = FlowKanbanView.Board;
                 Dispatcher.UIThread.RunJobs();
                 store.Reset();
 
                 column.IsCollapsed = !column.IsCollapsed;
                 var timer = (DispatcherTimer?)typeof(FlowKanban).GetField("_autoSaveTimer",
                     System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(kanban);
+                // The user leaves for the home view before the auto-save came, then closes the window.
+                if (onHomeView)
+                {
+                    kanban.CurrentView = FlowKanbanView.Home;
+                    Dispatcher.UIThread.RunJobs();
+                }
                 Assert.True(timer?.IsEnabled, "the edit did not start an auto-save");
                 Assert.Equal(0, store.SaveCount);
 
@@ -271,6 +281,11 @@ namespace Flowery.NET.Tests
 
                 Assert.Equal(1, store.SaveCount);
                 Assert.False(timer!.IsEnabled);
+                // The save comes before the home view clears the last board, so the next start opens the home view.
+                if (onHomeView)
+                    Assert.Null(kanban.LastBoardId);
+                else
+                    Assert.NotNull(kanban.LastBoardId);
             }
             finally
             {
