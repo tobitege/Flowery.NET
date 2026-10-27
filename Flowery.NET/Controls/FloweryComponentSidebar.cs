@@ -219,6 +219,22 @@ namespace Flowery.Controls
     {
     }
 
+    /// <summary>
+    /// The backdrop selector: the backdrop of the theme, an effect, a color or an image
+    /// (<see cref="DaisyThemeManager.BackdropOverride"/>).
+    /// </summary>
+    public class SidebarBackdropItem : SidebarItem
+    {
+    }
+
+    /// <summary>
+    /// The base color selector: a color picked for <see cref="DaisyThemeManager.BaseOverride"/>, or the base of the
+    /// theme.
+    /// </summary>
+    public class SidebarBaseColorItem : SidebarItem
+    {
+    }
+
     public class SidebarLanguage
     {
         public string Code { get; set; } = string.Empty;
@@ -488,6 +504,166 @@ namespace Flowery.Controls
             }
         }
 
+        private const string ThemeChoice = "Theme";
+        private const string BackdropColor = "Color...";
+        private const string BackdropImage = "Image...";
+
+        // The choice the selector shows; it follows the override once the sidebar is attached.
+        private string _backdrop = ThemeChoice;
+
+        private readonly ObservableCollection<string> _availableBackdrops =
+            [ThemeChoice, .. Enum.GetNames<Enums.DaisyGlassAnimation>(), BackdropColor, BackdropImage];
+
+        // The entry that names the color or image in use, such as "#0B1B5E" or "beach.jpg": the selector shows it, so
+        // "Color..." and "Image..." stay free to pick another one.
+        private string? _customBackdrop;
+
+        /// <summary>
+        /// Defines the <see cref="Backdrop"/> property.
+        /// </summary>
+        public static readonly DirectProperty<FloweryComponentSidebar, string> BackdropProperty =
+            AvaloniaProperty.RegisterDirect<FloweryComponentSidebar, string>(
+                nameof(Backdrop),
+                o => o.Backdrop,
+                (o, v) => o.Backdrop = v);
+
+        /// <summary>
+        /// Gets or sets the choice of the backdrop selector, one of <see cref="AvailableBackdrops"/>, which sets
+        /// <see cref="DaisyThemeManager.BackdropOverride"/>. Choosing <c>Color...</c> or <c>Image...</c> asks for one
+        /// first and goes back to the previous choice when the user cancels; the color or image in use then shows as an
+        /// entry of its own.
+        /// </summary>
+        public string Backdrop
+        {
+            get => _backdrop;
+            set
+            {
+                // A selector that rebuilds its items can push null for a moment.
+                if (value == _backdrop || value == _customBackdrop || !_availableBackdrops.Contains(value))
+                    return;
+                if (value is BackdropColor or BackdropImage)
+                {
+                    _ = PickBackdropAsync(value);
+                    return;
+                }
+                if (SetAndRaise(BackdropProperty, ref _backdrop, value))
+                    DaisyThemeManager.BackdropOverride = value == ThemeChoice ? null : "effect:" + value;
+            }
+        }
+
+        /// <summary>
+        /// Gets the choices of the backdrop selector: the backdrop of the theme, the effects, the color or image in use,
+        /// and <c>Color...</c> and <c>Image...</c> to pick one.
+        /// </summary>
+        public IReadOnlyList<string> AvailableBackdrops => _availableBackdrops;
+
+        private static string BackdropChoice(string? backdrop) => backdrop switch
+        {
+            null => ThemeChoice,
+            _ when backdrop.StartsWith("effect:", StringComparison.Ordinal) => backdrop["effect:".Length..],
+            _ when backdrop.StartsWith("image:", StringComparison.Ordinal)
+                => System.IO.Path.GetFileName(backdrop["image:".Length..]) is { Length: > 0 } name ? name : backdrop,
+            _ => backdrop
+        };
+
+        private async System.Threading.Tasks.Task PickBackdropAsync(string choice)
+        {
+            string? backdrop = null;
+            if (choice == BackdropColor)
+            {
+                var start = DaisyThemeManager.BackdropOverride is { } text && Color.TryParse(text, out var current) ? current
+                    : Application.Current is { } app && app.TryFindResource("DaisyBase100Color", app.ActualThemeVariant, out var value)
+                      && value is Color theme ? theme : Colors.SteelBlue;
+                if (await ColorPicker.DaisyColorPickerDialog.ShowOverlayAsync(this, start) is { } color)
+                    backdrop = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+            }
+            else if (TopLevel.GetTopLevel(this)?.StorageProvider is { CanOpen: true } storage)
+            {
+                var files = await storage.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+                {
+                    AllowMultiple = false,
+                    FileTypeFilter = [Avalonia.Platform.Storage.FilePickerFileTypes.ImageAll]
+                });
+                // A platform without file paths, such as the browser, offers no image backdrop.
+                if (files is [var file] && Avalonia.Platform.Storage.StorageProviderExtensions.TryGetLocalPath(file) is { } path)
+                    backdrop = "image:" + path;
+            }
+
+            if (backdrop != null && backdrop != DaisyThemeManager.BackdropOverride)
+                DaisyThemeManager.BackdropOverride = backdrop;
+            else
+                // The selector shows the choice the user cancelled; put the current one back.
+                RaisePropertyChanged(BackdropProperty, choice, _backdrop);
+        }
+
+        private void OnBackdropOverrideChanged(object? sender, EventArgs e)
+        {
+            var backdrop = DaisyThemeManager.BackdropOverride;
+            var choice = BackdropChoice(backdrop);
+            var custom = backdrop != null && !backdrop.StartsWith("effect:", StringComparison.Ordinal) ? choice : null;
+            if (custom != _customBackdrop)
+            {
+                // A selector that shows the old entry pushes null while it goes, which the setter ignores.
+                if (_customBackdrop != null)
+                    _availableBackdrops.Remove(_customBackdrop);
+                _customBackdrop = custom;
+                if (custom != null && !_availableBackdrops.Contains(custom))
+                    _availableBackdrops.Insert(_availableBackdrops.IndexOf(BackdropColor), custom);
+            }
+            if (_backdrop != choice)
+                SetAndRaise(BackdropProperty, ref _backdrop, choice);
+        }
+
+        private string _baseColorText = BaseColorTextOf(DaisyThemeManager.BaseOverride);
+
+        /// <summary>
+        /// Defines the <see cref="BaseColorText"/> property.
+        /// </summary>
+        public static readonly DirectProperty<FloweryComponentSidebar, string> BaseColorTextProperty =
+            AvaloniaProperty.RegisterDirect<FloweryComponentSidebar, string>(nameof(BaseColorText), o => o.BaseColorText);
+
+        /// <summary>
+        /// Gets the text of the base color selector: <c>Theme</c>, or the color of
+        /// <see cref="DaisyThemeManager.BaseOverride"/> such as <c>#0B1B5E</c>.
+        /// </summary>
+        public string BaseColorText => _baseColorText;
+
+        /// <summary>
+        /// Gets the command that asks for a color and sets it as <see cref="DaisyThemeManager.BaseOverride"/>.
+        /// </summary>
+        public System.Windows.Input.ICommand PickBaseColorCommand =>
+            _pickBaseColorCommand ??= new SimpleCommand(() => _ = PickBaseColorAsync());
+
+        private SimpleCommand? _pickBaseColorCommand;
+
+        /// <summary>
+        /// Gets the command that gives the base of the theme back, by clearing <see cref="DaisyThemeManager.BaseOverride"/>.
+        /// It can run while an override is set.
+        /// </summary>
+        public System.Windows.Input.ICommand ResetBaseColorCommand =>
+            _resetBaseColorCommand ??= new SimpleCommand(static () => DaisyThemeManager.BaseOverride = null,
+                static () => DaisyThemeManager.BaseOverride != null);
+
+        private SimpleCommand? _resetBaseColorCommand;
+
+        private static string BaseColorTextOf(Color? color) =>
+            color is { } picked ? $"#{picked.R:X2}{picked.G:X2}{picked.B:X2}" : ThemeChoice;
+
+        private async System.Threading.Tasks.Task PickBaseColorAsync()
+        {
+            var start = DaisyThemeManager.BaseOverride
+                ?? (Application.Current is { } app && app.TryFindResource("DaisyBase100Color", app.ActualThemeVariant, out var value)
+                    && value is Color theme ? theme : Colors.SteelBlue);
+            if (await ColorPicker.DaisyColorPickerDialog.ShowOverlayAsync(this, start) is { } color)
+                DaisyThemeManager.BaseOverride = color;
+        }
+
+        private void OnBaseOverrideChanged(object? sender, EventArgs e)
+        {
+            SetAndRaise(BaseColorTextProperty, ref _baseColorText, BaseColorTextOf(DaisyThemeManager.BaseOverride));
+            _resetBaseColorCommand?.RaiseCanExecuteChanged();
+        }
+
         static FloweryComponentSidebar()
         {
             SearchTextProperty.Changed.AddClassHandler<FloweryComponentSidebar>((s, e) => s.OnSearchTextChanged());
@@ -508,11 +684,15 @@ namespace Flowery.Controls
             Flowery.Services.FloweryScaleManager.IsEnabledChanged += OnScalingEnabledChanged;
             DaisyNeumorphic.GlobalChanged += OnNeumorphicGlobalChanged;
             DaisyGlassSurface.GlobalChanged += OnGlassGlobalChanged;
+            DaisyThemeManager.BackdropOverrideChanged += OnBackdropOverrideChanged;
+            DaisyThemeManager.BaseOverrideChanged += OnBaseOverrideChanged;
             foreach (var category in _allCategories)
                 category.PropertyChanged += OnCategoryPropertyChanged;
             OnScalingEnabledChanged(this, Flowery.Services.FloweryScaleManager.IsEnabled);
             OnNeumorphicGlobalChanged(this, EventArgs.Empty);
             OnGlassGlobalChanged(this, EventArgs.Empty);
+            OnBackdropOverrideChanged(this, EventArgs.Empty);
+            OnBaseOverrideChanged(this, EventArgs.Empty);
             UpdateSelectedLanguageFromCulture(FloweryLocalization.CurrentCulture);
         }
 
@@ -522,6 +702,8 @@ namespace Flowery.Controls
             Flowery.Services.FloweryScaleManager.IsEnabledChanged -= OnScalingEnabledChanged;
             DaisyNeumorphic.GlobalChanged -= OnNeumorphicGlobalChanged;
             DaisyGlassSurface.GlobalChanged -= OnGlassGlobalChanged;
+            DaisyThemeManager.BackdropOverrideChanged -= OnBackdropOverrideChanged;
+            DaisyThemeManager.BaseOverrideChanged -= OnBaseOverrideChanged;
             foreach (var category in _allCategories)
                 category.PropertyChanged -= OnCategoryPropertyChanged;
             base.OnDetachedFromVisualTree(e);

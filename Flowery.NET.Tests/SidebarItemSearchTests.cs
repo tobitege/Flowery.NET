@@ -43,18 +43,18 @@ namespace Flowery.NET.Tests
         }
 
         [Theory]
-        [InlineData("DaisyGlassInput", true)]
-        [InlineData("GlassNavbar", true)]
-        [InlineData("glass modal", true)]
+        [InlineData("DaisyInput", true)]
+        [InlineData("GlassSurface", true)]
+        [InlineData("daisy modal", true)]
         [InlineData("InputDaisy", false)]
-        [InlineData("DaisyGlassButton", false)]
+        [InlineData("DaisyButton", false)]
         public void MatchesSearch_Finds_Each_Search_Term_On_Its_Own(string search, bool expected)
         {
             var item = new SidebarItem
             {
                 Id = "glass-controls",
                 Name = "Glass Controls",
-                SearchTerms = "DaisyGlassNavbar DaisyGlassInput DaisyGlassBadge DaisyGlassModal"
+                SearchTerms = "DaisyGlassSurface DaisyNavbar DaisyInput DaisyBadge DaisyModal"
             };
 
             Assert.Equal(expected, item.MatchesSearch(search));

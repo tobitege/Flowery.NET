@@ -114,6 +114,18 @@ namespace Flowery.Controls
         /// <summary>Gets or sets the chromatic edge split.</summary>
         public double Dispersion { get; set; } = 0.18;
 
+        /// <summary>Gets or sets how strongly the glass bends its backdrop like a lens, from 0 to 1.</summary>
+        public double Refraction { get; set; }
+
+        /// <summary>Gets or sets the width of the curved rim that bends the backdrop, as a share of half the shorter side.</summary>
+        public double Bezel { get; set; } = 0.5;
+
+        /// <summary>Gets or sets how much the glass magnifies its backdrop; 1 does not.</summary>
+        public double Zoom { get; set; } = 1;
+
+        /// <summary>Gets or sets the saturation of the backdrop at the rim; 1 keeps it.</summary>
+        public double RimSaturation { get; set; } = 1;
+
         /// <summary>Gets or sets how the glass is filled.</summary>
         public DaisyGlassFillKind FillKind { get; set; }
 
@@ -199,6 +211,10 @@ namespace Flowery.Controls
             new(nameof(Curvature), DaisyGlassSurface.CurvatureProperty, d => d.Curvature, (d, v) => d.Curvature = (double)v),
             new(nameof(Bend), DaisyGlassSurface.BendProperty, d => d.Bend, (d, v) => d.Bend = (double)v),
             new(nameof(Dispersion), DaisyGlassSurface.DispersionProperty, d => d.Dispersion, (d, v) => d.Dispersion = (double)v),
+            new(nameof(Refraction), DaisyGlassSurface.RefractionProperty, d => d.Refraction, (d, v) => d.Refraction = (double)v),
+            new(nameof(Bezel), DaisyGlassSurface.BezelProperty, d => d.Bezel, (d, v) => d.Bezel = (double)v),
+            new(nameof(Zoom), DaisyGlassSurface.ZoomProperty, d => d.Zoom, (d, v) => d.Zoom = (double)v),
+            new(nameof(RimSaturation), DaisyGlassSurface.RimSaturationProperty, d => d.RimSaturation, (d, v) => d.RimSaturation = (double)v),
             new(nameof(FillOpacity), DaisyGlassSurface.FillOpacityProperty, d => d.FillOpacity, (d, v) => d.FillOpacity = (double)v),
             new(nameof(Pattern), DaisyGlassSurface.PatternProperty, d => d.Pattern, (d, v) => d.Pattern = (DaisyCardPattern)v),
             new(nameof(PatternColor), DaisyGlassSurface.PatternColorProperty, d => d.PatternColor, (d, v) => d.PatternColor = (Color)v),
@@ -446,11 +462,14 @@ namespace Flowery.Controls
             foreach (var (name, value) in new[]
                      {
                          (nameof(Blur), Blur), (nameof(Saturation), Saturation),
-                         (nameof(BackgroundSpeed), BackgroundSpeed), (nameof(BackgroundFrameRate), BackgroundFrameRate)
+                         (nameof(BackgroundSpeed), BackgroundSpeed), (nameof(BackgroundFrameRate), BackgroundFrameRate),
+                         (nameof(RimSaturation), RimSaturation)
                      })
                 InRange(name, value, 0, double.MaxValue);
+            InRange(nameof(Zoom), Zoom, 0.5, 3);
             foreach (var (name, value) in new[]
                      {
+                         (nameof(Refraction), Refraction), (nameof(Bezel), Bezel),
                          (nameof(Opacity), Opacity), (nameof(TintOpacity), TintOpacity),
                          (nameof(ReflectOpacity), ReflectOpacity), (nameof(FillOpacity), FillOpacity),
                          (nameof(PatternOpacity), PatternOpacity), (nameof(BackgroundOpacity), BackgroundOpacity),

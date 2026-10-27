@@ -34,7 +34,11 @@ See [accessibility preferences](DaisyAccessibility.md#system-contrast-and-reduce
 | `GlassDepth` | How far the liquid-glass rim effect reaches inward from the edge. |
 | `GlassCurvature` | Convex lens highlight strength for the liquid-glass overlay. |
 | `GlassBend` | Inner rim/meniscus intensity. |
-| `GlassDispersion` | Chromatic edge split amount. |
+| `GlassDispersion` | Chromatic edge split amount; under a lens it also splits red and blue of the bent backdrop. |
+| `GlassRefraction` | How strongly the glass bends its backdrop like a lens, 0 to 1 (default 0, frosted glass that bends nothing). At 1 the edge shows what lies one bezel width beyond it. `SkiaSharp` mode only. |
+| `GlassBezel` | Width of the curved rim that bends the backdrop, as a share of half the shorter side (default 0.5). |
+| `GlassZoom` | Magnification of the whole backdrop (default 1; 1.1 shows it 10 % larger). `SkiaSharp` mode only. |
+| `GlassRimSaturation` | Saturation of the backdrop at the rim, rising toward the edge (default 1). `SkiaSharp` mode only. |
 | `BlurredBackground` (read-only) | Captured/blurred image when backdrop blur is enabled. |
 | `GlassFill` (IBrush) | Brush painted over the blurred backdrop, such as a linear, radial or conic gradient. Takes precedence over `GlassGradient`. |
 | `GlassGradient` | Gradient preset used when `GlassFill` is not set: `None` (default), `Aurora`, `Sunset`, `Ocean`, `Mint`, `Holo`, `Frost`. |
@@ -68,6 +72,24 @@ Liquid Glass is the SkiaSharp-backed DaisyGlass look that adds a lens-like rim o
     <TextBlock Text="Liquid Glass" FontWeight="Bold" />
 </controls:DaisyGlass>
 ```
+
+### Refraction
+
+By default the glass is frosted: it blurs its backdrop but does not bend it. `GlassRefraction` turns it into a lens. A shader samples the blurred backdrop with a displacement that comes from the distance to the rounded edge and a convex bezel profile: flat inside the bezel and steepest at the edge, so the rim shows what lies beyond it, as a drop of water does. `GlassZoom` magnifies the whole surface, `GlassDispersion` offsets red and blue a little at the rim, and `GlassRimSaturation` makes the colors there stronger:
+
+```xml
+<controls:DaisyGlass EnableBackdropBlur="True"
+                     BlurMode="SkiaSharp"
+                     GlassBlur="4"
+                     GlassRefraction="0.7"
+                     GlassBezel="0.6"
+                     GlassZoom="1.1"
+                     GlassRimSaturation="1.4"
+                     CornerRadius="9999" Width="96" Height="96" />
+```
+
+- The lens needs Flowery.NET.Skia and the `SkiaSharp` blur mode; `BitmapCapture` draws the glass without it.
+- A lens costs an extra blurred image and a shader pass per redraw of the glass: six glass buttons with a lens over moving and animated content took about 15 % more CPU and 10 % more GPU time than without (Debug build). Use it on small surfaces, such as the thumb of the glass range, which turns into a lens while it is dragged, rather than on large panels.
 
 ## Fill, Gradients and Patterns
 
@@ -109,11 +131,11 @@ The glass is a stack of layers: the backdrop (blurred or simulated), the tint, t
 ```
 
 ```xml
-<controls:DaisyGlassButton Content="Plasma">
-    <controls:DaisyGlassButton.GlassBackground>
+<controls:DaisyButton Content="Plasma" Theme="{StaticResource DaisyGlassButtonTheme}">
+    <controls:DaisyGlassSurface.Background>
         <controls:DaisyGlassGradientBackground Effect="Plasma" />
-    </controls:DaisyGlassButton.GlassBackground>
-</controls:DaisyGlassButton>
+    </controls:DaisyGlassSurface.Background>
+</controls:DaisyButton>
 
 <!-- xmlns:skia="clr-namespace:Flowery.Skia;assembly=Flowery.NET.Skia" -->
 <controls:DaisyGlass GlassBackgroundOpacity="0.8">

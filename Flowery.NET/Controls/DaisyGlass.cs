@@ -184,7 +184,7 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Gets or sets how far the liquid-glass refraction reaches inward from the edge.
+        /// Gets or sets how far the liquid-glass rim and its highlights reach inward from the edge.
         /// </summary>
         public static readonly StyledProperty<double> GlassDepthProperty =
             AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassDepth), 0.65);
@@ -229,6 +229,73 @@ namespace Flowery.Controls
         {
             get => GetValue(GlassDispersionProperty);
             set => SetValue(GlassDispersionProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="GlassRefraction"/> property.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassRefractionProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassRefraction));
+
+        /// <summary>
+        /// Gets or sets how strongly the glass bends its backdrop like a lens, from 0 to 1: at 1 the edge shows what
+        /// lies one bezel width (<see cref="GlassBezel"/>) beyond it, and the bend fades to nothing past the bezel. 0, the
+        /// default, keeps the frosted glass that bends nothing. With <see cref="GlassDispersion"/> the red and blue of the
+        /// backdrop split at the rim. Only the <see cref="GlassBlurMode.SkiaSharp"/> mode of Flowery.NET.Skia draws it.
+        /// </summary>
+        public double GlassRefraction
+        {
+            get => GetValue(GlassRefractionProperty);
+            set => SetValue(GlassRefractionProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="GlassBezel"/> property.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassBezelProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassBezel), 0.5);
+
+        /// <summary>
+        /// Gets or sets the width of the curved rim that bends the backdrop, as a share of half the shorter side, from 0 to
+        /// 1 (default 0.5). A wide bezel bends gently over a long way, a narrow one sharply at the edge.
+        /// </summary>
+        public double GlassBezel
+        {
+            get => GetValue(GlassBezelProperty);
+            set => SetValue(GlassBezelProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="GlassZoom"/> property.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassZoomProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassZoom), 1.0);
+
+        /// <summary>
+        /// Gets or sets how much the glass magnifies its whole backdrop; 1, the default, does not, and 1.1 shows it 10 %
+        /// larger, like the lens of a magnifier. Only the <see cref="GlassBlurMode.SkiaSharp"/> mode draws it.
+        /// </summary>
+        public double GlassZoom
+        {
+            get => GetValue(GlassZoomProperty);
+            set => SetValue(GlassZoomProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="GlassRimSaturation"/> property.
+        /// </summary>
+        public static readonly StyledProperty<double> GlassRimSaturationProperty =
+            AvaloniaProperty.Register<DaisyGlass, double>(nameof(GlassRimSaturation), 1.0);
+
+        /// <summary>
+        /// Gets or sets the saturation of the backdrop at the rim, rising from the inner end of the bezel to the edge; 1,
+        /// the default, keeps the saturation of the glass, and 1.5 makes the colors at the edge half as strong again. Only
+        /// the <see cref="GlassBlurMode.SkiaSharp"/> mode draws it.
+        /// </summary>
+        public double GlassRimSaturation
+        {
+            get => GetValue(GlassRimSaturationProperty);
+            set => SetValue(GlassRimSaturationProperty, value);
         }
 
         /// <summary>
@@ -475,37 +542,6 @@ namespace Flowery.Controls
             private set => SetValue(BlurredBackgroundProperty, value);
         }
 
-        // The glass properties that glass controls such as DaisyGlassButton own and pass to their glass surface.
-        private static readonly AvaloniaProperty[] SurfaceProperties =
-        [
-            EnableBackdropBlurProperty, BlurModeProperty, GlassBlurProperty, GlassSaturationProperty, GlassOpacityProperty,
-            GlassTintProperty, GlassTintOpacityProperty, GlassReflectDegreeProperty, GlassReflectOpacityProperty,
-            GlassDepthProperty, GlassCurvatureProperty, GlassBendProperty, GlassDispersionProperty,
-            GlassFillProperty, GlassGradientProperty, GlassFillOpacityProperty,
-            GlassPatternProperty, GlassPatternColorProperty, GlassPatternOpacityProperty,
-            GlassBackgroundProperty, GlassBackgroundOpacityProperty
-        ];
-
-        /// <summary>
-        /// Binds the glass properties of <paramref name="surface"/> to the same properties of <paramref name="owner"/>,
-        /// which owns them through <c>AddOwner</c>. Dispose the result before binding a new surface.
-        /// </summary>
-        internal static IDisposable BindSurface(DaisyGlass surface, AvaloniaObject owner)
-        {
-            var bindings = new IDisposable[SurfaceProperties.Length];
-            for (var i = 0; i < SurfaceProperties.Length; i++)
-            {
-                // An owner that misses a property would read its default and press it onto the glass, over the theme.
-                if (!AvaloniaPropertyRegistry.Instance.IsRegistered(owner.GetType(), SurfaceProperties[i]))
-                {
-                    throw new InvalidOperationException(
-                        $"{owner.GetType().Name} must own DaisyGlass.{SurfaceProperties[i].Name} through AddOwner to bind its glass surface.");
-                }
-                bindings[i] = surface.Bind(SurfaceProperties[i], owner.GetObservable(SurfaceProperties[i]));
-            }
-            return new SurfaceBindings(bindings);
-        }
-
         /// <summary>
         /// The height of the white shine that every glass draws at its top, in DIPs.
         /// </summary>
@@ -543,15 +579,6 @@ namespace Flowery.Controls
             return stops[^1].Color.A / 255.0;
         }
 
-        private sealed class SurfaceBindings(IDisposable[] bindings) : IDisposable
-        {
-            public void Dispose()
-            {
-                foreach (var binding in bindings)
-                    binding.Dispose();
-            }
-        }
-
         static DaisyGlass()
         {
             AffectsRender<DaisyGlass>(
@@ -567,7 +594,11 @@ namespace Flowery.Controls
                 GlassDepthProperty,
                 GlassCurvatureProperty,
                 GlassBendProperty,
-                GlassDispersionProperty);
+                GlassDispersionProperty,
+                GlassRefractionProperty,
+                GlassBezelProperty,
+                GlassZoomProperty,
+                GlassRimSaturationProperty);
         }
 
         public DaisyGlass()

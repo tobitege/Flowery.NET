@@ -135,11 +135,60 @@
                                                                 x:DataType="controls:SidebarGlassModeItem">
                                                                 <StackPanel Margin="8,6,0,8"
                                                                     Spacing="6">
+                                                                    <!-- Sets the glass settings (glass mode, base color, backdrop) apart from the settings above. -->
+                                                                    <Border Height="1" Margin="0,2,8,8"
+                                                                        Background="{DynamicResource DaisyBase300Brush}" />
                                                                     <controls:DaisyToggle
                                                                         Content="Glass Mode"
                                                                         Margin="10,0,16,0"
                                                                         Variant="Primary"
                                                                         IsChecked="{Binding IsGlassModeEnabled, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}, Mode=TwoWay}" />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+
+                                                            <DataTemplate
+                                                                x:DataType="controls:SidebarBaseColorItem">
+                                                                <StackPanel Margin="8,6,0,8"
+                                                                    Spacing="6">
+                                                                    <TextBlock Text="Base Color"
+                                                                        Opacity="0.7"
+                                                                        Margin="10,0,0,0" />
+                                                                    <Grid ColumnDefinitions="*,Auto" Margin="0,0,8,0">
+                                                                        <controls:DaisyButton Size="Small"
+                                                                            HorizontalAlignment="Stretch"
+                                                                            HorizontalContentAlignment="Left"
+                                                                            AutomationProperties.Name="Pick a base color"
+                                                                            Command="{Binding PickBaseColorCommand, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}}">
+                                                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                                <Border Width="14" Height="14" CornerRadius="4"
+                                                                                    BorderThickness="1"
+                                                                                    BorderBrush="{DynamicResource DaisyBase300Brush}"
+                                                                                    Background="{DynamicResource DaisyBase100Brush}" />
+                                                                                <TextBlock VerticalAlignment="Center"
+                                                                                    Text="{Binding BaseColorText, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}}" />
+                                                                            </StackPanel>
+                                                                        </controls:DaisyButton>
+                                                                        <controls:DaisyButton Grid.Column="1" Size="Small"
+                                                                            Variant="Ghost" Margin="4,0,0,0"
+                                                                            Content="Reset"
+                                                                            AutomationProperties.Name="Base color of the theme"
+                                                                            Command="{Binding ResetBaseColorCommand, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}}" />
+                                                                    </Grid>
+                                                                </StackPanel>
+                                                            </DataTemplate>
+
+                                                            <DataTemplate
+                                                                x:DataType="controls:SidebarBackdropItem">
+                                                                <StackPanel Margin="8,6,0,8"
+                                                                    Spacing="6">
+                                                                    <TextBlock Text="Backdrop"
+                                                                        Opacity="0.7"
+                                                                        Margin="10,0,0,0" />
+                                                                    <controls:DaisySelect
+                                                                        Margin="0,0,8,0"
+                                                                        AutomationProperties.Name="Backdrop"
+                                                                        ItemsSource="{Binding AvailableBackdrops, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}}"
+                                                                        SelectedItem="{Binding Backdrop, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}, Mode=TwoWay}" />
                                                                 </StackPanel>
                                                             </DataTemplate>
 

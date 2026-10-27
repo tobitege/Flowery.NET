@@ -72,4 +72,71 @@
 
     <!-- Glass: a navy tint instead of the default white, so glass controls stay dark and calm. -->
     <Color x:Key="DaisyGlassTintColor">#1E2F7A</Color>
+
+    <!-- Backdrop: violet into deep blue, with a bright wave from the lower left to the upper right and a calm wave below
+         it, which gives the glass something to show. The drawing is 1600 by 900 and fills the area it is drawn on. -->
+    <DrawingBrush x:Key="DaisyBackdropBrush" Stretch="UniformToFill">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <DrawingGroup.ClipGeometry>
+                    <RectangleGeometry Rect="0,0,1600,900" />
+                </DrawingGroup.ClipGeometry>
+                <GeometryDrawing Geometry="M0,0 H1600 V900 H0 Z">
+                    <GeometryDrawing.Brush>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                            <GradientStop Offset="0" Color="#4A2BD6" />
+                            <GradientStop Offset="0.45" Color="#2A36CC" />
+                            <GradientStop Offset="0.7" Color="#0C2DAA" />
+                            <GradientStop Offset="1" Color="#061A78" />
+                        </LinearGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="M0,0 H1600 V900 H0 Z">
+                    <GeometryDrawing.Brush>
+                        <RadialGradientBrush Center="12%,52%" GradientOrigin="12%,52%" RadiusX="28%" RadiusY="39%">
+                            <GradientStop Offset="0" Color="#8C9A7BFF" />
+                            <GradientStop Offset="1" Color="#009A7BFF" />
+                        </RadialGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="M0,900 C380,700 720,300 1020,150 C1260,30 1440,8 1600,0 L1600,900 Z">
+                    <GeometryDrawing.Brush>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                            <GradientStop Offset="0" Color="#5C86F2" />
+                            <GradientStop Offset="0.5" Color="#2148D0" />
+                            <GradientStop Offset="1" Color="#0A228E" />
+                        </LinearGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <!-- The light edge of the wave: a wide faint stroke under a narrow bright one. -->
+                <GeometryDrawing Geometry="M0,900 C380,700 720,300 1020,150 C1260,30 1440,8 1600,0">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#33C4D4FF" Thickness="16" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="M0,900 C380,700 720,300 1020,150 C1260,30 1440,8 1600,0">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#D9C4D4FF" Thickness="4" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="M0,0 H1600 V900 H0 Z">
+                    <GeometryDrawing.Brush>
+                        <RadialGradientBrush Center="75%,58%" GradientOrigin="75%,58%" RadiusX="24%" RadiusY="29%">
+                            <GradientStop Offset="0" Color="#808FB0FF" />
+                            <GradientStop Offset="1" Color="#008FB0FF" />
+                        </RadialGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+                <GeometryDrawing Geometry="M0,900 C360,780 700,660 1050,640 C1300,628 1460,580 1600,520 L1600,900 Z">
+                    <GeometryDrawing.Brush>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                            <GradientStop Offset="0" Color="#000A1F86" />
+                            <GradientStop Offset="0.35" Color="#C0102FA6" />
+                            <GradientStop Offset="1" Color="#D91C49D6" />
+                        </LinearGradientBrush>
+                    </GeometryDrawing.Brush>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
 </ResourceDictionary>

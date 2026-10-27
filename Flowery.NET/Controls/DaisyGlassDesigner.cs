@@ -1121,6 +1121,10 @@ namespace Flowery.Controls
             yield return Slider("GlassDesigner_Curvature", "Curvature", 0, 1, 0.01, d => d.Curvature, (d, v) => d.Curvature = v);
             yield return Slider("GlassDesigner_Bend", "Bend", 0, 1, 0.01, d => d.Bend, (d, v) => d.Bend = v);
             yield return Slider("GlassDesigner_Dispersion", "Dispersion", 0, 1, 0.01, d => d.Dispersion, (d, v) => d.Dispersion = v);
+            yield return Slider("GlassDesigner_Refraction", "Refraction", 0, 1, 0.01, d => d.Refraction, (d, v) => d.Refraction = v);
+            yield return Slider("GlassDesigner_Bezel", "Bezel", 0.05, 1, 0.01, d => d.Bezel, (d, v) => d.Bezel = v);
+            yield return Slider("GlassDesigner_Zoom", "Zoom", 0.8, 1.5, 0.01, d => d.Zoom, (d, v) => d.Zoom = v);
+            yield return Slider("GlassDesigner_RimSaturation", "Rim saturation", 0, 2.5, 0.05, d => d.RimSaturation, (d, v) => d.RimSaturation = v);
         }
 
         private IEnumerable<Control> CreateFillFields()

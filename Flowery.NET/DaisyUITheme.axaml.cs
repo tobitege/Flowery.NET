@@ -20,7 +20,7 @@ namespace Flowery
 
             // A glass mode switched on before the app existed takes effect once the app has loaded its styles.
             if (DaisyGlassSurface.GlobalEnabled)
-                Dispatcher.UIThread.Post(DaisyThemeManager.RefreshGlassResources);
+                Dispatcher.UIThread.Post(DaisyThemeManager.RefreshDerivedResources);
         }
     }
 }

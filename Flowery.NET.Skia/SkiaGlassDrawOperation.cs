@@ -26,6 +26,7 @@ namespace Flowery.Skia
         private readonly float _curvature;
         private readonly float _bend;
         private readonly float _dispersion;
+        private readonly SkiaGlassLens _lens;
         private readonly SkiaGlassRedraw _redraw;
         private readonly int _redrawVersion;
         private SKRectI? _seen;
@@ -46,7 +47,8 @@ namespace Flowery.Skia
             double depth,
             double curvature,
             double bend,
-            double dispersion)
+            double dispersion,
+            SkiaGlassLens lens)
         {
             _redraw = redraw;
             _redrawVersion = redraw.Version;
@@ -65,9 +67,14 @@ namespace Flowery.Skia
             _curvature = Clamp01((float)curvature);
             _bend = Clamp01((float)bend);
             _dispersion = Clamp01((float)dispersion);
+            _lens = lens;
         }
 
-        public Rect Bounds => _bounds;
+        // A lens shows what lies around the glass, so a change there must redraw it too: the operation claims that area,
+        // and a render for it alone counts as a partial render, which redraws the glass in full for a moment.
+        public Rect Bounds => _lens.IsActive
+            ? _bounds.Inflate(_lens.Reach(new SKRect(0, 0, (float)_bounds.Width, (float)_bounds.Height), SplitWidth(1)))
+            : _bounds;
 
         public bool HitTest(Point p) => _bounds.Contains(p);
 
@@ -81,6 +88,7 @@ namespace Flowery.Skia
                    op._tintColor == _tintColor &&
                    op._cornerRadius == _cornerRadius &&
                    op._sheenAngle == _sheenAngle &&
+                   op._lens == _lens &&
                    Math.Abs(op._blurSigma - _blurSigma) < 0.1f &&
                    Math.Abs(op._saturation - _saturation) < 0.01f &&
                    Math.Abs(op._reflectOpacity - _reflectOpacity) < 0.01f &&
@@ -153,8 +161,10 @@ namespace Flowery.Skia
                 backdropFilter = SKImageFilter.CreateColorFilter(colorFilter, blurFilter);
             }
 
-            // The backdrop blur from the frame snapshot.
-            if (backdrop is { } snapshot)
+            // The backdrop blur from the frame snapshot, through the lens when the glass bends it. Skia makes no blur
+            // filter for a blur it cannot draw, such as a negative one, and the lens needs one.
+            if (backdrop is { } snapshot
+                && !(_lens.IsActive && backdropFilter != null && DrawThroughLens(lease.GrContext, snapshot, backdropFilter, canvas, rect)))
             {
                 using var paint = new SKPaint
                 {
@@ -212,6 +222,40 @@ namespace Flowery.Skia
             canvas.DrawRoundRect(roundedRect, highlightPaint);
             canvas.RestoreToCount(saveCount);
         }
+
+        // The blur goes onto the snapshot first, into an image of its own; a runtime shader then samples that image with
+        // the bend, the magnification and the split of red and blue toward the edge. Returns false when the blurred image
+        // could not be made, so the glass draws its frosted backdrop instead.
+        private bool DrawThroughLens(GRContext? context, (SKImage Image, SKRectI Bounds) snapshot, SKImageFilter filter, SKCanvas canvas, SKRect rect)
+        {
+            var glass = canvas.TotalMatrix.MapRect(rect);
+            var scale = Math.Abs(canvas.TotalMatrix.ScaleX);
+            var whole = SKRectI.Create(snapshot.Image.Width, snapshot.Image.Height);
+            using var blurred = context != null
+                ? snapshot.Image.ApplyImageFilter(context, filter, whole, whole, out var subset, out var offset)
+                : snapshot.Image.ApplyImageFilter(filter, whole, whole, out subset, out offset);
+            if (blurred == null)
+                return false;
+
+            // The result starts at offset in the snapshot, which lies at its bounds on the surface.
+            var placement = SKMatrix.CreateTranslation(
+                snapshot.Bounds.Left + offset.X - subset.Left, snapshot.Bounds.Top + offset.Y - subset.Top);
+            using var backdrop = blurred.ToShader(SKShaderTileMode.Clamp, SKShaderTileMode.Clamp,
+                new SKSamplingOptions(SKFilterMode.Linear), placement);
+            // Only the subset of the result holds the blurred backdrop.
+            var valid = SKRect.Create(snapshot.Bounds.Left + offset.X, snapshot.Bounds.Top + offset.Y, subset.Width, subset.Height);
+            using var lens = _lens.CreateShader(backdrop, glass, _cornerRadius * scale, SplitWidth(scale), valid);
+            using var paint = new SKPaint { Shader = lens, IsAntialias = true };
+            // In pixels of the surface, like the snapshot; the rounded clip stays in place.
+            canvas.Save();
+            canvas.ResetMatrix();
+            canvas.DrawRect(glass, paint);
+            canvas.Restore();
+            return true;
+        }
+
+        // How far red and blue part at the edge of a lens, in pixels; without a lens the rim strokes alone split them.
+        private float SplitWidth(float scale) => _lens.IsActive ? _dispersion * 6f * scale : 0;
 
         private void DrawLiquidOptics(SKCanvas canvas, SKRect rect)
         {
@@ -362,7 +406,9 @@ namespace Flowery.Skia
             else if (!ownRedraw)
                 _redraw.BackdropRepainted();
 
-            var margin = (int)Math.Ceiling(_blurSigma * 3) + 1;
+            // The blur reads that far around the glass, and a lens further still.
+            var margin = (int)Math.Ceiling(_blurSigma * 3
+                + _lens.Reach(canvas.TotalMatrix.MapRect(rect), SplitWidth(Math.Abs(canvas.TotalMatrix.ScaleX)))) + 1;
             var sample = glass;
             sample.Inflate(margin, margin);
             sample = new SKRectI(Math.Max(0, sample.Left), Math.Max(0, sample.Top), sample.Right, sample.Bottom);

@@ -34,7 +34,7 @@ DaisyGlassSurface.GlobalBlurMode = GlassBlurMode.SkiaSharp;   // the default
 - The mode can be switched on before the app exists, for example in `Program.Main`; it takes effect once `DaisyUITheme` loads or a theme is applied.
 - While it is on, the glass tint (`DaisyGlassTintColor`) is `Base100` of the active theme, so the glass takes the hue of the theme and the theme text on it keeps its contrast. A theme that sets its own tint, such as Glassy, keeps it. A theme switch computes the tint again.
 - `GlobalChanged` fires after every change. `FloweryComponentSidebar` offers the mode as a switch (`SidebarGlassModeItem`).
-- Glass only reads as glass over a varied backdrop. Over a flat theme surface it is a slightly tinted field with shine and rim.
+- Glass only reads as glass over a varied backdrop. Over a flat theme surface it is a slightly tinted field with shine and rim. So while the mode is on, a theme without a backdrop of its own gets soft glows in its primary and secondary color as `DaisyBackdropBrush`, which [DaisyBackdrop](DaisyBackdrop.md) shows behind the app.
 
 ### Cost
 
@@ -95,7 +95,8 @@ The glass settings map one to one to [DaisyGlass](DaisyGlass.md). They are nulla
 | `TintOpacity` | `GlassTintOpacity` | `PatternOpacity` | `GlassPatternOpacity` |
 | `ReflectDegree` | `GlassReflectDegree` | `Background` | `GlassBackground` |
 | `ReflectOpacity` | `GlassReflectOpacity` | `BackgroundOpacity` | `GlassBackgroundOpacity` |
-| `Depth` / `Curvature` / `Bend` | `GlassDepth` / `GlassCurvature` / `GlassBend` | | |
+| `Depth` / `Curvature` / `Bend` | `GlassDepth` / `GlassCurvature` / `GlassBend` | `Refraction` / `Bezel` | `GlassRefraction` / `GlassBezel` |
+| | | `Zoom` / `RimSaturation` | `GlassZoom` / `GlassRimSaturation` |
 
 `DaisyGlassSurface.GetGlass(control)` returns the glass in use, or `null` while the control is not on glass.
 

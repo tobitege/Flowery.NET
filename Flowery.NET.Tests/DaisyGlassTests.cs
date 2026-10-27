@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
@@ -180,33 +179,6 @@ namespace Flowery.NET.Tests
                 DaisyGlassLiveRenderer.Register(previous);
             }
         }
-
-        [AvaloniaTheory]
-        [InlineData(typeof(DaisyGlassButton))]
-        [InlineData(typeof(DaisyGlassBadge))]
-        [InlineData(typeof(DaisyGlassInput))]
-        [InlineData(typeof(DaisyGlassNavbar))]
-        [InlineData(typeof(DaisyGlassModal))]
-        [InlineData(typeof(DaisyGlassSegmented))]
-        [InlineData(typeof(DaisyGlassRange))]
-        [InlineData(typeof(DaisyGlassToggle))]
-        [InlineData(typeof(DaisyGlassMenu))]
-        public void Every_Glass_Control_Owns_Every_Glass_Property_It_Passes_To_Its_Glass(Type controlType)
-        {
-            var owner = (AvaloniaObject)Activator.CreateInstance(controlType)!;
-            using var bindings = BindSurface(new DaisyGlass(), owner);
-        }
-
-        [AvaloniaFact]
-        public void Binding_A_Glass_To_An_Owner_Without_The_Glass_Properties_Fails()
-        {
-            var error = Assert.Throws<TargetInvocationException>(() => BindSurface(new DaisyGlass(), new Border()));
-            Assert.IsType<InvalidOperationException>(error.InnerException);
-        }
-
-        private static IDisposable BindSurface(DaisyGlass glass, AvaloniaObject owner) =>
-            (IDisposable)typeof(DaisyGlass).GetMethod("BindSurface", BindingFlags.NonPublic | BindingFlags.Static)!
-                .Invoke(null, [glass, owner])!;
 
         private sealed class CountingRenderer : DaisyGlassLiveRenderer
         {

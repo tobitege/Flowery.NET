@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.IO;
 using Flowery.Controls;
@@ -21,6 +21,16 @@ public static class GallerySettings
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Flowery.NET.Gallery",
         "size.txt");
+
+    private static readonly string BackdropPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Flowery.NET.Gallery",
+        "backdrop.txt");
+
+    private static readonly string BaseColorPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Flowery.NET.Gallery",
+        "base-color.txt");
 
     private static readonly string WindowPlacementPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -74,6 +84,54 @@ public static class GallerySettings
         {
             Directory.CreateDirectory(Path.GetDirectoryName(LanguagePath)!);
             File.WriteAllText(LanguagePath, cultureName);
+        }
+        catch { /* ignore */ }
+    }
+
+    /// <summary>
+    /// The backdrop chosen in the sidebar, as the text of <see cref="DaisyThemeManager.BackdropOverride"/>.
+    /// </summary>
+    public static string? LoadBackdrop()
+    {
+        try
+        {
+            if (File.Exists(BackdropPath))
+                return File.ReadAllText(BackdropPath).Trim();
+        }
+        catch { }
+        return null;
+    }
+
+    public static void SaveBackdrop(string? backdrop)
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(BackdropPath)!);
+            File.WriteAllText(BackdropPath, backdrop ?? string.Empty);
+        }
+        catch { /* ignore */ }
+    }
+
+    /// <summary>
+    /// The base color chosen in the sidebar for <see cref="DaisyThemeManager.BaseOverride"/>.
+    /// </summary>
+    public static Avalonia.Media.Color? LoadBaseColor()
+    {
+        try
+        {
+            if (File.Exists(BaseColorPath) && Avalonia.Media.Color.TryParse(File.ReadAllText(BaseColorPath).Trim(), out var color))
+                return color;
+        }
+        catch { }
+        return null;
+    }
+
+    public static void SaveBaseColor(Avalonia.Media.Color? color)
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(BaseColorPath)!);
+            File.WriteAllText(BaseColorPath, color?.ToString() ?? string.Empty);
         }
         catch { /* ignore */ }
     }

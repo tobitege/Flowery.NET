@@ -79,7 +79,7 @@ public static AppBuilder BuildAvaloniaApp()
 
 > **Upgrading from 3.x:** Flowery.NET 4.0 no longer references SkiaSharp (`Avalonia.Skia`).
 >
-> - Apps that use the live glass blur (`BlurMode="SkiaSharp"`, which `DaisyGlassButton` and the other glass controls use by default) add Flowery.NET.Skia and register it as above. Without it, the glass falls back to the bitmap capture blur and Avalonia logs a warning once.
+> - Apps that use the live glass blur (`BlurMode="SkiaSharp"`, which the glass themes and `DaisyGlassSurface` use by default) add Flowery.NET.Skia and register it as above. Without it, the glass falls back to the bitmap capture blur and Avalonia logs a warning once.
 > - Apps that use SkiaSharp themselves, which they got through Flowery.NET before, add their own `Avalonia.Skia` or `SkiaSharp` reference.
 > - The public types `SkiaBackdropBlurDrawOperation` and `SkiaBlurHelper` are gone; nothing in Flowery.NET used them.
 
@@ -196,7 +196,8 @@ xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
 - **Size Dropdown** (`DaisySizeDropdown`): Global size selector with localized size names and customizable options.
 - **Theme Controller** (`DaisyThemeController`): Flexible toggle with multiple modes (Toggle, Checkbox, Swap, ToggleWithText, ToggleWithIcons).
 - **Theme Dropdown** (`DaisyThemeDropdown`): Dropdown to select from all 35 themes.
-- **Theme Manager** (`DaisyThemeManager`): Static class for programmatic theme control.
+- **Theme Manager** (`DaisyThemeManager`): Static class for programmatic theme control, with a base color that changes the base of any theme at run time (`BaseOverride`) and a run-time backdrop (`BackdropOverride`).
+- **Theme Backdrop** (`DaisyBackdrop`): The backdrop of the theme as the lowest layer of a window: a color, gradient, drawing or image and an optional animated effect, which switch with the theme.
 - **Product Theme Dropdown** (`DaisyProductThemeDropdown`): Dropdown for selecting product-specific theme palettes.
 - **Theme Radio** (`DaisyThemeRadio`): Radio button for theme selection.
 - **Theme Swap** (`DaisyThemeSwap`): Toggle button with animated sun/moon icons.
@@ -264,7 +265,7 @@ xmlns:kanban="clr-namespace:Flowery.NET.Kanban.Controls;assembly=Flowery.NET.Kan
 ### Glass Effect
 
 - **Glass** (`DaisyGlass`): Glassmorphism/frosted effect container with multiple blur modes (Simulated, BitmapCapture, SkiaSharp GPU-accelerated).
-- **Glass controls**: `DaisyGlassButton`, `DaisyGlassBadge`, `DaisyGlassInput`, `DaisyGlassNavbar`, `DaisyGlassModal`, `DaisyGlassSegmented` (a sliding pill), `DaisyGlassRange` (a thumb that turns into a lens), `DaisyGlassToggle` and `DaisyGlassMenu` on the same live glass. The dark Glassy theme tints them navy.
+- **Glass on the standard controls**: glass themes for `DaisyButton`, `DaisyBadge`, `DaisyInput`, `DaisyNavbar`, `DaisyModal`, `DaisyButtonGroup` (a segmented control with a sliding pill), `DaisyRange` (a thumb that turns into a lens), `DaisyToggle` and `DaisyMenu`, and `DaisyGlassSurface`, which puts any input control on the same live glass. The dark Glassy theme tints them navy.
 
 ### Neumorphic Effect
 

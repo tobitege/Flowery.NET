@@ -1,5 +1,7 @@
-﻿using System.Text.Json;
+﻿using System.Reflection;
+using System.Text.Json;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
@@ -13,6 +15,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Enums;
+using Flowery.Skia;
 using Xunit;
 using DaisyBadgeVariant = Flowery.Controls.DaisyBadgeVariant;
 using DaisySize = Flowery.Controls.DaisySize;
@@ -22,6 +25,8 @@ namespace Flowery.NET.Tests;
 /// <summary>
 /// DaisyGlassDesign and DaisyGlassDesigner, which describe a glass look for every control on glass.
 /// </summary>
+// Some tests change the language, which the localization tests must not see.
+[Collection("LocalizationTests")]
 public class DaisyGlassDesignTests
 {
     [AvaloniaFact]
@@ -96,6 +101,10 @@ public class DaisyGlassDesignTests
     [InlineData("{ \"blurMode\": 99 }")]
     [InlineData("{ \"blur\": -5 }")]
     [InlineData("{ \"opacity\": 2 }")]
+    [InlineData("{ \"fillStops\": [{ \"color\": \"#FFFFFFFF\", \"offset\": 3 }] }")]
+    [InlineData("{ \"refraction\": 2 }")]
+    [InlineData("{ \"zoom\": 5 }")]
+    [InlineData("{ \"rimSaturation\": -1 }")]
     public void Json_That_Is_No_Design_Fails_With_A_Json_Exception(string json)
     {
         Assert.Throws<JsonException>(() => DaisyGlassDesign.FromJson(json));
@@ -526,6 +535,530 @@ public class DaisyGlassDesignTests
         {
             window.Close();
         }
+    }
+
+    [AvaloniaFact]
+    public void The_Lens_Goes_Through_Json_Xaml_And_The_Control()
+    {
+        var design = new DaisyGlassDesign { Refraction = 0.7, Bezel = 0.6, Zoom = 1.1, RimSaturation = 1.4 };
+        Assert.Equal(design.ToJson(), DaisyGlassDesign.FromJson(design.ToJson()).ToJson());
+        Assert.Contains("controls:DaisyGlassSurface.Refraction=\"0.7\"", design.ToXaml());
+        Assert.Contains("DaisyGlassSurface.SetZoom(button, 1.1);", design.ToCSharp());
+        // A design without a lens leaves it out of the code.
+        Assert.DoesNotContain("Refraction", new DaisyGlassDesign().ToXaml());
+
+        var xaml = design.ToXaml().Replace("<controls:DaisyButton ",
+            "<controls:DaisyButton xmlns=\"https://github.com/avaloniaui\" " +
+            "xmlns:controls=\"clr-namespace:Flowery.Controls;assembly=Flowery.NET\" ");
+        var button = (DaisyButton)Avalonia.Markup.Xaml.AvaloniaRuntimeXamlLoader.Load(xaml);
+        var window = Show(button);
+        try
+        {
+            var glass = DaisyGlassSurface.GetGlass(button)!;
+            Assert.Equal(0.7, glass.GlassRefraction);
+            Assert.Equal(0.6, glass.GlassBezel);
+            Assert.Equal(1.1, glass.GlassZoom);
+            Assert.Equal(1.4, glass.GlassRimSaturation);
+            Assert.Equal(design.ToJson(), DaisyGlassDesign.FromControl(button).ToJson());
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    // An AvaloniaFact runs on the UI thread like the other tests that register a renderer, so they never overlap.
+    [AvaloniaFact]
+    public void A_Shader_Background_Needs_The_Skia_Renderer()
+    {
+        var previous = DaisyGlassLiveRenderer.Current;
+        try
+        {
+            var design = new DaisyGlassDesign { BackgroundRenderer = DaisyGlassBackgroundRenderer.Shader, BackgroundSpeed = 0.5 };
+
+            DaisyGlassLiveRenderer.Register(null);
+            Assert.False(DaisyGlassDesign.ShaderBackgroundAvailable);
+            Assert.IsType<DaisyGlassGradientBackground>(design.CreateBackground());
+
+            FlowerySkia.Register();
+            Assert.True(DaisyGlassDesign.ShaderBackgroundAvailable);
+            var background = Assert.IsType<DaisyGlassShaderBackground>(design.CreateBackground());
+            Assert.Equal(0.5, background.Speed);
+            Assert.True(DaisyGlassLiveRenderer.Current!.IsShaderBackground(background));
+            Assert.False(DaisyGlassLiveRenderer.Current.IsShaderBackground(new DaisyGlassGradientBackground()));
+            Assert.Contains("<skia:DaisyGlassShaderBackground Effect=\"Plasma\" Speed=\"0.5\" />", design.ToXaml());
+        }
+        finally
+        {
+            DaisyGlassLiveRenderer.Register(previous);
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Preview_Shows_The_Design_And_Keeps_Its_Background_While_It_Animates()
+    {
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            designer.Design = new DaisyGlassDesign
+            {
+                BackgroundRenderer = DaisyGlassBackgroundRenderer.Gradient,
+                BackgroundEffect = DaisyGlassAnimation.Aurora
+            };
+            var background = Assert.IsType<DaisyGlassGradientBackground>(DaisyGlassSurface.GetBackground(designer.PreviewButton));
+
+            SelectTab(designer, "Motion");
+            SetSlider(designer, "GlassDesigner_Speed", 2);
+
+            Assert.Same(background, DaisyGlassSurface.GetBackground(designer.PreviewButton));
+            Assert.Equal(2, background.Speed);
+            Assert.Equal(2, designer.Design.BackgroundSpeed);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void Every_Tab_Edits_The_Design_Or_The_Preview()
+    {
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        var changes = 0;
+        designer.DesignChanged += (_, _) => changes++;
+        try
+        {
+            var preview = designer.PreviewButton;
+            SelectTab(designer, "Button");
+            Chip(designer, "Primary").IsChecked = true;
+            Assert.Equal(DaisyButtonVariant.Primary, preview.Variant);
+
+            SelectTab(designer, "Glass");
+            Chip(designer, "BitmapCapture").IsChecked = true;
+            SetSlider(designer, "GlassDesigner_Blur", 50);
+            Assert.Equal(GlassBlurMode.BitmapCapture, DaisyGlassSurface.GetGlass(preview)!.BlurMode);
+            Assert.Equal(50, DaisyGlassSurface.GetGlass(preview)!.GlassBlur);
+
+            SelectTab(designer, "Fill");
+            Chip(designer, "Linear").IsChecked = true;
+            Assert.IsType<LinearGradientBrush>(DaisyGlassSurface.GetFill(preview));
+
+            SelectTab(designer, "Pattern");
+            Tiles(designer, "gbd-pattern").Single(tile => tile.GetVisualDescendants().OfType<TextBlock>().Any(text => text.Text == "Dots")).IsChecked = true;
+            Assert.Equal(DaisyCardPattern.Dots, DaisyGlassSurface.GetPattern(preview));
+
+            SelectTab(designer, "Motion");
+            Chip(designer, "Gradient").IsChecked = true;
+            Assert.IsType<DaisyGlassGradientBackground>(DaisyGlassSurface.GetBackground(preview));
+
+            SelectTab(designer, "Presets");
+            Assert.NotEmpty(Tiles<Button>(designer, "gbd-tile"));
+
+            Assert.True(changes >= 5, $"{changes} changes.");
+            Assert.Contains("Pattern=\"Dots\"", designer.Xaml);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_New_Language_Relabels_The_Designer_And_Keeps_The_Design_Tab_And_Code()
+    {
+        var previous = Flowery.Localization.FloweryLocalization.CurrentCulture;
+        var designer = new DaisyGlassDesigner { Design = new DaisyGlassDesign { Blur = 55 } };
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            Flowery.Localization.FloweryLocalization.SetCulture("en");
+            SelectTab(designer, "Glass");
+            designer.GetVisualDescendants().OfType<ToggleButton>().First(toggle => toggle.Classes.Contains("gbd-code-toggle")).IsChecked = true;
+
+            Flowery.Localization.FloweryLocalization.SetCulture("de");
+            Dispatcher.UIThread.RunJobs();
+
+            var tab = Tiles(designer, "gbd-tab").Single(button => AutomationProperties.GetAutomationId(button) == "GlassDesigner_TabGlass");
+            Assert.Equal("Glas", tab.Content);
+            Assert.True(tab.IsChecked);
+            Assert.Equal(55, designer.Design.Blur);
+            Assert.Equal(55, DaisyGlassSurface.GetGlass(designer.PreviewButton)!.GlassBlur);
+            Assert.Contains(designer.GetVisualDescendants().OfType<SelectableTextBlock>(), text => text.Text == designer.Xaml);
+        }
+        finally
+        {
+            Flowery.Localization.FloweryLocalization.SetCulture(previous);
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void Reset_Keeps_The_Preview_Text_And_Import_Loads_A_Design()
+    {
+        var designer = new DaisyGlassDesigner { Design = new DaisyGlassDesign { Blur = 60 }, PreviewText = "Keep" };
+
+        designer.Reset();
+        Assert.Equal("Keep", designer.PreviewText);
+        Assert.Equal(30, designer.Design.Blur);
+
+        designer.ImportJson(Custom(DaisyGlassFillKind.Linear).ToJson());
+        Assert.Equal(DaisyGlassFillKind.Linear, designer.Design.FillKind);
+        Assert.Throws<JsonException>(() => designer.ImportJson("[]"));
+    }
+
+    [AvaloniaFact]
+    public async Task The_Overlay_Returns_The_Design_On_Apply_And_Nothing_On_Cancel_Or_Escape()
+    {
+        var host = new Border();
+        var window = Show(host, 1100, 1300);
+        try
+        {
+            var overlay = OverlayLayer.GetOverlayLayer(host)!;
+
+            var applied = DaisyGlassDesigner.ShowOverlayAsync(host, new DaisyGlassDesign { Blur = 55 });
+            Dispatcher.UIThread.RunJobs();
+            OverlayButton(overlay, "GlassDesigner_Apply").PointerClick();
+            Assert.Equal(55, (await applied)!.Blur);
+            Assert.Empty(overlay.Children);
+
+            var cancelled = DaisyGlassDesigner.ShowOverlayAsync(host);
+            Dispatcher.UIThread.RunJobs();
+            OverlayButton(overlay, "GlassDesigner_Cancel").PointerClick();
+            Assert.Null(await cancelled);
+
+            var escaped = DaisyGlassDesigner.ShowOverlayAsync(host);
+            Dispatcher.UIThread.RunJobs();
+            host.Press(PhysicalKey.Escape);
+            Assert.Null(await escaped);
+            Assert.Empty(overlay.Children);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Editing_A_Glass_Button_Applies_The_Design_It_Started_From()
+    {
+        var button = new DaisyButton { Content = "Mine", Variant = DaisyButtonVariant.Accent, Theme = DaisyGlassSurfaceTests.GlassTheme("DaisyGlassButtonTheme") };
+        DaisyGlassSurface.SetBlur(button, 12);
+        var window = Show(button, 1100, 1300);
+        try
+        {
+            var overlay = OverlayLayer.GetOverlayLayer(button)!;
+            var edit = DaisyGlassDesigner.EditAsync(button);
+            Dispatcher.UIThread.RunJobs();
+            var designer = overlay.GetVisualDescendants().OfType<DaisyGlassDesigner>().Single();
+            Assert.Equal(12, designer.Design.Blur);
+            Assert.Equal(DaisyButtonVariant.Accent, designer.PreviewVariant);
+
+            var design = designer.Design;
+            design.Blur = 70;
+            designer.Design = design;
+            OverlayButton(overlay, "GlassDesigner_Apply").PointerClick();
+
+            Assert.True(await edit);
+            Assert.Equal(70, DaisyGlassSurface.GetBlur(button));
+            Assert.Equal(DaisyButtonVariant.Accent, button.Variant);
+            Assert.Equal("Mine", button.Content);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Closing_The_Window_Ends_An_Open_Overlay_With_Nothing()
+    {
+        var host = new Border();
+        var window = Show(host, 1100, 1300);
+        var open = DaisyGlassDesigner.ShowOverlayAsync(host);
+        Dispatcher.UIThread.RunJobs();
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(open.IsCompleted);
+        Assert.Null(await open);
+    }
+
+    [AvaloniaFact]
+    public async Task Editing_A_Control_Keeps_Its_Own_Fill_And_Background_Unless_They_Change()
+    {
+        var fill = new SolidColorBrush(Colors.Teal);
+        var background = new DaisyGlassGradientBackground { Effect = DaisyGlassAnimation.Aurora };
+        var button = new DaisyButton { Content = "Mine", Theme = DaisyGlassSurfaceTests.GlassTheme("DaisyGlassButtonTheme") };
+        DaisyGlassSurface.SetFill(button, fill);
+        DaisyGlassSurface.SetBackground(button, background);
+        var window = Show(button, 1100, 1300);
+        try
+        {
+            var overlay = OverlayLayer.GetOverlayLayer(button)!;
+            var edit = DaisyGlassDesigner.EditAsync(button);
+            Dispatcher.UIThread.RunJobs();
+            OverlayButton(overlay, "GlassDesigner_Apply").PointerClick();
+            Assert.True(await edit);
+            Assert.Same(fill, DaisyGlassSurface.GetFill(button));
+            Assert.Same(background, DaisyGlassSurface.GetBackground(button));
+
+            edit = DaisyGlassDesigner.EditAsync(button);
+            Dispatcher.UIThread.RunJobs();
+            var designer = overlay.GetVisualDescendants().OfType<DaisyGlassDesigner>().Single();
+            var design = designer.Design;
+            design.TintOpacity = 0.4;
+            designer.Design = design;
+            OverlayButton(overlay, "GlassDesigner_Apply").PointerClick();
+            Assert.True(await edit);
+            Assert.Equal(0.4, DaisyGlassSurface.GetTintOpacity(button));
+            Assert.Same(fill, DaisyGlassSurface.GetFill(button));
+            Assert.Same(background, DaisyGlassSurface.GetBackground(button));
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Fact]
+    public void A_Gradient_With_Another_Geometry_Opacity_Or_Transform_Is_Kept()
+    {
+        var stops = new GradientStops { new GradientStop(Colors.Red, 0), new GradientStop(Colors.Blue, 1) };
+        var own = (LinearGradientBrush)new DaisyGlassDesign { FillKind = DaisyGlassFillKind.Linear, FillAngle = 45 }.CreateFill()!;
+        var cases = new IBrush[]
+        {
+            new LinearGradientBrush { StartPoint = RelativePoint.TopLeft, EndPoint = RelativePoint.BottomRight, GradientStops = stops },
+            new LinearGradientBrush { StartPoint = own.StartPoint, EndPoint = own.EndPoint, GradientStops = stops, Opacity = 0.5 },
+            new LinearGradientBrush { StartPoint = own.StartPoint, EndPoint = own.EndPoint, GradientStops = stops, SpreadMethod = GradientSpreadMethod.Reflect },
+            new ConicGradientBrush { Center = new RelativePoint(0.2, 0.8, RelativeUnit.Relative), GradientStops = stops },
+            new ConicGradientBrush { Center = RelativePoint.Center, GradientStops = stops, Transform = new RotateTransform(10) }
+        };
+        foreach (var brush in cases)
+            Assert.Equal(DaisyGlassFillKind.Keep, DaisyGlassDesign.FromControl(WithFill(brush)).FillKind);
+        Assert.Equal(DaisyGlassFillKind.Linear, DaisyGlassDesign.FromControl(WithFill(own)).FillKind);
+
+        static DaisyButton WithFill(IBrush fill)
+        {
+            var button = new DaisyButton();
+            DaisyGlassSurface.SetFill(button, fill);
+            return button;
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Preview_Of_A_Kept_Fill_Or_Background_Shows_That_Of_The_Control()
+    {
+        var designer = new DaisyGlassDesigner { Design = Custom(DaisyGlassFillKind.Linear) };
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            var solid = new SolidColorBrush(Colors.Teal);
+            var source = new DaisyButton();
+            DaisyGlassSurface.SetFill(source, solid);
+            DaisyGlassSurface.SetBackground(source, new OwnBackground());
+            designer.Design = DaisyGlassDesign.FromControl(source);
+            Assert.Same(solid, DaisyGlassSurface.GetFill(designer.PreviewButton));
+            Assert.Null(DaisyGlassSurface.GetBackground(designer.PreviewButton));
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task The_Overlay_Keeps_The_Keyboard_Inside_And_Gives_The_Focus_Back()
+    {
+        var box = new TextBox();
+        var window = Show(box, 1100, 1300);
+        try
+        {
+            box.Focus();
+            var overlay = OverlayLayer.GetOverlayLayer(box)!;
+            var open = DaisyGlassDesigner.ShowOverlayAsync(box);
+            Dispatcher.UIThread.RunJobs();
+            var backdrop = (Control)overlay.Children[0];
+            Assert.Equal(KeyboardNavigationMode.Cycle, KeyboardNavigation.GetTabNavigation(backdrop));
+            Assert.False(box.IsFocused);
+
+            OverlayButton(overlay, "GlassDesigner_Cancel").PointerClick();
+            Assert.Null(await open);
+            Assert.True(box.IsFocused);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Moving_Disc_Moves_Again_And_A_Language_Change_Applies_After_Reattaching()
+    {
+        var previous = Flowery.Localization.FloweryLocalization.CurrentCulture;
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        var motion = typeof(DaisyGlassDesigner).GetField("_motion", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        try
+        {
+            Flowery.Localization.FloweryLocalization.SetCulture("en");
+            Dispatcher.UIThread.RunJobs();
+            designer.GetVisualDescendants().OfType<DaisyToggle>().Single(toggle => (string?)toggle.Content == "Move").IsChecked = true;
+            Assert.NotNull(motion.GetValue(designer));
+
+            window.Content = null;
+            Assert.Null(motion.GetValue(designer));
+            Flowery.Localization.FloweryLocalization.SetCulture("de");
+            window.Content = designer;
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+
+            Assert.NotNull(motion.GetValue(designer));
+            var tab = Tiles(designer, "gbd-tab").Single(button => AutomationProperties.GetAutomationId(button) == "GlassDesigner_TabGlass");
+            Assert.Equal("Glas", tab.Content);
+        }
+        finally
+        {
+            Flowery.Localization.FloweryLocalization.SetCulture(previous);
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void Without_The_Skia_Renderer_A_Shader_Design_Keeps_Its_Fallback_Background_While_It_Changes()
+    {
+        var previous = DaisyGlassLiveRenderer.Current;
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            DaisyGlassLiveRenderer.Register(null);
+            designer.Design = new DaisyGlassDesign { BackgroundRenderer = DaisyGlassBackgroundRenderer.Shader };
+            var fallback = Assert.IsType<DaisyGlassGradientBackground>(DaisyGlassSurface.GetBackground(designer.PreviewButton));
+
+            var design = designer.Design;
+            design.BackgroundSpeed = 2;
+            designer.Design = design;
+            Assert.Same(fallback, DaisyGlassSurface.GetBackground(designer.PreviewButton));
+            Assert.Equal(2, fallback.Speed);
+        }
+        finally
+        {
+            DaisyGlassLiveRenderer.Register(previous);
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void After_Picking_Another_Fill_Or_Background_The_Kept_One_Can_Be_Had_Back()
+    {
+        var solid = new SolidColorBrush(Colors.Teal);
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            var source = new DaisyButton();
+            DaisyGlassSurface.SetFill(source, solid);
+            DaisyGlassSurface.SetBackground(source, new OwnBackground());
+            designer.Design = DaisyGlassDesign.FromControl(source);
+            var preview = designer.PreviewButton;
+
+            SelectTab(designer, "Fill");
+            Chip(designer, "Linear").IsChecked = true;
+            Assert.IsType<LinearGradientBrush>(DaisyGlassSurface.GetFill(preview));
+            Chip(designer, "Keep").IsChecked = true;
+            Assert.Equal(DaisyGlassFillKind.Keep, designer.Design.FillKind);
+            Assert.Same(solid, DaisyGlassSurface.GetFill(preview));
+
+            SelectTab(designer, "Motion");
+            Chip(designer, "Gradient").IsChecked = true;
+            Assert.IsType<DaisyGlassGradientBackground>(DaisyGlassSurface.GetBackground(preview));
+            Chip(designer, "Keep").IsChecked = true;
+            Assert.Equal(DaisyGlassBackgroundRenderer.Keep, designer.Design.BackgroundRenderer);
+            Assert.Null(DaisyGlassSurface.GetBackground(preview));
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task Editing_A_Control_Writes_A_Changed_Fill_And_Background()
+    {
+        var button = new DaisyButton { Content = "Mine", Theme = DaisyGlassSurfaceTests.GlassTheme("DaisyGlassButtonTheme") };
+        var window = Show(button, 1100, 1300);
+        try
+        {
+            var overlay = OverlayLayer.GetOverlayLayer(button)!;
+
+            await Edit(button, overlay, static design =>
+            {
+                design.FillKind = DaisyGlassFillKind.Linear;
+                design.BackgroundRenderer = DaisyGlassBackgroundRenderer.Gradient;
+                design.BackgroundEffect = DaisyGlassAnimation.Aurora;
+            });
+            var fill = Assert.IsType<LinearGradientBrush>(DaisyGlassSurface.GetFill(button));
+            var background = Assert.IsType<DaisyGlassGradientBackground>(DaisyGlassSurface.GetBackground(button));
+            Assert.Equal(DaisyGlassAnimation.Aurora, background.Effect);
+
+            // Only the effect changes: a new background with it, and the same fill.
+            await Edit(button, overlay, static design => design.BackgroundEffect = DaisyGlassAnimation.Plasma);
+            Assert.Same(fill, DaisyGlassSurface.GetFill(button));
+            Assert.NotSame(background, DaisyGlassSurface.GetBackground(button));
+            Assert.Equal(DaisyGlassAnimation.Plasma, DaisyGlassSurface.GetBackground(button)!.Effect);
+
+            await Edit(button, overlay, static design => design.FillAngle += 45);
+            Assert.NotSame(fill, DaisyGlassSurface.GetFill(button));
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    private static async Task Edit(Control control, OverlayLayer overlay, Action<DaisyGlassDesign> change)
+    {
+        var edit = DaisyGlassDesigner.EditAsync(control);
+        Dispatcher.UIThread.RunJobs();
+        var designer = overlay.GetVisualDescendants().OfType<DaisyGlassDesigner>().Single();
+        var design = designer.Design;
+        change(design);
+        designer.Design = design;
+        OverlayButton(overlay, "GlassDesigner_Apply").PointerClick();
+        Assert.True(await edit);
+    }
+
+    // A background the design cannot describe.
+    private sealed class OwnBackground : DaisyGlassBackground
+    {
+        public override DaisyGlassAnimationLayer CreateLayer() => throw new NotSupportedException();
+    }
+
+    private static void SelectTab(DaisyGlassDesigner designer, string name)
+    {
+        Tiles(designer, "gbd-tab").Single(tab => AutomationProperties.GetAutomationId(tab) == "GlassDesigner_Tab" + name).IsChecked = true;
+        designer.UpdateLayout();
+    }
+
+    private static RadioButton Chip(DaisyGlassDesigner designer, string name) =>
+        Tiles(designer, "gbd-chip").First(chip => (string?)chip.Content == name);
+
+    private static IEnumerable<RadioButton> Tiles(DaisyGlassDesigner designer, string className) =>
+        Tiles<RadioButton>(designer, className);
+
+    // A rebuilt part inside a ScrollViewer joins the visual tree with the next layout pass.
+    private static IEnumerable<T> Tiles<T>(DaisyGlassDesigner designer, string className) where T : Control
+    {
+        designer.UpdateLayout();
+        return designer.GetVisualDescendants().OfType<T>().Where(control => control.Classes.Contains(className)).ToList();
+    }
+
+    private static void SetSlider(DaisyGlassDesigner designer, string key, double value)
+    {
+        var field = designer.GetVisualDescendants().OfType<Border>()
+            .Single(border => border.Classes.Contains("gbd-field") && AutomationProperties.GetAutomationId(border) == key);
+        field.GetVisualDescendants().OfType<DaisyRange>().Single().Value = value;
     }
 
     // A preset fill has no stops of its own, so the design keeps the default stops, as one read from a control would.

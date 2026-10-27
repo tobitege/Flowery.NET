@@ -62,14 +62,6 @@ namespace Flowery.Controls
             });
             RegisterRefreshTriggers<DaisyButton>(DaisyButton.VariantProperty);
             RegisterSurface<DaisyBadge>(c => TemplatePart(c, "PART_Border") ?? TemplatePart(c, SurfacePart));
-            // On glass the variant color is a translucent tint layer; the border layer above it is opaque and carries the
-            // shadow, so the neumorphic shadow goes there instead of being dimmed with the tint.
-            RegisterSurface(new DaisyNeumorphicSurface<DaisyGlassButton>
-            {
-                Resolve = c => TemplatePart(c, "PART_Border"),
-                IsActive = c => c.Variant is not (DaisyButtonVariant.Ghost or DaisyButtonVariant.Link)
-            });
-            RegisterSurface<DaisyGlassBadge>(c => TemplatePart(c, "PART_Border"));
             RegisterSurface(new DaisyNeumorphicSurface<DaisyKbd>
             {
                 Resolve = c => TemplatePart(c, SurfacePart),
@@ -205,11 +197,6 @@ namespace Flowery.Controls
 
             // The FAB container has no surface; its action buttons draw the effect themselves.
             RegisterExclusion<DaisyFab>();
-
-            // The glass range and toggle replace the templates of their base controls, and a shadow under their
-            // translucent glass would show through it.
-            RegisterExclusion<DaisyGlassRange>();
-            RegisterExclusion<DaisyGlassToggle>();
         }
     }
 }

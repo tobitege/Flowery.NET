@@ -62,6 +62,40 @@ DaisyThemeLoader.ApplyThemeToApplication(theme);
 | `AlternateThemeName` | Current theme if not the base; otherwise "Dark". |
 | `ThemeChanged` | Event fired with the new theme name after successful application. |
 | `IsDarkTheme(string name)` | Returns whether the theme is marked as dark. |
+| `BackdropOverride` | A backdrop chosen at run time that replaces the backdrop of every theme and stays across theme switches: a color such as `#0B1B5E`, `image:` with a file path or URI, or `effect:` with an effect name. `null` keeps the backdrop of the theme. See [DaisyBackdrop](DaisyBackdrop.md). |
+| `BackdropOverrideChanged` | Raised when `BackdropOverride` changes. |
+| `BaseOverride` | A `Color?` that replaces `Base100` of every theme at run time and stays across theme switches; `null` keeps the theme as defined. See [Base Color](#base-color). |
+| `BaseOverrideChanged` | Raised when `BaseOverride` changes; `ThemeChanged` follows with the current theme, since its colors changed. |
+| `FindContrastGaps()` | Lists the color pairs of the active theme below the WCAG contrast, as `DaisyContrastGap(Foreground, Background, Ratio, Required)` with resource keys. |
+
+## Base Color
+
+Palettes that differ only in their base colors, such as a "Glassy black" or "Glassy white", would each need their primary, status and glass colors made and checked again. `BaseOverride` changes the base of any theme at run time instead:
+
+```csharp
+DaisyThemeManager.BaseOverride = Color.Parse("#0B1B5E");   // a navy base under the current theme
+DaisyThemeManager.BaseOverride = null;                      // the theme as defined
+```
+
+- `Base100` takes the color, without its alpha. Light or dark follows from its luminance, and with it `IsCurrentThemeDark`, `IsDarkTheme` of the current theme and `RequestedThemeVariant`.
+- `Base200`, `Base300` and `BaseContent` keep the contrast ratio of the theme to `Base100`, measured on its own palette, and their side of it: toward the text or away from it. A fixed rule would not fit: `Base300`, the border and hover color, is 1.3 to 1.7:1 darker in the light themes, 3.0 to 3.6:1 lighter in most dark themes and only 1.2 to 1.5:1 lighter in Dark, Black, Luxury and Synthwave. `BaseContent` keeps at least 4.5:1. The brushes derived from these colors, such as muted, subtle and disabled text, follow.
+- The text colors of the accents (`DaisyPrimaryForegroundBrush`, `DaisySecondaryForegroundBrush`, `DaisyAccentForegroundBrush`, `DaisyButtonPrimaryForegroundBrush`) move until they reach 4.5:1 against the new base. The accent surfaces and the text on them stay as they are, so a theme keeps its character.
+- The glass tint follows: in the glass mode it is the new base, and a theme with a tint of its own, such as Glassy, gets one in the hue of the new base.
+- A backdrop of the theme (see [DaisyBackdrop](DaisyBackdrop.md)) stays under a base of its own kind. Under a base of the other kind, such as a light base on Glassy, whose dark wave would swallow the dark text, it gives way to `Base100`, or to the glows of the glass mode.
+- A theme switch keeps the override and computes it again for the new theme, also one that a `CustomThemeApplicator` applies, where the colors come from the resources it put in place. The library stores nothing; an app saves the color next to the theme name.
+- `GetThemeInfo(name).IsDark` stays the kind of the theme as defined, so `DaisyThemeSwap` still swaps between its light and its dark theme.
+- The theme manager puts the derived colors into a dictionary right after the palette, before the high contrast colors.
+
+`FindContrastGaps()` reports what the override leaves, such as accent surfaces too pale for a very light base:
+
+```csharp
+foreach (var gap in DaisyThemeManager.FindContrastGaps())
+    Console.WriteLine($"{gap.Foreground} on {gap.Background}: {gap.Ratio:0.00}:1, needs {gap.Required}:1");
+```
+
+It checks `BaseContent` on the three base colors and the text colors of the accents on `Base100` at 4.5:1, every accent surface against `Base100` at 3:1, and the text on each accent surface at 4.5:1. Many themes have a few gaps of their own, such as a yellow warning on white.
+
+`FloweryComponentSidebar` offers the base color as a color button with a reset (`SidebarBaseColorItem`).
 
 ## Theme Visibility and Ordering
 

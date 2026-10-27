@@ -72,6 +72,8 @@ internal sealed class GlobalState
     private DaisyGlassLiveRenderer? GlassRenderer { get; init; }
     private bool GlassMode { get; init; }
     private GlassBlurMode GlassModeBlur { get; init; }
+    private string? BackdropOverride { get; init; }
+    private Avalonia.Media.Color? BaseOverride { get; init; }
 
     public static GlobalState Capture() => new()
     {
@@ -107,7 +109,9 @@ internal sealed class GlobalState
         Storage = StateStorageProvider.Instance,
         GlassRenderer = DaisyGlassLiveRenderer.Current,
         GlassMode = DaisyGlassSurface.GlobalEnabled,
-        GlassModeBlur = DaisyGlassSurface.GlobalBlurMode
+        GlassModeBlur = DaisyGlassSurface.GlobalBlurMode,
+        BackdropOverride = DaisyThemeManager.BackdropOverride,
+        BaseOverride = DaisyThemeManager.BaseOverride
     };
 
     private static object? Resource(string key) =>
@@ -156,6 +160,8 @@ internal sealed class GlobalState
         Check("DaisyGlassLiveRenderer", ReferenceEquals(GlassRenderer, after.GlassRenderer), GlassRenderer, after.GlassRenderer);
         Check("DaisyGlassSurface.GlobalEnabled", GlassMode == after.GlassMode, GlassMode, after.GlassMode);
         Check("DaisyGlassSurface.GlobalBlurMode", GlassModeBlur == after.GlassModeBlur, GlassModeBlur, after.GlassModeBlur);
+        Check("DaisyThemeManager.BackdropOverride", BackdropOverride == after.BackdropOverride, BackdropOverride, after.BackdropOverride);
+        Check("DaisyThemeManager.BaseOverride", BaseOverride == after.BaseOverride, BaseOverride, after.BaseOverride);
         return changes;
     }
 
@@ -172,6 +178,8 @@ internal sealed class GlobalState
         // Before the theme is applied again, which brings the styles and the tint of the glass mode in line with it.
         DaisyGlassSurface.GlobalBlurMode = GlassModeBlur;
         DaisyGlassSurface.GlobalEnabled = GlassMode;
+        DaisyThemeManager.BackdropOverride = BackdropOverride;
+        DaisyThemeManager.BaseOverride = BaseOverride;
         DaisyThemeManager.SetCurrentTheme(string.Empty);
         if (Theme is not null)
             DaisyThemeManager.ApplyTheme(Theme);
