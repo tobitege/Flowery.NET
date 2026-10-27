@@ -190,6 +190,8 @@
   "ColorPicker_ReleaseToPick": "שחרר כדי לבחור",
   "GlassDesigner_Title": "Glass Button Designer",
   "GlassDesigner_Subtitle": "עצבו כפתור זכוכית בזמן אמת וקחו את הקוד איתכם.",
+  "GlassDesigner_LookTitle": "Glass Designer",
+  "GlassDesigner_LookSubtitle": "עצבו מראה זכוכית בזמן אמת וקחו את הקוד לכל רכיב על זכוכית.",
   "GlassDesigner_Reset": "איפוס",
   "GlassDesigner_Code": "קוד",
   "GlassDesigner_Apply": "החלה",

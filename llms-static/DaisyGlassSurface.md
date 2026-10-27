@@ -1,0 +1,90 @@
+<!-- Supplementary documentation for DaisyGlassSurface -->
+<!-- This content is merged into auto-generated docs by generate_docs.py -->
+
+# Overview
+
+`DaisyGlassSurface` puts a standard control on glass that blurs whatever lies behind it, without a glass subclass per control. It is a set of attached properties: `IsEnabled` switches the glass on, and the glass settings pass to a [DaisyGlass](DaisyGlass.md) in the template of the control.
+
+- The **glass themes** bring their own `DaisyGlass` named `PART_Glass` and switch the glass on. Set them with `Theme`.
+- A template without its own glass gets one: the behavior inserts a `DaisyGlass` right behind the surface part (`PartName`, else `PART_Background`, `Background`, `PART_Surface`, `PART_SelectedContainer` or `PART_SolidBackground`). The glass follows the corner radius, margin, alignment, size, minimum and maximum size, visibility and grid cell of the surface, and the surface turns transparent. Turning the glass off removes it and restores the surface; a new template gets one new glass. The surface has to sit in a `Panel` of the template and to stretch or have a size; a surface that is the root of its template, such as that of a plain `DaisyBadge`, gets no glass, so use the glass theme there.
+- Without a glass theme, the glass keeps the values of the [DaisyGlass](DaisyGlass.md) theme: simulated glass without backdrop blur and a tint opacity of 0.5. Set `EnableBackdropBlur` and `BlurMode` for the live blur.
+
+## Glass Themes
+
+| Theme | Control | Look |
+| ----- | ------- | ---- |
+| `DaisyGlassButtonTheme` | `DaisyButton` | The variant color tints the glass at `ColorOpacity` (0.35); the default variant is clear glass that brightens on hover. Text contrast is on. |
+| `DaisyGlassBadgeTheme` | `DaisyBadge` | Like the button, with `ColorOpacity` 0.45. |
+| `DaisyGlassInputTheme` | `DaisyInput` | The `DaisyInput` templates with the glass behind the field; text, placeholder, icons, caret and floating label follow `Foreground`. |
+| `DaisyGlassNavbarTheme` | `DaisyNavbar` | A glass bar with a light border and no drop shadow. |
+| `DaisyGlassModalTheme` | `DaisyModal` | A glass dialog that blurs the dimmed page behind it. |
+| `DaisyGlassButtonGroupTheme` | `DaisyButtonGroup` | A segmented control on a glass track: a pill slides to the selected segment (see [DaisyButtonGroup](DaisyButtonGroup.md)). |
+| `DaisyGlassRangeTheme` | `DaisyRange` | A thin track and a frosted glass pill thumb that turns into a clear lens while dragged (`:dragging`). |
+| `DaisyGlassToggleTheme` | `DaisyToggle` | A glass track that fills with the variant color when switched on; the knob springs across. |
+| `DaisyGlassMenuTheme` | `DaisyMenu` | A menu on glass with a soft hover and selection pill. |
+
+The themes use `BlurMode=SkiaSharp`, which needs Flowery.NET.Skia (`FlowerySkia.Register()`); without it the glass uses `BitmapCapture`. The tint comes from the theme resource `DaisyGlassTintColor`: white, or navy in the Glassy theme.
+
+`DaisyButtonGroup` gets its look from styles rather than a `ControlTheme`, so its glass template and segment styles follow `DaisyGlassSurface.IsEnabled`. `DaisyGlassButtonGroupTheme` turns it on together with the live blur, the tint, `AutoSelect` and `Shape="Pill"`; use the theme, since `IsEnabled` alone brings the template without those settings.
+
+## Attached Properties
+
+| Property | Default | Description |
+| -------- | ------- | ----------- |
+| `IsEnabled` | `null` | `True` puts the control on glass; `null` and `False` leave it as it is. |
+| `PartName` | `null` | The surface part that gets the glass behind it, or, with a `PART_Glass` in the template, the tint layer above it. |
+| `ClearSurface` | `True` | Whether the surface turns transparent over an inserted glass. A theme that gives the surface translucent colors of its own turns it off. |
+| `FollowForeground` | `False` | The text, placeholder, floating label and icons of a field follow `Foreground`, for colorful backdrops. |
+| `TextContrast` | `True` | The text keeps WCAG contrast over the measured backdrop. Only glass with a tint layer over it measures its backdrop, as in the glass button and badge themes; other glass shows app content and measures nothing. |
+| `EffectiveForeground` | — | Read-only: the brush the glass themes draw text and icons with, `Foreground` adjusted for contrast. |
+| `ColorOpacity` | 0.35 | Opacity of the variant color over the glass (button, badge, navbar, modal). |
+| `TextShadowOpacity` | 0.5 | Opacity of the shadow under text and icons. |
+
+The glass settings map one to one to [DaisyGlass](DaisyGlass.md). They are nullable: a setting that is not set keeps the value of the glass theme.
+
+| Setting | DaisyGlass | Setting | DaisyGlass |
+| ------- | ---------- | ------- | ---------- |
+| `EnableBackdropBlur` | `EnableBackdropBlur` | `Dispersion` | `GlassDispersion` |
+| `BlurMode` | `BlurMode` | `Fill` | `GlassFill` |
+| `Blur` | `GlassBlur` | `Gradient` | `GlassGradient` |
+| `Saturation` | `GlassSaturation` | `FillOpacity` | `GlassFillOpacity` |
+| `Opacity` | `GlassOpacity` | `Pattern` | `GlassPattern` |
+| `Tint` | `GlassTint` | `PatternColor` | `GlassPatternColor` |
+| `TintOpacity` | `GlassTintOpacity` | `PatternOpacity` | `GlassPatternOpacity` |
+| `ReflectDegree` | `GlassReflectDegree` | `Background` | `GlassBackground` |
+| `ReflectOpacity` | `GlassReflectOpacity` | `BackgroundOpacity` | `GlassBackgroundOpacity` |
+| `Depth` / `Curvature` / `Bend` | `GlassDepth` / `GlassCurvature` / `GlassBend` | | |
+
+`DaisyGlassSurface.GetGlass(control)` returns the glass in use, or `null` while the control is not on glass.
+
+## Quick Examples
+
+```xml
+<!-- Glass themes -->
+<controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Continue" Variant="Primary" />
+<controls:DaisyBadge Theme="{StaticResource DaisyGlassBadgeTheme}" Content="New" />
+<controls:DaisyRange Theme="{StaticResource DaisyGlassRangeTheme}" Value="35" Maximum="100" />
+
+<!-- Settings on a themed control -->
+<controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Aurora"
+                      controls:DaisyGlassSurface.Gradient="Aurora"
+                      controls:DaisyGlassSurface.Blur="40" />
+
+<!-- Any control with a surface part, without a theme: the live blur is set too -->
+<controls:DaisyCard controls:DaisyGlassSurface.IsEnabled="True"
+                    controls:DaisyGlassSurface.EnableBackdropBlur="True"
+                    controls:DaisyGlassSurface.BlurMode="SkiaSharp"
+                    controls:DaisyGlassSurface.TintOpacity="0.3" />
+```
+
+```csharp
+var input = new DaisyInput { Label = "Email" };
+DaisyGlassSurface.SetIsEnabled(input, true);
+DaisyGlassSurface.SetFollowForeground(input, true);
+```
+
+## Tips & Best Practices
+
+- Glass only reads as glass over a varied backdrop; over a flat surface it is a slightly tinted surface with shine and rim.
+- The dropdown of a select and the calendar of a date picker see the window below only in an overlay popup (`ShouldUseOverlayLayer`); otherwise they keep their opaque surface.
+- Shape a look visually with [DaisyGlassDesigner](DaisyGlassDesigner.md), which writes these attached properties as XAML or C#.

@@ -50,7 +50,7 @@ public partial class GlassExamples : UserControl, IScrollableExample
         };
         OpenGlassDesignerButton.Click += async (_, _) =>
         {
-            if (await DaisyGlassButtonDesigner.ShowOverlayAsync(this, GlassDesigner.Design) is { } design)
+            if (await DaisyGlassDesigner.ShowOverlayAsync(this, GlassDesigner.Design) is { } design)
                 GlassDesigner.Design = design;
         };
     }

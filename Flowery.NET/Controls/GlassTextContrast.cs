@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -6,6 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Diagnostics;
 using Avalonia.Media;
+using Avalonia.Utilities;
 using Flowery.Enums;
 using Flowery.Helpers;
 
@@ -18,7 +19,7 @@ namespace Flowery.Controls
     /// until it has WCAG contrast against that color (4.5, or 3 for large text). A foreground set on the control itself
     /// is kept as it is.
     /// </summary>
-    internal sealed class GlassTextContrast : IDisposable
+    internal sealed class GlassTextContrast : IDisposable, IWeakEventSubscriber<AvaloniaPropertyChangedEventArgs>
     {
         // Covers what the estimate leaves out: the liquid-glass highlights of the SkiaSharp mode and the blur, which
         // spreads brighter or darker spots of the backdrop over the average.
@@ -158,19 +159,20 @@ namespace Flowery.Controls
                 Update();
         }
 
-        // The animated background can change its effect while it is set, which changes the color behind the text.
+        // The animated background can change its effect while it is set, which changes the color behind the text. It can
+        // be a shared resource that outlives the control, so it is watched through a weak subscription.
         private void WatchBackground(DaisyGlassBackground? background)
         {
             if (ReferenceEquals(_background, background))
                 return;
             if (_background != null)
-                _background.PropertyChanged -= OnBackgroundChanged;
+                WeakEvents.AvaloniaPropertyChanged.Unsubscribe(_background, this);
             _background = background;
             if (_background != null)
-                _background.PropertyChanged += OnBackgroundChanged;
+                WeakEvents.AvaloniaPropertyChanged.Subscribe(_background, this);
         }
 
-        private void OnBackgroundChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+        void IWeakEventSubscriber<AvaloniaPropertyChangedEventArgs>.OnEvent(object? sender, WeakEvent ev, AvaloniaPropertyChangedEventArgs e)
         {
             if (e.Property == DaisyGlassBackground.EffectProperty)
                 Update();

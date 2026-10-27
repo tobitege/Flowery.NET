@@ -80,3 +80,7 @@ The table lists unscaled default token values in logical units.
 - Keep text short (1–10 characters) to maintain the pill shape and legibility.
 - Pair `Info/Success/Warning/Error` with matching semantic contexts (errors, confirmations, cautions).
 - When embedding in other controls, pick a smaller size (Small/ExtraSmall) so the badge supports rather than competes with the parent.
+
+## Glass
+
+`Theme="{StaticResource DaisyGlassBadgeTheme}"` puts the control on glass that blurs whatever lies behind it: the variant color tints the glass at `DaisyGlassSurface.ColorOpacity` (0.45), and the text keeps WCAG contrast over the measured backdrop. The glass settings are attached properties of [DaisyGlassSurface](DaisyGlassSurface.md), such as `controls:DaisyGlassSurface.Blur`; [DaisyGlassDesigner](DaisyGlassDesigner.md) shapes them visually.

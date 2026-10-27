@@ -1,0 +1,81 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Width="420">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Offset="0" Color="#FF6B8DD6" />
+                    <GradientStop Offset="1" Color="#FF8E37D7" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <controls:DaisyNavbar Theme="{StaticResource DaisyGlassNavbarTheme}" NavbarStart="Flowery" NavbarEnd="Docs" />
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- A DaisyNavbar on glass. Inherits sections, full width and shadow options from DaisyNavbar; only the surface differs. -->
+    <ControlTheme x:Key="DaisyGlassNavbarTheme" TargetType="controls:DaisyNavbar"
+                  BasedOn="{StaticResource {x:Type controls:DaisyNavbar}}">
+        <Setter Property="controls:DaisyGlassSurface.IsEnabled" Value="True" />
+        <Setter Property="controls:DaisyGlassSurface.TextContrast" Value="False" />
+        <Setter Property="controls:DaisyGlassSurface.ColorOpacity" Value="0.25" />
+        <Setter Property="controls:DaisyGlassSurface.EnableBackdropBlur" Value="True" />
+        <Setter Property="controls:DaisyGlassSurface.BlurMode" Value="SkiaSharp" />
+        <Setter Property="controls:DaisyGlassSurface.Blur" Value="40" />
+        <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.1" />
+        <Setter Property="controls:DaisyGlassSurface.ReflectOpacity" Value="0.1" />
+        <!-- A drop shadow under translucent glass shows through it; the glass border separates the bar instead. -->
+        <Setter Property="HasShadow" Value="False" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="#33FFFFFF" />
+
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel>
+                    <!-- The glass comes first, so its backdrop holds only what lies behind the bar. -->
+                    <controls:DaisyGlass x:Name="PART_Glass"
+                                         Padding="0"
+                                         IsHitTestVisible="False"
+                                         CornerRadius="{TemplateBinding CornerRadius}" />
+                    <Border x:Name="PART_Tint"
+                            IsHitTestVisible="False"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Opacity="{TemplateBinding (controls:DaisyGlassSurface.ColorOpacity)}" />
+                    <Border x:Name="PART_RootBorder"
+                            Background="Transparent"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <Panel>
+                            <Grid x:Name="PART_SectionLayout" ColumnDefinitions="*, Auto, *">
+                                <ContentPresenter x:Name="PART_NavbarStart"
+                                                  Grid.Column="0"
+                                                  Content="{TemplateBinding NavbarStart}"
+                                                  HorizontalAlignment="Left"
+                                                  VerticalAlignment="Center" />
+                                <ContentPresenter x:Name="PART_NavbarCenter"
+                                                  Grid.Column="1"
+                                                  Content="{TemplateBinding NavbarCenter}"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
+                                <ContentPresenter x:Name="PART_NavbarEnd"
+                                                  Grid.Column="2"
+                                                  Content="{TemplateBinding NavbarEnd}"
+                                                  HorizontalAlignment="Right"
+                                                  VerticalAlignment="Center" />
+                            </Grid>
+                            <ContentPresenter x:Name="PART_Content"
+                                              Content="{TemplateBinding Content}"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              VerticalAlignment="Center"
+                                              IsVisible="False" />
+                        </Panel>
+                    </Border>
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

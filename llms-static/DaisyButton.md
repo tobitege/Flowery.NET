@@ -105,3 +105,7 @@ Use `IconSymbol` for built-in platform-neutral symbols or `IconData` for custom 
 - Match size/shape to context: Square/Circle for icons, Wide for promotional CTAs, Block for full-width forms.
 - Keep shadow subtle; large blur/offset can look heavy - start with `ShowShadow=True` defaults before customizing.
 - Buttons have **fixed heights** by design. For flexible-height buttons with wrapping text, set `Height="NaN"` to allow vertical growth.
+
+## Glass
+
+`Theme="{StaticResource DaisyGlassButtonTheme}"` puts the control on glass that blurs whatever lies behind it: the variant color tints the glass at `DaisyGlassSurface.ColorOpacity` (0.35), the default variant is clear glass that brightens on hover, and the text keeps WCAG contrast over the measured backdrop (`DaisyGlassSurface.TextContrast`). The glass settings are attached properties of [DaisyGlassSurface](DaisyGlassSurface.md), such as `controls:DaisyGlassSurface.Blur`; [DaisyGlassDesigner](DaisyGlassDesigner.md) shapes them visually.

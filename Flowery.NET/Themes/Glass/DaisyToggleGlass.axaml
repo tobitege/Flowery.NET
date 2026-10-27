@@ -1,0 +1,197 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Width="320">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Offset="0" Color="#FF1E3A8A" />
+                    <GradientStop Offset="1" Color="#FF4F46E5" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <StackPanel Spacing="12">
+                <controls:DaisyToggle Theme="{StaticResource DaisyGlassToggleTheme}" Content="Off" Foreground="White" />
+                <controls:DaisyToggle Theme="{StaticResource DaisyGlassToggleTheme}" Content="On" IsChecked="True" Foreground="White" />
+                <controls:DaisyToggle Theme="{StaticResource DaisyGlassToggleTheme}" Content="Primary" Variant="Primary" IsChecked="True" Size="Large" Foreground="White" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- A DaisyToggle with a glass track that fills with the variant color when switched on, and a white knob that springs across and stretches while pressed. -->
+    <ControlTheme x:Key="DaisyGlassToggleTheme" TargetType="controls:DaisyToggle">
+        <Setter Property="controls:DaisyGlassSurface.IsEnabled" Value="True" />
+        <Setter Property="controls:DaisyGlassSurface.TextContrast" Value="False" />
+        <Setter Property="controls:DaisyGlassSurface.EnableBackdropBlur" Value="True" />
+        <Setter Property="controls:DaisyGlassSurface.BlurMode" Value="SkiaSharp" />
+        <Setter Property="controls:DaisyGlassSurface.Blur" Value="20" />
+        <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.18" />
+        <Setter Property="controls:DaisyGlassSurface.ReflectOpacity" Value="0.15" />
+
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="FontSize" Value="{DynamicResource DaisySizeMediumFontSize}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="TogglePadding" Value="2" />
+        <Setter Property="BorderBrush" Value="#33FFFFFF" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid ColumnDefinitions="Auto,*" Background="Transparent">
+                    <Panel x:Name="PART_SwitchArea" Width="52" Height="30" VerticalAlignment="Center">
+                        <!-- The glass comes first, so its backdrop holds only what lies behind the track. -->
+                        <controls:DaisyGlass x:Name="PART_Glass"
+                                             Padding="0"
+                                             IsHitTestVisible="False"
+                                             CornerRadius="9999" />
+                        <!-- Fills the track with the variant color when switched on. -->
+                        <Border x:Name="PART_TrackFill"
+                                IsHitTestVisible="False"
+                                CornerRadius="9999"
+                                Background="{DynamicResource DaisySuccessBrush}"
+                                Opacity="0">
+                            <Border.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.25" />
+                                </Transitions>
+                            </Border.Transitions>
+                        </Border>
+                        <Border x:Name="PART_TrackBorder"
+                                CornerRadius="9999"
+                                BorderThickness="1"
+                                BorderBrush="{TemplateBinding BorderBrush}" />
+                        <!-- ToggleSwitch needs PART_MovingKnobs, and measures a drag of the knob against PART_SwitchKnob:
+                             a drag over half the track switches the toggle. -->
+                        <Panel x:Name="PART_SwitchKnob" IsHitTestVisible="False" />
+                        <Canvas x:Name="PART_MovingKnobs">
+                            <Border x:Name="PART_Knob"
+                                    Width="26" Height="26"
+                                    CornerRadius="9999"
+                                    Background="White"
+                                    BoxShadow="0 2 6 0 #40000000"
+                                    Canvas.Top="{TemplateBinding TogglePadding}">
+                                <Canvas.Left>
+                                    <MultiBinding Converter="{x:Static controls:ToggleKnobOffsetConverter.Instance}">
+                                        <Binding Path="IsChecked" RelativeSource="{RelativeSource TemplatedParent}" />
+                                        <Binding Path="Bounds.Width" ElementName="PART_MovingKnobs" />
+                                        <Binding Path="Width" RelativeSource="{RelativeSource Self}" />
+                                        <Binding Path="TogglePadding" RelativeSource="{RelativeSource TemplatedParent}" />
+                                    </MultiBinding>
+                                </Canvas.Left>
+                                <Border.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition Property="Canvas.Left" Duration="0:0:0.35">
+                                            <DoubleTransition.Easing>
+                                                <SpringEasing Mass="1" Stiffness="170" Damping="17" />
+                                            </DoubleTransition.Easing>
+                                        </DoubleTransition>
+                                        <DoubleTransition Property="Width" Duration="0:0:0.2" Easing="CubicEaseOut" />
+                                    </Transitions>
+                                </Border.Transitions>
+                            </Border>
+                        </Canvas>
+                    </Panel>
+                    <ContentPresenter Grid.Column="1"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      Margin="10,0,0,0"
+                                      VerticalAlignment="Center"
+                                      IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                      TextElement.Foreground="{TemplateBinding Foreground}" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:checked /template/ Border#PART_TrackFill">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+
+        <!-- Variants color the track when switched on. -->
+        <Style Selector="^[Variant=Primary] /template/ Border#PART_TrackFill">
+            <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Secondary] /template/ Border#PART_TrackFill">
+            <Setter Property="Background" Value="{DynamicResource DaisySecondaryBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Accent] /template/ Border#PART_TrackFill">
+            <Setter Property="Background" Value="{DynamicResource DaisyAccentBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Warning] /template/ Border#PART_TrackFill">
+            <Setter Property="Background" Value="{DynamicResource DaisyWarningBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Info] /template/ Border#PART_TrackFill">
+            <Setter Property="Background" Value="{DynamicResource DaisyInfoBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Error] /template/ Border#PART_TrackFill">
+            <Setter Property="Background" Value="{DynamicResource DaisyErrorBrush}" />
+        </Style>
+
+        <!-- Sizes: track and knob; the pressed knob stretches by a third of its height. -->
+        <Style Selector="^[Size=ExtraSmall]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraSmallFontSize}" />
+        </Style>
+        <Style Selector="^[Size=ExtraSmall] /template/ Panel#PART_SwitchArea">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="20" />
+        </Style>
+        <Style Selector="^[Size=ExtraSmall] /template/ Border#PART_Knob">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+        </Style>
+        <Style Selector="^[Size=ExtraSmall]:pressed /template/ Border#PART_Knob">
+            <Setter Property="Width" Value="21" />
+        </Style>
+
+        <Style Selector="^[Size=Small]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeSmallFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Small] /template/ Panel#PART_SwitchArea">
+            <Setter Property="Width" Value="44" />
+            <Setter Property="Height" Value="26" />
+        </Style>
+        <Style Selector="^[Size=Small] /template/ Border#PART_Knob">
+            <Setter Property="Width" Value="22" />
+            <Setter Property="Height" Value="22" />
+        </Style>
+        <Style Selector="^[Size=Small]:pressed /template/ Border#PART_Knob">
+            <Setter Property="Width" Value="29" />
+        </Style>
+
+        <Style Selector="^[Size=Medium]:pressed /template/ Border#PART_Knob">
+            <Setter Property="Width" Value="35" />
+        </Style>
+
+        <Style Selector="^[Size=Large]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeLargeFontSize}" />
+        </Style>
+        <Style Selector="^[Size=Large] /template/ Panel#PART_SwitchArea">
+            <Setter Property="Width" Value="60" />
+            <Setter Property="Height" Value="34" />
+        </Style>
+        <Style Selector="^[Size=Large] /template/ Border#PART_Knob">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="30" />
+        </Style>
+        <Style Selector="^[Size=Large]:pressed /template/ Border#PART_Knob">
+            <Setter Property="Width" Value="40" />
+        </Style>
+
+        <Style Selector="^[Size=ExtraLarge]">
+            <Setter Property="FontSize" Value="{DynamicResource DaisySizeExtraLargeFontSize}" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge] /template/ Panel#PART_SwitchArea">
+            <Setter Property="Width" Value="68" />
+            <Setter Property="Height" Value="38" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge] /template/ Border#PART_Knob">
+            <Setter Property="Width" Value="34" />
+            <Setter Property="Height" Value="34" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge]:pressed /template/ Border#PART_Knob">
+            <Setter Property="Width" Value="45" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

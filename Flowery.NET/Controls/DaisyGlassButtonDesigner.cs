@@ -1114,61 +1114,6 @@ namespace Flowery.Controls
     }
 
     /// <summary>
-    /// Lays out the fields of <see cref="DaisyGlassButtonDesigner"/> in as many equal columns as fit, each at least
-    /// <see cref="MinColumnWidth"/> wide; the fields of a row share its height. A field with the class <c>gbd-wide</c>
-    /// takes a row of its own.
-    /// </summary>
-    internal sealed class DaisyGlassDesignerFieldPanel : Panel
-    {
-        public const double MinColumnWidth = 240;
-        public const double Gap = 12;
-
-        protected override Size MeasureOverride(Size availableSize) => Layout(availableSize.Width, arrange: false);
-
-        protected override Size ArrangeOverride(Size finalSize)
-        {
-            Layout(finalSize.Width, arrange: true);
-            return finalSize;
-        }
-
-        private Size Layout(double width, bool arrange)
-        {
-            if (double.IsInfinity(width) || width <= 0)
-                width = MinColumnWidth;
-            var columns = Math.Max(1, (int)((width + Gap) / (MinColumnWidth + Gap)));
-            var cell = (width - (columns - 1) * Gap) / columns;
-
-            var rows = new List<List<Control>>();
-            List<Control>? row = null;
-            foreach (var child in Children)
-            {
-                var wide = child.Classes.Contains("gbd-wide");
-                if (row is null || wide || row.Count == columns || row[0].Classes.Contains("gbd-wide"))
-                    rows.Add(row = new List<Control>());
-                row.Add(child);
-                if (!arrange)
-                    child.Measure(new Size(wide ? width : cell, double.PositiveInfinity));
-            }
-
-            var y = 0d;
-            foreach (var fields in rows)
-            {
-                var height = fields.Max(field => field.DesiredSize.Height);
-                if (arrange)
-                {
-                    for (var i = 0; i < fields.Count; i++)
-                    {
-                        var wide = fields[i].Classes.Contains("gbd-wide");
-                        fields[i].Arrange(new Rect(wide ? 0 : i * (cell + Gap), y, wide ? width : cell, height));
-                    }
-                }
-                y += height + Gap;
-            }
-            return new Size(width, Math.Max(0, y - Gap));
-        }
-    }
-
-    /// <summary>
     /// The presets of <see cref="DaisyGlassButtonDesigner"/>.
     /// </summary>
     internal static class DaisyGlassButtonDesignPresets

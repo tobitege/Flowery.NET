@@ -192,6 +192,8 @@
   "ColorPicker_ReleaseToPick": "أفلت للاختيار",
   "GlassDesigner_Title": "Glass Button Designer",
   "GlassDesigner_Subtitle": "صمّم زرًا زجاجيًا مباشرةً، ثم خذ الشيفرة معك.",
+  "GlassDesigner_LookTitle": "Glass Designer",
+  "GlassDesigner_LookSubtitle": "صمّم مظهرًا زجاجيًا مباشرةً، ثم انقل الشيفرة إلى أي عنصر على الزجاج.",
   "GlassDesigner_Reset": "إعادة تعيين",
   "GlassDesigner_Code": "الشيفرة",
   "GlassDesigner_Apply": "تطبيق",

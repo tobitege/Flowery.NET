@@ -190,6 +190,8 @@
   "ColorPicker_ReleaseToPick": "Seçmek için bırakın",
   "GlassDesigner_Title": "Glass Button Designer",
   "GlassDesigner_Subtitle": "Bir cam düğmeyi canlı tasarlayın, sonra kodu yanınıza alın.",
+  "GlassDesigner_LookTitle": "Glass Designer",
+  "GlassDesigner_LookSubtitle": "Bir cam görünümünü canlı tasarlayın, sonra kodu camdaki her denetime taşıyın.",
   "GlassDesigner_Reset": "Sıfırla",
   "GlassDesigner_Code": "Kod",
   "GlassDesigner_Apply": "Uygula",

@@ -1,0 +1,57 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Width="420">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Offset="0" Color="#FF6B8DD6" />
+                    <GradientStop Offset="1" Color="#FF8E37D7" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <StackPanel Spacing="8">
+                <controls:DaisyInput Theme="{StaticResource DaisyGlassInputTheme}" Watermark="Email" />
+                <controls:DaisyInput Theme="{StaticResource DaisyGlassInputTheme}" Text="flowery" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- A DaisyInput on glass. Uses the DaisyInput templates: DaisyGlassSurface puts the glass behind PART_Background
+         when a template is applied, and the text parts follow Foreground. -->
+    <ControlTheme x:Key="DaisyGlassInputTheme" TargetType="controls:DaisyInput"
+                  BasedOn="{StaticResource {x:Type controls:DaisyInput}}">
+        <Setter Property="controls:DaisyGlassSurface.IsEnabled" Value="True" />
+        <Setter Property="controls:DaisyGlassSurface.FollowForeground" Value="True" />
+        <!-- The variants below give the field translucent colors for glass. -->
+        <Setter Property="controls:DaisyGlassSurface.ClearSurface" Value="False" />
+        <Setter Property="controls:DaisyGlassSurface.EnableBackdropBlur" Value="True" />
+        <Setter Property="controls:DaisyGlassSurface.BlurMode" Value="SkiaSharp" />
+        <Setter Property="controls:DaisyGlassSurface.Blur" Value="30" />
+        <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.15" />
+        <Setter Property="controls:DaisyGlassSurface.ReflectOpacity" Value="0.1" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="#66FFFFFF" />
+        <Setter Property="CaretBrush" Value="{Binding Foreground, RelativeSource={RelativeSource Self}}" />
+
+        <!-- The default Bordered variant draws its field border in Neutral, which is near black on glass. -->
+        <Style Selector="^[Variant=Bordered] /template/ Border#PART_Background">
+            <Setter Property="BorderBrush" Value="#66FFFFFF" />
+        </Style>
+        <!-- Restates the focus border, which the style above would override. -->
+        <Style Selector="^[Variant=Bordered]:focus /template/ Border#PART_Background">
+            <Setter Property="BorderBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
+        </Style>
+
+        <!-- The filled and ghost variants brighten the glass instead of covering it with an opaque surface. -->
+        <Style Selector="^[Variant=Filled]">
+            <Setter Property="Background" Value="#26FFFFFF" />
+        </Style>
+        <Style Selector="^[Variant=Filled]:pointerover /template/ Border#PART_Background">
+            <Setter Property="Background" Value="#40FFFFFF" />
+        </Style>
+        <Style Selector="^[Variant=Ghost]:focus /template/ Border#PART_Background">
+            <Setter Property="Background" Value="#26FFFFFF" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

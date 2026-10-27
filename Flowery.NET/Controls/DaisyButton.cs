@@ -52,6 +52,9 @@ namespace Flowery.Controls
     {
         protected override Type StyleKeyOverride => typeof(DaisyButton);
 
+        // As a segment of a selecting DaisyButtonGroup, screen readers hear whether it is selected.
+        protected override Avalonia.Automation.Peers.AutomationPeer OnCreateAutomationPeer() => new ButtonGroupSegmentAutomationPeer(this);
+
         // Base font size for scaling
         private const double BaseTextFontSize = 14.0;
 

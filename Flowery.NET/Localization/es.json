@@ -190,6 +190,8 @@
   "ColorPicker_ReleaseToPick": "Suelta para elegir",
   "GlassDesigner_Title": "Glass Button Designer",
   "GlassDesigner_Subtitle": "Diseña un botón de cristal en vivo y llévate el código.",
+  "GlassDesigner_LookTitle": "Glass Designer",
+  "GlassDesigner_LookSubtitle": "Diseña un aspecto de cristal en vivo y lleva el código a cualquier control sobre cristal.",
   "GlassDesigner_Reset": "Restablecer",
   "GlassDesigner_Code": "Código",
   "GlassDesigner_Apply": "Aplicar",

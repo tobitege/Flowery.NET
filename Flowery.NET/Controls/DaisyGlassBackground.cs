@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -69,7 +69,8 @@ namespace Flowery.Controls
 
     /// <summary>
     /// A layer that draws one animated <see cref="DaisyGlassBackground"/> and redraws itself
-    /// <see cref="DaisyGlassBackground.FrameRate"/> times per second while it is attached and on screen. With reduced
+    /// <see cref="DaisyGlassBackground.FrameRate"/> times per second while it is attached and on screen; between two redraws
+    /// it waits instead of asking for every display frame. With reduced
     /// motion it draws a still frame; with high contrast it stops redrawing, since the contrast surface covers it.
     /// While it cannot move (a speed of 0, reduced motion or high contrast) or is scrolled out of view it asks for no
     /// frames; while it is hidden, such as on a page that is not shown, it looks again a few times per second.
@@ -78,8 +79,18 @@ namespace Flowery.Controls
     {
         private static readonly TimeSpan HiddenCheckInterval = TimeSpan.FromMilliseconds(250);
 
+        // The longest animation step of one frame, in seconds, unless the frame rate asks for longer steps.
+        private const double MaxFrameStep = 0.1;
+
+        // A display frame at 60 Hz, assumed before the first frame tells the real frame time.
+        private const double MinFrameTime = 1.0 / 60;
+
+        // Shorter waits than this are not worth a timer; the layer asks for the next display frame instead.
+        private const double MinSleep = 0.012;
+
         private bool _attached;
         private bool _frameRequested;
+        private bool _waitingForRedraw;
         private bool _hiddenCheckQueued;
         private bool _inViewport = true;
         private TimeSpan? _lastFrame;
@@ -146,6 +157,8 @@ namespace Flowery.Controls
 
         private void RequestFrame()
         {
+            if (_waitingForRedraw)
+                return;
             if (_frameRequested || !_attached || !CanMove || !_inViewport || TopLevel.GetTopLevel(this) is not { } topLevel)
             {
                 _lastFrame = null;
@@ -183,13 +196,37 @@ namespace Flowery.Controls
                 return;
             }
 
-            // A long gap, such as after the window was hidden, does not make the animation jump.
-            var elapsed = _lastFrame is { } last ? Math.Min((now - last).TotalSeconds, 0.1) : 0;
+            // A long gap, such as after the window was hidden, does not make the animation jump. The layer itself waits up
+            // to one redraw interval between frames, which is no gap.
+            var frameRate = Source.FrameRate;
+            var maxStep = frameRate > 0 ? Math.Max(MaxFrameStep, 2 / frameRate) : MaxFrameStep;
+            var elapsed = _lastFrame is { } last ? Math.Min((now - last).TotalSeconds, maxStep) : 0;
             _lastFrame = now;
             Time += elapsed * Source.Speed;
-            if (elapsed > 0 && IsRedrawFrame(ref _sinceRedraw, elapsed, Source.FrameRate))
+            if (elapsed > 0 && IsRedrawFrame(ref _sinceRedraw, elapsed, frameRate))
                 InvalidateVisual();
-            RequestFrame();
+            WaitForNextRedraw(elapsed, frameRate);
+        }
+
+        // Between two redraws the layer does not ask for every display frame, which would wake the UI thread at the
+        // display rate for nothing. It sleeps until about one display frame before the next redraw is due and asks for
+        // frames from there, so the redraw still lands on a display frame.
+        private void WaitForNextRedraw(double frameTime, double frameRate)
+        {
+            var untilRedraw = frameRate > 0 ? 1 / frameRate - _sinceRedraw : 0;
+            var sleep = untilRedraw - Math.Max(frameTime, MinFrameTime) * 1.5;
+            if (sleep < MinSleep)
+            {
+                RequestFrame();
+                return;
+            }
+
+            _waitingForRedraw = true;
+            DispatcherTimer.RunOnce(() =>
+            {
+                _waitingForRedraw = false;
+                RequestFrame();
+            }, TimeSpan.FromSeconds(sleep));
         }
 
         // A frame redraws when it is nearer to the next redraw time than the frame after it. The time past that point

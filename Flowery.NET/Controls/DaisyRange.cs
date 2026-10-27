@@ -1,8 +1,14 @@
 ﻿using System;
+using System.Globalization;
+using System.Linq;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data.Converters;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Flowery.Localization;
 using Flowery.Services;
@@ -24,22 +30,63 @@ namespace Flowery.Controls
     /// <summary>
     /// A Slider control styled after DaisyUI's Range component.
     /// Supports automatic font scaling when contained within a FloweryScaleManager.EnableScaling="True" container.
+    /// The pseudo-class <c>:dragging</c> marks the range while the pointer holds its thumb or track, which the glass
+    /// theme turns into a lens.
     /// </summary>
+    [PseudoClasses(DraggingPseudoClass)]
     public class DaisyRange : Slider, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyRange);
 
+        private const string DraggingPseudoClass = ":dragging";
+
         private const double BaseTextFontSize = 12.0;
         private RepeatButton? _increaseButton;
         private RepeatButton? _decreaseButton;
+        private Thumb? _thumb;
+
+        public DaisyRange()
+        {
+            // The slider marks its own presses as handled; the pseudo-class follows them anyway.
+            AddHandler(PointerPressedEvent, OnAnyPointerPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
+            AddHandler(PointerReleasedEvent, OnAnyPointerReleased, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, handledEventsToo: true);
+            AddHandler(PointerCaptureLostEvent, OnAnyPointerCaptureLost, RoutingStrategies.Direct, handledEventsToo: true);
+        }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
+
+            // A press on the track captures the pointer in one of its buttons; losing that capture ends the drag too.
+            foreach (var button in new[] { _increaseButton, _decreaseButton }.OfType<RepeatButton>())
+                button.PointerCaptureLost -= OnAnyPointerCaptureLost;
+            if (_thumb != null)
+                _thumb.DragCompleted -= OnThumbDragCompleted;
+
             _increaseButton = e.NameScope.Find<RepeatButton>("PART_IncreaseButton");
             _decreaseButton = e.NameScope.Find<RepeatButton>("PART_DecreaseButton");
+            _thumb = e.NameScope.Find<Thumb>("PART_Thumb");
+
+            foreach (var button in new[] { _increaseButton, _decreaseButton }.OfType<RepeatButton>())
+                button.PointerCaptureLost += OnAnyPointerCaptureLost;
+            // Also raised when the thumb loses the pointer without a release.
+            if (_thumb != null)
+                _thumb.DragCompleted += OnThumbDragCompleted;
+
             UpdateAutomationParts();
         }
+
+        private void OnAnyPointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (IsEnabled && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+                PseudoClasses.Set(DraggingPseudoClass, true);
+        }
+
+        private void OnAnyPointerReleased(object? sender, PointerReleasedEventArgs e) => PseudoClasses.Set(DraggingPseudoClass, false);
+
+        private void OnAnyPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e) => PseudoClasses.Set(DraggingPseudoClass, false);
+
+        private void OnThumbDragCompleted(object? sender, VectorEventArgs e) => PseudoClasses.Set(DraggingPseudoClass, false);
 
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
@@ -154,5 +201,20 @@ namespace Flowery.Controls
             get => GetValue(ShowProgressProperty);
             set => SetValue(ShowProgressProperty, value);
         }
+    }
+
+    /// <summary>
+    /// Converts the bounds of the thumb into the horizontal position of its middle, where the progress of a template
+    /// that draws it outside the track ends.
+    /// </summary>
+    internal sealed class RangeThumbCenterConverter : IValueConverter
+    {
+        public static RangeThumbCenterConverter Instance { get; } = new();
+
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+            value is Rect bounds ? bounds.X + bounds.Width / 2 : 0d;
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+            throw new NotSupportedException();
     }
 }

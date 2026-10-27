@@ -59,3 +59,7 @@ The full label row keeps its normal size-tier height for interaction.
 ## Neumorphic Effect
 
 With [DaisyNeumorphic](DaisyNeumorphic.md) active, the track (`SwitchArea`) is always inset and the knob always raised, whatever the global mode. The knob is an `Ellipse`, which has no `BoxShadow`; its shadow is drawn on `PART_KnobShadow`, a round border that follows the knob's size and position.
+
+## Glass
+
+`Theme="{StaticResource DaisyGlassToggleTheme}"` puts the control on glass that blurs whatever lies behind it: a glass track that fills with the variant color when switched on (Success for the Default variant), and a white knob that springs across and stretches while pressed. It draws no neumorphic shadow, which would show through the glass. The glass settings are attached properties of [DaisyGlassSurface](DaisyGlassSurface.md), such as `controls:DaisyGlassSurface.Blur`; [DaisyGlassDesigner](DaisyGlassDesigner.md) shapes them visually.

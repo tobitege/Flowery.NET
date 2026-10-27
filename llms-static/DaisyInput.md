@@ -127,3 +127,7 @@ Floating labels require additional vertical headroom above the input border to p
 - Pair semantic variants with validation states (Error/Success) to reinforce feedback.
 - Keep `Padding` consistent across form fields; sizes already tune height and font size.
 - For search bars, add a left icon; for clear actions, add a right button via `InnerRightContent`.
+
+## Glass
+
+`Theme="{StaticResource DaisyGlassInputTheme}"` puts the control on glass that blurs whatever lies behind it: it keeps the input templates and puts the glass behind the field, and the text, placeholder, icons, caret and floating label follow `Foreground`. Any input can also go on glass with `controls:DaisyGlassSurface.IsEnabled="True"`. The glass settings are attached properties of [DaisyGlassSurface](DaisyGlassSurface.md), such as `controls:DaisyGlassSurface.Blur`; [DaisyGlassDesigner](DaisyGlassDesigner.md) shapes them visually.

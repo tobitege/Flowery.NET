@@ -1,0 +1,161 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Width="420">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Offset="0" Color="#FF1E3A8A" />
+                    <GradientStop Offset="1" Color="#FF4F46E5" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <StackPanel Spacing="12">
+                <controls:DaisyButtonGroup Theme="{StaticResource DaisyGlassButtonGroupTheme}" SelectedIndex="1" Foreground="White">
+                    <controls:DaisyButton Content="Day" />
+                    <controls:DaisyButton Content="Week" />
+                    <controls:DaisyButton Content="Month" />
+                </controls:DaisyButtonGroup>
+                <controls:DaisyButtonGroup Theme="{StaticResource DaisyGlassButtonGroupTheme}" SelectionMode="Multiple" Foreground="White">
+                    <controls:DaisyButton Content="Bold" />
+                    <controls:DaisyButton Content="Italic" />
+                    <controls:DaisyButton Content="Underline" />
+                </controls:DaisyButtonGroup>
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <Styles.Resources>
+        <!-- A DaisyButtonGroup as a segmented control on a glass track. A pill slides to the selected segment with a
+             spring (single selection); in multiple selection each selected segment gets its own pill, which fades in
+             and out. The theme switches the glass on and selects; the look comes from the styles below, which follow
+             DaisyGlassSurface.IsEnabled, because the styles of DaisyButtonGroup would override a template set here.
+             It sets no SelectedIndex: a style value would come back over a clicked selection when the styles apply
+             again, so the app sets the first selection. -->
+        <ControlTheme x:Key="DaisyGlassButtonGroupTheme" TargetType="controls:DaisyButtonGroup">
+            <Setter Property="controls:DaisyGlassSurface.IsEnabled" Value="True" />
+            <Setter Property="controls:DaisyGlassSurface.TextContrast" Value="False" />
+            <Setter Property="controls:DaisyGlassSurface.EnableBackdropBlur" Value="True" />
+            <Setter Property="controls:DaisyGlassSurface.BlurMode" Value="SkiaSharp" />
+            <Setter Property="controls:DaisyGlassSurface.Blur" Value="24" />
+            <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.12" />
+            <Setter Property="controls:DaisyGlassSurface.ReflectOpacity" Value="0.15" />
+            <Setter Property="AutoSelect" Value="True" />
+            <Setter Property="Shape" Value="Pill" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </ControlTheme>
+    </Styles.Resources>
+
+    <!-- The glass track. Its corners follow Shape, as on every DaisyButtonGroup. -->
+    <Style Selector="controls|DaisyButtonGroup[(controls|DaisyGlassSurface.IsEnabled)=True]">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="#33FFFFFF" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="ItemsPanel">
+            <ItemsPanelTemplate>
+                <UniformGrid Rows="1" />
+            </ItemsPanelTemplate>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel>
+                    <!-- The glass comes first, so its backdrop holds only what lies behind the track.
+                         DaisyGlassSurface passes the glass settings of the group to it. -->
+                    <controls:DaisyGlass x:Name="PART_Glass"
+                                         Padding="0"
+                                         IsHitTestVisible="False"
+                                         CornerRadius="{TemplateBinding CornerRadius}" />
+                    <Border x:Name="PART_Track"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <Panel>
+                            <!-- The group moves the pill under the selected segment. -->
+                            <Canvas IsHitTestVisible="False">
+                                <Border x:Name="PART_Indicator"
+                                        IsVisible="False"
+                                        Background="#38FFFFFF"
+                                        BorderBrush="#26FFFFFF"
+                                        BorderThickness="1"
+                                        CornerRadius="{TemplateBinding CornerRadius}"
+                                        BoxShadow="0 2 10 0 #26000000">
+                                    <Border.Transitions>
+                                        <Transitions>
+                                            <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.5">
+                                                <TransformOperationsTransition.Easing>
+                                                    <SpringEasing Mass="1" Stiffness="150" Damping="15" />
+                                                </TransformOperationsTransition.Easing>
+                                            </TransformOperationsTransition>
+                                        </Transitions>
+                                    </Border.Transitions>
+                                </Border>
+                            </Canvas>
+                            <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+                        </Panel>
+                    </Border>
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DaisyButtonGroup[Orientation=Vertical][(controls|DaisyGlassSurface.IsEnabled)=True]">
+        <Setter Property="ItemsPanel">
+            <ItemsPanelTemplate>
+                <UniformGrid Columns="1" />
+            </ItemsPanelTemplate>
+        </Setter>
+    </Style>
+
+    <!-- The segments are clear: the pill marks the selection, and the text brightens on hover and selection. -->
+    <Style Selector="controls|DaisyButtonGroup[(controls|DaisyGlassSurface.IsEnabled)=True] > :is(Button)">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{Binding $parent[controls:DaisyButtonGroup].Foreground}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{Binding $parent[controls:DaisyButtonGroup].CornerRadius}" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="controls|DaisyButtonGroup[(controls|DaisyGlassSurface.IsEnabled)=True] > :is(Button):nth-child(1)">
+        <Setter Property="CornerRadius" Value="{Binding $parent[controls:DaisyButtonGroup].CornerRadius}" />
+    </Style>
+    <Style Selector="controls|DaisyButtonGroup[(controls|DaisyGlassSurface.IsEnabled)=True] > :is(Button):nth-last-child(1)">
+        <Setter Property="CornerRadius" Value="{Binding $parent[controls:DaisyButtonGroup].CornerRadius}" />
+    </Style>
+    <Style Selector="controls|DaisyButtonGroup[(controls|DaisyGlassSurface.IsEnabled)=True] > :is(Button):pointerover">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <Style Selector="controls|DaisyButtonGroup[(controls|DaisyGlassSurface.IsEnabled)=True] > controls|DaisyButton:pointerover /template/ Border#PART_Background">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="controls|DaisyButtonGroup[(controls|DaisyGlassSurface.IsEnabled)=True] > :is(Button).button-group-active">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+    <!-- In multiple selection each selected segment is its own pill; DaisyButton fades its fill. -->
+    <Style Selector="controls|DaisyButtonGroup[SelectionMode=Multiple][(controls|DaisyGlassSurface.IsEnabled)=True] > :is(Button).button-group-active">
+        <Setter Property="Background" Value="#38FFFFFF" />
+        <Setter Property="BorderBrush" Value="#26FFFFFF" />
+    </Style>
+    <Style Selector="controls|DaisyButtonGroup[SelectionMode=Multiple][(controls|DaisyGlassSurface.IsEnabled)=True] > controls|DaisyButton.button-group-active:pointerover /template/ Border#PART_Background">
+        <Setter Property="Background" Value="#38FFFFFF" />
+    </Style>
+
+    <Style Selector="controls|DaisyButtonGroup[(controls|DaisyGlassSurface.IsEnabled)=True] > :is(Button) /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Opacity" Value="0.65" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="controls|DaisyButtonGroup[(controls|DaisyGlassSurface.IsEnabled)=True] > :is(Button):pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Opacity" Value="0.85" />
+    </Style>
+    <Style Selector="controls|DaisyButtonGroup[(controls|DaisyGlassSurface.IsEnabled)=True] > :is(Button).button-group-active /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+</Styles>

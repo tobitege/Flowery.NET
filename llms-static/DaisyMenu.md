@@ -55,5 +55,10 @@ DaisyMenu is a styled `ListBox` for navigation menus. It supports vertical or ho
 >- Use size presets to match surrounding controls; Small/ExtraSmall pair well with toolbars.
 - Set `ActiveForeground/ActiveBackground` to align with your brand colors if Neutral isn't desired.
 - For horizontal menus, ensure there's enough padding/margin in the parent to avoid crowding.
+- `Classes="menu-destructive"` colors an item for a destructive action, such as Delete, in the error color; `Classes="menu-separator"` turns an item into a thin divider that takes neither the pointer nor the focus and that screen readers skip.
 - Use `Classes="menu-title"` for non-interactive section headers inside the menu. Titles render in the primary color, bold, with a divider underneath, at the secondary font size of the menu's `Size`, so they stay distinguishable from disabled items.
 - Nest DaisyMenu or use `Expander` for collapsible submenus; adjust margins for indentation as needed.
+
+## Glass
+
+`Theme="{StaticResource DaisyGlassMenuTheme}"` puts the control on glass that blurs whatever lies behind it: a menu with a soft hover and selection pill in the text color. Open it in a popup with `ShouldUseOverlayLayer="True"`, so its glass sees the window below. The glass settings are attached properties of [DaisyGlassSurface](DaisyGlassSurface.md), such as `controls:DaisyGlassSurface.Blur`; [DaisyGlassDesigner](DaisyGlassDesigner.md) shapes them visually.
