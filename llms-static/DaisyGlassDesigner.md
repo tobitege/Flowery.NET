@@ -18,7 +18,7 @@ The preview is a `DaisyButton` with `DaisyGlassButtonTheme`. Its text, variant, 
 | Pattern | The `DaisyCardPattern` set as tiles, the pattern color and opacity. |
 | Motion | An animated `Background`: drawn with gradients (`DaisyGlassGradientBackground`) or shaders (`DaisyGlassShaderBackground`), its `Effect`, `Speed`, `FrameRate` and opacity. `LiquidColor` adds its color: the accent color of the system, or one picked with the swatch (`BackgroundColor` of the design). |
 
-`Reset` sits next to the tabs, so it is at hand on every tab. The stage offers four backdrops and a disc that drifts behind the preview, so the blur is visible. The disc is off by default and stops when the designer leaves the visual tree. The `Code` button opens the code drawer with the XAML, C# and JSON of the design, a copy button, and an import field for JSON.
+Open, Save and Reset sit next to the tabs, so they are at hand on every tab. Open and Save use the file dialog of the platform (`TopLevel.StorageProvider`) and read and write the design as a JSON file; a file that is no design shows why below the tabs and leaves the design as it is. The stage offers four backdrops and a disc that drifts behind the preview, so the blur is visible. The disc is off by default and stops when the designer leaves the visual tree. The `Code` button opens the code drawer with the XAML, C# and JSON of the design, a copy button, and an import field for JSON.
 
 ## Key Members
 
@@ -31,6 +31,7 @@ The preview is a `DaisyButton` with `DaisyGlassButtonTheme`. Its text, variant, 
 | `Xaml` / `CSharp` / `Json` | The current design as code. |
 | `LoadFrom(control)` / `ApplyTo(control)` | Reads the glass look of a control, or puts a control on glass with the current look. A `DaisyButton` also sets the preview options. |
 | `ImportJson(json)` | Loads a design written by `Json`; throws `JsonException` for anything else. |
+| `SaveAsync(stream)` / `LoadAsync(stream)` | Write the design as JSON (UTF-8) to a stream, replacing what a seekable stream held, and load it again; `LoadAsync` throws `JsonException` for anything that is no design and leaves the design as it is. |
 | `Reset()` | Returns to the default look; the preview options stay. |
 | `ShowOverlayAsync(target, initial)` (static) | Opens a designer over the app; returns the design on Apply, `null` on Cancel, Escape or when the window closes. The keyboard stays inside the overlay, and the focus returns where it was. |
 | `EditAsync(control)` (static) | Opens a designer with the glass look of `control` and applies the result to it; returns whether the user applied. On a control on glass only what the user changed is written, so the styles and the glass theme of the control keep applying to the rest; a control not on glass yet gets the whole design. A `DaisyButton` sets the preview options, which do not change the button. |

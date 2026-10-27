@@ -238,6 +238,34 @@ public class DaisyGlassDesignTests
     }
 
     [AvaloniaFact]
+    public async Task A_Design_Saved_To_A_File_Opens_As_The_Same_Design()
+    {
+        var saved = new DaisyGlassDesigner { Design = Custom(DaisyGlassFillKind.Conic) };
+        var window = Show(saved, 1100, 1300);
+        try
+        {
+            // A longer file is replaced, not overwritten in part.
+            using var file = new MemoryStream(new byte[4096]);
+            await saved.SaveAsync(file);
+            Assert.Equal(saved.Json, System.Text.Encoding.UTF8.GetString(file.ToArray()));
+
+            var opened = new DaisyGlassDesigner();
+            window.Content = opened;
+            file.Position = 0;
+            await opened.LoadAsync(file);
+            Assert.Equal(saved.Json, opened.Json);
+
+            // A file that is no design leaves the design as it is.
+            await Assert.ThrowsAsync<System.Text.Json.JsonException>(() => opened.LoadAsync(new MemoryStream("{ \"blur\": -5 }"u8.ToArray())));
+            Assert.Equal(saved.Json, opened.Json);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void A_Palette_Sets_The_Fill_Colors_Which_Stay_Editable()
     {
         var designer = new DaisyGlassDesigner();

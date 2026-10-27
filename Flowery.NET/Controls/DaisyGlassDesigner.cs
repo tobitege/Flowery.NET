@@ -14,6 +14,7 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
+using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 using Flowery.Controls.ColorPicker;
@@ -61,6 +62,7 @@ namespace Flowery.Controls
         private StackPanel _importPanel = null!;
         private TextBox _importBox = null!;
         private TextBlock _importError = null!;
+        private TextBlock _fileError = null!;
         private readonly Dictionary<Tab, RadioButton> _tabButtons = new();
         private CancellationTokenSource? _motion;
         private DaisyToggle? _move;
@@ -732,22 +734,37 @@ namespace Flowery.Controls
                 tabs.Children.Add(button);
             }
 
-            // Reset sits next to the tabs, so it is at hand on every tab, also when the stage is scrolled away.
-            var reset = new DaisyButton
+            // Open, save and reset sit next to the tabs, so they are at hand on every tab, also when the stage is
+            // scrolled away.
+            var open = ActionButton("GlassDesigner_Open", "Open…", DaisyIconSymbol.Folder);
+            open.Click += async (_, _) => await OpenFileAsync();
+            var save = ActionButton("GlassDesigner_Save", "Save…", DaisyIconSymbol.Save);
+            save.Click += async (_, _) => await SaveFileAsync();
+            var reset = ActionButton("GlassDesigner_Reset", "Reset", DaisyIconSymbol.Undo);
+            reset.Click += (_, _) =>
             {
-                Content = L("GlassDesigner_Reset", "Reset"),
-                ButtonStyle = DaisyButtonStyle.Soft,
-                Size = DaisySize.Small,
-                Margin = new Thickness(12, 0, 0, 0),
-                VerticalAlignment = VerticalAlignment.Center
+                _fileError.IsVisible = false;
+                Reset();
             };
-            reset.Click += (_, _) => Reset();
-            Grid.SetColumn(reset, 1);
+            var actions = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 8,
+                Margin = new Thickness(12, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Children = { open, save, reset }
+            };
+            Grid.SetColumn(actions, 1);
+
+            _fileError = new TextBlock { Classes = { "gbd-error" }, TextWrapping = TextWrapping.Wrap, IsVisible = false, Margin = new Thickness(0, 8, 0, 0) };
+            Grid.SetRow(_fileError, 1);
+            Grid.SetColumnSpan(_fileError, 2);
 
             return new Grid
             {
                 Margin = new Thickness(24, 0),
                 ColumnDefinitions = new ColumnDefinitions("*,Auto"),
+                RowDefinitions = new RowDefinitions("Auto,Auto"),
                 Children =
                 {
                     new ScrollViewer
@@ -756,9 +773,109 @@ namespace Flowery.Controls
                         VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
                         Content = new Border { Classes = { "gbd-tabs" }, HorizontalAlignment = HorizontalAlignment.Left, Child = tabs }
                     },
-                    reset
+                    actions,
+                    _fileError
                 }
             };
+        }
+
+        private static DaisyButton ActionButton(string key, string fallback, DaisyIconSymbol icon) => new()
+        {
+            Content = L(key, fallback),
+            IconSymbol = icon,
+            ButtonStyle = DaisyButtonStyle.Soft,
+            Size = DaisySize.Small
+        };
+
+        // ---------------------------------------------------------------- Files
+
+        private static FilePickerFileType DesignFileType() => new(L("GlassDesigner_FileType", "Glass design"))
+        {
+            Patterns = ["*.json"],
+            MimeTypes = ["application/json"]
+        };
+
+        // Opens a design from a JSON file that the user picks.
+        private async Task OpenFileAsync()
+        {
+            if (TopLevel.GetTopLevel(this)?.StorageProvider is not { CanOpen: true } storage)
+                return;
+            var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = L("GlassDesigner_Open", "Open…"),
+                AllowMultiple = false,
+                FileTypeFilter = [DesignFileType()]
+            });
+            if (files is not [var file])
+                return;
+            try
+            {
+                await using var stream = await file.OpenReadAsync();
+                await LoadAsync(stream);
+                _fileError.IsVisible = false;
+            }
+            catch (Exception ex) when (ex is JsonException or System.IO.IOException or UnauthorizedAccessException)
+            {
+                ShowFileError(L("GlassDesigner_OpenError", "This file is not a design: {0}"), ex.Message);
+            }
+        }
+
+        // Saves the design as a JSON file where the user picks.
+        private async Task SaveFileAsync()
+        {
+            if (TopLevel.GetTopLevel(this)?.StorageProvider is not { CanSave: true } storage)
+                return;
+            var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = L("GlassDesigner_Save", "Save…"),
+                SuggestedFileName = "glass-design",
+                DefaultExtension = "json",
+                FileTypeChoices = [DesignFileType()],
+                ShowOverwritePrompt = true
+            });
+            if (file is null)
+                return;
+            try
+            {
+                await using var stream = await file.OpenWriteAsync();
+                await SaveAsync(stream);
+                _fileError.IsVisible = false;
+            }
+            catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
+            {
+                ShowFileError(L("GlassDesigner_SaveError", "The design could not be saved: {0}"), ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Loads a design from a stream of JSON, as written by <see cref="SaveAsync"/>. The Open button of the designer
+        /// uses it with a file the user picks.
+        /// </summary>
+        /// <exception cref="JsonException">The stream holds no valid design; the design stays as it is.</exception>
+        public async Task LoadAsync(System.IO.Stream stream)
+        {
+            ArgumentNullException.ThrowIfNull(stream);
+            using var reader = new System.IO.StreamReader(stream, leaveOpen: true);
+            ImportJson(await reader.ReadToEndAsync());
+        }
+
+        /// <summary>
+        /// Writes the design as JSON (UTF-8) to a stream, replacing what a seekable stream held. The Save button of the
+        /// designer uses it with a file the user picks.
+        /// </summary>
+        public async Task SaveAsync(System.IO.Stream stream)
+        {
+            ArgumentNullException.ThrowIfNull(stream);
+            if (stream.CanSeek)
+                stream.SetLength(0);
+            await using var writer = new System.IO.StreamWriter(stream, new System.Text.UTF8Encoding(false), leaveOpen: true);
+            await writer.WriteAsync(Json);
+        }
+
+        private void ShowFileError(string format, string message)
+        {
+            _fileError.Text = string.Format(CultureInfo.CurrentCulture, format, message);
+            _fileError.IsVisible = true;
         }
 
         private void ShowTab(Tab tab)
