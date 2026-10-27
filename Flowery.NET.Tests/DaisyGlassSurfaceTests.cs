@@ -150,6 +150,8 @@ public class DaisyGlassSurfaceTests
             Assert.Equal(panel.Children.IndexOf(field) - 1, panel.Children.IndexOf(glass));
             Assert.Equal(field.CornerRadius, glass.CornerRadius);
             Assert.Equal(field.Margin, glass.Margin);
+            Assert.Equal(field.MinHeight, glass.MinHeight);
+            Assert.Equal(field.MinWidth, glass.MinWidth);
             Assert.Equal(18, glass.GlassBlur);
             Assert.Same(Brushes.Transparent, field.Background);
 

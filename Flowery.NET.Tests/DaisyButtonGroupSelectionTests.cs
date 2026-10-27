@@ -148,7 +148,6 @@ public class DaisyButtonGroupSelectionTests
             Assert.True(buttons[0].Focus());
             Press(window, Key.Right);
             Assert.Equal(1, group.SelectedIndex);
-            Assert.Equal(1, group.SelectedIndex);
             Assert.True(buttons[1].IsFocused);
 
             Press(window, Key.End);

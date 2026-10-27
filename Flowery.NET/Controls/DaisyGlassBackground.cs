@@ -88,9 +88,12 @@ namespace Flowery.Controls
         // Shorter waits than this are not worth a timer; the layer asks for the next display frame instead.
         private const double MinSleep = 0.012;
 
+        // The longest single wait, in seconds; a longer interval is waited out in steps.
+        private const double MaxSleep = 1;
+
         private bool _attached;
         private bool _frameRequested;
-        private bool _waitingForRedraw;
+        private IDisposable? _wait;
         private bool _hiddenCheckQueued;
         private bool _inViewport = true;
         private TimeSpan? _lastFrame;
@@ -132,21 +135,31 @@ namespace Flowery.Controls
             DaisyAccessibility.PreferencesChanged -= OnPreferencesChanged;
             Source.PropertyChanged -= OnSourceChanged;
             EffectiveViewportChanged -= OnEffectiveViewportChanged;
+            StopWaiting();
             _lastFrame = null;
             base.OnDetachedFromVisualTree(e);
         }
 
         private void OnPreferencesChanged(object? sender, EventArgs e)
         {
+            StopWaiting();
             InvalidateVisual();
             RequestFrame();
         }
 
-        // A new effect shows at once, also on a still frame; a speed above 0 starts the frames again.
+        // A new effect shows at once, also on a still frame; a speed above 0 starts the frames again, and a new frame
+        // rate applies without finishing the wait for the old one.
         private void OnSourceChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
+            StopWaiting();
             InvalidateVisual();
             RequestFrame();
+        }
+
+        private void StopWaiting()
+        {
+            _wait?.Dispose();
+            _wait = null;
         }
 
         private void OnEffectiveViewportChanged(object? sender, EffectiveViewportChangedEventArgs e)
@@ -157,9 +170,11 @@ namespace Flowery.Controls
 
         private void RequestFrame()
         {
-            if (_waitingForRedraw)
+            // A pending frame or wait carries on as it is: dropping the time of the last frame would make the next one
+            // count no time, so the animation would stall while something keeps asking.
+            if (_wait != null || _frameRequested)
                 return;
-            if (_frameRequested || !_attached || !CanMove || !_inViewport || TopLevel.GetTopLevel(this) is not { } topLevel)
+            if (!_attached || !CanMove || !_inViewport || TopLevel.GetTopLevel(this) is not { } topLevel)
             {
                 _lastFrame = null;
                 return;
@@ -221,12 +236,12 @@ namespace Flowery.Controls
                 return;
             }
 
-            _waitingForRedraw = true;
-            DispatcherTimer.RunOnce(() =>
+            // A long interval is waited out in steps, so a very low rate cannot overflow the timer.
+            _wait = DispatcherTimer.RunOnce(() =>
             {
-                _waitingForRedraw = false;
+                _wait = null;
                 RequestFrame();
-            }, TimeSpan.FromSeconds(sleep));
+            }, TimeSpan.FromSeconds(Math.Min(sleep, MaxSleep)));
         }
 
         // A frame redraws when it is nearer to the next redraw time than the frame after it. The time past that point
@@ -243,7 +258,9 @@ namespace Flowery.Controls
             sinceRedraw += elapsed;
             if (sinceRedraw < interval - elapsed / 2)
                 return false;
-            sinceRedraw = Math.Max(sinceRedraw - interval, -interval);
+            // The carry-over stays within one interval: a rate above the display rate, or dropped frames, would otherwise
+            // pile it up, and after a lower rate is set the layer would redraw on every frame until it drained.
+            sinceRedraw = Math.Clamp(sinceRedraw - interval, -interval, interval);
             return true;
         }
     }

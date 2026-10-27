@@ -469,7 +469,7 @@ namespace Flowery.Controls
                 ApplyAll();
 
                 if (change.Property == SelectedIndexProperty || change.Property == SelectionModeProperty)
-                    UpdateSelection();
+                    UpdateSelection(tellScreenReaders: change.Property == SelectedIndexProperty);
                 InvalidateArrange();
             }
         }
@@ -489,7 +489,9 @@ namespace Flowery.Controls
         /// Raises <see cref="SelectionChanged"/> and tells screen readers about the segments whose selection changed,
         /// when the selection differs from the last one.
         /// </summary>
-        private void UpdateSelection()
+        // A switch of the selection mode changes the patterns of the segments too, so a change of the old pattern
+        // cannot be told in the new one; screen readers read the segments again instead.
+        private void UpdateSelection(bool tellScreenReaders = true)
         {
             var selection = GetSelection();
             var removed = _selection.Except(selection).ToArray();
@@ -498,7 +500,7 @@ namespace Flowery.Controls
             if (removed.Length == 0 && added.Length == 0)
                 return;
 
-            foreach (var (index, button) in GetSegments())
+            foreach (var (index, button) in tellScreenReaders ? GetSegments() : [])
             {
                 if (ControlAutomationPeer.FromElement(button) is not { } peer)
                     continue;
@@ -715,11 +717,15 @@ namespace Flowery.Controls
 
         private void ApplySelectionClasses()
         {
+            var singleSelection = AutoSelect && SelectionMode == DaisyButtonGroupSelectionMode.Single;
+            // Without a selection Tab enters at the first segment again, not at the one selected before.
+            if (singleSelection && SelectedIndex < 0)
+                KeyboardNavigation.SetTabOnceActiveElement(this, null);
             foreach (var (index, button) in GetSegments())
             {
                 ApplyActiveClass(button, index);
                 // Tab enters the group at the selected segment.
-                if (AutoSelect && SelectionMode == DaisyButtonGroupSelectionMode.Single && index == SelectedIndex)
+                if (singleSelection && index == SelectedIndex)
                     KeyboardNavigation.SetTabOnceActiveElement(this, button);
             }
         }

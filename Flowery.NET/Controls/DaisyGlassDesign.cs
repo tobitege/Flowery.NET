@@ -569,9 +569,12 @@ namespace Flowery.Controls
             return builder.ToString();
         }
 
-        // The scalar values written as attached properties, in a fixed order, with whether each equals its default.
+        // The scalar values written as attached properties, in a fixed order, with whether each equals its default. The
+        // tint never counts as a default: the glass button theme does not set it, so the glass takes the tint of the color
+        // theme (navy in Glassy), while the design and its preview always set one.
         private IEnumerable<(string Name, object Value, bool IsDefault)> Values(DaisyGlassDesign defaults) =>
-            Settings.Select(setting => (setting.Name, setting.Get(this), SameValue(setting.Get(this), setting.Get(defaults))));
+            Settings.Select(setting => (setting.Name, setting.Get(this),
+                setting.Attached != DaisyGlassSurface.TintProperty && SameValue(setting.Get(this), setting.Get(defaults))));
 
         private string BackgroundXaml(string prefix, DaisyGlassDesign defaults)
         {

@@ -32,7 +32,8 @@ public class DaisyGlassDesignTests
             Assert.Equal(new DaisyGlassDesign().ToJson(), DaisyGlassDesign.FromControl(button).ToJson());
             Assert.Equal(
                 "<controls:DaisyButton Theme=\"{StaticResource DaisyGlassButtonTheme}\"\n" +
-                "                      controls:DaisyGlassSurface.IsEnabled=\"True\" />",
+                "                      controls:DaisyGlassSurface.IsEnabled=\"True\"\n" +
+                "                      controls:DaisyGlassSurface.Tint=\"#FFFFFFFF\" />",
                 new DaisyGlassDesign().ToXaml().ReplaceLineEndings("\n"));
         }
         finally
@@ -131,14 +132,69 @@ public class DaisyGlassDesignTests
             "<controls:DaisyButton Theme=\"{StaticResource DaisyGlassButtonTheme}\"\n" +
             "                      controls:DaisyGlassSurface.IsEnabled=\"True\"\n" +
             "                      controls:DaisyGlassSurface.Blur=\"44\"\n" +
+            "                      controls:DaisyGlassSurface.Tint=\"#FFFFFFFF\"\n" +
             "                      controls:DaisyGlassSurface.Pattern=\"Dots\" />",
             design.ToXaml().ReplaceLineEndings("\n"));
         Assert.Equal(
             "// using Avalonia;\n// using Avalonia.Media;\n// using Avalonia.Styling;\n// using Flowery.Controls;\n// using Flowery.Enums;\n" +
             "var button = new DaisyButton { Theme = (ControlTheme)Application.Current!.FindResource(\"DaisyGlassButtonTheme\")! };\n" +
             "DaisyGlassSurface.SetIsEnabled(button, true);\nDaisyGlassSurface.SetBlur(button, 44);\n" +
+            "DaisyGlassSurface.SetTint(button, Color.Parse(\"#FFFFFFFF\"));\n" +
             "DaisyGlassSurface.SetPattern(button, DaisyCardPattern.Dots);",
             design.ToCSharp().ReplaceLineEndings("\n"));
+    }
+
+    [AvaloniaFact]
+    public void The_Exported_Glass_Button_Keeps_The_Tint_Of_The_Preview_Under_Glassy()
+    {
+        // The glass button theme leaves the tint to the color theme, which is navy in Glassy; the design sets white.
+        var previous = DaisyThemeManager.CurrentThemeName;
+        try
+        {
+            Assert.True(DaisyThemeManager.ApplyTheme("Glassy"));
+            var design = new DaisyGlassDesign();
+            var xaml = design.ToXaml().Replace("<controls:DaisyButton ",
+                "<controls:DaisyButton xmlns=\"https://github.com/avaloniaui\" " +
+                "xmlns:controls=\"clr-namespace:Flowery.Controls;assembly=Flowery.NET\" ");
+            var button = (DaisyButton)Avalonia.Markup.Xaml.AvaloniaRuntimeXamlLoader.Load(xaml);
+            var window = Show(button);
+            try
+            {
+                Assert.Equal(Colors.White, DaisyGlassSurface.GetGlass(button)!.GlassTint);
+            }
+            finally
+            {
+                window.Close();
+            }
+        }
+        finally
+        {
+            DaisyThemeManager.ApplyTheme(previous ?? "Light");
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Preset_Shows_On_The_Button_It_Was_Made_For()
+    {
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            designer.UpdateLayout();
+            var neon = designer.GetVisualDescendants().OfType<Button>()
+                .Single(tile => tile.Classes.Contains("gbd-tile") && ToolTip.GetTip(tile) as string == "Neon");
+            neon.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent, neon));
+
+            Assert.Equal(DaisyButtonVariant.Accent, designer.PreviewVariant);
+            Assert.Equal(DaisyButtonStyle.Outline, designer.PreviewButtonStyle);
+            Assert.Equal(0.9, designer.Design.Curvature);
+            // The preview options stay out of the design.
+            Assert.DoesNotContain("Accent", designer.Json);
+        }
+        finally
+        {
+            window.Close();
+        }
     }
 
     [AvaloniaFact]
