@@ -33,7 +33,9 @@ namespace Flowery.Controls
     /// </summary>
     public class DaisyGlassDesigner : UserControl
     {
-        private enum Tab { Presets, Button, Glass, Fill, Pattern, Motion }
+        // In the order of the tab bar. Fill and Motion sit next to each other, since the animated background lies over the
+        // fill.
+        private enum Tab { Presets, Button, Glass, Pattern, Fill, Motion }
 
         private enum CodeKind { Xaml, CSharp, Json }
 
@@ -1006,7 +1008,8 @@ namespace Flowery.Controls
                 d.FillKind = v;
                 if (v == DaisyGlassFillKind.Preset && d.FillPreset == DaisyGlassGradient.None)
                     d.FillPreset = DaisyGlassGradient.Aurora;
-            }, wide: true, rebuildTab: true);
+            }, wide: true, rebuildTab: true,
+                hint: L("GlassDesigner_FillLayerHint", "Lies under the animated background of the Animation tab, which covers it at its opacity."));
 
             if (_design.FillKind != DaisyGlassFillKind.Keep)
                 yield return FillPalettes();
@@ -1203,7 +1206,8 @@ namespace Flowery.Controls
             yield return Chips("GlassDesigner_Renderer", "Animated background", renderers, d => d.BackgroundRenderer, (d, v) => d.BackgroundRenderer = v,
                 wide: true, rebuildTab: true,
                 isEnabled: renderer => renderer != DaisyGlassBackgroundRenderer.Shader || shaderAvailable,
-                hint: shaderAvailable ? null : L("GlassDesigner_ShaderHint", "Shader needs Flowery.NET.Skia."));
+                hint: L("GlassDesigner_BackgroundLayerHint", "Lies over the fill of the Fill tab; at an opacity of 1 it hides the fill.")
+                      + (shaderAvailable ? "" : " " + L("GlassDesigner_ShaderHint", "Shader needs Flowery.NET.Skia.")));
 
             if (_design.BackgroundRenderer == DaisyGlassBackgroundRenderer.None)
                 yield break;

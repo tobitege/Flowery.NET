@@ -208,6 +208,8 @@
   "GlassDesigner_TabFill": "Заливка",
   "GlassDesigner_TabPattern": "Візерунок",
   "GlassDesigner_TabMotion": "Анімація",
+  "GlassDesigner_FillLayerHint": "Лежить під анімованим тлом вкладки «Анімація», яке перекриває її відповідно до своєї непрозорості.",
+  "GlassDesigner_BackgroundLayerHint": "Лежить над заливкою вкладки «Заливка»; за непрозорості 1 повністю її приховує.",
   "GlassDesigner_Presets": "Почніть із шаблону",
   "GlassDesigner_Text": "Текст",
   "GlassDesigner_Variant": "Варіант",
