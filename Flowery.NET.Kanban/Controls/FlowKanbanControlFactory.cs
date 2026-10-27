@@ -3,8 +3,7 @@
 internal enum FlowKanbanTextRole
 {
     Title,
-    Body,
-    Caption
+    Body
 }
 
 internal static class FlowKanbanControlFactory
@@ -33,12 +32,7 @@ internal static class FlowKanbanControlFactory
             Text = text,
             TextWrapping = TextWrapping.Wrap,
             Foreground = DaisyResourceLookup.GetBrush("DaisyBaseContentBrush"),
-            FontSize = role switch
-            {
-                FlowKanbanTextRole.Title => 20,
-                FlowKanbanTextRole.Caption => 12,
-                _ => 14
-            },
+            FontSize = role == FlowKanbanTextRole.Title ? 20 : 14,
             FontWeight = role == FlowKanbanTextRole.Title ? FontWeight.SemiBold : FontWeight.Normal
         };
     }

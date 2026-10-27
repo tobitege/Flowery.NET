@@ -104,6 +104,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Development: the headless tests run on xUnit 4 through the ProTest packages (`ProTest.Avalonia.Headless.XUnit.v4`), which replace `Avalonia.Headless` and `Avalonia.Headless.XUnit`, and share one application across the test assembly; every test, plain facts included, runs on its UI thread. A test that leaves global state changed, such as an applied theme or the culture, fails and the state is put back; a test checks that no static field set when its type initializes holds an Avalonia object. Clicks and keys in the tests go through the window, so hit testing and the focus decide what receives them, as for a user. Copied tests of the number input, accessibility, mask input and localization are merged into table-driven tests that check exact output. The localization tests check every key-shaped text in the code against English, every language against English, and loading every language at run time, from the shipped resources instead of fixed lists. Tests that register themes remove them again.
 - The library, FlowKanban, the Gallery (desktop, Android, iOS) and Flowery Photos are version 4.0.0.
 
+### Removed
+
+#### FlowKanban
+
+- Flowery.NET.Kanban: the unused internal user-provider stack: the user management view, the local and composite user providers, the provider tokens and the identity links, with their texts in all 12 languages. Boards name assignees through `AssigneeAdapter`, as before. Every removed type was internal, so the public API does not change. Settings the stack saved are left in place and no longer read.
+
 ### Fixed
 
 #### Glass
@@ -137,7 +143,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `FlowKanban`: on Android, cards could not be dragged within or between columns. Avalonia has no platform drag and drop there, so the drag started by a card did nothing. After a hold, the finger now drags a card inside the board: a copy follows the finger, the column under it shows the drop position, the release moves the card as a drop does, and the board scrolls along at its edges. The mouse drag is unchanged.
 - Kanban dialogs (`FlowKanbanDialogBase`): on Android the on-screen keyboard covered their lower part, such as Save and Cancel of the task editor. A dialog now moves into the part above the keyboard, at most as high as that part and below the status bar, and brings the focused field into view.
 - `FlowKanban`: on a board lower than its sidebar, the sidebar buttons overlapped each other. The sidebar scrolls instead and keeps the statistics at its bottom while it has the room.
-- `FlowKanban`: the access token dialog of a user provider, the error when a provider cannot connect or disconnect, and the error when an identity link cannot be loaded or saved were in English in every language; their texts were missing from the language files. They are added in all 12 languages.
 - `FlowKanban`: cards and columns could no longer be drawn when a background thread was the first to use the card or column class. Their shared transparent and drag highlight brushes then belonged to that thread, and drawing them on the UI thread failed. They are immutable brushes now, which belong to no thread.
 
 #### Gallery

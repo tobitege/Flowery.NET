@@ -14,7 +14,6 @@ using Flowery.Controls;
 using Flowery.Controls.Custom.Weather;
 using Flowery.Controls.Custom.Weather.Models;
 using Flowery.NET.Kanban.Controls;
-using Flowery.NET.Kanban.Controls.Users;
 using Flowery.Services;
 using Xunit;
 
@@ -279,64 +278,6 @@ public class ReviewRegressionTests
         finally { DaisyThemeManager.SetCurrentTheme(previous ?? string.Empty); }
     }
 
-    [AvaloniaFact]
-    public async Task UserLoadFailureHasVisibleErrorAndRetryClearsIt()
-    {
-        using var scope = new Scope(new Border());
-        var provider = new ControlledProvider();
-        var view = new FlowKanbanUserManagement { UserProvider = provider, IsActive = true };
-        scope.Window.Content = view;
-        scope.Flush();
-        Assert.True(view.IsLoading);
-        Assert.False(view.IsEmptyStateVisible);
-        var stopped = WaitForIdle(view);
-        provider.Completion.SetException(new InvalidOperationException("Provider unavailable"));
-        await stopped.WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.NotEmpty(view.LoadErrorMessage);
-        Assert.False(view.IsEmptyStateVisible);
-        provider.Completion = new TaskCompletionSource<IEnumerable<IFlowUser>>();
-        view.RefreshCommand.Execute(null);
-        Assert.True(view.IsLoading);
-        Assert.Empty(view.LoadErrorMessage);
-        stopped = WaitForIdle(view);
-        provider.Completion.SetResult([]);
-        await stopped.WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.True(view.IsEmptyStateVisible);
-    }
-
-    [AvaloniaFact]
-    public async Task RemovingProviderCancelsPendingLoadAndCannotPublishStaleUsers()
-    {
-        using var scope = new Scope(new Border());
-        var provider = new ControlledProvider();
-        var view = new FlowKanbanUserManagement { UserProvider = provider, IsActive = true };
-        scope.Window.Content = view;
-        scope.Flush();
-        var oldToken = provider.LastToken;
-        view.UserProvider = null;
-        Assert.True(oldToken.IsCancellationRequested);
-        Assert.False(view.IsLoading);
-        provider.Completion.SetResult([]);
-        await provider.Completion.Task;
-        Dispatcher.UIThread.RunJobs();
-        Assert.Empty(view.Users);
-        Assert.Empty(view.LoadErrorMessage);
-    }
-
-    private static Task WaitForIdle(FlowKanbanUserManagement view)
-    {
-        var completion = new TaskCompletionSource();
-        EventHandler<AvaloniaPropertyChangedEventArgs>? changed = null;
-        changed = (_, args) =>
-        {
-            if (args.Property != FlowKanbanUserManagement.IsLoadingProperty || view.IsLoading) return;
-            view.PropertyChanged -= changed;
-            completion.TrySetResult();
-        };
-        view.PropertyChanged += changed;
-        return completion.Task;
-    }
-
     private static void Press(Window window, Key key)
     {
         window.KeyPress(key, RawInputModifiers.None, PhysicalKey.None, keySymbol: null);
@@ -363,27 +304,5 @@ public class ReviewRegressionTests
         public void Delete(string key) => _values.Remove(key);
         public void Rename(string sourceKey, string targetKey) { _values[targetKey] = _values[sourceKey]; _values.Remove(sourceKey); }
         public IEnumerable<string> GetKeys(string prefix) => _values.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal)).ToArray();
-    }
-
-    private sealed class ControlledProvider : IUserProvider
-    {
-        public TaskCompletionSource<IEnumerable<IFlowUser>> Completion { get; set; } = new();
-        public CancellationToken LastToken { get; private set; }
-        public string ProviderKey => "controlled";
-        public string DisplayName => "Controlled";
-        public string ImplementationVersion => "test";
-        public bool SupportsAvatars => false;
-        public bool SupportsPresence => false;
-        public bool SupportsRealtime => false;
-        public event Action? UsersChanged { add { } remove { } }
-        public Task<IEnumerable<IFlowUser>> GetAllUsersAsync(CancellationToken cancellation = default)
-        {
-            LastToken = cancellation;
-            return Completion.Task;
-        }
-        public Task<IFlowUser?> GetUserByIdAsync(string rawId, CancellationToken cancellation = default) => Task.FromResult<IFlowUser?>(null);
-        public Task<IEnumerable<IFlowUser>> SearchUsersAsync(string query, int maxResults = 20, CancellationToken cancellation = default) => Completion.Task;
-        public Task<IFlowUser?> GetCurrentUserAsync(CancellationToken cancellation = default) => Task.FromResult<IFlowUser?>(null);
-        public Task RefreshAsync(CancellationToken cancellation = default) => Task.CompletedTask;
     }
 }
