@@ -106,6 +106,51 @@ public class KanbanAndroidRegressionTests
     }
 
     [AvaloniaFact]
+    public void On_Touch_A_Card_Tapped_Before_It_Knows_Its_Board_Joins_The_Selection()
+    {
+        var selected = new FlowTask { Title = "Selected", IsSelected = true };
+        var task = new FlowTask { Title = "Task" };
+        var column = new FlowKanbanColumnData { Title = "Todo", Tasks = { selected } };
+        var edits = new List<FlowTask>();
+        var board = new FlowKanban
+        {
+            AutoSaveAfterEdits = false,
+            Board = new FlowKanbanData { Columns = { column } },
+            EditCardCommand = new EditRecorder(edits)
+        };
+        var window = CreateWindow(board, 700);
+        try
+        {
+            board.CurrentView = FlowKanbanView.Board;
+            Flush(window);
+
+            // The layout realizes the new card, and the dispatcher raises its Loaded later. On a phone the platform
+            // delivers a touch right away, so it can reach the card in between; the headless input helpers would run the
+            // dispatcher first, so the touch is raised on the card itself.
+            column.Tasks.Add(task);
+            window.UpdateLayout();
+            var card = window.GetVisualDescendants().OfType<FlowTaskCard>().Single(found => ReferenceEquals(found.Task, task));
+            Assert.False(card.IsLoaded);
+            card.UsesTouchSelection = true;
+            var pointer = new Pointer(Pointer.GetNextFreeId(), PointerType.Touch, isPrimary: true);
+            var point = Spot(window, card);
+            card.RaiseEvent(new PointerPressedEventArgs(card, pointer, window, point, 0,
+                new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed), KeyModifiers.None));
+            card.RaiseEvent(new PointerReleasedEventArgs(card, pointer, window, point, 1,
+                new PointerPointProperties(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased), KeyModifiers.None, MouseButton.Left));
+            Assert.False(card.IsLoaded);
+
+            Assert.True(task.IsSelected);
+            Assert.True(selected.IsSelected);
+            Assert.Empty(edits);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void A_Tap_Or_Click_On_A_Free_Place_Clears_The_Selection_And_A_Swipe_There_Does_Not()
     {
         var task = new FlowTask { Title = "Task", IsSelected = true };
@@ -278,8 +323,22 @@ public class KanbanAndroidRegressionTests
     private static IEnumerable<Border> Ghosts(Visual board) =>
         OverlayLayer.GetOverlayLayer(board)!.Children.OfType<Border>().Where(static border => border.Background is VisualBrush);
 
-    private static FlowTaskCard Card(Window window, FlowTask task) =>
-        window.GetVisualDescendants().OfType<FlowTaskCard>().Single(card => ReferenceEquals(card.Task, task));
+    // The column builds its cards anew after a selection or a move. A tap does not need a loaded card, but the other
+    // handlers of a card that is only in the tree have not run yet, so a test taps a card only once it is loaded.
+    private static FlowTaskCard Card(Window window, FlowTask task)
+    {
+        var card = Find(window, task);
+        for (var attempt = 0; attempt < 10 && !card.IsLoaded; attempt++)
+        {
+            Flush(window);
+            card = Find(window, task);
+        }
+        Assert.True(card.IsLoaded, $"the card of {task.Title} did not load");
+        return card;
+
+        static FlowTaskCard Find(Window window, FlowTask task) =>
+            window.GetVisualDescendants().OfType<FlowTaskCard>().Single(found => ReferenceEquals(found.Task, task));
+    }
 
     // A point just above the bottom edge of a card, in the window.
     private static Point BottomOf(FlowTaskCard card, Window window) =>
@@ -308,7 +367,7 @@ public class KanbanAndroidRegressionTests
         // Without a stored view the board opens on its home view, as on a fresh machine.
         board.CurrentView = FlowKanbanView.Board;
         Flush(window);
-        var card = window.GetVisualDescendants().OfType<FlowTaskCard>().Single();
+        var card = Card(window, task);
         card.UsesTouchSelection = true;
         return (window, card);
     }
