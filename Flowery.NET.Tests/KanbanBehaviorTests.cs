@@ -17,7 +17,6 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.NET.Kanban.Controls;
-using Flowery.NET.Kanban.Controls.Users;
 using Flowery.NET.Kanban.Interfaces;
 using Flowery.Services;
 using Xunit;
@@ -1346,23 +1345,33 @@ namespace Flowery.NET.Tests
         }
 
         [AvaloniaFact]
-        public void When_BoardSize_Changes_EventFires()
+        public void When_BoardSize_Changes_OnALoadedBoard_ColumnsAndAddCardsTakeTheSize()
         {
-            var kanban = new FlowKanban();
-            var invocationCount = 0;
-            DaisySize? lastSize = null;
+            var kanban = CreateKanban(CreateColumn("Todo", CreateTask("Task")));
+            var window = ShowKanban(kanban);
 
-            kanban.BoardSizeChanged += (_, size) =>
+            try
             {
-                invocationCount++;
-                lastSize = size;
-            };
+                ShowBoardView(kanban);
+                var sizes = new List<DaisySize>();
+                kanban.BoardSizeChanged += (_, size) => sizes.Add(size);
+                var column = GetVisibleColumns(kanban).Single();
+                var addCards = column.GetVisualDescendants().OfType<FlowKanbanAddCard>().ToList();
+                Assert.NotEmpty(addCards);
+                var newSize = kanban.BoardSize == DaisySize.Large ? DaisySize.Small : DaisySize.Large;
 
-            kanban.BoardSize = DaisySize.Small;
-            kanban.BoardSize = DaisySize.Large;
+                // The column and the add cards take the size only through BoardSizeChanged.
+                kanban.BoardSize = newSize;
+                Dispatcher.UIThread.RunJobs();
 
-            Assert.Equal(2, invocationCount);
-            Assert.Equal(DaisySize.Large, lastSize);
+                Assert.Equal([newSize], sizes);
+                Assert.Equal(newSize, column.ColumnSize);
+                Assert.All(addCards, addCard => Assert.Equal(newSize, addCard.AddCardSize));
+            }
+            finally
+            {
+                window.Close();
+            }
         }
 
         [AvaloniaFact]
@@ -1399,6 +1408,31 @@ namespace Flowery.NET.Tests
 
             column.IsDropEnabled = false;
             Assert.False(DragDrop.GetAllowDrop(column));
+        }
+
+        [AvaloniaFact]
+        public void When_DropIsDisabled_OnALoadedColumn_ColumnAndTaskListRefuseDrops()
+        {
+            var kanban = CreateKanban(CreateColumn("Todo", CreateTask("Task")));
+            var window = ShowKanban(kanban);
+
+            try
+            {
+                ShowBoardView(kanban);
+                var column = GetVisibleColumns(kanban).Single();
+                var taskList = column.GetVisualDescendants().OfType<ListBox>().Single(list => list.Name == "PART_TasksItemsControl");
+                Assert.True(DragDrop.GetAllowDrop(column));
+                Assert.True(DragDrop.GetAllowDrop(taskList));
+
+                column.IsDropEnabled = false;
+
+                Assert.False(DragDrop.GetAllowDrop(column));
+                Assert.False(DragDrop.GetAllowDrop(taskList));
+            }
+            finally
+            {
+                window.Close();
+            }
         }
 
         [Theory]
@@ -1979,96 +2013,6 @@ namespace Flowery.NET.Tests
             }
         }
 
-        [Fact]
-        public async Task When_LocalUserProviderReopens_UserChangesAndDemoIdsPersist()
-        {
-            var storage = new InMemoryStateStorage();
-            var first = new LocalUserProvider(storage, includeDemoUsers: true);
-            var added = first.AddUser("  Alex  ", " alex@example.com ");
-            var firstDemoIds = (await first.GetAllUsersAsync(TestContext.Current.CancellationToken))
-                .Where(user => user.RawId.StartsWith("demo-", StringComparison.Ordinal))
-                .Select(user => user.RawId)
-                .OrderBy(rawId => rawId, StringComparer.Ordinal)
-                .ToArray();
-
-            var reopened = new LocalUserProvider(storage, includeDemoUsers: true);
-            var reopenedUsers = (await reopened.GetAllUsersAsync(TestContext.Current.CancellationToken)).ToArray();
-            var reopenedAdded = Assert.Single(reopenedUsers, user => user.RawId == added.RawId);
-            Assert.Equal("Alex", reopenedAdded.DisplayName);
-            Assert.Equal("alex@example.com", reopenedAdded.Email);
-            Assert.Equal(
-                firstDemoIds,
-                reopenedUsers
-                    .Where(user => user.RawId.StartsWith("demo-", StringComparison.Ordinal))
-                    .Select(user => user.RawId)
-                    .OrderBy(rawId => rawId, StringComparer.Ordinal));
-
-            Assert.True(reopened.RemoveUser(added.RawId));
-
-            var afterRemoval = new LocalUserProvider(storage, includeDemoUsers: true);
-            Assert.DoesNotContain(
-                await afterRemoval.GetAllUsersAsync(TestContext.Current.CancellationToken),
-                user => user.RawId == added.RawId);
-        }
-
-        [AvaloniaFact]
-        public async Task When_CompositeContainsLocalProvider_LocalUserCrudRemainsAvailable()
-        {
-            var previousStorage = StateStorageProvider.Instance;
-            StateStorageProvider.Configure(new InMemoryStateStorage());
-
-            try
-            {
-                var localProvider = new LocalUserProvider(new InMemoryStateStorage());
-                var externalUser = new FlowUser("external-user", "External User", "external");
-                var composite = new CompositeUserProvider();
-                composite.RegisterProvider(localProvider);
-                composite.RegisterProvider(new StaticUserProvider("external", externalUser));
-                var management = new FlowKanbanUserManagement
-                {
-                    UserProvider = composite,
-                    NewUserName = "Alex",
-                    NewUserEmail = "alex@example.com"
-                };
-
-                Assert.True(management.IsLocalProvider);
-                Assert.True(management.AddUserCommand.CanExecute(null));
-                management.AddUserCommand.Execute(null);
-
-                var added = Assert.Single(
-                    await localProvider.GetAllUsersAsync(TestContext.Current.CancellationToken),
-                    user => user.DisplayName == "Alex");
-                management.SelectedUser = new FlowKanbanUserItem(
-                    externalUser,
-                    "External",
-                    "EU",
-                    string.Empty,
-                    DaisyStatus.None,
-                    avatarSource: null,
-                    isCurrentUser: false);
-                Assert.False(management.RemoveUserCommand.CanExecute(null));
-
-                management.SelectedUser = new FlowKanbanUserItem(
-                    added,
-                    localProvider.DisplayName,
-                    "A",
-                    string.Empty,
-                    DaisyStatus.None,
-                    avatarSource: null,
-                    isCurrentUser: false);
-                Assert.True(management.RemoveUserCommand.CanExecute(null));
-                management.RemoveUserCommand.Execute(null);
-
-                Assert.DoesNotContain(
-                    await localProvider.GetAllUsersAsync(TestContext.Current.CancellationToken),
-                    user => user.RawId == added.RawId);
-            }
-            finally
-            {
-                StateStorageProvider.Configure(previousStorage);
-            }
-        }
-
         [AvaloniaFact]
         public async Task When_AssigneeAdapterChangesOffUiThread_BoardRefreshesOnDispatcher()
         {
@@ -2194,97 +2138,6 @@ namespace Flowery.NET.Tests
             }
         }
 
-        [Fact]
-        public async Task When_CompositeProviderMembershipChanges_UserIdsRemainCanonical()
-        {
-            var composite = new CompositeUserProvider();
-            composite.RegisterProvider(new StaticUserProvider("empty"));
-            var singleProviderId = composite.ComposeId("empty", "user:42");
-
-            composite.RegisterProvider(new LocalUserProvider(new InMemoryStateStorage()));
-            var multiProviderId = composite.ComposeId("empty", "user:42");
-
-            Assert.Equal("empty:user:42", singleProviderId);
-            Assert.Equal(singleProviderId, multiProviderId);
-            Assert.Equal(("empty", "user:42"), composite.ParseId(singleProviderId));
-            Assert.Throws<FormatException>(() => composite.ParseId("user42"));
-            Assert.Null(await composite.GetUserByCompositeIdAsync(
-                "unknown:user:42",
-                TestContext.Current.CancellationToken));
-
-            var user = new FlowUser("user:42", "User", "empty");
-            Assert.Equal(singleProviderId, user.Id);
-            Assert.False(typeof(FlowUser).GetProperty(nameof(FlowUser.Id))!.CanWrite);
-            Assert.False(typeof(FlowUser).GetProperty(nameof(FlowUser.ProviderKey))!.CanWrite);
-            Assert.False(typeof(FlowUser).GetProperty(nameof(FlowUser.RawId))!.CanWrite);
-            Assert.Null(typeof(FlowUser).GetConstructor(Type.EmptyTypes));
-        }
-
-        [Fact]
-        public async Task When_CompositeLoadsUsers_ProvidersRunInParallelAndFailuresAreReported()
-        {
-            var expectedFailure = new InvalidOperationException("Provider failed.");
-            var first = new GatedUserProvider(
-                "first",
-                new FlowUser("user", "First User", "first"));
-            var second = new GatedUserProvider(
-                "second",
-                new FlowUser("user", "Second User", "second"));
-            var failing = new GatedUserProvider("failing", user: null, error: expectedFailure);
-            var composite = new CompositeUserProvider();
-            composite.RegisterProvider(first);
-            composite.RegisterProvider(second);
-            composite.RegisterProvider(failing);
-            var reportedFailures = new List<CompositeUserProviderErrorEventArgs>();
-            composite.ProviderFailed += (_, error) => reportedFailures.Add(error);
-
-            var loadTask = composite.GetAllUsersAsync(TestContext.Current.CancellationToken);
-            try
-            {
-                await Task.WhenAll(first.Started, second.Started, failing.Started).WaitAsync(
-                    TimeSpan.FromSeconds(5),
-                    TestContext.Current.CancellationToken);
-            }
-            finally
-            {
-                first.Release();
-                second.Release();
-                failing.Release();
-            }
-
-            var users = (await loadTask)
-                .OrderBy(user => user.Id, StringComparer.Ordinal)
-                .ToArray();
-
-            Assert.Equal(["first:user", "second:user"], users.Select(user => user.Id));
-            var reportedFailure = Assert.Single(reportedFailures);
-            Assert.Equal("failing", reportedFailure.ProviderKey);
-            Assert.Equal(CompositeUserProviderOperation.GetAllUsers, reportedFailure.Operation);
-            Assert.Same(expectedFailure, reportedFailure.Exception);
-            Assert.Same(reportedFailure, Assert.Single(composite.LastProviderErrors));
-        }
-
-        [Fact]
-        public async Task When_CompositeProvidersRegisterConcurrently_RegistryRemainsConsistent()
-        {
-            const int providerCount = 64;
-            var composite = new CompositeUserProvider();
-            var providers = Enumerable.Range(0, providerCount)
-                .Select(index => (IUserProvider)new StaticUserProvider(
-                    $"provider-{index}",
-                    new FlowUser($"user-{index}", $"User {index}", $"provider-{index}")))
-                .ToArray();
-
-            Parallel.ForEach(providers, composite.RegisterProvider);
-
-            Assert.Equal(providerCount, composite.RegisteredProviderKeys.Count);
-            Assert.Equal(providerCount, composite.RegisteredProviderKeys.Distinct(StringComparer.Ordinal).Count());
-            Assert.Equal(
-                providerCount,
-                (await composite.GetAllUsersAsync(TestContext.Current.CancellationToken)).Count());
-            Assert.Empty(composite.LastProviderErrors);
-        }
-
         [AvaloniaFact]
         public async Task When_AssigneeAdapterResolvesOpaqueId_AssignmentIdIsPreserved()
         {
@@ -2394,135 +2247,6 @@ namespace Flowery.NET.Tests
             }
         }
 
-        [Fact]
-        public async Task When_TokenConnectionSucceeds_ValidationPrecedesPersistence()
-        {
-            var provider = new TokenTestUserProvider();
-
-            var result = await ProviderTokenConnection.ValidateAndSaveAsync(
-                provider,
-                "new-secret",
-                TestContext.Current.CancellationToken);
-
-            Assert.True(result.IsSuccess);
-            Assert.Equal("new-secret", provider.StoredToken);
-            Assert.Equal(["validate", "save"], provider.Calls);
-        }
-
-        [Fact]
-        public async Task When_TokenValidationFailsOrThrows_PersistedTokenIsUnchanged()
-        {
-            var provider = new TokenTestUserProvider
-            {
-                StoredToken = "existing-secret",
-                ValidationResult = ProviderTokenValidationResult.Invalid("invalid")
-            };
-
-            var invalidResult = await ProviderTokenConnection.ValidateAndSaveAsync(
-                provider,
-                "invalid-secret",
-                TestContext.Current.CancellationToken);
-
-            Assert.False(invalidResult.IsSuccess);
-            Assert.Equal("existing-secret", provider.StoredToken);
-            Assert.Equal(["validate"], provider.Calls);
-
-            provider.Calls.Clear();
-            provider.ValidationException = new IOException("Provider unavailable.");
-            await Assert.ThrowsAsync<IOException>(() => ProviderTokenConnection.ValidateAndSaveAsync(
-                provider,
-                "unverified-secret",
-                TestContext.Current.CancellationToken));
-
-            Assert.Equal("existing-secret", provider.StoredToken);
-            Assert.Equal(["validate"], provider.Calls);
-        }
-
-        [Fact]
-        public async Task When_TokenValidationCompletesAfterCancellation_TokenIsNotPersisted()
-        {
-            var validationCompletion = new TaskCompletionSource<ProviderTokenValidationResult>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
-            var provider = new TokenTestUserProvider
-            {
-                ValidationHandler = (_, _) => validationCompletion.Task
-            };
-            using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(
-                TestContext.Current.CancellationToken);
-
-            var connection = ProviderTokenConnection.ValidateAndSaveAsync(
-                provider,
-                "new-secret",
-                cancellation.Token);
-            cancellation.Cancel();
-            validationCompletion.SetResult(ProviderTokenValidationResult.Success());
-
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => connection);
-            Assert.Null(provider.StoredToken);
-            Assert.Equal(["validate"], provider.Calls);
-        }
-
-        [Fact]
-        public void When_TokenProviderDisconnects_PersistedTokenIsDeletedWithoutEmptySave()
-        {
-            var provider = new TokenTestUserProvider { StoredToken = "existing-secret" };
-
-            ProviderTokenConnection.Disconnect(provider);
-
-            Assert.Null(provider.StoredToken);
-            Assert.Equal(1, provider.DeleteCount);
-            Assert.Equal(0, provider.SaveCount);
-            Assert.Equal(["delete"], provider.Calls);
-        }
-
-        [Fact]
-        public void When_IdentityLinkSaveFails_MutationIsRolledBack()
-        {
-            var storage = new ToggleSaveFailureStateStorage();
-            var store = new UserIdentityLinkStore(storage);
-            var expected = new IOException("Identity link storage unavailable.");
-            storage.SaveFailure = expected;
-
-            var addError = Assert.Throws<IOException>(() =>
-                store.SetLink("external", "subject-1", "local-1", "Local User"));
-            Assert.Same(expected, addError);
-            Assert.Null(store.FindLink("external", "subject-1"));
-
-            storage.SaveFailure = null;
-            store.SetLink("external", "subject-1", "local-1", "Local User");
-            storage.SaveFailure = expected;
-
-            var removeError = Assert.Throws<IOException>(() =>
-                store.RemoveLink("external", "subject-1"));
-            Assert.Same(expected, removeError);
-            Assert.NotNull(store.FindLink("external", "subject-1"));
-        }
-
-        [Fact]
-        public void When_IdentityLinkStorageTargetsExistingFile_SaveReturnsRealIoError()
-        {
-            var processPath = Assert.IsType<string>(Environment.ProcessPath);
-            Assert.True(Path.IsPathRooted(processPath));
-            Assert.True(File.Exists(processPath));
-            var store = new UserIdentityLinkStore(new FileStateStorage(processPath));
-
-            Assert.ThrowsAny<IOException>(() =>
-                store.SetLink("external", "subject-1", "local-1", "Local User"));
-            Assert.Null(store.FindLink("external", "subject-1"));
-        }
-
-        [Fact]
-        public void When_IdentityLinkStateIsInvalid_LoadErrorIsExposed()
-        {
-            var storage = new InMemoryStateStorage();
-            storage.SaveLines("FlowKanban.IdentityLinks", ["not-json"]);
-
-            var store = new UserIdentityLinkStore(storage);
-
-            Assert.IsType<JsonException>(store.LoadError);
-            Assert.Null(store.FindLink("external", "subject-1"));
-        }
-
         [AvaloniaFact]
         public async Task When_AssigneeResolverThrows_FailureIsReportedAndAssignmentIsPreserved()
         {
@@ -2603,39 +2327,6 @@ namespace Flowery.NET.Tests
             {
                 StateStorageProvider.Configure(previousStorage);
             }
-        }
-
-        [Fact]
-        public async Task When_LocalUserPersistenceFails_MutationIsRolledBack()
-        {
-            var storage = new ToggleSaveFailureStateStorage();
-            var provider = new LocalUserProvider(storage);
-            var expected = new IOException("Local user storage unavailable.");
-            storage.SaveFailure = expected;
-
-            var addError = Assert.Throws<IOException>(() => provider.AddUser("Alex"));
-            Assert.Same(expected, addError);
-            Assert.Single(await provider.GetAllUsersAsync(TestContext.Current.CancellationToken));
-
-            storage.SaveFailure = null;
-            var added = provider.AddUser("Alex");
-            storage.SaveFailure = expected;
-
-            var removeError = Assert.Throws<IOException>(() => provider.RemoveUser(added.RawId));
-            Assert.Same(expected, removeError);
-            Assert.Contains(
-                await provider.GetAllUsersAsync(TestContext.Current.CancellationToken),
-                user => user.RawId == added.RawId);
-        }
-
-        [Fact]
-        public void When_LocalUserStorageTargetsExistingFile_ConstructionReturnsRealIoError()
-        {
-            var processPath = Assert.IsType<string>(Environment.ProcessPath);
-            Assert.True(Path.IsPathRooted(processPath));
-            Assert.True(File.Exists(processPath));
-
-            Assert.ThrowsAny<IOException>(() => new LocalUserProvider(new FileStateStorage(processPath)));
         }
 
         [AvaloniaFact]
@@ -2993,9 +2684,11 @@ namespace Flowery.NET.Tests
 
             var json = JsonSerializer.Serialize(board, FlowKanbanJsonContext.Default.FlowKanbanData);
             var root = JsonNode.Parse(json) as JsonObject;
-            root?.Remove("schemaVersion");
+            Assert.NotNull(root);
+            // Without the removal, a renamed property would turn this into a normal load.
+            Assert.True(root.Remove("schemaVersion"), "the board JSON has no schemaVersion to remove");
 
-            var migrated = FlowKanbanMigration.MigrateFromJson(root?.ToJsonString() ?? json);
+            var migrated = FlowKanbanMigration.MigrateFromJson(root.ToJsonString());
 
             Assert.NotNull(migrated);
             Assert.Equal(board.Id, migrated!.Id);
@@ -3191,6 +2884,15 @@ namespace Flowery.NET.Tests
             return window;
         }
 
+        // The board opens on its home view once it is shown, so a test of its columns switches to the board again.
+        private static void ShowBoardView(FlowKanban kanban)
+        {
+            kanban.CurrentView = FlowKanbanView.Board;
+            Dispatcher.UIThread.RunJobs();
+            kanban.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
+        }
+
         private static Control GetAutomationControl(Control root, string automationId)
         {
             return root.GetVisualDescendants()
@@ -3241,198 +2943,6 @@ namespace Flowery.NET.Tests
                     _ => Task.FromException<IReadOnlyList<FlowKanbanAssignee>>(
                         new InvalidOperationException("Unexpected assignee load."))
                 };
-            }
-        }
-
-        private sealed class GatedUserProvider : IUserProvider
-        {
-            private readonly TaskCompletionSource<bool> _started =
-                new(TaskCreationOptions.RunContinuationsAsynchronously);
-            private readonly TaskCompletionSource<bool> _release =
-                new(TaskCreationOptions.RunContinuationsAsynchronously);
-            private readonly IFlowUser? _user;
-            private readonly Exception? _error;
-
-            public GatedUserProvider(string providerKey, IFlowUser? user, Exception? error = null)
-            {
-                ProviderKey = providerKey;
-                _user = user;
-                _error = error;
-            }
-
-            public string ProviderKey { get; }
-            public string DisplayName => ProviderKey;
-            public string ImplementationVersion => "test";
-            public bool SupportsAvatars => false;
-            public bool SupportsPresence => false;
-            public bool SupportsRealtime => false;
-            public Task Started => _started.Task;
-
-            public event Action? UsersChanged
-            {
-                add { }
-                remove { }
-            }
-
-            public async Task<IEnumerable<IFlowUser>> GetAllUsersAsync(
-                CancellationToken cancellation = default)
-            {
-                _started.TrySetResult(true);
-                await _release.Task.WaitAsync(cancellation);
-                if (_error != null)
-                    throw _error;
-
-                return _user == null ? Array.Empty<IFlowUser>() : [_user];
-            }
-
-            public Task<IFlowUser?> GetUserByIdAsync(
-                string rawId,
-                CancellationToken cancellation = default)
-            {
-                cancellation.ThrowIfCancellationRequested();
-                return Task.FromResult(
-                    string.Equals(_user?.RawId, rawId, StringComparison.Ordinal) ? _user : null);
-            }
-
-            public Task<IEnumerable<IFlowUser>> SearchUsersAsync(
-                string query,
-                int maxResults = 20,
-                CancellationToken cancellation = default)
-            {
-                cancellation.ThrowIfCancellationRequested();
-                return Task.FromResult<IEnumerable<IFlowUser>>(
-                    _user == null ? Array.Empty<IFlowUser>() : [_user]);
-            }
-
-            public Task<IFlowUser?> GetCurrentUserAsync(CancellationToken cancellation = default)
-            {
-                cancellation.ThrowIfCancellationRequested();
-                return Task.FromResult(_user);
-            }
-
-            public Task RefreshAsync(CancellationToken cancellation = default)
-            {
-                cancellation.ThrowIfCancellationRequested();
-                return Task.CompletedTask;
-            }
-
-            public void Release()
-            {
-                _release.TrySetResult(true);
-            }
-        }
-
-        private sealed class StaticUserProvider : IUserProvider
-        {
-            private readonly IFlowUser[] _users;
-
-            public StaticUserProvider(string providerKey, params IFlowUser[] users)
-            {
-                ProviderKey = providerKey;
-                _users = users;
-            }
-
-            public string ProviderKey { get; }
-            public string DisplayName => ProviderKey;
-            public string ImplementationVersion => "test";
-            public bool SupportsAvatars => false;
-            public bool SupportsPresence => false;
-            public bool SupportsRealtime => false;
-
-            public event Action? UsersChanged
-            {
-                add { }
-                remove { }
-            }
-
-            public Task<IEnumerable<IFlowUser>> GetAllUsersAsync(CancellationToken cancellation = default) =>
-                Task.FromResult<IEnumerable<IFlowUser>>(_users);
-
-            public Task<IFlowUser?> GetUserByIdAsync(string rawId, CancellationToken cancellation = default) =>
-                Task.FromResult(_users.FirstOrDefault(user =>
-                    string.Equals(user.RawId, rawId, StringComparison.Ordinal)));
-
-            public Task<IEnumerable<IFlowUser>> SearchUsersAsync(
-                string query,
-                int maxResults = 20,
-                CancellationToken cancellation = default) =>
-                Task.FromResult<IEnumerable<IFlowUser>>(_users
-                    .Where(user => user.DisplayName.Contains(query, StringComparison.OrdinalIgnoreCase))
-                    .Take(maxResults));
-
-            public Task<IFlowUser?> GetCurrentUserAsync(CancellationToken cancellation = default) =>
-                Task.FromResult<IFlowUser?>(_users.FirstOrDefault());
-
-            public Task RefreshAsync(CancellationToken cancellation = default) => Task.CompletedTask;
-        }
-
-        private sealed class TokenTestUserProvider : IUserProvider,
-            ITokenSaveProvider,
-            ITokenValidationProvider,
-            ITokenStateProvider
-        {
-            public string ProviderKey => "token-test";
-            public string DisplayName => "Token Test";
-            public string ImplementationVersion => "test";
-            public bool SupportsAvatars => false;
-            public bool SupportsPresence => false;
-            public bool SupportsRealtime => false;
-            public bool HasToken => StoredToken != null;
-            public string? StoredToken { get; set; }
-            public int SaveCount { get; private set; }
-            public int DeleteCount { get; private set; }
-            public List<string> Calls { get; } = new();
-            public ProviderTokenValidationResult ValidationResult { get; set; } =
-                ProviderTokenValidationResult.Success();
-            public Exception? ValidationException { get; set; }
-            public Func<string, CancellationToken, Task<ProviderTokenValidationResult>>? ValidationHandler { get; set; }
-
-            public event Action? UsersChanged
-            {
-                add { }
-                remove { }
-            }
-
-            public Task<IEnumerable<IFlowUser>> GetAllUsersAsync(CancellationToken cancellation = default) =>
-                Task.FromResult<IEnumerable<IFlowUser>>(Array.Empty<IFlowUser>());
-
-            public Task<IFlowUser?> GetUserByIdAsync(string rawId, CancellationToken cancellation = default) =>
-                Task.FromResult<IFlowUser?>(null);
-
-            public Task<IEnumerable<IFlowUser>> SearchUsersAsync(
-                string query,
-                int maxResults = 20,
-                CancellationToken cancellation = default) =>
-                Task.FromResult<IEnumerable<IFlowUser>>(Array.Empty<IFlowUser>());
-
-            public Task<IFlowUser?> GetCurrentUserAsync(CancellationToken cancellation = default) =>
-                Task.FromResult<IFlowUser?>(null);
-
-            public Task RefreshAsync(CancellationToken cancellation = default) => Task.CompletedTask;
-
-            public Task<ProviderTokenValidationResult> ValidateAccessAsync(
-                string token,
-                CancellationToken cancellation = default)
-            {
-                Calls.Add("validate");
-                if (ValidationException is { } error)
-                    return Task.FromException<ProviderTokenValidationResult>(error);
-
-                return ValidationHandler?.Invoke(token, cancellation) ?? Task.FromResult(ValidationResult);
-            }
-
-            public void SaveToken(string token)
-            {
-                Calls.Add("save");
-                SaveCount++;
-                StoredToken = token;
-            }
-
-            public void DeleteToken()
-            {
-                Calls.Add("delete");
-                DeleteCount++;
-                StoredToken = null;
             }
         }
 
@@ -3528,29 +3038,6 @@ namespace Flowery.NET.Tests
 
                 _inner.Rename(sourceKey, targetKey);
             }
-
-            public IEnumerable<string> GetKeys(string prefix) => _inner.GetKeys(prefix);
-        }
-
-        private sealed class ToggleSaveFailureStateStorage : IStateStorage
-        {
-            private readonly InMemoryStateStorage _inner = new();
-
-            public Exception? SaveFailure { get; set; }
-
-            public IReadOnlyList<string> LoadLines(string key) => _inner.LoadLines(key);
-
-            public void SaveLines(string key, IEnumerable<string> lines)
-            {
-                if (SaveFailure is { } failure)
-                    throw failure;
-
-                _inner.SaveLines(key, lines);
-            }
-
-            public void Delete(string key) => _inner.Delete(key);
-
-            public void Rename(string sourceKey, string targetKey) => _inner.Rename(sourceKey, targetKey);
 
             public IEnumerable<string> GetKeys(string prefix) => _inner.GetKeys(prefix);
         }

@@ -6,7 +6,6 @@ It displays columns and task cards, with a home view for board selection.
 ## Loading and errors
 
 A pending board load cannot replace a newer selection, a home navigation request, a detached board, or a changed BoardStore.
-User management cancels obsolete provider requests. A failed request shows a localized error, distinct from an empty result.
 Roles are display metadata. Applications enforce their own authorization rules.
 
 ## Keyboard and automation

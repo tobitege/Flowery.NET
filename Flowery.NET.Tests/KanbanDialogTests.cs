@@ -12,7 +12,6 @@ using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Localization;
 using Flowery.NET.Kanban.Controls;
-using Flowery.NET.Kanban.Controls.Users;
 using Flowery.Services;
 using Xunit;
 
@@ -623,110 +622,6 @@ public class KanbanDialogTests
     }
 
     [AvaloniaFact]
-    public async Task When_ProviderAndUserDialogsRun_TheyExposeSecureInputAndSelectionSemantics()
-    {
-        var window = CreateWindow(new Border());
-
-        try
-        {
-            const string connectTitle = "Connect Provider";
-            const string connectText = "Connect";
-            var tokenTask = ProviderTokenDialog.ShowAsync(
-                connectTitle,
-                "Enter a token",
-                "Use the required scopes only",
-                "Access token",
-                connectText,
-                window);
-            FlushLayout(window);
-            var connectDialog = window.GetVisualDescendants().OfType<ProviderTokenDialog>().Single();
-            AssertDialogContract(connectDialog, window, connectTitle);
-            Assert.Equal(300, connectDialog.DialogWidth);
-            var tokenInput = connectDialog.GetVisualDescendants().OfType<DaisyPasswordBox>().Single();
-            var innerTokenInput = tokenInput.GetVisualDescendants().OfType<TextBox>().Single();
-            var tokenPeer = Assert.IsAssignableFrom<AutomationPeer>(
-                ControlAutomationPeer.CreatePeerForElement(innerTokenInput));
-            var tokenValueProvider = Assert.IsAssignableFrom<IValueProvider>(tokenPeer);
-            Assert.False(tokenValueProvider.IsReadOnly);
-            tokenInput.Password = "  secret-token  ";
-            Dispatcher.UIThread.RunJobs();
-            var connectButton = FindButtonByText(connectDialog, connectText);
-            Assert.True(connectButton.IsEnabled);
-            AssertMediumActionButton(connectButton);
-            Invoke(connectButton);
-            Assert.Equal("secret-token", await tokenTask);
-
-            const string errorTitle = "Provider error";
-            var errorTask = ProviderErrorDialog.ShowAsync(errorTitle, "Request failed", window);
-            FlushLayout(window);
-            var errorDialog = window.GetVisualDescendants().OfType<ProviderErrorDialog>().Single();
-            AssertDialogContract(errorDialog, window, errorTitle);
-            Assert.Equal(360, errorDialog.DialogWidth);
-            var closeButton = FindActionButton(errorDialog, "Common_Close");
-            AssertMediumActionButton(closeButton);
-            Invoke(closeButton);
-            await errorTask;
-
-            const string confirmTitle = "Disconnect provider";
-            const string confirmText = "Disconnect";
-            var cancelledTask = ProviderConfirmDialog.ShowAsync(
-                confirmTitle,
-                "Disconnect this provider?",
-                confirmText,
-                window);
-            FlushLayout(window);
-            var confirmDialog = window.GetVisualDescendants().OfType<ProviderConfirmDialog>().Single();
-            AssertDialogContract(confirmDialog, window, confirmTitle);
-            Assert.Equal(360, confirmDialog.DialogWidth);
-            Invoke(FindActionButton(confirmDialog, "Common_Cancel"));
-            Assert.False(await cancelledTask);
-
-            var confirmedTask = ProviderConfirmDialog.ShowAsync(
-                confirmTitle,
-                "Disconnect this provider?",
-                confirmText,
-                window);
-            FlushLayout(window);
-            confirmDialog = window.GetVisualDescendants().OfType<ProviderConfirmDialog>().Single();
-            var confirmButton = FindButtonByText(confirmDialog, confirmText);
-            AssertMediumActionButton(confirmButton);
-            Invoke(confirmButton);
-            Assert.True(await confirmedTask);
-
-            var user = new DialogUser("local:user-1", "Local User");
-            const string linkText = "Link user";
-            var linkTask = LinkLocalUserDialog.ShowAsync(
-                "Choose a local user",
-                linkText,
-                [user],
-                window);
-            FlushLayout(window);
-            var linkDialog = window.GetVisualDescendants().OfType<LinkLocalUserDialog>().Single();
-            AssertDialogContract(
-                linkDialog,
-                window,
-                FloweryLocalization.GetString("Kanban_Users_LinkLocal_Button"));
-            Assert.Equal(300, linkDialog.DialogWidth);
-            var userSelect = linkDialog.GetVisualDescendants().OfType<DaisySelect>().Single();
-            var userSelectPeer = Assert.IsAssignableFrom<AutomationPeer>(
-                ControlAutomationPeer.CreatePeerForElement(userSelect));
-            Assert.IsAssignableFrom<IExpandCollapseProvider>(userSelectPeer);
-            userSelect.SelectedIndex = 0;
-            Dispatcher.UIThread.RunJobs();
-            var linkButton = FindButtonByText(linkDialog, linkText);
-            Assert.True(linkButton.IsEnabled);
-            AssertMediumActionButton(linkButton);
-            Invoke(linkButton);
-            Assert.Same(user, await linkTask);
-        }
-        finally
-        {
-            CloseOpenDialogs(window);
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
     public async Task When_SubtaskInlineEditHandlesEscape_TaskDialogRemainsOpen()
     {
         var task = new FlowTask { Title = "Task with subtask" };
@@ -888,13 +783,6 @@ public class KanbanDialogTests
             .Single(button => string.Equals(button.Content as string, text, StringComparison.Ordinal));
     }
 
-    private static DaisyButton FindButtonByText(Control dialog, string text)
-    {
-        return dialog.GetVisualDescendants()
-            .OfType<DaisyButton>()
-            .Single(button => string.Equals(button.Content as string, text, StringComparison.Ordinal));
-    }
-
     private static void Invoke(DaisyButton button)
     {
         var peer = Assert.IsAssignableFrom<AutomationPeer>(
@@ -962,26 +850,5 @@ public class KanbanDialogTests
 
         public IEnumerable<string> GetKeys(string prefix) =>
             _values.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal)).ToArray();
-    }
-
-    private sealed class DialogUser : IFlowUser
-    {
-        public DialogUser(string id, string displayName)
-        {
-            Id = id;
-            DisplayName = displayName;
-        }
-
-        public string Id { get; }
-        public string ProviderKey => "local";
-        public string RawId => Id;
-        public string DisplayName { get; }
-        public string? Email => null;
-        public string? AvatarUrl => null;
-        public byte[]? AvatarBytes => null;
-        public FlowUserStatus Status => FlowUserStatus.Online;
-        public string? Department => null;
-        public string? Title => null;
-        public IReadOnlyDictionary<string, object>? CustomData => null;
     }
 }

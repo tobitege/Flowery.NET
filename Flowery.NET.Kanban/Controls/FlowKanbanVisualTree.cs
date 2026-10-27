@@ -94,18 +94,4 @@ internal static class FlowKanbanVisualTree
     {
         return TopLevel.GetTopLevel(visual)?.FocusManager.GetFocusedElement() as AvaloniaObject;
     }
-
-    internal static IEnumerable<AvaloniaObject> Enumerate(AvaloniaObject root)
-    {
-        yield return root;
-        if (root is not Visual visual)
-        {
-            yield break;
-        }
-
-        foreach (var descendant in visual.GetVisualDescendants())
-        {
-            yield return descendant;
-        }
-    }
 }
