@@ -70,9 +70,49 @@ if (await DaisyGlassDesigner.ShowOverlayAsync(this) is { } design)
 DaisyGlassDesign.FromJson(json).ApplyTo(myCard);
 ```
 
+## Using a Design in Your App
+
+The `?` button next to Open and Save sums this up in a glass dialog and links here. There are two ways to take a design from the designer into an app.
+
+**Code.** Open the Code drawer and copy the XAML or C# into your page. It sets the attached glass properties of `DaisyGlassSurface` on the control, so the look is part of your markup and needs no file at run time:
+
+```xml
+<controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Continue"
+                      controls:DaisyGlassSurface.Gradient="Aurora"
+                      controls:DaisyGlassSurface.Blur="40" />
+```
+
+**File.** Save the design as JSON and load it at run time. This keeps looks out of the markup, lets several controls share one look, and lets you change a look by replacing the file. In Visual Studio:
+
+1. Add the saved file to the project, for example as `Assets/Glass/MyLook.json`.
+2. Set its **Build Action** to `AvaloniaResource` in the Properties window. Projects made from the Avalonia templates already include `Assets/**` as `AvaloniaResource`:
+
+   ```xml
+   <ItemGroup>
+     <AvaloniaResource Include="Assets\**" />
+   </ItemGroup>
+   ```
+
+3. Load the file and apply it to any control, which puts the control on glass:
+
+   ```csharp
+   using Avalonia.Platform;
+   using Flowery.Controls;
+
+   using var stream = AssetLoader.Open(new Uri("avares://MyApp/Assets/Glass/MyLook.json"));
+   using var reader = new StreamReader(stream);
+   var design = DaisyGlassDesign.FromJson(reader.ReadToEnd());
+   design.ApplyTo(saveButton);
+   design.ApplyTo(cancelButton);
+   ```
+
+   `MyApp` is the assembly name of the project. `FromJson` throws a `JsonException` for a file that is no design.
+
+A file next to the app instead of inside it, such as a look the user picks, loads the same way with `File.ReadAllText`. To edit a stored design again, open the file in the designer, or load it in code with `designer.Design = DaisyGlassDesign.FromJson(json)` or `await designer.LoadAsync(stream)`.
+
 ## Tips & Best Practices
 
-- Shader backgrounds need `FlowerySkia.Register()`; the Motion tab disables the Shader option without it, and the live blur falls back to `BitmapCapture` (the Glass tab says so).
+- Shader backgrounds need `FlowerySkia.Register()`; the Animation tab disables the Shader option without it, and the live blur falls back to `BitmapCapture` (the Glass tab says so).
 - The exported XAML of a shader background uses the `skia` prefix; the snippet starts with a comment that names the namespace.
 - A preview with an animated background redraws at its `FrameRate`; the presets show still buttons.
 - The labels follow `FloweryLocalization`; control and enum names stay in English.

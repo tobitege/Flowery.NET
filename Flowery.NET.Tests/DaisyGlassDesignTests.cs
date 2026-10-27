@@ -5,6 +5,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Diagnostics;
 using Avalonia.Headless.XUnit;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -258,6 +259,32 @@ public class DaisyGlassDesignTests
             // A file that is no design leaves the design as it is.
             await Assert.ThrowsAsync<System.Text.Json.JsonException>(() => opened.LoadAsync(new MemoryStream("{ \"blur\": -5 }"u8.ToArray())));
             Assert.Equal(saved.Json, opened.Json);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Help_Button_Explains_In_A_Glass_Dialog_How_To_Use_A_Design()
+    {
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            var help = designer.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.IconSymbol == DaisyIconSymbol.Help);
+            help.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent, help));
+            Dispatcher.UIThread.RunJobs();
+
+            var overlay = OverlayLayer.GetOverlayLayer(designer)!;
+            var modal = Assert.Single(overlay.Children.OfType<DaisyModal>());
+            Assert.True(modal.IsOpen);
+            Assert.Same(Application.Current!.FindResource("DaisyGlassModalTheme"), modal.Theme);
+            Assert.Contains(modal.GetLogicalDescendants().OfType<SelectableTextBlock>(), block => block.Text!.Contains("DaisyGlassDesign.FromJson"));
+
+            OverlayButton(overlay, "GlassDesigner_HelpClose").PointerClick();
+            Assert.Empty(overlay.Children.OfType<DaisyModal>());
         }
         finally
         {

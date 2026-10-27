@@ -742,6 +742,17 @@ namespace Flowery.Controls
             open.Click += async (_, _) => await OpenFileAsync();
             var save = ActionButton("GlassDesigner_Save", "Save…", DaisyIconSymbol.Save);
             save.Click += async (_, _) => await SaveFileAsync();
+            var help = new DaisyButton
+            {
+                IconSymbol = DaisyIconSymbol.Help,
+                ButtonStyle = DaisyButtonStyle.Soft,
+                Size = DaisySize.Small,
+                Shape = DaisyButtonShape.Square
+            };
+            var helpLabel = L("GlassDesigner_HelpTitle", "How to use a design");
+            ToolTip.SetTip(help, helpLabel);
+            AutomationProperties.SetName(help, helpLabel);
+            help.Click += (_, _) => ShowHelp();
             var reset = ActionButton("GlassDesigner_Reset", "Reset", DaisyIconSymbol.Undo);
             reset.Click += (_, _) =>
             {
@@ -754,7 +765,7 @@ namespace Flowery.Controls
                 Spacing = 8,
                 Margin = new Thickness(12, 0, 0, 0),
                 VerticalAlignment = VerticalAlignment.Center,
-                Children = { open, save, reset }
+                Children = { open, save, help, reset }
             };
             Grid.SetColumn(actions, 1);
 
@@ -873,6 +884,114 @@ namespace Flowery.Controls
             await using var writer = new System.IO.StreamWriter(stream, new System.Text.UTF8Encoding(false), leaveOpen: true);
             await writer.WriteAsync(Json);
         }
+
+        // ---------------------------------------------------------------- Help
+
+        private static readonly Uri DocsUri = new("https://tobitege.github.io/Flowery.NET/#DaisyGlassDesigner");
+
+        private const string HelpSample =
+            "using var stream = AssetLoader.Open(new Uri(\"avares://MyApp/Assets/Glass/MyLook.json\"));\n" +
+            "using var reader = new StreamReader(stream);\n" +
+            "DaisyGlassDesign.FromJson(reader.ReadToEnd()).ApplyTo(myButton);";
+
+        /// <summary>
+        /// Opens a glass dialog over the app that explains how to use a design: the code of the Code drawer, or a saved
+        /// JSON file loaded at run time, with a link to the docs.
+        /// </summary>
+        internal DaisyModal? ShowHelp()
+        {
+            if (OverlayLayer.GetOverlayLayer(this) is not { } overlay)
+                return null;
+
+            Paragraph[] paragraphs =
+            [
+                new("GlassDesigner_HelpCode", "Code: open the Code drawer and copy the XAML or C# into your page. It sets the attached glass properties of DaisyGlassSurface on the control."),
+                new("GlassDesigner_HelpFile", "File: save the design as JSON and add the file to your project, for example as Assets/Glass/MyLook.json with the build action AvaloniaResource. Then apply it at run time:")
+            ];
+            var content = new StackPanel { Spacing = 12 };
+            content.Children.Add(new TextBlock
+            {
+                Text = L("GlassDesigner_HelpTitle", "How to use a design"),
+                FontSize = 20,
+                FontWeight = FontWeight.Bold,
+                TextWrapping = TextWrapping.Wrap
+            });
+            foreach (var paragraph in paragraphs)
+                content.Children.Add(new TextBlock { Text = L(paragraph.Key, paragraph.Fallback), TextWrapping = TextWrapping.Wrap, Opacity = 0.9 });
+            content.Children.Add(new Border
+            {
+                Background = new SolidColorBrush(Color.FromArgb(0x40, 0, 0, 0)),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(12, 10),
+                Child = new SelectableTextBlock
+                {
+                    Text = HelpSample,
+                    FontFamily = new FontFamily("Cascadia Mono, Consolas, Menlo, monospace"),
+                    FontSize = 12,
+                    TextWrapping = TextWrapping.Wrap
+                }
+            });
+            content.Children.Add(new TextBlock
+            {
+                Text = L("GlassDesigner_HelpDocs", "The docs of DaisyGlassDesigner and DaisyGlassSurface describe every setting and more ways to use a design."),
+                TextWrapping = TextWrapping.Wrap,
+                Opacity = 0.9
+            });
+
+            var docs = new DaisyButton { Content = L("GlassDesigner_HelpOpenDocs", "Open the docs"), IconSymbol = DaisyIconSymbol.Document, ButtonStyle = DaisyButtonStyle.Soft };
+            var close = new DaisyButton { Content = L("GlassDesigner_HelpClose", "Close"), Variant = DaisyButtonVariant.Primary };
+            AutomationProperties.SetAutomationId(close, "GlassDesigner_HelpClose");
+            content.Children.Add(new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Spacing = 8,
+                Children = { docs, close }
+            });
+
+            var modal = new DaisyModal
+            {
+                Theme = Application.Current?.FindResource("DaisyGlassModalTheme") as ControlTheme,
+                DialogMaxWidth = 560,
+                Width = overlay.Bounds.Width,
+                Height = overlay.Bounds.Height,
+                Focusable = true,
+                Content = content,
+                IsOpen = true
+            };
+
+            void Resize(object? sender, EventArgs e)
+            {
+                modal.Width = overlay.Bounds.Width;
+                modal.Height = overlay.Bounds.Height;
+            }
+
+            void Close()
+            {
+                overlay.LayoutUpdated -= Resize;
+                overlay.Children.Remove(modal);
+            }
+
+            overlay.LayoutUpdated += Resize;
+            close.Click += (_, _) => Close();
+            docs.Click += async (_, _) =>
+            {
+                if (TopLevel.GetTopLevel(this)?.Launcher is { } launcher)
+                    await launcher.LaunchUriAsync(DocsUri);
+            };
+            modal.KeyDown += (_, e) =>
+            {
+                if (e.Key != Key.Escape)
+                    return;
+                e.Handled = true;
+                Close();
+            };
+            overlay.Children.Add(modal);
+            close.Focus();
+            return modal;
+        }
+
+        private readonly record struct Paragraph(string Key, string Fallback);
 
         private void ShowFileError(string format, string message)
         {
