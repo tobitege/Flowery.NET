@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using Avalonia;
@@ -65,6 +65,16 @@ public partial class App : Application
 
         // Save theme whenever it changes
         DaisyThemeManager.ThemeChanged += (_, name) => GallerySettings.Save(name);
+
+        // Restore the backdrop chosen in the sidebar; a text an older or newer Gallery saved may not parse.
+        try
+        {
+            DaisyThemeManager.BackdropOverride = GallerySettings.LoadBackdrop();
+        }
+        catch (FormatException)
+        {
+        }
+        DaisyThemeManager.BackdropOverrideChanged += (_, _) => GallerySettings.SaveBackdrop(DaisyThemeManager.BackdropOverride);
 
         // Restore saved global size (if any). FlowerySizeManager defaults to Medium.
         var savedGlobalSize = GallerySettings.LoadGlobalSize();

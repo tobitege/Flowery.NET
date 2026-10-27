@@ -1,0 +1,26 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <!-- The backdrop of the theme under the content: the brush, the animated effect over it, then the content. -->
+    <ControlTheme x:Key="{x:Type controls:DaisyBackdrop}" TargetType="controls:DaisyBackdrop">
+        <Setter Property="Background" Value="{DynamicResource DaisyBackdropBrush}" />
+        <Setter Property="BackdropEffect" Value="{DynamicResource DaisyBackdropEffect}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel>
+                    <Border x:Name="PART_Backdrop" Background="{TemplateBinding Background}" IsHitTestVisible="False" />
+                    <Panel x:Name="PART_EffectHost" IsHitTestVisible="False" />
+                    <ContentPresenter x:Name="PART_ContentPresenter"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      Padding="{TemplateBinding Padding}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

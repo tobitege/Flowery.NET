@@ -330,6 +330,21 @@ Override any of them in a palette dictionary to change the look for that theme o
 
 Each control keeps its own tint opacity, and a `GlassTint` (or `DaisyGlassSurface.Tint`) set on a control wins over the theme.
 
+## Theme Backdrop
+
+A theme can define a backdrop for the app: the brush `DaisyBackdropBrush` (a color, a gradient, a drawing or an image) and, optionally, an animated effect `DaisyBackdropEffect`. The app shows it with `DaisyBackdrop` as the lowest layer of its window, or uses the brush alone with `Background="{DynamicResource DaisyBackdropBrush}"`, and it switches with the theme:
+
+```xml
+<controls:DaisyBackdrop>
+    <local:MainView />
+</controls:DaisyBackdrop>
+```
+
+- Without a backdrop of its own, a theme shows `Base100`; in the glass mode, soft glows in its primary and secondary color on `Base100`. Glassy defines a violet and blue wave.
+- `DaisyThemeManager.BackdropOverride` sets a backdrop at run time, such as `effect:Aurora`, `image:C:\Pictures\bg.jpg` or `#0B1B5E`, which stays across theme switches. The app saves the text next to the theme name.
+
+See [DaisyBackdrop](llms-static/DaisyBackdrop.md) for the details.
+
 ## How Theming Works
 
 Flowery.NET uses Avalonia's `ThemeDictionaries` architecture:

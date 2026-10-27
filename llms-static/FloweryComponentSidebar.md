@@ -21,6 +21,8 @@ Similarly, set `AvailableLanguages` to enable the language selector functionalit
 | `NeumorphicMode` (`DaisyNeumorphicMode`) | Global neumorphic mode; two-way synced with `DaisyNeumorphic.GlobalMode`. |
 | `AvailableNeumorphicModes` (`IReadOnlyList<DaisyNeumorphicMode>`) | Modes offered by the neumorphic selector (`None`, `Raised`, `Inset`, `Flat`). |
 | `IsGlassModeEnabled` (`bool`) | The glass mode; two-way synced with `DaisyGlassSurface.GlobalEnabled`. |
+| `Backdrop` (`string`) | The choice of the backdrop selector; two-way synced with `DaisyThemeManager.BackdropOverride`. `Color...` and `Image...` ask for a color or an image file first and keep the previous choice when the user cancels. |
+| `AvailableBackdrops` (`IReadOnlyList<string>`) | The choices of the backdrop selector: `Theme`, the effects (`Plasma`, `Aurora`, `LiquidGold`, `LiquidColor`), `Color...` and `Image...`. |
 
 ## Data Models
 
@@ -30,6 +32,7 @@ Similarly, set `AvailableLanguages` to enable the language selector functionalit
 - `SidebarThemeSelectorItem`: Special item type for theme selection
 - `SidebarNeumorphicSelectorItem`: Special item type that renders a dropdown for the global neumorphic mode (see [DaisyNeumorphic](DaisyNeumorphic.md)). The sidebar itself sets `DaisyNeumorphic.ScopeEnabled="False"`, so its own controls stay flat.
 - `SidebarGlassModeItem`: Special item type that renders a switch for the glass mode (see [DaisyGlassSurface](DaisyGlassSurface.md)).
+- `SidebarBackdropItem`: Special item type that renders a dropdown for the backdrop of the app (see [DaisyBackdrop](DaisyBackdrop.md)).
 - `SidebarLanguage`: `Code` (e.g., "en", "de"), `DisplayName` (e.g., "English", "Deutsch")
 
 ## Language/Translation Support

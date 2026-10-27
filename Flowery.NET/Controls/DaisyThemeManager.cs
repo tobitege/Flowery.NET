@@ -41,7 +41,7 @@ namespace Flowery.Controls
     /// Swaps a single palette ResourceDictionary into Application.Resources.MergedDictionaries
     /// and raises ThemeChanged.
     /// </summary>
-    public static class DaisyThemeManager
+    public static partial class DaisyThemeManager
     {
         private sealed class ThemeDefinition(DaisyThemeInfo info, Func<ResourceDictionary> paletteFactory)
         {
@@ -57,7 +57,6 @@ namespace Flowery.Controls
 
         private static ResourceDictionary? _currentPalette;
         private static ResourceDictionary? _contrastPalette;
-        private static ResourceDictionary? _glassPalette;
         private const string GlassTintKey = "DaisyGlassTintColor";
         private static bool _contrastDark;
         private static string? _currentThemeName;
@@ -533,7 +532,7 @@ namespace Flowery.Controls
                 // Set light/dark variant for system controls
                 app.RequestedThemeVariant = def.Info.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
 
-                RefreshGlassResources();
+                RefreshDerivedResources();
                 DaisyAccessibility.RefreshContrastPalette();
                 FloweryEventRaiser.Raise(ThemeChanged, null, def.Info.Name, nameof(ThemeChanged));
 
@@ -557,52 +556,16 @@ namespace Flowery.Controls
 
             _currentThemeName = themeName;
             _themeApplicationPending = false;
-            RefreshGlassResources();
+            RefreshDerivedResources();
             DaisyAccessibility.RefreshContrastPalette();
             FloweryEventRaiser.Raise(ThemeChanged, null, themeName, nameof(ThemeChanged));
-        }
-
-        /// <summary>
-        /// Puts the glass tint of the glass mode right after the palette: while
-        /// <see cref="DaisyGlassSurface.GlobalEnabled"/> is on, <c>DaisyGlassTintColor</c> is <c>Base100</c> of the
-        /// active theme, so the glass takes the hue of the theme and the text on it keeps its contrast. A palette that
-        /// sets its own tint, such as Glassy, keeps it.
-        /// </summary>
-        internal static void RefreshGlassResources()
-        {
-            DaisyGlassSurface.ApplyGlobalStyles();
-            if (Application.Current is not { } app) return;
-            var dictionaries = app.Resources.MergedDictionaries;
-            if (_glassPalette != null) dictionaries.Remove(_glassPalette);
-            _glassPalette = null;
-            if (!DaisyGlassSurface.GlobalEnabled) return;
-
-            // A tint of the app or its palette stays, also one applied by a CustomThemeApplicator or included in the
-            // app itself; the default tint lives with the styles of DaisyUITheme, not in the app resources.
-            var variant = app.ActualThemeVariant;
-            if (app.Resources.TryGetResource(GlassTintKey, variant, out _)) return;
-            // Base100 of the palette itself, not that of the contrast palette over it.
-            object? base100 = null;
-            if (_currentPalette?.TryGetResource("DaisyBase100Color", variant, out base100) != true
-                && !app.TryFindResource("DaisyBase100Color", variant, out base100))
-                return;
-            if (base100 is not Color color) return;
-
-            _glassPalette = new ResourceDictionary { [GlassTintKey] = color };
-            // Right after the palette, and in any case before the contrast palette.
-            var index = _currentPalette != null ? dictionaries.IndexOf(_currentPalette) + 1 : 0;
-            if (index <= 0)
-                index = _contrastPalette != null && dictionaries.Contains(_contrastPalette)
-                    ? dictionaries.IndexOf(_contrastPalette)
-                    : dictionaries.Count;
-            dictionaries.Insert(index, _glassPalette);
         }
 
         internal static void ApplyContrastResources(bool enabled, bool dark)
         {
             ApplyContrastPalette(enabled, dark);
-            // The tint of the glass mode reads Base100 of the palette, which a contrast palette covers or uncovers.
-            RefreshGlassResources();
+            // The tint and the backdrop of the glass mode read the palette, which a contrast palette covers or uncovers.
+            RefreshDerivedResources();
         }
 
         private static void ApplyContrastPalette(bool enabled, bool dark)
@@ -650,6 +613,9 @@ namespace Flowery.Controls
                 palette["DaisyButton" + name + "DisabledOpacity"] = 1d;
             }
             AddContrastColor(palette, "TreeSelectedForeground", foreground);
+            // A plain backdrop without an effect, which would only show behind the contrast surfaces.
+            palette[BackdropBrushKey] = new SolidColorBrush(background);
+            palette[BackdropEffectKey] = null;
             return palette;
         }
 

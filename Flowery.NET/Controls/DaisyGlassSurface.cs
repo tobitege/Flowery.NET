@@ -485,7 +485,7 @@ namespace Flowery.Controls
         private static void UpdateGlobalStyles()
         {
             // The theme manager brings the styles in line, together with the tint of the glass mode.
-            DaisyThemeManager.RefreshGlassResources();
+            DaisyThemeManager.RefreshDerivedResources();
             GlobalChanged?.Invoke(null, EventArgs.Empty);
         }
 

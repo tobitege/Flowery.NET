@@ -219,6 +219,14 @@ namespace Flowery.Controls
     {
     }
 
+    /// <summary>
+    /// The backdrop selector: the backdrop of the theme, an effect, a color or an image
+    /// (<see cref="DaisyThemeManager.BackdropOverride"/>).
+    /// </summary>
+    public class SidebarBackdropItem : SidebarItem
+    {
+    }
+
     public class SidebarLanguage
     {
         public string Code { get; set; } = string.Empty;
@@ -488,6 +496,93 @@ namespace Flowery.Controls
             }
         }
 
+        private const string BackdropOfTheme = "Theme";
+        private const string BackdropColor = "Color...";
+        private const string BackdropImage = "Image...";
+
+        private string _backdrop = BackdropChoice(DaisyThemeManager.BackdropOverride);
+
+        /// <summary>
+        /// Defines the <see cref="Backdrop"/> property.
+        /// </summary>
+        public static readonly DirectProperty<FloweryComponentSidebar, string> BackdropProperty =
+            AvaloniaProperty.RegisterDirect<FloweryComponentSidebar, string>(
+                nameof(Backdrop),
+                o => o.Backdrop,
+                (o, v) => o.Backdrop = v);
+
+        /// <summary>
+        /// Gets or sets the choice of the backdrop selector, one of <see cref="AvailableBackdrops"/>, which sets
+        /// <see cref="DaisyThemeManager.BackdropOverride"/>. Choosing a color or an image asks for one first and goes
+        /// back to the previous choice when the user cancels.
+        /// </summary>
+        public string Backdrop
+        {
+            get => _backdrop;
+            set
+            {
+                if (value == _backdrop)
+                    return;
+                if (value is BackdropColor or BackdropImage)
+                {
+                    _ = PickBackdropAsync(value);
+                    return;
+                }
+                if (SetAndRaise(BackdropProperty, ref _backdrop, value))
+                    DaisyThemeManager.BackdropOverride = value == BackdropOfTheme ? null : "effect:" + value;
+            }
+        }
+
+        /// <summary>
+        /// Gets the choices of the backdrop selector: the backdrop of the theme, the effects, a color and an image.
+        /// </summary>
+        public IReadOnlyList<string> AvailableBackdrops { get; } =
+            [BackdropOfTheme, .. Enum.GetNames<Enums.DaisyGlassAnimation>(), BackdropColor, BackdropImage];
+
+        private static string BackdropChoice(string? backdrop) => backdrop switch
+        {
+            null => BackdropOfTheme,
+            _ when backdrop.StartsWith("effect:", StringComparison.Ordinal) => backdrop["effect:".Length..],
+            _ when backdrop.StartsWith("image:", StringComparison.Ordinal) => BackdropImage,
+            _ => BackdropColor
+        };
+
+        private async System.Threading.Tasks.Task PickBackdropAsync(string choice)
+        {
+            string? backdrop = null;
+            if (choice == BackdropColor)
+            {
+                var start = Application.Current is { } app && app.TryFindResource("DaisyBase100Color", app.ActualThemeVariant, out var value)
+                    && value is Color theme ? theme : Colors.SteelBlue;
+                if (await ColorPicker.DaisyColorPickerDialog.ShowOverlayAsync(this, start) is { } color)
+                    backdrop = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+            }
+            else if (TopLevel.GetTopLevel(this)?.StorageProvider is { CanOpen: true } storage)
+            {
+                var files = await storage.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+                {
+                    AllowMultiple = false,
+                    FileTypeFilter = [Avalonia.Platform.Storage.FilePickerFileTypes.ImageAll]
+                });
+                // A platform without file paths, such as the browser, offers no image backdrop.
+                if (files is [var file] && Avalonia.Platform.Storage.StorageProviderExtensions.TryGetLocalPath(file) is { } path)
+                    backdrop = "image:" + path;
+            }
+
+            if (backdrop != null)
+                DaisyThemeManager.BackdropOverride = backdrop;
+            else
+                // The selector shows the choice the user cancelled; put the current one back.
+                RaisePropertyChanged(BackdropProperty, choice, _backdrop);
+        }
+
+        private void OnBackdropOverrideChanged(object? sender, EventArgs e)
+        {
+            var choice = BackdropChoice(DaisyThemeManager.BackdropOverride);
+            if (_backdrop != choice)
+                SetAndRaise(BackdropProperty, ref _backdrop, choice);
+        }
+
         static FloweryComponentSidebar()
         {
             SearchTextProperty.Changed.AddClassHandler<FloweryComponentSidebar>((s, e) => s.OnSearchTextChanged());
@@ -508,11 +603,13 @@ namespace Flowery.Controls
             Flowery.Services.FloweryScaleManager.IsEnabledChanged += OnScalingEnabledChanged;
             DaisyNeumorphic.GlobalChanged += OnNeumorphicGlobalChanged;
             DaisyGlassSurface.GlobalChanged += OnGlassGlobalChanged;
+            DaisyThemeManager.BackdropOverrideChanged += OnBackdropOverrideChanged;
             foreach (var category in _allCategories)
                 category.PropertyChanged += OnCategoryPropertyChanged;
             OnScalingEnabledChanged(this, Flowery.Services.FloweryScaleManager.IsEnabled);
             OnNeumorphicGlobalChanged(this, EventArgs.Empty);
             OnGlassGlobalChanged(this, EventArgs.Empty);
+            OnBackdropOverrideChanged(this, EventArgs.Empty);
             UpdateSelectedLanguageFromCulture(FloweryLocalization.CurrentCulture);
         }
 
@@ -522,6 +619,7 @@ namespace Flowery.Controls
             Flowery.Services.FloweryScaleManager.IsEnabledChanged -= OnScalingEnabledChanged;
             DaisyNeumorphic.GlobalChanged -= OnNeumorphicGlobalChanged;
             DaisyGlassSurface.GlobalChanged -= OnGlassGlobalChanged;
+            DaisyThemeManager.BackdropOverrideChanged -= OnBackdropOverrideChanged;
             foreach (var category in _allCategories)
                 category.PropertyChanged -= OnCategoryPropertyChanged;
             base.OnDetachedFromVisualTree(e);

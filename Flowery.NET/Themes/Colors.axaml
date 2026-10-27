@@ -42,6 +42,10 @@
     <!-- The tint of the glass controls; a palette made for glass can override it. -->
     <Color x:Key="DaisyGlassTintColor">White</Color>
 
+    <!-- The backdrop of the app behind its content, which DaisyBackdrop draws. A palette can set a gradient, a drawing or
+         an image instead, and add an animated effect as DaisyBackdropEffect (a DaisyGlassBackground). -->
+    <SolidColorBrush x:Key="DaisyBackdropBrush" Color="{DynamicResource DaisyBase100Color}" />
+
     <!-- Match Fluent's normal tree foreground outside palettes with a selection override. -->
     <SolidColorBrush x:Key="DaisyTreeSelectedForegroundBrush" Color="{DynamicResource SystemBaseHighColor}" />
 

@@ -62,6 +62,8 @@ DaisyThemeLoader.ApplyThemeToApplication(theme);
 | `AlternateThemeName` | Current theme if not the base; otherwise "Dark". |
 | `ThemeChanged` | Event fired with the new theme name after successful application. |
 | `IsDarkTheme(string name)` | Returns whether the theme is marked as dark. |
+| `BackdropOverride` | A backdrop chosen at run time that replaces the backdrop of every theme and stays across theme switches: a color such as `#0B1B5E`, `image:` with a file path or URI, or `effect:` with an effect name. `null` keeps the backdrop of the theme. See [DaisyBackdrop](DaisyBackdrop.md). |
+| `BackdropOverrideChanged` | Raised when `BackdropOverride` changes. |
 
 ## Theme Visibility and Ordering
 

@@ -12,6 +12,8 @@
     Background="{DynamicResource DaisyBase100Brush}">
 
     <Grid x:Name="LayoutRoot" ColumnDefinitions="*">
+        <!-- The backdrop of the theme behind everything, which glass on the pages shows. -->
+        <controls:DaisyBackdrop x:Name="AppBackdrop" />
         <SplitView x:Name="MainSplitView"
             IsPaneOpen="False"
             DisplayMode="Overlay"

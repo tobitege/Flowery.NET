@@ -144,6 +144,21 @@
                                                             </DataTemplate>
 
                                                             <DataTemplate
+                                                                x:DataType="controls:SidebarBackdropItem">
+                                                                <StackPanel Margin="8,6,0,8"
+                                                                    Spacing="6">
+                                                                    <TextBlock Text="Backdrop"
+                                                                        Opacity="0.7"
+                                                                        Margin="10,0,0,0" />
+                                                                    <controls:DaisySelect
+                                                                        Margin="0,0,8,0"
+                                                                        AutomationProperties.Name="Backdrop"
+                                                                        ItemsSource="{Binding AvailableBackdrops, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}}"
+                                                                        SelectedItem="{Binding Backdrop, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}, Mode=TwoWay}" />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+
+                                                            <DataTemplate
                                                                 x:DataType="controls:SidebarScalingSelectorItem">
                                                                 <StackPanel Margin="8,6,0,8"
                                                                     Spacing="6">
