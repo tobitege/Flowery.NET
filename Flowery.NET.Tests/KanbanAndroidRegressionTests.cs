@@ -110,7 +110,7 @@ public class KanbanAndroidRegressionTests
     {
         var selected = new FlowTask { Title = "Selected", IsSelected = true };
         var task = new FlowTask { Title = "Task" };
-        var column = new FlowKanbanColumnData { Title = "Todo", Tasks = { selected, task } };
+        var column = new FlowKanbanColumnData { Title = "Todo", Tasks = { selected } };
         var edits = new List<FlowTask>();
         var board = new FlowKanban
         {
@@ -124,12 +124,22 @@ public class KanbanAndroidRegressionTests
             board.CurrentView = FlowKanbanView.Board;
             Flush(window);
 
-            // On a phone a touch can reach a card realized just now before its Loaded handler stored the board.
-            var card = Card(window, task);
-            typeof(FlowTaskCard).GetField("_parentKanban", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-                .SetValue(card, null);
+            // The layout realizes the new card, and the dispatcher raises its Loaded later. On a phone the platform
+            // delivers a touch right away, so it can reach the card in between; the headless input helpers would run the
+            // dispatcher first, so the touch is raised on the card itself.
+            column.Tasks.Add(task);
+            window.UpdateLayout();
+            var card = window.GetVisualDescendants().OfType<FlowTaskCard>().Single(found => ReferenceEquals(found.Task, task));
+            Assert.False(card.IsLoaded);
+            card.UsesTouchSelection = true;
+            var pointer = new Pointer(Pointer.GetNextFreeId(), PointerType.Touch, isPrimary: true);
+            var point = Spot(window, card);
+            card.RaiseEvent(new PointerPressedEventArgs(card, pointer, window, point, 0,
+                new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed), KeyModifiers.None));
+            card.RaiseEvent(new PointerReleasedEventArgs(card, pointer, window, point, 1,
+                new PointerPointProperties(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased), KeyModifiers.None, MouseButton.Left));
+            Assert.False(card.IsLoaded);
 
-            TouchTap(window, card);
             Assert.True(task.IsSelected);
             Assert.True(selected.IsSelected);
             Assert.Empty(edits);
@@ -313,8 +323,8 @@ public class KanbanAndroidRegressionTests
     private static IEnumerable<Border> Ghosts(Visual board) =>
         OverlayLayer.GetOverlayLayer(board)!.Children.OfType<Border>().Where(static border => border.Background is VisualBrush);
 
-    // The column builds its cards anew after a selection or a move, so a test taps a card only once it is loaded: a card
-    // that is only in the tree may not know its board yet.
+    // The column builds its cards anew after a selection or a move. A tap does not need a loaded card, but the other
+    // handlers of a card that is only in the tree have not run yet, so a test taps a card only once it is loaded.
     private static FlowTaskCard Card(Window window, FlowTask task)
     {
         var card = Find(window, task);
