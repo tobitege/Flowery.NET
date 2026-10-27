@@ -3,8 +3,7 @@
 internal enum FlowKanbanTextRole
 {
     Title,
-    Body,
-    Caption
+    Body
 }
 
 internal static class FlowKanbanControlFactory
@@ -36,7 +35,6 @@ internal static class FlowKanbanControlFactory
             FontSize = role switch
             {
                 FlowKanbanTextRole.Title => 20,
-                FlowKanbanTextRole.Caption => 12,
                 _ => 14
             },
             FontWeight = role == FlowKanbanTextRole.Title ? FontWeight.SemiBold : FontWeight.Normal

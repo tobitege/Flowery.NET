@@ -86,6 +86,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `DaisyScheduler`: Planner and Timeline hours are as wide as their header label and a one-hour bar with its whole start time, for the current size, font, culture and clock format, and widen to fill the visible width. A new width rescales the bars in place, and the Planner labels every hour.
 
+#### FlowKanban
+
+- Flowery.NET.Kanban: the unused internal user-provider stack is removed: the user management view, the local and composite user providers, the provider tokens and the identity links, with their texts in all 12 languages. Boards name assignees through `AssigneeAdapter`, as before. Every removed type was internal, so the public API does not change. Settings the stack saved are left in place and no longer read.
+
 #### Gallery
 
 - Gallery: new logo, a six-petal violet flower with one warm petal, shared by the Flowery family (Flowery.Uno uses blue, Flowery.WinUI teal). It replaces the Avalonia default icon and splash everywhere: the Desktop window and executable icon (`app_icon.ico`), the Android launcher icon (adaptive) and splash, the iOS app icon (`AppIcon` asset catalog) and launch screen, and the Browser favicon and splash. The Home banner (`flowery-banner.png`) is redrawn too. `app_icon.icns` is included for macOS app bundles.
@@ -137,7 +141,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `FlowKanban`: on Android, cards could not be dragged within or between columns. Avalonia has no platform drag and drop there, so the drag started by a card did nothing. After a hold, the finger now drags a card inside the board: a copy follows the finger, the column under it shows the drop position, the release moves the card as a drop does, and the board scrolls along at its edges. The mouse drag is unchanged.
 - Kanban dialogs (`FlowKanbanDialogBase`): on Android the on-screen keyboard covered their lower part, such as Save and Cancel of the task editor. A dialog now moves into the part above the keyboard, at most as high as that part and below the status bar, and brings the focused field into view.
 - `FlowKanban`: on a board lower than its sidebar, the sidebar buttons overlapped each other. The sidebar scrolls instead and keeps the statistics at its bottom while it has the room.
-- `FlowKanban`: the access token dialog of a user provider, the error when a provider cannot connect or disconnect, and the error when an identity link cannot be loaded or saved were in English in every language; their texts were missing from the language files. They are added in all 12 languages.
 - `FlowKanban`: cards and columns could no longer be drawn when a background thread was the first to use the card or column class. Their shared transparent and drag highlight brushes then belonged to that thread, and drawing them on the UI thread failed. They are immutable brushes now, which belong to no thread.
 
 #### Gallery
