@@ -82,7 +82,8 @@ DaisyThemeManager.BaseOverride = null;                      // the theme as defi
 - The text colors of the accents (`DaisyPrimaryForegroundBrush`, `DaisySecondaryForegroundBrush`, `DaisyAccentForegroundBrush`, `DaisyButtonPrimaryForegroundBrush`) move until they reach 4.5:1 against the new base. The accent surfaces and the text on them stay as they are, so a theme keeps its character.
 - The glass tint follows: in the glass mode it is the new base, and a theme with a tint of its own, such as Glassy, gets one in the hue of the new base.
 - A backdrop of the theme (see [DaisyBackdrop](DaisyBackdrop.md)) stays under a base of its own kind. Under a base of the other kind, such as a light base on Glassy, whose dark wave would swallow the dark text, it gives way to `Base100`, or to the glows of the glass mode.
-- A theme switch keeps the override and computes it again for the new theme. The library stores nothing; an app saves the color next to the theme name.
+- A theme switch keeps the override and computes it again for the new theme, also one that a `CustomThemeApplicator` applies, where the colors come from the resources it put in place. The library stores nothing; an app saves the color next to the theme name.
+- `GetThemeInfo(name).IsDark` stays the kind of the theme as defined, so `DaisyThemeSwap` still swaps between its light and its dark theme.
 - The theme manager puts the derived colors into a dictionary right after the palette, before the high contrast colors.
 
 `FindContrastGaps()` reports what the override leaves, such as accent surfaces too pale for a very light base:

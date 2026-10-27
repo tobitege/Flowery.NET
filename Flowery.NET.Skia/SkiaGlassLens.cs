@@ -31,28 +31,36 @@ namespace Flowery.Skia
         /// </summary>
         public float BezelWidth(SKRect glass) => BezelShare * Math.Min(glass.Width, glass.Height) / 2;
 
+        private float ZoomFactor => (float)Math.Clamp(Zoom, 0.5, 3);
+
         /// <summary>
         /// Returns how far beyond its edge the glass samples its backdrop, in pixels: the bend plus the split of red and
-        /// blue. The backdrop snapshot reaches that much further.
+        /// blue, and for a zoom below 1, which shows more than the glass covers, the part around it. The backdrop snapshot
+        /// reaches that much further.
         /// </summary>
-        public float Reach(SKRect glass, float split) => IsActive ? BendShare * BezelWidth(glass) + split + 1 : 0;
+        public float Reach(SKRect glass, float split) => IsActive
+            ? BendShare * BezelWidth(glass) + split + Math.Max(0, 1 / ZoomFactor - 1) * Math.Max(glass.Width, glass.Height) / 2 + 1
+            : 0;
 
         /// <summary>
         /// Creates the shader that draws <paramref name="backdrop"/>, the blurred backdrop in pixels of the surface,
         /// through the lens over <paramref name="glass"/>, a rectangle in the same pixels with corners of
-        /// <paramref name="radius"/>; <paramref name="split"/> offsets red and blue at the edge, in pixels.
+        /// <paramref name="radius"/>; <paramref name="split"/> offsets red and blue at the edge, in pixels. The shader
+        /// samples only within <paramref name="valid"/>, the area that holds backdrop, such as a snapshot that the edge of
+        /// the surface cut short.
         /// </summary>
-        public SKShader CreateShader(SKShader backdrop, SKRect glass, float radius, float split)
+        public SKShader CreateShader(SKShader backdrop, SKRect glass, float radius, float split, SKRect valid)
         {
             var effect = Effect.Value;
             var bezel = BezelWidth(glass);
             using var uniforms = new SKRuntimeEffectUniforms(effect)
             {
                 ["glass"] = new[] { glass.Left, glass.Top, glass.Right, glass.Bottom },
+                ["valid"] = new[] { valid.Left + 0.5f, valid.Top + 0.5f, valid.Right - 0.5f, valid.Bottom - 0.5f },
                 ["radius"] = radius,
                 ["bezel"] = bezel,
                 ["bend"] = BendShare * bezel,
-                ["zoom"] = (float)Math.Clamp(Zoom, 0.5, 3),
+                ["zoom"] = ZoomFactor,
                 ["split"] = split,
                 ["rimSaturation"] = (float)Math.Clamp(RimSaturation, 0, 3)
             };
@@ -67,6 +75,7 @@ namespace Flowery.Skia
             SKRuntimeEffect.CreateShader("""
                 uniform shader backdrop;
                 uniform float4 glass;
+                uniform float4 valid;
                 uniform float radius;
                 uniform float bezel;
                 uniform float bend;
@@ -79,6 +88,11 @@ namespace Flowery.Skia
                     float r = min(radius, min(halfSize.x, halfSize.y));
                     float2 q = abs(p) - halfSize + r;
                     return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+                }
+
+                // Outside the snapshot lies no backdrop, only what the image holds beyond its valid area.
+                half4 sampleAt(float2 at) {
+                    return backdrop.eval(clamp(at, valid.xy, valid.zw));
                 }
 
                 half4 main(float2 coord) {
@@ -94,9 +108,9 @@ namespace Flowery.Skia
                     normal = size > 0.0001 ? normal / size : float2(0.0);
                     float2 source = center + p / zoom + normal * bend * slope;
                     float2 chroma = normal * split * slope;
-                    half4 color = backdrop.eval(source);
-                    color.r = backdrop.eval(source + chroma).r;
-                    color.b = backdrop.eval(source - chroma).b;
+                    half4 color = sampleAt(source);
+                    color.r = sampleAt(source + chroma).r;
+                    color.b = sampleAt(source - chroma).b;
                     half luminance = dot(color.rgb, half3(0.2126, 0.7152, 0.0722));
                     color.rgb = clamp(mix(half3(luminance), color.rgb, half(1.0 + (rimSaturation - 1.0) * slope)), 0.0, color.a);
                     return color;

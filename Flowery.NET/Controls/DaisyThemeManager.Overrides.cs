@@ -4,7 +4,6 @@ using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Media.Immutable;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Styling;
@@ -37,6 +36,10 @@ namespace Flowery.Controls
         // that the theme leaves to the library or that BackdropOverride chose. Built again on every theme switch and
         // every change of the glass mode or an override.
         private static ResourceDictionary? _derivedPalette;
+
+        // The palette the theme manager applied itself. A CustomThemeApplicator brings its own dictionaries, and a palette
+        // applied before it was set is stale, so there the colors come from the app resources.
+        private static ResourceDictionary? OwnPalette => CustomThemeApplicator == null ? _currentPalette : null;
 
         private static string? _backdropOverride;
         private static IBrush? _backdropOverrideBrush;
@@ -173,9 +176,14 @@ namespace Flowery.Controls
                 var text = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
                 if (string.Equals(text, _backdropOverride, StringComparison.Ordinal))
                     return;
+                var previous = _backdropOverrideBrush;
                 (_backdropOverride, _backdropOverrideBrush, _backdropOverrideEffect) =
                     text == null ? (null, null, null) : ParseBackdrop(text);
                 RefreshDerivedResources();
+                // A decoded photo holds tens of megabytes. The backdrops let go of it with the swap; the frames already
+                // on their way that still draw it are done well within a second.
+                if (previous is ImageBrush { Source: Bitmap bitmap })
+                    Avalonia.Threading.DispatcherTimer.RunOnce(bitmap.Dispose, TimeSpan.FromSeconds(1));
                 BackdropOverrideChanged?.Invoke(null, EventArgs.Empty);
             }
         }
@@ -213,7 +221,7 @@ namespace Flowery.Controls
             }
             if (Color.TryParse(text, out var color))
                 return (color.A == 255 ? $"#{color.R:X2}{color.G:X2}{color.B:X2}" : $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}",
-                    new ImmutableSolidColorBrush(color), null);
+                    new SolidColorBrush(color), null);
             throw new FormatException(
                 $"'{text}' is no backdrop: use a color such as #0B1B5E, image: with a file path or URI, or effect: with an effect name.");
         }
@@ -228,12 +236,23 @@ namespace Flowery.Controls
                 using var memory = new MemoryStream();
                 stream.CopyTo(memory);
                 memory.Position = 0;
-                var bitmap = new Bitmap(memory);
-                if (bitmap.PixelSize.Width > MaxBackdropImageWidth)
+                // A wide photo is decoded once at the width a screen needs, not first at its full size.
+                var width = ReadImageWidth(memory.GetBuffer().AsSpan(0, (int)memory.Length));
+                Bitmap bitmap;
+                if (width > MaxBackdropImageWidth)
                 {
-                    bitmap.Dispose();
-                    memory.Position = 0;
                     bitmap = Bitmap.DecodeToWidth(memory, MaxBackdropImageWidth);
+                }
+                else
+                {
+                    bitmap = new Bitmap(memory);
+                    // A format whose header the library does not read.
+                    if (width == null && bitmap.PixelSize.Width > MaxBackdropImageWidth)
+                    {
+                        bitmap.Dispose();
+                        memory.Position = 0;
+                        bitmap = Bitmap.DecodeToWidth(memory, MaxBackdropImageWidth);
+                    }
                 }
                 return new ImageBrush(bitmap) { Stretch = Stretch.UniformToFill };
             }
@@ -243,6 +262,37 @@ namespace Flowery.Controls
                 System.Diagnostics.Debug.WriteLine($"BackdropOverride: the image '{source}' could not be loaded: {ex.Message}");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Returns the width a PNG or JPEG file gives in its header, or <c>null</c> for another format or a header it
+        /// cannot read.
+        /// </summary>
+        internal static int? ReadImageWidth(ReadOnlySpan<byte> data)
+        {
+            // PNG: the width is the first field of the IHDR chunk, after the signature and the chunk length and type.
+            if (data.Length >= 24 && data[0] == 0x89 && data[1] == (byte)'P' && data[2] == (byte)'N' && data[3] == (byte)'G')
+                return (data[16] << 24) | (data[17] << 16) | (data[18] << 8) | data[19];
+            // JPEG: the width is in the first start-of-frame segment, SOF0 to SOF15 without DHT, JPG and DAC; the segments
+            // before it carry their length.
+            if (data.Length < 4 || data[0] != 0xFF || data[1] != 0xD8)
+                return null;
+            var i = 2;
+            while (i + 8 < data.Length)
+            {
+                if (data[i] != 0xFF)
+                    return null;
+                var marker = data[i + 1];
+                if (marker == 0xFF)
+                {
+                    i++;
+                    continue;
+                }
+                if (marker is >= 0xC0 and <= 0xCF and not (0xC4 or 0xC8 or 0xCC))
+                    return (data[i + 7] << 8) | data[i + 8];
+                i += 2 + ((data[i + 2] << 8) | data[i + 3]);
+            }
+            return null;
         }
 
         /// <summary>
@@ -284,7 +334,7 @@ namespace Flowery.Controls
             var ownTint = app.Resources.TryGetResource(GlassTintKey, variant, out _);
             if (ownTint && _baseOverride != null)
             {
-                if (_currentPalette?.TryGetResource(GlassTintKey, variant, out var tint) == true && tint is Color paletteTint
+                if (OwnPalette?.TryGetResource(GlassTintKey, variant, out var tint) == true && tint is Color paletteTint
                     && TryGetPaletteColor(app, "DaisyBase100Color", variant, out var themeBase)
                     && TryGetPaletteColor(app, "DaisyBaseContentColor", variant, out var themeContent))
                     derived[GlassTintKey] = FollowBase(paletteTint, themeBase, themeContent, base100);
@@ -299,25 +349,23 @@ namespace Flowery.Controls
             var hasThemeBackdrop = app.Resources.TryGetResource(BackdropBrushKey, variant, out _)
                 || app.Resources.TryGetResource(BackdropEffectKey, variant, out _);
             var themeBackdropFits = _baseOverride is not { } newBase || IsDarkBase(newBase) == IsDarkBase(themeBase100);
-            if (_backdropOverride != null)
+            if (_backdropOverrideBrush != null)
             {
-                if (_backdropOverrideBrush != null)
-                {
-                    derived[BackdropBrushKey] = _backdropOverrideBrush;
-                    derived[BackdropEffectKey] = null;
-                }
-                else if (_backdropOverrideEffect != null)
-                {
-                    derived[BackdropEffectKey] = _backdropOverrideEffect;
-                }
+                derived[BackdropBrushKey] = _backdropOverrideBrush;
+                derived[BackdropEffectKey] = null;
             }
+            else if (_backdropOverrideEffect != null)
+            {
+                derived[BackdropEffectKey] = _backdropOverrideEffect;
+            }
+            // Also under an override whose image could not be loaded, which leaves the backdrop as the theme has it.
             else if (hasBase && (!hasThemeBackdrop || !themeBackdropFits))
             {
                 if (glassMode && TryGetPaletteColor(app, "DaisyPrimaryColor", variant, out var primary)
                     && TryGetPaletteColor(app, "DaisySecondaryColor", variant, out var secondary))
                     derived[BackdropBrushKey] = CreateGlowBackdrop(base100, primary, secondary);
                 else if (hasThemeBackdrop)
-                    derived[BackdropBrushKey] = new ImmutableSolidColorBrush(base100);
+                    derived[BackdropBrushKey] = new SolidColorBrush(base100);
                 if (hasThemeBackdrop)
                     derived[BackdropEffectKey] = null;
             }
@@ -325,8 +373,9 @@ namespace Flowery.Controls
             if (derived.Count == 0)
                 return;
             _derivedPalette = derived;
-            // Right after the palette, and in any case before the contrast palette.
-            var index = _currentPalette != null ? dictionaries.IndexOf(_currentPalette) + 1 : 0;
+            // Right after the palette, and in any case before the contrast palette. The dictionaries of a
+            // CustomThemeApplicator are unknown, so there it goes last before the contrast palette.
+            var index = OwnPalette is { } palette ? dictionaries.IndexOf(palette) + 1 : 0;
             if (index <= 0)
                 index = _contrastPalette != null && dictionaries.Contains(_contrastPalette)
                     ? dictionaries.IndexOf(_contrastPalette)
@@ -359,10 +408,10 @@ namespace Flowery.Controls
             foreach (var (key, accent) in AccentTextBrushes)
             {
                 if (TryGetAccentTextColor(app, variant, key, accent, out var text))
-                    derived[key] = new ImmutableSolidColorBrush(FloweryColorHelpers.EnsureContrast(text, newBase, TextContrast));
+                    derived[key] = new SolidColorBrush(FloweryColorHelpers.EnsureContrast(text, newBase, TextContrast));
             }
             // A few palettes name the primary text color as a color too.
-            if (_currentPalette?.TryGetResource("DaisyPrimaryForegroundColor", variant, out var primaryText) == true && primaryText is Color primary)
+            if (OwnPalette?.TryGetResource("DaisyPrimaryForegroundColor", variant, out var primaryText) == true && primaryText is Color primary)
                 derived["DaisyPrimaryForegroundColor"] = FloweryColorHelpers.EnsureContrast(primary, newBase, TextContrast);
         }
 
@@ -370,7 +419,7 @@ namespace Flowery.Controls
         private static void AddBaseColor(ResourceDictionary derived, string name, Color color)
         {
             derived[$"Daisy{name}Color"] = color;
-            derived[$"Daisy{name}Brush"] = new ImmutableSolidColorBrush(color);
+            derived[$"Daisy{name}Brush"] = new SolidColorBrush(color);
         }
 
         // The color that keeps the contrast ratio of color to the old base, and its side: toward the text of the theme or
@@ -410,7 +459,7 @@ namespace Flowery.Controls
         // DaisyUITheme takes.
         private static bool TryGetAccentTextColor(Application app, ThemeVariant variant, string key, string accent, out Color color)
         {
-            if (_currentPalette?.TryGetResource(key, variant, out var value) == true && value is ISolidColorBrush brush)
+            if (OwnPalette?.TryGetResource(key, variant, out var value) == true && value is ISolidColorBrush brush)
             {
                 color = brush.Color;
                 return true;
@@ -422,7 +471,7 @@ namespace Flowery.Controls
         private static bool TryGetPaletteColor(Application app, string key, ThemeVariant variant, out Color color)
         {
             object? value = null;
-            if (_currentPalette?.TryGetResource(key, variant, out value) != true && !app.TryFindResource(key, variant, out value))
+            if (OwnPalette?.TryGetResource(key, variant, out value) != true && !app.TryFindResource(key, variant, out value))
             {
                 color = default;
                 return false;
@@ -444,7 +493,7 @@ namespace Flowery.Controls
                     ClipGeometry = area,
                     Children =
                     {
-                        new GeometryDrawing { Geometry = area, Brush = new ImmutableSolidColorBrush(base100) },
+                        new GeometryDrawing { Geometry = area, Brush = new SolidColorBrush(base100) },
                         new GeometryDrawing { Geometry = area, Brush = Glow(primary, 0.55, new RelativePoint(0.82, 0.1, RelativeUnit.Relative), 0.42, 0.6) },
                         new GeometryDrawing { Geometry = area, Brush = Glow(secondary, 0.45, new RelativePoint(0.2, 0.95, RelativeUnit.Relative), 0.38, 0.55) }
                     }

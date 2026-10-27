@@ -70,7 +70,11 @@ namespace Flowery.Skia
             _lens = lens;
         }
 
-        public Rect Bounds => _bounds;
+        // A lens shows what lies around the glass, so a change there must redraw it too: the operation claims that area,
+        // and a render for it alone counts as a partial render, which redraws the glass in full for a moment.
+        public Rect Bounds => _lens.IsActive
+            ? _bounds.Inflate(_lens.Reach(new SKRect(0, 0, (float)_bounds.Width, (float)_bounds.Height), SplitWidth(1)))
+            : _bounds;
 
         public bool HitTest(Point p) => _bounds.Contains(p);
 
@@ -157,8 +161,10 @@ namespace Flowery.Skia
                 backdropFilter = SKImageFilter.CreateColorFilter(colorFilter, blurFilter);
             }
 
-            // The backdrop blur from the frame snapshot, through the lens when the glass bends it.
-            if (backdrop is { } snapshot && !(_lens.IsActive && DrawThroughLens(lease.GrContext, snapshot, backdropFilter!, canvas, rect)))
+            // The backdrop blur from the frame snapshot, through the lens when the glass bends it. Skia makes no blur
+            // filter for a blur it cannot draw, such as a negative one, and the lens needs one.
+            if (backdrop is { } snapshot
+                && !(_lens.IsActive && backdropFilter != null && DrawThroughLens(lease.GrContext, snapshot, backdropFilter, canvas, rect)))
             {
                 using var paint = new SKPaint
                 {
@@ -236,7 +242,9 @@ namespace Flowery.Skia
                 snapshot.Bounds.Left + offset.X - subset.Left, snapshot.Bounds.Top + offset.Y - subset.Top);
             using var backdrop = blurred.ToShader(SKShaderTileMode.Clamp, SKShaderTileMode.Clamp,
                 new SKSamplingOptions(SKFilterMode.Linear), placement);
-            using var lens = _lens.CreateShader(backdrop, glass, _cornerRadius * scale, SplitWidth(scale));
+            // Only the subset of the result holds the blurred backdrop.
+            var valid = SKRect.Create(snapshot.Bounds.Left + offset.X, snapshot.Bounds.Top + offset.Y, subset.Width, subset.Height);
+            using var lens = _lens.CreateShader(backdrop, glass, _cornerRadius * scale, SplitWidth(scale), valid);
             using var paint = new SKPaint { Shader = lens, IsAntialias = true };
             // In pixels of the surface, like the snapshot; the rounded clip stays in place.
             canvas.Save();

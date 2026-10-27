@@ -556,6 +556,9 @@ namespace Flowery.Controls
 
             _currentThemeName = themeName;
             _themeApplicationPending = false;
+            // A base override decides light or dark, also for a theme that a CustomThemeApplicator applied.
+            if (_baseOverride != null && Application.Current is { } app && GetThemeInfo(themeName) is { } info)
+                app.RequestedThemeVariant = IsDarkWithOverride(info.IsDark) ? ThemeVariant.Dark : ThemeVariant.Light;
             RefreshDerivedResources();
             DaisyAccessibility.RefreshContrastPalette();
             FloweryEventRaiser.Raise(ThemeChanged, null, themeName, nameof(ThemeChanged));

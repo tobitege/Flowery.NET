@@ -30,6 +30,9 @@ public class DaisyBaseOverrideTests
             Assert.Equal(light, changed.Base100);
             Assert.Equal(light, Assert.IsAssignableFrom<ISolidColorBrush>(Resource("DaisyBase100Brush")).Color);
             Assert.False(DaisyThemeManager.IsCurrentThemeDark);
+            // A SolidColorBrush like those of the palettes, which some controls read their colors from.
+            Assert.IsType<SolidColorBrush>(Resource("DaisyBase300Brush"));
+            Assert.IsType<SolidColorBrush>(Resource("DaisyPrimaryForegroundBrush"));
 
             // The same contrast ratio and the same direction: darker, like in Light.
             AssertKeeps(original.Base200, original.Base100, changed.Base200, changed.Base100);
@@ -202,6 +205,53 @@ public class DaisyBaseOverrideTests
         finally
         {
             DaisyGlassSurface.GlobalEnabled = false;
+            DaisyThemeManager.BaseOverride = null;
+            DaisyThemeManager.ApplyTheme(previous ?? "Light");
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Theme_Swap_Still_Reaches_The_Other_Theme_Under_A_Base_Of_The_Other_Kind()
+    {
+        var previous = DaisyThemeManager.CurrentThemeName;
+        var swap = new DaisyThemeSwap { LightTheme = "Light", DarkTheme = "Dark" };
+        var window = new Window { Width = 200, Height = 100, Content = swap };
+        window.Show();
+        var click = typeof(DaisyThemeSwap).GetMethod("OnClick", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+        try
+        {
+            Assert.True(DaisyThemeManager.ApplyTheme("Dark"));
+            // A light base makes Dark look light, but the swap still goes to Light and back.
+            DaisyThemeManager.BaseOverride = Colors.White;
+            click.Invoke(swap, null);
+            Assert.Equal("Light", DaisyThemeManager.CurrentThemeName);
+            click.Invoke(swap, null);
+            Assert.Equal("Dark", DaisyThemeManager.CurrentThemeName);
+        }
+        finally
+        {
+            window.Close();
+            DaisyThemeManager.BaseOverride = null;
+            DaisyThemeManager.ApplyTheme(previous ?? "Light");
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Theme_That_A_Custom_Applicator_Applies_Takes_Light_Or_Dark_From_The_Base_Override()
+    {
+        var previous = DaisyThemeManager.CurrentThemeName;
+        var app = Application.Current!;
+        try
+        {
+            Assert.True(DaisyThemeManager.ApplyTheme("Light"));
+            DaisyThemeManager.BaseOverride = Color.Parse("#101828");
+            DaisyThemeManager.CustomThemeApplicator = static _ => true;
+            Assert.True(DaisyThemeManager.ApplyTheme("Cupcake"));
+            Assert.Equal(ThemeVariant.Dark, app.RequestedThemeVariant);
+        }
+        finally
+        {
+            DaisyThemeManager.CustomThemeApplicator = null;
             DaisyThemeManager.BaseOverride = null;
             DaisyThemeManager.ApplyTheme(previous ?? "Light");
         }

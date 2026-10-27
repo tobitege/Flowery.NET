@@ -206,6 +206,39 @@ public class DaisyBackdropTests
     }
 
     [AvaloniaFact]
+    public void An_Image_That_Cannot_Be_Loaded_Leaves_The_Glows_Of_The_Glass_Mode()
+    {
+        var previous = DaisyThemeManager.CurrentThemeName;
+        try
+        {
+            Assert.True(DaisyThemeManager.ApplyTheme("Dracula"));
+            DaisyGlassSurface.GlobalEnabled = true;
+            DaisyThemeManager.BackdropOverride = "image:" + Path.Combine(Path.GetTempPath(), "flowery-backdrop-missing", "none.png");
+            Assert.Equal(Base100(), Assert.IsAssignableFrom<ISolidColorBrush>(Layers(Resource("DaisyBackdropBrush"))[0]).Color);
+        }
+        finally
+        {
+            DaisyThemeManager.BackdropOverride = null;
+            DaisyGlassSurface.GlobalEnabled = false;
+            DaisyThemeManager.ApplyTheme(previous ?? "Light");
+        }
+    }
+
+    [Fact]
+    public void The_Width_Of_A_Png_Or_Jpeg_Is_Read_From_Its_Header()
+    {
+        foreach (var format in new[] { SKEncodedImageFormat.Png, SKEncodedImageFormat.Jpeg })
+        {
+            using var bitmap = new SKBitmap(4100, 6);
+            using var image = SKImage.FromBitmap(bitmap);
+            using var data = image.Encode(format, 90);
+            Assert.Equal(4100, DaisyThemeManager.ReadImageWidth(data.AsSpan()));
+        }
+        Assert.Null(DaisyThemeManager.ReadImageWidth("GIF89a........"u8));
+        Assert.Null(DaisyThemeManager.ReadImageWidth([0xFF, 0xD8, 0x00]));
+    }
+
+    [AvaloniaFact]
     public void The_Sidebar_Selector_And_The_Backdrop_Override_Follow_Each_Other()
     {
         var sidebar = new FloweryComponentSidebar();
@@ -218,10 +251,16 @@ public class DaisyBackdropTests
             sidebar.Backdrop = "Aurora";
             Assert.Equal("effect:Aurora", DaisyThemeManager.BackdropOverride);
 
+            // The color in use shows as an entry of its own, so "Color..." can pick another one.
             DaisyThemeManager.BackdropOverride = "#112233";
-            Assert.Equal("Color...", sidebar.Backdrop);
+            Assert.Equal("#112233", sidebar.Backdrop);
+            Assert.Equal(["Theme", "Plasma", "Aurora", "LiquidGold", "LiquidColor", "#112233", "Color...", "Image..."], sidebar.AvailableBackdrops);
+            DaisyThemeManager.BackdropOverride = "image:/pictures/beach.jpg";
+            Assert.Equal("beach.jpg", sidebar.Backdrop);
+            Assert.DoesNotContain("#112233", sidebar.AvailableBackdrops);
             DaisyThemeManager.BackdropOverride = "effect:LiquidGold";
             Assert.Equal("LiquidGold", sidebar.Backdrop);
+            Assert.Equal(7, sidebar.AvailableBackdrops.Count);
 
             sidebar.Backdrop = "Theme";
             Assert.Null(DaisyThemeManager.BackdropOverride);

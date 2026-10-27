@@ -21,10 +21,10 @@ Similarly, set `AvailableLanguages` to enable the language selector functionalit
 | `NeumorphicMode` (`DaisyNeumorphicMode`) | Global neumorphic mode; two-way synced with `DaisyNeumorphic.GlobalMode`. |
 | `AvailableNeumorphicModes` (`IReadOnlyList<DaisyNeumorphicMode>`) | Modes offered by the neumorphic selector (`None`, `Raised`, `Inset`, `Flat`). |
 | `IsGlassModeEnabled` (`bool`) | The glass mode; two-way synced with `DaisyGlassSurface.GlobalEnabled`. |
-| `Backdrop` (`string`) | The choice of the backdrop selector; two-way synced with `DaisyThemeManager.BackdropOverride`. `Color...` and `Image...` ask for a color or an image file first and keep the previous choice when the user cancels. |
+| `Backdrop` (`string`) | The choice of the backdrop selector; two-way synced with `DaisyThemeManager.BackdropOverride`. `Color...` and `Image...` ask for a color or an image file first and keep the previous choice when the user cancels; the color or image in use then shows as an entry of its own, such as `#0B1B5E` or `beach.jpg`, so another one can be picked. |
 | `BaseColorText` (`string`) | The text of the base color selector: `Theme`, or the color of `DaisyThemeManager.BaseOverride` such as `#0B1B5E`. |
 | `PickBaseColorCommand` / `ResetBaseColorCommand` (`ICommand`) | Ask for a color and set it as `DaisyThemeManager.BaseOverride`; give the base of the theme back. The reset can run while an override is set. |
-| `AvailableBackdrops` (`IReadOnlyList<string>`) | The choices of the backdrop selector: `Theme`, the effects (`Plasma`, `Aurora`, `LiquidGold`, `LiquidColor`), `Color...` and `Image...`. |
+| `AvailableBackdrops` (`IReadOnlyList<string>`) | The choices of the backdrop selector: `Theme`, the effects (`Plasma`, `Aurora`, `LiquidGold`, `LiquidColor`), the color or image in use, `Color...` and `Image...`. |
 
 ## Data Models
 

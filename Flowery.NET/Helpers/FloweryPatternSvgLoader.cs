@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Flowery.Enums;
 using Flowery.Controls;
@@ -75,9 +75,10 @@ namespace Flowery.Helpers
                 var theme = DaisyThemeManager.AvailableThemes.FirstOrDefault(t =>
                     string.Equals(t.Name, themeName, StringComparison.OrdinalIgnoreCase));
 
+                // As drawn: a base override can make the current theme the other kind.
                 if (theme != null)
                 {
-                    return theme.IsDark;
+                    return DaisyThemeManager.IsCurrentThemeDark;
                 }
             }
 

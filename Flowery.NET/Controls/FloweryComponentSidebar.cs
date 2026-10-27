@@ -508,7 +508,15 @@ namespace Flowery.Controls
         private const string BackdropColor = "Color...";
         private const string BackdropImage = "Image...";
 
-        private string _backdrop = BackdropChoice(DaisyThemeManager.BackdropOverride);
+        // The choice the selector shows; it follows the override once the sidebar is attached.
+        private string _backdrop = ThemeChoice;
+
+        private readonly ObservableCollection<string> _availableBackdrops =
+            [ThemeChoice, .. Enum.GetNames<Enums.DaisyGlassAnimation>(), BackdropColor, BackdropImage];
+
+        // The entry that names the color or image in use, such as "#0B1B5E" or "beach.jpg": the selector shows it, so
+        // "Color..." and "Image..." stay free to pick another one.
+        private string? _customBackdrop;
 
         /// <summary>
         /// Defines the <see cref="Backdrop"/> property.
@@ -521,8 +529,9 @@ namespace Flowery.Controls
 
         /// <summary>
         /// Gets or sets the choice of the backdrop selector, one of <see cref="AvailableBackdrops"/>, which sets
-        /// <see cref="DaisyThemeManager.BackdropOverride"/>. Choosing a color or an image asks for one first and goes
-        /// back to the previous choice when the user cancels.
+        /// <see cref="DaisyThemeManager.BackdropOverride"/>. Choosing <c>Color...</c> or <c>Image...</c> asks for one
+        /// first and goes back to the previous choice when the user cancels; the color or image in use then shows as an
+        /// entry of its own.
         /// </summary>
         public string Backdrop
         {
@@ -530,7 +539,7 @@ namespace Flowery.Controls
             set
             {
                 // A selector that rebuilds its items can push null for a moment.
-                if (value == _backdrop || !AvailableBackdrops.Contains(value))
+                if (value == _backdrop || value == _customBackdrop || !_availableBackdrops.Contains(value))
                     return;
                 if (value is BackdropColor or BackdropImage)
                 {
@@ -543,17 +552,18 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Gets the choices of the backdrop selector: the backdrop of the theme, the effects, a color and an image.
+        /// Gets the choices of the backdrop selector: the backdrop of the theme, the effects, the color or image in use,
+        /// and <c>Color...</c> and <c>Image...</c> to pick one.
         /// </summary>
-        public IReadOnlyList<string> AvailableBackdrops { get; } =
-            [ThemeChoice, .. Enum.GetNames<Enums.DaisyGlassAnimation>(), BackdropColor, BackdropImage];
+        public IReadOnlyList<string> AvailableBackdrops => _availableBackdrops;
 
         private static string BackdropChoice(string? backdrop) => backdrop switch
         {
             null => ThemeChoice,
             _ when backdrop.StartsWith("effect:", StringComparison.Ordinal) => backdrop["effect:".Length..],
-            _ when backdrop.StartsWith("image:", StringComparison.Ordinal) => BackdropImage,
-            _ => BackdropColor
+            _ when backdrop.StartsWith("image:", StringComparison.Ordinal)
+                => System.IO.Path.GetFileName(backdrop["image:".Length..]) is { Length: > 0 } name ? name : backdrop,
+            _ => backdrop
         };
 
         private async System.Threading.Tasks.Task PickBackdropAsync(string choice)
@@ -561,8 +571,9 @@ namespace Flowery.Controls
             string? backdrop = null;
             if (choice == BackdropColor)
             {
-                var start = Application.Current is { } app && app.TryFindResource("DaisyBase100Color", app.ActualThemeVariant, out var value)
-                    && value is Color theme ? theme : Colors.SteelBlue;
+                var start = DaisyThemeManager.BackdropOverride is { } text && Color.TryParse(text, out var current) ? current
+                    : Application.Current is { } app && app.TryFindResource("DaisyBase100Color", app.ActualThemeVariant, out var value)
+                      && value is Color theme ? theme : Colors.SteelBlue;
                 if (await ColorPicker.DaisyColorPickerDialog.ShowOverlayAsync(this, start) is { } color)
                     backdrop = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
             }
@@ -578,7 +589,7 @@ namespace Flowery.Controls
                     backdrop = "image:" + path;
             }
 
-            if (backdrop != null)
+            if (backdrop != null && backdrop != DaisyThemeManager.BackdropOverride)
                 DaisyThemeManager.BackdropOverride = backdrop;
             else
                 // The selector shows the choice the user cancelled; put the current one back.
@@ -587,7 +598,18 @@ namespace Flowery.Controls
 
         private void OnBackdropOverrideChanged(object? sender, EventArgs e)
         {
-            var choice = BackdropChoice(DaisyThemeManager.BackdropOverride);
+            var backdrop = DaisyThemeManager.BackdropOverride;
+            var choice = BackdropChoice(backdrop);
+            var custom = backdrop != null && !backdrop.StartsWith("effect:", StringComparison.Ordinal) ? choice : null;
+            if (custom != _customBackdrop)
+            {
+                // A selector that shows the old entry pushes null while it goes, which the setter ignores.
+                if (_customBackdrop != null)
+                    _availableBackdrops.Remove(_customBackdrop);
+                _customBackdrop = custom;
+                if (custom != null && !_availableBackdrops.Contains(custom))
+                    _availableBackdrops.Insert(_availableBackdrops.IndexOf(BackdropColor), custom);
+            }
             if (_backdrop != choice)
                 SetAndRaise(BackdropProperty, ref _backdrop, choice);
         }
