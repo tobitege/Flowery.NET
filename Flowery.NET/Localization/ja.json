@@ -241,6 +241,8 @@
   "GlassDesigner_Renderer": "アニメーション背景",
   "GlassDesigner_ShaderHint": "Shader には Flowery.NET.Skia が必要です。",
   "GlassDesigner_Effect": "エフェクト",
+  "GlassDesigner_EffectColor": "エフェクトの色",
+  "GlassDesigner_AccentColor": "アクセント カラー",
   "GlassDesigner_Speed": "速度",
   "GlassDesigner_FrameRate": "フレームレート",
   "GlassDesigner_EveryFrame": "毎フレーム",

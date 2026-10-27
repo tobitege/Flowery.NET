@@ -1096,11 +1096,43 @@ namespace Flowery.Controls
                 yield break;
             }
 
-            yield return Chips("GlassDesigner_Effect", "Effect", Enum.GetValues<DaisyGlassAnimation>(), d => d.BackgroundEffect, (d, v) => d.BackgroundEffect = v);
+            yield return Chips("GlassDesigner_Effect", "Effect", Enum.GetValues<DaisyGlassAnimation>(), d => d.BackgroundEffect, (d, v) => d.BackgroundEffect = v,
+                rebuildTab: true);
+            if (_design.BackgroundEffect == DaisyGlassAnimation.LiquidColor)
+                yield return EffectColorField();
             yield return Slider("GlassDesigner_Speed", "Speed", 0, 3, 0.05, d => d.BackgroundSpeed, (d, v) => d.BackgroundSpeed = v);
             yield return Chips("GlassDesigner_FrameRate", "Frame rate", [15d, 24d, 30d, 60d, 0d], d => d.BackgroundFrameRate, (d, v) => d.BackgroundFrameRate = v,
                 label: rate => rate == 0 ? L("GlassDesigner_EveryFrame", "Every frame") : rate.ToString(CultureInfo.CurrentCulture));
             yield return Slider("GlassDesigner_BackgroundOpacity", "Background opacity", 0, 1, 0.01, d => d.BackgroundOpacity, (d, v) => d.BackgroundOpacity = v);
+        }
+
+        // The color of the LiquidColor effect: the accent color of the system, or a color picked with the swatch.
+        private Border EffectColorField()
+        {
+            var accent = new RadioButton
+            {
+                Classes = { "gbd-chip" },
+                GroupName = "gbd-effect-color-" + _groups,
+                Content = L("GlassDesigner_AccentColor", "Accent color"),
+                IsChecked = _design.BackgroundColor is null,
+                Margin = new Thickness(0, 0, 10, 0),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            accent.IsCheckedChanged += (_, _) =>
+            {
+                if (accent.IsChecked == true && _design.BackgroundColor is not null)
+                    Change(d => d.BackgroundColor = null, rebuildTab: true);
+            };
+            var color = _design.BackgroundColor ?? DaisyGlassBackground.AccentColor();
+            var swatch = Swatch(color);
+            swatch.Click += async (_, _) =>
+            {
+                if (await PickColorAsync(color) is { } picked)
+                    Change(d => d.BackgroundColor = picked, rebuildTab: true);
+            };
+            var row = new StackPanel { Orientation = Orientation.Horizontal, Children = { accent, swatch } };
+            var hex = new TextBlock { Classes = { "gbd-value" }, Text = DaisyGlassDesign.FormatColor(color) };
+            return Field("GlassDesigner_EffectColor", "Effect color", row, new Border { Classes = { "gbd-pill" }, Child = hex });
         }
 
         // ---------------------------------------------------------------- Field builders

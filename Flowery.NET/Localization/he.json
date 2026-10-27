@@ -241,6 +241,8 @@
   "GlassDesigner_Renderer": "רקע מונפש",
   "GlassDesigner_ShaderHint": "Shader דורש את Flowery.NET.Skia.",
   "GlassDesigner_Effect": "אפקט",
+  "GlassDesigner_EffectColor": "צבע האפקט",
+  "GlassDesigner_AccentColor": "צבע הדגשה",
   "GlassDesigner_Speed": "מהירות",
   "GlassDesigner_FrameRate": "קצב פריימים",
   "GlassDesigner_EveryFrame": "כל פריים",

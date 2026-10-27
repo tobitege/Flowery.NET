@@ -95,12 +95,18 @@ The glass is a stack of layers: the backdrop (blurred or simulated), the tint, t
 
 ## Animated Backgrounds
 
-`GlassBackground` takes an animated background with an `Effect` (`Plasma`, `Aurora`, `LiquidGold`), a `Speed` (1 is normal, 0 stops it) and a `FrameRate` (redraws per second, default 30; 0 redraws on every display frame). There are two implementations of the same effects, so you can choose between look and cost:
+`GlassBackground` takes an animated background with an `Effect` (`Plasma`, `Aurora`, `LiquidGold`, `LiquidColor`), a `Speed` (1 is normal, 0 stops it) and a `FrameRate` (redraws per second, default 30; 0 redraws on every display frame). There are two implementations of the same effects, so you can choose between look and cost:
 
 | Background | Package | Drawing |
 | ---------- | ------- | ------- |
 | `DaisyGlassGradientBackground` | Flowery.NET | Moving linear and radial gradients. No SkiaSharp needed, works with every blur mode. |
 | `DaisyGlassShaderBackground` | Flowery.NET.Skia | SkSL runtime shaders drawn per pixel: plasma fields, aurora curtains with shimmer, molten gold with highlights. |
+
+`LiquidColor` is molten metal like `LiquidGold` in the background's `EffectColor`. Without one it takes the accent color of the system, follows it when the user changes it, and takes the primary color of the theme where the system has no accent color; `GetEffectColor()` returns the color in use.
+
+```xml
+<controls:DaisyGlassGradientBackground Effect="LiquidColor" EffectColor="#0EA5E9" />
+```
 
 ```xml
 <controls:DaisyGlassButton Content="Plasma">

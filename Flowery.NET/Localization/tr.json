@@ -241,6 +241,8 @@
   "GlassDesigner_Renderer": "Hareketli arka plan",
   "GlassDesigner_ShaderHint": "Shader için Flowery.NET.Skia gerekir.",
   "GlassDesigner_Effect": "Efekt",
+  "GlassDesigner_EffectColor": "Efekt rengi",
+  "GlassDesigner_AccentColor": "Vurgu rengi",
   "GlassDesigner_Speed": "Hız",
   "GlassDesigner_FrameRate": "Kare hızı",
   "GlassDesigner_EveryFrame": "Her kare",

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
@@ -31,6 +31,9 @@ namespace Flowery.Controls
                         break;
                     case DaisyGlassAnimation.LiquidGold:
                         DrawLiquidGold(context, area, t);
+                        break;
+                    case DaisyGlassAnimation.LiquidColor:
+                        DrawLiquidColor(context, area, t, Source.GetEffectColor());
                         break;
                     default:
                         DrawPlasma(context, area, t);
@@ -73,6 +76,31 @@ namespace Flowery.Controls
                 Blob(context, area, 0.3 + 0.2 * Math.Sin(t * 0.8), 0.4 + 0.2 * Math.Cos(t * 1.1), 0.25, Color.FromArgb(150, 255, 240, 180));
                 Blob(context, area, 0.7 + 0.2 * Math.Cos(t * 0.6 + 2), 0.6 + 0.2 * Math.Sin(t * 0.9), 0.2, Color.FromArgb(120, 255, 215, 0));
             }
+
+            // Liquid gold in another color: the shades run from a deep tone of the color through the color to a pale one.
+            private static void DrawLiquidColor(DrawingContext context, Rect area, double t, Color color)
+            {
+                var roll = (Math.Sin(t * 0.6) + 1) * 0.15;
+                context.DrawRectangle(Linear(25 + 10 * Math.Sin(t * 0.4),
+                    (Shade(color, 0.35), 0), (Shade(color, 0.8), 0.25 + roll), (Tint(color, 0.55), 0.5 + roll),
+                    (Shade(color, 0.95), 0.75 + roll * 0.5), (Shade(color, 0.45), 1)), null, area);
+                var sheen = Tint(color, 0.85);
+                var sweep = (t * 0.25) % 1.6 - 0.3;
+                context.DrawRectangle(Linear(30, (WithAlpha(sheen, 0), Math.Clamp(sweep - 0.15, 0, 1)),
+                    (WithAlpha(sheen, 170), Math.Clamp(sweep, 0, 1)),
+                    (WithAlpha(sheen, 0), Math.Clamp(sweep + 0.15, 0, 1))), null, area);
+                Blob(context, area, 0.3 + 0.2 * Math.Sin(t * 0.8), 0.4 + 0.2 * Math.Cos(t * 1.1), 0.25, WithAlpha(Tint(color, 0.7), 150));
+                Blob(context, area, 0.7 + 0.2 * Math.Cos(t * 0.6 + 2), 0.6 + 0.2 * Math.Sin(t * 0.9), 0.2, WithAlpha(Tint(color, 0.3), 120));
+            }
+
+            // The color darkened toward black (factor below 1) or mixed toward white.
+            private static Color Shade(Color color, double factor) =>
+                Color.FromRgb((byte)Math.Min(255, color.R * factor), (byte)Math.Min(255, color.G * factor), (byte)Math.Min(255, color.B * factor));
+
+            private static Color Tint(Color color, double white) =>
+                Color.FromRgb((byte)(color.R + (255 - color.R) * white), (byte)(color.G + (255 - color.G) * white), (byte)(color.B + (255 - color.B) * white));
+
+            private static Color WithAlpha(Color color, byte alpha) => Color.FromArgb(alpha, color.R, color.G, color.B);
 
             private static void Curtain(DrawingContext context, Rect area, double t, double phase, double height, Color color)
             {

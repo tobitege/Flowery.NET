@@ -16,7 +16,7 @@ The preview is a `DaisyButton` with `DaisyGlassButtonTheme`. Its text, variant, 
 | Glass | `BlurMode`, `EnableBackdropBlur`, `Blur`, `Saturation`, `Tint` and `TintOpacity`, the reflection, the simulated opacity and the liquid optics (`Depth`, `Curvature`, `Bend`, `Dispersion`). |
 | Fill | None, a `Gradient` preset, or a linear, radial or conic gradient with two to five colors (the model and JSON take any number), its angle and `FillOpacity`. Ten palettes (Sunrise, Lagoon, Forest, Berry, Mint, Candy, Ember, Twilight, Neon, Pearl) set the colors of a gradient, which stay editable; on no fill or a preset they start a linear gradient. |
 | Pattern | The `DaisyCardPattern` set as tiles, the pattern color and opacity. |
-| Motion | An animated `Background`: drawn with gradients (`DaisyGlassGradientBackground`) or shaders (`DaisyGlassShaderBackground`), its `Effect`, `Speed`, `FrameRate` and opacity. |
+| Motion | An animated `Background`: drawn with gradients (`DaisyGlassGradientBackground`) or shaders (`DaisyGlassShaderBackground`), its `Effect`, `Speed`, `FrameRate` and opacity. `LiquidColor` adds its color: the accent color of the system, or one picked with the swatch (`BackgroundColor` of the design). |
 
 `Reset` sits next to the tabs, so it is at hand on every tab. The stage offers four backdrops and a disc that drifts behind the preview, so the blur is visible. The disc is off by default and stops when the designer leaves the visual tree. The `Code` button opens the code drawer with the XAML, C# and JSON of the design, a copy button, and an import field for JSON.
 

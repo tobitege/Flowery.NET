@@ -241,6 +241,8 @@
   "GlassDesigner_Renderer": "Sfondo animato",
   "GlassDesigner_ShaderHint": "Shader richiede Flowery.NET.Skia.",
   "GlassDesigner_Effect": "Effetto",
+  "GlassDesigner_EffectColor": "Colore dell'effetto",
+  "GlassDesigner_AccentColor": "Colore principale",
   "GlassDesigner_Speed": "Velocità",
   "GlassDesigner_FrameRate": "Fotogrammi al secondo",
   "GlassDesigner_EveryFrame": "Ogni fotogramma",

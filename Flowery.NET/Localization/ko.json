@@ -241,6 +241,8 @@
   "GlassDesigner_Renderer": "애니메이션 배경",
   "GlassDesigner_ShaderHint": "Shader에는 Flowery.NET.Skia가 필요합니다.",
   "GlassDesigner_Effect": "효과",
+  "GlassDesigner_EffectColor": "효과 색상",
+  "GlassDesigner_AccentColor": "강조 색",
   "GlassDesigner_Speed": "속도",
   "GlassDesigner_FrameRate": "프레임 속도",
   "GlassDesigner_EveryFrame": "매 프레임",

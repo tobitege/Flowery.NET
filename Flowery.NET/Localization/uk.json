@@ -241,6 +241,8 @@
   "GlassDesigner_Renderer": "Анімоване тло",
   "GlassDesigner_ShaderHint": "Shader потребує Flowery.NET.Skia.",
   "GlassDesigner_Effect": "Ефект",
+  "GlassDesigner_EffectColor": "Колір ефекту",
+  "GlassDesigner_AccentColor": "Колір акценту",
   "GlassDesigner_Speed": "Швидкість",
   "GlassDesigner_FrameRate": "Частота кадрів",
   "GlassDesigner_EveryFrame": "Кожен кадр",

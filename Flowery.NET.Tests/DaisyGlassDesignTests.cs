@@ -173,6 +173,70 @@ public class DaisyGlassDesignTests
         }
     }
 
+    [AvaloniaTheory]
+    [InlineData("#FF0EA5E9")]
+    [InlineData(null)]
+    public void The_Color_Of_A_Liquid_Background_Goes_Through_Json_Xaml_And_The_Control(string? color)
+    {
+        var design = new DaisyGlassDesign
+        {
+            BackgroundRenderer = DaisyGlassBackgroundRenderer.Gradient,
+            BackgroundEffect = DaisyGlassAnimation.LiquidColor,
+            BackgroundColor = color is null ? null : Color.Parse(color)
+        };
+        Assert.Equal(design.BackgroundColor, DaisyGlassDesign.FromJson(design.ToJson()).BackgroundColor);
+        Assert.Equal(color is not null, design.ToXaml().Contains("EffectColor=\"#FF0EA5E9\""));
+        Assert.Equal(color is not null, design.ToCSharp().Contains("EffectColor = Color.Parse(\"#FF0EA5E9\")"));
+
+        var xaml = design.ToXaml().Replace("<controls:DaisyButton ",
+            "<controls:DaisyButton xmlns=\"https://github.com/avaloniaui\" " +
+            "xmlns:controls=\"clr-namespace:Flowery.Controls;assembly=Flowery.NET\" ");
+        var button = (DaisyButton)Avalonia.Markup.Xaml.AvaloniaRuntimeXamlLoader.Load(xaml);
+        var window = Show(button);
+        try
+        {
+            Assert.Equal(design.BackgroundColor, DaisyGlassSurface.GetBackground(button)!.EffectColor);
+            Assert.Equal(design.ToJson(), DaisyGlassDesign.FromControl(button).ToJson());
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Liquid_Color_Effect_Offers_The_Accent_Color_Or_A_Picked_One()
+    {
+        var designer = new DaisyGlassDesigner
+        {
+            Design = new DaisyGlassDesign { BackgroundRenderer = DaisyGlassBackgroundRenderer.Gradient, BackgroundEffect = DaisyGlassAnimation.LiquidColor }
+        };
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            designer.GetVisualDescendants().OfType<RadioButton>()
+                .Single(tab => Avalonia.Automation.AutomationProperties.GetAutomationId(tab) == "GlassDesigner_TabMotion").IsChecked = true;
+            window.UpdateLayout();
+            var accent = designer.GetVisualDescendants().OfType<RadioButton>().Single(chip => chip.GroupName?.StartsWith("gbd-effect-color-") == true);
+            Assert.True(accent.IsChecked);
+
+            designer.Design = new DaisyGlassDesign
+            {
+                BackgroundRenderer = DaisyGlassBackgroundRenderer.Gradient, BackgroundEffect = DaisyGlassAnimation.LiquidColor,
+                BackgroundColor = Colors.Teal
+            };
+            window.UpdateLayout();
+            accent = designer.GetVisualDescendants().OfType<RadioButton>().Single(chip => chip.GroupName?.StartsWith("gbd-effect-color-") == true);
+            Assert.False(accent.IsChecked);
+            accent.IsChecked = true;
+            Assert.Null(designer.Design.BackgroundColor);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     [AvaloniaFact]
     public void A_Palette_Sets_The_Fill_Colors_Which_Stay_Editable()
     {

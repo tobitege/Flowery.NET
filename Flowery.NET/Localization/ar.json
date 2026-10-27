@@ -243,6 +243,8 @@
   "GlassDesigner_Renderer": "خلفية متحركة",
   "GlassDesigner_ShaderHint": "يحتاج Shader إلى Flowery.NET.Skia.",
   "GlassDesigner_Effect": "التأثير",
+  "GlassDesigner_EffectColor": "لون التأثير",
+  "GlassDesigner_AccentColor": "لون التمييز",
   "GlassDesigner_Speed": "السرعة",
   "GlassDesigner_FrameRate": "معدل الإطارات",
   "GlassDesigner_EveryFrame": "كل إطار",

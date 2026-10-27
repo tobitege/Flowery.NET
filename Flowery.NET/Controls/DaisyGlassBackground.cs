@@ -2,6 +2,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Flowery.Enums;
 
@@ -59,6 +60,42 @@ namespace Flowery.Controls
         {
             get => GetValue(FrameRateProperty);
             set => SetValue(FrameRateProperty, value);
+        }
+
+        /// <summary>
+        /// Defines the <see cref="EffectColor"/> property.
+        /// </summary>
+        public static readonly StyledProperty<Color?> EffectColorProperty =
+            AvaloniaProperty.Register<DaisyGlassBackground, Color?>(nameof(EffectColor));
+
+        /// <summary>
+        /// Gets or sets the color of the <see cref="DaisyGlassAnimation.LiquidColor"/> effect; <c>null</c> (the default)
+        /// takes the accent color of the system, and the primary color of the theme where the system has none.
+        /// </summary>
+        public Color? EffectColor
+        {
+            get => GetValue(EffectColorProperty);
+            set => SetValue(EffectColorProperty, value);
+        }
+
+        /// <summary>
+        /// Returns the color the <see cref="DaisyGlassAnimation.LiquidColor"/> effect draws with: <see cref="EffectColor"/>, else
+        /// the accent color of the system, else the primary color of the theme.
+        /// </summary>
+        public Color GetEffectColor() => EffectColor ?? AccentColor();
+
+        /// <summary>
+        /// The accent color of the system, or the primary color of the theme where the system has none.
+        /// </summary>
+        public static Color AccentColor()
+        {
+            var app = Application.Current;
+            if (app?.PlatformSettings?.GetColorValues() is { AccentColor1: var accent } && accent.A > 0)
+                return accent;
+            if (app != null && app.TryFindResource("DaisyPrimaryColor", app.ActualThemeVariant, out var primary)
+                && primary is Color color)
+                return color;
+            return Colors.DodgerBlue;
         }
 
         /// <summary>
@@ -126,6 +163,8 @@ namespace Flowery.Controls
             DaisyAccessibility.PreferencesChanged += OnPreferencesChanged;
             Source.PropertyChanged += OnSourceChanged;
             EffectiveViewportChanged += OnEffectiveViewportChanged;
+            if (Application.Current?.PlatformSettings is { } settings)
+                settings.ColorValuesChanged += OnColorValuesChanged;
             RequestFrame();
         }
 
@@ -135,6 +174,8 @@ namespace Flowery.Controls
             DaisyAccessibility.PreferencesChanged -= OnPreferencesChanged;
             Source.PropertyChanged -= OnSourceChanged;
             EffectiveViewportChanged -= OnEffectiveViewportChanged;
+            if (Application.Current?.PlatformSettings is { } settings)
+                settings.ColorValuesChanged -= OnColorValuesChanged;
             StopWaiting();
             _lastFrame = null;
             base.OnDetachedFromVisualTree(e);
@@ -154,6 +195,13 @@ namespace Flowery.Controls
             StopWaiting();
             InvalidateVisual();
             RequestFrame();
+        }
+
+        // A new accent color of the system shows at once on a background that follows it.
+        private void OnColorValuesChanged(object? sender, Avalonia.Platform.PlatformColorValues e)
+        {
+            if (Source is { Effect: DaisyGlassAnimation.LiquidColor, EffectColor: null })
+                InvalidateVisual();
         }
 
         private void StopWaiting()

@@ -241,6 +241,8 @@
   "GlassDesigner_Renderer": "动画背景",
   "GlassDesigner_ShaderHint": "Shader 需要 Flowery.NET.Skia。",
   "GlassDesigner_Effect": "效果",
+  "GlassDesigner_EffectColor": "效果颜色",
+  "GlassDesigner_AccentColor": "主题色",
   "GlassDesigner_Speed": "速度",
   "GlassDesigner_FrameRate": "帧率",
   "GlassDesigner_EveryFrame": "每一帧",

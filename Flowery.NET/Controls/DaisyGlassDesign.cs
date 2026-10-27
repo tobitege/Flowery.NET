@@ -147,6 +147,12 @@ namespace Flowery.Controls
         /// <summary>Gets or sets the effect of the animated background.</summary>
         public DaisyGlassAnimation BackgroundEffect { get; set; }
 
+        /// <summary>
+        /// Gets or sets the color of the <see cref="DaisyGlassAnimation.LiquidColor"/> effect; <c>null</c> takes the accent
+        /// color of the system.
+        /// </summary>
+        public Color? BackgroundColor { get; set; }
+
         /// <summary>Gets or sets the speed of the animated background.</summary>
         public double BackgroundSpeed { get; set; } = 1;
 
@@ -263,6 +269,7 @@ namespace Flowery.Controls
                 return null;
 
             background.Effect = BackgroundEffect;
+            background.EffectColor = BackgroundColor;
             background.Speed = BackgroundSpeed;
             background.FrameRate = BackgroundFrameRate;
             return background;
@@ -304,6 +311,7 @@ namespace Flowery.Controls
                 if (reuseBackground && DaisyGlassSurface.GetBackground(control) is { } current && IsSameRenderer(current))
                 {
                     current.Effect = BackgroundEffect;
+                    current.EffectColor = BackgroundColor;
                     current.Speed = BackgroundSpeed;
                     current.FrameRate = BackgroundFrameRate;
                 }
@@ -326,7 +334,7 @@ namespace Flowery.Controls
 
         private bool SameBackground(DaisyGlassDesign other) =>
             BackgroundRenderer == other.BackgroundRenderer && BackgroundEffect == other.BackgroundEffect
-            && Math.Abs(BackgroundSpeed - other.BackgroundSpeed) < Tolerance
+            && BackgroundColor == other.BackgroundColor && Math.Abs(BackgroundSpeed - other.BackgroundSpeed) < Tolerance
             && Math.Abs(BackgroundFrameRate - other.BackgroundFrameRate) < Tolerance;
 
         // Whether the background is what CreateBackground makes for this design: without the Skia renderer a shader design
@@ -398,6 +406,7 @@ namespace Flowery.Controls
                     : DaisyGlassBackgroundRenderer.Keep;
                 design.KeptBackground = design.BackgroundRenderer == DaisyGlassBackgroundRenderer.Keep;
                 design.BackgroundEffect = background.Effect;
+                design.BackgroundColor = background.EffectColor;
                 design.BackgroundSpeed = background.Speed;
                 design.BackgroundFrameRate = background.FrameRate;
             }
@@ -582,6 +591,8 @@ namespace Flowery.Controls
                 ? "skia:DaisyGlassShaderBackground"
                 : $"{prefix}:DaisyGlassGradientBackground";
             var builder = new StringBuilder($"<{element} Effect=\"{BackgroundEffect}\"");
+            if (BackgroundColor is { } color)
+                builder.Append($" EffectColor=\"{FormatColor(color)}\"");
             if (Math.Abs(BackgroundSpeed - defaults.BackgroundSpeed) >= Tolerance)
                 builder.Append($" Speed=\"{FormatNumber(BackgroundSpeed)}\"");
             if (Math.Abs(BackgroundFrameRate - defaults.BackgroundFrameRate) >= Tolerance)
@@ -594,6 +605,8 @@ namespace Flowery.Controls
         {
             var type = BackgroundRenderer == DaisyGlassBackgroundRenderer.Shader ? "DaisyGlassShaderBackground" : "DaisyGlassGradientBackground";
             var values = new List<string> { $"Effect = DaisyGlassAnimation.{BackgroundEffect}" };
+            if (BackgroundColor is { } color)
+                values.Add($"EffectColor = Color.Parse(\"{FormatColor(color)}\")");
             if (Math.Abs(BackgroundSpeed - defaults.BackgroundSpeed) >= Tolerance)
                 values.Add($"Speed = {FormatNumber(BackgroundSpeed)}");
             if (Math.Abs(BackgroundFrameRate - defaults.BackgroundFrameRate) >= Tolerance)

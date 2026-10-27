@@ -241,6 +241,8 @@
   "GlassDesigner_Renderer": "Arrière-plan animé",
   "GlassDesigner_ShaderHint": "Shader nécessite Flowery.NET.Skia.",
   "GlassDesigner_Effect": "Effet",
+  "GlassDesigner_EffectColor": "Couleur de l'effet",
+  "GlassDesigner_AccentColor": "Couleur d'accentuation",
   "GlassDesigner_Speed": "Vitesse",
   "GlassDesigner_FrameRate": "Images par seconde",
   "GlassDesigner_EveryFrame": "Chaque image",

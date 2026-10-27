@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
@@ -10,8 +10,8 @@ using SkiaSharp;
 namespace Flowery.Skia
 {
     /// <summary>
-    /// An animated glass background drawn with SkiaSharp runtime shaders: per-pixel plasma, aurora curtains and molten
-    /// gold. It draws in every blur mode, but needs the Skia renderer; <see cref="DaisyGlassGradientBackground"/> in
+    /// An animated glass background drawn with SkiaSharp runtime shaders: per-pixel plasma, aurora curtains, molten
+    /// gold and molten metal in a color. It draws in every blur mode, but needs the Skia renderer; <see cref="DaisyGlassGradientBackground"/> in
     /// Flowery.NET draws the same effects with gradients.
     /// </summary>
     public class DaisyGlassShaderBackground : DaisyGlassBackground
@@ -26,6 +26,7 @@ namespace Flowery.Skia
         {
             DaisyGlassAnimation.Aurora => Aurora.Value,
             DaisyGlassAnimation.LiquidGold => LiquidGold.Value,
+            DaisyGlassAnimation.LiquidColor => LiquidColor.Value,
             _ => Plasma.Value
         };
 
@@ -104,12 +105,32 @@ namespace Flowery.Skia
             }
             """);
 
+        // Liquid gold in another color: the same surface, with shades from a deep tone of the tint to a pale one.
+        private static readonly Lazy<SKRuntimeEffect> LiquidColor = Compile("""
+            uniform float2 size;
+            uniform float time;
+            uniform float3 tint;
+            """ + Noise + """
+            half4 main(float2 p) {
+                float2 q = p / 70.0;
+                float t = time * 0.4;
+                float n = noise(q + float2(t * 0.4, t * 0.2));
+                float w = sin(q.x * 1.7 + n * 4.0 + t) * cos(q.y * 1.3 - n * 3.0 + t * 0.7);
+                float h = 0.5 + 0.5 * w;
+                float specular = pow(clamp(1.0 - abs(w - 0.6) * 2.5, 0.0, 1.0), 8.0);
+                float3 color = mix(tint * 0.35, tint * 0.9, smoothstep(0.0, 0.6, h));
+                color = mix(color, mix(tint, float3(1.0), 0.55), smoothstep(0.6, 1.0, h));
+                color += mix(tint, float3(1.0), 0.85) * specular * 0.5;
+                return half4(half3(color), 1.0);
+            }
+            """);
+
         private sealed class ShaderLayer(DaisyGlassBackground source) : DaisyGlassAnimationLayer(source)
         {
             public override void Render(DrawingContext context)
             {
                 if (Bounds.Width > 0 && Bounds.Height > 0)
-                    context.Custom(new ShaderOperation(new Rect(Bounds.Size), Source.Effect, (float)Time));
+                    context.Custom(new ShaderOperation(new Rect(Bounds.Size), Source.Effect, (float)Time, Source.GetEffectColor()));
             }
         }
 
@@ -117,12 +138,14 @@ namespace Flowery.Skia
         {
             private readonly DaisyGlassAnimation _effect;
             private readonly float _time;
+            private readonly Color _color;
 
-            public ShaderOperation(Rect bounds, DaisyGlassAnimation effect, float time)
+            public ShaderOperation(Rect bounds, DaisyGlassAnimation effect, float time, Color color)
             {
                 Bounds = bounds;
                 _effect = effect;
                 _time = time;
+                _color = color;
             }
 
             public Rect Bounds { get; }
@@ -130,7 +153,7 @@ namespace Flowery.Skia
             public bool HitTest(Point p) => false;
 
             public bool Equals(ICustomDrawOperation? other) =>
-                other is ShaderOperation op && op.Bounds == Bounds && op._effect == _effect && op._time == _time;
+                other is ShaderOperation op && op.Bounds == Bounds && op._effect == _effect && op._time == _time && op._color == _color;
 
             public void Dispose() { }
 
@@ -139,15 +162,16 @@ namespace Flowery.Skia
                 if (context.TryGetFeature<ISkiaSharpApiLeaseFeature>() is not { } feature)
                     return;
                 using var lease = feature.Lease();
-                Draw(lease.SkCanvas, (float)Bounds.Width, (float)Bounds.Height, _effect, _time);
+                Draw(lease.SkCanvas, (float)Bounds.Width, (float)Bounds.Height, _effect, _time, _color);
             }
         }
 
         /// <summary>
         /// Draws <paramref name="effect"/> at <paramref name="time"/> into a <paramref name="width"/> by
-        /// <paramref name="height"/> area at the canvas origin.
+        /// <paramref name="height"/> area at the canvas origin; <see cref="DaisyGlassAnimation.LiquidColor"/> draws in
+        /// <paramref name="color"/>.
         /// </summary>
-        internal static void Draw(SKCanvas canvas, float width, float height, DaisyGlassAnimation effect, float time)
+        internal static void Draw(SKCanvas canvas, float width, float height, DaisyGlassAnimation effect, float time, Color color = default)
         {
             var shaderEffect = GetEffect(effect);
             using var uniforms = new SKRuntimeEffectUniforms(shaderEffect)
@@ -155,6 +179,8 @@ namespace Flowery.Skia
                 ["size"] = new[] { width, height },
                 ["time"] = time
             };
+            if (effect == DaisyGlassAnimation.LiquidColor)
+                uniforms["tint"] = new[] { color.R / 255f, color.G / 255f, color.B / 255f };
             using var shader = shaderEffect.ToShader(uniforms);
             using var paint = new SKPaint { Shader = shader };
             canvas.DrawRect(SKRect.Create(width, height), paint);

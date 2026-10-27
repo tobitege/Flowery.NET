@@ -212,7 +212,7 @@ namespace Flowery.Controls
             if (AverageColor(_glass.EffectiveGlassFill) is { } fill)
                 color = FloweryColorHelpers.Composite(color, fill, _glass.GlassFillOpacity);
             if (_glass.GlassBackground is { } background)
-                color = FloweryColorHelpers.Composite(color, AverageColor(background.Effect), _glass.GlassBackgroundOpacity);
+                color = FloweryColorHelpers.Composite(color, AverageColor(background), _glass.GlassBackgroundOpacity);
             // The text sits in the middle of the glass, where the top shine still adds some white.
             color = FloweryColorHelpers.Composite(color, Colors.White, DaisyGlass.TopShineOpacityAt(_glass.Bounds.Height / 2));
             if (_tint != null && AverageColor(_tint.Background) is { } tint)
@@ -238,12 +238,17 @@ namespace Flowery.Controls
         }
 
         // The average color of each animated effect over its run, drawn as gradients or shaders.
-        private static Color AverageColor(DaisyGlassAnimation effect) => effect switch
+        private static Color AverageColor(DaisyGlassBackground background) => background.Effect switch
         {
             DaisyGlassAnimation.Aurora => Color.FromRgb(25, 70, 80),
             DaisyGlassAnimation.LiquidGold => Color.FromRgb(185, 135, 35),
+            // Mostly the color itself, between its deep and its pale shades.
+            DaisyGlassAnimation.LiquidColor => Scale(background.GetEffectColor(), 0.8),
             _ => Color.FromRgb(150, 120, 190)
         };
+
+        private static Color Scale(Color color, double factor) =>
+            Color.FromRgb((byte)(color.R * factor), (byte)(color.G * factor), (byte)(color.B * factor));
 
         private static Color WithOpacity(Color color, double opacity) =>
             Color.FromArgb((byte)Math.Round(color.A * Math.Clamp(opacity, 0, 1)), color.R, color.G, color.B);
