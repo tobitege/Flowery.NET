@@ -27,19 +27,27 @@
 
 </div>
 
-This library provides native Avalonia controls that mimic the utility-first, semantic class naming of DaisyUI, making it easy to build beautiful, themed UIs in Avalonia. A NuGet package is also available.
+Flowery.NET is a cross-platform control library for Avalonia UI, on Windows, Linux and macOS, in the browser (WebAssembly), on Android and on iOS.
+It offers more than 100 themed controls, 37 built-in themes that switch at runtime, global sizing, glass and neumorphic effects and twelve UI languages.
+The control set and 35 of the themes take their names and look from the DaisyUI design language, adapted to Avalonia rather than copied; many controls, the scheduler, the Kanban board and the effects have no DaisyUI counterpart.
+Optional packages add the Kanban board and the SkiaSharp glass effects.
 
 ## Features
 
-- **100+ Controls**: C# classes inheriting from Avalonia primitives (e.g., `DaisyButton : Button`).
-- **35 DaisyUI Themes**: All official DaisyUI themes included (Light, Dark, Cupcake, Dracula, Nord, Synthwave, and more).
-- **Runtime Theme Switching**: Use `DaisyThemeDropdown` to switch themes at runtime.
-- **Neumorphic Effect**: Raised, Inset and Flat soft-UI shadows for about 50 controls, switchable globally or per control. [Usage guide](llms-static/DaisyNeumorphic.md)
-- **Scheduler**: `DaisyScheduler` provides Day, Week, Month, Agenda, resource Planner, horizontal Timeline, and a Calendar navigator with a daily appointment list. It supports Flowery themes, five sizes, and twelve languages. [Usage guide](llms-static/DaisyScheduler.md)
-- **Localization Support**: Built-in i18n with **12 languages** (🇺🇸 🇩🇪 🇫🇷 🇪🇸 🇮🇹 🇨🇳 🇰🇷 🇯🇵 🇸🇦 🇹🇷 🇺🇦 🇮🇱), localizable theme names, and runtime language switching. [📖 Guide](LOCALIZATION.md)
-- **Variants**: Supports `Primary`, `Secondary`, `Accent`, `Ghost`, etc.
-- **Framework Support**: Libraries target `.NET 10.0+` and Avalonia `12.0+`.
-- **Gallery App**: Multi-platform demo application showcasing all controls and features (Desktop, Browser/WASM, Android, iOS).
+- **Themes.** 37 built-in themes, switchable at runtime: the 35 DaisyUI themes and two of Flowery's own, Smooth and Glassy. 96 industry palettes and your own custom palettes can be registered as well. A base color set at run time gives any theme another base, with the other base colors and the text keeping their contrast, and a theme can bring a backdrop for the whole app. High contrast, from the system or the app, turns every theme into black and white with one strong accent. [Theming guide](THEMING.md)
+- **Design tokens.** Colors, brushes, spacing and typography come from design tokens that an app can override in its resources. [Design tokens](llms-static/DesignTokens.md)
+- **Sizing.** Five size tiers from ExtraSmall to ExtraLarge, per control or for the whole app through `FlowerySizeManager`, which the user can change at runtime. Responsive scaling adapts the fonts to the window size.
+- **Controls.** Input, selection, navigation, popup, dialog, layout, data display and feedback controls with the DaisyUI variants (`Primary`, `Secondary`, `Accent`, `Ghost` and more), plus a color picker suite, weather widgets, a date timeline, and mask and numeric inputs.
+- **Scheduler.** Day, Week, Month, Agenda, Calendar, Planner and Timeline views with typed resources, collapsible groups, occupancy queries, regional date and time formats, zoomable columns and an appointment editor. Part of the core package. [Usage guide](llms-static/DaisyScheduler.md)
+- **Kanban.** Boards with a home screen, swimlanes, work limits, JSON storage with import and export, undo and redo, filtering, statistics, bulk editing and keyboard support. Assignees come from the host app as a list or through callbacks; the package does no sign-in and talks to no account service. Separate package. [Feature overview](Flowery.NET.Kanban/FEATURES.md)
+- **Touch.** Scheduler and Kanban share one touch model for touch and pen: a tap opens, holding selects and then moves, resizes or drags, and a swipe only scrolls. Both are tested on Android phones and tablets.
+- **Glass.** Glass themes for the standard controls, a glass mode that puts every input control on glass, and a designer for glass looks. The optional Flowery.NET.Skia package adds the live backdrop blur with liquid-glass optics, refraction and animated shader backgrounds.
+- **Neumorphic effect.** Raised, Inset and Flat soft-UI shadows for about 50 controls, switchable globally or per control. [Usage guide](llms-static/DaisyNeumorphic.md)
+- **Accessibility.** Screen reader names and states for controls that show state visually, keyboard navigation, reduced motion and high contrast.
+- **Localization.** Twelve languages with runtime switching and localizable theme names. [Guide](LOCALIZATION.md)
+- **Demo apps.** A Gallery with live examples of every control for desktop, browser, Android and iOS, and Flowery Photos, a desktop photo viewer and editor.
+- **Tests.** Headless unit tests and runtime tests that run in a real desktop window.
+- **Framework.** The libraries target .NET 10 and Avalonia 12.
 
 **Note:** I'm looking for feedback on iOS builds, I don't have any (physical) environment to test this!
 
@@ -195,7 +203,7 @@ xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
 
 - **Size Dropdown** (`DaisySizeDropdown`): Global size selector with localized size names and customizable options.
 - **Theme Controller** (`DaisyThemeController`): Flexible toggle with multiple modes (Toggle, Checkbox, Swap, ToggleWithText, ToggleWithIcons).
-- **Theme Dropdown** (`DaisyThemeDropdown`): Dropdown to select from all 35 themes.
+- **Theme Dropdown** (`DaisyThemeDropdown`): Dropdown to select from all 37 built-in themes.
 - **Theme Manager** (`DaisyThemeManager`): Static class for programmatic theme control, with a base color that changes the base of any theme at run time (`BaseOverride`) and a run-time backdrop (`BackdropOverride`).
 - **Theme Backdrop** (`DaisyBackdrop`): The backdrop of the theme as the lowest layer of a window: a color, gradient, drawing or image and an optional animated effect, which switch with the theme.
 - **Product Theme Dropdown** (`DaisyProductThemeDropdown`): Dropdown for selecting product-specific theme palettes.
