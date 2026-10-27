@@ -57,7 +57,8 @@ namespace Flowery.Skia
                 glass.GlassDepth,
                 glass.GlassCurvature,
                 glass.GlassBend,
-                glass.GlassDispersion));
+                glass.GlassDispersion,
+                new SkiaGlassLens(glass.GlassRefraction, glass.GlassBezel, glass.GlassZoom, glass.GlassRimSaturation)));
         }
 
         public override DaisyGlassBackground CreateShaderBackground() => new DaisyGlassShaderBackground();

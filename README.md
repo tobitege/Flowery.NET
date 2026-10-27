@@ -196,7 +196,8 @@ xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
 - **Size Dropdown** (`DaisySizeDropdown`): Global size selector with localized size names and customizable options.
 - **Theme Controller** (`DaisyThemeController`): Flexible toggle with multiple modes (Toggle, Checkbox, Swap, ToggleWithText, ToggleWithIcons).
 - **Theme Dropdown** (`DaisyThemeDropdown`): Dropdown to select from all 35 themes.
-- **Theme Manager** (`DaisyThemeManager`): Static class for programmatic theme control.
+- **Theme Manager** (`DaisyThemeManager`): Static class for programmatic theme control, with a base color that changes the base of any theme at run time (`BaseOverride`) and a run-time backdrop (`BackdropOverride`).
+- **Theme Backdrop** (`DaisyBackdrop`): The backdrop of the theme as the lowest layer of a window: a color, gradient, drawing or image and an optional animated effect, which switch with the theme.
 - **Product Theme Dropdown** (`DaisyProductThemeDropdown`): Dropdown for selecting product-specific theme palettes.
 - **Theme Radio** (`DaisyThemeRadio`): Radio button for theme selection.
 - **Theme Swap** (`DaisyThemeSwap`): Toggle button with animated sun/moon icons.

@@ -31,6 +31,10 @@ public class DaisyGlassThemeTests
             var lensGlass = Part<DaisyGlass>(range, "PART_LensGlass");
             Assert.True(lensGlass.EnableBackdropBlur);
             Assert.Equal(glass.BlurMode, lensGlass.BlurMode);
+            // The lens bends and magnifies the track; the frosted thumb at rest does not.
+            Assert.True(lensGlass.GlassRefraction > 0);
+            Assert.True(lensGlass.GlassZoom > 1);
+            Assert.Equal(0, glass.GlassRefraction);
             var thumb = Part<Thumb>(range, "PART_Thumb");
             var lens = Part<Panel>(range, "PART_Lens");
             Assert.Equal(thumb.Bounds.X, Canvas.GetLeft(lens));

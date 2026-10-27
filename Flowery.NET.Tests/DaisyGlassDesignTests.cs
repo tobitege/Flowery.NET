@@ -102,6 +102,9 @@ public class DaisyGlassDesignTests
     [InlineData("{ \"blur\": -5 }")]
     [InlineData("{ \"opacity\": 2 }")]
     [InlineData("{ \"fillStops\": [{ \"color\": \"#FFFFFFFF\", \"offset\": 3 }] }")]
+    [InlineData("{ \"refraction\": 2 }")]
+    [InlineData("{ \"zoom\": 5 }")]
+    [InlineData("{ \"rimSaturation\": -1 }")]
     public void Json_That_Is_No_Design_Fails_With_A_Json_Exception(string json)
     {
         Assert.Throws<JsonException>(() => DaisyGlassDesign.FromJson(json));
@@ -527,6 +530,36 @@ public class DaisyGlassDesignTests
             Assert.Equal(0.4, DaisyGlassSurface.GetTintOpacity(button));
             Assert.Equal("Mine", button.Content);
             Assert.NotEqual(BindingPriority.LocalValue, button.GetDiagnostic(DaisyGlassSurface.BlurProperty).Priority);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Lens_Goes_Through_Json_Xaml_And_The_Control()
+    {
+        var design = new DaisyGlassDesign { Refraction = 0.7, Bezel = 0.6, Zoom = 1.1, RimSaturation = 1.4 };
+        Assert.Equal(design.ToJson(), DaisyGlassDesign.FromJson(design.ToJson()).ToJson());
+        Assert.Contains("controls:DaisyGlassSurface.Refraction=\"0.7\"", design.ToXaml());
+        Assert.Contains("DaisyGlassSurface.SetZoom(button, 1.1);", design.ToCSharp());
+        // A design without a lens leaves it out of the code.
+        Assert.DoesNotContain("Refraction", new DaisyGlassDesign().ToXaml());
+
+        var xaml = design.ToXaml().Replace("<controls:DaisyButton ",
+            "<controls:DaisyButton xmlns=\"https://github.com/avaloniaui\" " +
+            "xmlns:controls=\"clr-namespace:Flowery.Controls;assembly=Flowery.NET\" ");
+        var button = (DaisyButton)Avalonia.Markup.Xaml.AvaloniaRuntimeXamlLoader.Load(xaml);
+        var window = Show(button);
+        try
+        {
+            var glass = DaisyGlassSurface.GetGlass(button)!;
+            Assert.Equal(0.7, glass.GlassRefraction);
+            Assert.Equal(0.6, glass.GlassBezel);
+            Assert.Equal(1.1, glass.GlassZoom);
+            Assert.Equal(1.4, glass.GlassRimSaturation);
+            Assert.Equal(design.ToJson(), DaisyGlassDesign.FromControl(button).ToJson());
         }
         finally
         {

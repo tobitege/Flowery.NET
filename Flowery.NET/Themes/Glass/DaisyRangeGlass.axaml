@@ -108,8 +108,9 @@
                                         </ThicknessTransition>
                                     </Transitions>
                                 </Panel.Transitions>
-                                <!-- The pressed lens: clear glass with a strong liquid rim and little blur,
-                                     so the track stays readable through it. -->
+                                <!-- The pressed lens: clear glass with a strong liquid rim and little blur, so the
+                                     track stays readable through it. With SkiaSharp it bends the track at its rim and
+                                     magnifies it a little, like a drop of water. -->
                                 <controls:DaisyGlass x:Name="PART_LensGlass"
                                                      Padding="0"
                                                      CornerRadius="9999"
@@ -124,6 +125,10 @@
                                                      GlassCurvature="0.85"
                                                      GlassBend="0.7"
                                                      GlassDispersion="0.4"
+                                                     GlassRefraction="0.7"
+                                                     GlassBezel="0.6"
+                                                     GlassZoom="1.15"
+                                                     GlassRimSaturation="1.35"
                                                      Opacity="0">
                                     <controls:DaisyGlass.Transitions>
                                         <Transitions>

@@ -358,7 +358,7 @@ namespace Flowery.Controls
 
             foreach (var (key, accent) in AccentTextBrushes)
             {
-                if (TryGetPaletteBrushColor(app, key, variant, out var text) || TryGetPaletteColor(app, accent, variant, out text))
+                if (TryGetAccentTextColor(app, variant, key, accent, out var text))
                     derived[key] = new ImmutableSolidColorBrush(FloweryColorHelpers.EnsureContrast(text, newBase, TextContrast));
             }
             // A few palettes name the primary text color as a color too.
@@ -406,12 +406,16 @@ namespace Flowery.Controls
             return new ColorPicker.HslColor(hsl.H, hsl.S, lighter ? high : low).ToRgbColor();
         }
 
-        private static bool TryGetPaletteBrushColor(Application app, string key, ThemeVariant variant, out Color color)
+        // The text color of an accent: the brush of the palette, else the accent itself, which the default brush of
+        // DaisyUITheme takes.
+        private static bool TryGetAccentTextColor(Application app, ThemeVariant variant, string key, string accent, out Color color)
         {
-            object? value = null;
-            var found = _currentPalette?.TryGetResource(key, variant, out value) == true || app.TryFindResource(key, variant, out value);
-            color = found && value is ISolidColorBrush brush ? brush.Color : default;
-            return found && value is ISolidColorBrush;
+            if (_currentPalette?.TryGetResource(key, variant, out var value) == true && value is ISolidColorBrush brush)
+            {
+                color = brush.Color;
+                return true;
+            }
+            return TryGetPaletteColor(app, accent, variant, out color);
         }
 
         // A color of the palette itself, not of the contrast palette over it or of what the library derives from it.

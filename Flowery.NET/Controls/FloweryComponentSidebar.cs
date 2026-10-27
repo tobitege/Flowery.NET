@@ -529,7 +529,8 @@ namespace Flowery.Controls
             get => _backdrop;
             set
             {
-                if (value == _backdrop)
+                // A selector that rebuilds its items can push null for a moment.
+                if (value == _backdrop || !AvailableBackdrops.Contains(value))
                     return;
                 if (value is BackdropColor or BackdropImage)
                 {

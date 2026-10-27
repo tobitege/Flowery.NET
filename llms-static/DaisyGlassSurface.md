@@ -95,7 +95,8 @@ The glass settings map one to one to [DaisyGlass](DaisyGlass.md). They are nulla
 | `TintOpacity` | `GlassTintOpacity` | `PatternOpacity` | `GlassPatternOpacity` |
 | `ReflectDegree` | `GlassReflectDegree` | `Background` | `GlassBackground` |
 | `ReflectOpacity` | `GlassReflectOpacity` | `BackgroundOpacity` | `GlassBackgroundOpacity` |
-| `Depth` / `Curvature` / `Bend` | `GlassDepth` / `GlassCurvature` / `GlassBend` | | |
+| `Depth` / `Curvature` / `Bend` | `GlassDepth` / `GlassCurvature` / `GlassBend` | `Refraction` / `Bezel` | `GlassRefraction` / `GlassBezel` |
+| | | `Zoom` / `RimSaturation` | `GlassZoom` / `GlassRimSaturation` |
 
 `DaisyGlassSurface.GetGlass(control)` returns the glass in use, or `null` while the control is not on glass.
 

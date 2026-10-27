@@ -242,6 +242,34 @@ namespace Flowery.Controls
             AvaloniaProperty.RegisterAttached<Control, double?>("Dispersion", typeof(DaisyGlassSurface));
 
         /// <summary>
+        /// Defines the Refraction attached property: how strongly the glass bends its backdrop like a lens, from 0 to 1.
+        /// Maps to <see cref="DaisyGlass.GlassRefraction"/>.
+        /// </summary>
+        public static readonly AttachedProperty<double?> RefractionProperty =
+            AvaloniaProperty.RegisterAttached<Control, double?>("Refraction", typeof(DaisyGlassSurface));
+
+        /// <summary>
+        /// Defines the Bezel attached property: the width of the curved rim that bends the backdrop, as a share of half the
+        /// shorter side. Maps to <see cref="DaisyGlass.GlassBezel"/>.
+        /// </summary>
+        public static readonly AttachedProperty<double?> BezelProperty =
+            AvaloniaProperty.RegisterAttached<Control, double?>("Bezel", typeof(DaisyGlassSurface));
+
+        /// <summary>
+        /// Defines the Zoom attached property: how much the glass magnifies its backdrop. Maps to
+        /// <see cref="DaisyGlass.GlassZoom"/>.
+        /// </summary>
+        public static readonly AttachedProperty<double?> ZoomProperty =
+            AvaloniaProperty.RegisterAttached<Control, double?>("Zoom", typeof(DaisyGlassSurface));
+
+        /// <summary>
+        /// Defines the RimSaturation attached property: the saturation of the backdrop at the rim. Maps to
+        /// <see cref="DaisyGlass.GlassRimSaturation"/>.
+        /// </summary>
+        public static readonly AttachedProperty<double?> RimSaturationProperty =
+            AvaloniaProperty.RegisterAttached<Control, double?>("RimSaturation", typeof(DaisyGlassSurface));
+
+        /// <summary>
         /// Defines the Fill attached property: a brush, such as a gradient, painted over the blurred backdrop. It takes
         /// precedence over <see cref="GradientProperty"/>. Maps to <see cref="DaisyGlass.GlassFill"/>.
         /// </summary>
@@ -336,6 +364,18 @@ namespace Flowery.Controls
         public static double? GetDispersion(Control element) => element.GetValue(DispersionProperty);
         public static void SetDispersion(Control element, double? value) => element.SetValue(DispersionProperty, value);
 
+        public static double? GetRefraction(Control element) => element.GetValue(RefractionProperty);
+        public static void SetRefraction(Control element, double? value) => element.SetValue(RefractionProperty, value);
+
+        public static double? GetBezel(Control element) => element.GetValue(BezelProperty);
+        public static void SetBezel(Control element, double? value) => element.SetValue(BezelProperty, value);
+
+        public static double? GetZoom(Control element) => element.GetValue(ZoomProperty);
+        public static void SetZoom(Control element, double? value) => element.SetValue(ZoomProperty, value);
+
+        public static double? GetRimSaturation(Control element) => element.GetValue(RimSaturationProperty);
+        public static void SetRimSaturation(Control element, double? value) => element.SetValue(RimSaturationProperty, value);
+
         public static IBrush? GetFill(Control element) => element.GetValue(FillProperty);
         public static void SetFill(Control element, IBrush? value) => element.SetValue(FillProperty, value);
 
@@ -376,6 +416,10 @@ namespace Flowery.Controls
             [CurvatureProperty] = DaisyGlass.GlassCurvatureProperty,
             [BendProperty] = DaisyGlass.GlassBendProperty,
             [DispersionProperty] = DaisyGlass.GlassDispersionProperty,
+            [RefractionProperty] = DaisyGlass.GlassRefractionProperty,
+            [BezelProperty] = DaisyGlass.GlassBezelProperty,
+            [ZoomProperty] = DaisyGlass.GlassZoomProperty,
+            [RimSaturationProperty] = DaisyGlass.GlassRimSaturationProperty,
             [FillProperty] = DaisyGlass.GlassFillProperty,
             [GradientProperty] = DaisyGlass.GlassGradientProperty,
             [FillOpacityProperty] = DaisyGlass.GlassFillOpacityProperty,

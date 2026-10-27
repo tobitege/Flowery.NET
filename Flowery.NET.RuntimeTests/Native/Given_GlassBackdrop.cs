@@ -274,6 +274,45 @@ public class Given_GlassBackdrop
     }
 
     [Theory]
+    [InlineData(0, false)]
+    [InlineData(1, true)]
+    public async Task When_A_Glass_Bends_Its_Backdrop_Its_Rim_Shows_What_Lies_Beyond_The_Edge(double refraction, bool bends)
+    {
+        var window = RuntimeTestHelpers.GetWindow();
+        var red = new Border { Width = 200, Height = 260, Background = Brushes.Red };
+        // A square glass just right of the red/blue edge at x=200, without tint or highlights; its bezel is 30 DIPs wide.
+        var glass = new DaisyGlass
+        {
+            Width = 120,
+            Height = 120,
+            CornerRadius = new CornerRadius(0),
+            EnableBackdropBlur = true,
+            BlurMode = GlassBlurMode.SkiaSharp,
+            GlassBlur = 2,
+            GlassTintOpacity = 0,
+            GlassReflectOpacity = 0,
+            GlassCurvature = 0,
+            GlassBend = 0,
+            GlassDispersion = 0,
+            GlassRefraction = refraction
+        };
+        Canvas.SetLeft(glass, 204);
+        Canvas.SetTop(glass, 70);
+        var canvas = new Canvas { Width = 400, Height = 260, Background = Brushes.Blue, Children = { red, glass } };
+        await RuntimeTestHelpers.AttachAsync(canvas);
+        await RuntimeTestHelpers.WaitForRenderAsync();
+        await RuntimeTestHelpers.WaitForRenderAsync();
+        using var actual = SKBitmap.Decode(await SaveScreenAsync(window, canvas, $"glass-lens-{refraction}"));
+
+        // Three DIPs inside the left edge, below the top shine: the bent rim shows the red that lies 15 to 20 DIPs left.
+        var scale = window.RenderScaling;
+        var rim = actual.GetPixel((int)(207 * scale), (int)(160 * scale));
+        var middle = actual.GetPixel((int)(264 * scale), (int)(160 * scale));
+        Assert.True(middle.Blue > 150 && middle.Red < 80, $"The middle of the glass is not blue: {middle}.");
+        Assert.True(bends == rim.Red > rim.Blue, $"The rim shows {rim} with GlassRefraction {refraction}.");
+    }
+
+    [Theory]
     [InlineData(GlassBlurMode.SkiaSharp)]
     [InlineData(GlassBlurMode.BitmapCapture)]
     public async Task When_A_Glass_Button_Lies_Over_Its_Own_Text_Color_The_Text_Gets_Contrast(GlassBlurMode mode)
