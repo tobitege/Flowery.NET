@@ -1,0 +1,255 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Width="420">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Offset="0" Color="#FF1E3A8A" />
+                    <GradientStop Offset="1" Color="#FF4F46E5" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <StackPanel Spacing="16">
+                <controls:DaisyRange Theme="{StaticResource DaisyGlassRangeTheme}" Value="35" Maximum="100" />
+                <controls:DaisyRange Theme="{StaticResource DaisyGlassRangeTheme}" Value="70" Maximum="100" Variant="Success" Size="Large" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- A DaisyRange with a thin track and a frosted glass pill thumb that turns into a clear lens while it is dragged (:dragging): the thumb grows and clears, so the track shows through it. -->
+    <ControlTheme x:Key="DaisyGlassRangeTheme" TargetType="controls:DaisyRange">
+        <!-- The thumb at rest: frosted glass like DaisyGlassButtonTheme. -->
+        <Setter Property="controls:DaisyGlassSurface.IsEnabled" Value="True" />
+        <Setter Property="controls:DaisyGlassSurface.TextContrast" Value="False" />
+        <Setter Property="controls:DaisyGlassSurface.EnableBackdropBlur" Value="True" />
+        <Setter Property="controls:DaisyGlassSurface.BlurMode" Value="SkiaSharp" />
+        <Setter Property="controls:DaisyGlassSurface.Blur" Value="30" />
+        <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.15" />
+        <Setter Property="controls:DaisyGlassSurface.ReflectOpacity" Value="0.15" />
+
+        <Setter Property="Background" Value="{DynamicResource DaisyBaseContentBrush}" />
+        <Setter Property="BorderBrush" Value="#33FFFFFF" />
+        <Setter Property="ThumbBrush" Value="Transparent" />
+        <Setter Property="ProgressBrush" Value="{DynamicResource DaisyPrimaryBrush}" />
+        <Setter Property="ShowProgress" Value="True" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="MinHeight" Value="40" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid>
+                    <!-- The track is translucent base content, so it shows on light and dark backdrops. -->
+                    <Border x:Name="PART_TrackBackground"
+                            Height="6" CornerRadius="3"
+                            VerticalAlignment="Center"
+                            Background="{TemplateBinding Background}"
+                            Opacity="0.22" />
+                    <!-- The progress ends under the middle of the thumb. -->
+                    <Border x:Name="PART_Progress"
+                            Width="{Binding #PART_Thumb.Bounds, Converter={x:Static controls:RangeThumbCenterConverter.Instance}}"
+                            Height="{Binding #PART_TrackBackground.Height}"
+                            CornerRadius="{Binding #PART_TrackBackground.CornerRadius}"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Background="{TemplateBinding ProgressBrush}" />
+                    <Track x:Name="PART_Track"
+                           Minimum="{TemplateBinding Minimum}"
+                           Maximum="{TemplateBinding Maximum}"
+                           Value="{TemplateBinding Value, Mode=TwoWay}"
+                           Orientation="Horizontal">
+                        <Track.DecreaseButton>
+                            <RepeatButton x:Name="PART_DecreaseButton" Background="Transparent"
+                                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <RepeatButton.Template>
+                                    <ControlTemplate>
+                                        <Grid Background="Transparent" />
+                                    </ControlTemplate>
+                                </RepeatButton.Template>
+                            </RepeatButton>
+                        </Track.DecreaseButton>
+                        <Track.IncreaseButton>
+                            <RepeatButton x:Name="PART_IncreaseButton" Background="Transparent"
+                                          HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                <RepeatButton.Template>
+                                    <ControlTemplate>
+                                        <Grid Background="Transparent" />
+                                    </ControlTemplate>
+                                </RepeatButton.Template>
+                            </RepeatButton>
+                        </Track.IncreaseButton>
+                        <Track.Thumb>
+                            <!-- Takes the pointer only; the glass below draws the thumb. -->
+                            <Thumb x:Name="PART_Thumb" Width="38" Height="24">
+                                <Thumb.Template>
+                                    <ControlTemplate>
+                                        <Border Background="Transparent" CornerRadius="9999" />
+                                    </ControlTemplate>
+                                </Thumb.Template>
+                            </Thumb>
+                        </Track.Thumb>
+                    </Track>
+
+                    <!-- The glass follows the thumb. It lies above the track and the progress, so its glass
+                         shows them, and passes the pointer to the thumb. -->
+                    <Canvas IsHitTestVisible="False">
+                        <Panel x:Name="PART_Lens"
+                               Canvas.Left="{Binding #PART_Thumb.Bounds.X}"
+                               Canvas.Top="{Binding #PART_Thumb.Bounds.Y}"
+                               Width="{Binding #PART_Thumb.Bounds.Width}"
+                               Height="{Binding #PART_Thumb.Bounds.Height}">
+                            <Panel x:Name="PART_LensBody">
+                                <Panel.Transitions>
+                                    <Transitions>
+                                        <ThicknessTransition Property="Margin" Duration="0:0:0.35">
+                                            <ThicknessTransition.Easing>
+                                                <SpringEasing Mass="1" Stiffness="170" Damping="16" />
+                                            </ThicknessTransition.Easing>
+                                        </ThicknessTransition>
+                                    </Transitions>
+                                </Panel.Transitions>
+                                <!-- The pressed lens: clear glass with a strong liquid rim and little blur,
+                                     so the track stays readable through it. -->
+                                <controls:DaisyGlass x:Name="PART_LensGlass"
+                                                     Padding="0"
+                                                     CornerRadius="9999"
+                                                     EnableBackdropBlur="{Binding #PART_Glass.EnableBackdropBlur}"
+                                                     BlurMode="{Binding #PART_Glass.BlurMode}"
+                                                     GlassTint="{Binding #PART_Glass.GlassTint}"
+                                                     GlassBlur="3"
+                                                     GlassSaturation="1.2"
+                                                     GlassTintOpacity="0.06"
+                                                     GlassReflectOpacity="0.35"
+                                                     GlassDepth="0.9"
+                                                     GlassCurvature="0.85"
+                                                     GlassBend="0.7"
+                                                     GlassDispersion="0.4"
+                                                     Opacity="0">
+                                    <controls:DaisyGlass.Transitions>
+                                        <Transitions>
+                                            <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                                        </Transitions>
+                                    </controls:DaisyGlass.Transitions>
+                                </controls:DaisyGlass>
+                                <!-- The thumb at rest. DaisyGlassSurface passes the glass settings of the range to it. -->
+                                <controls:DaisyGlass x:Name="PART_Glass"
+                                                     Padding="0"
+                                                     CornerRadius="9999">
+                                    <controls:DaisyGlass.Transitions>
+                                        <Transitions>
+                                            <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                                        </Transitions>
+                                    </controls:DaisyGlass.Transitions>
+                                </controls:DaisyGlass>
+                                <Border x:Name="PART_ThumbFill"
+                                        CornerRadius="9999"
+                                        Background="{TemplateBinding ThumbBrush}">
+                                    <Border.Transitions>
+                                        <Transitions>
+                                            <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                                        </Transitions>
+                                    </Border.Transitions>
+                                </Border>
+                                <Border x:Name="PART_ThumbRim"
+                                        CornerRadius="9999"
+                                        BorderThickness="1"
+                                        BorderBrush="{TemplateBinding BorderBrush}" />
+                            </Panel>
+                        </Panel>
+                    </Canvas>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^[ShowProgress=False] /template/ Border#PART_Progress">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+
+        <!-- While pressed, the thumb grows into a clear lens. -->
+        <Style Selector="^:dragging /template/ Panel#PART_LensBody">
+            <Setter Property="Margin" Value="-10,-8" />
+        </Style>
+        <Style Selector="^:dragging /template/ controls|DaisyGlass#PART_LensGlass">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^:dragging /template/ controls|DaisyGlass#PART_Glass">
+            <Setter Property="Opacity" Value="0" />
+        </Style>
+        <Style Selector="^:dragging /template/ Border#PART_ThumbFill">
+            <Setter Property="Opacity" Value="0" />
+        </Style>
+        <Style Selector="^:dragging /template/ Border#PART_ThumbRim">
+            <Setter Property="BorderBrush" Value="#66FFFFFF" />
+        </Style>
+
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="0.5" />
+        </Style>
+
+        <!-- Variants color the progress. -->
+        <Style Selector="^[Variant=Secondary]">
+            <Setter Property="ProgressBrush" Value="{DynamicResource DaisySecondaryBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Accent]">
+            <Setter Property="ProgressBrush" Value="{DynamicResource DaisyAccentBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Success]">
+            <Setter Property="ProgressBrush" Value="{DynamicResource DaisySuccessBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Warning]">
+            <Setter Property="ProgressBrush" Value="{DynamicResource DaisyWarningBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Info]">
+            <Setter Property="ProgressBrush" Value="{DynamicResource DaisyInfoBrush}" />
+        </Style>
+        <Style Selector="^[Variant=Error]">
+            <Setter Property="ProgressBrush" Value="{DynamicResource DaisyErrorBrush}" />
+        </Style>
+
+        <!-- Sizes -->
+        <Style Selector="^[Size=ExtraSmall]">
+            <Setter Property="MinHeight" Value="28" />
+        </Style>
+        <Style Selector="^[Size=ExtraSmall] /template/ Border#PART_TrackBackground">
+            <Setter Property="Height" Value="3" />
+            <Setter Property="CornerRadius" Value="1.5" />
+        </Style>
+        <Style Selector="^[Size=ExtraSmall] /template/ Thumb#PART_Thumb">
+            <Setter Property="Width" Value="26" />
+            <Setter Property="Height" Value="16" />
+        </Style>
+        <Style Selector="^[Size=Small]">
+            <Setter Property="MinHeight" Value="34" />
+        </Style>
+        <Style Selector="^[Size=Small] /template/ Border#PART_TrackBackground">
+            <Setter Property="Height" Value="4" />
+            <Setter Property="CornerRadius" Value="2" />
+        </Style>
+        <Style Selector="^[Size=Small] /template/ Thumb#PART_Thumb">
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="20" />
+        </Style>
+        <Style Selector="^[Size=Large]">
+            <Setter Property="MinHeight" Value="48" />
+        </Style>
+        <Style Selector="^[Size=Large] /template/ Border#PART_TrackBackground">
+            <Setter Property="Height" Value="8" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+        <Style Selector="^[Size=Large] /template/ Thumb#PART_Thumb">
+            <Setter Property="Width" Value="46" />
+            <Setter Property="Height" Value="30" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge]">
+            <Setter Property="MinHeight" Value="56" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge] /template/ Border#PART_TrackBackground">
+            <Setter Property="Height" Value="10" />
+            <Setter Property="CornerRadius" Value="5" />
+        </Style>
+        <Style Selector="^[Size=ExtraLarge] /template/ Thumb#PART_Thumb">
+            <Setter Property="Width" Value="54" />
+            <Setter Property="Height" Value="34" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

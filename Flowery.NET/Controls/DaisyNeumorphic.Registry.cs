@@ -1,4 +1,4 @@
-using Flowery.Controls.Custom;
+﻿using Flowery.Controls.Custom;
 using Flowery.Controls.Custom.Weather;
 
 namespace Flowery.Controls
@@ -53,13 +53,15 @@ namespace Flowery.Controls
             RegisterSurface<DaisyTimelineItem>(c => TemplatePart(c, "EndBox"));
 
             // Buttons and badges
+            // The glass themes have a PART_Border above the translucent tint layer; it carries the shadow, which the
+            // tint would dim.
             RegisterSurface(new DaisyNeumorphicSurface<DaisyButton>
             {
-                Resolve = c => TemplatePart(c, "PART_Background"),
+                Resolve = c => TemplatePart(c, "PART_Border") ?? TemplatePart(c, "PART_Background"),
                 IsActive = c => c.Variant is not (DaisyButtonVariant.Ghost or DaisyButtonVariant.Link)
             });
             RegisterRefreshTriggers<DaisyButton>(DaisyButton.VariantProperty);
-            RegisterSurface<DaisyBadge>(c => TemplatePart(c, SurfacePart));
+            RegisterSurface<DaisyBadge>(c => TemplatePart(c, "PART_Border") ?? TemplatePart(c, SurfacePart));
             // On glass the variant color is a translucent tint layer; the border layer above it is opaque and carries the
             // shadow, so the neumorphic shadow goes there instead of being dimmed with the tint.
             RegisterSurface(new DaisyNeumorphicSurface<DaisyGlassButton>
@@ -103,17 +105,21 @@ namespace Flowery.Controls
                 FixedMode = DaisyNeumorphicMode.Raised
             });
 
-            // Selection controls: wells are always inset, the toggle knob always raised.
+            // Selection controls: wells are always inset, the toggle knob always raised. The glass theme replaces the
+            // template, and a shadow under its translucent track would show through it.
             RegisterSurface(new DaisyNeumorphicSurface<DaisyToggle>
             {
                 Resolve = c => TemplatePart(c, "SwitchArea"),
-                FixedMode = DaisyNeumorphicMode.Inset
+                FixedMode = DaisyNeumorphicMode.Inset,
+                IsActive = c => DaisyGlassSurface.GetIsEnabled(c) != true
             });
             RegisterSurface(new DaisyNeumorphicSurface<DaisyToggle>
             {
                 Resolve = c => TemplatePart(c, "PART_KnobShadow"),
-                FixedMode = DaisyNeumorphicMode.Raised
+                FixedMode = DaisyNeumorphicMode.Raised,
+                IsActive = c => DaisyGlassSurface.GetIsEnabled(c) != true
             });
+            RegisterRefreshTriggers<DaisyToggle>(DaisyGlassSurface.IsEnabledProperty);
             RegisterSurface(new DaisyNeumorphicSurface<DaisyCheckBox>
             {
                 Resolve = c => TemplatePart(c, "PART_Border"),
@@ -142,7 +148,13 @@ namespace Flowery.Controls
             RegisterSurface<DaisyProductThemeDropdown>(c => TemplatePart(c, "Background"));
             RegisterSurface<DaisyCalendarDatePicker>(c => TemplatePart(c, "Background"));
             RegisterSurface<DaisyDropdown>(c => TemplatePart(c, "PART_Trigger"));
-            RegisterSurface<DaisyRange>(c => TemplatePart(c, "TrackBackground"));
+            // As with the toggle, the glass theme replaces the template and its track is translucent.
+            RegisterSurface(new DaisyNeumorphicSurface<DaisyRange>
+            {
+                Resolve = c => TemplatePart(c, "TrackBackground"),
+                IsActive = c => DaisyGlassSurface.GetIsEnabled(c) != true
+            });
+            RegisterRefreshTriggers<DaisyRange>(DaisyGlassSurface.IsEnabledProperty);
             RegisterSurface(new DaisyNeumorphicSurface<DaisyProgress>
             {
                 Resolve = c => TemplatePart(c, "PART_Track"),
@@ -179,17 +191,25 @@ namespace Flowery.Controls
                 OuterShadowLayer = c => TemplatePart(c, ShadowLayer)
             });
             RegisterEffectSuppression<DaisyStats>();
+            // A shadow under the translucent track of the glass look would show through it.
             RegisterSurface(new DaisyNeumorphicSurface<DaisyButtonGroup>
             {
                 Resolve = c => TemplatePart(c, "PART_Background"),
-                OuterShadowLayer = c => TemplatePart(c, ShadowLayer)
+                OuterShadowLayer = c => TemplatePart(c, ShadowLayer),
+                IsActive = c => DaisyGlassSurface.GetIsEnabled(c) != true
             });
+            RegisterRefreshTriggers<DaisyButtonGroup>(DaisyGlassSurface.IsEnabledProperty);
             RegisterSegmentContainer<DaisyButtonGroup>();
             RegisterSegmentContainer<DaisyJoin>();
             RegisterSegmentContainer<DaisyPagination>();
 
             // The FAB container has no surface; its action buttons draw the effect themselves.
             RegisterExclusion<DaisyFab>();
+
+            // The glass range and toggle replace the templates of their base controls, and a shadow under their
+            // translucent glass would show through it.
+            RegisterExclusion<DaisyGlassRange>();
+            RegisterExclusion<DaisyGlassToggle>();
         }
     }
 }

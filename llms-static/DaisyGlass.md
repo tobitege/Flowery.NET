@@ -119,7 +119,7 @@ The glass is a stack of layers: the backdrop (blurred or simulated), the tint, t
 
 A background object may be shared; every glass draws its own layer from it, starting at a different phase. With reduced motion the layer shows a still frame; with high contrast it stops, since the contrast surface covers it.
 
-**Cost:** an animated glass redraws `FrameRate` times per second, and in `SkiaSharp` mode that includes its backdrop blur. The rate holds on any refresh rate, so a 144 Hz display does not redraw more often. In the Gallery (Debug build, desktop, region clipping on, see below), six animated glass buttons at the default 30 per second use about 18 % of one CPU core. Keep the number of animated surfaces small. A lower `FrameRate` saves the most; a lower `Speed` slows the motion but not the redraws; `Speed="0"` stops them.
+**Cost:** an animated glass redraws `FrameRate` times per second, and in `SkiaSharp` mode that includes its backdrop blur. The rate holds on any refresh rate, so a 144 Hz display does not redraw more often. Between two redraws the layer waits instead of asking for every display frame, so a rate well below the display rate also wakes the app less often. In the Gallery (Debug build, desktop, region clipping on, see below), six animated glass buttons at the default 30 per second use about 18 % of one CPU core. Keep the number of animated surfaces small. A lower `FrameRate` saves the most; a lower `Speed` slows the motion but not the redraws; `Speed="0"` stops them.
 
 ## Performance with Animated Content
 

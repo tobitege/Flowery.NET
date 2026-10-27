@@ -60,6 +60,16 @@
                 <ResourceInclude Source="/Themes/DaisyGlassInput.axaml" />
                 <ResourceInclude Source="/Themes/DaisyGlassNavbar.axaml" />
                 <ResourceInclude Source="/Themes/DaisyGlassModal.axaml" />
+                <ResourceInclude Source="/Themes/DaisyGlassRange.axaml" />
+                <ResourceInclude Source="/Themes/DaisyGlassToggle.axaml" />
+                <ResourceInclude Source="/Themes/Glass/DaisyButtonGlass.axaml" />
+                <ResourceInclude Source="/Themes/Glass/DaisyBadgeGlass.axaml" />
+                <ResourceInclude Source="/Themes/Glass/DaisyInputGlass.axaml" />
+                <ResourceInclude Source="/Themes/Glass/DaisyNavbarGlass.axaml" />
+                <ResourceInclude Source="/Themes/Glass/DaisyModalGlass.axaml" />
+                <ResourceInclude Source="/Themes/Glass/DaisyToggleGlass.axaml" />
+                <ResourceInclude Source="/Themes/Glass/DaisyRangeGlass.axaml" />
+                <ResourceInclude Source="/Themes/Glass/DaisyMenuGlass.axaml" />
                 <ResourceInclude Source="/Themes/DaisyToast.axaml" />
                 <ResourceInclude Source="/Themes/DaisyAvatar.axaml" />
                 <ResourceInclude Source="/Themes/DaisyAvatarGroup.axaml" />
@@ -109,12 +119,16 @@
     <StyleInclude Source="/Themes/DaisySelect.axaml" />
     <StyleInclude Source="/Themes/DaisyCalendarDatePicker.axaml" />
     <StyleInclude Source="/Themes/DaisyMenu.axaml" />
+    <StyleInclude Source="/Themes/DaisyGlassMenu.axaml" />
+    <StyleInclude Source="/Themes/DaisyGlassSegmented.axaml" />
     <StyleInclude Source="/Themes/DaisyTabs.axaml" />
     <StyleInclude Source="/Themes/DaisyThemeDropdown.axaml" />
     <StyleInclude Source="/Themes/DaisyProductThemeDropdown.axaml" />
     <StyleInclude Source="/Themes/DaisySizeDropdown.axaml" />
     <StyleInclude Source="/Themes/DaisyJoin.axaml" />
     <StyleInclude Source="/Themes/DaisyButtonGroup.axaml" />
+    <!-- After DaisyButtonGroup, so the glass look overrides its segment styles. -->
+    <StyleInclude Source="/Themes/Glass/DaisyButtonGroupGlass.axaml" />
     <StyleInclude Source="/Themes/DaisyListStyles.axaml" />
     <StyleInclude Source="/Themes/DaisyStack.axaml" />
     <StyleInclude Source="/Themes/DaisyToolTip.axaml" />
@@ -127,6 +141,7 @@
     <StyleInclude Source="/Themes/FloweryComponentSidebar.axaml" />
     <StyleInclude Source="/Themes/DaisyDock.axaml" />
     <StyleInclude Source="/Themes/DaisyGlassButtonDesigner.axaml" />
+    <StyleInclude Source="/Themes/DaisyGlassDesigner.axaml" />
     <StyleInclude Source="/Themes/DaisyDateTimeline.axaml" />
     <StyleInclude Source="/Themes/Custom/Weather/DaisyWeatherIcon.axaml" />
 

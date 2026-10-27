@@ -64,3 +64,7 @@ DaisyNavbar is a top navigation bar with optional start, center, and end slots. 
 - Keep `NavbarCenter` compact to avoid overlap with start/end sections on small widths.
 - For responsive designs, collapse center links into a menu/drawer at narrow widths.
 - Apply `IsFullWidth=True` when the navbar touches screen edges; keep rounded corners for in-card navs.
+
+## Glass
+
+`Theme="{StaticResource DaisyGlassNavbarTheme}"` puts the control on glass that blurs whatever lies behind it: a bar with a light border instead of a drop shadow, tinted with its `Background` at 0.25. The glass settings are attached properties of [DaisyGlassSurface](DaisyGlassSurface.md), such as `controls:DaisyGlassSurface.Blur`; [DaisyGlassDesigner](DaisyGlassDesigner.md) shapes them visually.

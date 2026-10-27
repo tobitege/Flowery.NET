@@ -1,12 +1,23 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using Avalonia;
+using Avalonia.Animation;
+using Avalonia.Automation;
+using Avalonia.Automation.Peers;
+using Avalonia.Automation.Provider;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Data;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.LogicalTree;
+using Avalonia.Media;
+using Avalonia.Media.Transformation;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Enums;
 using Flowery.Services;
@@ -39,18 +50,59 @@ namespace Flowery.Controls
     }
 
     /// <summary>
+    /// Provides the selection changes of a <see cref="DaisyButtonGroup"/>.
+    /// </summary>
+    public class ButtonGroupSelectionChangedEventArgs : RoutedEventArgs
+    {
+        /// <summary>
+        /// Gets the indices of the segments that were selected.
+        /// </summary>
+        public IReadOnlyList<int> AddedIndices { get; }
+
+        /// <summary>
+        /// Gets the indices of the segments that were deselected.
+        /// </summary>
+        public IReadOnlyList<int> RemovedIndices { get; }
+
+        public ButtonGroupSelectionChangedEventArgs(RoutedEvent routedEvent, IReadOnlyList<int> removedIndices, IReadOnlyList<int> addedIndices)
+            : base(routedEvent)
+        {
+            RemovedIndices = removedIndices;
+            AddedIndices = addedIndices;
+        }
+    }
+
+    /// <summary>
     /// A segmented button container styled after the "Button Group" pattern.
     /// Supports optional auto-selection and consistent styling for mixed segments
     /// (e.g., buttons with non-clickable text/count parts).
     /// </summary>
+    /// <remarks>
+    /// With <see cref="AutoSelect"/> the group works as a segmented control: it is one tab stop, the arrow keys move the
+    /// selection (Single) or the focus (Multiple, where Space toggles the focused segment), and screen readers hear the
+    /// selected segment, or each segment as on or off. When the template has a <c>PART_Indicator</c>, the group slides
+    /// it under the selected segment in single selection, with a spring and a slight squash.
+    /// </remarks>
     public class DaisyButtonGroup : ItemsControl, IScalableControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyButtonGroup);
 
         private const double BaseTextFontSize = 14.0;
+
+        // How long the indicator stays squashed after it starts to move, and how much.
+        private static readonly TimeSpan SquashDuration = TimeSpan.FromMilliseconds(160);
+        private const double SquashScaleX = 1.08;
+        private const double SquashScaleY = 0.9;
+
         private readonly DaisyControlLifecycle _lifecycle;
-        private readonly ObservableCollection<int> _selectedIndices = new();
+        private ObservableCollection<int> _selectedIndices = new();
         private INotifyCollectionChanged? _itemsObservable;
+        private int[] _selection = [];
+        private bool _setsTabNavigation;
+        private Border? _indicator;
+        private Point? _indicatorOrigin;
+        private bool _animateIndicator;
+        private DispatcherTimer? _squashTimer;
 
         /// <inheritdoc/>
         public void ApplyScaleFactor(double scaleFactor)
@@ -169,10 +221,11 @@ namespace Flowery.Controls
         /// Defines the <see cref="SelectedIndex"/> property.
         /// </summary>
         public static readonly StyledProperty<int> SelectedIndexProperty =
-            AvaloniaProperty.Register<DaisyButtonGroup, int>(nameof(SelectedIndex), -1);
+            AvaloniaProperty.Register<DaisyButtonGroup, int>(nameof(SelectedIndex), -1, defaultBindingMode: BindingMode.TwoWay);
 
         /// <summary>
-        /// Gets or sets the selected index when SelectionMode is Single.
+        /// Gets or sets the selected index when SelectionMode is Single. It binds two-way by default, and a click keeps
+        /// a binding on it.
         /// </summary>
         public int SelectedIndex
         {
@@ -198,22 +251,62 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Gets the collection of selected indices when SelectionMode is Multiple.
-        /// Modifying this collection updates the visual selection state.
+        /// Defines the <see cref="SelectedIndices"/> property.
         /// </summary>
-        public ObservableCollection<int> SelectedIndices => _selectedIndices;
+        public static readonly DirectProperty<DaisyButtonGroup, ObservableCollection<int>> SelectedIndicesProperty =
+            AvaloniaProperty.RegisterDirect<DaisyButtonGroup, ObservableCollection<int>>(
+                nameof(SelectedIndices), o => o.SelectedIndices, (o, v) => o.SelectedIndices = v,
+                defaultBindingMode: BindingMode.TwoWay);
+
+        /// <summary>
+        /// Gets or sets the collection of selected indices when SelectionMode is Multiple.
+        /// Modifying this collection updates the visual selection state. A view model can bind its own collection
+        /// to it; <c>null</c> sets a new empty collection. Switching to Single selection leaves it as it is, so the
+        /// multiple selection comes back with the mode.
+        /// </summary>
+        public ObservableCollection<int> SelectedIndices
+        {
+            get => _selectedIndices;
+            set
+            {
+                value ??= new ObservableCollection<int>();
+                if (ReferenceEquals(value, _selectedIndices))
+                    return;
+                _selectedIndices.CollectionChanged -= OnSelectedIndicesChanged;
+                SetAndRaise(SelectedIndicesProperty, ref _selectedIndices, value);
+                _selectedIndices.CollectionChanged += OnSelectedIndicesChanged;
+                OnSelectedIndicesChanged(_selectedIndices, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            }
+        }
 
         /// <summary>
         /// Raised when the selected indices collection changes (Multiple mode).
         /// </summary>
         public event EventHandler<NotifyCollectionChangedEventArgs>? SelectedIndicesChanged;
 
+        /// <summary>
+        /// Defines the <see cref="SelectionChanged"/> event.
+        /// </summary>
+        public static readonly RoutedEvent<ButtonGroupSelectionChangedEventArgs> SelectionChangedEvent =
+            RoutedEvent.Register<DaisyButtonGroup, ButtonGroupSelectionChangedEventArgs>(
+                nameof(SelectionChanged), RoutingStrategies.Bubble);
+
+        /// <summary>
+        /// Raised whenever the selection changes, by a click, the keyboard or code, with the added and the removed
+        /// indices. In single selection that is at most one each.
+        /// </summary>
+        public event EventHandler<ButtonGroupSelectionChangedEventArgs> SelectionChanged
+        {
+            add => AddHandler(SelectionChangedEvent, value);
+            remove => RemoveHandler(SelectionChangedEvent, value);
+        }
+
         public static readonly RoutedEvent<ButtonGroupItemSelectedEventArgs> ItemSelectedEvent =
             RoutedEvent.Register<DaisyButtonGroup, ButtonGroupItemSelectedEventArgs>(
                 nameof(ItemSelected), RoutingStrategies.Bubble);
 
         /// <summary>
-        /// Raised when a button segment is clicked.
+        /// Raised when a button segment is clicked, including a click on the selected segment.
         /// </summary>
         public event EventHandler<ButtonGroupItemSelectedEventArgs> ItemSelected
         {
@@ -254,7 +347,7 @@ namespace Flowery.Controls
                     }
                     else
                     {
-                        SelectedIndex = index;
+                        SetCurrentValue(SelectedIndexProperty, index);
                     }
                 }
 
@@ -288,6 +381,7 @@ namespace Flowery.Controls
             {
                 ApplySelectionClasses();
                 SelectedIndicesChanged?.Invoke(this, e);
+                UpdateSelection();
             }
         }
 
@@ -306,7 +400,18 @@ namespace Flowery.Controls
                 _itemsObservable = null;
             }
             _lifecycle.HandleUnloaded();
+            // A squash cut short would stay: the indicator is not placed again while its segment keeps its position.
+            EndSquash();
         }
+
+        protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+        {
+            base.OnApplyTemplate(e);
+            _indicator = e.NameScope.Find<Border>("PART_Indicator");
+            _indicatorOrigin = null;
+        }
+
+        protected override AutomationPeer OnCreateAutomationPeer() => new DaisyButtonGroupAutomationPeer(this);
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
@@ -331,15 +436,260 @@ namespace Flowery.Controls
                     change.NewValue is DaisyButtonGroupSelectionMode mode &&
                     mode == DaisyButtonGroupSelectionMode.Single)
                 {
-                    _selectedIndices.Clear();
+                    // SelectedIndices stays as it is: it may be a collection of a view model, and the multiple selection
+                    // comes back when the mode does.
                     if (SelectedIndex >= ItemCount)
                     {
-                        SelectedIndex = -1;
+                        SetCurrentValue(SelectedIndexProperty, -1);
                     }
                 }
 
+                if (change.Property == AutoSelectProperty)
+                {
+                    // One tab stop: Tab enters at the selected (or last focused) segment, the arrow keys move inside.
+                    // A tab navigation set on the group or by a style stays.
+                    if (AutoSelect && !IsSet(KeyboardNavigation.TabNavigationProperty))
+                    {
+                        SetCurrentValue(KeyboardNavigation.TabNavigationProperty, KeyboardNavigationMode.Once);
+                        _setsTabNavigation = true;
+                    }
+                    else if (!AutoSelect && _setsTabNavigation)
+                    {
+                        ClearValue(KeyboardNavigation.TabNavigationProperty);
+                        _setsTabNavigation = false;
+                    }
+                }
+
+                if (change.Property == SelectedIndexProperty)
+                {
+                    // Arranging places the indicator once the segments have their bounds.
+                    _animateIndicator = _indicatorOrigin != null;
+                }
+
                 ApplyAll();
+
+                if (change.Property == SelectedIndexProperty || change.Property == SelectionModeProperty)
+                    UpdateSelection(tellScreenReaders: change.Property == SelectedIndexProperty);
+                InvalidateArrange();
             }
+        }
+
+        protected override Size ArrangeOverride(Size finalSize)
+        {
+            var size = base.ArrangeOverride(finalSize);
+            PlaceIndicator();
+            return size;
+        }
+
+        private int[] GetSelection() => SelectionMode == DaisyButtonGroupSelectionMode.Multiple
+            ? [.. _selectedIndices.Distinct().Order()]
+            : SelectedIndex >= 0 ? [SelectedIndex] : [];
+
+        /// <summary>
+        /// Raises <see cref="SelectionChanged"/> and tells screen readers about the segments whose selection changed,
+        /// when the selection differs from the last one.
+        /// </summary>
+        // A switch of the selection mode changes the patterns of the segments too, so a change of the old pattern
+        // cannot be told in the new one; screen readers read the segments again instead.
+        private void UpdateSelection(bool tellScreenReaders = true)
+        {
+            var selection = GetSelection();
+            var removed = _selection.Except(selection).ToArray();
+            var added = selection.Except(_selection).ToArray();
+            _selection = selection;
+            if (removed.Length == 0 && added.Length == 0)
+                return;
+
+            foreach (var (index, button) in tellScreenReaders ? GetSegments() : [])
+            {
+                if (ControlAutomationPeer.FromElement(button) is not { } peer)
+                    continue;
+                if (removed.Contains(index))
+                    RaiseSegmentChanged(peer, false);
+                else if (added.Contains(index))
+                    RaiseSegmentChanged(peer, true);
+            }
+
+            RaiseEvent(new ButtonGroupSelectionChangedEventArgs(SelectionChangedEvent, removed, added));
+        }
+
+        private void RaiseSegmentChanged(AutomationPeer peer, bool isSelected)
+        {
+            if (SelectionMode == DaisyButtonGroupSelectionMode.Multiple)
+            {
+                peer.RaisePropertyChangedEvent(TogglePatternIdentifiers.ToggleStateProperty,
+                    isSelected ? ToggleState.Off : ToggleState.On, isSelected ? ToggleState.On : ToggleState.Off);
+            }
+            else
+            {
+                peer.RaisePropertyChangedEvent(SelectionItemPatternIdentifiers.IsSelectedProperty, !isSelected, isSelected);
+            }
+        }
+
+        /// <summary>
+        /// Gets whether the selection of this group includes <paramref name="segment"/>; <c>null</c> when the group does
+        /// not select (no <see cref="AutoSelect"/>) or the control is not one of its segments.
+        /// </summary>
+        internal bool? IsSegmentSelected(Control segment)
+        {
+            if (!AutoSelect || FindSegmentIndex(segment) is not { } index)
+                return null;
+            return SelectionMode == DaisyButtonGroupSelectionMode.Multiple ? _selectedIndices.Contains(index) : SelectedIndex == index;
+        }
+
+        /// <summary>
+        /// Selects <paramref name="segment"/> (Single), or adds it to or removes it from the selection (Multiple), as a
+        /// screen reader asks.
+        /// </summary>
+        internal void SetSegmentSelected(Control segment, bool isSelected)
+        {
+            if (!AutoSelect || FindSegmentIndex(segment) is not { } index)
+                return;
+            if (SelectionMode == DaisyButtonGroupSelectionMode.Multiple)
+            {
+                if (isSelected && !_selectedIndices.Contains(index))
+                    _selectedIndices.Add(index);
+                else if (!isSelected)
+                    _selectedIndices.Remove(index);
+            }
+            else if (isSelected)
+            {
+                SetCurrentValue(SelectedIndexProperty, index);
+            }
+        }
+
+        private int? FindSegmentIndex(Control segment)
+        {
+            foreach (var (index, button) in GetSegments())
+            {
+                if (ReferenceEquals(button, segment))
+                    return index;
+            }
+            return null;
+        }
+
+        // ItemsControl moves the focus with the arrow keys itself; a selecting group handles them first.
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            HandleSegmentKey(e);
+            if (!e.Handled)
+                base.OnKeyDown(e);
+        }
+
+        /// <summary>
+        /// Moves the selection (Single) or the focus (Multiple) with the arrow keys, Home and End.
+        /// </summary>
+        private void HandleSegmentKey(KeyEventArgs e)
+        {
+            if (!AutoSelect || e.Handled || e.KeyModifiers != KeyModifiers.None)
+                return;
+            var rightToLeft = FlowDirection == FlowDirection.RightToLeft;
+            var step = e.Key switch
+            {
+                Key.Up => -1,
+                Key.Down => 1,
+                Key.Left => rightToLeft ? 1 : -1,
+                Key.Right => rightToLeft ? -1 : 1,
+                _ => 0
+            };
+            if (step == 0 && e.Key is not (Key.Home or Key.End))
+                return;
+
+            var segments = GetSegments().Where(s => s.Button.IsEffectivelyEnabled).ToList();
+            if (segments.Count == 0)
+                return;
+            var current = segments.FindIndex(s => s.Button.IsKeyboardFocusWithin);
+            if (current < 0)
+                current = segments.FindIndex(s => s.Index == SelectedIndex);
+            var target = e.Key switch
+            {
+                Key.Home => 0,
+                Key.End => segments.Count - 1,
+                _ => Math.Clamp(current < 0 ? 0 : current + step, 0, segments.Count - 1)
+            };
+
+            var (index, button) = segments[target];
+            button.Focus(NavigationMethod.Directional);
+            if (SelectionMode == DaisyButtonGroupSelectionMode.Single)
+                SetCurrentValue(SelectedIndexProperty, index);
+            e.Handled = true;
+        }
+
+        /// <summary>
+        /// Moves the indicator under the selected segment: with the spring after a selection change, at once after a
+        /// resize or when it appears. It only marks a single selection; in multiple selection the segments mark
+        /// themselves through the <c>button-group-active</c> class.
+        /// </summary>
+        private void PlaceIndicator()
+        {
+            if (_indicator?.GetVisualParent() is not Visual layer)
+                return;
+
+            var animate = _animateIndicator;
+            _animateIndicator = false;
+            Button? segment = null;
+            if (AutoSelect && SelectionMode == DaisyButtonGroupSelectionMode.Single && SelectedIndex >= 0)
+                segment = GetSegments().FirstOrDefault(s => s.Index == SelectedIndex).Button;
+            if (segment?.TranslatePoint(default, layer) is not { } origin)
+            {
+                _indicator.IsVisible = false;
+                _indicatorOrigin = null;
+                return;
+            }
+
+            _indicator.IsVisible = true;
+            _indicator.Width = segment.Bounds.Width;
+            _indicator.Height = segment.Bounds.Height;
+            if (_indicatorOrigin == origin)
+                return;
+            _indicatorOrigin = origin;
+
+            if (animate && DaisyAccessibility.GetMotionEnabled(this))
+            {
+                _indicator.RenderTransform = CreateIndicatorTransform(origin, SquashScaleX, SquashScaleY);
+                StartSquash();
+            }
+            else
+            {
+                StopSquash();
+                // A local null hides the transitions of the template; clearing it brings them back.
+                _indicator.SetValue(Animatable.TransitionsProperty, null);
+                _indicator.RenderTransform = CreateIndicatorTransform(origin, 1, 1);
+                _indicator.ClearValue(Animatable.TransitionsProperty);
+            }
+        }
+
+        private void StartSquash()
+        {
+            if (_squashTimer == null)
+            {
+                _squashTimer = new DispatcherTimer { Interval = SquashDuration };
+                _squashTimer.Tick += OnSquashTimerTick;
+            }
+            _squashTimer.Stop();
+            _squashTimer.Start();
+        }
+
+        private void StopSquash() => _squashTimer?.Stop();
+
+        private void OnSquashTimerTick(object? sender, EventArgs e) => EndSquash();
+
+        private void EndSquash()
+        {
+            if (_squashTimer is not { IsEnabled: true })
+                return;
+            StopSquash();
+            if (_indicator != null && _indicatorOrigin is { } origin)
+                _indicator.RenderTransform = CreateIndicatorTransform(origin, 1, 1);
+        }
+
+        // The scale comes first, around the center of the indicator, so it does not scale the translation.
+        private static ITransform CreateIndicatorTransform(Point origin, double scaleX, double scaleY)
+        {
+            var builder = TransformOperations.CreateBuilder(2);
+            builder.AppendScale(scaleX, scaleY);
+            builder.AppendTranslate(origin.X, origin.Y);
+            return builder.Build();
         }
 
         private void ApplyAll()
@@ -367,31 +717,38 @@ namespace Flowery.Controls
 
         private void ApplySelectionClasses()
         {
-            // Try generated containers first
-            var itemsCount = ItemCount;
-            var foundAny = false;
+            var singleSelection = AutoSelect && SelectionMode == DaisyButtonGroupSelectionMode.Single;
+            // Without a selection Tab enters at the first segment again, not at the one selected before.
+            if (singleSelection && SelectedIndex < 0)
+                KeyboardNavigation.SetTabOnceActiveElement(this, null);
+            foreach (var (index, button) in GetSegments())
+            {
+                ApplyActiveClass(button, index);
+                // Tab enters the group at the selected segment.
+                if (singleSelection && index == SelectedIndex)
+                    KeyboardNavigation.SetTabOnceActiveElement(this, button);
+            }
+        }
 
-            for (var i = 0; i < itemsCount; i++)
+        // The button of each segment with its index: the generated containers first, else the buttons placed
+        // directly in XAML.
+        private List<(int Index, Button Button)> GetSegments()
+        {
+            var segments = new List<(int Index, Button Button)>();
+            for (var i = 0; i < ItemCount; i++)
             {
                 var container = ContainerFromIndex(i);
-                var button = container as Button ?? container?.GetVisualDescendants().FirstOrDefault(ctrl => ctrl is Button) as Button;
-
-                if (button == null)
-                    continue;
-
-                foundAny = true;
-                ApplyActiveClass(button, i);
+                if ((container as Button ?? container?.GetVisualDescendants().OfType<Button>().FirstOrDefault()) is { } button)
+                    segments.Add((i, button));
             }
 
-            // Fallback: direct logical children (for XAML-placed buttons)
-            if (!foundAny)
+            if (segments.Count == 0)
             {
                 var buttons = this.GetLogicalChildren().OfType<Button>().ToList();
                 for (var i = 0; i < buttons.Count; i++)
-                {
-                    ApplyActiveClass(buttons[i], i);
-                }
+                    segments.Add((i, buttons[i]));
             }
+            return segments;
         }
 
         private void ApplyActiveClass(Button button, int index)
@@ -411,5 +768,78 @@ namespace Flowery.Controls
 
             button.Classes.Set("button-group-active", isActive);
         }
+    }
+
+    /// <summary>
+    /// Exposes a group in single selection (<see cref="DaisyButtonGroup.AutoSelect"/>) to screen readers as a selection
+    /// container, whose <see cref="DaisyButton"/> segments are its items. In multiple selection the segments are toggles
+    /// of their own, so the group is a plain group.
+    /// </summary>
+    internal sealed class DaisyButtonGroupAutomationPeer(DaisyButtonGroup owner) : ControlAutomationPeer(owner), ISelectionProvider
+    {
+        private DaisyButtonGroup Group => (DaisyButtonGroup)Owner;
+
+        protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.Group;
+
+        protected override object? GetProviderCore(Type providerType) =>
+            providerType == typeof(ISelectionProvider)
+            && (!Group.AutoSelect || Group.SelectionMode != DaisyButtonGroupSelectionMode.Single)
+                ? null
+                : base.GetProviderCore(providerType);
+
+        public bool CanSelectMultiple => false;
+
+        public bool IsSelectionRequired => false;
+
+        public IReadOnlyList<AutomationPeer> GetSelection() =>
+        [
+            .. Group.GetLogicalDescendants().OfType<DaisyButton>()
+                .Where(button => Group.IsSegmentSelected(button) == true)
+                .Select(CreatePeerForElement)
+        ];
+    }
+
+    /// <summary>
+    /// Exposes a button to screen readers as a segment of a selecting <see cref="DaisyButtonGroup"/>: as a selectable
+    /// item in single selection, as an on or off toggle in multiple selection, and as a plain button elsewhere.
+    /// </summary>
+    internal sealed class ButtonGroupSegmentAutomationPeer(Button owner) : ButtonAutomationPeer(owner), ISelectionItemProvider, IToggleProvider
+    {
+        private DaisyButtonGroup? Group => Owner.FindLogicalAncestorOfType<DaisyButtonGroup>();
+
+        private bool? IsSelectedInGroup => Group?.IsSegmentSelected(Owner);
+
+        protected override AutomationControlType GetAutomationControlTypeCore() =>
+            IsSelectedInGroup != null && Group?.SelectionMode == DaisyButtonGroupSelectionMode.Single
+                ? AutomationControlType.RadioButton
+                : base.GetAutomationControlTypeCore();
+
+        protected override object? GetProviderCore(Type providerType)
+        {
+            if (providerType == typeof(ISelectionItemProvider) || providerType == typeof(IToggleProvider))
+            {
+                if (IsSelectedInGroup == null)
+                    return null;
+                var multiple = Group?.SelectionMode == DaisyButtonGroupSelectionMode.Multiple;
+                if (multiple != (providerType == typeof(IToggleProvider)))
+                    return null;
+            }
+            return base.GetProviderCore(providerType);
+        }
+
+        public bool IsSelected => IsSelectedInGroup == true;
+
+        public ISelectionProvider? SelectionContainer =>
+            Group is { } group ? CreatePeerForElement(group) as ISelectionProvider : null;
+
+        public void Select() => Group?.SetSegmentSelected(Owner, true);
+
+        public void AddToSelection() => Group?.SetSegmentSelected(Owner, true);
+
+        public void RemoveFromSelection() => Group?.SetSegmentSelected(Owner, false);
+
+        public ToggleState ToggleState => IsSelectedInGroup == true ? ToggleState.On : ToggleState.Off;
+
+        public void Toggle() => Group?.SetSegmentSelected(Owner, IsSelectedInGroup != true);
     }
 }

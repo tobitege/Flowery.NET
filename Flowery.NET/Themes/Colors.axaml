@@ -39,6 +39,9 @@
     <SolidColorBrush x:Key="DaisyBaseContentSubtleBrush" Color="{DynamicResource DaisyBaseContentColor}" Opacity="0.5" />
     <SolidColorBrush x:Key="DaisyBaseContentDisabledBrush" Color="{DynamicResource DaisyBaseContentColor}" Opacity="0.5" />
 
+    <!-- The tint of the glass controls; a palette made for glass can override it. -->
+    <Color x:Key="DaisyGlassTintColor">White</Color>
+
     <!-- Match Fluent's normal tree foreground outside palettes with a selection override. -->
     <SolidColorBrush x:Key="DaisyTreeSelectedForegroundBrush" Color="{DynamicResource SystemBaseHighColor}" />
 

@@ -498,6 +498,7 @@ All theme names follow the pattern `Theme_{ThemeName}`:
 | `Theme_Fantasy` | Fantasy |
 | `Theme_Forest` | Forest |
 | `Theme_Garden` | Garden |
+| `Theme_Glassy` | Glassy |
 | `Theme_Halloween` | Halloween |
 | `Theme_Lemonade` | Lemonade |
 | `Theme_Light` | Light |

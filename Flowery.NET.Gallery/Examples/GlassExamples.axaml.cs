@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -37,9 +38,19 @@ public partial class GlassExamples : UserControl, IScrollableExample
             _ballInView = e.EffectiveViewport.Intersects(new Rect(GlassDemoBall.Bounds.Size));
             RequestBallFrame();
         };
+        GlassInterfaceDarkToggle.IsCheckedChanged += (_, _) => UpdateGlassInterfaceMode();
+        // The menu acts on a tap or Enter; the arrow keys only move through it.
+        GlassInterfaceMenu.AddHandler(TappedEvent, (_, _) => InvokeGlassInterfaceMenuItem(), handledEventsToo: true);
+        GlassInterfaceMenu.KeyDown += (_, e) =>
+        {
+            if (e.Key is not (Key.Enter or Key.Space))
+                return;
+            InvokeGlassInterfaceMenuItem();
+            e.Handled = true;
+        };
         OpenGlassDesignerButton.Click += async (_, _) =>
         {
-            if (await DaisyGlassButtonDesigner.ShowOverlayAsync(this, GlassDesigner.Design) is { } design)
+            if (await DaisyGlassDesigner.ShowOverlayAsync(this, GlassDesigner.Design) is { } design)
                 GlassDesigner.Design = design;
         };
     }
@@ -112,6 +123,27 @@ public partial class GlassExamples : UserControl, IScrollableExample
         if (position > limit)
             return (Math.Max(2 * limit - position, 0), -Math.Abs(velocity));
         return (position, velocity);
+    }
+
+    private void UpdateGlassInterfaceMode()
+    {
+        var dark = GlassInterfaceDarkToggle.IsChecked == true;
+        GlassInterfaceDarkSky.Opacity = dark ? 1 : 0;
+        GlassInterfaceLightSky.Opacity = dark ? 0 : 1;
+        GlassInterfaceStage.Classes.Set("light", !dark);
+        // The menu lies in the overlay layer, outside the stage.
+        GlassInterfaceMenu.Classes.Set("light", !dark);
+    }
+
+    public void OpenGlassInterfaceMenu_Click(object? sender, RoutedEventArgs e) => GlassInterfaceMenuPopup.IsOpen = true;
+
+    // A demo action: closes the menu, which keeps no selection.
+    private void InvokeGlassInterfaceMenuItem()
+    {
+        if (GlassInterfaceMenu.SelectedItem == null)
+            return;
+        GlassInterfaceMenu.SelectedItem = null;
+        GlassInterfaceMenuPopup.IsOpen = false;
     }
 
     public void OpenGlassModal_Click(object? sender, RoutedEventArgs e)

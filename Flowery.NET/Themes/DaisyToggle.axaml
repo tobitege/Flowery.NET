@@ -43,46 +43,51 @@
                                     Background="{DynamicResource DaisyBase300Brush}"
                                     BorderBrush="{DynamicResource DaisyBase300Brush}"
                                     BorderThickness="1">
-                                <!-- Avalonia ToggleSwitch expects PART_MovingKnobs -->
-                                <Canvas x:Name="PART_MovingKnobs">
-                                    <!-- Follows the knob; carries its neumorphic shadow (an Ellipse has no BoxShadow). -->
-                                    <Border x:Name="PART_KnobShadow"
-                                            Width="{Binding #Knob.Width}"
-                                            Height="{Binding #Knob.Height}"
-                                            CornerRadius="9999"
-                                            Canvas.Left="{Binding #Knob.(Canvas.Left)}"
-                                            Canvas.Top="{Binding #Knob.(Canvas.Top)}" />
-                                    <Ellipse x:Name="Knob"
-                                        Width="{DynamicResource DaisyToggleKnobMediumSize}"
-                                        Height="{DynamicResource DaisyToggleKnobMediumSize}"
-                                        Fill="White"
-                                        Canvas.Top="{TemplateBinding TogglePadding}">
-                                        <Canvas.Left>
-                                            <MultiBinding Converter="{x:Static controls:ToggleKnobOffsetConverter.Instance}">
-                                                <Binding Path="IsChecked" RelativeSource="{RelativeSource TemplatedParent}" />
-                                                <Binding Path="Bounds.Width" ElementName="PART_MovingKnobs" />
-                                                <Binding Path="Width" RelativeSource="{RelativeSource Self}" />
-                                                <Binding Path="TogglePadding" RelativeSource="{RelativeSource TemplatedParent}" />
-                                            </MultiBinding>
-                                        </Canvas.Left>
-                                        <Ellipse.Transitions>
-                                            <Transitions>
-                                                <DoubleTransition Property="Canvas.Left" Duration="0:0:0.2" Easing="CubicEaseOut"/>
-                                            </Transitions>
-                                        </Ellipse.Transitions>
-                                    </Ellipse>
-                                    <!-- Thin outline that keeps the knob visible on any track; a separate ellipse,
-                                         because a stroke cannot take its own opacity. -->
-                                    <Ellipse x:Name="PART_KnobOutline"
-                                             IsHitTestVisible="False"
-                                             Width="{Binding #Knob.Width}"
-                                             Height="{Binding #Knob.Height}"
-                                             Stroke="{DynamicResource DaisyBaseContentBrush}"
-                                             StrokeThickness="1"
-                                             Opacity="0.5"
-                                             Canvas.Left="{Binding #Knob.(Canvas.Left)}"
-                                             Canvas.Top="{Binding #Knob.(Canvas.Top)}" />
-                                </Canvas>
+                                <Panel>
+                                    <!-- ToggleSwitch measures a drag of the knob against PART_SwitchKnob and throws without it:
+                                         a drag over half the track switches the toggle. -->
+                                    <Panel x:Name="PART_SwitchKnob" IsHitTestVisible="False" />
+                                    <!-- Avalonia ToggleSwitch expects PART_MovingKnobs -->
+                                    <Canvas x:Name="PART_MovingKnobs">
+                                        <!-- Follows the knob; carries its neumorphic shadow (an Ellipse has no BoxShadow). -->
+                                        <Border x:Name="PART_KnobShadow"
+                                                Width="{Binding #Knob.Width}"
+                                                Height="{Binding #Knob.Height}"
+                                                CornerRadius="9999"
+                                                Canvas.Left="{Binding #Knob.(Canvas.Left)}"
+                                                Canvas.Top="{Binding #Knob.(Canvas.Top)}" />
+                                        <Ellipse x:Name="Knob"
+                                            Width="{DynamicResource DaisyToggleKnobMediumSize}"
+                                            Height="{DynamicResource DaisyToggleKnobMediumSize}"
+                                            Fill="White"
+                                            Canvas.Top="{TemplateBinding TogglePadding}">
+                                            <Canvas.Left>
+                                                <MultiBinding Converter="{x:Static controls:ToggleKnobOffsetConverter.Instance}">
+                                                    <Binding Path="IsChecked" RelativeSource="{RelativeSource TemplatedParent}" />
+                                                    <Binding Path="Bounds.Width" ElementName="PART_MovingKnobs" />
+                                                    <Binding Path="Width" RelativeSource="{RelativeSource Self}" />
+                                                    <Binding Path="TogglePadding" RelativeSource="{RelativeSource TemplatedParent}" />
+                                                </MultiBinding>
+                                            </Canvas.Left>
+                                            <Ellipse.Transitions>
+                                                <Transitions>
+                                                    <DoubleTransition Property="Canvas.Left" Duration="0:0:0.2" Easing="CubicEaseOut"/>
+                                                </Transitions>
+                                            </Ellipse.Transitions>
+                                        </Ellipse>
+                                        <!-- Thin outline that keeps the knob visible on any track; a separate ellipse,
+                                             because a stroke cannot take its own opacity. -->
+                                        <Ellipse x:Name="PART_KnobOutline"
+                                                 IsHitTestVisible="False"
+                                                 Width="{Binding #Knob.Width}"
+                                                 Height="{Binding #Knob.Height}"
+                                                 Stroke="{DynamicResource DaisyBaseContentBrush}"
+                                                 StrokeThickness="1"
+                                                 Opacity="0.5"
+                                                 Canvas.Left="{Binding #Knob.(Canvas.Left)}"
+                                                 Canvas.Top="{Binding #Knob.(Canvas.Top)}" />
+                                    </Canvas>
+                                </Panel>
                             </Border>
                         </LayoutTransformControl>
                         <ContentPresenter Grid.Column="1"

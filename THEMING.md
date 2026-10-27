@@ -52,6 +52,8 @@ Flowery.NET includes all 35 official DaisyUI themes:
 | ------------ | ----------- |
 | Light, Acid, Autumn, Bumblebee, Caramellatte, Cmyk, Corporate, Cupcake, Cyberpunk, Emerald, Fantasy, Garden, Lemonade, Lofi, Nord, Pastel, Retro, Silk, Valentine, Winter, Wireframe | Dark, Abyss, Aqua, Black, Business, Coffee, Dim, Dracula, Forest, Halloween, Luxury, Night, Sunset, Synthwave |
 
+Two Flowery themes come with them, both dark: Smooth, and Glassy, made for the glass controls (see [Glass Tint](#glass-tint)).
+
 ## Product Palettes
 
 Flowery.NET includes **96 industry-standard product palettes** (e.g., "SaaS", "Fintech", "Health", "Social") designed for specific use cases. These are generic, high-quality palettes that work seamlessly with DaisyUI components.
@@ -317,6 +319,16 @@ Captions, hints, watermarks, breadcrumb separators and disabled menu items are c
 | `DaisyBaseContentDisabledBrush` | base content color at 50% | disabled menu items |
 
 Override any of them in a palette dictionary to change the look for that theme only.
+
+## Glass Tint
+
+The glass controls (`DaisyGlass`, `DaisyGlassButton`, `DaisyGlassSegmented`, `DaisyGlassMenu` and the others) tint their glass with the color resource `DaisyGlassTintColor`. It is white by default; the Glassy theme sets it to navy, so its glass stays dark. A palette can set it the same way:
+
+```xml
+<Color x:Key="DaisyGlassTintColor">#1E2F7A</Color>
+```
+
+Each control keeps its own tint opacity, and a `GlassTint` set on a control wins over the theme.
 
 ## How Theming Works
 

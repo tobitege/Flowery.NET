@@ -56,3 +56,8 @@ DaisyRange is a styled slider with **8 color variants**, **4 size presets**, and
 - Use semantic variants to convey meaning (e.g., Error for risk settings).
 - Set `ShowProgress=True` and `ProgressBrush` to highlight completed range segments.
 - Keep `Minimum` < `Maximum`; bind `Value` for reactive UI updates.
+- The pseudo-class `:dragging` marks the slider while the pointer holds its thumb or track, for styles that change the thumb while it moves.
+
+## Glass
+
+`Theme="{StaticResource DaisyGlassRangeTheme}"` puts the control on glass that blurs whatever lies behind it: a thin track, a progress in the variant color and a frosted glass pill as thumb that grows into a clear lens while it is dragged (`:dragging`), so the track shows through it. The glass settings are attached properties of [DaisyGlassSurface](DaisyGlassSurface.md), such as `controls:DaisyGlassSurface.Blur`; [DaisyGlassDesigner](DaisyGlassDesigner.md) shapes them visually.

@@ -25,96 +25,93 @@
             <SplitView.Content>
                 <!-- Main Content -->
                 <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
-                    <!-- Futuristic Header -->
-                    <Border x:Name="HeaderBorder" Grid.Row="0" ClipToBounds="True">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-                                <GradientStop Offset="0" Color="#0f172a" />
-                                <GradientStop Offset="0.5" Color="#1e293b" />
-                                <GradientStop Offset="1" Color="#0f172a" />
-                            </LinearGradientBrush>
-                        </Border.Background>
+                    <!-- Header: a glass card over glows in the colors of the theme -->
+                    <Border x:Name="HeaderBorder" Grid.Row="0" ClipToBounds="True"
+                        Background="{DynamicResource DaisyBase200Brush}">
                         <Grid>
-                            <!-- Decorative gradient orbs (hidden on mobile compact mode) -->
-                            <Ellipse x:Name="HeaderOrbRight" Width="150" Height="150" Opacity="0.1"
-                                HorizontalAlignment="Right" VerticalAlignment="Top"
-                                Margin="0,-40,-20,0">
-                                <Ellipse.Fill>
-                                    <RadialGradientBrush>
-                                        <GradientStop Offset="0" Color="#0ea5e9" />
-                                        <GradientStop Offset="1" Color="Transparent" />
-                                    </RadialGradientBrush>
-                                </Ellipse.Fill>
-                            </Ellipse>
-                            <Ellipse x:Name="HeaderOrbLeft" Width="100" Height="100" Opacity="0.05"
-                                HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                                Margin="-20,0,0,-20">
-                                <Ellipse.Fill>
-                                    <RadialGradientBrush>
-                                        <GradientStop Offset="0" Color="#2dd4bf" />
-                                        <GradientStop Offset="1" Color="Transparent" />
-                                    </RadialGradientBrush>
-                                </Ellipse.Fill>
-                            </Ellipse>
+                            <!-- Glows behind the glass (hidden on mobile compact mode). A Canvas takes no room,
+                                 so the glass card alone sets the height of the header. -->
+                            <Canvas IsHitTestVisible="False">
+                                <Ellipse x:Name="HeaderOrbRight" Width="420" Height="260" Opacity="0.55"
+                                    Canvas.Right="60" Canvas.Top="-110">
+                                    <Ellipse.Fill>
+                                        <RadialGradientBrush>
+                                            <GradientStop Offset="0" Color="{DynamicResource DaisyPrimaryColor}" />
+                                            <GradientStop Offset="1" Color="Transparent" />
+                                        </RadialGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <Ellipse x:Name="HeaderOrbLeft" Width="360" Height="220" Opacity="0.45"
+                                    Canvas.Left="80" Canvas.Bottom="-120">
+                                    <Ellipse.Fill>
+                                        <RadialGradientBrush>
+                                            <GradientStop Offset="0" Color="{DynamicResource DaisySecondaryColor}" />
+                                            <GradientStop Offset="1" Color="Transparent" />
+                                        </RadialGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                            </Canvas>
 
                             <StackPanel x:Name="HeaderPanel">
-                                <!-- Header content -->
-                                <Grid x:Name="HeaderContentGrid" Margin="12,16,16,8"
-                                    ColumnDefinitions="Auto,*">
-                                    <controls:DaisyButton x:Name="HamburgerButton" Size="Small"
-                                        Variant="Ghost" IsVisible="False"
-                                        Click="HamburgerButton_Click"
-                                        Margin="0,0,8,0" VerticalAlignment="Center">
-                                        <PathIcon Width="18" Height="18"
-                                            Data="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
-                                    </controls:DaisyButton>
+                                <!-- Tinted with the base color of the theme, so its text stays readable in light and dark themes. -->
+                                <controls:DaisyGlass x:Name="HeaderCard" Padding="0"
+                                    Margin="8,8,8,6" CornerRadius="14"
+                                    EnableBackdropBlur="True" BlurMode="SkiaSharp" GlassBlur="30"
+                                    GlassTint="{DynamicResource DaisyBase100Color}" GlassTintOpacity="0.55">
+                                    <!-- Header content -->
+                                    <Grid x:Name="HeaderContentGrid" Margin="12,16,16,8"
+                                        ColumnDefinitions="Auto,*">
+                                        <controls:DaisyButton x:Name="HamburgerButton" Size="Small"
+                                            Variant="Ghost" IsVisible="False"
+                                            Click="HamburgerButton_Click"
+                                            Margin="0,0,8,0" VerticalAlignment="Center">
+                                            <PathIcon Width="18" Height="18"
+                                                Data="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+                                        </controls:DaisyButton>
 
-                                    <StackPanel Grid.Column="1" Spacing="4">
-                                        <TextBlock x:Name="HeaderTitle" FontSize="28"
-                                            FontWeight="Bold">
-                                            <TextBlock.Foreground>
-                                                <LinearGradientBrush StartPoint="0%,50%"
-                                                    EndPoint="100%,50%">
-                                                    <GradientStop Offset="0" Color="#f8fafc" />
-                                                    <GradientStop Offset="1" Color="#94a3b8" />
-                                                </LinearGradientBrush>
-                                            </TextBlock.Foreground>
-                                            <Run Text="Flowery.NET" />
-                                            <Run x:Name="HeaderSubtitleRun"
-                                                Text=" Components Gallery" FontWeight="Normal"
-                                                Foreground="#94a3b8" />
-                                        </TextBlock>
-                                        <Grid x:Name="SubtitleRow" ColumnDefinitions="*,Auto">
-                                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <TextBlock Text="Created by" FontSize="13"
-                                                    Foreground="#64748b" VerticalAlignment="Center" />
-                                                <Button Classes="link" Padding="0"
-                                                    Background="Transparent" BorderThickness="0"
-                                                    Cursor="Hand" Click="OpenGitHub_Click">
-                                                    <TextBlock Text="tobitege" FontSize="13"
-                                                        FontWeight="SemiBold" Foreground="#38bdf8" />
-                                                </Button>
-                                                <TextBlock Text="· 2025, 2026 · MIT licensed"
-                                                    FontSize="13"
-                                                    Foreground="#64748b" VerticalAlignment="Center" />
-                                            </StackPanel>
-                                            <controls:DaisyButton x:Name="ScreenshotButton"
-                                                Grid.Column="1"
-                                                Content="📸" Variant="Ghost" Size="Small"
-                                                ToolTip.Tip="Capture All Screenshots"
-                                                Click="CaptureAllScreenshots_Click" />
-                                        </Grid>
-                                    </StackPanel>
-                                </Grid>
+                                        <StackPanel Grid.Column="1" Spacing="4">
+                                            <TextBlock x:Name="HeaderTitle" FontSize="28"
+                                                FontWeight="Bold"
+                                                Foreground="{DynamicResource DaisyBaseContentBrush}">
+                                                <Run Text="Flowery.NET" />
+                                                <Run x:Name="HeaderSubtitleRun"
+                                                    Text=" Components Gallery" FontWeight="Normal"
+                                                    Foreground="{DynamicResource DaisyBaseContentMutedBrush}" />
+                                            </TextBlock>
+                                            <Grid x:Name="SubtitleRow" ColumnDefinitions="*,Auto">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock Text="Created by" FontSize="13"
+                                                        Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
+                                                        VerticalAlignment="Center" />
+                                                    <Button Classes="link" Padding="0"
+                                                        Background="Transparent" BorderThickness="0"
+                                                        Cursor="Hand" Click="OpenGitHub_Click">
+                                                        <TextBlock Text="tobitege" FontSize="13"
+                                                            FontWeight="SemiBold"
+                                                            Foreground="{DynamicResource DaisyPrimaryForegroundBrush}" />
+                                                    </Button>
+                                                    <TextBlock Text="· 2025, 2026 · MIT licensed"
+                                                        FontSize="13"
+                                                        Foreground="{DynamicResource DaisyBaseContentMutedBrush}"
+                                                        VerticalAlignment="Center" />
+                                                </StackPanel>
+                                                <controls:DaisyButton x:Name="ScreenshotButton"
+                                                    Grid.Column="1"
+                                                    Content="📸" Variant="Ghost" Size="Small"
+                                                    ToolTip.Tip="Capture All Screenshots"
+                                                    Click="CaptureAllScreenshots_Click" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
+                                </controls:DaisyGlass>
 
-                                <!-- Bottom accent gradient bar -->
+                                <!-- Bottom accent bar in the colors of the theme -->
                                 <Border x:Name="HeaderAccentBar" Height="3">
                                     <Border.Background>
                                         <LinearGradientBrush StartPoint="0%,50%" EndPoint="100%,50%">
-                                            <GradientStop Offset="0" Color="#0ea5e9" />
-                                            <GradientStop Offset="0.3" Color="#2dd4bf" />
-                                            <GradientStop Offset="0.6" Color="#38bdf8" />
-                                            <GradientStop Offset="1" Color="#14b8a6" />
+                                            <GradientStop Offset="0" Color="{DynamicResource DaisyPrimaryColor}" />
+                                            <GradientStop Offset="0.5" Color="{DynamicResource DaisySecondaryColor}" />
+                                            <GradientStop Offset="1" Color="{DynamicResource DaisyAccentColor}" />
                                         </LinearGradientBrush>
                                     </Border.Background>
                                 </Border>

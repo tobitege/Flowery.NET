@@ -53,6 +53,24 @@
                 <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentDisabledBrush}" />
             </Style>
 
+            <!-- An item for a destructive action, such as Delete. -->
+            <Style Selector="^.menu-destructive">
+                <Setter Property="Foreground" Value="{DynamicResource DaisyErrorBrush}" />
+            </Style>
+
+            <!-- A thin divider that takes neither the pointer nor the focus, and that screen readers skip. -->
+            <Style Selector="^.menu-separator">
+                <Setter Property="IsHitTestVisible" Value="False" />
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="AutomationProperties.AccessibilityView" Value="Raw" />
+                <Setter Property="MinHeight" Value="0" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Border Height="1" Margin="12,6" Background="{TemplateBinding Foreground}" Opacity="0.2" />
+                    </ControlTemplate>
+                </Setter>
+            </Style>
+
             <!-- Selected State (Active) - uses ListBoxItem properties so code-behind can override -->
             <Style Selector="^:selected">
                 <Setter Property="Background" Value="{DynamicResource DaisyNeutralBrush}" />

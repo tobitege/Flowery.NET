@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -69,7 +69,8 @@ namespace Flowery.Controls
 
     /// <summary>
     /// A layer that draws one animated <see cref="DaisyGlassBackground"/> and redraws itself
-    /// <see cref="DaisyGlassBackground.FrameRate"/> times per second while it is attached and on screen. With reduced
+    /// <see cref="DaisyGlassBackground.FrameRate"/> times per second while it is attached and on screen; between two redraws
+    /// it waits instead of asking for every display frame. With reduced
     /// motion it draws a still frame; with high contrast it stops redrawing, since the contrast surface covers it.
     /// While it cannot move (a speed of 0, reduced motion or high contrast) or is scrolled out of view it asks for no
     /// frames; while it is hidden, such as on a page that is not shown, it looks again a few times per second.
@@ -78,8 +79,21 @@ namespace Flowery.Controls
     {
         private static readonly TimeSpan HiddenCheckInterval = TimeSpan.FromMilliseconds(250);
 
+        // The longest animation step of one frame, in seconds, unless the frame rate asks for longer steps.
+        private const double MaxFrameStep = 0.1;
+
+        // A display frame at 60 Hz, assumed before the first frame tells the real frame time.
+        private const double MinFrameTime = 1.0 / 60;
+
+        // Shorter waits than this are not worth a timer; the layer asks for the next display frame instead.
+        private const double MinSleep = 0.012;
+
+        // The longest single wait, in seconds; a longer interval is waited out in steps.
+        private const double MaxSleep = 1;
+
         private bool _attached;
         private bool _frameRequested;
+        private IDisposable? _wait;
         private bool _hiddenCheckQueued;
         private bool _inViewport = true;
         private TimeSpan? _lastFrame;
@@ -121,21 +135,31 @@ namespace Flowery.Controls
             DaisyAccessibility.PreferencesChanged -= OnPreferencesChanged;
             Source.PropertyChanged -= OnSourceChanged;
             EffectiveViewportChanged -= OnEffectiveViewportChanged;
+            StopWaiting();
             _lastFrame = null;
             base.OnDetachedFromVisualTree(e);
         }
 
         private void OnPreferencesChanged(object? sender, EventArgs e)
         {
+            StopWaiting();
             InvalidateVisual();
             RequestFrame();
         }
 
-        // A new effect shows at once, also on a still frame; a speed above 0 starts the frames again.
+        // A new effect shows at once, also on a still frame; a speed above 0 starts the frames again, and a new frame
+        // rate applies without finishing the wait for the old one.
         private void OnSourceChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
         {
+            StopWaiting();
             InvalidateVisual();
             RequestFrame();
+        }
+
+        private void StopWaiting()
+        {
+            _wait?.Dispose();
+            _wait = null;
         }
 
         private void OnEffectiveViewportChanged(object? sender, EffectiveViewportChangedEventArgs e)
@@ -146,7 +170,11 @@ namespace Flowery.Controls
 
         private void RequestFrame()
         {
-            if (_frameRequested || !_attached || !CanMove || !_inViewport || TopLevel.GetTopLevel(this) is not { } topLevel)
+            // A pending frame or wait carries on as it is: dropping the time of the last frame would make the next one
+            // count no time, so the animation would stall while something keeps asking.
+            if (_wait != null || _frameRequested)
+                return;
+            if (!_attached || !CanMove || !_inViewport || TopLevel.GetTopLevel(this) is not { } topLevel)
             {
                 _lastFrame = null;
                 return;
@@ -183,13 +211,37 @@ namespace Flowery.Controls
                 return;
             }
 
-            // A long gap, such as after the window was hidden, does not make the animation jump.
-            var elapsed = _lastFrame is { } last ? Math.Min((now - last).TotalSeconds, 0.1) : 0;
+            // A long gap, such as after the window was hidden, does not make the animation jump. The layer itself waits up
+            // to one redraw interval between frames, which is no gap.
+            var frameRate = Source.FrameRate;
+            var maxStep = frameRate > 0 ? Math.Max(MaxFrameStep, 2 / frameRate) : MaxFrameStep;
+            var elapsed = _lastFrame is { } last ? Math.Min((now - last).TotalSeconds, maxStep) : 0;
             _lastFrame = now;
             Time += elapsed * Source.Speed;
-            if (elapsed > 0 && IsRedrawFrame(ref _sinceRedraw, elapsed, Source.FrameRate))
+            if (elapsed > 0 && IsRedrawFrame(ref _sinceRedraw, elapsed, frameRate))
                 InvalidateVisual();
-            RequestFrame();
+            WaitForNextRedraw(elapsed, frameRate);
+        }
+
+        // Between two redraws the layer does not ask for every display frame, which would wake the UI thread at the
+        // display rate for nothing. It sleeps until about one display frame before the next redraw is due and asks for
+        // frames from there, so the redraw still lands on a display frame.
+        private void WaitForNextRedraw(double frameTime, double frameRate)
+        {
+            var untilRedraw = frameRate > 0 ? 1 / frameRate - _sinceRedraw : 0;
+            var sleep = untilRedraw - Math.Max(frameTime, MinFrameTime) * 1.5;
+            if (sleep < MinSleep)
+            {
+                RequestFrame();
+                return;
+            }
+
+            // A long interval is waited out in steps, so a very low rate cannot overflow the timer.
+            _wait = DispatcherTimer.RunOnce(() =>
+            {
+                _wait = null;
+                RequestFrame();
+            }, TimeSpan.FromSeconds(Math.Min(sleep, MaxSleep)));
         }
 
         // A frame redraws when it is nearer to the next redraw time than the frame after it. The time past that point
@@ -206,7 +258,9 @@ namespace Flowery.Controls
             sinceRedraw += elapsed;
             if (sinceRedraw < interval - elapsed / 2)
                 return false;
-            sinceRedraw = Math.Max(sinceRedraw - interval, -interval);
+            // The carry-over stays within one interval: a rate above the display rate, or dropped frames, would otherwise
+            // pile it up, and after a lower rate is set the layer would redraw on every frame until it drained.
+            sinceRedraw = Math.Clamp(sinceRedraw - interval, -interval, interval);
             return true;
         }
     }

@@ -23,6 +23,75 @@
         <Style Selector="Grid.glassStars.gold > TextBlock">
             <Setter Property="Foreground" Value="#FFD700" />
         </Style>
+        <!-- Glass Interface: dark glass over the dark backdrop; the class light switches to light glass. -->
+        <Style Selector=".glassScene PathIcon">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector=".glassScene.light PathIcon">
+            <Setter Property="Foreground" Value="#0B1533" />
+        </Style>
+        <Style Selector=".glassScene controls|DaisyButtonGroup">
+            <Setter Property="controls:DaisyGlassSurface.Tint" Value="#0B1B5E" />
+            <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.3" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector=".glassScene.light controls|DaisyButtonGroup">
+            <Setter Property="controls:DaisyGlassSurface.Tint" Value="White" />
+            <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.45" />
+            <Setter Property="Foreground" Value="#0B1533" />
+        </Style>
+        <Style Selector=".glassScene.light controls|DaisyButtonGroup /template/ Border#PART_Indicator">
+            <Setter Property="Background" Value="#260B1533" />
+        </Style>
+        <!-- The scene picks its text colors for dark and light glass, so the buttons keep them as they are
+             instead of adjusting them to a backdrop measured a moment before the switch. -->
+        <Style Selector=".glassScene controls|DaisyButton[(controls|DaisyGlassSurface.IsEnabled)=True]">
+            <Setter Property="controls:DaisyGlassSurface.TextContrast" Value="False" />
+            <Setter Property="controls:DaisyGlassSurface.Tint" Value="#0B1B5E" />
+            <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.3" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#33FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector=".glassScene.light controls|DaisyButton[(controls|DaisyGlassSurface.IsEnabled)=True]">
+            <Setter Property="controls:DaisyGlassSurface.Tint" Value="White" />
+            <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.45" />
+            <Setter Property="Foreground" Value="#0B1533" />
+            <Setter Property="controls:DaisyGlassSurface.TextShadowOpacity" Value="0" />
+        </Style>
+        <Style Selector=".glassScene controls|DaisyInput">
+            <Setter Property="controls:DaisyGlassSurface.Tint" Value="#0B1B5E" />
+            <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.3" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector=".glassScene.light controls|DaisyInput">
+            <Setter Property="controls:DaisyGlassSurface.Tint" Value="White" />
+            <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.45" />
+            <Setter Property="Foreground" Value="#0B1533" />
+        </Style>
+        <Style Selector="controls|DaisyMenu.glassScene">
+            <Setter Property="controls:DaisyGlassSurface.Tint" Value="#0B1B5E" />
+            <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.45" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="controls|DaisyMenu.glassScene.light">
+            <Setter Property="controls:DaisyGlassSurface.Tint" Value="White" />
+            <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.65" />
+            <Setter Property="Foreground" Value="#0B1533" />
+        </Style>
+        <!-- The scene keeps its own blue, whatever the primary color of the app theme. -->
+        <Style Selector=".glassScene controls|DaisyRange">
+            <Setter Property="ProgressBrush" Value="#0A84FF" />
+            <Setter Property="controls:DaisyGlassSurface.Tint" Value="#0B1B5E" />
+            <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.3" />
+        </Style>
+        <Style Selector=".glassScene.light controls|DaisyRange">
+            <Setter Property="controls:DaisyGlassSurface.Tint" Value="White" />
+            <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.45" />
+        </Style>
+        <Style Selector=".glassScene ListBoxItem.menu-destructive PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource DaisyErrorBrush}" />
+        </Style>
     </UserControl.Styles>
 
     <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled"
@@ -34,7 +103,7 @@
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="glass-button" Title="Glass Button" />
                 <TextBlock
-                    Text="DaisyGlassButton blurs whatever lies behind it, live on every frame with BlurMode=SkiaSharp. Variants tint the glass; styles, sizes, shapes and icons work as on DaisyButton."
+                    Text="A DaisyButton with DaisyGlassButtonTheme blurs whatever lies behind it, live on every frame with BlurMode=SkiaSharp. Variants tint the glass; styles, sizes, shapes and icons work as on every DaisyButton. The glass settings are attached properties of DaisyGlassSurface."
                     Opacity="0.7" TextWrapping="Wrap" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                 <controls:DaisyToggle x:Name="GlassButtonMotionToggle" Content="Move the backdrop" IsChecked="True" />
                 <Border CornerRadius="16" ClipToBounds="True" MinHeight="300">
@@ -66,108 +135,108 @@
 
                         <StackPanel Margin="20,24" Spacing="14" VerticalAlignment="Center">
                             <WrapPanel HorizontalAlignment="Center">
-                                <controls:DaisyGlassButton Content="Glass" Margin="6" />
-                                <controls:DaisyGlassButton Variant="Neutral" Content="Neutral" Margin="6" />
-                                <controls:DaisyGlassButton Variant="Primary" Content="Primary" Margin="6" />
-                                <controls:DaisyGlassButton Variant="Secondary" Content="Secondary" Margin="6" />
-                                <controls:DaisyGlassButton Variant="Accent" Content="Accent" Margin="6" />
-                                <controls:DaisyGlassButton Variant="Info" Content="Info" Margin="6" />
-                                <controls:DaisyGlassButton Variant="Success" Content="Success" Margin="6" />
-                                <controls:DaisyGlassButton Variant="Warning" Content="Warning" Margin="6" />
-                                <controls:DaisyGlassButton Variant="Error" Content="Error" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Glass" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Variant="Neutral" Content="Neutral" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Variant="Primary" Content="Primary" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Variant="Secondary" Content="Secondary" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Variant="Accent" Content="Accent" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Variant="Info" Content="Info" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Variant="Success" Content="Success" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Variant="Warning" Content="Warning" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Variant="Error" Content="Error" Margin="6" />
                             </WrapPanel>
                             <WrapPanel HorizontalAlignment="Center">
-                                <controls:DaisyGlassButton ButtonStyle="Outline" Variant="Primary" Content="Outline" Margin="6" />
-                                <controls:DaisyGlassButton ButtonStyle="Dash" Variant="Accent" Content="Dash" Margin="6" />
-                                <controls:DaisyGlassButton ButtonStyle="Soft" Variant="Success" Content="Soft" Margin="6" />
-                                <controls:DaisyGlassButton Variant="Ghost" Content="Ghost" Margin="6" />
-                                <controls:DaisyGlassButton Variant="Primary" IconSymbol="Favorite" Content="Icon" Margin="6" />
-                                <controls:DaisyGlassButton Shape="Circle" IconSymbol="Add" Margin="6" />
-                                <controls:DaisyGlassButton Content="Disabled" IsEnabled="False" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" ButtonStyle="Outline" Variant="Primary" Content="Outline" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" ButtonStyle="Dash" Variant="Accent" Content="Dash" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" ButtonStyle="Soft" Variant="Success" Content="Soft" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Variant="Ghost" Content="Ghost" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Variant="Primary" IconSymbol="Favorite" Content="Icon" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Shape="Circle" IconSymbol="Add" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Disabled" IsEnabled="False" Margin="6" />
                             </WrapPanel>
                             <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <controls:DaisyGlassButton Size="ExtraSmall" Content="Extra Small" Margin="6" VerticalAlignment="Center" />
-                                <controls:DaisyGlassButton Size="Small" Content="Small" Margin="6" VerticalAlignment="Center" />
-                                <controls:DaisyGlassButton Size="Medium" Content="Medium" Margin="6" VerticalAlignment="Center" />
-                                <controls:DaisyGlassButton Size="Large" Content="Large" Margin="6" VerticalAlignment="Center" />
-                                <controls:DaisyGlassButton Size="ExtraLarge" Content="Extra Large" Margin="6" VerticalAlignment="Center" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Size="ExtraSmall" Content="Extra Small" Margin="6" VerticalAlignment="Center" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Size="Small" Content="Small" Margin="6" VerticalAlignment="Center" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Size="Medium" Content="Medium" Margin="6" VerticalAlignment="Center" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Size="Large" Content="Large" Margin="6" VerticalAlignment="Center" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Size="ExtraLarge" Content="Extra Large" Margin="6" VerticalAlignment="Center" />
                             </WrapPanel>
                             <WrapPanel HorizontalAlignment="Center">
-                                <controls:DaisyGlassButton Content="Heavy blur" GlassBlur="60" Margin="6" />
-                                <controls:DaisyGlassButton Content="Dark glass" GlassTint="#111827" GlassTintOpacity="0.45" Foreground="White" Margin="6" />
-                                <controls:DaisyGlassButton Content="Liquid lens" GlassDepth="0.9" GlassCurvature="0.85" GlassBend="0.7" GlassDispersion="0.35" GlassReflectOpacity="0.3" Margin="6" />
-                                <controls:DaisyGlassButton Content="Bitmap capture" BlurMode="BitmapCapture" Margin="6" />
-                                <controls:DaisyGlassButton Content="Simulated" EnableBackdropBlur="False" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Heavy blur" controls:DaisyGlassSurface.Blur="60" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Dark glass" controls:DaisyGlassSurface.Tint="#111827" controls:DaisyGlassSurface.TintOpacity="0.45" Foreground="White" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Liquid lens" controls:DaisyGlassSurface.Depth="0.9" controls:DaisyGlassSurface.Curvature="0.85" controls:DaisyGlassSurface.Bend="0.7" controls:DaisyGlassSurface.Dispersion="0.35" controls:DaisyGlassSurface.ReflectOpacity="0.3" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Bitmap capture" controls:DaisyGlassSurface.BlurMode="BitmapCapture" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Simulated" controls:DaisyGlassSurface.EnableBackdropBlur="False" Margin="6" />
                             </WrapPanel>
                             <!-- Gradient presets over the blur -->
                             <WrapPanel HorizontalAlignment="Center">
-                                <controls:DaisyGlassButton Content="Aurora" GlassGradient="Aurora" Foreground="White" Margin="6" />
-                                <controls:DaisyGlassButton Content="Sunset" GlassGradient="Sunset" Foreground="White" Margin="6" />
-                                <controls:DaisyGlassButton Content="Ocean" GlassGradient="Ocean" Foreground="White" Margin="6" />
-                                <controls:DaisyGlassButton Content="Mint" GlassGradient="Mint" Foreground="#064E3B" GlassTextShadowOpacity="0" Margin="6" />
-                                <controls:DaisyGlassButton Content="Holo" GlassGradient="Holo" GlassFillOpacity="0.65" Foreground="#1E1B4B" GlassTextShadowOpacity="0.2" Margin="6" />
-                                <controls:DaisyGlassButton Content="Frost" GlassGradient="Frost" GlassFillOpacity="0.7" Foreground="#0F172A" GlassTextShadowOpacity="0" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Aurora" controls:DaisyGlassSurface.Gradient="Aurora" Foreground="White" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Sunset" controls:DaisyGlassSurface.Gradient="Sunset" Foreground="White" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Ocean" controls:DaisyGlassSurface.Gradient="Ocean" Foreground="White" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Mint" controls:DaisyGlassSurface.Gradient="Mint" Foreground="#064E3B" controls:DaisyGlassSurface.TextShadowOpacity="0" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Holo" controls:DaisyGlassSurface.Gradient="Holo" controls:DaisyGlassSurface.FillOpacity="0.65" Foreground="#1E1B4B" controls:DaisyGlassSurface.TextShadowOpacity="0.2" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Frost" controls:DaisyGlassSurface.Gradient="Frost" controls:DaisyGlassSurface.FillOpacity="0.7" Foreground="#0F172A" controls:DaisyGlassSurface.TextShadowOpacity="0" Margin="6" />
                             </WrapPanel>
                             <!-- Patterns over the blur -->
                             <WrapPanel HorizontalAlignment="Center">
-                                <controls:DaisyGlassButton Content="Dots" GlassPattern="Dots" GlassPatternOpacity="0.7" Foreground="White" Margin="6" />
-                                <controls:DaisyGlassButton Content="Stripes" GlassPattern="Stripes" GlassPatternOpacity="0.35" Foreground="White" Margin="6" />
-                                <controls:DaisyGlassButton Content="Honeycomb" GlassPattern="Honeycomb" GlassPatternOpacity="0.5" Foreground="White" Margin="6" />
-                                <controls:DaisyGlassButton Content="Carbon" GlassPattern="CarbonFiber" GlassTint="#111827" GlassTintOpacity="0.45" GlassPatternOpacity="0.45" Foreground="White" Margin="6" />
-                                <controls:DaisyGlassButton Content="Circuit" GlassPattern="Circuit" GlassPatternColor="#67E8F9" GlassPatternOpacity="0.8" Foreground="White" Margin="6" />
-                                <controls:DaisyGlassButton Content="Frosted grain" GlassPattern="Noise" GlassPatternOpacity="0.6" Foreground="White" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Dots" controls:DaisyGlassSurface.Pattern="Dots" controls:DaisyGlassSurface.PatternOpacity="0.7" Foreground="White" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Stripes" controls:DaisyGlassSurface.Pattern="Stripes" controls:DaisyGlassSurface.PatternOpacity="0.35" Foreground="White" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Honeycomb" controls:DaisyGlassSurface.Pattern="Honeycomb" controls:DaisyGlassSurface.PatternOpacity="0.5" Foreground="White" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Carbon" controls:DaisyGlassSurface.Pattern="CarbonFiber" controls:DaisyGlassSurface.Tint="#111827" controls:DaisyGlassSurface.TintOpacity="0.45" controls:DaisyGlassSurface.PatternOpacity="0.45" Foreground="White" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Circuit" controls:DaisyGlassSurface.Pattern="Circuit" controls:DaisyGlassSurface.PatternColor="#67E8F9" controls:DaisyGlassSurface.PatternOpacity="0.8" Foreground="White" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Frosted grain" controls:DaisyGlassSurface.Pattern="Noise" controls:DaisyGlassSurface.PatternOpacity="0.6" Foreground="White" Margin="6" />
                             </WrapPanel>
                             <!-- Gradients, patterns and a custom fill combined -->
                             <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <controls:DaisyGlassButton Content="Holo scales" GlassGradient="Holo" GlassFillOpacity="0.55" GlassPattern="Scales" GlassPatternOpacity="0.4"
-                                                           Foreground="#1E1B4B" GlassTextShadowOpacity="0.2" Margin="6" />
-                                <controls:DaisyGlassButton Content="Sunset stripes" GlassGradient="Sunset" GlassPattern="Stripes" GlassPatternOpacity="0.3" Foreground="White" Margin="6" />
-                                <controls:DaisyGlassButton Content="Custom fill" Foreground="White" GlassFillOpacity="0.7" Margin="6">
-                                    <controls:DaisyGlassButton.GlassFill>
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Holo scales" controls:DaisyGlassSurface.Gradient="Holo" controls:DaisyGlassSurface.FillOpacity="0.55" controls:DaisyGlassSurface.Pattern="Scales" controls:DaisyGlassSurface.PatternOpacity="0.4"
+                                                           Foreground="#1E1B4B" controls:DaisyGlassSurface.TextShadowOpacity="0.2" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Sunset stripes" controls:DaisyGlassSurface.Gradient="Sunset" controls:DaisyGlassSurface.Pattern="Stripes" controls:DaisyGlassSurface.PatternOpacity="0.3" Foreground="White" Margin="6" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Custom fill" Foreground="White" controls:DaisyGlassSurface.FillOpacity="0.7" Margin="6">
+                                    <controls:DaisyGlassSurface.Fill>
                                         <RadialGradientBrush Center="50%,0%" GradientOrigin="50%,0%" RadiusX="120%" RadiusY="120%">
                                             <GradientStop Color="#F0ABFC" Offset="0" />
                                             <GradientStop Color="#6D28D9" Offset="0.6" />
                                             <GradientStop Color="#1E1B4B" Offset="1" />
                                         </RadialGradientBrush>
-                                    </controls:DaisyGlassButton.GlassFill>
-                                </controls:DaisyGlassButton>
-                                <controls:DaisyGlassButton Content="Get started" Size="ExtraLarge" Shape="Wide" GlassGradient="Aurora" GlassPattern="Noise" GlassPatternOpacity="0.4"
-                                                           GlassDepth="0.9" GlassCurvature="0.8" GlassReflectOpacity="0.3" Foreground="White" Margin="6" />
+                                    </controls:DaisyGlassSurface.Fill>
+                                </controls:DaisyButton>
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Get started" Size="ExtraLarge" Shape="Wide" controls:DaisyGlassSurface.Gradient="Aurora" controls:DaisyGlassSurface.Pattern="Noise" controls:DaisyGlassSurface.PatternOpacity="0.4"
+                                                           controls:DaisyGlassSurface.Depth="0.9" controls:DaisyGlassSurface.Curvature="0.8" controls:DaisyGlassSurface.ReflectOpacity="0.3" Foreground="White" Margin="6" />
                             </WrapPanel>
                             <!-- Animated backgrounds, one effect per row: moving gradients from Flowery.NET, shaders from Flowery.NET.Skia -->
                             <Grid HorizontalAlignment="Center" ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
                                 <TextBlock Text="Gradients" HorizontalAlignment="Center" Foreground="White" FontWeight="SemiBold" Margin="6,6,6,0" />
                                 <TextBlock Text="Shaders" Grid.Column="1" HorizontalAlignment="Center" Foreground="White" FontWeight="SemiBold" Margin="6,6,6,0" />
-                                <controls:DaisyGlassButton Content="Plasma" Grid.Row="1" Grid.Column="0" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="White" Margin="6">
-                                    <controls:DaisyGlassButton.GlassBackground>
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Plasma" Grid.Row="1" Grid.Column="0" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="White" Margin="6">
+                                    <controls:DaisyGlassSurface.Background>
                                         <controls:DaisyGlassGradientBackground Effect="Plasma" />
-                                    </controls:DaisyGlassButton.GlassBackground>
-                                </controls:DaisyGlassButton>
-                                <controls:DaisyGlassButton Content="Plasma" Grid.Row="1" Grid.Column="1" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="White" Margin="6">
-                                    <controls:DaisyGlassButton.GlassBackground>
+                                    </controls:DaisyGlassSurface.Background>
+                                </controls:DaisyButton>
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Plasma" Grid.Row="1" Grid.Column="1" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="White" Margin="6">
+                                    <controls:DaisyGlassSurface.Background>
                                         <skia:DaisyGlassShaderBackground Effect="Plasma" />
-                                    </controls:DaisyGlassButton.GlassBackground>
-                                </controls:DaisyGlassButton>
-                                <controls:DaisyGlassButton Content="Aurora" Grid.Row="2" Grid.Column="0" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="White" GlassBackgroundOpacity="0.8" Margin="6">
-                                    <controls:DaisyGlassButton.GlassBackground>
+                                    </controls:DaisyGlassSurface.Background>
+                                </controls:DaisyButton>
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Aurora" Grid.Row="2" Grid.Column="0" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="White" controls:DaisyGlassSurface.BackgroundOpacity="0.8" Margin="6">
+                                    <controls:DaisyGlassSurface.Background>
                                         <controls:DaisyGlassGradientBackground Effect="Aurora" />
-                                    </controls:DaisyGlassButton.GlassBackground>
-                                </controls:DaisyGlassButton>
-                                <controls:DaisyGlassButton Content="Aurora" Grid.Row="2" Grid.Column="1" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="White" GlassBackgroundOpacity="0.8" Margin="6">
-                                    <controls:DaisyGlassButton.GlassBackground>
+                                    </controls:DaisyGlassSurface.Background>
+                                </controls:DaisyButton>
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Aurora" Grid.Row="2" Grid.Column="1" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="White" controls:DaisyGlassSurface.BackgroundOpacity="0.8" Margin="6">
+                                    <controls:DaisyGlassSurface.Background>
                                         <skia:DaisyGlassShaderBackground Effect="Aurora" />
-                                    </controls:DaisyGlassButton.GlassBackground>
-                                </controls:DaisyGlassButton>
-                                <controls:DaisyGlassButton Content="Liquid gold" Grid.Row="3" Grid.Column="0" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="#3B2600" GlassTextShadowOpacity="0" GlassBackgroundOpacity="0.85" Margin="6">
-                                    <controls:DaisyGlassButton.GlassBackground>
+                                    </controls:DaisyGlassSurface.Background>
+                                </controls:DaisyButton>
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Liquid gold" Grid.Row="3" Grid.Column="0" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="#3B2600" controls:DaisyGlassSurface.TextShadowOpacity="0" controls:DaisyGlassSurface.BackgroundOpacity="0.85" Margin="6">
+                                    <controls:DaisyGlassSurface.Background>
                                         <controls:DaisyGlassGradientBackground Effect="LiquidGold" />
-                                    </controls:DaisyGlassButton.GlassBackground>
-                                </controls:DaisyGlassButton>
-                                <controls:DaisyGlassButton Content="Liquid gold" Grid.Row="3" Grid.Column="1" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="#3B2600" GlassTextShadowOpacity="0" GlassBackgroundOpacity="0.85" Margin="6">
-                                    <controls:DaisyGlassButton.GlassBackground>
+                                    </controls:DaisyGlassSurface.Background>
+                                </controls:DaisyButton>
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Liquid gold" Grid.Row="3" Grid.Column="1" Size="Large" Shape="Wide" HorizontalAlignment="Stretch" Foreground="#3B2600" controls:DaisyGlassSurface.TextShadowOpacity="0" controls:DaisyGlassSurface.BackgroundOpacity="0.85" Margin="6">
+                                    <controls:DaisyGlassSurface.Background>
                                         <skia:DaisyGlassShaderBackground Effect="LiquidGold" />
-                                    </controls:DaisyGlassButton.GlassBackground>
-                                </controls:DaisyGlassButton>
+                                    </controls:DaisyGlassSurface.Background>
+                                </controls:DaisyButton>
                             </Grid>
                         </StackPanel>
                     </Grid>
@@ -178,12 +247,12 @@
 
             <!-- Glass Button Designer -->
             <StackPanel Spacing="12">
-                <local:SectionHeader SectionId="glass-designer" Title="Glass Button Designer" />
+                <local:SectionHeader SectionId="glass-designer" Title="Glass Designer" />
                 <TextBlock
-                    Text="DaisyGlassButtonDesigner shapes a glass button visually: presets, variant and shape, the glass, gradients, patterns and animated backgrounds. It writes the result as XAML, C# or JSON, or applies it to a button. Embed it in a page, or open it over the app."
+                    Text="DaisyGlassDesigner shapes a glass look visually: presets, the glass, gradients, patterns and animated backgrounds, on a preview button whose text, variant and shape are preview options. It writes the result as XAML, C# or JSON with the attached glass properties, or applies it to any control on glass. Embed it in a page, or open it over the app."
                     Opacity="0.7" TextWrapping="Wrap" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                 <controls:DaisyButton x:Name="OpenGlassDesignerButton" Content="Open over the app" ButtonStyle="Soft" HorizontalAlignment="Left" />
-                <controls:DaisyGlassButtonDesigner x:Name="GlassDesigner" />
+                <controls:DaisyGlassDesigner x:Name="GlassDesigner" />
             </StackPanel>
 
             <controls:DaisyDivider />
@@ -192,7 +261,7 @@
             <StackPanel Spacing="12">
                 <local:SectionHeader SectionId="glass-controls" Title="Glass Controls" />
                 <TextBlock
-                    Text="DaisyGlassNavbar, DaisyGlassInput, DaisyGlassBadge and DaisyGlassModal blur what lies behind them, like DaisyGlassButton. Scroll the backdrop under the bar, and open the dialog to see the page blurred behind it."
+                    Text="DaisyNavbar, DaisyInput, DaisyBadge and DaisyModal with their glass themes blur what lies behind them, like the glass button. Scroll the backdrop under the bar, and open the dialog to see the page blurred behind it."
                     Opacity="0.7" TextWrapping="Wrap" controls:FlowerySizeManager.ResponsiveFont="Primary" />
                 <Border CornerRadius="16" ClipToBounds="True" Height="520">
                     <Border.Background>
@@ -234,22 +303,22 @@
                             </StackPanel>
                         </ScrollViewer>
 
-                        <controls:DaisyGlassNavbar VerticalAlignment="Top" Margin="12" Foreground="White">
-                            <controls:DaisyGlassNavbar.NavbarStart>
+                        <controls:DaisyNavbar Theme="{StaticResource DaisyGlassNavbarTheme}" VerticalAlignment="Top" Margin="12" Foreground="White">
+                            <controls:DaisyNavbar.NavbarStart>
                                 <TextBlock Text="Flowery" FontSize="20" FontWeight="Bold" Foreground="White" />
-                            </controls:DaisyGlassNavbar.NavbarStart>
-                            <controls:DaisyGlassNavbar.NavbarCenter>
+                            </controls:DaisyNavbar.NavbarStart>
+                            <controls:DaisyNavbar.NavbarCenter>
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <controls:DaisyGlassBadge Content="Docs" Foreground="White" />
-                                    <controls:DaisyGlassBadge Content="Beta" Variant="Primary" />
-                                    <controls:DaisyGlassBadge Content="12" Variant="Error" Size="Small" />
+                                    <controls:DaisyBadge Theme="{StaticResource DaisyGlassBadgeTheme}" Content="Docs" Foreground="White" />
+                                    <controls:DaisyBadge Theme="{StaticResource DaisyGlassBadgeTheme}" Content="Beta" Variant="Primary" />
+                                    <controls:DaisyBadge Theme="{StaticResource DaisyGlassBadgeTheme}" Content="12" Variant="Error" Size="Small" />
                                 </StackPanel>
-                            </controls:DaisyGlassNavbar.NavbarCenter>
-                            <controls:DaisyGlassNavbar.NavbarEnd>
-                                <controls:DaisyGlassButton Content="Open dialog" Size="Small" GlassGradient="Aurora" Foreground="White"
+                            </controls:DaisyNavbar.NavbarCenter>
+                            <controls:DaisyNavbar.NavbarEnd>
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Open dialog" Size="Small" controls:DaisyGlassSurface.Gradient="Aurora" Foreground="White"
                                                            Click="OpenGlassModal_Click" />
-                            </controls:DaisyGlassNavbar.NavbarEnd>
-                        </controls:DaisyGlassNavbar>
+                            </controls:DaisyNavbar.NavbarEnd>
+                        </controls:DaisyNavbar>
 
                         <!-- A sign-in card: glass inputs and badges inside a glass panel. -->
                         <controls:DaisyGlass Width="340" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="24"
@@ -259,31 +328,240 @@
                             <StackPanel Spacing="12">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <TextBlock Text="Sign in" FontSize="22" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" />
-                                    <controls:DaisyGlassBadge Content="Secure" Variant="Success" Size="Small" VerticalAlignment="Center" />
+                                    <controls:DaisyBadge Theme="{StaticResource DaisyGlassBadgeTheme}" Content="Secure" Variant="Success" Size="Small" VerticalAlignment="Center" />
                                 </StackPanel>
-                                <controls:DaisyGlassInput PlaceholderText="Email" Foreground="White" />
-                                <controls:DaisyGlassInput PlaceholderText="Password" PasswordChar="●" Foreground="White" />
-                                <controls:DaisyGlassInput Label="Workspace" LabelPosition="Floating" Text="flowery" Foreground="White" />
+                                <controls:DaisyInput Theme="{StaticResource DaisyGlassInputTheme}" PlaceholderText="Email" Foreground="White" />
+                                <controls:DaisyInput Theme="{StaticResource DaisyGlassInputTheme}" PlaceholderText="Password" PasswordChar="●" Foreground="White" />
+                                <controls:DaisyInput Theme="{StaticResource DaisyGlassInputTheme}" Label="Workspace" LabelPosition="Floating" Text="flowery" Foreground="White" />
                                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                                    <controls:DaisyGlassButton Content="Cancel" Foreground="White" />
-                                    <controls:DaisyGlassButton Content="Sign in" GlassGradient="Sunset" Foreground="White" />
+                                    <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Cancel" Foreground="White" />
+                                    <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Sign in" controls:DaisyGlassSurface.Gradient="Sunset" Foreground="White" />
                                 </StackPanel>
                             </StackPanel>
                         </controls:DaisyGlass>
 
-                        <controls:DaisyGlassModal x:Name="GlassShowcaseModal" DialogMaxWidth="360">
+                        <controls:DaisyModal Theme="{StaticResource DaisyGlassModalTheme}" x:Name="GlassShowcaseModal" DialogMaxWidth="360">
                             <StackPanel Spacing="12">
                                 <TextBlock Text="Glass dialog" FontSize="22" FontWeight="Bold" Foreground="White" />
                                 <TextBlock Text="The dialog blurs the dimmed page behind it. Its glass takes gradients and patterns like every glass control."
                                            TextWrapping="Wrap" Foreground="White" Opacity="0.9" />
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <controls:DaisyGlassBadge Content="Live blur" Foreground="White" />
-                                    <controls:DaisyGlassBadge Content="SkiaSharp" Variant="Info" />
+                                    <controls:DaisyBadge Theme="{StaticResource DaisyGlassBadgeTheme}" Content="Live blur" Foreground="White" />
+                                    <controls:DaisyBadge Theme="{StaticResource DaisyGlassBadgeTheme}" Content="SkiaSharp" Variant="Info" />
                                 </StackPanel>
-                                <controls:DaisyGlassButton Content="Close" HorizontalAlignment="Right" GlassGradient="Holo" GlassFillOpacity="0.6"
-                                                           Foreground="#1E1B4B" GlassTextShadowOpacity="0.2" Click="CloseGlassModal_Click" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Close" HorizontalAlignment="Right" controls:DaisyGlassSurface.Gradient="Holo" controls:DaisyGlassSurface.FillOpacity="0.6"
+                                                           Foreground="#1E1B4B" controls:DaisyGlassSurface.TextShadowOpacity="0.2" Click="CloseGlassModal_Click" />
                             </StackPanel>
-                        </controls:DaisyGlassModal>
+                        </controls:DaisyModal>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
+            <!-- Glass Interface -->
+            <StackPanel Spacing="12">
+                <local:SectionHeader SectionId="glass-interface" Title="Glass Interface" />
+                <TextBlock
+                    Text="DaisyButtonGroup, DaisyRange, DaisyToggle and DaisyMenu with their glass themes, glass buttons and a glass search field over a calm wave backdrop. Press the slider thumb to turn it into a lens, open the menu with the dots button, and flip the switch at the top right between dark and light glass. The Glassy theme tints every glass control navy."
+                    Opacity="0.7" TextWrapping="Wrap" controls:FlowerySizeManager.ResponsiveFont="Primary" />
+                <Border x:Name="GlassInterfaceStage" Classes="glassScene" CornerRadius="16" ClipToBounds="True" Height="540">
+                    <Grid>
+                        <!-- Dark backdrop: violet into deep blue, with a bright sweep from the lower left to the upper right. -->
+                        <Viewbox x:Name="GlassInterfaceDarkSky" Stretch="UniformToFill" IsHitTestVisible="False">
+                            <Viewbox.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.45" />
+                                </Transitions>
+                            </Viewbox.Transitions>
+                            <Canvas Width="1600" Height="900" ClipToBounds="True">
+                                <Rectangle Width="1600" Height="900">
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                            <GradientStop Offset="0" Color="#4A2BD6" />
+                                            <GradientStop Offset="0.45" Color="#2A36CC" />
+                                            <GradientStop Offset="0.7" Color="#0C2DAA" />
+                                            <GradientStop Offset="1" Color="#061A78" />
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <Ellipse Canvas.Left="-260" Canvas.Top="120" Width="900" Height="700" Opacity="0.55">
+                                    <Ellipse.Fill>
+                                        <RadialGradientBrush>
+                                            <GradientStop Offset="0" Color="#9A7BFF" />
+                                            <GradientStop Offset="1" Color="#009A7BFF" />
+                                        </RadialGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <Path Data="M0,900 C380,700 720,300 1020,150 C1260,30 1460,0 1640,-30 L1640,900 Z">
+                                    <Path.Fill>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                            <GradientStop Offset="0" Color="#5C86F2" />
+                                            <GradientStop Offset="0.5" Color="#2148D0" />
+                                            <GradientStop Offset="1" Color="#0A228E" />
+                                        </LinearGradientBrush>
+                                    </Path.Fill>
+                                    <Path.Effect>
+                                        <BlurEffect Radius="6" />
+                                    </Path.Effect>
+                                </Path>
+                                <Path Data="M0,900 C380,700 720,300 1020,150 C1260,30 1460,0 1640,-30"
+                                      Stroke="#C4D4FF" StrokeThickness="5" Opacity="0.85">
+                                    <Path.Effect>
+                                        <BlurEffect Radius="3" />
+                                    </Path.Effect>
+                                </Path>
+                                <Ellipse Canvas.Left="820" Canvas.Top="260" Width="760" Height="520" Opacity="0.5">
+                                    <Ellipse.Fill>
+                                        <RadialGradientBrush>
+                                            <GradientStop Offset="0" Color="#8FB0FF" />
+                                            <GradientStop Offset="1" Color="#008FB0FF" />
+                                        </RadialGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <Path Data="M0,900 C360,780 700,660 1050,640 C1300,628 1460,580 1640,500 L1640,900 Z" Opacity="0.85">
+                                    <Path.Fill>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                            <GradientStop Offset="0" Color="#0A1F86" />
+                                            <GradientStop Offset="1" Color="#1C49D6" />
+                                        </LinearGradientBrush>
+                                    </Path.Fill>
+                                    <Path.Effect>
+                                        <BlurEffect Radius="40" />
+                                    </Path.Effect>
+                                </Path>
+                            </Canvas>
+                        </Viewbox>
+
+                        <!-- Light backdrop: warm sand into sky blue, with the same sweep. -->
+                        <Viewbox x:Name="GlassInterfaceLightSky" Stretch="UniformToFill" IsHitTestVisible="False" Opacity="0">
+                            <Viewbox.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.45" />
+                                </Transitions>
+                            </Viewbox.Transitions>
+                            <Canvas Width="1600" Height="900" ClipToBounds="True">
+                                <Rectangle Width="1600" Height="900">
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                            <GradientStop Offset="0" Color="#EFE6C8" />
+                                            <GradientStop Offset="0.45" Color="#C9D8EE" />
+                                            <GradientStop Offset="0.7" Color="#7FB0F0" />
+                                            <GradientStop Offset="1" Color="#2563EB" />
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <Ellipse Canvas.Left="-260" Canvas.Top="60" Width="900" Height="700" Opacity="0.6">
+                                    <Ellipse.Fill>
+                                        <RadialGradientBrush>
+                                            <GradientStop Offset="0" Color="#FFF4C7" />
+                                            <GradientStop Offset="1" Color="#00FFF4C7" />
+                                        </RadialGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <Path Data="M0,900 C380,700 720,300 1020,150 C1260,30 1460,0 1640,-30 L1640,900 Z">
+                                    <Path.Fill>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                            <GradientStop Offset="0" Color="#B4CEFA" />
+                                            <GradientStop Offset="0.5" Color="#4A8AF5" />
+                                            <GradientStop Offset="1" Color="#1D4ED8" />
+                                        </LinearGradientBrush>
+                                    </Path.Fill>
+                                    <Path.Effect>
+                                        <BlurEffect Radius="6" />
+                                    </Path.Effect>
+                                </Path>
+                                <Path Data="M0,900 C380,700 720,300 1020,150 C1260,30 1460,0 1640,-30"
+                                      Stroke="#FFFFFF" StrokeThickness="5" Opacity="0.9">
+                                    <Path.Effect>
+                                        <BlurEffect Radius="3" />
+                                    </Path.Effect>
+                                </Path>
+                                <Ellipse Canvas.Left="820" Canvas.Top="260" Width="760" Height="520" Opacity="0.55">
+                                    <Ellipse.Fill>
+                                        <RadialGradientBrush>
+                                            <GradientStop Offset="0" Color="#D6E6FF" />
+                                            <GradientStop Offset="1" Color="#00D6E6FF" />
+                                        </RadialGradientBrush>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                                <Path Data="M0,900 C360,780 700,660 1050,640 C1300,628 1460,580 1640,500 L1640,900 Z" Opacity="0.85">
+                                    <Path.Fill>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                                            <GradientStop Offset="0" Color="#1E40AF" />
+                                            <GradientStop Offset="1" Color="#60A5FA" />
+                                        </LinearGradientBrush>
+                                    </Path.Fill>
+                                    <Path.Effect>
+                                        <BlurEffect Radius="40" />
+                                    </Path.Effect>
+                                </Path>
+                            </Canvas>
+                        </Viewbox>
+
+                        <!-- Dark and light glass -->
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="20"
+                                    HorizontalAlignment="Right" VerticalAlignment="Top">
+                            <PathIcon Data="{StaticResource DaisyIconSun}" Width="16" Height="16" VerticalAlignment="Center" />
+                            <controls:DaisyToggle Theme="{StaticResource DaisyGlassToggleTheme}" x:Name="GlassInterfaceDarkToggle" IsChecked="True" VerticalAlignment="Center"
+                                                       AutomationProperties.Name="Dark glass" />
+                            <PathIcon Data="{StaticResource DaisyIconMoon}" Width="16" Height="16" VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <StackPanel Width="360" Spacing="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <controls:DaisyButtonGroup Theme="{StaticResource DaisyGlassButtonGroupTheme}" SelectedIndex="0" HorizontalAlignment="Center">
+                                <controls:DaisyButton Content="Day" />
+                                <controls:DaisyButton Content="Week" />
+                                <controls:DaisyButton Content="Month" />
+                            </controls:DaisyButtonGroup>
+                            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Shape="Circle" Size="Large" IconSymbol="Share" AutomationProperties.Name="Share" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" Content="Continue" Size="Large" CornerRadius="9999" Padding="22,0" />
+                                <controls:DaisyButton Theme="{StaticResource DaisyGlassButtonTheme}" x:Name="GlassInterfaceMoreButton" Shape="Circle" Size="Large" AutomationProperties.Name="More"
+                                                           Click="OpenGlassInterfaceMenu_Click">
+                                    <PathIcon Width="18" Height="18"
+                                              Data="M6,10A2,2,0,1,1,6,14A2,2,0,1,1,6,10M12,10A2,2,0,1,1,12,14A2,2,0,1,1,12,10M18,10A2,2,0,1,1,18,14A2,2,0,1,1,18,10Z" />
+                                </controls:DaisyButton>
+                            </StackPanel>
+                            <controls:DaisyRange Theme="{StaticResource DaisyGlassRangeTheme}" Value="35" Maximum="100" AutomationProperties.Name="Volume" />
+                            <controls:DaisyInput Theme="{StaticResource DaisyGlassInputTheme}" PlaceholderText="Search" StartIcon="{StaticResource DaisyIconSearch}" CornerRadius="9999" />
+                        </StackPanel>
+
+                        <!-- In the overlay layer of the window, so the glass of the menu sees the backdrop. -->
+                        <Popup x:Name="GlassInterfaceMenuPopup"
+                               PlacementTarget="{Binding #GlassInterfaceMoreButton}"
+                               Placement="Bottom"
+                               VerticalOffset="8"
+                               ShouldUseOverlayLayer="True"
+                               IsLightDismissEnabled="True">
+                            <controls:DaisyMenu Theme="{StaticResource DaisyGlassMenuTheme}" x:Name="GlassInterfaceMenu" Classes="glassScene" Width="230">
+                                <ListBoxItem>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <PathIcon Width="16" Height="16" Data="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" />
+                                        <TextBlock Text="Pin" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </ListBoxItem>
+                                <ListBoxItem>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource DaisyIconEdit}" />
+                                        <TextBlock Text="Rename" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </ListBoxItem>
+                                <ListBoxItem>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource DaisyIconCopy}" />
+                                        <TextBlock Text="Duplicate" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </ListBoxItem>
+                                <ListBoxItem Classes="menu-separator" />
+                                <ListBoxItem Classes="menu-destructive">
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource DaisyIconDelete}" />
+                                        <TextBlock Text="Delete" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </ListBoxItem>
+                            </controls:DaisyMenu>
+                        </Popup>
                     </Grid>
                 </Border>
             </StackPanel>

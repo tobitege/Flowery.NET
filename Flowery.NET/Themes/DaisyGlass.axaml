@@ -30,7 +30,7 @@
         <Setter Property="CornerRadius" Value="16" />
         <Setter Property="GlassBlur" Value="40" />
         <Setter Property="GlassOpacity" Value="0.25" />
-        <Setter Property="GlassTint" Value="White" />
+        <Setter Property="GlassTint" Value="{DynamicResource DaisyGlassTintColor}" />
         <Setter Property="GlassTintOpacity" Value="0.5" />
         <Setter Property="GlassBorderOpacity" Value="0.2" />
         <Setter Property="GlassReflectDegree" Value="100" />

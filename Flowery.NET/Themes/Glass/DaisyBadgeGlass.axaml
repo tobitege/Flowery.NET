@@ -1,0 +1,74 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+
+    <Design.PreviewWith>
+        <Border Padding="20" Width="420">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Offset="0" Color="#FF6B8DD6" />
+                    <GradientStop Offset="1" Color="#FF8E37D7" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <WrapPanel>
+                <controls:DaisyBadge Theme="{StaticResource DaisyGlassBadgeTheme}" Content="Glass" Margin="4" />
+                <controls:DaisyBadge Theme="{StaticResource DaisyGlassBadgeTheme}" Variant="Primary" Content="Primary" Margin="4" />
+                <controls:DaisyBadge Theme="{StaticResource DaisyGlassBadgeTheme}" Variant="Accent" Content="Accent" Margin="4" />
+            </WrapPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <!-- A DaisyBadge on glass. Inherits variants, outline and sizes from DaisyBadge; only the surface differs: the
+         variant color tints the glass at DaisyGlassSurface.ColorOpacity. -->
+    <ControlTheme x:Key="DaisyGlassBadgeTheme" TargetType="controls:DaisyBadge"
+                  BasedOn="{StaticResource {x:Type controls:DaisyBadge}}">
+        <Setter Property="controls:DaisyGlassSurface.IsEnabled" Value="True" />
+        <Setter Property="controls:DaisyGlassSurface.EnableBackdropBlur" Value="True" />
+        <Setter Property="controls:DaisyGlassSurface.BlurMode" Value="SkiaSharp" />
+        <Setter Property="controls:DaisyGlassSurface.Blur" Value="20" />
+        <Setter Property="controls:DaisyGlassSurface.TintOpacity" Value="0.15" />
+        <Setter Property="controls:DaisyGlassSurface.ReflectOpacity" Value="0.1" />
+        <Setter Property="controls:DaisyGlassSurface.ColorOpacity" Value="0.45" />
+
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel Height="{TemplateBinding Height}">
+                    <!-- The glass comes first, so its backdrop holds only what lies behind the badge. -->
+                    <controls:DaisyGlass x:Name="PART_Glass"
+                                         Padding="0"
+                                         IsHitTestVisible="False"
+                                         CornerRadius="{TemplateBinding CornerRadius}" />
+                    <Border x:Name="PART_Surface"
+                            IsHitTestVisible="False"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Opacity="{TemplateBinding (controls:DaisyGlassSurface.ColorOpacity)}" />
+                    <!-- Carries the neumorphic shadow, which would be dimmed with the tint. -->
+                    <Border x:Name="PART_Border"
+                            Background="Transparent"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            Padding="{TemplateBinding Padding}">
+                        <!-- EffectiveForeground is Foreground with enough contrast over the glass. -->
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          TextElement.Foreground="{TemplateBinding (controls:DaisyGlassSurface.EffectiveForeground)}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                            <ContentPresenter.Effect>
+                                <DropShadowEffect OffsetX="0" OffsetY="1" BlurRadius="2" Color="Black"
+                                                  Opacity="{Binding (controls:DaisyGlassSurface.TextShadowOpacity), RelativeSource={RelativeSource TemplatedParent}}" />
+                            </ContentPresenter.Effect>
+                        </ContentPresenter>
+                    </Border>
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+
+        <!-- The default variant is clear glass. -->
+        <Style Selector="^[Variant=Default]">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

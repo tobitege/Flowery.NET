@@ -161,9 +161,10 @@ public static class GallerySidebarData
                 IconKey = "DaisyIconNestedSquares",
                 Items =
                 [
-                    new SidebarItem { Id = "glass-button", Name = "Sidebar_GlassButton", ControlName = "DaisyGlassButton", TabHeader = "Sidebar_Glass" },
-                    new SidebarItem { Id = "glass-designer", Name = "Sidebar_GlassButtonDesigner", ControlName = "DaisyGlassButtonDesigner", TabHeader = "Sidebar_Glass" },
-                    new SidebarItem { Id = "glass-controls", Name = "Sidebar_GlassControls", SearchTerms = "DaisyGlassNavbar DaisyGlassInput DaisyGlassBadge DaisyGlassModal", TabHeader = "Sidebar_Glass" },
+                    new SidebarItem { Id = "glass-button", Name = "Sidebar_GlassButton", ControlName = "DaisyButton", TabHeader = "Sidebar_Glass" },
+                    new SidebarItem { Id = "glass-designer", Name = "Sidebar_GlassDesigner", ControlName = "DaisyGlassDesigner", TabHeader = "Sidebar_Glass" },
+                    new SidebarItem { Id = "glass-controls", Name = "Sidebar_GlassControls", SearchTerms = "DaisyGlassSurface DaisyNavbar DaisyInput DaisyBadge DaisyModal", TabHeader = "Sidebar_Glass" },
+                    new SidebarItem { Id = "glass-interface", Name = "Sidebar_GlassInterface", SearchTerms = "DaisyGlassSurface DaisyButtonGroup DaisyRange DaisyToggle DaisyMenu Glassy", TabHeader = "Sidebar_Glass" },
                     new SidebarItem { Id = "glass-card", Name = "Sidebar_GlassCard", ControlName = "DaisyGlass", TabHeader = "Sidebar_Glass" },
                     new SidebarItem { Id = "daisyglass-liquid", Name = "Sidebar_DaisyGlassLiquid", ControlName = "DaisyGlass", TabHeader = "Sidebar_Glass" },
                     new SidebarItem { Id = "daisyglass-bitmap-capture", Name = "Sidebar_DaisyGlassBitmapCapture", ControlName = "DaisyGlass", TabHeader = "Sidebar_Glass" },

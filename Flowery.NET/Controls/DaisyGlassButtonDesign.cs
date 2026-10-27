@@ -12,58 +12,6 @@ using Flowery.Enums;
 namespace Flowery.Controls
 {
     /// <summary>
-    /// How a <see cref="DaisyGlassButtonDesign"/> fills its glass.
-    /// </summary>
-    public enum DaisyGlassFillKind
-    {
-        /// <summary>No fill.</summary>
-        None,
-        /// <summary>A <see cref="DaisyGlassGradient"/> preset.</summary>
-        Preset,
-        /// <summary>A linear gradient along <see cref="DaisyGlassButtonDesign.FillAngle"/>.</summary>
-        Linear,
-        /// <summary>A radial gradient from the top center.</summary>
-        Radial,
-        /// <summary>A conic gradient around the center, starting at <see cref="DaisyGlassButtonDesign.FillAngle"/>.</summary>
-        Conic,
-        /// <summary>
-        /// The fill of the button stays as it is: <see cref="DaisyGlassButtonDesign.FromButton"/> reads a fill this design
-        /// cannot describe, such as a solid or image brush, as Keep, so applying the design does not replace it.
-        /// </summary>
-        Keep
-    }
-
-    /// <summary>
-    /// Which implementation draws the animated background of a <see cref="DaisyGlassButtonDesign"/>.
-    /// </summary>
-    public enum DaisyGlassBackgroundRenderer
-    {
-        /// <summary>No animated background.</summary>
-        None,
-        /// <summary><see cref="DaisyGlassGradientBackground"/>: moving gradients, no SkiaSharp needed.</summary>
-        Gradient,
-        /// <summary><c>DaisyGlassShaderBackground</c> from Flowery.NET.Skia: per-pixel shaders.</summary>
-        Shader,
-        /// <summary>
-        /// The animated background of the button stays as it is: <see cref="DaisyGlassButtonDesign.FromButton"/> reads a
-        /// background of another kind as Keep, so applying the design does not replace it.
-        /// </summary>
-        Keep
-    }
-
-    /// <summary>
-    /// A color stop of a custom fill gradient.
-    /// </summary>
-    public sealed class DaisyGlassFillStop
-    {
-        /// <summary>Gets or sets the color of the stop.</summary>
-        public Color Color { get; set; }
-
-        /// <summary>Gets or sets the position of the stop, from 0 to 1.</summary>
-        public double Offset { get; set; }
-    }
-
-    /// <summary>
     /// The look of a <see cref="DaisyGlassButton"/> as plain values: what <see cref="DaisyGlassButtonDesigner"/> edits.
     /// A design applies to a button, reads from one, and converts to XAML, C# and JSON. The defaults are those of a
     /// <see cref="DaisyGlassButton"/> in the Flowery theme.
@@ -822,18 +770,6 @@ namespace Flowery.Controls
                 });
             return builder.ToString();
         }
-    }
-
-    /// <summary>
-    /// Writes a <see cref="Color"/> as <c>#AARRGGBB</c>.
-    /// </summary>
-    internal sealed class DaisyGlassColorJsonConverter : JsonConverter<Color>
-    {
-        public override Color Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
-            Color.TryParse(reader.GetString(), out var color) ? color : throw new JsonException("Expected a color such as #FFFFFFFF.");
-
-        public override void Write(Utf8JsonWriter writer, Color value, JsonSerializerOptions options) =>
-            writer.WriteStringValue(DaisyGlassButtonDesign.FormatColor(value));
     }
 
     [JsonSourceGenerationOptions(

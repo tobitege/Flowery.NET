@@ -50,3 +50,7 @@ Kanban overlay dialogs use [FlowKanbanDialogBase](FlowKanbanDialogBase.md) for i
 ## Neumorphic Effect
 
 With [DaisyNeumorphic](DaisyNeumorphic.md) active, the dialog box (`PART_Dialog`) draws the effect instead of its default drop shadow.
+
+## Glass
+
+`Theme="{StaticResource DaisyGlassModalTheme}"` puts the control on glass that blurs whatever lies behind it: the dialog blurs the dimmed page behind it, tinted with its `Background` at 0.3. The glass settings are attached properties of [DaisyGlassSurface](DaisyGlassSurface.md), such as `controls:DaisyGlassSurface.Blur`; [DaisyGlassDesigner](DaisyGlassDesigner.md) shapes them visually.
