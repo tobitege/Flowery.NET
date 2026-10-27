@@ -587,6 +587,8 @@ namespace Flowery.Controls
                         return;
                     _backdrop = backdrop;
                     _stage.Background = StageBrush(backdrop);
+                    // The light backdrop needs dark text and symbols.
+                    _stage.Classes.Set("paper", backdrop == Backdrop.Paper);
                 };
                 backdrops.Children.Add(swatch);
             }
@@ -615,7 +617,7 @@ namespace Flowery.Controls
                 }
             };
 
-            return new Border
+            var stage = new Border
             {
                 Classes = { "gbd-stage" },
                 Margin = new Thickness(24, 0),
@@ -624,6 +626,8 @@ namespace Flowery.Controls
                 Background = StageBrush(_backdrop),
                 Child = new Panel { Children = { orbs, behind, _preview, controls } }
             };
+            stage.Classes.Set("paper", _backdrop == Backdrop.Paper);
+            return stage;
         }
 
         private static Border Orb(uint color, double size, HorizontalAlignment horizontal, VerticalAlignment vertical, Thickness margin) => new()
