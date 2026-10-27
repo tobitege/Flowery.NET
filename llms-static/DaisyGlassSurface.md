@@ -76,7 +76,7 @@ The themes use `BlurMode=SkiaSharp`, which needs Flowery.NET.Skia (`FlowerySkia.
 | `PartName` | `null` | The surface part that gets the glass behind it, or, with a `PART_Glass` in the template, the tint layer above it. |
 | `ClearSurface` | `True` | Whether the surface turns transparent over an inserted glass. A theme that gives the surface translucent colors of its own turns it off. |
 | `FollowForeground` | `False` | The text, placeholder, floating label and icons of a field follow `Foreground`, for colorful backdrops. |
-| `TextContrast` | `True` | The text keeps WCAG contrast over the measured backdrop. Only glass with a tint layer over it measures its backdrop, as in the glass button and badge themes; other glass shows app content and measures nothing. |
+| `TextContrast` | `True` | The text stays readable over the measured backdrop: it stays light and moves toward white until it has 3:1, helped by the shadow under it, and turns dark with WCAG contrast only where even white stays below 2.5:1, such as over a white backdrop. Only glass with a tint layer over it measures its backdrop, as in the glass button and badge themes; other glass shows app content and measures nothing. |
 | `EffectiveForeground` | — | Read-only: the brush the glass themes draw text and icons with, `Foreground` adjusted for contrast. |
 | `ColorOpacity` | 0.35 | Opacity of the variant color over the glass (button, badge, navbar, modal). |
 | `TextShadowOpacity` | 0.5 | Opacity of the shadow under text and icons. |

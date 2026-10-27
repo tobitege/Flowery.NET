@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless.XUnit;
@@ -91,6 +91,30 @@ public class GlassTextContrastTests
             var effective = Assert.IsAssignableFrom<ISolidColorBrush>(EffectiveForeground(control)).Color;
             Assert.NotEqual(text, effective);
             AssertReadable(control, glass, text, effective);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaTheory]
+    [InlineData("#7C3AED", true)]
+    [InlineData("#1E3A8A", true)]
+    [InlineData("#8A51EB", true)]
+    [InlineData("#F8FAFC", false)]
+    public void Glass_Text_Stays_Light_Unless_Even_White_Cannot_Be_Read(string backdrop, bool light)
+    {
+        // Over a colorful backdrop the text turned black before, which does not fit glass.
+        var button = new DaisyButton { Content = "Get started", Theme = DaisyGlassSurfaceTests.GlassTheme("DaisyGlassButtonTheme") };
+        var window = Show(button);
+        try
+        {
+            var glass = Glass(button);
+            TestRenderer.Report(glass, Color.Parse(backdrop));
+            var effective = Assert.IsAssignableFrom<ISolidColorBrush>(DaisyGlassSurface.GetEffectiveForeground(button)).Color;
+            Assert.Equal(light, FloweryColorHelpers.GetRelativeLuminance(effective) > 0.5);
+            AssertReadable(button, glass, Color.Parse(backdrop), effective);
         }
         finally
         {
@@ -222,7 +246,11 @@ public class GlassTextContrastTests
         if (tint?.Background is ISolidColorBrush solid)
             surface = FloweryColorHelpers.Composite(surface, Color.FromArgb((byte)(solid.Color.A * solid.Opacity), solid.Color.R, solid.Color.G, solid.Color.B), tint.Opacity);
         var drawn = FloweryColorHelpers.Composite(surface, text, 1);
-        Assert.True(FloweryColorHelpers.GetContrastRatio(drawn, surface) >= 4.5, $"{text} on {surface} has too little contrast.");
+        // Light text, which the shadow under it makes readable, needs 3:1 or white with at least 2.5:1; dark text, only
+        // where white stays below that, needs 4.5:1.
+        var light = FloweryColorHelpers.GetRelativeLuminance(drawn) > FloweryColorHelpers.GetRelativeLuminance(surface);
+        var ratio = FloweryColorHelpers.GetContrastRatio(drawn, surface);
+        Assert.True(light ? ratio >= 3.0 || (drawn == Colors.White && ratio >= 2.5) : ratio >= 4.5, $"{text} on {surface} has too little contrast.");
     }
 
     private static Color Average(IReadOnlyList<IGradientStop> stops) => Color.FromArgb(

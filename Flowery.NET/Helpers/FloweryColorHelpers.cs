@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Avalonia.Media;
@@ -135,18 +135,27 @@ namespace Flowery.Helpers
         /// </summary>
         public static Color EnsureContrast(Color text, Color background, double ratio)
         {
+            var target = GetContrastRatio(Colors.White, background) >= GetContrastRatio(Colors.Black, background)
+                ? Colors.White
+                : Colors.Black;
+            return EnsureContrast(text, background, ratio, target);
+        }
+
+        /// <summary>
+        /// Like <see cref="EnsureContrast(Color, Color, double)"/>, but always moves the text toward
+        /// <paramref name="target"/>, white or black.
+        /// </summary>
+        internal static Color EnsureContrast(Color text, Color background, double ratio, Color target)
+        {
             var opaqueText = Color.FromRgb(text.R, text.G, text.B);
             var alpha = text.A / 255.0;
             if (RenderedContrast(opaqueText, alpha, background) >= ratio)
                 return text;
 
-            var target = GetContrastRatio(Colors.White, background) >= GetContrastRatio(Colors.Black, background)
-                ? Colors.White
-                : Colors.Black;
             if (RenderedContrast(target, alpha, background) < ratio)
             {
                 return text.A < 255
-                    ? EnsureContrast(Color.FromRgb(text.R, text.G, text.B), background, ratio)
+                    ? EnsureContrast(Color.FromRgb(text.R, text.G, text.B), background, ratio, target)
                     : target;
             }
 

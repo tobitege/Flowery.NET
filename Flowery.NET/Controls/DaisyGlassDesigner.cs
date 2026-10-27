@@ -13,6 +13,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.TextFormatting;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 using Flowery.Controls.ColorPicker;
@@ -49,6 +50,8 @@ namespace Flowery.Controls
 
         // The preview and the disc survive a rebuild for another language; the other parts are built again.
         private readonly DaisyButton _preview;
+        private string _previewText = "Get started";
+        private TextBox? _textBox;
         private readonly Border _blob;
         private Border _stage = null!;
         private DaisyGlassDesignerFieldPanel _fields = null!;
@@ -77,10 +80,16 @@ namespace Flowery.Controls
         {
             _preview = new DaisyButton
             {
-                Content = "Get started",
+                Content = _previewText,
                 Theme = GlassButtonTheme(),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
+            };
+            // The size and the theme set the font of the preview, which the size of a square or circle follows.
+            _preview.PropertyChanged += (_, e) =>
+            {
+                if (e.Property == FontSizeProperty || e.Property == FontFamilyProperty || e.Property == FontWeightProperty)
+                    UpdatePreviewShapeSize();
             };
             _blob = new Border
             {
@@ -126,6 +135,7 @@ namespace Flowery.Controls
                     {
                         CreateHeader(),
                         _stage,
+                        CreateTextRow(),
                         CreateTabBar(),
                         new Border { Padding = new Thickness(24, 0), Child = _fields },
                         _codeDrawer
@@ -159,8 +169,14 @@ namespace Flowery.Controls
         /// </summary>
         public string PreviewText
         {
-            get => _preview.Content as string ?? "";
-            set => _preview.Content = value;
+            get => _previewText;
+            set
+            {
+                _previewText = value ?? "";
+                if (_textBox != null && _textBox.Text != _previewText)
+                    _textBox.Text = _previewText;
+                UpdatePreviewContent();
+            }
         }
 
         /// <summary>
@@ -196,7 +212,39 @@ namespace Flowery.Controls
         public DaisyButtonShape PreviewShape
         {
             get => _preview.Shape;
-            set => _preview.Shape = value;
+            set
+            {
+                _preview.Shape = value;
+                UpdatePreviewContent();
+            }
+        }
+
+        private void UpdatePreviewContent()
+        {
+            _preview.Content = _previewText;
+            // A block button takes the full width; the preview centers every other shape.
+            var block = _preview.Shape == DaisyButtonShape.Block;
+            _preview.HorizontalAlignment = block ? HorizontalAlignment.Stretch : HorizontalAlignment.Center;
+            _preview.Margin = block ? new Thickness(32, 0) : default;
+            UpdatePreviewShapeSize();
+        }
+
+        // A square or circle DaisyButton is as wide as it is high and made for an icon. In the preview it grows until the
+        // whole text fits inside the shape, with room around it.
+        private void UpdatePreviewShapeSize()
+        {
+            _preview.ClearValue(HeightProperty);
+            if (_preview.Shape is not (DaisyButtonShape.Square or DaisyButtonShape.Circle))
+                return;
+            using var layout = new TextLayout(_previewText, new Typeface(_preview.FontFamily, _preview.FontStyle, _preview.FontWeight),
+                _preview.FontSize, null);
+            var room = _preview.FontSize;
+            var side = _preview.Shape == DaisyButtonShape.Circle
+                ? Math.Sqrt(layout.Width * layout.Width + layout.Height * layout.Height) + room
+                : layout.Width + 2 * room;
+            // The square style binds the width to the height.
+            if (side > _preview.Height || double.IsNaN(_preview.Height))
+                _preview.Height = Math.Ceiling(side);
         }
 
         /// <summary>
@@ -460,14 +508,6 @@ namespace Flowery.Controls
 
         private Control CreateHeader()
         {
-            var reset = new DaisyButton
-            {
-                Content = L("GlassDesigner_Reset", "Reset"),
-                ButtonStyle = DaisyButtonStyle.Soft,
-                Size = DaisySize.Small
-            };
-            reset.Click += (_, _) => Reset();
-
             var code = new ToggleButton
             {
                 Classes = { "gbd-code-toggle" },
@@ -495,19 +535,13 @@ namespace Flowery.Controls
                     }
                 }
             };
-            var actions = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 8,
-                VerticalAlignment = VerticalAlignment.Center,
-                Children = { reset, code }
-            };
-            Grid.SetColumn(actions, 1);
+            code.VerticalAlignment = VerticalAlignment.Center;
+            Grid.SetColumn(code, 1);
             return new Grid
             {
                 Margin = new Thickness(24, 24, 24, 0),
                 ColumnDefinitions = new ColumnDefinitions("*,Auto"),
-                Children = { titles, actions }
+                Children = { titles, code }
             };
         }
 
@@ -652,6 +686,26 @@ namespace Flowery.Controls
             _motion = null;
         }
 
+        // The text of the preview button, above the tabs, so it can be changed on every tab.
+        private Control CreateTextRow()
+        {
+            var text = new TextBox { Text = PreviewText, Width = 320, HorizontalAlignment = HorizontalAlignment.Left };
+            AutomationProperties.SetName(text, L("GlassDesigner_Text", "Text"));
+            // The text box reports a change later; by then it shows the preview text, also when code changed that.
+            text.TextChanged += (_, _) => PreviewText = text.Text ?? "";
+            _textBox = text;
+            return new StackPanel
+            {
+                Margin = new Thickness(24, 0),
+                Spacing = 6,
+                Children =
+                {
+                    new TextBlock { Classes = { "gbd-label" }, Text = L("GlassDesigner_Text", "Text").ToUpper(FloweryLocalization.CurrentCulture) },
+                    text
+                }
+            };
+        }
+
         private Control CreateTabBar()
         {
             var tabs = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2 };
@@ -674,12 +728,32 @@ namespace Flowery.Controls
                 tabs.Children.Add(button);
             }
 
-            return new ScrollViewer
+            // Reset sits next to the tabs, so it is at hand on every tab, also when the stage is scrolled away.
+            var reset = new DaisyButton
+            {
+                Content = L("GlassDesigner_Reset", "Reset"),
+                ButtonStyle = DaisyButtonStyle.Soft,
+                Size = DaisySize.Small,
+                Margin = new Thickness(12, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            reset.Click += (_, _) => Reset();
+            Grid.SetColumn(reset, 1);
+
+            return new Grid
             {
                 Margin = new Thickness(24, 0),
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
-                Content = new Border { Classes = { "gbd-tabs" }, HorizontalAlignment = HorizontalAlignment.Left, Child = tabs }
+                ColumnDefinitions = new ColumnDefinitions("*,Auto"),
+                Children =
+                {
+                    new ScrollViewer
+                    {
+                        HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                        VerticalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                        Content = new Border { Classes = { "gbd-tabs" }, HorizontalAlignment = HorizontalAlignment.Left, Child = tabs }
+                    },
+                    reset
+                }
             };
         }
 
@@ -723,6 +797,7 @@ namespace Flowery.Controls
                     Theme = GlassButtonTheme(),
                     Variant = preview.Variant,
                     ButtonStyle = preview.Style,
+                    Shape = preview.Shape,
                     IsHitTestVisible = false,
                     Size = DaisySize.Small,
                     HorizontalAlignment = HorizontalAlignment.Center,
@@ -767,10 +842,8 @@ namespace Flowery.Controls
 
         private IEnumerable<Control> CreateButtonFields()
         {
-            // The preview options change the preview button only; they are not part of the design.
-            var text = new TextBox { Text = PreviewText };
-            text.TextChanged += (_, _) => PreviewText = text.Text ?? "";
-            yield return Field("GlassDesigner_Text", "Text", text);
+            // The preview options change the preview button only; they are not part of the design. Its text sits above
+            // the tabs.
             yield return ChipField("GlassDesigner_Variant", "Variant", Enum.GetValues<DaisyButtonVariant>(), PreviewVariant, v => PreviewVariant = v, wide: true);
             yield return ChipField("GlassDesigner_Style", "Style", Enum.GetValues<DaisyButtonStyle>(), PreviewButtonStyle, v => PreviewButtonStyle = v);
             yield return ChipField("GlassDesigner_Size", "Size", Enum.GetValues<DaisySize>(), PreviewSize, v => PreviewSize = v);
@@ -814,6 +887,9 @@ namespace Flowery.Controls
                     d.FillPreset = DaisyGlassGradient.Aurora;
             }, wide: true, rebuildTab: true);
 
+            if (_design.FillKind != DaisyGlassFillKind.Keep)
+                yield return FillPalettes();
+
             switch (_design.FillKind)
             {
                 case DaisyGlassFillKind.Preset:
@@ -828,6 +904,55 @@ namespace Flowery.Controls
 
             if (_design.FillKind != DaisyGlassFillKind.None)
                 yield return Slider("GlassDesigner_FillOpacity", "Fill opacity", 0, 1, 0.01, d => d.FillOpacity, (d, v) => d.FillOpacity = v);
+        }
+
+        // Color suggestions for a gradient fill. A palette sets the colors, which stay editable below.
+        private static readonly (string Name, uint[] Colors)[] Palettes =
+        [
+            ("Sunrise", [0xFFFF7E5F, 0xFFFEB47B, 0xFFFFE29F]),
+            ("Lagoon", [0xFF0EA5E9, 0xFF6366F1, 0xFF22D3EE]),
+            ("Forest", [0xFF134E5E, 0xFF3A8D6F, 0xFF71B280]),
+            ("Berry", [0xFF8E2DE2, 0xFFD946EF, 0xFFFF6CAB]),
+            ("Mint", [0xFFA8FF78, 0xFF78FFD6]),
+            ("Candy", [0xFFFF9A9E, 0xFFFAD0C4, 0xFFA18CD1]),
+            ("Ember", [0xFFF97316, 0xFFDC2626, 0xFF7F1D1D]),
+            ("Twilight", [0xFF0F2027, 0xFF203A43, 0xFF2C5364]),
+            ("Neon", [0xFF00F5A0, 0xFF00D9F5, 0xFF7B61FF]),
+            ("Pearl", [0xFFFFFFFF, 0xFFE2E8F0, 0xFFCBD5E1])
+        ];
+
+        private Control FillPalettes()
+        {
+            var tiles = new WrapPanel { Orientation = Orientation.Horizontal };
+            foreach (var (name, colors) in Palettes)
+            {
+                var brush = new LinearGradientBrush
+                {
+                    StartPoint = new RelativePoint(0, 0.5, RelativeUnit.Relative),
+                    EndPoint = new RelativePoint(1, 0.5, RelativeUnit.Relative)
+                };
+                for (var i = 0; i < colors.Length; i++)
+                    brush.GradientStops.Add(new GradientStop(Color.FromUInt32(colors[i]), (double)i / (colors.Length - 1)));
+                var tile = new Button
+                {
+                    Classes = { "gbd-tile" },
+                    Margin = new Thickness(0, 0, 6, 6),
+                    Content = new Border { CornerRadius = new CornerRadius(12), Width = 76, Height = 34, Background = brush }
+                };
+                ToolTip.SetTip(tile, name);
+                AutomationProperties.SetName(tile, name);
+                tile.Click += (_, _) => Change(d =>
+                {
+                    d.FillStops.Clear();
+                    foreach (var color in colors)
+                        d.FillStops.Add(new DaisyGlassFillStop { Color = Color.FromUInt32(color) });
+                    Spread(d.FillStops);
+                    if (d.FillKind is not (DaisyGlassFillKind.Linear or DaisyGlassFillKind.Radial or DaisyGlassFillKind.Conic))
+                        d.FillKind = DaisyGlassFillKind.Linear;
+                }, rebuildTab: true);
+                tiles.Children.Add(tile);
+            }
+            return Field("GlassDesigner_FillPalettes", "Palettes", tiles, wide: true);
         }
 
         private Control GradientPresets()

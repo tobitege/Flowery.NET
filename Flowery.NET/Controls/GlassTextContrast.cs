@@ -15,15 +15,34 @@ namespace Flowery.Controls
     /// <summary>
     /// Keeps the text of a glass control readable over whatever lies behind it. The glass measures the color of its
     /// backdrop; this estimates the color right behind the text from it, with the glass tint, fill, animated
-    /// background, top shine and the control's own tint layer on top, and moves the text color toward white or black
-    /// until it has WCAG contrast against that color (4.5, or 3 for large text). A foreground set on the control itself
-    /// is kept as it is.
+    /// background, top shine and the control's own tint layer on top. Glass text is light: dark text becomes white, and
+    /// light text moves toward white until it has a contrast of 3 against that color, which the shadow under the text
+    /// makes readable. Only where white stays below 2.5 does the text move toward black, until it has WCAG contrast (4.5,
+    /// or 3 for large text). A foreground set on the control itself is kept as it is.
     /// </summary>
     internal sealed class GlassTextContrast : IDisposable, IWeakEventSubscriber<AvaloniaPropertyChangedEventArgs>
     {
         // Covers what the estimate leaves out: the liquid-glass highlights of the SkiaSharp mode and the blur, which
         // spreads brighter or darker spots of the backdrop over the average.
         private const double RatioReserve = 0.25;
+
+        // Glass reads with light text, and the glass themes draw a dark shadow under it. The text moves toward white until
+        // it has the 3:1 of large text; it stays light while white reaches at least LightTextMinimum, as over a colorful
+        // backdrop under the shine, and turns dark only over a backdrop where even white cannot be read.
+        private const double LightTextRatio = 3.0 + RatioReserve;
+        private const double LightTextMinimum = 2.5;
+
+        private static Color Adjust(Color text, Color surface, double ratio)
+        {
+            if (FloweryColorHelpers.GetContrastRatio(Colors.White, surface) < LightTextMinimum)
+                return FloweryColorHelpers.EnsureContrast(text, surface, ratio);
+            // Dark text, such as that of a light theme, becomes white; light text keeps its hue.
+            var light = FloweryColorHelpers.GetRelativeLuminance(Color.FromRgb(text.R, text.G, text.B))
+                        > FloweryColorHelpers.GetRelativeLuminance(surface)
+                ? text
+                : Color.FromArgb(text.A, 255, 255, 255);
+            return FloweryColorHelpers.EnsureContrast(light, surface, Math.Min(ratio, LightTextRatio), Colors.White);
+        }
 
         private readonly TemplatedControl _owner;
         private readonly DaisyGlass _glass;
@@ -122,7 +141,7 @@ namespace Flowery.Controls
             // The brush opacity goes into the alpha, so a translucent text is checked as it renders.
             var text = WithOpacity(solid.Color, solid.Opacity);
             var ratio = (IsLargeText() ? 3.0 : 4.5) + RatioReserve;
-            var color = FloweryColorHelpers.EnsureContrast(text, surface, ratio);
+            var color = Adjust(text, surface, ratio);
             if (color == text)
             {
                 _apply(foreground);
@@ -131,7 +150,7 @@ namespace Flowery.Controls
             // An adjusted color that still has the contrast stays, so small changes in the measured backdrop do not
             // redraw the text, which would redraw the glass and could measure it again.
             if (_lastBrush != null && ReferenceEquals(_lastSource, foreground)
-                && FloweryColorHelpers.EnsureContrast(_lastColor, surface, ratio) == _lastColor)
+                && Adjust(_lastColor, surface, ratio) == _lastColor)
             {
                 _apply(_lastBrush);
                 return;

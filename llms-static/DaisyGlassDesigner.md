@@ -5,20 +5,20 @@
 
 DaisyGlassDesigner is a visual editor for a glass look, which applies to every control on glass ([DaisyGlassSurface](DaisyGlassSurface.md)). A live preview sits on a colorful stage; the settings are grouped in tabs; the result comes out as XAML, C# or JSON with the attached glass properties, or applies to a control. Embed it in a page like any control, or open it over the app with `ShowOverlayAsync`, which works on desktop, mobile and in the browser because it uses the overlay layer of the window or view.
 
-The preview is a `DaisyButton` with `DaisyGlassButtonTheme`. Its text, variant, style, size and shape are preview options: they show how the look sits on a button, and they are not part of the design.
+The preview is a `DaisyButton` with `DaisyGlassButtonTheme`. Its text, variant, style, size and shape are preview options: they show how the look sits on a button, and they are not part of the design. A `Square` or `Circle` preview grows until the whole text fits inside the shape, and a `Block` preview takes the width of the stage.
 
 ## Tabs
 
 | Tab | Settings |
 | --- | -------- |
 | Presets | Ten starting looks: Frost, Midnight, Aurora, Sunset, Holo, Neon, Ocean, Candy, Liquid Gold, Plasma. A preset also sets the preview button it was made for (variant, style and shape); the text and size stay. |
-| Button | The preview options (text, `Variant`, `ButtonStyle`, `Size`, `Shape`), and `ColorOpacity`, `TextShadowOpacity` and `TextContrast` of the design. |
+| Button | The preview options `Variant`, `ButtonStyle`, `Size` and `Shape`, and `ColorOpacity`, `TextShadowOpacity` and `TextContrast` of the design. The text of the preview has its own field above the tabs. |
 | Glass | `BlurMode`, `EnableBackdropBlur`, `Blur`, `Saturation`, `Tint` and `TintOpacity`, the reflection, the simulated opacity and the liquid optics (`Depth`, `Curvature`, `Bend`, `Dispersion`). |
-| Fill | None, a `Gradient` preset, or a linear, radial or conic gradient with two to five colors (the model and JSON take any number), its angle and `FillOpacity`. |
+| Fill | None, a `Gradient` preset, or a linear, radial or conic gradient with two to five colors (the model and JSON take any number), its angle and `FillOpacity`. Ten palettes (Sunrise, Lagoon, Forest, Berry, Mint, Candy, Ember, Twilight, Neon, Pearl) set the colors of a gradient, which stay editable; on no fill or a preset they start a linear gradient. |
 | Pattern | The `DaisyCardPattern` set as tiles, the pattern color and opacity. |
 | Motion | An animated `Background`: drawn with gradients (`DaisyGlassGradientBackground`) or shaders (`DaisyGlassShaderBackground`), its `Effect`, `Speed`, `FrameRate` and opacity. |
 
-The stage offers four backdrops and a disc that drifts behind the preview, so the blur is visible. The disc is off by default and stops when the designer leaves the visual tree. The `Code` button opens the code drawer with the XAML, C# and JSON of the design, a copy button, and an import field for JSON.
+`Reset` sits next to the tabs, so it is at hand on every tab. The stage offers four backdrops and a disc that drifts behind the preview, so the blur is visible. The disc is off by default and stops when the designer leaves the visual tree. The `Code` button opens the code drawer with the XAML, C# and JSON of the design, a copy button, and an import field for JSON.
 
 ## Key Members
 
