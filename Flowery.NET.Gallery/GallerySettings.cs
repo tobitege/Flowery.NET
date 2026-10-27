@@ -27,6 +27,11 @@ public static class GallerySettings
         "Flowery.NET.Gallery",
         "backdrop.txt");
 
+    private static readonly string BaseColorPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Flowery.NET.Gallery",
+        "base-color.txt");
+
     private static readonly string WindowPlacementPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Flowery.NET.Gallery",
@@ -103,6 +108,30 @@ public static class GallerySettings
         {
             Directory.CreateDirectory(Path.GetDirectoryName(BackdropPath)!);
             File.WriteAllText(BackdropPath, backdrop ?? string.Empty);
+        }
+        catch { /* ignore */ }
+    }
+
+    /// <summary>
+    /// The base color chosen in the sidebar for <see cref="DaisyThemeManager.BaseOverride"/>.
+    /// </summary>
+    public static Avalonia.Media.Color? LoadBaseColor()
+    {
+        try
+        {
+            if (File.Exists(BaseColorPath) && Avalonia.Media.Color.TryParse(File.ReadAllText(BaseColorPath).Trim(), out var color))
+                return color;
+        }
+        catch { }
+        return null;
+    }
+
+    public static void SaveBaseColor(Avalonia.Media.Color? color)
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(BaseColorPath)!);
+            File.WriteAllText(BaseColorPath, color?.ToString() ?? string.Empty);
         }
         catch { /* ignore */ }
     }

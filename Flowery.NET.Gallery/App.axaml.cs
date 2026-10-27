@@ -76,6 +76,10 @@ public partial class App : Application
         }
         DaisyThemeManager.BackdropOverrideChanged += (_, _) => GallerySettings.SaveBackdrop(DaisyThemeManager.BackdropOverride);
 
+        // Restore the base color chosen in the sidebar.
+        DaisyThemeManager.BaseOverride = GallerySettings.LoadBaseColor();
+        DaisyThemeManager.BaseOverrideChanged += (_, _) => GallerySettings.SaveBaseColor(DaisyThemeManager.BaseOverride);
+
         // Restore saved global size (if any). FlowerySizeManager defaults to Medium.
         var savedGlobalSize = GallerySettings.LoadGlobalSize();
         if (savedGlobalSize != null)

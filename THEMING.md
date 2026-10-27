@@ -330,6 +330,16 @@ Override any of them in a palette dictionary to change the look for that theme o
 
 Each control keeps its own tint opacity, and a `GlassTint` (or `DaisyGlassSurface.Tint`) set on a control wins over the theme.
 
+## Theme Base Color
+
+`DaisyThemeManager.BaseOverride` changes the base of any theme at run time, instead of a palette variant per base color:
+
+```csharp
+DaisyThemeManager.BaseOverride = Color.Parse("#0B1B5E");
+```
+
+`Base100` takes the color, and light or dark follows from it. `Base200`, `Base300` and `BaseContent` keep the contrast and the direction their theme gives them, the text colors of the accents move to 4.5:1 against the new base, and the accent surfaces stay. The override stays across theme switches, and `null` gives the theme its own base back. `DaisyThemeManager.FindContrastGaps()` lists the contrast gaps that remain. See [DaisyThemeManager](llms-static/DaisyThemeManager.md#base-color) for the details.
+
 ## Theme Backdrop
 
 A theme can define a backdrop for the app: the brush `DaisyBackdropBrush` (a color, a gradient, a drawing or an image) and, optionally, an animated effect `DaisyBackdropEffect`. The app shows it with `DaisyBackdrop` as the lowest layer of its window, or uses the brush alone with `Background="{DynamicResource DaisyBackdropBrush}"`, and it switches with the theme:

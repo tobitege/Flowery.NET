@@ -45,6 +45,7 @@ public static class GallerySidebarData
                     new GallerySizeSelectorItem { Id = "size", Name = "Sidebar_Size", TabHeader = "Sidebar_Home" },
                     new GalleryNeumorphicSelectorItem { Id = "neumorphic", Name = "Sidebar_Neumorphic", TabHeader = "Sidebar_Home" },
                     new GalleryGlassModeItem { Id = "glass-mode", Name = "Sidebar_GlassMode", TabHeader = "Sidebar_Home" },
+                    new GalleryBaseColorItem { Id = "base-color", Name = "Sidebar_BaseColor", TabHeader = "Sidebar_Home" },
                     new GalleryBackdropItem { Id = "backdrop", Name = "Sidebar_Backdrop", TabHeader = "Sidebar_Home" }
                 ]
             },
@@ -315,6 +316,15 @@ public class GalleryNeumorphicSelectorItem : SidebarNeumorphicSelectorItem
 /// Extends the library's SidebarGlassModeItem so the existing template works.
 /// </summary>
 public class GalleryGlassModeItem : SidebarGlassModeItem
+{
+}
+
+/// <summary>
+/// Gallery-specific sidebar item for the base color of the theme.
+/// This item type triggers a special template in the sidebar that shows a color button and a reset button.
+/// Extends the library's SidebarBaseColorItem so the existing template works.
+/// </summary>
+public class GalleryBaseColorItem : SidebarBaseColorItem
 {
 }
 

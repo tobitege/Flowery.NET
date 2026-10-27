@@ -529,8 +529,8 @@ namespace Flowery.Controls
                 _currentThemeName = def.Info.Name;
                 _themeApplicationPending = false;
 
-                // Set light/dark variant for system controls
-                app.RequestedThemeVariant = def.Info.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
+                // Set light/dark variant for system controls; a base override decides it by its own luminance.
+                app.RequestedThemeVariant = IsDarkWithOverride(def.Info.IsDark) ? ThemeVariant.Dark : ThemeVariant.Light;
 
                 RefreshDerivedResources();
                 DaisyAccessibility.RefreshContrastPalette();
@@ -626,12 +626,17 @@ namespace Flowery.Controls
         }
 
         /// <summary>
-        /// Check if a theme is a dark theme.
+        /// Check if a theme is a dark theme. For the current theme under a <see cref="BaseOverride"/>, the luminance of
+        /// the override decides.
         /// </summary>
         public static bool IsDarkTheme(string themeName)
         {
             var info = GetThemeInfo(themeName);
-            return info?.IsDark ?? false;
+            if (info == null)
+                return false;
+            return string.Equals(info.Name, _currentThemeName, StringComparison.OrdinalIgnoreCase)
+                ? IsDarkWithOverride(info.IsDark)
+                : info.IsDark;
         }
     }
 }
