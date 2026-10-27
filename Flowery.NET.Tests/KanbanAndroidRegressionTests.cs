@@ -254,6 +254,93 @@ public class KanbanAndroidRegressionTests
     }
 
     [AvaloniaFact]
+    public void A_Board_Tile_Still_Opens_After_The_Home_View_Was_Taken_Out_And_Put_Back()
+    {
+        var board = new FlowBoardMetadata { Id = "board", Title = "Board" };
+        var opened = new List<object?>();
+        var home = new FlowKanbanHome
+        {
+            Boards = new System.Collections.ObjectModel.ObservableCollection<FlowBoardMetadata> { board },
+            OpenBoardCommand = new CommandRecorder(opened)
+        };
+        var host = new ContentControl { Content = home };
+        var window = CreateWindow(host, 700);
+        try
+        {
+            // As a tab switch or a cached page does; the presenters build their tiles anew.
+            host.Content = null;
+            Flush(window);
+            host.Content = home;
+            Flush(window);
+
+            var menu = window.GetVisualDescendants().OfType<DaisyButton>().Single(static button => button.Name == "PART_BoardMenuButton");
+            Assert.All(Assert.IsType<MenuFlyout>(menu.Flyout).Items.OfType<MenuItem>(), static item =>
+                Assert.False(string.IsNullOrEmpty(item.Header as string), $"{item.Tag} has no text"));
+
+            var tile = window.GetVisualDescendants().OfType<Border>().Single(static border => border.Name == "PART_BoardOpenSurface");
+            var point = tile.TranslatePoint(new Point(24, 24), window)!.Value;
+            var touch = window.TouchBegin(point, RawInputModifiers.None);
+            window.TouchEnd(touch, point, RawInputModifiers.None);
+            Flush(window);
+
+            Assert.Same(board, Assert.Single(opened));
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Tap_On_The_Tile_Of_The_Open_Board_Shows_Its_Waiting_Edit()
+    {
+        var previousStorage = StateStorageProvider.Instance;
+        var storage = new InMemoryStateStorage();
+        StateStorageProvider.Configure(storage);
+        var store = new FlowKanbanBoardStore(storage);
+        var column = new FlowKanbanColumnData { Title = "Todo" };
+        var data = new FlowKanbanData { Title = "Saved", Columns = { column } };
+        Assert.True(store.TrySaveBoard(data, out var saveError), saveError?.Message);
+        var board = new FlowKanban { Board = data, BoardStore = store };
+        var window = CreateWindow(board, 700);
+        DispatcherTimer? timer = null;
+        try
+        {
+            board.CurrentView = FlowKanbanView.Board;
+            Flush(window);
+
+            var collapsed = !column.IsCollapsed;
+            column.IsCollapsed = collapsed;
+            timer = (DispatcherTimer?)typeof(FlowKanban).GetField("_autoSaveTimer",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(board);
+            Assert.True(timer?.IsEnabled, "the edit did not start an auto-save");
+
+            // Home and back to the same board before the auto-save came; the tile loads the board on a worker thread.
+            board.CurrentView = FlowKanbanView.Home;
+            Flush(window);
+            var tile = window.GetVisualDescendants().OfType<Border>().Single(static border => border.Name == "PART_BoardOpenSurface");
+            var point = tile.TranslatePoint(new Point(24, 24), window)!.Value;
+            var touch = window.TouchBegin(point, RawInputModifiers.None);
+            window.TouchEnd(touch, point, RawInputModifiers.None);
+            for (var attempt = 0; attempt < 50 && board.CurrentView != FlowKanbanView.Board; attempt++)
+            {
+                Thread.Sleep(20);
+                Flush(window);
+            }
+
+            Assert.Equal(FlowKanbanView.Board, board.CurrentView);
+            Assert.NotSame(data, board.Board);
+            Assert.Equal(collapsed, Assert.Single(board.Board.Columns).IsCollapsed);
+        }
+        finally
+        {
+            timer?.Stop();
+            window.Close();
+            StateStorageProvider.Configure(previousStorage);
+        }
+    }
+
+    [AvaloniaFact]
     public void A_Tap_On_The_Column_Choice_Of_The_Compact_Layout_Keeps_The_Selection()
     {
         var task = new FlowTask { Title = "Task", IsSelected = true };
@@ -281,6 +368,13 @@ public class KanbanAndroidRegressionTests
         public event EventHandler? CanExecuteChanged { add { } remove { } }
         public bool CanExecute(object? parameter) => true;
         public void Execute(object? parameter) => edits.Add((FlowTask)parameter!);
+    }
+
+    private sealed class CommandRecorder(List<object?> parameters) : System.Windows.Input.ICommand
+    {
+        public event EventHandler? CanExecuteChanged { add { } remove { } }
+        public bool CanExecute(object? parameter) => true;
+        public void Execute(object? parameter) => parameters.Add(parameter);
     }
 
     [AvaloniaFact]

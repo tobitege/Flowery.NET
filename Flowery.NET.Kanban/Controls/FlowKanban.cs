@@ -1610,6 +1610,11 @@ namespace Flowery.NET.Kanban.Controls
             }
         }
 
+        // Where a board finds the lifetime of the app; Avalonia lets no user code implement it, so tests put in their own
+        // here.
+        internal static Func<IActivatableLifetime?> ActivatableLifetimeSource { get; set; } =
+            static () => Application.Current?.TryGetFeature<IActivatableLifetime>();
+
         // On a phone the app goes to the background without unloading the board, and the system may end it there before
         // the auto-save comes, so the waiting save runs when the app leaves the foreground.
         private void AttachAppLifetime()
@@ -1617,7 +1622,7 @@ namespace Flowery.NET.Kanban.Controls
             if (_activatableLifetime != null)
                 return;
 
-            _activatableLifetime = Application.Current?.TryGetFeature<IActivatableLifetime>();
+            _activatableLifetime = ActivatableLifetimeSource();
             if (_activatableLifetime != null)
                 _activatableLifetime.Deactivated += OnAppDeactivated;
         }

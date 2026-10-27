@@ -345,8 +345,12 @@ namespace Flowery.NET.Tests
             var column = CreateColumn("Todo", CreateTask("Task"));
             var edited = CreateBoard(column);
             var store = new CountingBoardStore();
+            var previousLifetimeSource = FlowKanban.ActivatableLifetimeSource;
+            var lifetime = TestActivatableLifetime.Create();
+            FlowKanban.ActivatableLifetimeSource = () => lifetime;
             var kanban = new FlowKanban { Board = edited, BoardStore = store };
-            var window = ShowKanban(kanban);
+            Window? window = ShowKanban(kanban);
+            DispatcherTimer? timer = null;
 
             try
             {
@@ -355,20 +359,56 @@ namespace Flowery.NET.Tests
                 store.Reset();
 
                 column.IsCollapsed = !column.IsCollapsed;
-                var timer = AutoSaveTimer(kanban);
+                timer = AutoSaveTimer(kanban);
                 Assert.True(timer?.IsEnabled, "the edit did not start an auto-save");
 
                 // On a phone the board stays loaded in the background, where the system may end the app at any time.
-                typeof(FlowKanban).GetMethod("OnAppDeactivated", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-                    .Invoke(kanban, [null, new ActivatedEventArgs(ActivationKind.Background)]);
+                TestActivatableLifetime.EnterBackground(lifetime);
 
                 Assert.Same(edited, Assert.Single(store.SavedBoards));
                 Assert.False(timer!.IsEnabled);
+
+                // An unloaded board no longer listens.
+                window.Close();
+                window = null;
+                store.Reset();
+                column.IsCollapsed = !column.IsCollapsed;
+                Assert.True(timer.IsEnabled, "the edit did not start an auto-save");
+                TestActivatableLifetime.EnterBackground(lifetime);
+                Assert.Empty(store.SavedBoards);
             }
             finally
             {
-                window.Close();
+                timer?.Stop();
+                window?.Close();
+                FlowKanban.ActivatableLifetimeSource = previousLifetimeSource;
                 StateStorageProvider.Configure(previousStorage);
+            }
+        }
+
+        // Avalonia lets no user code implement IActivatableLifetime, so the test builds one at run time.
+        public class TestActivatableLifetime : System.Reflection.DispatchProxy
+        {
+            private EventHandler<ActivatedEventArgs>? _deactivated;
+
+            public static IActivatableLifetime Create() => Create<IActivatableLifetime, TestActivatableLifetime>();
+
+            public static void EnterBackground(IActivatableLifetime lifetime) =>
+                ((TestActivatableLifetime)(object)lifetime)._deactivated?.Invoke(lifetime, new ActivatedEventArgs(ActivationKind.Background));
+
+            protected override object? Invoke(System.Reflection.MethodInfo? targetMethod, object?[]? args)
+            {
+                switch (targetMethod?.Name)
+                {
+                    case "add_Deactivated":
+                        _deactivated += (EventHandler<ActivatedEventArgs>)args![0]!;
+                        return null;
+                    case "remove_Deactivated":
+                        _deactivated -= (EventHandler<ActivatedEventArgs>)args![0]!;
+                        return null;
+                    default:
+                        return targetMethod?.ReturnType == typeof(bool) ? false : null;
+                }
             }
         }
 

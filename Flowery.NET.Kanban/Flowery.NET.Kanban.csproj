@@ -35,4 +35,8 @@
     <ProjectReference Include="..\Flowery.NET\Flowery.NET.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Flowery.NET.Tests" />
+  </ItemGroup>
+
 </Project>
