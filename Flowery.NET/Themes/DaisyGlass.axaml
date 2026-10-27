@@ -165,5 +165,11 @@
         <Style Selector="^:highcontrast /template/ Border#PART_ContrastSurface">
             <Setter Property="IsVisible" Value="True" />
         </Style>
+
+        <!-- A glass that DaisyGlassSurface puts behind the field of a control blurs what lies behind it. -->
+        <Style Selector="^.glass-surface">
+            <Setter Property="EnableBackdropBlur" Value="True" />
+            <Setter Property="BlurMode" Value="SkiaSharp" />
+        </Style>
     </ControlTheme>
 </ResourceDictionary>

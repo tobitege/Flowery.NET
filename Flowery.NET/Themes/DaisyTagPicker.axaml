@@ -18,39 +18,42 @@
                                    Foreground="{TemplateBinding Foreground}"
                                    Opacity="0.8"/>
 
-                        <Border x:Name="PART_SelectedContainer"
-                                BorderBrush="{DynamicResource DaisyBase300Brush}"
-                                BorderThickness="1"
-                                CornerRadius="12"
-                                Background="{DynamicResource DaisyBase200Brush}"
-                                Padding="8"
-                                MinHeight="48">
-                            <ItemsControl ItemsSource="{TemplateBinding SelectedTagsList}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <controls:DaisyButton Content="{Binding}"
-                                                              Variant="Primary"
-                                                              ButtonStyle="Soft"
-                                                              Size="{Binding $parent[controls:DaisyTagPicker].Size}"
-                                                              Margin="4"
-                                                              Command="{Binding $parent[controls:DaisyTagPicker].ToggleTagCommand}"
-                                                              CommandParameter="{Binding}">
-                                            <controls:DaisyButton.IconRight>
-                                                <PathIcon Data="{StaticResource DaisyIconClose}"
-                                                          Width="10"
-                                                          Height="10"
-                                                          Opacity="0.7"/>
-                                            </controls:DaisyButton.IconRight>
-                                        </controls:DaisyButton>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </Border>
+                        <!-- A Panel, so DaisyGlassSurface can lay a glass under the field instead of stacking it. -->
+                        <Panel>
+                            <Border x:Name="PART_SelectedContainer"
+                                    BorderBrush="{DynamicResource DaisyBase300Brush}"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
+                                    Background="{DynamicResource DaisyBase200Brush}"
+                                    Padding="8"
+                                    MinHeight="48">
+                                <ItemsControl ItemsSource="{TemplateBinding SelectedTagsList}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <controls:DaisyButton Content="{Binding}"
+                                                                  Variant="Primary"
+                                                                  ButtonStyle="Soft"
+                                                                  Size="{Binding $parent[controls:DaisyTagPicker].Size}"
+                                                                  Margin="4"
+                                                                  Command="{Binding $parent[controls:DaisyTagPicker].ToggleTagCommand}"
+                                                                  CommandParameter="{Binding}">
+                                                <controls:DaisyButton.IconRight>
+                                                    <PathIcon Data="{StaticResource DaisyIconClose}"
+                                                              Width="10"
+                                                              Height="10"
+                                                              Opacity="0.7"/>
+                                                </controls:DaisyButton.IconRight>
+                                            </controls:DaisyButton>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
+                        </Panel>
 
                         <ItemsControl ItemsSource="{TemplateBinding AvailableTagsList}">
                             <ItemsControl.ItemsPanel>

@@ -43,7 +43,8 @@ public static class GallerySidebarData
                     new GalleryThemeSelectorItem { Id = "theme", Name = "Sidebar_Theme", TabHeader = "Sidebar_Home" },
                     new GalleryLanguageSelectorItem { Id = "language", Name = "Sidebar_Language", TabHeader = "Sidebar_Home" },
                     new GallerySizeSelectorItem { Id = "size", Name = "Sidebar_Size", TabHeader = "Sidebar_Home" },
-                    new GalleryNeumorphicSelectorItem { Id = "neumorphic", Name = "Sidebar_Neumorphic", TabHeader = "Sidebar_Home" }
+                    new GalleryNeumorphicSelectorItem { Id = "neumorphic", Name = "Sidebar_Neumorphic", TabHeader = "Sidebar_Home" },
+                    new GalleryGlassModeItem { Id = "glass-mode", Name = "Sidebar_GlassMode", TabHeader = "Sidebar_Home" }
                 ]
             },
             // Alphabetically sorted categories
@@ -304,5 +305,14 @@ public class GallerySizeSelectorItem : SidebarSizeSelectorItem
 /// Extends the library's SidebarNeumorphicSelectorItem so the existing template works.
 /// </summary>
 public class GalleryNeumorphicSelectorItem : SidebarNeumorphicSelectorItem
+{
+}
+
+/// <summary>
+/// Gallery-specific sidebar item for the glass mode.
+/// This item type triggers a special template in the sidebar that shows a glass mode switch.
+/// Extends the library's SidebarGlassModeItem so the existing template works.
+/// </summary>
+public class GalleryGlassModeItem : SidebarGlassModeItem
 {
 }

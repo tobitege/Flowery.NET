@@ -7,7 +7,48 @@
 
 - The **glass themes** bring their own `DaisyGlass` named `PART_Glass` and switch the glass on. Set them with `Theme`.
 - A template without its own glass gets one: the behavior inserts a `DaisyGlass` right behind the surface part (`PartName`, else `PART_Background`, `Background`, `PART_Surface`, `PART_SelectedContainer` or `PART_SolidBackground`). The glass follows the corner radius, margin, alignment, size, minimum and maximum size, visibility and grid cell of the surface, and the surface turns transparent. Turning the glass off removes it and restores the surface; a new template gets one new glass. The surface has to sit in a `Panel` of the template and to stretch or have a size; a surface that is the root of its template, such as that of a plain `DaisyBadge`, gets no glass, so use the glass theme there.
-- Without a glass theme, the glass keeps the values of the [DaisyGlass](DaisyGlass.md) theme: simulated glass without backdrop blur and a tint opacity of 0.5. Set `EnableBackdropBlur` and `BlurMode` for the live blur.
+- An inserted glass blurs its backdrop with `BlurMode=SkiaSharp` (`BitmapCapture` without Flowery.NET.Skia) and otherwise keeps the values of the [DaisyGlass](DaisyGlass.md) theme, such as a tint opacity of 0.5. The settings below change any of them.
+
+## Input Controls
+
+`IsEnabled` alone puts every input control on glass; none needs a glass theme.
+
+| Control | Surface part |
+| ------- | ------------ |
+| `DaisyInput`, `DaisyTextArea`, `DaisyPasswordBox`, `DaisyMaskInput`, `DaisyNumericUpDown` | `PART_Background` |
+| `DaisySelect`, `DaisyCalendarDatePicker` | `Background` |
+| `DaisyFileInput` | `PART_Surface` |
+| `DaisyTagPicker` | `PART_SelectedContainer` |
+| `DaisyOtpInput` | each digit box: the input passes `IsEnabled`, `FollowForeground`, `ClearSurface` and the glass settings on to them |
+
+## Glass Mode
+
+The glass mode puts all input controls of the app on glass at once, with every theme, like the global neumorphic mode:
+
+```csharp
+DaisyGlassSurface.GlobalEnabled = true;
+DaisyGlassSurface.GlobalBlurMode = GlassBlurMode.SkiaSharp;   // the default
+```
+
+- It is an app style, so `DaisyGlassSurface.IsEnabled="False"` on a control, or a style of its window, wins over it. A `BlurMode` set on a control wins over `GlobalBlurMode`.
+- While it is on, the glass tint (`DaisyGlassTintColor`) is `Base100` of the active theme, so the glass takes the hue of the theme and the theme text on it keeps its contrast. A theme that sets its own tint, such as Glassy, keeps it. A theme switch computes the tint again.
+- `GlobalChanged` fires after every change. `FloweryComponentSidebar` offers the mode as a switch (`SidebarGlassModeItem`).
+- Glass only reads as glass over a varied backdrop. Over a flat theme surface it is a slightly tinted field with shine and rim.
+
+### Cost
+
+Measured on a page with 84 input controls over a detailed backdrop that scrolls with them (Release build, 144 Hz display, 24 logical cores; CPU in percent of one core):
+
+| `GlobalBlurMode` | Idle | Scrolling | Typing |
+| ---------------- | ---: | --------- | -----: |
+| Glass mode off | 0.4 % | 20 %, 144 frames/s | 3.9 % |
+| `SkiaSharp` | 5.7 % | 72 %, 75 frames/s | 2.7 % |
+| `BitmapCapture` | 0.2 % | 82 %, 143 frames/s | 2.0 % |
+| `Simulated` | 0.8 % | 40 %, 144 frames/s | 1.8 % |
+
+- `SkiaSharp` is the default because it is the only mode that blurs what moves behind the fields, such as scrolling content. Idle and typing stay cheap; scrolling many fields at once costs most and can halve a high frame rate.
+- `BitmapCapture` captures its backdrop again only when the size of the glass changes, so while scrolling it shows an outdated backdrop, and it costs more than `SkiaSharp`.
+- `Simulated` draws no blur: a translucent tinted field with shine and rim. Use it for pages with very many fields or for weak hardware.
 
 ## Glass Themes
 
@@ -70,11 +111,10 @@ The glass settings map one to one to [DaisyGlass](DaisyGlass.md). They are nulla
                       controls:DaisyGlassSurface.Gradient="Aurora"
                       controls:DaisyGlassSurface.Blur="40" />
 
-<!-- Any control with a surface part, without a theme: the live blur is set too -->
+<!-- Any control with a surface part, without a theme -->
 <controls:DaisyCard controls:DaisyGlassSurface.IsEnabled="True"
-                    controls:DaisyGlassSurface.EnableBackdropBlur="True"
-                    controls:DaisyGlassSurface.BlurMode="SkiaSharp"
                     controls:DaisyGlassSurface.TintOpacity="0.3" />
+<controls:DaisySelect controls:DaisyGlassSurface.IsEnabled="True" PlaceholderText="Pick one" />
 ```
 
 ```csharp
@@ -86,5 +126,5 @@ DaisyGlassSurface.SetFollowForeground(input, true);
 ## Tips & Best Practices
 
 - Glass only reads as glass over a varied backdrop; over a flat surface it is a slightly tinted surface with shine and rim.
-- The dropdown of a select and the calendar of a date picker see the window below only in an overlay popup (`ShouldUseOverlayLayer`); otherwise they keep their opaque surface.
+- The dropdown of a select and the calendar of a date picker keep their opaque surface; only the field is on glass.
 - Shape a look visually with [DaisyGlassDesigner](DaisyGlassDesigner.md), which writes these attached properties as XAML or C#.

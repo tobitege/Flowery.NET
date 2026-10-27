@@ -57,6 +57,8 @@ namespace Flowery.Controls
 
         private static ResourceDictionary? _currentPalette;
         private static ResourceDictionary? _contrastPalette;
+        private static ResourceDictionary? _glassPalette;
+        private const string GlassTintKey = "DaisyGlassTintColor";
         private static bool _contrastDark;
         private static string? _currentThemeName;
         private static string _baseThemeName = "Dark";
@@ -531,6 +533,7 @@ namespace Flowery.Controls
                 // Set light/dark variant for system controls
                 app.RequestedThemeVariant = def.Info.IsDark ? ThemeVariant.Dark : ThemeVariant.Light;
 
+                RefreshGlassResources();
                 DaisyAccessibility.RefreshContrastPalette();
                 FloweryEventRaiser.Raise(ThemeChanged, null, def.Info.Name, nameof(ThemeChanged));
 
@@ -554,8 +557,31 @@ namespace Flowery.Controls
 
             _currentThemeName = themeName;
             _themeApplicationPending = false;
+            RefreshGlassResources();
             DaisyAccessibility.RefreshContrastPalette();
             FloweryEventRaiser.Raise(ThemeChanged, null, themeName, nameof(ThemeChanged));
+        }
+
+        /// <summary>
+        /// Puts the glass tint of the glass mode right after the palette: while
+        /// <see cref="DaisyGlassSurface.GlobalEnabled"/> is on, <c>DaisyGlassTintColor</c> is <c>Base100</c> of the
+        /// active theme, so the glass takes the hue of the theme and the text on it keeps its contrast. A palette that
+        /// sets its own tint, such as Glassy, keeps it.
+        /// </summary>
+        internal static void RefreshGlassResources()
+        {
+            if (Application.Current is not { } app) return;
+            var dictionaries = app.Resources.MergedDictionaries;
+            if (_glassPalette != null) dictionaries.Remove(_glassPalette);
+            _glassPalette = null;
+            if (!DaisyGlassSurface.GlobalEnabled
+                || _currentPalette?.TryGetResource(GlassTintKey, null, out _) == true
+                || !app.TryFindResource("DaisyBase100Color", app.ActualThemeVariant, out var base100)
+                || base100 is not Color color)
+                return;
+            _glassPalette = new ResourceDictionary { [GlassTintKey] = color };
+            var palette = _currentPalette != null ? dictionaries.IndexOf(_currentPalette) : -1;
+            dictionaries.Insert(palette >= 0 ? palette + 1 : dictionaries.Count, _glassPalette);
         }
 
         internal static void ApplyContrastResources(bool enabled, bool dark)

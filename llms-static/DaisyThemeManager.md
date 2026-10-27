@@ -178,6 +178,7 @@ If the active theme is hidden, it remains active and its dropdown selection beco
 - Applying the same theme twice short-circuits.
 - On apply, the previous palette is removed from `Application.Current.Resources` before adding the new one.
 - `RequestedThemeVariant` is set to `ThemeVariant.Dark` or `ThemeVariant.Light` based on `IsDark`.
+- While the glass mode is on (`DaisyGlassSurface.GlobalEnabled`), a small dictionary right after the palette sets `DaisyGlassTintColor` to the theme's `Base100`, computed again on every theme switch. A palette that defines `DaisyGlassTintColor` itself, such as Glassy, keeps its tint.
 
 ## Quick Example (code-behind)
 
