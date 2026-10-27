@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
+using Avalonia.LogicalTree;
 using Flowery.Controls;
 using Flowery.Localization;
 using Flowery.Theming;
@@ -595,13 +596,18 @@ namespace Flowery.NET.Kanban.Controls
             if (args.Container is not Control element || element.DataContext is not FlowBoardMetadata board)
                 return;
 
-            if (FlowKanbanVisualTree.FindNamedDescendant<Control>(element, "PART_BoardOpenSurface") is { } openSurface)
+            // The presenter builds the tile from the item template only later, so the tile and its parts are not there
+            // yet; before, no tile could be tapped open and its menu entries had no text.
+            if (element is ContentPresenter presenter)
+                presenter.UpdateChild();
+
+            if (FindTilePart<Control>(element, "PART_BoardOpenSurface") is { } openSurface)
             {
                 openSurface.Tapped -= OnBoardSurfaceTapped;
                 openSurface.Tapped += OnBoardSurfaceTapped;
             }
 
-            if (FlowKanbanVisualTree.FindNamedDescendant<DaisyButton>(element, "PART_BoardMenuButton") is { } menuButton)
+            if (FindTilePart<DaisyButton>(element, "PART_BoardMenuButton") is { } menuButton)
             {
                 if (menuButton.Flyout is MenuFlyout flyout)
                 {
@@ -627,12 +633,12 @@ namespace Flowery.NET.Kanban.Controls
             if (args.Container is not Control element)
                 return;
 
-            if (FlowKanbanVisualTree.FindNamedDescendant<Control>(element, "PART_BoardOpenSurface") is { } openSurface)
+            if (FindTilePart<Control>(element, "PART_BoardOpenSurface") is { } openSurface)
             {
                 openSurface.Tapped -= OnBoardSurfaceTapped;
             }
 
-            if (FlowKanbanVisualTree.FindNamedDescendant<DaisyButton>(element, "PART_BoardMenuButton") is { } menuButton &&
+            if (FindTilePart<DaisyButton>(element, "PART_BoardMenuButton") is { } menuButton &&
                 menuButton.Flyout is MenuFlyout flyout)
             {
                 foreach (var item in flyout.Items)
@@ -645,6 +651,10 @@ namespace Flowery.NET.Kanban.Controls
                 }
             }
         }
+
+        // A tile's parts are its logical children as soon as it is built; the visual tree has them only after layout.
+        private static T? FindTilePart<T>(Control tile, string name) where T : Control =>
+            tile.GetLogicalDescendants().OfType<T>().FirstOrDefault(part => string.Equals(part.Name, name, StringComparison.Ordinal));
 
         private ICommand? ResolveMenuCommand(MenuItem menuItem)
         {

@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia.Controls.ApplicationLifetimes;
 using Flowery.Helpers;
 using Flowery.Localization;
 using Flowery.Services;
@@ -747,6 +748,7 @@ namespace Flowery.NET.Kanban.Controls
         private readonly Dictionary<FlowKanbanColumnData, ObservableCollection<FlowTask>> _trackedTaskCollections = new();
         private readonly Dictionary<FlowTask, ObservableCollection<FlowSubtask>> _trackedSubtaskCollections = new();
         private DispatcherTimer? _autoSaveTimer;
+        private IActivatableLifetime? _activatableLifetime;
         private ManagedTimer? _doneAgingTimer;
 
         /// <summary>
@@ -1606,6 +1608,38 @@ namespace Flowery.NET.Kanban.Controls
             {
                 ReportPersistenceFailure(FlowKanbanPersistenceOperation.SaveBoard, ex);
             }
+        }
+
+        // On a phone the app goes to the background without unloading the board, and the system may end it there before
+        // the auto-save comes, so the waiting save runs when the app leaves the foreground.
+        private void AttachAppLifetime()
+        {
+            if (_activatableLifetime != null)
+                return;
+
+            _activatableLifetime = Application.Current?.TryGetFeature<IActivatableLifetime>();
+            if (_activatableLifetime != null)
+                _activatableLifetime.Deactivated += OnAppDeactivated;
+        }
+
+        private void DetachAppLifetime()
+        {
+            if (_activatableLifetime == null)
+                return;
+
+            _activatableLifetime.Deactivated -= OnAppDeactivated;
+            _activatableLifetime = null;
+        }
+
+        private void OnAppDeactivated(object? sender, ActivatedEventArgs e)
+        {
+            if (e.Kind != ActivationKind.Background)
+                return;
+
+            if (Dispatcher.UIThread.CheckAccess())
+                FlushAutoSave();
+            else
+                Dispatcher.UIThread.Invoke(() => FlushAutoSave());
         }
 
         private void OnAutoSaveTimerTick(object? sender, EventArgs e)

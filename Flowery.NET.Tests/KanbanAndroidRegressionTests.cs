@@ -12,6 +12,7 @@ using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Localization;
 using Flowery.NET.Kanban.Controls;
+using Flowery.Services;
 using Xunit;
 
 namespace Flowery.NET.Tests;
@@ -205,6 +206,50 @@ public class KanbanAndroidRegressionTests
         finally
         {
             window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Tap_On_A_Board_Tile_Opens_The_Board_And_Its_Menu_Names_Its_Entries()
+    {
+        var previousStorage = StateStorageProvider.Instance;
+        var storage = new InMemoryStateStorage();
+        StateStorageProvider.Configure(storage);
+        var store = new FlowKanbanBoardStore(storage);
+        var saved = new FlowKanbanData { Title = "Saved", Columns = { new FlowKanbanColumnData { Title = "Todo" } } };
+        Assert.True(store.TrySaveBoard(saved, out var saveError), saveError?.Message);
+        var board = new FlowKanban { AutoSaveAfterEdits = false, BoardStore = store };
+        var window = CreateWindow(board, 700);
+        try
+        {
+            board.CurrentView = FlowKanbanView.Home;
+            Flush(window);
+
+            var tile = window.GetVisualDescendants().OfType<Border>().Single(static border => border.Name == "PART_BoardOpenSurface");
+            var menu = window.GetVisualDescendants().OfType<DaisyButton>().Single(static button => button.Name == "PART_BoardMenuButton");
+            Assert.All(Assert.IsType<MenuFlyout>(menu.Flyout).Items.OfType<MenuItem>(), static item =>
+            {
+                Assert.False(string.IsNullOrEmpty(item.Header as string), $"{item.Tag} has no text");
+                Assert.NotNull(item.Command);
+            });
+
+            var point = tile.TranslatePoint(new Point(24, 24), window)!.Value;
+            var touch = window.TouchBegin(point, RawInputModifiers.None);
+            window.TouchEnd(touch, point, RawInputModifiers.None);
+            // The board loads on a worker thread and comes back through the dispatcher.
+            for (var attempt = 0; attempt < 50 && board.CurrentView != FlowKanbanView.Board; attempt++)
+            {
+                Thread.Sleep(20);
+                Flush(window);
+            }
+
+            Assert.Equal(FlowKanbanView.Board, board.CurrentView);
+            Assert.Equal(saved.Id, board.Board.Id);
+        }
+        finally
+        {
+            window.Close();
+            StateStorageProvider.Configure(previousStorage);
         }
     }
 

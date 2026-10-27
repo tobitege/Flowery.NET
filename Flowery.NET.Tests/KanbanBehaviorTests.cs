@@ -6,6 +6,7 @@ using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Templates;
 using Avalonia.Headless;
@@ -328,6 +329,41 @@ namespace Flowery.NET.Tests
                 Assert.False(timer!.IsEnabled);
                 // A replaced board is no longer open, so it does not become the last board; with a new store it stays open.
                 Assert.Equal(replaceStore ? edited.Id : lastBoardId, kanban.LastBoardId);
+            }
+            finally
+            {
+                window.Close();
+                StateStorageProvider.Configure(previousStorage);
+            }
+        }
+
+        [AvaloniaFact]
+        public void When_AppGoesToTheBackgroundWithAPendingAutoSave_TheEditIsSavedAtOnce()
+        {
+            var previousStorage = StateStorageProvider.Instance;
+            StateStorageProvider.Configure(new InMemoryStateStorage());
+            var column = CreateColumn("Todo", CreateTask("Task"));
+            var edited = CreateBoard(column);
+            var store = new CountingBoardStore();
+            var kanban = new FlowKanban { Board = edited, BoardStore = store };
+            var window = ShowKanban(kanban);
+
+            try
+            {
+                kanban.CurrentView = FlowKanbanView.Board;
+                Dispatcher.UIThread.RunJobs();
+                store.Reset();
+
+                column.IsCollapsed = !column.IsCollapsed;
+                var timer = AutoSaveTimer(kanban);
+                Assert.True(timer?.IsEnabled, "the edit did not start an auto-save");
+
+                // On a phone the board stays loaded in the background, where the system may end the app at any time.
+                typeof(FlowKanban).GetMethod("OnAppDeactivated", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                    .Invoke(kanban, [null, new ActivatedEventArgs(ActivationKind.Background)]);
+
+                Assert.Same(edited, Assert.Single(store.SavedBoards));
+                Assert.False(timer!.IsEnabled);
             }
             finally
             {
