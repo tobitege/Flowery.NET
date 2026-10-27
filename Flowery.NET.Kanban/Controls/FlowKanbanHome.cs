@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
+using Avalonia.LogicalTree;
 using Flowery.Controls;
 using Flowery.Localization;
 using Flowery.Theming;
@@ -592,16 +593,43 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnBoardContainerPrepared(object? sender, ContainerPreparedEventArgs args)
         {
-            if (args.Container is not Control element || element.DataContext is not FlowBoardMetadata board)
+            if (args.Container is not ContentPresenter presenter)
                 return;
 
-            if (FlowKanbanVisualTree.FindNamedDescendant<Control>(element, "PART_BoardOpenSurface") is { } openSurface)
+            // The presenter builds its tile from the item template only later, and a new one each time it is attached
+            // again, such as when the home view comes back from another tab, so every tile is wired up when it arrives.
+            // Before, the tile was looked up here, before it existed: no tile could be tapped open and its menu had no
+            // texts.
+            presenter.PropertyChanged -= OnBoardPresenterPropertyChanged;
+            presenter.PropertyChanged += OnBoardPresenterPropertyChanged;
+            WireBoardTile(presenter.Child, presenter.Content as FlowBoardMetadata);
+        }
+
+        private void OnBoardContainerClearing(object? sender, ContainerClearingEventArgs args)
+        {
+            if (args.Container is ContentPresenter presenter)
+                presenter.PropertyChanged -= OnBoardPresenterPropertyChanged;
+        }
+
+        private void OnBoardPresenterPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+        {
+            if (e.Property == ContentPresenter.ChildProperty && sender is ContentPresenter presenter)
+                WireBoardTile(e.NewValue as Control, presenter.Content as FlowBoardMetadata);
+        }
+
+        // A recycled tile is wired again for its new board.
+        private void WireBoardTile(Control? tile, FlowBoardMetadata? board)
+        {
+            if (tile == null || board == null)
+                return;
+
+            if (FindTilePart<Control>(tile, "PART_BoardOpenSurface") is { } openSurface)
             {
                 openSurface.Tapped -= OnBoardSurfaceTapped;
                 openSurface.Tapped += OnBoardSurfaceTapped;
             }
 
-            if (FlowKanbanVisualTree.FindNamedDescendant<DaisyButton>(element, "PART_BoardMenuButton") is { } menuButton)
+            if (FindTilePart<DaisyButton>(tile, "PART_BoardMenuButton") is { } menuButton)
             {
                 if (menuButton.Flyout is MenuFlyout flyout)
                 {
@@ -622,29 +650,9 @@ namespace Flowery.NET.Kanban.Controls
             }
         }
 
-        private void OnBoardContainerClearing(object? sender, ContainerClearingEventArgs args)
-        {
-            if (args.Container is not Control element)
-                return;
-
-            if (FlowKanbanVisualTree.FindNamedDescendant<Control>(element, "PART_BoardOpenSurface") is { } openSurface)
-            {
-                openSurface.Tapped -= OnBoardSurfaceTapped;
-            }
-
-            if (FlowKanbanVisualTree.FindNamedDescendant<DaisyButton>(element, "PART_BoardMenuButton") is { } menuButton &&
-                menuButton.Flyout is MenuFlyout flyout)
-            {
-                foreach (var item in flyout.Items)
-                {
-                    if (item is MenuItem menuItem)
-                    {
-                        menuItem.Command = null;
-                        menuItem.CommandParameter = null;
-                    }
-                }
-            }
-        }
+        // A tile's parts are its logical children as soon as it is built; the visual tree has them only after layout.
+        private static T? FindTilePart<T>(Control tile, string name) where T : Control =>
+            tile.GetLogicalDescendants().OfType<T>().FirstOrDefault(part => string.Equals(part.Name, name, StringComparison.Ordinal));
 
         private ICommand? ResolveMenuCommand(MenuItem menuItem)
         {

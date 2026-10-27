@@ -695,6 +695,7 @@ namespace Flowery.NET.Kanban.Controls
         {
             var storageProvider = TopLevel?.StorageProvider;
             IsFilePickerAvailable = storageProvider is { CanOpen: true } or { CanSave: true };
+            AttachAppLifetime();
             AttachAssigneeAdapter(AssigneeAdapter);
             _ = ObserveAssigneeRefreshAsync(RefreshAssigneesAsync());
             if (!TryLoadSettings(forceReload: false, out var settingsError) && settingsError is { } error)
@@ -726,6 +727,9 @@ namespace Flowery.NET.Kanban.Controls
 
         private void OnKanbanUnloaded(object? sender, RoutedEventArgs e)
         {
+            // Before the home view clears the last board ID below, which a later save would set again.
+            FlushAutoSave();
+            DetachAppLifetime();
             _boardLoadGeneration++;
             if (CurrentView == FlowKanbanView.Home)
             {

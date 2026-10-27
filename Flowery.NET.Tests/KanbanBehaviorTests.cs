@@ -6,6 +6,7 @@ using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Templates;
 using Avalonia.Headless;
@@ -239,6 +240,313 @@ namespace Flowery.NET.Tests
             {
                 window.Close();
                 StateStorageProvider.Configure(previousStorage);
+            }
+        }
+
+        [AvaloniaTheory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void When_BoardUnloadsWithAPendingAutoSave_TheEditIsSavedAtOnceAndNotLater(bool onHomeView)
+        {
+            var previousStorage = StateStorageProvider.Instance;
+            StateStorageProvider.Configure(new InMemoryStateStorage());
+            var column = CreateColumn("Todo", CreateTask("Task"));
+            var store = new CountingBoardStore();
+            var kanban = new FlowKanban { Board = CreateBoard(column), BoardStore = store };
+            Window? window = ShowKanban(kanban);
+
+            try
+            {
+                // The board opens on its home view once it is shown.
+                kanban.CurrentView = FlowKanbanView.Board;
+                Dispatcher.UIThread.RunJobs();
+                store.Reset();
+
+                column.IsCollapsed = !column.IsCollapsed;
+                var timer = AutoSaveTimer(kanban);
+                // The user leaves for the home view before the auto-save came, then closes the window.
+                if (onHomeView)
+                {
+                    kanban.CurrentView = FlowKanbanView.Home;
+                    Dispatcher.UIThread.RunJobs();
+                }
+                Assert.True(timer?.IsEnabled, "the edit did not start an auto-save");
+                Assert.Equal(0, store.SaveCount);
+
+                // Before, the timer stayed on and saved later, into the storage of whatever ran then.
+                window.Close();
+                window = null;
+                Dispatcher.UIThread.RunJobs();
+
+                Assert.Equal(1, store.SaveCount);
+                Assert.False(timer!.IsEnabled);
+                // The save comes before the home view clears the last board, so the next start opens the home view.
+                if (onHomeView)
+                    Assert.Null(kanban.LastBoardId);
+                else
+                    Assert.NotNull(kanban.LastBoardId);
+            }
+            finally
+            {
+                window?.Close();
+                StateStorageProvider.Configure(previousStorage);
+            }
+        }
+
+        [AvaloniaTheory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void When_BoardOrStoreChangesWithAPendingAutoSave_TheEditGoesToItsBoardAndStore(bool replaceStore)
+        {
+            var previousStorage = StateStorageProvider.Instance;
+            StateStorageProvider.Configure(new InMemoryStateStorage());
+            var column = CreateColumn("Todo", CreateTask("Task"));
+            var edited = CreateBoard(column);
+            var store = new CountingBoardStore();
+            var kanban = new FlowKanban { Board = edited, BoardStore = store };
+            var window = ShowKanban(kanban);
+
+            try
+            {
+                kanban.CurrentView = FlowKanbanView.Board;
+                Dispatcher.UIThread.RunJobs();
+                store.Reset();
+                var lastBoardId = kanban.LastBoardId;
+
+                column.IsCollapsed = !column.IsCollapsed;
+                var timer = AutoSaveTimer(kanban);
+                Assert.True(timer?.IsEnabled, "the edit did not start an auto-save");
+
+                // Before, the timer saved later: the board open then, into the store set then.
+                var otherStore = new CountingBoardStore();
+                if (replaceStore)
+                    kanban.BoardStore = otherStore;
+                else
+                    kanban.Board = CreateBoard(CreateColumn("Other"));
+
+                Assert.Same(edited, Assert.Single(store.SavedBoards));
+                Assert.Empty(otherStore.SavedBoards);
+                Assert.False(timer!.IsEnabled);
+                // A replaced board is no longer open, so it does not become the last board; with a new store it stays open.
+                Assert.Equal(replaceStore ? edited.Id : lastBoardId, kanban.LastBoardId);
+            }
+            finally
+            {
+                window.Close();
+                StateStorageProvider.Configure(previousStorage);
+            }
+        }
+
+        [AvaloniaFact]
+        public void When_AppGoesToTheBackgroundWithAPendingAutoSave_TheEditIsSavedAtOnce()
+        {
+            var previousStorage = StateStorageProvider.Instance;
+            StateStorageProvider.Configure(new InMemoryStateStorage());
+            var column = CreateColumn("Todo", CreateTask("Task"));
+            var edited = CreateBoard(column);
+            var store = new CountingBoardStore();
+            var previousLifetimeSource = FlowKanban.ActivatableLifetimeSource;
+            var lifetime = TestActivatableLifetime.Create();
+            FlowKanban.ActivatableLifetimeSource = () => lifetime;
+            var kanban = new FlowKanban { Board = edited, BoardStore = store };
+            Window? window = ShowKanban(kanban);
+            DispatcherTimer? timer = null;
+
+            try
+            {
+                kanban.CurrentView = FlowKanbanView.Board;
+                Dispatcher.UIThread.RunJobs();
+                store.Reset();
+
+                column.IsCollapsed = !column.IsCollapsed;
+                timer = AutoSaveTimer(kanban);
+                Assert.True(timer?.IsEnabled, "the edit did not start an auto-save");
+
+                // On a phone the board stays loaded in the background, where the system may end the app at any time.
+                TestActivatableLifetime.EnterBackground(lifetime);
+
+                Assert.Same(edited, Assert.Single(store.SavedBoards));
+                Assert.False(timer!.IsEnabled);
+
+                // An unloaded board no longer listens.
+                window.Close();
+                window = null;
+                store.Reset();
+                column.IsCollapsed = !column.IsCollapsed;
+                Assert.True(timer.IsEnabled, "the edit did not start an auto-save");
+                TestActivatableLifetime.EnterBackground(lifetime);
+                Assert.Empty(store.SavedBoards);
+            }
+            finally
+            {
+                timer?.Stop();
+                window?.Close();
+                FlowKanban.ActivatableLifetimeSource = previousLifetimeSource;
+                StateStorageProvider.Configure(previousStorage);
+            }
+        }
+
+        // Avalonia lets no user code implement IActivatableLifetime, so the test builds one at run time.
+        public class TestActivatableLifetime : System.Reflection.DispatchProxy
+        {
+            private EventHandler<ActivatedEventArgs>? _deactivated;
+
+            public static IActivatableLifetime Create() => Create<IActivatableLifetime, TestActivatableLifetime>();
+
+            public static void EnterBackground(IActivatableLifetime lifetime) =>
+                ((TestActivatableLifetime)(object)lifetime)._deactivated?.Invoke(lifetime, new ActivatedEventArgs(ActivationKind.Background));
+
+            protected override object? Invoke(System.Reflection.MethodInfo? targetMethod, object?[]? args)
+            {
+                switch (targetMethod?.Name)
+                {
+                    case "add_Deactivated":
+                        _deactivated += (EventHandler<ActivatedEventArgs>)args![0]!;
+                        return null;
+                    case "remove_Deactivated":
+                        _deactivated -= (EventHandler<ActivatedEventArgs>)args![0]!;
+                        return null;
+                    default:
+                        return targetMethod?.ReturnType == typeof(bool) ? false : null;
+                }
+            }
+        }
+
+        [AvaloniaFact]
+        public void When_OpenBoardIsDeletedWithAPendingAutoSave_ItIsNotSavedBack()
+        {
+            var previousStorage = StateStorageProvider.Instance;
+            StateStorageProvider.Configure(new InMemoryStateStorage());
+            var column = CreateColumn("Todo", CreateTask("Task"));
+            var edited = CreateBoard(column);
+            var store = new CountingBoardStore();
+            var kanban = new FlowKanban { Board = edited, BoardStore = store };
+            var window = ShowKanban(kanban);
+
+            try
+            {
+                kanban.CurrentView = FlowKanbanView.Board;
+                Dispatcher.UIThread.RunJobs();
+                store.Reset();
+
+                column.IsCollapsed = !column.IsCollapsed;
+                var timer = AutoSaveTimer(kanban);
+                Assert.True(timer?.IsEnabled, "the edit did not start an auto-save");
+
+                Assert.True(kanban.TryDeleteBoard(edited.Id, out var error));
+                Assert.Null(error);
+
+                Assert.NotSame(edited, kanban.Board);
+                Assert.Empty(store.SavedBoards);
+                Assert.False(timer!.IsEnabled);
+            }
+            finally
+            {
+                window.Close();
+                StateStorageProvider.Configure(previousStorage);
+            }
+        }
+
+        [AvaloniaFact]
+        public void When_OpenBoardIsReopenedWithAPendingAutoSave_TheReopenedBoardHasTheEdit()
+        {
+            var previousStorage = StateStorageProvider.Instance;
+            var storage = new InMemoryStateStorage();
+            StateStorageProvider.Configure(storage);
+            var column = CreateColumn("Todo", CreateTask("Task"));
+            var edited = CreateBoard(column);
+            var kanban = new FlowKanban { Board = edited, BoardStore = new FlowKanbanBoardStore(storage) };
+            var window = ShowKanban(kanban);
+
+            try
+            {
+                kanban.CurrentView = FlowKanbanView.Board;
+                Dispatcher.UIThread.RunJobs();
+                Assert.True(kanban.TrySaveBoard(out var saveError), saveError?.Message);
+
+                var collapsed = !column.IsCollapsed;
+                column.IsCollapsed = collapsed;
+                Assert.True(AutoSaveTimer(kanban)?.IsEnabled, "the edit did not start an auto-save");
+
+                // Before, the load read the stored copy without the edit, and the edit was saved only afterwards.
+                Assert.True(kanban.TryLoadBoard(edited.Id, out var loadError), loadError?.Message);
+
+                Assert.NotSame(edited, kanban.Board);
+                Assert.Equal(collapsed, Assert.Single(kanban.Board.Columns).IsCollapsed);
+            }
+            finally
+            {
+                window.Close();
+                StateStorageProvider.Configure(previousStorage);
+            }
+        }
+
+        [AvaloniaFact]
+        public void When_ReplacedBoardCannotBeSaved_ThePersistenceFailureIsReported()
+        {
+            var previousStorage = StateStorageProvider.Instance;
+            StateStorageProvider.Configure(new InMemoryStateStorage());
+            var column = CreateColumn("Todo", CreateTask("Task"));
+            var expected = new IOException("disk full");
+            var kanban = new FlowKanban { Board = CreateBoard(column), BoardStore = new FailingSaveBoardStore(expected) };
+            var window = ShowKanban(kanban);
+            FlowKanbanPersistenceFailedEventArgs? failure = null;
+            kanban.PersistenceFailed += (_, args) => failure = args;
+
+            try
+            {
+                kanban.CurrentView = FlowKanbanView.Board;
+                Dispatcher.UIThread.RunJobs();
+                failure = null;
+
+                column.IsCollapsed = !column.IsCollapsed;
+                Assert.True(AutoSaveTimer(kanban)?.IsEnabled, "the edit did not start an auto-save");
+
+                kanban.Board = CreateBoard(CreateColumn("Other"));
+
+                Assert.NotNull(failure);
+                Assert.Equal(FlowKanbanPersistenceOperation.SaveBoard, failure!.Operation);
+                Assert.Same(expected, failure.Exception);
+            }
+            finally
+            {
+                window.Close();
+                StateStorageProvider.Configure(previousStorage);
+            }
+        }
+
+        private static DispatcherTimer? AutoSaveTimer(FlowKanban kanban) =>
+            (DispatcherTimer?)typeof(FlowKanban).GetField("_autoSaveTimer",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(kanban);
+
+        private sealed class FailingSaveBoardStore(Exception error) : IBoardStore
+        {
+            public IReadOnlyList<FlowBoardMetadata> ListBoards() => Array.Empty<FlowBoardMetadata>();
+
+            public bool TryLoadBoard(string boardId, out FlowKanbanData? board, out Exception? loadError)
+            {
+                board = null;
+                loadError = null;
+                return false;
+            }
+
+            public bool TrySaveBoard(FlowKanbanData board, out Exception? saveError)
+            {
+                saveError = error;
+                return false;
+            }
+
+            public bool TryDeleteBoard(string boardId, out Exception? deleteError)
+            {
+                deleteError = null;
+                return true;
+            }
+
+            public bool TryExportBoard(string boardId, out string? json, out Exception? exportError)
+            {
+                json = null;
+                exportError = null;
+                return false;
             }
         }
 
@@ -2716,7 +3024,9 @@ namespace Flowery.NET.Tests
 
         private sealed class CountingBoardStore : IBoardStore
         {
-            public int SaveCount { get; private set; }
+            public int SaveCount => SavedBoards.Count;
+
+            public List<FlowKanbanData> SavedBoards { get; } = new();
 
             public IReadOnlyList<FlowBoardMetadata> ListBoards() => Array.Empty<FlowBoardMetadata>();
 
@@ -2729,7 +3039,7 @@ namespace Flowery.NET.Tests
 
             public bool TrySaveBoard(FlowKanbanData board, out Exception? error)
             {
-                SaveCount++;
+                SavedBoards.Add(board);
                 error = null;
                 return true;
             }
@@ -2749,7 +3059,7 @@ namespace Flowery.NET.Tests
 
             public void Reset()
             {
-                SaveCount = 0;
+                SavedBoards.Clear();
             }
         }
 

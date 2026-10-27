@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia.Controls.ApplicationLifetimes;
 using Flowery.Helpers;
 using Flowery.Localization;
 using Flowery.Services;
@@ -200,6 +201,7 @@ namespace Flowery.NET.Kanban.Controls
             {
                 ArgumentNullException.ThrowIfNull(value);
                 if (ReferenceEquals(_boardStore, value)) return;
+                FlushAutoSave();
                 _boardLoadGeneration++;
                 _boardStore = value;
             }
@@ -276,6 +278,8 @@ namespace Flowery.NET.Kanban.Controls
         {
             if (d is FlowKanban kanban)
             {
+                if (e.OldValue is FlowKanbanData replaced)
+                    kanban.FlushAutoSave(replaced);
                 kanban._boardLoadGeneration++;
                 kanban.AttachBoardTracking(e.NewValue as FlowKanbanData);
                 _ = ObserveAssigneeRefreshAsync(kanban.RefreshAssigneesAsync());
@@ -744,6 +748,7 @@ namespace Flowery.NET.Kanban.Controls
         private readonly Dictionary<FlowKanbanColumnData, ObservableCollection<FlowTask>> _trackedTaskCollections = new();
         private readonly Dictionary<FlowTask, ObservableCollection<FlowSubtask>> _trackedSubtaskCollections = new();
         private DispatcherTimer? _autoSaveTimer;
+        private IActivatableLifetime? _activatableLifetime;
         private ManagedTimer? _doneAgingTimer;
 
         /// <summary>
@@ -1479,6 +1484,8 @@ namespace Flowery.NET.Kanban.Controls
             if (string.IsNullOrWhiteSpace(boardId))
                 return false;
 
+            // Before the read, so reopening the open board loads its waiting edit too.
+            FlushAutoSave();
             if (!BoardStore.TryLoadBoard(boardId, out var data, out var error))
             {
                 if (error != null)
@@ -1575,6 +1582,69 @@ namespace Flowery.NET.Kanban.Controls
         private void StopAutoSaveTimer()
         {
             _autoSaveTimer?.Stop();
+        }
+
+        // Saves an edit that still waits for its auto-save now, on the board it was made on and into the store it was
+        // meant for: a board that leaves the tree, is replaced or changes its store loses no edit, and the timer does not
+        // fire later into whatever board, store or storage is current then.
+        private void FlushAutoSave(FlowKanbanData? replacedBoard = null)
+        {
+            if (_autoSaveTimer is not { IsEnabled: true } timer)
+                return;
+
+            timer.Stop();
+            if (replacedBoard == null)
+            {
+                ExecuteSave();
+                return;
+            }
+
+            // The replaced board is no longer open, so it does not become the last board.
+            try
+            {
+                SaveBoardStateCore(replacedBoard, updateLastBoardId: false);
+            }
+            catch (Exception ex)
+            {
+                ReportPersistenceFailure(FlowKanbanPersistenceOperation.SaveBoard, ex);
+            }
+        }
+
+        // Where a board finds the lifetime of the app; Avalonia lets no user code implement it, so tests put in their own
+        // here.
+        internal static Func<IActivatableLifetime?> ActivatableLifetimeSource { get; set; } =
+            static () => Application.Current?.TryGetFeature<IActivatableLifetime>();
+
+        // On a phone the app goes to the background without unloading the board, and the system may end it there before
+        // the auto-save comes, so the waiting save runs when the app leaves the foreground.
+        private void AttachAppLifetime()
+        {
+            if (_activatableLifetime != null)
+                return;
+
+            _activatableLifetime = ActivatableLifetimeSource();
+            if (_activatableLifetime != null)
+                _activatableLifetime.Deactivated += OnAppDeactivated;
+        }
+
+        private void DetachAppLifetime()
+        {
+            if (_activatableLifetime == null)
+                return;
+
+            _activatableLifetime.Deactivated -= OnAppDeactivated;
+            _activatableLifetime = null;
+        }
+
+        private void OnAppDeactivated(object? sender, ActivatedEventArgs e)
+        {
+            if (e.Kind != ActivationKind.Background)
+                return;
+
+            if (Dispatcher.UIThread.CheckAccess())
+                FlushAutoSave();
+            else
+                Dispatcher.UIThread.Invoke(() => FlushAutoSave());
         }
 
         private void OnAutoSaveTimerTick(object? sender, EventArgs e)
