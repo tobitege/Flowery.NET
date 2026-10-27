@@ -30,7 +30,7 @@ namespace Flowery.Controls
 
         /// <summary>
         /// Creates a background that draws its effects with shaders, or returns <c>null</c> when the renderer has none.
-        /// The renderer of Flowery.NET.Skia returns a <c>DaisyGlassShaderBackground</c>; <see cref="DaisyGlassButtonDesigner"/>
+        /// The renderer of Flowery.NET.Skia returns a <c>DaisyGlassShaderBackground</c>; <see cref="DaisyGlassDesigner"/>
         /// offers shader backgrounds only while such a renderer is registered.
         /// </summary>
         public virtual DaisyGlassBackground? CreateShaderBackground() => null;

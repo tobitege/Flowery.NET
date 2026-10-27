@@ -1,9 +1,9 @@
 ﻿using Avalonia.Headless;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
-using Avalonia.Controls.Presenters;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -11,105 +11,27 @@ using Flowery.Controls;
 using Flowery.Enums;
 using Xunit;
 using DaisyBadgeVariant = Flowery.Controls.DaisyBadgeVariant;
-using DaisyLabelPosition = Flowery.Controls.DaisyLabelPosition;
 
 namespace Flowery.NET.Tests;
 
+/// <summary>
+/// The glass themes of the standard button, badge, navbar and modal.
+/// </summary>
 public class DaisyGlassControlsTests
 {
     [AvaloniaFact]
-    public void A_Glass_Badge_Tints_Its_Glass_With_The_Variant_Color()
+    public void The_Glass_Button_Theme_Blurs_The_Live_Backdrop_By_Default()
     {
-        var badge = new DaisyGlassBadge { Content = "Beta", Variant = DaisyBadgeVariant.Primary, GlassGradient = DaisyGlassGradient.Mint };
-        var window = Show(badge);
+        var button = new DaisyButton { Content = "Glass", Theme = Theme("DaisyGlassButtonTheme") };
+        var window = Show(button);
         try
         {
-            Assert.True(badge.EnableBackdropBlur);
-            Assert.Equal(GlassBlurMode.SkiaSharp, badge.BlurMode);
-            Assert.Equal(0.45, badge.GlassColorOpacity);
-
-            var glass = Part<DaisyGlass>(badge, "PART_Glass");
-            Assert.Equal(DaisyGlassGradient.Mint, glass.GlassGradient);
-            AssertPaintedFirst(glass);
-
-            var surface = Part<Border>(badge, "PART_Surface");
-            Assert.True(badge.TryFindResource("DaisyPrimaryColor", badge.ActualThemeVariant, out var color));
-            Assert.Equal(Assert.IsType<Color>(color), Assert.IsAssignableFrom<ISolidColorBrush>(surface.Background).Color);
-            Assert.Equal(0.45, surface.Opacity);
-
-            badge.Variant = DaisyBadgeVariant.Default;
-            Assert.Equal(Colors.Transparent, Assert.IsAssignableFrom<ISolidColorBrush>(surface.Background).Color);
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
-    public void A_Glass_Navbar_Has_No_Drop_Shadow_And_Passes_Its_Glass_Properties()
-    {
-        var navbar = new DaisyGlassNavbar { NavbarStart = new TextBlock { Text = "Flowery" }, GlassPattern = DaisyCardPattern.Dots };
-        var window = Show(navbar);
-        try
-        {
-            Assert.False(navbar.HasShadow);
-            Assert.Null(navbar.Effect);
-            var glass = Part<DaisyGlass>(navbar, "PART_Glass");
-            Assert.Equal(DaisyCardPattern.Dots, glass.GlassPattern);
-            Assert.Equal(40, glass.GlassBlur);
-            AssertPaintedFirst(glass);
-
-            navbar.GlassBlur = 12;
-            Assert.Equal(12, glass.GlassBlur);
-            Assert.Equal(0.25, Part<Border>(navbar, "PART_Tint").Opacity);
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
-    public void A_Glass_Modal_Dialog_Uses_The_Corner_Radii_Of_The_Modal()
-    {
-        var modal = new DaisyGlassModal { IsOpen = true, Content = new TextBlock { Text = "Hello" }, TopLeftRadius = 4, BottomRightRadius = 30 };
-        var window = Show(modal);
-        try
-        {
-            var glass = Part<DaisyGlass>(modal, "PART_Glass");
-            var dialog = Part<Border>(modal, "PART_Dialog");
-            Assert.Equal(new CornerRadius(4, 16, 30, 16), dialog.CornerRadius);
-            Assert.Equal(dialog.CornerRadius, glass.CornerRadius);
+            var glass = Part<DaisyGlass>(button, "PART_Glass");
             Assert.True(glass.EnableBackdropBlur);
-            Assert.Equal(50, glass.GlassBlur);
-            AssertPaintedFirst(glass);
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
-    [AvaloniaTheory]
-    [InlineData(DaisyLabelPosition.Top)]
-    [InlineData(DaisyLabelPosition.Floating)]
-    public void A_Glass_Input_Puts_Its_Glass_Behind_The_Field(DaisyLabelPosition position)
-    {
-        var input = new DaisyGlassInput { Label = "Email", LabelPosition = position, Foreground = Brushes.White, GlassBlur = 18 };
-        var window = Show(input);
-        try
-        {
-            var glass = Assert.Single(input.GetVisualDescendants().OfType<DaisyGlass>());
-            var field = Part<Border>(input, "PART_Background");
-            var panel = Assert.IsAssignableFrom<Panel>(field.GetVisualParent());
-            Assert.Equal(panel.Children.IndexOf(field) - 1, panel.Children.IndexOf(glass));
-            Assert.Equal(field.CornerRadius, glass.CornerRadius);
-            Assert.Equal(18, glass.GlassBlur);
-
-            var text = Part<TextPresenter>(input, "PART_TextPresenter");
-            Assert.Same(Brushes.White, text.GetValue(TextElement.ForegroundProperty));
-            Assert.Same(Brushes.White, Part<TextBlock>(input, "PART_Watermark").Foreground);
+            Assert.Equal(GlassBlurMode.SkiaSharp, glass.BlurMode);
+            Assert.Equal(30, glass.GlassBlur);
+            Assert.Equal(0.35, DaisyGlassSurface.GetColorOpacity(button));
+            Assert.Equal(0.5, DaisyGlassSurface.GetTextShadowOpacity(button));
         }
         finally
         {
@@ -118,19 +40,18 @@ public class DaisyGlassControlsTests
     }
 
     [AvaloniaFact]
-    public void A_Glass_Input_Keeps_One_Glass_When_Its_Template_Changes()
+    public void The_Glass_Is_Painted_Before_The_Tint_And_The_Content()
     {
-        var input = new DaisyGlassInput { Label = "Email" };
-        var window = Show(input);
+        // The backdrop holds everything painted before the glass, so the button's own tint and text must come later.
+        var button = new DaisyButton { Content = "Glass", Theme = Theme("DaisyGlassButtonTheme") };
+        var window = Show(button);
         try
         {
-            input.LabelPosition = DaisyLabelPosition.Floating;
-            Dispatcher.UIThread.RunJobs();
-            window.UpdateLayout();
-
-            var glass = Assert.Single(input.GetVisualDescendants().OfType<DaisyGlass>());
-            input.GlassTintOpacity = 0.42;
-            Assert.Equal(0.42, glass.GlassTintOpacity);
+            var root = Assert.IsAssignableFrom<Panel>(Part<DaisyGlass>(button, "PART_Glass").GetVisualParent());
+            var order = root.Children.Select(child => child.Name).ToList();
+            Assert.Equal(0, order.IndexOf("PART_Glass"));
+            Assert.True(order.IndexOf("PART_Background") > 0);
+            Assert.True(order.IndexOf("PART_ContentPanel") > order.IndexOf("PART_Background"));
         }
         finally
         {
@@ -139,23 +60,32 @@ public class DaisyGlassControlsTests
     }
 
     [AvaloniaFact]
-    public void After_A_Template_Change_Only_The_New_Input_Parts_Follow_Foreground()
+    public void The_Whole_Surface_Of_A_Glass_Button_Takes_The_Pointer()
     {
-        var input = new DaisyGlassInput { Label = "Email", PlaceholderText = "you@example.com" };
-        var window = Show(input);
+        // The glass and tint layers ignore the pointer, so the border layer must take it, not only the text.
+        var button = new DaisyButton
+        {
+            Content = "Glass",
+            Theme = Theme("DaisyGlassButtonTheme"),
+            Width = 200,
+            Height = 48,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Top
+        };
+        var window = Show(button);
         try
         {
-            var oldWatermark = Part<TextBlock>(input, "PART_Watermark");
-            input.LabelPosition = DaisyLabelPosition.Floating;
-            Dispatcher.UIThread.RunJobs();
-            window.UpdateLayout();
-
-            input.Foreground = Brushes.Orange;
-            Assert.Same(Brushes.Orange, Part<TextPresenter>(input, "PART_TextPresenter").GetValue(TextElement.ForegroundProperty));
-            Assert.Same(Brushes.Orange, Part<TextBlock>(input, "PART_Watermark").Foreground);
-            Assert.Same(Brushes.Orange, Part<TextBlock>(input, "PART_FloatingLabel").Foreground);
-            // A binding of the old template that still listens to the input would keep its parts alive with it.
-            Assert.NotSame(Brushes.Orange, oldWatermark.Foreground);
+            // Hit testing uses the rendered scene, which holds the button only after a frame was rendered.
+            // A batch left by an earlier window is rendered first and holds back the button's commit,
+            // so commit and render twice.
+            for (var frame = 0; frame < 2; frame++)
+            {
+                Dispatcher.UIThread.RunJobs();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            }
+            var hit = button.InputHitTest(new Point(6, 24));
+            Assert.True(hit is Visual visual && (ReferenceEquals(visual, button) || button.IsVisualAncestorOf(visual)),
+                $"The edge of the button was not hit-testable: {hit}.");
         }
         finally
         {
@@ -170,7 +100,7 @@ public class DaisyGlassControlsTests
     [InlineData(DaisyButtonStyle.Dash, false)]
     public void Hovering_A_Default_Glass_Button_Brightens_The_Glass_Except_For_Outline_And_Dash(DaisyButtonStyle style, bool brightens)
     {
-        var button = new DaisyGlassButton { Content = "OK", ButtonStyle = style, Width = 120, Height = 40 };
+        var button = new DaisyButton { Content = "OK", ButtonStyle = style, Width = 120, Height = 40, Theme = Theme("DaisyGlassButtonTheme") };
         var window = Show(button);
         try
         {
@@ -193,7 +123,7 @@ public class DaisyGlassControlsTests
     [AvaloniaFact]
     public void A_Neumorphic_Shadow_Goes_On_The_Opaque_Border_Of_A_Glass_Button()
     {
-        var button = new DaisyGlassButton { Content = "OK", Variant = DaisyButtonVariant.Primary };
+        var button = new DaisyButton { Content = "OK", Variant = DaisyButtonVariant.Primary, Theme = Theme("DaisyGlassButtonTheme") };
         DaisyNeumorphic.SetIsEnabled(button, true);
         DaisyNeumorphic.SetMode(button, DaisyNeumorphicMode.Raised);
         var window = Show(button);
@@ -208,6 +138,88 @@ public class DaisyGlassControlsTests
             window.Close();
         }
     }
+
+    [AvaloniaFact]
+    public void A_Glass_Badge_Tints_Its_Glass_With_The_Variant_Color()
+    {
+        var badge = new DaisyBadge { Content = "Beta", Variant = DaisyBadgeVariant.Primary, Theme = Theme("DaisyGlassBadgeTheme") };
+        DaisyGlassSurface.SetGradient(badge, DaisyGlassGradient.Mint);
+        var window = Show(badge);
+        try
+        {
+            var glass = Part<DaisyGlass>(badge, "PART_Glass");
+            Assert.True(glass.EnableBackdropBlur);
+            Assert.Equal(GlassBlurMode.SkiaSharp, glass.BlurMode);
+            Assert.Equal(DaisyGlassGradient.Mint, glass.GlassGradient);
+            AssertPaintedFirst(glass);
+
+            var surface = Part<Border>(badge, "PART_Surface");
+            Assert.True(badge.TryFindResource("DaisyPrimaryColor", badge.ActualThemeVariant, out var color));
+            Assert.Equal(Assert.IsType<Color>(color), Assert.IsAssignableFrom<ISolidColorBrush>(surface.Background).Color);
+            Assert.Equal(0.45, surface.Opacity);
+
+            badge.Variant = DaisyBadgeVariant.Default;
+            Assert.Equal(Colors.Transparent, Assert.IsAssignableFrom<ISolidColorBrush>(surface.Background).Color);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Glass_Navbar_Has_No_Drop_Shadow_And_Passes_Its_Glass_Settings()
+    {
+        var navbar = new DaisyNavbar { NavbarStart = new TextBlock { Text = "Flowery" }, Theme = Theme("DaisyGlassNavbarTheme") };
+        DaisyGlassSurface.SetPattern(navbar, DaisyCardPattern.Dots);
+        var window = Show(navbar);
+        try
+        {
+            Assert.False(navbar.HasShadow);
+            Assert.Null(navbar.Effect);
+            var glass = Part<DaisyGlass>(navbar, "PART_Glass");
+            Assert.Equal(DaisyCardPattern.Dots, glass.GlassPattern);
+            Assert.Equal(40, glass.GlassBlur);
+            AssertPaintedFirst(glass);
+
+            DaisyGlassSurface.SetBlur(navbar, 12);
+            Assert.Equal(12, glass.GlassBlur);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Glass_Modal_Dialog_Uses_The_Corner_Radii_Of_The_Modal()
+    {
+        var modal = new DaisyModal
+        {
+            IsOpen = true,
+            Content = new TextBlock { Text = "Hello" },
+            TopLeftRadius = 4,
+            BottomRightRadius = 30,
+            Theme = Theme("DaisyGlassModalTheme")
+        };
+        var window = Show(modal);
+        try
+        {
+            var glass = Part<DaisyGlass>(modal, "PART_Glass");
+            var dialog = Part<Border>(modal, "PART_Dialog");
+            Assert.Equal(new CornerRadius(4, 16, 30, 16), dialog.CornerRadius);
+            Assert.Equal(dialog.CornerRadius, glass.CornerRadius);
+            Assert.True(glass.EnableBackdropBlur);
+            Assert.Equal(50, glass.GlassBlur);
+            AssertPaintedFirst(glass);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    private static Avalonia.Styling.ControlTheme Theme(string key) => DaisyGlassSurfaceTests.GlassTheme(key);
 
     // The backdrop holds everything painted before the glass, so the control's own tint and content must come later.
     private static void AssertPaintedFirst(DaisyGlass glass)

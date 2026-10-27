@@ -122,8 +122,10 @@ public class DaisyGlassBackgroundTests
     public void A_Shared_Background_Gives_Each_Glass_Its_Own_Layer()
     {
         var background = new DaisyGlassGradientBackground { Effect = DaisyGlassAnimation.LiquidGold };
-        var button = new DaisyGlassButton { Content = "Gold", GlassBackground = background };
-        var badge = new DaisyGlassBadge { Content = "Gold", GlassBackground = background };
+        var button = new DaisyButton { Content = "Gold", Theme = DaisyGlassSurfaceTests.GlassTheme("DaisyGlassButtonTheme") };
+        var badge = new DaisyBadge { Content = "Gold", Theme = DaisyGlassSurfaceTests.GlassTheme("DaisyGlassBadgeTheme") };
+        DaisyGlassSurface.SetBackground(button, background);
+        DaisyGlassSurface.SetBackground(badge, background);
         var window = Show(new StackPanel { Children = { button, badge } });
         try
         {

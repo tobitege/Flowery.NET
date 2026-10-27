@@ -250,18 +250,14 @@ public class Given_GlassBackdrop
         using var reference = SKBitmap.Decode(await SaveScreenAsync(window, canvas, "glass-button-reference"));
 
         // Ghost and zero tints leave only the blurred backdrop, so the red/blue edge at x=200 shows the blur.
-        var button = new DaisyGlassButton
-        {
-            Variant = DaisyButtonVariant.Ghost,
-            Width = 200,
-            Height = 80,
-            GlassBlur = 30,
-            GlassTintOpacity = 0,
-            GlassReflectOpacity = 0,
-            GlassCurvature = 0,
-            GlassBend = 0,
-            GlassDispersion = 0
-        };
+        var button = GlassButton(null, 200, 80, GlassBlurMode.SkiaSharp);
+        button.Variant = DaisyButtonVariant.Ghost;
+        DaisyGlassSurface.SetBlur(button, 30);
+        DaisyGlassSurface.SetTintOpacity(button, 0);
+        DaisyGlassSurface.SetReflectOpacity(button, 0);
+        DaisyGlassSurface.SetCurvature(button, 0);
+        DaisyGlassSurface.SetBend(button, 0);
+        DaisyGlassSurface.SetDispersion(button, 0);
         Canvas.SetLeft(button, 100);
         Canvas.SetTop(button, 90);
         canvas.Children.Add(button);
@@ -282,7 +278,7 @@ public class Given_GlassBackdrop
     [InlineData(GlassBlurMode.BitmapCapture)]
     public async Task When_A_Glass_Button_Lies_Over_Its_Own_Text_Color_The_Text_Gets_Contrast(GlassBlurMode mode)
     {
-        var button = new DaisyGlassButton { Content = "Contrast", Width = 200, Height = 60, BlurMode = mode };
+        var button = GlassButton("Contrast", 200, 60, mode);
         Canvas.SetLeft(button, 100);
         Canvas.SetTop(button, 100);
         var canvas = new Canvas { Width = 400, Height = 260, Background = Brushes.Gray, Children = { button } };
@@ -299,7 +295,7 @@ public class Given_GlassBackdrop
 
         Assert.True(IsNear(glass.BackdropColor, text), $"The glass measured {glass.BackdropColor} instead of {text}.");
         var surface = FloweryColorHelpers.Composite(Color.FromRgb(text.R, text.G, text.B), glass.GlassTint, glass.GlassTintOpacity);
-        var effective = Assert.IsAssignableFrom<ISolidColorBrush>(button.EffectiveForeground).Color;
+        var effective = Assert.IsAssignableFrom<ISolidColorBrush>(DaisyGlassSurface.GetEffectiveForeground(button)).Color;
         Assert.True(FloweryColorHelpers.GetContrastRatio(Color.FromRgb(effective.R, effective.G, effective.B), surface) >= 4.5,
             $"The text {effective} has too little contrast on {surface}.");
     }
@@ -310,11 +306,12 @@ public class Given_GlassBackdrop
         var mover = new Border { Width = 40, Height = 40, Background = Brushes.Red };
         Canvas.SetLeft(mover, 60);
         Canvas.SetTop(mover, 110);
-        var button = new DaisyGlassButton { Content = "Live", Width = 200, Height = 60, BlurMode = GlassBlurMode.SkiaSharp };
+        var button = GlassButton("Live", 200, 60, GlassBlurMode.SkiaSharp);
         Canvas.SetLeft(button, 100);
         Canvas.SetTop(button, 100);
         // The badge lies half over the button's corner, so each one's full redraw redraws part of the other.
-        var badge = new DaisyGlassBadge { Content = "Over", Width = 80, Height = 30, BlurMode = GlassBlurMode.SkiaSharp };
+        var badge = new DaisyBadge { Content = "Over", Width = 80, Height = 30, Theme = GlassTheme("DaisyGlassBadgeTheme") };
+        DaisyGlassSurface.SetBlurMode(badge, GlassBlurMode.SkiaSharp);
         Canvas.SetLeft(badge, 260);
         Canvas.SetTop(badge, 85);
         var canvas = new Canvas { Width = 400, Height = 260, Background = Brushes.Blue, Children = { mover, button, badge } };
@@ -367,7 +364,7 @@ public class Given_GlassBackdrop
         var block = new Border { Width = 320, Height = 140, Background = Brushes.White };
         Canvas.SetLeft(block, 70);
         Canvas.SetTop(block, 60);
-        var button = new DaisyGlassButton { Content = "Live", Width = 200, Height = 60, BlurMode = GlassBlurMode.SkiaSharp };
+        var button = GlassButton("Live", 200, 60, GlassBlurMode.SkiaSharp);
         Canvas.SetLeft(button, 100);
         Canvas.SetTop(button, 100);
         var canvas = new Canvas { Width = 820, Height = 260, Background = Brushes.Blue, Children = { block, button } };
@@ -405,10 +402,22 @@ public class Given_GlassBackdrop
         Assert.True(redraws < 9, $"{redraws} full redraws.\n" + string.Join("\n", log));
     }
 
-    private static string Snapshot(string step, DaisyGlassButton button, DaisyGlassBadge badge) =>
+    private static string Snapshot(string step, Control button, Control badge) =>
         $"{step}: version {RedrawVersion(button)}/{RedrawVersion(badge)}, backdrop {Glass(button).BackdropColor}/"
-        + $"{Glass(badge).BackdropColor}, text {Text(button.EffectiveForeground)}/{Text(badge.EffectiveForeground)}, "
+        + $"{Glass(badge).BackdropColor}, text {Text(DaisyGlassSurface.GetEffectiveForeground(button))}/"
+        + $"{Text(DaisyGlassSurface.GetEffectiveForeground(badge))}, "
         + $"measure {Glass(button).MeasureBackdropColor}/{Glass(badge).MeasureBackdropColor}";
+
+    // A standard button with the glass button theme.
+    private static DaisyButton GlassButton(string? content, double width, double height, GlassBlurMode mode)
+    {
+        var button = new DaisyButton { Content = content, Width = width, Height = height, Theme = GlassTheme("DaisyGlassButtonTheme") };
+        DaisyGlassSurface.SetBlurMode(button, mode);
+        return button;
+    }
+
+    private static Avalonia.Styling.ControlTheme GlassTheme(string key) =>
+        Assert.IsType<Avalonia.Styling.ControlTheme>(Application.Current!.FindResource(key));
 
     private static DaisyGlass Glass(Control control) =>
         control.GetVisualDescendants().OfType<DaisyGlass>().Single(part => part.Name == "PART_Glass");

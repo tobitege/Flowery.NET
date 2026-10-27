@@ -55,13 +55,6 @@
                 <ResourceInclude Source="/Themes/DaisyModal.axaml" />
                 <ResourceInclude Source="/Themes/DaisySkeleton.axaml" />
                 <ResourceInclude Source="/Themes/DaisyGlass.axaml" />
-                <ResourceInclude Source="/Themes/DaisyGlassButton.axaml" />
-                <ResourceInclude Source="/Themes/DaisyGlassBadge.axaml" />
-                <ResourceInclude Source="/Themes/DaisyGlassInput.axaml" />
-                <ResourceInclude Source="/Themes/DaisyGlassNavbar.axaml" />
-                <ResourceInclude Source="/Themes/DaisyGlassModal.axaml" />
-                <ResourceInclude Source="/Themes/DaisyGlassRange.axaml" />
-                <ResourceInclude Source="/Themes/DaisyGlassToggle.axaml" />
                 <ResourceInclude Source="/Themes/Glass/DaisyButtonGlass.axaml" />
                 <ResourceInclude Source="/Themes/Glass/DaisyBadgeGlass.axaml" />
                 <ResourceInclude Source="/Themes/Glass/DaisyInputGlass.axaml" />
@@ -119,8 +112,6 @@
     <StyleInclude Source="/Themes/DaisySelect.axaml" />
     <StyleInclude Source="/Themes/DaisyCalendarDatePicker.axaml" />
     <StyleInclude Source="/Themes/DaisyMenu.axaml" />
-    <StyleInclude Source="/Themes/DaisyGlassMenu.axaml" />
-    <StyleInclude Source="/Themes/DaisyGlassSegmented.axaml" />
     <StyleInclude Source="/Themes/DaisyTabs.axaml" />
     <StyleInclude Source="/Themes/DaisyThemeDropdown.axaml" />
     <StyleInclude Source="/Themes/DaisyProductThemeDropdown.axaml" />
@@ -140,7 +131,6 @@
     <StyleInclude Source="/Themes/DaisyFab.axaml" />
     <StyleInclude Source="/Themes/FloweryComponentSidebar.axaml" />
     <StyleInclude Source="/Themes/DaisyDock.axaml" />
-    <StyleInclude Source="/Themes/DaisyGlassButtonDesigner.axaml" />
     <StyleInclude Source="/Themes/DaisyGlassDesigner.axaml" />
     <StyleInclude Source="/Themes/DaisyDateTimeline.axaml" />
     <StyleInclude Source="/Themes/Custom/Weather/DaisyWeatherIcon.axaml" />

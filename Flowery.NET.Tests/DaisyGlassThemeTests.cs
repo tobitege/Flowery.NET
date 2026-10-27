@@ -103,10 +103,14 @@ public class DaisyGlassThemeTests
         }
     }
 
-    [AvaloniaFact]
-    public void Dragging_The_Knob_Of_A_Glass_Toggle_Switches_It()
+    [AvaloniaTheory]
+    [InlineData("DaisyGlassToggleTheme")]
+    [InlineData(null)]
+    public void Dragging_The_Knob_Of_A_Toggle_Switches_It(string? themeKey)
     {
-        var toggle = new DaisyToggle { Theme = Theme("DaisyGlassToggleTheme") };
+        var toggle = new DaisyToggle();
+        if (themeKey != null)
+            toggle.Theme = Theme(themeKey);
         var window = Show(toggle);
         try
         {
@@ -158,7 +162,7 @@ public class DaisyGlassThemeTests
     }
 
     [AvaloniaFact]
-    public void The_Glassy_Theme_Tints_The_Glass_Themes_Navy()
+    public void The_Glassy_Theme_Is_Dark_And_Tints_The_Glass_Themes_Navy()
     {
         var previous = DaisyThemeManager.CurrentThemeName;
         var button = new DaisyButton { Content = "OK", Theme = Theme("DaisyGlassButtonTheme") };
@@ -172,6 +176,7 @@ public class DaisyGlassThemeTests
 
             Assert.True(DaisyThemeManager.ApplyTheme("Glassy"));
             Dispatcher.UIThread.RunJobs();
+            Assert.True(DaisyThemeManager.IsDarkTheme("Glassy"));
             Assert.Equal(Color.Parse("#1E2F7A"), glass.GlassTint);
         }
         finally

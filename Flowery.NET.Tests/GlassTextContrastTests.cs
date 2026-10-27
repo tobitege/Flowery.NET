@@ -77,7 +77,9 @@ public class GlassTextContrastTests
     [InlineData(true)]
     public void A_Glass_Button_Or_Badge_Over_A_Backdrop_Of_Its_Text_Color_Gets_Readable_Text(bool badge)
     {
-        TemplatedControl control = badge ? new DaisyGlassBadge { Content = "Glass" } : new DaisyGlassButton { Content = "Glass" };
+        TemplatedControl control = badge
+            ? new DaisyBadge { Content = "Glass", Theme = GlassTheme("DaisyGlassBadgeTheme") }
+            : new DaisyButton { Content = "Glass", Theme = GlassTheme("DaisyGlassButtonTheme") };
         var window = Show(control);
         try
         {
@@ -132,7 +134,7 @@ public class GlassTextContrastTests
     public void Glass_Text_Stays_Light_Unless_Even_White_Cannot_Be_Read(string backdrop, bool light)
     {
         // Over a colorful backdrop the text turned black before, which does not fit glass.
-        var button = new DaisyButton { Content = "Get started", Theme = DaisyGlassSurfaceTests.GlassTheme("DaisyGlassButtonTheme") };
+        var button = new DaisyButton { Content = "Get started", Theme = GlassTheme("DaisyGlassButtonTheme") };
         var window = Show(button);
         try
         {
@@ -152,25 +154,21 @@ public class GlassTextContrastTests
     public void The_Contrast_Counts_The_Fill_The_Animated_Background_The_Shine_And_The_Variant_Tint()
     {
         var background = new DaisyGlassGradientBackground { Effect = DaisyGlassAnimation.Plasma };
-        var button = new DaisyGlassButton
-        {
-            Content = "Glass",
-            Variant = DaisyButtonVariant.Primary,
-            GlassGradient = DaisyGlassGradient.Sunset,
-            GlassBackground = background
-        };
+        var button = new DaisyButton { Content = "Glass", Variant = DaisyButtonVariant.Primary, Theme = GlassTheme("DaisyGlassButtonTheme") };
+        DaisyGlassSurface.SetGradient(button, DaisyGlassGradient.Sunset);
+        DaisyGlassSurface.SetBackground(button, background);
         var window = Show(button);
         try
         {
             var glass = Glass(button);
             var backdrop = Color.Parse("#808080");
             TestRenderer.Report(glass, backdrop);
-            var effective = Assert.IsAssignableFrom<ISolidColorBrush>(button.EffectiveForeground).Color;
+            var effective = Assert.IsAssignableFrom<ISolidColorBrush>(EffectiveForeground(button)).Color;
             AssertReadable(button, glass, backdrop, effective);
 
             // The effect changes the color behind the text, so the text follows it.
             background.Effect = DaisyGlassAnimation.Aurora;
-            effective = Assert.IsAssignableFrom<ISolidColorBrush>(button.EffectiveForeground).Color;
+            effective = Assert.IsAssignableFrom<ISolidColorBrush>(EffectiveForeground(button)).Color;
             AssertReadable(button, glass, backdrop, effective);
         }
         finally
@@ -199,14 +197,14 @@ public class GlassTextContrastTests
     public void A_Foreground_Set_On_The_Button_Is_Kept()
     {
         var foreground = new SolidColorBrush(Colors.White);
-        var button = new DaisyGlassButton { Content = "Glass", Foreground = foreground };
+        var button = new DaisyButton { Content = "Glass", Foreground = foreground, Theme = GlassTheme("DaisyGlassButtonTheme") };
         var window = Show(button);
         try
         {
             var glass = Glass(button);
             Assert.False(glass.MeasureBackdropColor);
             TestRenderer.Report(glass, Colors.White);
-            Assert.Same(foreground, button.EffectiveForeground);
+            Assert.Same(foreground, EffectiveForeground(button));
         }
         finally
         {
@@ -217,19 +215,19 @@ public class GlassTextContrastTests
     [AvaloniaFact]
     public void Without_Text_Contrast_The_Glass_Does_Not_Measure_And_The_Text_Keeps_Its_Color()
     {
-        var button = new DaisyGlassButton { Content = "Glass" };
+        var button = new DaisyButton { Content = "Glass", Theme = GlassTheme("DaisyGlassButtonTheme") };
         var window = Show(button);
         try
         {
             var glass = Glass(button);
             TestRenderer.Report(glass, Assert.IsAssignableFrom<ISolidColorBrush>(button.Foreground).Color);
-            Assert.NotSame(button.Foreground, button.EffectiveForeground);
+            Assert.NotSame(button.Foreground, EffectiveForeground(button));
 
-            button.GlassTextContrast = false;
+            DaisyGlassSurface.SetTextContrast(button, false);
 
             Assert.False(glass.MeasureBackdropColor);
             Assert.Null(glass.BackdropColor);
-            Assert.Same(button.Foreground, button.EffectiveForeground);
+            Assert.Same(button.Foreground, EffectiveForeground(button));
         }
         finally
         {
@@ -308,8 +306,9 @@ public class GlassTextContrastTests
         return 0;
     }
 
-    private static IBrush? EffectiveForeground(TemplatedControl control) =>
-        control is DaisyGlassBadge badge ? badge.EffectiveForeground : ((DaisyGlassButton)control).EffectiveForeground;
+    private static IBrush? EffectiveForeground(Control control) => DaisyGlassSurface.GetEffectiveForeground(control);
+
+    private static Avalonia.Styling.ControlTheme GlassTheme(string key) => DaisyGlassSurfaceTests.GlassTheme(key);
 
     private static DaisyGlass Glass(Control control) =>
         control.GetVisualDescendants().OfType<DaisyGlass>().First(glass => glass.Name == "PART_Glass");

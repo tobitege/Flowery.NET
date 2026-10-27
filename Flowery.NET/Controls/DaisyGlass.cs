@@ -475,37 +475,6 @@ namespace Flowery.Controls
             private set => SetValue(BlurredBackgroundProperty, value);
         }
 
-        // The glass properties that glass controls such as DaisyGlassButton own and pass to their glass surface.
-        private static readonly AvaloniaProperty[] SurfaceProperties =
-        [
-            EnableBackdropBlurProperty, BlurModeProperty, GlassBlurProperty, GlassSaturationProperty, GlassOpacityProperty,
-            GlassTintProperty, GlassTintOpacityProperty, GlassReflectDegreeProperty, GlassReflectOpacityProperty,
-            GlassDepthProperty, GlassCurvatureProperty, GlassBendProperty, GlassDispersionProperty,
-            GlassFillProperty, GlassGradientProperty, GlassFillOpacityProperty,
-            GlassPatternProperty, GlassPatternColorProperty, GlassPatternOpacityProperty,
-            GlassBackgroundProperty, GlassBackgroundOpacityProperty
-        ];
-
-        /// <summary>
-        /// Binds the glass properties of <paramref name="surface"/> to the same properties of <paramref name="owner"/>,
-        /// which owns them through <c>AddOwner</c>. Dispose the result before binding a new surface.
-        /// </summary>
-        internal static IDisposable BindSurface(DaisyGlass surface, AvaloniaObject owner)
-        {
-            var bindings = new IDisposable[SurfaceProperties.Length];
-            for (var i = 0; i < SurfaceProperties.Length; i++)
-            {
-                // An owner that misses a property would read its default and press it onto the glass, over the theme.
-                if (!AvaloniaPropertyRegistry.Instance.IsRegistered(owner.GetType(), SurfaceProperties[i]))
-                {
-                    throw new InvalidOperationException(
-                        $"{owner.GetType().Name} must own DaisyGlass.{SurfaceProperties[i].Name} through AddOwner to bind its glass surface.");
-                }
-                bindings[i] = surface.Bind(SurfaceProperties[i], owner.GetObservable(SurfaceProperties[i]));
-            }
-            return new SurfaceBindings(bindings);
-        }
-
         /// <summary>
         /// The height of the white shine that every glass draws at its top, in DIPs.
         /// </summary>
@@ -541,15 +510,6 @@ namespace Flowery.Controls
                 return (stops[i - 1].Color.A + (stops[i].Color.A - stops[i - 1].Color.A) * t) / 255.0;
             }
             return stops[^1].Color.A / 255.0;
-        }
-
-        private sealed class SurfaceBindings(IDisposable[] bindings) : IDisposable
-        {
-            public void Dispose()
-            {
-                foreach (var binding in bindings)
-                    binding.Dispose();
-            }
         }
 
         static DaisyGlass()

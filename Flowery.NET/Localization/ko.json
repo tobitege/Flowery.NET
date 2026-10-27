@@ -188,8 +188,6 @@
   "ColorPicker_Values": "색상 값",
   "ColorPicker_ClickAndDrag": "드래그하여 선택",
   "ColorPicker_ReleaseToPick": "놓으면 선택",
-  "GlassDesigner_Title": "Glass Button Designer",
-  "GlassDesigner_Subtitle": "유리 버튼을 실시간으로 디자인하고 코드를 가져가세요.",
   "GlassDesigner_LookTitle": "Glass Designer",
   "GlassDesigner_LookSubtitle": "유리 모양을 실시간으로 디자인하고 유리 위의 어떤 컨트롤에도 코드를 가져가세요.",
   "GlassDesigner_Reset": "초기화",

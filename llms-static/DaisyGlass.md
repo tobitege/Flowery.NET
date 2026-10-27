@@ -109,11 +109,11 @@ The glass is a stack of layers: the backdrop (blurred or simulated), the tint, t
 ```
 
 ```xml
-<controls:DaisyGlassButton Content="Plasma">
-    <controls:DaisyGlassButton.GlassBackground>
+<controls:DaisyButton Content="Plasma" Theme="{StaticResource DaisyGlassButtonTheme}">
+    <controls:DaisyGlassSurface.Background>
         <controls:DaisyGlassGradientBackground Effect="Plasma" />
-    </controls:DaisyGlassButton.GlassBackground>
-</controls:DaisyGlassButton>
+    </controls:DaisyGlassSurface.Background>
+</controls:DaisyButton>
 
 <!-- xmlns:skia="clr-namespace:Flowery.Skia;assembly=Flowery.NET.Skia" -->
 <controls:DaisyGlass GlassBackgroundOpacity="0.8">

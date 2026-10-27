@@ -322,13 +322,13 @@ Override any of them in a palette dictionary to change the look for that theme o
 
 ## Glass Tint
 
-The glass controls (`DaisyGlass`, `DaisyGlassButton`, `DaisyGlassSegmented`, `DaisyGlassMenu` and the others) tint their glass with the color resource `DaisyGlassTintColor`. It is white by default; the Glassy theme sets it to navy, so its glass stays dark. A palette can set it the same way:
+`DaisyGlass`, the glass themes of the standard controls and `DaisyGlassSurface` tint their glass with the color resource `DaisyGlassTintColor`. It is white by default; the Glassy theme sets it to navy, so its glass stays dark. A palette can set it the same way:
 
 ```xml
 <Color x:Key="DaisyGlassTintColor">#1E2F7A</Color>
 ```
 
-Each control keeps its own tint opacity, and a `GlassTint` set on a control wins over the theme.
+Each control keeps its own tint opacity, and a `GlassTint` (or `DaisyGlassSurface.Tint`) set on a control wins over the theme.
 
 ## How Theming Works
 
