@@ -1142,7 +1142,17 @@ namespace Flowery.Controls
             var label = L(key, fallback);
             AutomationProperties.SetName(editor, label);
             var header = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-            header.Children.Add(new TextBlock { Classes = { "gbd-label" }, Text = label.ToUpper(FloweryLocalization.CurrentCulture), VerticalAlignment = VerticalAlignment.Center });
+            // A long label, as in some languages, ends in an ellipsis before the value instead of running under it.
+            var title = new TextBlock
+            {
+                Classes = { "gbd-label" },
+                Text = label.ToUpper(FloweryLocalization.CurrentCulture),
+                VerticalAlignment = VerticalAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                Margin = new Thickness(0, 0, 8, 0)
+            };
+            ToolTip.SetTip(title, label);
+            header.Children.Add(title);
             if (value is not null)
             {
                 Grid.SetColumn(value, 1);
