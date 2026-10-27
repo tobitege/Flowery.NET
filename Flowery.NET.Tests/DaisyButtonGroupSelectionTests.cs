@@ -260,6 +260,29 @@ public class DaisyButtonGroupSelectionTests
         }
     }
 
+    [AvaloniaFact]
+    public void The_Glass_Track_Is_As_High_As_Its_Segments_And_Its_Padding()
+    {
+        // The top shine of the glass is 60 high; it must not make a lower track taller, which left the segments with
+        // more room above and below than at the ends.
+        var group = Group(out var buttons);
+        group.Theme = DaisyGlassSurfaceTests.GlassTheme("DaisyGlassButtonGroupTheme");
+        group.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top;
+        var window = Show(group);
+        try
+        {
+            var inset = group.Padding.Top + group.BorderThickness.Top;
+            Assert.Equal(buttons[0].Bounds.Height + 2 * inset, group.Bounds.Height);
+            var track = group.GetVisualDescendants().OfType<Border>().Single(part => part.Name == "PART_Track");
+            Assert.Equal(inset, buttons[0].TranslatePoint(default, track)!.Value.Y);
+            Assert.Equal(inset, buttons[0].TranslatePoint(default, track)!.Value.X);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     private static void AssertPillUnder(Border pill, Button segment)
     {
         var origin = segment.TranslatePoint(default, Assert.IsAssignableFrom<Visual>(pill.GetVisualParent()))!.Value;
