@@ -200,6 +200,7 @@ namespace Flowery.NET.Kanban.Controls
             {
                 ArgumentNullException.ThrowIfNull(value);
                 if (ReferenceEquals(_boardStore, value)) return;
+                FlushAutoSave();
                 _boardLoadGeneration++;
                 _boardStore = value;
             }
@@ -276,6 +277,8 @@ namespace Flowery.NET.Kanban.Controls
         {
             if (d is FlowKanban kanban)
             {
+                if (e.OldValue is FlowKanbanData replaced)
+                    kanban.FlushAutoSave(replaced);
                 kanban._boardLoadGeneration++;
                 kanban.AttachBoardTracking(e.NewValue as FlowKanbanData);
                 _ = ObserveAssigneeRefreshAsync(kanban.RefreshAssigneesAsync());
@@ -1577,15 +1580,30 @@ namespace Flowery.NET.Kanban.Controls
             _autoSaveTimer?.Stop();
         }
 
-        // Saves an edit that still waits for its auto-save now, so a board that leaves the tree loses no edit and its
-        // timer does not fire later into whatever storage is current then.
-        private void FlushAutoSave()
+        // Saves an edit that still waits for its auto-save now, on the board it was made on and into the store it was
+        // meant for: a board that leaves the tree, is replaced or changes its store loses no edit, and the timer does not
+        // fire later into whatever board, store or storage is current then.
+        private void FlushAutoSave(FlowKanbanData? replacedBoard = null)
         {
             if (_autoSaveTimer is not { IsEnabled: true } timer)
                 return;
 
             timer.Stop();
-            ExecuteSave();
+            if (replacedBoard == null)
+            {
+                ExecuteSave();
+                return;
+            }
+
+            // The replaced board is no longer open, so it does not become the last board.
+            try
+            {
+                SaveBoardStateCore(replacedBoard, updateLastBoardId: false);
+            }
+            catch (Exception ex)
+            {
+                ReportPersistenceFailure(FlowKanbanPersistenceOperation.SaveBoard, ex);
+            }
         }
 
         private void OnAutoSaveTimerTick(object? sender, EventArgs e)

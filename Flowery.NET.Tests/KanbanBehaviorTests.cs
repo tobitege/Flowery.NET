@@ -294,6 +294,51 @@ namespace Flowery.NET.Tests
             }
         }
 
+        [AvaloniaTheory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void When_BoardOrStoreChangesWithAPendingAutoSave_TheEditGoesToItsBoardAndStore(bool replaceStore)
+        {
+            var previousStorage = StateStorageProvider.Instance;
+            StateStorageProvider.Configure(new InMemoryStateStorage());
+            var column = CreateColumn("Todo", CreateTask("Task"));
+            var edited = CreateBoard(column);
+            var store = new CountingBoardStore();
+            var kanban = new FlowKanban { Board = edited, BoardStore = store };
+            var window = ShowKanban(kanban);
+
+            try
+            {
+                kanban.CurrentView = FlowKanbanView.Board;
+                Dispatcher.UIThread.RunJobs();
+                store.Reset();
+                var lastBoardId = kanban.LastBoardId;
+
+                column.IsCollapsed = !column.IsCollapsed;
+                var timer = (DispatcherTimer?)typeof(FlowKanban).GetField("_autoSaveTimer",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(kanban);
+                Assert.True(timer?.IsEnabled, "the edit did not start an auto-save");
+
+                // Before, the timer saved later: the board open then, into the store set then.
+                var otherStore = new CountingBoardStore();
+                if (replaceStore)
+                    kanban.BoardStore = otherStore;
+                else
+                    kanban.Board = CreateBoard(CreateColumn("Other"));
+
+                Assert.Same(edited, Assert.Single(store.SavedBoards));
+                Assert.Empty(otherStore.SavedBoards);
+                Assert.False(timer!.IsEnabled);
+                // A replaced board is no longer open, so it does not become the last board; with a new store it stays open.
+                Assert.Equal(replaceStore ? edited.Id : lastBoardId, kanban.LastBoardId);
+            }
+            finally
+            {
+                window.Close();
+                StateStorageProvider.Configure(previousStorage);
+            }
+        }
+
         [AvaloniaFact]
         public async Task When_ReplacingTasks_OnlyNewCollectionUpdatesSearchMetricsWipAndAutoSave()
         {
@@ -3257,7 +3302,9 @@ namespace Flowery.NET.Tests
 
         private sealed class CountingBoardStore : IBoardStore
         {
-            public int SaveCount { get; private set; }
+            public int SaveCount => SavedBoards.Count;
+
+            public List<FlowKanbanData> SavedBoards { get; } = new();
 
             public IReadOnlyList<FlowBoardMetadata> ListBoards() => Array.Empty<FlowBoardMetadata>();
 
@@ -3270,7 +3317,7 @@ namespace Flowery.NET.Tests
 
             public bool TrySaveBoard(FlowKanbanData board, out Exception? error)
             {
-                SaveCount++;
+                SavedBoards.Add(board);
                 error = null;
                 return true;
             }
@@ -3290,7 +3337,7 @@ namespace Flowery.NET.Tests
 
             public void Reset()
             {
-                SaveCount = 0;
+                SavedBoards.Clear();
             }
         }
 
