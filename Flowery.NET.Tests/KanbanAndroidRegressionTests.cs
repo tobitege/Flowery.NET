@@ -106,6 +106,41 @@ public class KanbanAndroidRegressionTests
     }
 
     [AvaloniaFact]
+    public void On_Touch_A_Card_Tapped_Before_It_Knows_Its_Board_Joins_The_Selection()
+    {
+        var selected = new FlowTask { Title = "Selected", IsSelected = true };
+        var task = new FlowTask { Title = "Task" };
+        var column = new FlowKanbanColumnData { Title = "Todo", Tasks = { selected, task } };
+        var edits = new List<FlowTask>();
+        var board = new FlowKanban
+        {
+            AutoSaveAfterEdits = false,
+            Board = new FlowKanbanData { Columns = { column } },
+            EditCardCommand = new EditRecorder(edits)
+        };
+        var window = CreateWindow(board, 700);
+        try
+        {
+            board.CurrentView = FlowKanbanView.Board;
+            Flush(window);
+
+            // On a phone a touch can reach a card realized just now before its Loaded handler stored the board.
+            var card = Card(window, task);
+            typeof(FlowTaskCard).GetField("_parentKanban", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+                .SetValue(card, null);
+
+            TouchTap(window, card);
+            Assert.True(task.IsSelected);
+            Assert.True(selected.IsSelected);
+            Assert.Empty(edits);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
     public void A_Tap_Or_Click_On_A_Free_Place_Clears_The_Selection_And_A_Swipe_There_Does_Not()
     {
         var task = new FlowTask { Title = "Task", IsSelected = true };
@@ -278,8 +313,22 @@ public class KanbanAndroidRegressionTests
     private static IEnumerable<Border> Ghosts(Visual board) =>
         OverlayLayer.GetOverlayLayer(board)!.Children.OfType<Border>().Where(static border => border.Background is VisualBrush);
 
-    private static FlowTaskCard Card(Window window, FlowTask task) =>
-        window.GetVisualDescendants().OfType<FlowTaskCard>().Single(card => ReferenceEquals(card.Task, task));
+    // The column builds its cards anew after a selection or a move, so a test taps a card only once it is loaded: a card
+    // that is only in the tree may not know its board yet.
+    private static FlowTaskCard Card(Window window, FlowTask task)
+    {
+        var card = Find(window, task);
+        for (var attempt = 0; attempt < 10 && !card.IsLoaded; attempt++)
+        {
+            Flush(window);
+            card = Find(window, task);
+        }
+        Assert.True(card.IsLoaded, $"the card of {task.Title} did not load");
+        return card;
+
+        static FlowTaskCard Find(Window window, FlowTask task) =>
+            window.GetVisualDescendants().OfType<FlowTaskCard>().Single(found => ReferenceEquals(found.Task, task));
+    }
 
     // A point just above the bottom edge of a card, in the window.
     private static Point BottomOf(FlowTaskCard card, Window window) =>
@@ -308,7 +357,7 @@ public class KanbanAndroidRegressionTests
         // Without a stored view the board opens on its home view, as on a fresh machine.
         board.CurrentView = FlowKanbanView.Board;
         Flush(window);
-        var card = window.GetVisualDescendants().OfType<FlowTaskCard>().Single();
+        var card = Card(window, task);
         card.UsesTouchSelection = true;
         return (window, card);
     }

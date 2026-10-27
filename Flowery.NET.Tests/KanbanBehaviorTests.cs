@@ -1114,23 +1114,33 @@ namespace Flowery.NET.Tests
         }
 
         [AvaloniaFact]
-        public void When_BoardSize_Changes_EventFires()
+        public void When_BoardSize_Changes_OnALoadedBoard_ColumnsAndAddCardsTakeTheSize()
         {
-            var kanban = new FlowKanban();
-            var invocationCount = 0;
-            DaisySize? lastSize = null;
+            var kanban = CreateKanban(CreateColumn("Todo", CreateTask("Task")));
+            var window = ShowKanban(kanban);
 
-            kanban.BoardSizeChanged += (_, size) =>
+            try
             {
-                invocationCount++;
-                lastSize = size;
-            };
+                ShowBoardView(kanban);
+                var sizes = new List<DaisySize>();
+                kanban.BoardSizeChanged += (_, size) => sizes.Add(size);
+                var column = GetVisibleColumns(kanban).Single();
+                var addCards = column.GetVisualDescendants().OfType<FlowKanbanAddCard>().ToList();
+                Assert.NotEmpty(addCards);
+                var newSize = kanban.BoardSize == DaisySize.Large ? DaisySize.Small : DaisySize.Large;
 
-            kanban.BoardSize = DaisySize.Small;
-            kanban.BoardSize = DaisySize.Large;
+                // The column and the add cards take the size only through BoardSizeChanged.
+                kanban.BoardSize = newSize;
+                Dispatcher.UIThread.RunJobs();
 
-            Assert.Equal(2, invocationCount);
-            Assert.Equal(DaisySize.Large, lastSize);
+                Assert.Equal([newSize], sizes);
+                Assert.Equal(newSize, column.ColumnSize);
+                Assert.All(addCards, addCard => Assert.Equal(newSize, addCard.AddCardSize));
+            }
+            finally
+            {
+                window.Close();
+            }
         }
 
         [AvaloniaFact]
@@ -1167,6 +1177,31 @@ namespace Flowery.NET.Tests
 
             column.IsDropEnabled = false;
             Assert.False(DragDrop.GetAllowDrop(column));
+        }
+
+        [AvaloniaFact]
+        public void When_DropIsDisabled_OnALoadedColumn_ColumnAndTaskListRefuseDrops()
+        {
+            var kanban = CreateKanban(CreateColumn("Todo", CreateTask("Task")));
+            var window = ShowKanban(kanban);
+
+            try
+            {
+                ShowBoardView(kanban);
+                var column = GetVisibleColumns(kanban).Single();
+                var taskList = column.GetVisualDescendants().OfType<ListBox>().Single(list => list.Name == "PART_TasksItemsControl");
+                Assert.True(DragDrop.GetAllowDrop(column));
+                Assert.True(DragDrop.GetAllowDrop(taskList));
+
+                column.IsDropEnabled = false;
+
+                Assert.False(DragDrop.GetAllowDrop(column));
+                Assert.False(DragDrop.GetAllowDrop(taskList));
+            }
+            finally
+            {
+                window.Close();
+            }
         }
 
         [Theory]
@@ -2761,9 +2796,11 @@ namespace Flowery.NET.Tests
 
             var json = JsonSerializer.Serialize(board, FlowKanbanJsonContext.Default.FlowKanbanData);
             var root = JsonNode.Parse(json) as JsonObject;
-            root?.Remove("schemaVersion");
+            Assert.NotNull(root);
+            // Without the removal, a renamed property would turn this into a normal load.
+            Assert.True(root.Remove("schemaVersion"), "the board JSON has no schemaVersion to remove");
 
-            var migrated = FlowKanbanMigration.MigrateFromJson(root?.ToJsonString() ?? json);
+            var migrated = FlowKanbanMigration.MigrateFromJson(root.ToJsonString());
 
             Assert.NotNull(migrated);
             Assert.Equal(board.Id, migrated!.Id);
@@ -2957,6 +2994,15 @@ namespace Flowery.NET.Tests
             kanban.UpdateLayout();
             Dispatcher.UIThread.RunJobs();
             return window;
+        }
+
+        // The board opens on its home view once it is shown, so a test of its columns switches to the board again.
+        private static void ShowBoardView(FlowKanban kanban)
+        {
+            kanban.CurrentView = FlowKanbanView.Board;
+            Dispatcher.UIThread.RunJobs();
+            kanban.UpdateLayout();
+            Dispatcher.UIThread.RunJobs();
         }
 
         private static Control GetAutomationControl(Control root, string automationId)

@@ -114,9 +114,10 @@
             _holdTimer?.Stop();
         }
 
-        // While cards are selected, a tap adds a card to the selection or takes it out.
+        // While cards are selected, a tap adds a card to the selection or takes it out. The board is looked up at the tap:
+        // a card realized just now, such as while a long column scrolls, can be tapped before its Loaded handler ran.
         private bool IsSelectionActive() =>
-            _parentKanban?.Board.Columns.Any(static column => column.Tasks.Any(static task => task.IsSelected))
+            FindParentKanban()?.Board.Columns.Any(static column => column.Tasks.Any(static task => task.IsSelected))
             ?? CardTask?.IsSelected == true;
 
         private static Size TapSize(IPointer pointer) =>
