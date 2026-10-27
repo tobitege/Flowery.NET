@@ -4,8 +4,7 @@
         x:CompileBindings="False"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
         xmlns:kanban="clr-namespace:Flowery.NET.Kanban.Controls"
-        xmlns:kanbanConverters="clr-namespace:Flowery.NET.Kanban.Converters"
-        xmlns:services="clr-namespace:Flowery.Services;assembly=Flowery.NET">
+        xmlns:kanbanConverters="clr-namespace:Flowery.NET.Kanban.Converters">
     <!-- Kanban -->
     <Styles.Resources>
         <kanbanConverters:KanbanTasksHostMarginConverter x:Key="KanbanTasksHostMarginConverter" />

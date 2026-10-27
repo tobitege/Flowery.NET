@@ -86,10 +86,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `DaisyScheduler`: Planner and Timeline hours are as wide as their header label and a one-hour bar with its whole start time, for the current size, font, culture and clock format, and widen to fill the visible width. A new width rescales the bars in place, and the Planner labels every hour.
 
-#### FlowKanban
-
-- Flowery.NET.Kanban: the unused internal user-provider stack is removed: the user management view, the local and composite user providers, the provider tokens and the identity links, with their texts in all 12 languages. Boards name assignees through `AssigneeAdapter`, as before. Every removed type was internal, so the public API does not change. Settings the stack saved are left in place and no longer read.
-
 #### Gallery
 
 - Gallery: new logo, a six-petal violet flower with one warm petal, shared by the Flowery family (Flowery.Uno uses blue, Flowery.WinUI teal). It replaces the Avalonia default icon and splash everywhere: the Desktop window and executable icon (`app_icon.ico`), the Android launcher icon (adaptive) and splash, the iOS app icon (`AppIcon` asset catalog) and launch screen, and the Browser favicon and splash. The Home banner (`flowery-banner.png`) is redrawn too. `app_icon.icns` is included for macOS app bundles.
@@ -107,6 +103,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Release and CI: publishing the desktop Gallery and Flowery Photos for a runtime no longer downloads runtime packs neither app uses. The SDK fetched the ASP.NET Core runtime pack, and for Windows also the Windows Desktop pack, about 13 MB per runtime, or 50 MB on Windows (`DisableTransitiveFrameworkReferenceDownloads`).
 - Development: the headless tests run on xUnit 4 through the ProTest packages (`ProTest.Avalonia.Headless.XUnit.v4`), which replace `Avalonia.Headless` and `Avalonia.Headless.XUnit`, and share one application across the test assembly; every test, plain facts included, runs on its UI thread. A test that leaves global state changed, such as an applied theme or the culture, fails and the state is put back; a test checks that no static field set when its type initializes holds an Avalonia object. Clicks and keys in the tests go through the window, so hit testing and the focus decide what receives them, as for a user. Copied tests of the number input, accessibility, mask input and localization are merged into table-driven tests that check exact output. The localization tests check every key-shaped text in the code against English, every language against English, and loading every language at run time, from the shipped resources instead of fixed lists. Tests that register themes remove them again.
 - The library, FlowKanban, the Gallery (desktop, Android, iOS) and Flowery Photos are version 4.0.0.
+
+### Removed
+
+#### FlowKanban
+
+- Flowery.NET.Kanban: the unused internal user-provider stack: the user management view, the local and composite user providers, the provider tokens and the identity links, with their texts in all 12 languages. Boards name assignees through `AssigneeAdapter`, as before. Every removed type was internal, so the public API does not change. Settings the stack saved are left in place and no longer read.
 
 ### Fixed
 
