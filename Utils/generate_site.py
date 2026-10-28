@@ -35,7 +35,9 @@ GitHub Pages Setup:
 
 import argparse
 import re
+import secrets
 import shutil
+from html import unescape
 from pathlib import Path
 from typing import Optional
 from docs_manifest import GUIDE_FILES, NON_API_FILES, page_manifest
@@ -94,20 +96,49 @@ def strip_html_comments_outside_code(content: str) -> str:
 
 
 class MarkdownToHtml:
-    """Simple markdown to HTML converter."""
+    """Simple markdown to HTML converter.
+
+    The markdown is untrusted: HTML outside code is escaped except for the tags in ALLOWED_TAGS,
+    and links and images keep only URLs with a scheme from LINK_SCHEMES or IMAGE_SCHEMES, or none.
+    HTML that the generator itself builds goes through trusted().
+    """
+
+    # Tag name -> attributes the tag may carry; every other tag, and a tag with other attributes, is escaped.
+    ALLOWED_TAGS = {
+        'img': {'src', 'alt', 'title', 'width', 'height', 'style'},
+        'br': set(),
+        'details': {'open'},
+        'summary': set(),
+        'kbd': set(),
+        'sub': set(),
+        'sup': set(),
+    }
+    VOID_TAGS = {'img', 'br'}
+    LINK_SCHEMES = {'http', 'https', 'mailto'}
+    IMAGE_SCHEMES = {'http', 'https'}
+    STYLE_PROPERTIES = {
+        'width', 'height', 'max-width', 'max-height', 'min-width', 'min-height', 'margin', 'margin-top',
+        'margin-right', 'margin-bottom', 'margin-left', 'border-radius', 'box-shadow', 'display', 'vertical-align',
+    }
 
     def __init__(self):
         self.pages = {}
+        self._trusted_html: list[str] = []
+        self._trusted_token = secrets.token_hex(8)
+
+    def trusted(self, html: str) -> str:
+        """Return a placeholder that convert() replaces with this generator-made HTML as it is."""
+        self._trusted_html.append(html)
+        return f'__TRUSTED_{self._trusted_token}_{len(self._trusted_html) - 1}__'
 
     def convert(self, markdown: str, depth: int = 1) -> str:
         """Convert markdown to HTML.
-        
+
         Args:
             markdown: Markdown content to convert
             depth: Page depth (0 = root/docs/, 1 = docs/controls/ or docs/categories/)
         """
         html = markdown
-        path_prefix = '../' * depth  # '' for depth=0, '../' for depth=1
 
         # Code blocks - extract and replace with placeholders
         code_blocks = []
@@ -119,23 +150,47 @@ class MarkdownToHtml:
 
         html = re.sub(r'```(\w+)?\n(.*?)```', save_code_block, html, flags=re.DOTALL)
 
-        # Inline code
-        html = re.sub(r'`([^`]+)`', r'<code>\1</code>', html)
+        # Inline code - escaped, and kept out of the markdown rules below
+        inline_codes = []
+        def save_inline_code(m):
+            inline_codes.append(f'<code>{self._escape_html(m.group(1))}</code>')
+            return f'__INLINE_CODE_{len(inline_codes) - 1}__'
+
+        html = re.sub(r'`([^`]+)`', save_inline_code, html)
+
+        html = self._sanitize_html(html)
+        html = self._convert_markdown(html, depth, inline_codes)
+
+        html = self._restore_inline_codes(html, inline_codes)
+
+        # Restore code blocks
+        for i, block in enumerate(code_blocks):
+            html = html.replace(f'__CODE_BLOCK_{i}__', block)
+
+        return re.sub(rf'__TRUSTED_{self._trusted_token}_(\d+)__', lambda m: self._trusted_html[int(m.group(1))], html)
+
+    def _convert_markdown(self, html: str, depth: int, inline_codes: list[str]) -> str:
+        """Convert the markdown rules of sanitized text, with code still in placeholders."""
+        path_prefix = '../' * depth  # '' for depth=0, '../' for depth=1
 
         # Images - convert ![alt](src) to <img> and fix paths based on depth
         def convert_image(m):
             alt = m.group(1)
             src = m.group(2)
+            if not self._is_safe_url(src, self.IMAGE_SCHEMES) or self._has_placeholder(alt):
+                return alt
             # If src is a local file (not http), prepend path prefix based on depth
             if not src.startswith(('http://', 'https://', '/')):
                 src = path_prefix + src
-            return f'<img src="{src}" alt="{alt}" class="doc-image">'
+            return f'<img src="{self._escape_attribute(unescape(src))}" alt="{self._escape_attribute(unescape(alt))}" class="doc-image">'
         html = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', convert_image, html)
 
         # Links - convert [text](url) to <a>, and .md to .html for local links
         def convert_link(m):
             text = m.group(1)
             url = m.group(2)
+            if not self._is_safe_url(url, self.LINK_SCHEMES):
+                return text
             # Convert .md to .html for local links (not http/https)
             if not url.startswith(('http://', 'https://', '#')):
                 path, separator, fragment = url.partition('#')
@@ -144,11 +199,11 @@ class MarkdownToHtml:
                     url = path_prefix + self.pages[name] + (separator + fragment if separator else '')
                 elif path.endswith('.md'):
                     url = path[:-3] + '.html' + (separator + fragment if separator else '')
-                return f'<a href="{url}">{text}</a>'
+                return f'<a href="{self._escape_attribute(unescape(url))}">{text}</a>'
             # External links open in new tab
             if url.startswith(('http://', 'https://')):
-                return f'<a href="{url}" target="_blank" rel="noopener">{text}</a>'
-            return f'<a href="{url}">{text}</a>'
+                return f'<a href="{self._escape_attribute(unescape(url))}" target="_blank" rel="noopener">{text}</a>'
+            return f'<a href="{self._escape_attribute(unescape(url))}">{text}</a>'
         html = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', convert_link, html)
 
         # Horizontal rules (---, ***, ___)
@@ -157,7 +212,8 @@ class MarkdownToHtml:
         # Headers
         def heading(match):
             level, title = len(match.group(1)), match.group(2)
-            slug = re.sub(r'[^\w -]', '', re.sub(r'<[^>]+>', '', title)).strip().lower().replace(' ', '-')
+            text = unescape(re.sub(r'<[^>]+>', '', self._restore_inline_codes(title, inline_codes)))
+            slug = re.sub(r'[^\w -]', '', text).strip().lower().replace(' ', '-')
             return f'<h{level} id="{slug}">{title}</h{level}>'
         html = re.sub(r'^(#{1,6}) (.+)$', heading, html, flags=re.MULTILINE)
 
@@ -173,8 +229,8 @@ class MarkdownToHtml:
             content_lines = [re.sub(r'^> ?', '', line) for line in lines]
             content = '\n'.join(content_lines)
             # Convert internal markdown in alert content
-            content = self.convert(content, depth=depth)
-            # Remove the <p> tags that self.convert might have added if it's a single paragraph
+            content = self._convert_markdown(content, depth, inline_codes)
+            # Remove the <p> tags that the conversion might have added if it's a single paragraph
             content = re.sub(r'^<p>(.*)</p>$', r'\1', content, flags=re.DOTALL)
 
             return f'<div class="alert alert-{alert_type}"><div class="alert-title">{alert_type.upper()}</div>{content}</div>'
@@ -193,7 +249,7 @@ class MarkdownToHtml:
         result = []
         for line in lines:
             stripped = line.strip()
-            if stripped and not stripped.startswith('<') and not stripped.startswith('__CODE_BLOCK_'):
+            if stripped and not stripped.startswith(('<', '__CODE_BLOCK_', f'__TRUSTED_{self._trusted_token}_')):
                 result.append(f'<p>{stripped}</p>')
             else:
                 result.append(line)
@@ -202,11 +258,99 @@ class MarkdownToHtml:
         # Clean up empty paragraphs
         html = re.sub(r'<p>\s*</p>', '', html)
 
-        # Restore code blocks
-        for i, block in enumerate(code_blocks):
-            html = html.replace(f'__CODE_BLOCK_{i}__', block)
-
         return html
+
+    @staticmethod
+    def _restore_inline_codes(html: str, inline_codes: list[str]) -> str:
+        return re.sub(r'__INLINE_CODE_(\d+)__', lambda m: inline_codes[int(m.group(1))], html)
+
+    def _sanitize_html(self, text: str) -> str:
+        """Escape HTML outside code, keeping the tags of ALLOWED_TAGS and dropping comments."""
+        result = []
+        position = 0
+        for match in re.finditer(r'<!--.*?-->|<[^<>]*>', text, flags=re.DOTALL):
+            result.append(self._escape_text(text[position:match.start()]))
+            tag = match.group(0)
+            if not tag.startswith('<!--'):
+                result.append(self._allowed_tag(tag) or self._escape_html(tag))
+            position = match.end()
+        result.append(self._escape_text(text[position:]))
+        return ''.join(result)
+
+    @staticmethod
+    def _escape_text(text: str) -> str:
+        """Escape '&' outside entities and every '<'; '>' stays for blockquotes and alerts."""
+        text = re.sub(r'&(?!#\d+;|#[xX][0-9a-fA-F]+;|[A-Za-z][A-Za-z0-9]*;)', '&amp;', text)
+        return text.replace('<', '&lt;')
+
+    def _allowed_tag(self, tag: str) -> Optional[str]:
+        """Return the tag rebuilt from its checked attributes, or None when it is not allowed."""
+        match = re.fullmatch(r'<(/?)([A-Za-z][A-Za-z0-9]*)(.*?)\s*/?>', tag, flags=re.DOTALL)
+        if not match:
+            return None
+        closing, name, rest = match.group(1), match.group(2).lower(), match.group(3)
+        if name not in self.ALLOWED_TAGS:
+            return None
+        if closing:
+            return None if rest.strip() or name in self.VOID_TAGS else f'</{name}>'
+        attributes = []
+        pattern = r'\s+([A-Za-z][\w-]*)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'=<>`]+)))?'
+        consumed = 0
+        for attribute in re.finditer(pattern, rest):
+            if attribute.start() != consumed:
+                return None
+            consumed = attribute.end()
+            key = attribute.group(1).lower()
+            value = next((group for group in attribute.groups()[1:] if group is not None), None)
+            if key not in self.ALLOWED_TAGS[name] or not self._is_safe_attribute(key, value):
+                return None
+            attributes.append(key if value is None else f'{key}="{self._escape_attribute(unescape(value))}"')
+        if rest[consumed:].strip():
+            return None
+        return '<' + ' '.join([name, *attributes]) + '>'
+
+    def _is_safe_attribute(self, key: str, value: Optional[str]) -> bool:
+        if key == 'open':
+            return value is None
+        if value is None or self._has_placeholder(value):
+            return False
+        value = unescape(value)
+        if key == 'src':
+            return self._is_safe_url(value, self.IMAGE_SCHEMES)
+        if key in ('width', 'height'):
+            return re.fullmatch(r'\d+(%|px)?', value) is not None
+        if key == 'style':
+            return self._is_safe_style(value)
+        return True
+
+    def _is_safe_style(self, style: str) -> bool:
+        for declaration in filter(None, (part.strip() for part in style.split(';'))):
+            name, colon, value = declaration.partition(':')
+            if (not colon or name.strip().lower() not in self.STYLE_PROPERTIES
+                    or not re.fullmatch(r'[\w\s#%.,()+-]*', value)
+                    or re.search(r'url|expression', value, flags=re.IGNORECASE)):
+                return False
+        return True
+
+    @classmethod
+    def _is_safe_url(cls, url: str, schemes: set[str]) -> bool:
+        """True for a URL without a scheme (relative, fragment) or with one of the schemes."""
+        if cls._has_placeholder(url):
+            return False
+        # Browsers decode entities and skip control characters and spaces before they read the scheme.
+        cleaned = re.sub(r'[\x00-\x20\x7f]', '', unescape(url)).lower()
+        scheme = re.match(r'([a-z][a-z0-9+.-]*):', cleaned)
+        return scheme is None or scheme.group(1) in schemes
+
+    @staticmethod
+    def _has_placeholder(value: str) -> bool:
+        """Code or trusted HTML restored into an attribute could end it with a quote, so attributes take none."""
+        return re.search(r'__(?:CODE_BLOCK|INLINE_CODE|TRUSTED)_', value) is not None
+
+    @staticmethod
+    def _escape_attribute(value: str) -> str:
+        """Escape a decoded value for a double-quoted attribute, so the browser reads exactly this value."""
+        return value.replace('&', '&amp;').replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
 
     def _escape_html(self, text: str) -> str:
         """Escape HTML entities in code blocks."""
@@ -282,8 +426,6 @@ class MarkdownToHtml:
             cells = [c.strip() for c in line.split('|')[1:-1]]
             html.append('<tr>')
             for cell in cells:
-                # Convert inline code in cells
-                cell = re.sub(r'`([^`]+)`', r'<code>\1</code>', cell)
                 html.append(f'<td>{cell}</td>')
             html.append('</tr>')
         html.append('</tbody>')
@@ -294,6 +436,9 @@ class MarkdownToHtml:
 
 class SiteGenerator:
     """Generates static HTML site from markdown docs."""
+
+    # Marks custom controls in the overview tables of the home page
+    CUSTOM_BADGE = '<sup class="custom-badge">✦</sup>'
 
     # Custom controls (Avalonia-specific, not in original DaisyUI)
     CUSTOM_CONTROL_PREFIXES = (
@@ -627,8 +772,9 @@ class SiteGenerator:
         # Write llms.txt to output directory for AI assistants
         (self.output_dir / "llms.txt").write_text(llms_content, encoding='utf-8')
 
-        # Convert to HTML
-        html_content = self.converter.convert(llms_content, depth=0)
+        # Convert to HTML; the custom badges of the overview tables are generator-made HTML
+        html_content = self.converter.convert(
+            llms_content.replace(self.CUSTOM_BADGE, self.converter.trusted(self.CUSTOM_BADGE)), depth=0)
 
         # Insert LLM documentation link after Quick Start section
         llm_link_html = '''<div class="llm-link">
@@ -704,7 +850,7 @@ class SiteGenerator:
             name = ctrl['name']
             display_name = name.replace('Daisy', '')
             is_custom = display_name.startswith(self.CUSTOM_CONTROL_PREFIXES)
-            badge = ' <sup class="custom-badge">✦</sup>' if is_custom else ''
+            badge = f' {self.CUSTOM_BADGE}' if is_custom else ''
             # Try to extract description from the markdown file
             desc = f"{display_name} control"
             try:
@@ -732,7 +878,7 @@ class SiteGenerator:
                 name = ctrl['name']
                 display_name = name.replace('Daisy', '')
                 is_custom = display_name.startswith(self.CUSTOM_CONTROL_PREFIXES)
-                badge = ' <sup class="custom-badge">✦</sup>' if is_custom else ''
+                badge = f' {self.CUSTOM_BADGE}' if is_custom else ''
                 desc = f"{display_name} helper"
                 try:
                     content = ctrl['file'].read_text(encoding='utf-8')
@@ -910,7 +1056,7 @@ class SiteGenerator:
                     image_md = f"\n![{ctrl['name']}]({images[0]})\n"
                 else:
                     # Create tabbed gallery HTML for multiple images
-                    image_md = self._create_tabbed_gallery(ctrl['name'], images)
+                    image_md = f"\n{self.converter.trusted(self._create_tabbed_gallery(ctrl['name'], images).strip())}\n"
 
                 # Find insertion point after first heading (# or ##)
                 # Try "## Overview" first, then "# Overview", then any first heading

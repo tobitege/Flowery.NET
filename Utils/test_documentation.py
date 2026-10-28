@@ -3,6 +3,7 @@
 Run from the repository root: python -B -m unittest discover -s Utils -p test_documentation.py
 """
 import contextlib
+from html.parser import HTMLParser
 import io
 from pathlib import Path
 import unittest
@@ -89,6 +90,82 @@ public class Sample : Control
                 self.assertIn(name, index)
             self.assertEqual(ROOT / 'llms-static', site.curated_dir)
         self.assertEqual(manifests[0], manifests[1])
+
+
+def parsed_elements(html: str) -> list[tuple[str, list[tuple[str, str]]]]:
+    """The elements a browser builds from the HTML, with their attributes."""
+    elements = []
+    parser = HTMLParser()
+    parser.handle_starttag = lambda tag, attributes: elements.append((tag, attributes))
+    parser.feed(html)
+    return elements
+
+
+class SiteEscapingTests(unittest.TestCase):
+    """The site converter treats markdown as untrusted: only safe HTML and URLs reach the pages."""
+
+    def setUp(self):
+        self.converter = MarkdownToHtml()
+
+    def test_code_and_prose_are_escaped_and_entities_kept(self):
+        html = self.converter.convert('Use `IList<Color>` or a Func<bool, bool> & keep &quot; and `a*b*c`.')
+        self.assertIn('<code>IList&lt;Color&gt;</code>', html)
+        self.assertIn('Func&lt;bool, bool&gt; &amp; keep &quot;', html)
+        self.assertIn('<code>a*b*c</code>', html)
+        self.assertIn('<pre><code class="language-xml">&lt;controls:DaisyButton /&gt;</code></pre>',
+                      self.converter.convert('```xml\n<controls:DaisyButton />\n```'))
+
+    def test_unsafe_html_is_escaped_and_comments_dropped(self):
+        source = ('<script>alert(1)</script> <img src="a.png" onerror="alert(1)"> <iframe src="https://example.com">'
+                  ' <img src="javascript:alert(1)"> <img src="a.png" style="width:url(x)"> <!-- hidden -->')
+        html = self.converter.convert(source)
+        for fragment in ('<script', '<img', '<iframe', 'hidden'):
+            self.assertNotIn(fragment, html)
+        self.assertIn('&lt;script&gt;', html)
+
+    def test_allowed_tags_are_rebuilt_from_checked_attributes(self):
+        html = self.converter.convert(
+            '<img src="../images/A.png" alt="A &amp; B" style="max-width:50%;height:auto;box-shadow:0 2px 8px rgba(0,0,0,0.15)">'
+            ' <br/> <details open><summary>More</summary>Text</details> <kbd>Ctrl</kbd>')
+        self.assertIn('<img src="../images/A.png" alt="A &amp; B" '
+                      'style="max-width:50%;height:auto;box-shadow:0 2px 8px rgba(0,0,0,0.15)">', html)
+        for fragment in ('<br>', '<details open>', '<summary>More</summary>', '</details>', '<kbd>Ctrl</kbd>'):
+            self.assertIn(fragment, html)
+
+    def test_links_and_images_keep_only_safe_urls(self):
+        html = self.converter.convert('[a](javascript:x) [b](JaVa&#115;cript:x) [c](java\tscript:x) '
+                                      '![d](data:image/svg+xml,x)')
+        self.assertEqual('<p>a b c d</p>', html)
+        html = self.converter.convert('[e](x.md" onmouseover="alert(1))')
+        self.assertIn('href="x.md&quot; onmouseover=&quot;alert(1"', html)
+        html = self.converter.convert('[f](https://example.com/?q=1&r=2) [g](mailto:a@example.com) [h](#base-color)')
+        self.assertIn('href="https://example.com/?q=1&amp;r=2" target="_blank" rel="noopener"', html)
+        self.assertIn('href="mailto:a@example.com"', html)
+        self.assertIn('href="#base-color"', html)
+
+    def test_code_cannot_end_an_attribute(self):
+        sources = ('<img src="a.png" alt="`x" onerror="alert(1)`">', '![`x" onerror="alert(1)`](a.png)',
+                   '[a](`x" onclick="alert(1)`)', '<img src="`a.png" onerror="alert(1)`">')
+        for source in sources:
+            with self.subTest(source=source):
+                elements = parsed_elements(self.converter.convert(source))
+                self.assertNotIn('img', [tag for tag, _ in elements])
+                self.assertEqual([], [name for _, attributes in elements for name, _ in attributes if name.startswith('on')])
+
+    def test_headings_alerts_and_trusted_html(self):
+        self.assertIn('<h2 id="tips--best-practices">Tips &amp; Best Practices</h2>',
+                      self.converter.convert('## Tips & Best Practices'))
+        self.assertIn('<h2 id="foot--bar"><code>Foo&lt;T&gt;</code> &amp; Bar</h2>',
+                      self.converter.convert('## `Foo<T>` & Bar'))
+        alert = self.converter.convert('> [!NOTE]\n> Use <b>bold</b> and `List<T>`.\n')
+        self.assertIn('<div class="alert alert-note">', alert)
+        self.assertIn('&lt;b&gt;bold&lt;/b&gt;', alert)
+        self.assertIn('<code>List&lt;T&gt;</code>', alert)
+        token = self.converter.trusted('<div class="tabbed-gallery"><input type="radio"></div>')
+        html = self.converter.convert(f'## Overview\n{token}\n__TRUSTED_0000000000000000_0__')
+        self.assertIn('<div class="tabbed-gallery"><input type="radio"></div>', html)
+        self.assertNotIn(f'<p>{token}', html)
+        self.assertIn('__TRUSTED_0000000000000000_0__', html)
 
 
 if __name__ == '__main__':

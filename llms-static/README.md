@@ -55,6 +55,8 @@ What the control does and when to use it.
 - Add 2-3 short XAML snippets that show common usage.
 - Use `---` at the end to separate curated content from any auto-parsed sections.
 - HTML comments (`<!-- -->`) are stripped automatically.
+- The site escapes HTML outside code except a few tags such as `<img>` and `<br>`, and keeps only safe link URLs; see `Utils/DOCS.md`. Put type names in backticks (`` `IList<Color>` ``).
+- Characters that do not print fail the Docs workflow, except inside emoji (`python Utils/check_characters.py`).
 - If you need Properties/Enums/Examples, use the auto-parse workflow above; curated-only mode will not generate those sections for you.
 
 ## What Goes Here
