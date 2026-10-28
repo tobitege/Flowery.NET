@@ -1,0 +1,32 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+    x:Class="Flowery.NET.PackageTest.MainWindow"
+    Title="Flowery.NET package test" Width="560" Height="400">
+
+    <DockPanel>
+        <!-- The text stays off the glass, so nothing but the backdrop shows through it. -->
+        <Border DockPanel.Dock="Bottom" Background="White" Padding="12">
+            <StackPanel Spacing="4">
+                <TextBlock Text="{Binding #LiveGlass.EffectiveBlurMode, StringFormat='Effective blur mode: {0}'}" />
+                <TextBlock x:Name="Packages" TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+
+        <!-- Hard black and white stripes, 4 pixels wide: through a blurring glass they become an even gray. -->
+        <Grid>
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="8,0" SpreadMethod="Repeat">
+                    <GradientStop Offset="0" Color="Black" />
+                    <GradientStop Offset="0.5" Color="Black" />
+                    <GradientStop Offset="0.5" Color="White" />
+                    <GradientStop Offset="1" Color="White" />
+                </LinearGradientBrush>
+            </Grid.Background>
+
+            <controls:DaisyGlass x:Name="LiveGlass" Width="400" Height="160"
+                HorizontalAlignment="Center" VerticalAlignment="Center" CornerRadius="16"
+                EnableBackdropBlur="True" BlurMode="SkiaSharp" GlassBlur="40" GlassTintOpacity="0.1" />
+        </Grid>
+    </DockPanel>
+</Window>

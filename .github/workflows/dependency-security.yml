@@ -55,7 +55,9 @@ jobs:
         env:
           CONFIGURATION: ${{ matrix.configuration }}
         run: |
-          $projects = @(git ls-files -- '*.csproj')
+          # The package test references the Flowery packages of the version in Directory.Build.props, which nuget.org has
+          # only after their release; its other packages are the Avalonia packages of the audited projects.
+          $projects = @(git ls-files -- '*.csproj' ':!Flowery.NET.PackageTest/*')
           if ($LASTEXITCODE -ne 0 -or $projects.Count -eq 0) {
               throw 'No tracked C# projects found.'
           }

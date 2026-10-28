@@ -356,6 +356,37 @@ The tests do not access the clipboard or move other application windows.
 Some glass tests take screenshots of the test window and set it topmost for that moment.
 The suite supplements the headless tests in `Flowery.NET.Tests`; it does not test screenreader speech or other operating systems.
 
+## test_packages.ps1
+
+Runs [Flowery.NET.PackageTest](../Flowery.NET.PackageTest/README.md), an app that references Flowery.NET and Flowery.NET.Skia as NuGet packages only, with a glass that uses the live SkiaSharp blur.
+Without `-PackageDir` or `-NuGet`, the script packs both projects with a new prerelease version, such as `4.0.0-local.20261028143000`, into `obj\Flowery.NET.PackageTest\feed`.
+
+### Package Test: Usage
+
+```powershell
+# Pack both projects and open the app with these packages
+pwsh ./scripts/test_packages.ps1
+
+# The same, but render the app headless and check the live blur, as CI does
+pwsh ./scripts/test_packages.ps1 -Check
+
+# Check the packages in a folder, as the release workflow does before it publishes them
+pwsh ./scripts/test_packages.ps1 -PackageDir ./artifacts -Check
+
+# Open the app with the packages on nuget.org after a release
+pwsh ./scripts/test_packages.ps1 -NuGet -Version 4.0.0
+```
+
+### Package Test: Parameters
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `-PackageDir` | string | none | Test the packages in this folder instead of packing new ones; not with `-NuGet` |
+| `-NuGet` | switch | off | Test the packages on nuget.org; not with `-PackageDir` |
+| `-Version` | string | `Version` in `Directory.Build.props` | Package version to test; only with `-PackageDir` or `-NuGet` |
+| `-Check` | switch | off | Render the app headless instead of opening its window; the exit code is nonzero when the check fails |
+| `-Configuration` | string | `Release` | Build configuration (`Debug` or `Release`) |
+
 ## Troubleshooting
 
 ### Android SDK not found
