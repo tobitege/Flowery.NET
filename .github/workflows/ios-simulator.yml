@@ -55,15 +55,6 @@ jobs:
           DEVELOPER_DIR="$BUILD_DEVELOPER_DIR" xcodebuild -version | tee "$ARTIFACT_DIR/logs/xcode-build.txt"
           xcodebuild -version | tee "$ARTIFACT_DIR/logs/xcode-simulator.txt"
           xcrun simctl list --json > "$ARTIFACT_DIR/logs/simulators.json"
-          # TEMP diagnostics: the environment that the ACTool task gives xcrun
-          for dir in "$BUILD_DEVELOPER_DIR" "$DEVELOPER_DIR"; do
-            echo "== $dir with the task's PATH"
-            env PATH="$dir/usr/bin" XCODE_DEVELOPER_USR_PATH="$dir/usr" DEVELOPER_DIR="$dir" /usr/bin/xcrun actool --version || echo "exit $?"
-            env PATH="$dir/usr/bin" XCODE_DEVELOPER_USR_PATH="$dir/usr" DEVELOPER_DIR="$dir" /usr/bin/xcrun --find actool || echo "exit $?"
-            env PATH="$dir/usr/bin" DEVELOPER_DIR="$dir" "$dir/usr/bin/xcodebuild" -sdk "$dir/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" -find actool || echo "exit $?"
-            echo "== $dir with the full PATH"
-            env XCODE_DEVELOPER_USR_PATH="$dir/usr" DEVELOPER_DIR="$dir" /usr/bin/xcrun actool --version || echo "exit $?"
-          done
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         env:
