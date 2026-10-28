@@ -1,6 +1,7 @@
 name: iOS Gallery Simulator
 
-# Independent, manual build and visual inspection. No release or device signing.
+# Independent, manual build and visual inspection. No release or device signing: the simulator build is signed
+# ad hoc, without a certificate, because the simulator on Apple Silicon kills an app with unsigned libraries.
 on:
   workflow_dispatch:
     inputs:
@@ -31,9 +32,12 @@ jobs:
       run:
         shell: bash
     env:
-      # Keep this compatible pair together. Isolate the SDK from newer runner SDKs
-      # because the repository global.json permits latestFeature roll-forward.
+      # Keep this compatible set together: workload set 10.0.302.0 builds net10.0-ios26.5 with its iOS 26.5 pack
+      # (26.5.10301), which requires Xcode 26.6; its iOS 26.5 simulator runtime runs the app. The project targets
+      # iOS 26.0 by default, whose pack needs Xcode 26.0. Isolate the SDK from newer runner SDKs because the
+      # repository global.json permits latestFeature roll-forward.
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      IOS_SDK_VERSION: '26.5'
       IOS_PROJECT: Flowery.NET.Gallery.iOS/Flowery.NET.Gallery.iOS.csproj
       ARTIFACT_DIR: ${{ github.workspace }}/artifacts/ios-simulator
 
@@ -68,13 +72,14 @@ jobs:
         id: build
         run: |
           dotnet build "$IOS_PROJECT" -c Release -r iossimulator-arm64 \
-            -p:EnableCodeSigning=false \
+            -p:FloweryIosSdkVersion="$IOS_SDK_VERSION" \
             "-bl:$ARTIFACT_DIR/logs/ios-build.binlog" \
             2>&1 | tee "$ARTIFACT_DIR/logs/ios-build.txt"
-          app_path=$(dotnet msbuild "$IOS_PROJECT" -nologo \
-            -p:Configuration=Release -p:RuntimeIdentifier=iossimulator-arm64 \
-            -p:EnableCodeSigning=false -getProperty:AppBundleDir)
+          # The SDK sets AppBundleDir in a target, so the evaluation (-getProperty) does not know it.
+          app_path=$(find "$GITHUB_WORKSPACE/bin/Release/Flowery.NET.Gallery.iOS/net10.0-ios$IOS_SDK_VERSION/iossimulator-arm64" \
+            -maxdepth 1 -type d -name '*.app' | head -n 1)
           test -d "$app_path"
+          echo "App: $app_path"
           printf 'app_path=%s\n' "$app_path" >> "$GITHUB_OUTPUT"
 
       - name: Capture Gallery controls in Light and Dark

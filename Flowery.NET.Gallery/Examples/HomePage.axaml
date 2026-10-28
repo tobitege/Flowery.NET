@@ -23,15 +23,18 @@
                         Foreground="White" HorizontalAlignment="Center" />
                     <TextBlock Text="Beautiful DaisyUI components for Avalonia UI"
                         FontSize="{DynamicResource DaisySizeLargeFontSize}" Foreground="White"
-                        Opacity="0.9" HorizontalAlignment="Center" />
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12" Margin="0,16,0,0">
+                        Opacity="0.9" HorizontalAlignment="Center"
+                        TextWrapping="Wrap" TextAlignment="Center" />
+                    <!-- On a phone the second button goes below the first. -->
+                    <WrapPanel HorizontalAlignment="Center" ItemsAlignment="Center" ItemSpacing="12" LineSpacing="12"
+                        Margin="0,16,0,0">
                         <controls:DaisyButton Content="Browse Components" Variant="Neutral" Size="Large" x:Name="BrowseBtn" Click="BrowseBtn_Click" />
                         <controls:DaisyButton Content="View on GitHub" ButtonStyle="Outline" Size="Large" x:Name="GitHubBtn" Click="GitHubBtn_Click">
                             <controls:DaisyButton.Foreground>
                                 <SolidColorBrush Color="White"/>
                             </controls:DaisyButton.Foreground>
                         </controls:DaisyButton>
-                    </StackPanel>
+                    </WrapPanel>
                 </StackPanel>
             </Border>
 
@@ -84,7 +87,7 @@
                         <TextBlock
                             Text="This project wouldn't be possible without these amazing projects"
                             FontSize="{DynamicResource DaisySizeMediumFontSize}" Opacity="0.7"
-                            HorizontalAlignment="Center"
+                            HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"
                             Foreground="{DynamicResource DaisyBaseContentBrush}" />
                     </StackPanel>
 

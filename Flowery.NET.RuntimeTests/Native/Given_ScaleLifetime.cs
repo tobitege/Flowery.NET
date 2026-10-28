@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Reflection;
 using Avalonia.Controls.Embedding;
 using Avalonia.Threading;
@@ -10,7 +10,9 @@ namespace Flowery.NET.RuntimeTests.Native;
 
 public class Given_ScaleLifetime
 {
-    [Fact]
+    public static bool IsLinux => OperatingSystem.IsLinux();
+
+    [Fact(Skip = "Avalonia's X11 platform cannot create an EmbeddableControlRoot", SkipWhen = nameof(IsLinux))]
     public async Task When_A_NonWindow_TopLevel_Is_Disposed_The_Scaling_Tracker_Is_Released()
     {
         var button = new DaisyButton();

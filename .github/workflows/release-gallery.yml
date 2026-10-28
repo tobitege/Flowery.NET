@@ -33,6 +33,7 @@ jobs:
       tag: ${{ steps.version.outputs.tag }}
       display_version: ${{ steps.version.outputs.display_version }}
       branch: ${{ steps.version.outputs.branch }}
+      sha: ${{ steps.version.outputs.sha }}
       is_prerelease: ${{ steps.version.outputs.is_prerelease }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -40,6 +41,8 @@ jobs:
           ref: ${{ inputs.branch }}
           fetch-depth: 0  # Need full history for tags
 
+      # The branch is resolved to a commit once here. The build jobs and the tag use that commit, so a push to the
+      # branch during the run cannot mix commits in one release.
       - name: Determine version
         id: version
         env:
@@ -52,6 +55,10 @@ jobs:
 
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
           echo "Branch: $BRANCH"
+
+          SHA=$(git rev-parse HEAD)
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+          echo "Commit: $SHA"
 
           # Get library version from shared build metadata
           LIB_VERSION=$(python3 - <<'PY'
@@ -116,7 +123,7 @@ jobs:
     needs: prepare
     uses: ./.github/workflows/_build-gallery.yml
     with:
-      branch: ${{ inputs.branch }}
+      branch: ${{ needs.prepare.outputs.sha }}
     permissions:
       contents: read
 
@@ -131,7 +138,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.branch }}
+          ref: ${{ needs.prepare.outputs.sha }}
 
       - name: Download all artifacts
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
@@ -160,17 +167,21 @@ jobs:
         with:
           subject-path: './final/*'
 
-      - name: Create and push tag
+      - name: Create and push tag for the built commit
+        env:
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          SOURCE_SHA: ${{ needs.prepare.outputs.sha }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag ${{ needs.prepare.outputs.tag }}
-          git push origin ${{ needs.prepare.outputs.tag }}
-          echo "Created tag: ${{ needs.prepare.outputs.tag }}"
+          git tag "$RELEASE_TAG" "$SOURCE_SHA"
+          git push origin "refs/tags/$RELEASE_TAG"
+          echo "Created tag: $RELEASE_TAG on $SOURCE_SHA"
 
       - name: Build release notes
         env:
           RELEASE_DESCRIPTION: ${{ inputs.description }}
+          SOURCE_SHA: ${{ needs.prepare.outputs.sha }}
         run: |
           {
             # Pre-release warning (if applicable)
@@ -223,6 +234,8 @@ jobs:
             echo ""
             echo "\`SHA256SUMS.txt\` lists the SHA-256 checksum of every asset; check all of them with \`sha256sum -c SHA256SUMS.txt\`, or one file in PowerShell with \`Get-FileHash <file>\`."
             echo ""
+            echo "Source commit: $SOURCE_SHA"
+            echo ""
             echo "---"
             echo ""
             echo "> For the NuGet package, see the latest library release: [v${{ needs.prepare.outputs.lib_version }}](https://github.com/${{ github.repository }}/releases/tag/v${{ needs.prepare.outputs.lib_version }})"
@@ -260,6 +273,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Tag:** ${{ needs.prepare.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch:** ${{ needs.prepare.outputs.branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ needs.prepare.outputs.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Library Version:** ${{ needs.prepare.outputs.lib_version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Gallery Suffix:** ${{ needs.prepare.outputs.gallery_suffix }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Pre-release:** ${{ needs.prepare.outputs.is_prerelease }}" >> $GITHUB_STEP_SUMMARY

@@ -219,3 +219,6 @@ llms/
 # wwwroot/
 smoothui/
 *Settings.user
+
+# Python bytecode of the scripts, such as scripts/ci_png.py imported by the CI checks
+__pycache__/

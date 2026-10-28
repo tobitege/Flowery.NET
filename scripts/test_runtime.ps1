@@ -3,8 +3,10 @@
     Runs the runtime UI tests in a real desktop window through the xunit runner.
 .DESCRIPTION
     Builds Flowery.NET.RuntimeTests.Runner, which also builds the runtime test host.
-    The runner starts Flowery.NET.RuntimeTests.exe, which opens the Gallery application with a test window.
+    The runner starts Flowery.NET.RuntimeTests, which opens the Gallery application with a test window.
     Results go to TestResults\<Configuration>\<run>\ and the console log to logs\.
+    Runs on Windows, Linux and macOS; Linux needs a display, such as xvfb-run. Only Windows has the tests that compare
+    screen captures.
 .EXAMPLE
     ./scripts/test_runtime.ps1 -Configuration Debug -Monitor 2 -WindowRegion UpperHalf
 .EXAMPLE
@@ -23,13 +25,18 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$framework = 'net10.0-windows'
+# The projects build net10.0-windows on Windows and net10.0 elsewhere.
+$framework = if ($IsWindows) { 'net10.0-windows' } else { 'net10.0' }
+$executable = if ($IsWindows) { '.exe' } else { '' }
 
-if (-not $IsWindows -or $PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
-    throw 'Run this script in native PowerShell 7 on Windows.'
+if ($PSVersionTable.PSEdition -ne 'Core' -or $PSVersionTable.PSVersion.Major -lt 7) {
+    throw 'Run this script in PowerShell 7.'
+}
+if ($Monitor -gt 0 -and -not $IsWindows) {
+    throw '-Monitor names a Windows display (\\.\DISPLAY<n>); leave it out on Linux and macOS.'
 }
 
-$runnerProject = Join-Path $repoRoot 'Flowery.NET.RuntimeTests.Runner\Flowery.NET.RuntimeTests.Runner.csproj'
+$runnerProject = Join-Path $repoRoot 'Flowery.NET.RuntimeTests.Runner' 'Flowery.NET.RuntimeTests.Runner.csproj'
 if (-not $SkipBuild) {
     & dotnet build $runnerProject -c $Configuration
     if ($LASTEXITCODE -ne 0) {
@@ -37,8 +44,8 @@ if (-not $SkipBuild) {
     }
 }
 
-$hostPath = Join-Path $repoRoot "bin\$Configuration\Flowery.NET.RuntimeTests\$framework\Flowery.NET.RuntimeTests.exe"
-$runnerPath = Join-Path $repoRoot "bin\$Configuration\Flowery.NET.RuntimeTests.Runner\$framework\Flowery.NET.RuntimeTests.Runner.exe"
+$hostPath = Join-Path $repoRoot 'bin' $Configuration 'Flowery.NET.RuntimeTests' $framework "Flowery.NET.RuntimeTests$executable"
+$runnerPath = Join-Path $repoRoot 'bin' $Configuration 'Flowery.NET.RuntimeTests.Runner' $framework "Flowery.NET.RuntimeTests.Runner$executable"
 foreach ($path in @($hostPath, $runnerPath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw ('Required executable is missing. Build without -SkipBuild first: {0}' -f $path)
@@ -46,7 +53,7 @@ foreach ($path in @($hostPath, $runnerPath)) {
 }
 
 $runId = '{0}-{1}' -f (Get-Date -Format 'yyyyMMdd-HHmmss-fff'), ([Guid]::NewGuid().ToString('N').Substring(0, 8))
-$resultsDirectory = Join-Path $repoRoot "TestResults\$Configuration\$runId"
+$resultsDirectory = Join-Path $repoRoot 'TestResults' $Configuration $runId
 $logDirectory = Join-Path $repoRoot 'logs'
 New-Item -ItemType Directory -Path $resultsDirectory -Force | Out-Null
 New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
