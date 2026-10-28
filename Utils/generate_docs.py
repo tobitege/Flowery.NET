@@ -919,6 +919,7 @@ class DocumentationGenerator:
             "ThemingExamples": "Theming",
             "CustomControls": "Custom",
             "SchedulerExamples": "Custom",
+            "TourExamples": "Custom",
             "ColorPickerExamples": "Color Picker"
         }
 
@@ -1133,6 +1134,7 @@ class DocumentationGenerator:
             'colorpicker': 'DaisyColorPickerDialog',
             # Custom controls (from CustomControls.axaml)
             'scheduler': 'DaisyScheduler',
+            'tour': 'DaisyTour',
             'modifierkeys': 'DaisyModifierKeys',
             'weathericon': 'DaisyWeatherIcon',
             'weathercard': 'DaisyWeatherCard',

@@ -125,6 +125,7 @@ public partial class SectionHeader : UserControl
         ["colorpicker"] = "DaisyColorPickerDialog",
 
         // Custom controls
+        ["tour"] = "DaisyTour",
         ["modifierkeys"] = "DaisyModifierKeys",
         ["weathericon"] = "DaisyWeatherIcon",
         ["weathercard"] = "DaisyWeatherCard",

@@ -1,0 +1,91 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:loc="clr-namespace:Flowery.NET.Gallery.Localization"
+             xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
+             x:Class="Flowery.NET.Gallery.Examples.TourExamples">
+    <Grid>
+        <!-- The page header scrolls too, so tour targets remain reachable in short windows. -->
+        <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <StackPanel Margin="24,16,24,0" Spacing="12">
+                    <local:SectionHeader SectionId="tour" Title="DaisyTour" />
+                    <TextBlock Text="{loc:Localize Gallery_Tour_Description}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                    <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8">
+                        <controls:DaisyButton Content="{loc:Localize Gallery_Tour_Start}" Variant="Primary" Click="StartTour_Click" />
+                        <controls:DaisyButton Content="{loc:Localize Gallery_Tour_Design}" Click="DesignTour_Click" AutomationProperties.AutomationId="TourDesignerOpen" />
+                        <controls:DaisyButton Content="{loc:Localize Gallery_Tour_DesignReplay}" Click="ReplayDesign_Click" />
+                        <controls:DaisyButton Content="{loc:Localize Gallery_Tour_Arrows}" Click="Arrows_Click" />
+                        <controls:DaisyButton Content="{loc:Localize Gallery_Tour_Lines}" Click="Lines_Click" />
+                        <controls:DaisyButton Content="{loc:Localize Gallery_Tour_Bubbles}" Click="Bubbles_Click" />
+                        <controls:DaisyButton Content="{loc:Localize Gallery_Tour_Custom}" Click="Custom_Click" />
+                        <controls:DaisyButton Content="{loc:Localize Gallery_Tour_Regions}" Click="Regions_Click" />
+                        <controls:DaisyButton Content="{loc:Localize Gallery_Tour_Paths}" Click="Paths_Click" />
+                        <controls:DaisyButton Content="{loc:Localize Gallery_Tour_RouteLimit}" Click="RouteLimit_Click" />
+                    </WrapPanel>
+                    <TextBlock x:Name="DesignerStatus" TextWrapping="Wrap"
+                               AutomationProperties.LiveSetting="Polite"
+                               Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                    <!-- An Avalonia ComboBox has no header, so its label stands above it. -->
+                    <StackPanel Spacing="4" HorizontalAlignment="Left">
+                        <TextBlock Text="{loc:Localize Gallery_Tour_CardPosition}" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <ComboBox x:Name="CardPositionSelector" MinWidth="200"
+                                  AutomationProperties.Name="{loc:Localize Gallery_Tour_CardPosition}"
+                                  SelectionChanged="CardPosition_SelectionChanged" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Margin="24" Spacing="24">
+                    <!-- Connector demos need visible distance between both targets. -->
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <controls:DaisyButton x:Name="PrimaryTarget" Content="{loc:Localize Gallery_Tour_Target}"
+                                              Variant="Primary" MinWidth="220" />
+                        <controls:DaisyButton x:Name="RelatedTarget" Grid.Column="2" Content="{loc:Localize Gallery_Tour_Related}"
+                                              Variant="Secondary" MinWidth="220" />
+                    </Grid>
+                    <Border Height="170" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="12">
+                        <Grid>
+                            <TextBlock Text="{loc:Localize Gallery_Tour_ScrollTitle}" Margin="0,12,0,0" VerticalAlignment="Top"
+                                       HorizontalAlignment="Center" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            <!-- Route limit demos keep this area free between the lower left target and the targets on the right. -->
+                            <Border x:Name="KeepClearArea" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,66"
+                                    Padding="12,6" CornerRadius="8" Background="{DynamicResource DaisyBase300Brush}">
+                                <TextBlock Text="{loc:Localize Gallery_Tour_KeepClear}" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                            </Border>
+                            <!-- Below the fixed coordinate, so that the coordinate demo's course bridges over the area. -->
+                            <controls:DaisyButton x:Name="LimitTarget" Content="{loc:Localize Gallery_Tour_LimitTarget}" Variant="Secondary"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,4" />
+                        </Grid>
+                    </Border>
+                    <ScrollViewer Height="210" VerticalScrollBarVisibility="Auto">
+                        <!-- An Avalonia StackPanel has no padding, so a border provides it together with the background. -->
+                        <Border Padding="16" Background="{DynamicResource DaisyBase200Brush}">
+                            <StackPanel Spacing="24">
+                                <Border Height="260" />
+                                <controls:DaisyButton x:Name="NestedTarget" Content="{loc:Localize Gallery_Tour_NestedTarget}"
+                                                      Variant="Accent" HorizontalAlignment="Left" />
+                            </StackPanel>
+                        </Border>
+                    </ScrollViewer>
+                    <TabControl x:Name="DemoTabs" Height="240">
+                        <TabItem x:Name="OverviewTab" Header="{loc:Localize Gallery_Tour_Overview}">
+                            <TextBlock Margin="16" Text="{loc:Localize Gallery_Tour_TabHint}" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        </TabItem>
+                        <TabItem x:Name="DetailsTab" Header="{loc:Localize Gallery_Tour_Details}" />
+                    </TabControl>
+                    <controls:DaisyButton x:Name="RegionTarget" Content="{loc:Localize Gallery_Tour_RegionTarget}"
+                                          Variant="Accent" HorizontalAlignment="Right" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+        <controls:DaisyTour x:Name="Tour">
+            <controls:DaisyTour.Steps>
+                <controls:DaisyTourStep Id="welcome" Target="{Binding #PrimaryTarget}" />
+                <controls:DaisyTourStep Id="nested-scroll" Target="{Binding #NestedTarget}" />
+                <controls:DaisyTourStep Id="deferred-tab" />
+            </controls:DaisyTour.Steps>
+        </controls:DaisyTour>
+        <controls:DaisyTour x:Name="EditorTour" Id="gallery-tour" />
+    </Grid>
+</UserControl>
