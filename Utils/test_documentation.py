@@ -3,8 +3,11 @@
 Run from the repository root: python -B -m unittest discover -s Utils -p test_documentation.py
 """
 import contextlib
+from html.parser import HTMLParser
 import io
 from pathlib import Path
+import re
+import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
@@ -89,6 +92,139 @@ public class Sample : Control
                 self.assertIn(name, index)
             self.assertEqual(ROOT / 'llms-static', site.curated_dir)
         self.assertEqual(manifests[0], manifests[1])
+
+
+class ElementCollector(HTMLParser):
+    """Collects the elements a browser builds from the HTML, with their attributes."""
+
+    def __init__(self):
+        super().__init__()
+        self.elements: list[tuple[str, list[tuple[str, str]]]] = []
+
+    def handle_starttag(self, tag, attrs):
+        self.elements.append((tag, attrs))
+
+
+def parsed_elements(html: str) -> list[tuple[str, list[tuple[str, str]]]]:
+    collector = ElementCollector()
+    collector.feed(html)
+    return collector.elements
+
+
+def workflow_list(workflow: str, key: str) -> list[str]:
+    """The entries of the first list under key in a workflow file."""
+    lines = (ROOT / '.github' / 'workflows' / workflow).read_text(encoding='utf-8').splitlines()
+    start = next(index for index, line in enumerate(lines) if line.strip().startswith(f'{key}:'))
+    entries = []
+    for line in lines[start + 1:]:
+        entry = re.fullmatch(r"\s+- '?([^']+?)'?", line)
+        if not entry:
+            break
+        entries.append(entry.group(1))
+    return entries
+
+
+class SiteEscapingTests(unittest.TestCase):
+    """The site converter treats markdown as untrusted: only safe HTML and URLs reach the pages."""
+
+    def setUp(self):
+        self.converter = MarkdownToHtml()
+
+    def test_code_and_prose_are_escaped_and_entities_kept(self):
+        html = self.converter.convert('Use `IList<Color>` or a Func<bool, bool> & keep &quot; and `a*b*c`.')
+        self.assertIn('<code>IList&lt;Color&gt;</code>', html)
+        self.assertIn('Func&lt;bool, bool&gt; &amp; keep &quot;', html)
+        self.assertIn('<code>a*b*c</code>', html)
+        self.assertIn('<pre><code class="language-xml">&lt;controls:DaisyButton /&gt;</code></pre>',
+                      self.converter.convert('```xml\n<controls:DaisyButton />\n```'))
+
+    def test_unsafe_html_is_escaped_and_comments_dropped(self):
+        source = ('<script>alert(1)</script> <img src="a.png" onerror="alert(1)"> <iframe src="https://example.com">'
+                  ' <img src="javascript:alert(1)"> <img src="a.png" style="width:url(x)"> <!-- hidden -->')
+        html = self.converter.convert(source)
+        for fragment in ('<script', '<img', '<iframe', 'hidden'):
+            self.assertNotIn(fragment, html)
+        self.assertIn('&lt;script&gt;', html)
+
+    def test_allowed_tags_are_rebuilt_from_checked_attributes(self):
+        html = self.converter.convert(
+            '<img src="../images/A.png" alt="A &amp; B" style="max-width:50%;height:auto;box-shadow:0 2px 8px rgba(0,0,0,0.15)">'
+            ' <br/> <details open><summary>More</summary>Text</details> <kbd>Ctrl</kbd>')
+        self.assertIn('<img src="../images/A.png" alt="A &amp; B" '
+                      'style="max-width:50%;height:auto;box-shadow:0 2px 8px rgba(0,0,0,0.15)">', html)
+        for fragment in ('<br>', '<details open>', '<summary>More</summary>', '</details>', '<kbd>Ctrl</kbd>'):
+            self.assertIn(fragment, html)
+
+    def test_links_and_images_keep_only_safe_urls(self):
+        html = self.converter.convert('[a](javascript:x) [b](JaVa&#115;cript:x) [c](java\tscript:x) '
+                                      '![d](data:image/svg+xml,x)')
+        self.assertEqual('<p>a b c d</p>', html)
+        html = self.converter.convert('[e](x.md" onmouseover="alert(1))')
+        self.assertIn('href="x.md&quot; onmouseover=&quot;alert(1"', html)
+        html = self.converter.convert('[f](https://example.com/?q=1&r=2) [g](mailto:a@example.com) [h](#base-color)')
+        self.assertIn('href="https://example.com/?q=1&amp;r=2" target="_blank" rel="noopener"', html)
+        self.assertIn('href="mailto:a@example.com"', html)
+        self.assertIn('href="#base-color"', html)
+
+    def test_code_cannot_end_an_attribute(self):
+        sources = ('<img src="a.png" alt="`x" onerror="alert(1)`">', '![`x" onerror="alert(1)`](a.png)',
+                   '[a](`x" onclick="alert(1)`)', '<img src="`a.png" onerror="alert(1)`">')
+        for source in sources:
+            with self.subTest(source=source):
+                elements = parsed_elements(self.converter.convert(source))
+                self.assertNotIn('img', [tag for tag, _ in elements])
+                self.assertEqual([], [name for _, attributes in elements for name, _ in attributes if name.startswith('on')])
+
+    def test_headings_alerts_and_trusted_html(self):
+        self.assertIn('<h2 id="tips--best-practices">Tips &amp; Best Practices</h2>',
+                      self.converter.convert('## Tips & Best Practices'))
+        self.assertIn('<h2 id="foot--bar"><code>Foo&lt;T&gt;</code> &amp; Bar</h2>',
+                      self.converter.convert('## `Foo<T>` & Bar'))
+        alert = self.converter.convert('> [!NOTE]\n> Use <b>bold</b> and `List<T>`.\n')
+        self.assertIn('<div class="alert alert-note">', alert)
+        self.assertIn('&lt;b&gt;bold&lt;/b&gt;', alert)
+        self.assertIn('<code>List&lt;T&gt;</code>', alert)
+        token = self.converter.trusted('<div class="tabbed-gallery"><input type="radio"></div>')
+        html = self.converter.convert(f'## Overview\n{token}\n__TRUSTED_HTML_9__ __INLINE_CODE_9__')
+        self.assertIn('<div class="tabbed-gallery"><input type="radio"></div>', html)
+        self.assertNotIn(f'<p>{token}', html)
+        self.assertIn('__TRUSTED_HTML_9__ __INLINE_CODE_9__', html)
+
+    def test_allowed_tags_stay_balanced(self):
+        html = self.converter.convert('Text </details> <details><summary>More</summary> <sub>low\n\nRest')
+        self.assertIn('&lt;/details&gt;', html)
+        self.assertTrue(html.endswith('</sub></details>'))
+        self.assertIn('&lt;/kbd&gt;', self.converter.convert('<sub>a</kbd></sub>'))
+
+    def test_tables_take_escaped_pipes_into_cells(self):
+        html = self.converter.convert('| Key | Text |\n| --- | --- |\n| `\\|<-` | a \\| b |\n')
+        self.assertIn('<td><code>|&lt;-</code></td>', html)
+        self.assertIn('<td>a | b</td>', html)
+        self.assertEqual(2, html.count('<td>'))
+        self.assertIn('<code>\\|</code>', self.converter.convert('Outside a table `\\|` stays as written.'))
+
+
+class SiteGenerationTests(unittest.TestCase):
+    def test_generator_html_stays_unescaped(self):
+        with tempfile.TemporaryDirectory() as folder, contextlib.redirect_stdout(io.StringIO()):
+            SiteGenerator(ROOT / 'llms', Path(folder), ROOT / 'llms-static').generate()
+            home = (Path(folder) / 'home.html').read_text(encoding='utf-8')
+            index = (Path(folder) / 'index.html').read_text(encoding='utf-8')
+            pages = [page.read_text(encoding='utf-8') for page in (Path(folder) / 'controls').glob('*.html')]
+        for html in (home, index):
+            self.assertIn(SiteGenerator.CUSTOM_BADGE, html)
+            self.assertNotIn('&lt;sup class', html)
+        self.assertTrue(any('<div class="tabbed-gallery"' in page for page in pages))
+        self.assertFalse(any('&lt;div class="tabbed-gallery"' in page for page in pages))
+
+    def test_workflows_share_the_documentation_paths(self):
+        documentation = workflow_list('ci.yml', 'paths-ignore')
+        self.assertEqual(documentation, workflow_list('dependency-security.yml', 'paths-ignore'))
+        self.assertEqual(['.github/workflows/docs.yml', *documentation], workflow_list('docs.yml', 'paths'))
+        for workflow in ('ci.yml', 'dependency-security.yml'):
+            text = (ROOT / '.github' / 'workflows' / workflow).read_text(encoding='utf-8')
+            self.assertEqual(1, text.count('paths-ignore: &documentation'))
+            self.assertEqual(1, text.count('paths-ignore: *documentation'))
 
 
 if __name__ == '__main__':

@@ -2,6 +2,8 @@ name: CI Build
 
 # Builds and runs the headless tests on every commit and pull request
 # Does NOT publish anything - just verification
+# Changes to the documentation alone skip it; docs.yml checks them. Keep the documentation paths
+# of ci.yml, dependency-security.yml and docs.yml in sync.
 
 on:
   workflow_dispatch:
@@ -10,11 +12,22 @@ on:
       - main
       - alpha
       - avalonia12
+    paths-ignore: &documentation
+      - '**/*.md'
+      - llms-static/**
+      - Utils/check_characters.py
+      - Utils/docs_manifest.py
+      - Utils/generate_docs.py
+      - Utils/generate_site.py
+      - Utils/site_*
+      - Utils/test_check_characters.py
+      - Utils/test_documentation.py
   pull_request:
     branches:
       - main
       - alpha
       - avalonia12
+    paths-ignore: *documentation
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

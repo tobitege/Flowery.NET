@@ -1,0 +1,59 @@
+name: Docs
+
+# Checks pull requests that change the documentation: no hidden characters, and the docs, the site and
+# the documentation tests build as in generate-docs.yml. Changes to the documentation alone skip ci.yml
+# and dependency-security.yml; keep the documentation paths of the three workflows in sync.
+# It runs the code of the pull request with a read-only token and no secrets.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - alpha
+      - avalonia12
+    paths:
+      - .github/workflows/docs.yml
+      - '**/*.md'
+      - llms-static/**
+      - Utils/check_characters.py
+      - Utils/docs_manifest.py
+      - Utils/generate_docs.py
+      - Utils/generate_site.py
+      - Utils/site_*
+      - Utils/test_check_characters.py
+      - Utils/test_documentation.py
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+
+      - name: Check for hidden characters
+        run: python -B Utils/check_characters.py
+
+      - name: Generate markdown documentation
+        run: python -B Utils/generate_docs.py
+
+      - name: Generate HTML site
+        run: python -B Utils/generate_site.py
+
+      - name: Run documentation tests
+        run: |
+          python -B -m unittest discover -s Utils -p test_documentation.py
+          python -B -m unittest discover -s Utils -p test_check_characters.py

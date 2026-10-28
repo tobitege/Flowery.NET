@@ -103,7 +103,7 @@ Reduced motion stops decorative timers, native loading/status animations, text e
 Finite animations set their final state. Clock, countdown, and other functional timekeeping continue.
 Only requested, attached effects resume; Stop, Dispose, and disabled behavior settings prevent automatic restart.
 
-For a custom contrast strategy, set CustomContrastApplicator to a Func<bool, bool>.
+For a custom contrast strategy, set `CustomContrastApplicator` to a `Func<bool, bool>`.
 Return true when the host handles the requested contrast state, including restoration when the argument is false.
 ObservePlatformSettings returns a disposable subscription for hosts that supply their own IPlatformSettings source.
 Dispose it when that source is no longer used.

@@ -1,10 +1,24 @@
 name: Dependency Security
 
+# Changes to the documentation alone change no dependency and skip it; keep the documentation
+# paths in sync with ci.yml and docs.yml.
+
 on:
   push:
     branches: [avalonia12]
+    paths-ignore: &documentation
+      - '**/*.md'
+      - llms-static/**
+      - Utils/check_characters.py
+      - Utils/docs_manifest.py
+      - Utils/generate_docs.py
+      - Utils/generate_site.py
+      - Utils/site_*
+      - Utils/test_check_characters.py
+      - Utils/test_documentation.py
   pull_request:
     branches: [avalonia12]
+    paths-ignore: *documentation
   schedule:
     - cron: '15 4 * * 1'
   workflow_dispatch:

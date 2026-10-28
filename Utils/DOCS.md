@@ -122,6 +122,8 @@ start docs/index.html
 - One file per control: `llms-static/DaisyButton.md`, `llms-static/DaisyLoading.md`, etc.
 - Files are tracked in git and are the **primary source** for the site and `docs/llms.txt`.
 - HTML comments (`<!-- -->`) are stripped automatically.
+- The site escapes HTML outside code. It keeps only `<img>` (with `src`, `alt`, `title`, `width`, `height` and a `style` of sizes, margins, `border-radius`, `box-shadow`, `display` and `vertical-align`), `<br>`, `<details>`, `<summary>`, `<kbd>`, `<sub>` and `<sup>`; any other tag shows as text. Links and images keep a relative URL or one with `https:` or `http:`, links also `mailto:`; other links show only their text.
+- Put type names in backticks (`` `IList<Color>` ``), so the angle brackets show in the docs on GitHub as well.
 
 Suggested structure:
 
@@ -171,6 +173,18 @@ Best practices:
 
 ---
 
+## Pull Request Checks
+
+A pull request that changes only documentation (Markdown files, `llms-static/` and the docs tooling in `Utils/`) skips the CI build and the dependency audit. `.github/workflows/docs.yml` checks it instead:
+
+1) `python Utils/check_characters.py` fails on characters that do not print, such as bidirectional controls, zero-width characters and Unicode tags, except inside emoji. It checks the documentation files that git tracks, so add a new file with `git add` first.
+2) `generate_docs.py` and `generate_site.py` build the docs and the site as `generate-docs.yml` does.
+3) `test_documentation.py` and `test_check_characters.py` run.
+
+`ci.yml`, `dependency-security.yml` and `docs.yml` share the list of documentation paths; keep it in sync.
+
+---
+
 ## Troubleshooting
 
 - **Missing docs in site:** Ensure a matching `llms-static/<Control>.md` exists (or run the auto-parse workflow to produce `llms/controls/*.md`).
@@ -188,8 +202,10 @@ Best practices:
 | `Utils/generate_docs.py` | Optional generator for auto-parsed metadata |
 | `llms-static/README.md` | How to write curated docs |
 | `.github/workflows/generate-docs.yml` | CI entrypoint |
+| `.github/workflows/docs.yml` | Checks pull requests that change the documentation |
+| `Utils/check_characters.py` | Fails on hidden characters in the documentation |
 | `docs/llms.txt` | Machine-readable docs for AI assistants (regenerated) |
 
 ---
 
-Last updated: December 2025
+Last updated: October 2026
