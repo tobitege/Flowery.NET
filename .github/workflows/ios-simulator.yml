@@ -31,8 +31,11 @@ jobs:
       run:
         shell: bash
     env:
-      # Keep this compatible pair together. Isolate the SDK from newer runner SDKs
-      # because the repository global.json permits latestFeature roll-forward.
+      # The project targets net10.0-ios26.0. Workload set 10.0.302.0 builds that framework with its iOS 26.0 pack
+      # (26.0.11017), which accepts only Xcode 26.0; Xcode_26.0.app links to the image's Xcode 26.0.1. The image has
+      # no iOS 26.0 simulator runtime, so the simulator runs with Xcode 26.6 and its iOS 26.5 runtime. Isolate the
+      # SDK from newer runner SDKs because the repository global.json permits latestFeature roll-forward.
+      BUILD_DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
       IOS_PROJECT: Flowery.NET.Gallery.iOS/Flowery.NET.Gallery.iOS.csproj
       ARTIFACT_DIR: ${{ github.workspace }}/artifacts/ios-simulator
@@ -45,10 +48,12 @@ jobs:
       - name: Prepare logs and verify Xcode
         run: |
           mkdir -p "$ARTIFACT_DIR/logs"
+          test -d "$BUILD_DEVELOPER_DIR"
           test -d "$DEVELOPER_DIR"
           test -f "$IOS_PROJECT"
           test "$(uname -m)" = arm64
-          xcodebuild -version | tee "$ARTIFACT_DIR/logs/xcode.txt"
+          DEVELOPER_DIR="$BUILD_DEVELOPER_DIR" xcodebuild -version | tee "$ARTIFACT_DIR/logs/xcode-build.txt"
+          xcodebuild -version | tee "$ARTIFACT_DIR/logs/xcode-simulator.txt"
           xcrun simctl list --json > "$ARTIFACT_DIR/logs/simulators.json"
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
@@ -57,7 +62,7 @@ jobs:
         with:
           dotnet-version: '10.0.302'
 
-      - name: Install iOS workload for Xcode 26.6
+      - name: Install iOS workload
         run: |
           test "$(dotnet --version)" = 10.0.302
           dotnet --info > "$ARTIFACT_DIR/logs/dotnet.txt"
@@ -67,6 +72,7 @@ jobs:
       - name: Build iOS Gallery for Apple Silicon Simulator
         id: build
         run: |
+          export DEVELOPER_DIR="$BUILD_DEVELOPER_DIR"
           dotnet build "$IOS_PROJECT" -c Release -r iossimulator-arm64 \
             -p:EnableCodeSigning=false \
             "-bl:$ARTIFACT_DIR/logs/ios-build.binlog" \
