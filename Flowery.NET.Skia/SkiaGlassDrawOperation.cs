@@ -131,6 +131,16 @@ namespace Flowery.Skia
                 _redraw.ReportBackdropColor(color);
 
             int saveCount = canvas.Save();
+            // Avalonia multiplies the opacity of the glass and its parents into each paint instead of drawing a layer.
+            // The glass draws with many paints and filters, so one layer the size of the glass gives all of them that
+            // opacity; the snapshot and its measurement above read the surface itself. The layer comes before the
+            // rounded clip, so its anti-aliased corners are not clipped twice.
+            var opacity = Math.Clamp(lease.CurrentOpacity, 0, 1);
+            if (opacity < 1)
+            {
+                using var layerPaint = new SKPaint { Color = SKColors.White.WithAlpha((byte)Math.Round(255 * opacity)) };
+                canvas.SaveLayer(rect, layerPaint);
+            }
             canvas.ClipRoundRect(roundedRect, SKClipOperation.Intersect, true);
 
             using var blurFilter = SKImageFilter.CreateBlur(_blurSigma, _blurSigma, SKShaderTileMode.Clamp);
