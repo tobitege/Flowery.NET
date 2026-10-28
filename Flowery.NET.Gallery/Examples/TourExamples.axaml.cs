@@ -39,8 +39,6 @@ public sealed partial class TourExamples : UserControl, IScrollableExample
         InitializeTourDesigner();
     }
 
-    public GalleryLocalization Localization => GalleryLocalization.Instance;
-
     private void CardPosition_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (CardPositionSelector.SelectedItem is DaisyTourCardPosition position)
@@ -342,11 +340,11 @@ public sealed partial class TourExamples : UserControl, IScrollableExample
         return Task.CompletedTask;
     }
 
-    private void BindText(AvaloniaObject target, AvaloniaProperty property, string key)
+    private static void BindText(AvaloniaObject target, AvaloniaProperty property, string key)
     {
-        target.Bind(property, new Binding($"[{key}]")
+        target.Bind(property, new ReflectionBinding($"[{key}]")
         {
-            Source = Localization,
+            Source = GalleryLocalization.Instance,
             Mode = BindingMode.OneWay
         });
     }

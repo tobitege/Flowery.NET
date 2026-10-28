@@ -1,13 +1,13 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Threading;
 using Flowery.Controls;
+using static Flowery.NET.RuntimeTests.Controls.DaisyTourTestHelpers;
 
 namespace Flowery.NET.RuntimeTests.Controls;
 
 /// <summary>Opening a tour editor in the test window, and waiting for its preview to settle.</summary>
 internal static class TourEditorTestHelpers
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
 
     /// <summary>
     /// Attaches <paramref name="root"/>, which contains <paramref name="tour"/>, opens an editor for the tour, waits
@@ -19,9 +19,9 @@ internal static class TourEditorTestHelpers
         try
         {
             RuntimeTestHelpers.AttachToHost(root);
-            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(Timeout);
+            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(TestTimeout);
             await SettleAsync(root);
-            await editor.OpenAsync(tour).WaitAsync(Timeout);
+            await editor.OpenAsync(tour).WaitAsync(TestTimeout);
             if (ready is not null) await RuntimeTestHelpers.WaitUntilAsync(ready, "the preview is laid out");
             await SettleAsync(root);
             // Pointer hit testing uses the rendered scene.
@@ -46,20 +46,8 @@ internal static class TourEditorTestHelpers
         try
         {
             change();
-            await updated.Task.WaitAsync(Timeout);
+            await updated.Task.WaitAsync(TestTimeout);
         }
         finally { tour.GeometryUpdated -= OnGeometryUpdated; }
-    }
-
-    // WinUI's low queue priority runs after layout and rendering; Avalonia's Background priority does too.
-    internal static async Task SettleAsync(Control element)
-    {
-        element.UpdateLayout();
-        for (var turn = 0; turn < 2; turn++)
-        {
-            var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            Dispatcher.UIThread.Post(() => ready.TrySetResult(), DispatcherPriority.Background);
-            await ready.Task.WaitAsync(Timeout);
-        }
     }
 }

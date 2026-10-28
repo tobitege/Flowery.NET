@@ -11,7 +11,6 @@ using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Localization;
@@ -300,6 +299,9 @@ public class Given_DaisyTour
             var before = ScrollChain();
             try { await StartGalleryTourAsync(page, tour, "Gallery_Tour_Regions"); }
             catch (Exception error) { throw new AssertFailedException($"{error.Message} Before: {before}. After: {ScrollChain()}", error); }
+            // The sidebar can still settle after the step opens, such as after an earlier theme change; the target
+            // trackers then place the connector again in a queued update, which runs before the connector is measured.
+            await ArrangeAsync(view);
             var annotation = tour.CurrentStep!.Annotations.Single();
             Assert.IsInstanceOfType<DaisyThemeDropdown>(annotation.Source);
             Assert.IsFalse(DaisyTourLayout.IsDescendant(annotation.Source, page), "The source must come from the sidebar region.");
@@ -1191,7 +1193,7 @@ public class Given_DaisyTour
             var before = $"{DescribeScroll("inner", inner)}; {DescribeScroll("outer", outer)}; frame={frames}";
             await tour.StartAsync().WaitAsync(Timeout);
             Assert.IsTrue(tour.IsOpen, $"Before start: {before}. At closure: {DescribeScroll("inner", inner)}; " +
-                $"{DescribeScroll("outer", outer)}. ViewChanged: [{string.Join(", ", views)}]. Closure: {(tour.Tag as DaisyTourClosedEventArgs)?.Error?.Message}");
+                $"{DescribeScroll("outer", outer)}. ScrollChanged: [{string.Join(", ", views)}]. Closure: {(tour.Tag as DaisyTourClosedEventArgs)?.Error?.Message}");
             AssertActive(tour, step, 0);
             Assert.IsTrue(inner.Offset.Y > 0, "The inner scroller must reveal the target.");
             Assert.IsTrue(outer.Offset.Y > 0, "The outer scroller must reveal the inner viewport.");

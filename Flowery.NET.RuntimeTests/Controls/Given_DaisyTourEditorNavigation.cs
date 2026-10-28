@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Xunit;
+using static Flowery.NET.RuntimeTests.Controls.DaisyTourTestHelpers;
 using static Flowery.NET.RuntimeTests.Controls.TourEditorTestHelpers;
 using Assert = Flowery.NET.RuntimeTests.Controls.MSTestAssert;
 using DaisyIconSymbol = Flowery.Enums.DaisyIconSymbol;

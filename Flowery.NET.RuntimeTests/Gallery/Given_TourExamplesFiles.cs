@@ -20,7 +20,7 @@ public class Given_TourExamplesFiles
             await File.WriteAllTextAsync(path, new string('x', 4096));
             using var file = await RuntimeTestHelpers.GetWindow().StorageProvider.TryGetFileFromPathAsync(path);
             Assert.NotNull(file);
-            // The local path selects the replace through a temporary file.
+            // A picked file with a local path reaches the export with that path.
             Assert.Equal(path, file.TryGetLocalPath(), ignoreCase: true);
 
             await TourExamples.WriteProfileAsync(file, Profile);
@@ -30,17 +30,6 @@ public class Given_TourExamplesFiles
             Assert.Equal(Profile, await TourExamples.ReadProfileAsync(file));
         }
         finally { Directory.Delete(directory, recursive: true); }
-    }
-
-    [Fact]
-    public async Task When_An_Export_Has_No_Local_Path_The_Longer_Old_Content_Is_Truncated()
-    {
-        // A platform stream of a file without a local path, such as a browser download, opens with the old content.
-        using var stream = OldContent();
-
-        await TourExamples.WriteProfileStreamAsync(stream, Profile);
-
-        Assert.Equal(Profile, Encoding.UTF8.GetString(stream.ToArray()));
     }
 
     [Fact]
@@ -63,7 +52,7 @@ public class Given_TourExamplesFiles
     }
 
     [Fact]
-    public async Task When_The_Temporary_File_Cannot_Be_Created_The_Error_Names_No_Temporary_File()
+    public async Task When_The_Temporary_File_Cannot_Be_Created_The_Original_Error_Passes_Unchanged()
     {
         var directory = CreateDirectory();
         try
@@ -75,6 +64,30 @@ public class Given_TourExamplesFiles
             // The original error passes unchanged; no temporary path is appended for a file that was never created.
             Assert.IsType<DirectoryNotFoundException>(error);
             Assert.DoesNotContain(Environment.NewLine, error.Message, StringComparison.Ordinal);
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
+    public async Task When_The_Folder_Takes_The_Temporary_File_The_Export_Replaces_The_File_Without_The_Stream()
+    {
+        var directory = CreateDirectory();
+        try
+        {
+            var path = Path.Combine(directory, "tour.json");
+            await File.WriteAllTextAsync(path, new string('x', 4096));
+            var opened = false;
+
+            await TourExamples.WriteProfileAsync(path, () =>
+            {
+                opened = true;
+                return Task.FromResult<Stream>(new MemoryStream());
+            }, Profile);
+
+            // A writable folder takes the replace through a temporary file; the stream is only the fallback.
+            Assert.False(opened);
+            Assert.Equal(Profile, await File.ReadAllTextAsync(path));
+            Assert.Empty(Directory.GetFiles(directory, "*.partial"));
         }
         finally { Directory.Delete(directory, recursive: true); }
     }

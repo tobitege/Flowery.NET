@@ -178,7 +178,8 @@ internal sealed class DaisyTourHandleLayer : Canvas
     private void OnPressed(object? sender, PointerPressedEventArgs args)
     {
         if (sender is not Button { Tag: HandleKind kind } button || !args.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
-        if (GetGeometry() is not { } geometry) return;
+        // A second pointer, such as another finger, does not take over a running drag.
+        if (_drag is not null || GetGeometry() is not { } geometry) return;
         _drag = kind;
         _dragGeometry = geometry;
         _pointer = args.Pointer;
@@ -195,7 +196,7 @@ internal sealed class DaisyTourHandleLayer : Canvas
 
     private void OnMoved(object? sender, PointerEventArgs args)
     {
-        if (_drag is not { } kind || _dragGeometry is not { } geometry) return;
+        if (_drag is not { } kind || _dragGeometry is not { } geometry || !IsDragPointer(args.Pointer)) return;
         args.Handled = true;
         var point = DragPoint(args);
         if (!_dragMoved && point == _dragOrigin) return;
@@ -206,7 +207,7 @@ internal sealed class DaisyTourHandleLayer : Canvas
 
     private void OnReleased(object? sender, PointerReleasedEventArgs args)
     {
-        if (_drag is null) return;
+        if (_drag is null || !IsDragPointer(args.Pointer)) return;
         FinishGesture(DragPoint(args));
         args.Handled = true;
     }
@@ -214,9 +215,13 @@ internal sealed class DaisyTourHandleLayer : Canvas
     private void OnCaptureLost(object? sender, PointerCaptureLostEventArgs args)
     {
         // Avalonia releases the capture after PointerReleased, which has finished the gesture already.
-        // A capture lost during a drag, such as to another element, ends it at the last delivered point.
+        // A capture lost during a drag, such as to another element, ends it at the last delivered point. So does a
+        // canceled touch, whose pointer Avalonia disposes; WinUI reverted that drag through PointerCanceled.
+        if (!IsDragPointer(args.Pointer)) return;
         FinishGesture(_dragPoint);
     }
+
+    private bool IsDragPointer(IPointer pointer) => _pointer is not null && pointer.Id == _pointer.Id;
 
     private void FinishGesture(Point point)
     {

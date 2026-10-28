@@ -16,16 +16,23 @@ internal static class DaisyTourLayout
     /// The part of the window content that its display's work area shows, in content DIP. A window that
     /// extends below the taskbar or off the screen must not receive the card or annotations there.
     /// </summary>
-    internal static Rect VisibleArea(TopLevel root)
+    internal static Rect VisibleArea(TopLevel root) =>
+        VisibleArea(new Rect(0, 0, root.ClientSize.Width, root.ClientSize.Height), root as Window,
+            root.InsetsManager?.SafeAreaPadding ?? default);
+
+    /// <param name="content">The content of the view in DIP.</param>
+    /// <param name="window">The window that shows the view, or null for a view without one.</param>
+    /// <param name="safeArea">The safe-area padding of a view without a window in DIP; a window does not use it.</param>
+    internal static Rect VisibleArea(Rect content, Window? window, Thickness safeArea)
     {
-        var content = new Rect(0, 0, root.ClientSize.Width, root.ClientSize.Height);
         // A view without a window, such as on a phone, can reach under the system bars and display cutouts.
-        if (root is not Window window)
-            return SafeArea(content, root.InsetsManager?.SafeAreaPadding ?? default);
+        if (window is null)
+            return SafeArea(content, safeArea);
         if (window.Screens.ScreenFromWindow(window) is not { } display)
             return content;
+        // Screen positions and the working area are in desktop pixels: physical pixels on Windows, points on macOS.
         var origin = window.PointToScreen(new Point(0, 0));
-        return VisibleArea(content, origin.X, origin.Y, display.WorkingArea, window.RenderScaling);
+        return VisibleArea(content, origin.X, origin.Y, display.WorkingArea, window.DesktopScaling);
     }
 
     /// <summary>The content without the insets that system bars and display cutouts cover.</summary>
@@ -39,10 +46,10 @@ internal static class DaisyTourLayout
     }
 
     /// <param name="content">The window content in DIP.</param>
-    /// <param name="clientX">The content's left edge on the screen in physical pixels.</param>
-    /// <param name="clientY">The content's top edge on the screen in physical pixels.</param>
-    /// <param name="workArea">The display's work area in physical pixels.</param>
-    /// <param name="scale">The content's rasterization scale.</param>
+    /// <param name="clientX">The content's left edge on the screen in desktop pixels.</param>
+    /// <param name="clientY">The content's top edge on the screen in desktop pixels.</param>
+    /// <param name="workArea">The display's work area in desktop pixels.</param>
+    /// <param name="scale">The window's desktop scaling: desktop pixels per DIP.</param>
     internal static Rect VisibleArea(Rect content, int clientX, int clientY, PixelRect workArea, double scale)
     {
         if (!(scale > 0))

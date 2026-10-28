@@ -6,11 +6,13 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.LogicalTree;
+using Avalonia.Styling;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Localization;
 using Flowery.Theming;
 using Xunit;
+using static Flowery.NET.RuntimeTests.Controls.DaisyTourTestHelpers;
 using static Flowery.NET.RuntimeTests.Controls.TourEditorTestHelpers;
 
 namespace Flowery.NET.RuntimeTests.Controls;
@@ -76,8 +78,8 @@ public class Given_DaisyTourEditorAvalonia
             var (thumb, root, start, pointer) = PressThumb(editor);
             Assert.Same(thumb, pointer.Captured);
             var end = new Point(start.X - 40, start.Y);
-            await ChangeGeometryAsync(tour, () => Move(pointer, root, end));
-            await ChangeGeometryAsync(tour, () => Release(pointer, root, end));
+            await ChangeGeometryAsync(tour, () => MoveCaptured(pointer, root, end));
+            await ChangeGeometryAsync(tour, () => ReleaseCaptured(pointer, root, end));
             Assert.Equal(initial + 40, editor.InspectorBounds.Width, 1);
         });
     }
@@ -89,7 +91,7 @@ public class Given_DaisyTourEditorAvalonia
         {
             var initial = editor.InspectorBounds.Width;
             var (thumb, root, start, pointer) = PressThumb(editor);
-            await ChangeGeometryAsync(tour, () => Move(pointer, root, new Point(start.X - 40, start.Y)));
+            await ChangeGeometryAsync(tour, () => MoveCaptured(pointer, root, new Point(start.X - 40, start.Y)));
             pointer.Capture(null);
             await SettleAsync(editor);
 
@@ -107,7 +109,7 @@ public class Given_DaisyTourEditorAvalonia
         {
             var initial = editor.InspectorBounds.Width;
             var (thumb, root, start, pointer) = PressThumb(editor);
-            await ChangeGeometryAsync(tour, () => Move(pointer, root, new Point(start.X - 40, start.Y)));
+            await ChangeGeometryAsync(tour, () => MoveCaptured(pointer, root, new Point(start.X - 40, start.Y)));
             Assert.Equal(initial + 40, editor.InspectorBounds.Width, 1);
 
             await ChangeGeometryAsync(tour, () => thumb.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape, Source = thumb }));
@@ -122,6 +124,46 @@ public class Given_DaisyTourEditorAvalonia
             await SettleAsync(editor);
             Assert.Equal(initial, editor.InspectorBounds.Width, 1);
         });
+    }
+
+    [Fact]
+    public async Task When_The_Focused_Resize_Thumb_Gets_Arrow_Keys_The_Inspector_Width_Follows()
+    {
+        await InEditorAsync(async (tour, editor) =>
+        {
+            // Avalonia's Thumb takes no focus by default; the editor makes it focusable for the keyboard.
+            var thumb = ResizeThumb(editor);
+            Assert.True(thumb.Focus(), "The resize thumb takes the focus.");
+            var initial = editor.InspectorBounds.Width;
+            // Docked on the right, the inner edge is the left one: Right narrows the inspector, Left widens it.
+            await ChangeGeometryAsync(tour, () => PressKey(thumb, Key.Right));
+            Assert.Equal(initial - 10, editor.InspectorBounds.Width, 1);
+            await ChangeGeometryAsync(tour, () => PressKey(thumb, Key.Left));
+            Assert.Equal(initial, editor.InspectorBounds.Width, 1);
+        });
+    }
+
+    [Fact]
+    public async Task When_The_Daisy_Theme_Changes_The_Editor_Takes_Its_Theme_Variant()
+    {
+        var previousTheme = DaisyThemeManager.CurrentThemeName;
+        try
+        {
+            // Each switch below changes the theme, so each one places the preview again.
+            Assert.True(DaisyThemeManager.ApplyTheme("Light"));
+            await InEditorAsync(async (tour, editor) =>
+            {
+                var scope = editor.GetVisualDescendants().OfType<ThemeVariantScope>().First();
+                await ChangeGeometryAsync(tour, () => Assert.True(DaisyThemeManager.ApplyTheme("Dark")));
+                Assert.Equal(ThemeVariant.Dark, scope.ActualThemeVariant);
+                await ChangeGeometryAsync(tour, () => Assert.True(DaisyThemeManager.ApplyTheme("Light")));
+                Assert.Equal(ThemeVariant.Light, scope.ActualThemeVariant);
+            });
+        }
+        finally
+        {
+            if (previousTheme is not null) DaisyThemeManager.ApplyTheme(previousTheme);
+        }
     }
 
     [Fact]
@@ -175,37 +217,20 @@ public class Given_DaisyTourEditorAvalonia
     private static Thumb ResizeThumb(DaisyTourEditor editor) =>
         editor.GetVisualDescendants().OfType<Thumb>().Single(item => AutomationProperties.GetAutomationId(item) == "DaisyTourEditorResize");
 
+    private static void PressKey(InputElement element, Key key) =>
+        element.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key, Source = element });
+
     private static void Press(DaisyTourEditor editor, KeyGesture gesture) =>
         editor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = gesture.Key, KeyModifiers = gesture.KeyModifiers, Source = editor });
 
     // Presses the left button in the middle of the resize thumb like the mouse does: the element under the pointer
     // takes the capture and receives the press, which bubbles to the thumb.
+    // Presses the resize thumb like the mouse does; see PressAtCenter.
     private static (Thumb Thumb, TopLevel Root, Point Start, Pointer Pointer) PressThumb(DaisyTourEditor editor)
     {
         var thumb = ResizeThumb(editor);
-        var root = TopLevel.GetTopLevel(thumb)!;
-        var start = thumb.TranslatePoint(new Point(thumb.Bounds.Width / 2, thumb.Bounds.Height / 2), root)!.Value;
-        var hit = Assert.IsAssignableFrom<Interactive>(root.InputHitTest(start));
-        var pointer = new Pointer(Pointer.GetNextFreeId(), PointerType.Mouse, true);
-        pointer.Capture((IInputElement)hit);
-        hit.RaiseEvent(new PointerPressedEventArgs(hit, pointer, root, start, 0,
-            new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed), KeyModifiers.None));
+        var (root, start, pointer) = PressAtCenter(thumb);
         return (thumb, root, start, pointer);
-    }
-
-    // Moves go to the element that holds the capture.
-    private static void Move(Pointer pointer, TopLevel root, Point position)
-    {
-        var captured = (Interactive)pointer.Captured!;
-        captured.RaiseEvent(Moved(captured, pointer, root, position));
-    }
-
-    // The release goes to the element that holds the capture, which the mouse then lets go.
-    private static void Release(Pointer pointer, TopLevel root, Point position)
-    {
-        var captured = (Interactive)pointer.Captured!;
-        captured.RaiseEvent(Released(captured, pointer, root, position));
-        pointer.Capture(null);
     }
 
     private static PointerEventArgs Moved(Interactive source, Pointer pointer, TopLevel root, Point position) =>

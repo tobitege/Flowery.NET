@@ -9,6 +9,8 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Xunit;
+using static Flowery.NET.RuntimeTests.Controls.DaisyTourTestHelpers;
+using static Flowery.NET.RuntimeTests.Controls.TourEditorTestHelpers;
 using Assert = Flowery.NET.RuntimeTests.Controls.MSTestAssert;
 using StringAssert = Flowery.NET.RuntimeTests.Controls.MSTestStringAssert;
 
@@ -29,14 +31,14 @@ public class Given_DaisyTourEditor
             await scenario.Editor.OpenAsync(scenario.Tour).WaitAsync(Timeout);
             Assert.IsTrue(scenario.Editor.IsOpen);
             Assert.IsFalse(scenario.Editor.HasChanges);
-            await ChangeAndRenderAsync(scenario, () => scenario.Editor.SetValue("bodyWidth", 18d));
+            await ChangeGeometryAsync(scenario.Tour, () => scenario.Editor.SetValue("bodyWidth", 18d));
             Assert.AreEqual(18d, scenario.Tour.AnnotationPresenters.Single().EditGeometry!.BodyWidth, 0.001);
             Assert.AreEqual(5d, scenario.Annotation.BodyWidth);
             Assert.IsTrue(scenario.Editor.HasChanges);
-            await ChangeAndRenderAsync(scenario, scenario.Editor.Undo);
+            await ChangeGeometryAsync(scenario.Tour, scenario.Editor.Undo);
             Assert.AreEqual(5d, scenario.Tour.AnnotationPresenters.Single().EditGeometry!.BodyWidth, 0.001);
             Assert.IsFalse(scenario.Editor.HasChanges);
-            await ChangeAndRenderAsync(scenario, scenario.Editor.Redo);
+            await ChangeGeometryAsync(scenario.Tour, scenario.Editor.Redo);
             Assert.AreEqual(18d, scenario.Tour.AnnotationPresenters.Single().EditGeometry!.BodyWidth, 0.001);
             scenario.Editor.Apply();
             Assert.IsFalse(scenario.Editor.IsOpen);
@@ -205,7 +207,7 @@ public class Given_DaisyTourEditor
                 await newOpening.WaitAsync(Timeout);
                 Assert.IsTrue(scenario.Editor.IsOpen);
                 Assert.IsTrue(scenario.Tour.IsOpen);
-                await ChangeAndRenderAsync(scenario, () => scenario.Editor.SetValue("bodyWidth", 18d));
+                await ChangeGeometryAsync(scenario.Tour, () => scenario.Editor.SetValue("bodyWidth", 18d));
                 var draft = scenario.Editor.ExportJson();
                 var currentStep = scenario.Tour.CurrentStep;
                 release.TrySetResult();
@@ -276,23 +278,23 @@ public class Given_DaisyTourEditor
             await scenario.Editor.OpenAsync(scenario.Tour).WaitAsync(Timeout);
             var renderedFallback = scenario.Tour.AnnotationPresenters.Single().CourseThickness;
             Assert.IsTrue(renderedFallback > 0);
-            await ChangeAndRenderAsync(scenario, () =>
+            await ChangeGeometryAsync(scenario.Tour, () =>
             {
                 scenario.Annotation.StrokeThickness = 7;
                 scenario.Step.AnnotationDefaults = new DaisyTourAnnotationStyle { StrokeThickness = 9 };
                 scenario.Tour.AnnotationDefaults = new DaisyTourAnnotationStyle { StrokeThickness = 11 };
             });
             Assert.AreEqual(7d, scenario.Tour.AnnotationPresenters.Single().CourseThickness);
-            await ChangeAndRenderAsync(scenario, () => scenario.Editor.InheritValue("strokeThickness"));
+            await ChangeGeometryAsync(scenario.Tour, () => scenario.Editor.InheritValue("strokeThickness"));
             Assert.AreEqual(9d, scenario.Tour.AnnotationPresenters.Single().CourseThickness);
             var profile = scenario.Editor.ExportProfile();
             profile.Steps[0].AnnotationDefaults = new DaisyTourStyleOverride();
             profile.Steps[0].AnnotationDefaults!.Inherit.Add("strokeThickness");
-            await ChangeAndRenderAsync(scenario, () => scenario.Editor.ImportProfile(profile));
+            await ChangeGeometryAsync(scenario.Tour, () => scenario.Editor.ImportProfile(profile));
             Assert.AreEqual(11d, scenario.Tour.AnnotationPresenters.Single().CourseThickness);
             profile.AnnotationDefaults = new DaisyTourStyleOverride();
             profile.AnnotationDefaults.Inherit.Add("strokeThickness");
-            await ChangeAndRenderAsync(scenario, () => scenario.Editor.ImportProfile(profile));
+            await ChangeGeometryAsync(scenario.Tour, () => scenario.Editor.ImportProfile(profile));
             Assert.AreEqual(renderedFallback, scenario.Tour.AnnotationPresenters.Single().CourseThickness);
             Assert.AreEqual(DaisySize.Medium, scenario.Tour.Size);
             Assert.AreEqual(7d, scenario.Annotation.StrokeThickness);
@@ -350,7 +352,7 @@ public class Given_DaisyTourEditor
                 foreach (var curvature in new[] { -0.35, 0, 0.35 })
                 {
                     var context = $"{arrangement.Name}, curvature={curvature}";
-                    await ChangeAndRenderAsync(scenario, () =>
+                    await ChangeGeometryAsync(scenario.Tour, () =>
                     {
                         source.Margin = new Thickness(arrangement.Source.X, arrangement.Source.Y, 0, 0);
                         target.Margin = new Thickness(arrangement.Target.X, arrangement.Target.Y, 0, 0);
@@ -381,7 +383,7 @@ public class Given_DaisyTourEditor
                     var moved = new Point(handle.X + normal.X * 12 + dx / length * 7,
                         handle.Y + normal.Y * 12 + dy / length * 7);
                     var projected = DaisyTourHandleLayer.ProjectCurvature(moved, geometry, handle);
-                    await ChangeAndRenderAsync(scenario, () => scenario.Editor.SetValue("curvature", projected));
+                    await ChangeGeometryAsync(scenario.Tour, () => scenario.Editor.SetValue("curvature", projected));
                     var changed = presenter.EditGeometry!;
                     Assert.AreEqual(geometry.Source, changed.Source, context);
                     Assert.AreEqual(geometry.Target, changed.Target, context);
@@ -420,19 +422,6 @@ public class Given_DaisyTourEditor
             Assert.IsNotEmpty(presenter.ResolvedValues, "The hidden connector still resolves its style for the inspector.");
         });
 
-    private static async Task ChangeAndRenderAsync(Scenario scenario, Action change)
-    {
-        var updated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        EventHandler handler = (_, _) => updated.TrySetResult();
-        scenario.Tour.GeometryUpdated += handler;
-        try
-        {
-            change();
-            await updated.Task.WaitAsync(Timeout);
-        }
-        finally { scenario.Tour.GeometryUpdated -= handler; }
-    }
-
     private static async Task InScenarioAsync(Func<Scenario, Task> action)
     {
         var scenario = new Scenario();
@@ -450,18 +439,6 @@ public class Given_DaisyTourEditor
             RuntimeTestHelpers.GetHostPanel().Children.Remove(scenario.Root);
             // Cancellation already detaches the session; cleanup only needs dispatcher turns for unloading.
             await SettleAsync(scenario.Root, DispatcherPriority.Normal);
-        }
-    }
-
-    // WinUI's low queue priority runs after layout and rendering; Avalonia's Background priority does too.
-    private static async Task SettleAsync(Control element, DispatcherPriority? priority = null)
-    {
-        element.UpdateLayout();
-        for (var turn = 0; turn < 2; turn++)
-        {
-            var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            Dispatcher.UIThread.Post(() => ready.TrySetResult(), priority ?? DispatcherPriority.Background);
-            await ready.Task.WaitAsync(Timeout);
         }
     }
 

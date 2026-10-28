@@ -43,6 +43,8 @@ internal sealed class DaisyTourAnnotationPresenter : Canvas
     internal DaisyTourEditGeometry? EditGeometry { get; private set; }
     internal Rect? SelectionBounds { get; private set; }
     internal IReadOnlyDictionary<AvaloniaProperty, DaisyTourResolvedValue> ResolvedValues => _resolvedValues;
+    internal Path Body => _body;
+    internal Border ContentHost => _contentHost;
 
     internal DaisyTourAnnotationPresenter()
     {
@@ -57,6 +59,14 @@ internal sealed class DaisyTourAnnotationPresenter : Canvas
         Children.Add(_startHead);
         Children.Add(_endHead);
         Children.Add(_contentHost);
+    }
+
+    // The tour discards its presenters on every step and when it closes. A discarded presenter gives the
+    // annotation's content control back, so the next presenter can show it without "already has a parent".
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        _content.Content = null;
     }
 
     internal void Update(DaisyTourAnnotation annotation, Rect sourceBounds, Rect targetBounds,
@@ -886,11 +896,12 @@ internal sealed class DaisyTourAnnotationPresenter : Canvas
 
     // Rotates and scales a custom course so that it starts at the source and ends at the target.
     // Geometry parsed from path markup does not expose its figures; its contour then gives the course.
-    // A closed contour, such as an ellipse, meets the anchors at the middle of its left and right bounds edges.
+    // A closed geometry without figures, such as an ellipse or markup that ends with Z, meets the anchors
+    // at the middle of its left and right bounds edges.
     private List<Point>? FitCustomRoute(Geometry geometry, Point source, Point target)
     {
         var samples = geometry is PathGeometry { Figures.Count: > 0 } pathGeometry && pathGeometry.Figures![0] is { Segments.Count: > 0 } figure
-            ? Flatten(figure) : ContourSamples(geometry);
+            ? Flatten(figure, geometry.Transform) : ContourSamples(geometry);
         var bounds = geometry.Bounds;
         var from = samples?[0] ?? new Point(bounds.Left, bounds.Top + bounds.Height / 2);
         var to = samples?[^1] ?? new Point(bounds.Right, bounds.Top + bounds.Height / 2);
@@ -931,7 +942,9 @@ internal sealed class DaisyTourAnnotationPresenter : Canvas
     private static Point Transform(Matrix matrix, Point point) =>
         new(point.X * matrix.M11 + point.Y * matrix.M21 + matrix.M31, point.X * matrix.M12 + point.Y * matrix.M22 + matrix.M32);
 
-    private static List<Point> Flatten(PathFigure figure)
+    // The figure is in the geometry's own coordinates; its bounds, its contour and its drawing include the
+    // geometry's transform, so the flattened points take it too.
+    private static List<Point> Flatten(PathFigure figure, Transform? transform)
     {
         var points = new List<Point> { figure.StartPoint };
         foreach (var segment in figure.Segments!)
@@ -957,6 +970,12 @@ internal sealed class DaisyTourAnnotationPresenter : Canvas
                     points.Add(arc.Point);
                     break;
             }
+        }
+        if (transform is { } own)
+        {
+            var matrix = own.Value;
+            for (var index = 0; index < points.Count; index++)
+                points[index] = Transform(matrix, points[index]);
         }
         return points;
     }

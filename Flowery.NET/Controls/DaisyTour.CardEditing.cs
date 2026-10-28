@@ -30,7 +30,7 @@ public sealed partial class DaisyTour
     };
     private readonly DaisyButton _cardToggle = new()
     {
-        Content = new PathIcon { Data = CardToggleIcon(false), Width = 16, Height = 16 }, Variant = DaisyButtonVariant.Ghost,
+        Content = new PathIcon { Width = 16, Height = 16 }, Variant = DaisyButtonVariant.Ghost,
         Shape = DaisyButtonShape.Square, Size = DaisySize.Small,
         IsVisible = false, VerticalAlignment = VerticalAlignment.Top
     };
@@ -43,9 +43,12 @@ public sealed partial class DaisyTour
     private bool CardPositionChanged => _temporaryCardPosition is not null &&
         (Math.Abs(_intendedCardBounds.X - _configuredCardBounds.X) >= 0.5 || Math.Abs(_intendedCardBounds.Y - _configuredCardBounds.Y) >= 0.5);
 
-    // Chevron up folds the card, chevron down unfolds it.
-    private static Geometry? CardToggleIcon(bool collapsed) =>
-        FloweryPathHelpers.GetIconGeometry(collapsed ? "DaisyIconChevronDown" : "DaisyIconChevronUp");
+    // Chevron up folds the card, chevron down unfolds it. Both are parsed once per tour, so a refresh that sets the
+    // same icon changes nothing; static Avalonia objects would be shared across UI threads.
+    private readonly Geometry? _foldCardIcon = FloweryPathHelpers.GetIconGeometry("DaisyIconChevronUp");
+    private readonly Geometry? _unfoldCardIcon = FloweryPathHelpers.GetIconGeometry("DaisyIconChevronDown");
+
+    private Geometry? CardToggleIcon(bool collapsed) => collapsed ? _unfoldCardIcon : _foldCardIcon;
 
     private Grid CreateCardHeader()
     {
@@ -55,6 +58,7 @@ public sealed partial class DaisyTour
         AutomationProperties.SetAutomationId(_cardMove, "DaisyTourMoveCard");
         AutomationProperties.SetAutomationId(_cardSave, "DaisyTourSaveCard");
         AutomationProperties.SetAutomationId(_cardToggle, "DaisyTourToggleCard");
+        if (_cardToggle.Content is PathIcon toggleIcon) toggleIcon.Data = CardToggleIcon(false);
         _cardToggle.Click += OnCardToggle;
         _cardSave.Click += OnCardSave;
         _cardMove.AddHandler(PointerPressedEvent, OnCardMovePressed, RoutingStrategies.Bubble, handledEventsToo: true);

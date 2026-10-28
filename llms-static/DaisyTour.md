@@ -217,7 +217,7 @@ A control point without both coordinates uses the `SCurve` control point.
 The first and last point of its figure meet the anchors, and the stroke keeps its thickness.
 An Avalonia `PathFigure` is closed by default, so a `<PathFigure>` course needs `IsClosed="False"`; otherwise it draws a closing line back to its start.
 Path markup such as `Geometry="M0,0 C20,-30 30,-30 50,0"` works the same way: the ends of its first contour meet the anchors.
-A closed geometry, such as an `EllipseGeometry` or markup that ends with `Z`, meets the anchors at the middle of its left and right bounds edges.
+A closed geometry without figures, such as an `EllipseGeometry` or markup that ends with `Z`, meets the anchors at the middle of its left and right bounds edges; a `PathGeometry` meets them at the first and last point of its first figure, even when that figure is closed.
 `ArrowStyle="Block"` is not applied to `Custom` paths.
 
 ```xml
@@ -299,12 +299,12 @@ In code, bind the text to the indexer of the localization source:
 
 ```csharp
 var step = Tour.Steps[0];
-step.Bind(DaisyTourStep.TitleProperty, new Binding("[Tour_CreateTitle]")
+step.Bind(DaisyTourStep.TitleProperty, new ReflectionBinding("[Tour_CreateTitle]")
 {
     Source = Localization,
     Mode = BindingMode.OneWay
 });
-step.Bind(DaisyTourStep.DescriptionProperty, new Binding("[Tour_CreateDescription]")
+step.Bind(DaisyTourStep.DescriptionProperty, new ReflectionBinding("[Tour_CreateDescription]")
 {
     Source = Localization,
     Mode = BindingMode.OneWay

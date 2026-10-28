@@ -36,7 +36,7 @@ public sealed partial class DaisyTourEditor : ContentControl
     // Icons are parsed once per editor; static Avalonia objects would be shared across UI threads.
     // Swap sides and the minus of a collapsible panel have no DaisyIconSymbol.
     private readonly Geometry _switchIcon = StreamGeometry.Parse("M21,9L17,5V8H10V10H17V13L21,9M7,11L3,15L7,19V16H14V14H7V11Z");
-    private readonly Geometry _removeIcon = StreamGeometry.Parse(FloweryPathHelpers.GetIconPathData("DaisyIconMinus")!);
+    private readonly Geometry _removeIcon = FloweryPathHelpers.GetIconGeometry("DaisyIconMinus")!;
     private readonly Geometry _addIcon = DaisyIconSymbolData.GetGeometry(DaisyIconSymbol.Add);
     private readonly Geometry _moreIcon = DaisyIconSymbolData.GetGeometry(DaisyIconSymbol.More);
     private readonly Geometry _editIcon = DaisyIconSymbolData.GetGeometry(DaisyIconSymbol.Edit);
@@ -479,6 +479,8 @@ public sealed partial class DaisyTourEditor : ContentControl
 
     private void OnResizeStarted(object? sender, VectorEventArgs args)
     {
+        // Another button pressed during a drag starts the thumb again; the drag keeps its start width.
+        if (_resizing) return;
         _resizeStartWidth = _desiredWidth;
         _resizing = true;
     }
@@ -559,19 +561,19 @@ public sealed partial class DaisyTourEditor : ContentControl
             args.Handled = true;
         }
         // The undo and redo gestures of the platform, such as Cmd+Shift+Z on macOS; redo first, as it can include
-        // the undo key. Without platform settings, Ctrl or Cmd with Z and Y.
-        if (Application.Current?.PlatformSettings?.HotkeyConfiguration is { } hotkeys)
+        // the undo key. Every Avalonia platform provides its settings.
+        if (Application.Current?.PlatformSettings?.HotkeyConfiguration is not { } hotkeys) return;
+        if (Matches(hotkeys.Redo, args)) { Redo(); args.Handled = true; }
+        else if (Matches(hotkeys.Undo, args)) { Undo(); args.Handled = true; }
+    }
+
+    private static bool Matches(IEnumerable<KeyGesture> gestures, KeyEventArgs args)
+    {
+        foreach (var gesture in gestures)
         {
-            if (hotkeys.Redo.Any(gesture => gesture.Matches(args))) { Redo(); args.Handled = true; }
-            else if (hotkeys.Undo.Any(gesture => gesture.Matches(args))) { Undo(); args.Handled = true; }
-            return;
+            if (gesture.Matches(args)) return true;
         }
-        var control = (args.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Meta)) != 0;
-        if (control && args.Key is Key.Z or Key.Y)
-        {
-            if (args.Key == Key.Z) Undo(); else Redo();
-            args.Handled = true;
-        }
+        return false;
     }
 
     private void CloseEditor()
@@ -1179,7 +1181,7 @@ public sealed partial class DaisyTourEditor : ContentControl
         _resizeMark.Background = DaisyResourceLookup.GetBrush("DaisyBaseContentBrush");
         Foreground = DaisyResourceLookup.GetBrush("DaisyBaseContentBrush");
         // The theme of the scope sets the system text color, which would hide the Daisy text color inherited from here.
-        _themeScope.SetValue(TextElement.ForegroundProperty, Foreground);
+        TextElement.SetForeground(_themeScope, Foreground);
         var sectionBorder = DaisyResourceLookup.GetBrush("DaisyAccentBrush");
         _scopeSection.BorderBrush = sectionBorder;
         foreach (var section in _fieldsPanel.Children.OfType<DaisyExpander>())

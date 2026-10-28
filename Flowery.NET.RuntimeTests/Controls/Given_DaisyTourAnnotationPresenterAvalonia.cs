@@ -2,10 +2,13 @@
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using Flowery.Controls;
 using Xunit;
+using static Flowery.NET.RuntimeTests.Controls.DaisyTourTestHelpers;
 using Assert = Flowery.NET.RuntimeTests.Controls.MSTestAssert;
 
 namespace Flowery.NET.RuntimeTests.Controls;
@@ -13,8 +16,6 @@ namespace Flowery.NET.RuntimeTests.Controls;
 /// <summary>Covers the presenter and handle code that Avalonia needs differently from WinUI.</summary>
 public class Given_DaisyTourAnnotationPresenterAvalonia
 {
-    private static readonly PointerPointProperties Pressed = new(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
-    private static readonly PointerPointProperties Moved = new(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other);
     private static readonly PointerPointProperties Released = new(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased);
 
     // Avalonia's Measure skips a valid parent whose child changed; without the invalidation, the surface keeps
@@ -38,7 +39,7 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
             var longText = Update(presenter, annotation, 1);
             Assert.IsTrue(longText.Width > shortText.Width && longText.Height > shortText.Height,
                 $"The longer text grows the surface at once: {shortText} -> {longText}.");
-            Assert.AreEqual(longText.Width, ContentHost(presenter).DesiredSize.Width, 0.01);
+            Assert.AreEqual(longText.Width, presenter.ContentHost.DesiredSize.Width, 0.01);
             await RuntimeTestHelpers.WaitForRenderAsync();
 
             annotation.Text = "Short.";
@@ -74,8 +75,7 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
                 Brushes.Red, Brushes.Lime, Brushes.Blue);
             var source = new Point(120, 220);
             var target = new Point(420, 220);
-            var body = (Avalonia.Controls.Shapes.Path)presenter.Children[1];
-            var route = Assert.IsInstanceOfType<GeometryGroup>(body.Data);
+            var route = Assert.IsInstanceOfType<GeometryGroup>(presenter.Body.Data);
             var matrix = route.Transform!.Value;
             Assert.IsTrue(annotation.Geometry!.TryGetPointAtDistance(0, out var start));
             Assert.IsTrue(annotation.Geometry.TryGetPointAtDistance(annotation.Geometry.ContourLength, out var end));
@@ -122,8 +122,7 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
                 };
                 presenter.Update(annotation, new Rect(100, 200, 40, 40), new Rect(400, 200, 40, 40),
                     Brushes.Red, Brushes.Lime, Brushes.Blue);
-                var body = (Avalonia.Controls.Shapes.Path)presenter.Children[1];
-                var route = Assert.IsInstanceOfType<GeometryGroup>(body.Data, $"{name}: the geometry is fitted between the anchors.");
+                var route = Assert.IsInstanceOfType<GeometryGroup>(presenter.Body.Data, $"{name}: the geometry is fitted between the anchors.");
                 var matrix = route.Transform!.Value;
                 var bounds = geometry.Bounds;
                 AssertNear(source, new Point(bounds.Left, bounds.Top + bounds.Height / 2).Transform(matrix),
@@ -142,23 +141,110 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
         }
     }
 
-    // Pointer events raised on the handle itself, without hit testing: they reach the handlers the way Avalonia
-    // routes them, and Avalonia has no canceled pointer event.
+    // The figure of a path geometry is in the geometry's own coordinates; the drawing applies its transform, so the
+    // flattened course must too, or a rotated geometry misses both anchors.
+    [Fact]
+    public async Task When_ACustomPathGeometryHasATransform_ItsCourseMeetsBothAnchors()
+    {
+        var root = new Canvas { Width = 600, Height = 400 };
+        var presenter = new DaisyTourAnnotationPresenter { Width = 600, Height = 400 };
+        root.Children.Add(presenter);
+        var figure = new PathFigure { StartPoint = new Point(0, 0), IsClosed = false };
+        figure.Segments!.Add(new LineSegment { Point = new Point(50, -30) });
+        figure.Segments!.Add(new LineSegment { Point = new Point(100, 0) });
+        var geometry = new PathGeometry { Transform = new RotateTransform(30) };
+        geometry.Figures!.Add(figure);
+        var annotation = new DaisyTourAnnotation
+        {
+            Kind = DaisyTourAnnotationKind.Line, Path = DaisyTourAnnotationPath.Custom, Geometry = geometry,
+            SourceAnchor = DaisyTourAnchor.Center, TargetAnchor = DaisyTourAnchor.Center
+        };
+        var source = new Point(120, 220);
+        var target = new Point(420, 220);
+        try
+        {
+            RuntimeTestHelpers.AttachToHost(root);
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            presenter.Update(annotation, new Rect(100, 200, 40, 40), new Rect(400, 200, 40, 40),
+                Brushes.Red, Brushes.Lime, Brushes.Blue);
+            var route = Assert.IsInstanceOfType<GeometryGroup>(presenter.Body.Data);
+            var drawn = geometry.Transform!.Value * route.Transform!.Value;
+            AssertNear(source, figure.StartPoint.Transform(drawn), "The drawn course starts at the source anchor.");
+            AssertNear(target, new Point(100, 0).Transform(drawn), "The drawn course ends at the target anchor.");
+            AssertNear(source, presenter.Course[0], "The course starts at the source anchor.");
+            AssertNear(target, presenter.Course[^1], "The course ends at the target anchor.");
+        }
+        finally
+        {
+            RuntimeTestHelpers.GetHostPanel().Children.Remove(root);
+            await RuntimeTestHelpers.WaitForRenderAsync();
+        }
+    }
+
+    // Avalonia closes a figure by default; an open course would otherwise draw and hit-test a closing line along the
+    // chord between its ends.
+    [Fact]
+    public async Task When_AConnectorCurvesOrBends_NoClosingLineRunsAlongItsChord()
+    {
+        var root = new Canvas { Width = 600, Height = 400 };
+        var presenter = new DaisyTourAnnotationPresenter { Width = 600, Height = 400 };
+        root.Children.Add(presenter);
+        var paths = new (DaisyTourAnnotationPath Path, double CornerRadius)[]
+        {
+            (DaisyTourAnnotationPath.Curved, double.NaN),
+            (DaisyTourAnnotationPath.Bezier, double.NaN),
+            (DaisyTourAnnotationPath.Elbow, 12)
+        };
+        try
+        {
+            RuntimeTestHelpers.AttachToHost(root);
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            foreach (var (path, radius) in paths)
+            {
+                var annotation = new DaisyTourAnnotation { Kind = DaisyTourAnnotationKind.Line, Path = path, CornerRadius = radius };
+                presenter.Update(annotation, new Rect(100, 100, 40, 40), new Rect(400, 300, 40, 40),
+                    Brushes.Red, Brushes.Lime, Brushes.Blue);
+                var course = presenter.Course;
+                var chord = Lerp(course[0], course[^1], 0.25);
+                var pen = new Pen(Brushes.Red, presenter.Body.StrokeThickness);
+                Assert.IsFalse(presenter.Body.Data!.StrokeContains(pen, chord), $"{path}: no closing line runs along the chord.");
+                Assert.IsTrue(presenter.Body.Data.StrokeContains(pen, course[course.Count / 2]), $"{path}: the stroke follows the course.");
+            }
+        }
+        finally
+        {
+            RuntimeTestHelpers.GetHostPanel().Children.Remove(root);
+            await RuntimeTestHelpers.WaitForRenderAsync();
+        }
+    }
+
+    [Fact]
+    public Task When_AConnectorIsEdited_ItsHitPathDoesNotCoverTheChord() =>
+        InEditorAsync((editor, tour) =>
+        {
+            var course = tour.AnnotationPresenters[0].Course;
+            var hitPath = editor.HandleLayer.Children.OfType<Avalonia.Controls.Shapes.Path>().Single(path => path.Tag is 0);
+            var pen = new Pen(Brushes.Transparent, hitPath.StrokeThickness);
+            Assert.IsFalse(hitPath.Data!.StrokeContains(pen, Lerp(course[0], course[^1], 0.25)), "The hit area ends at the course ends.");
+            Assert.IsTrue(hitPath.Data.StrokeContains(pen, course[course.Count / 2]), "The hit area follows the course.");
+            return Task.CompletedTask;
+        });
+
+    // A real press hits the handle's template part, which takes the pointer first; the handle then takes it over.
     [Fact]
     public Task When_AHandleIsDraggedWithThePointer_TheDragIsOneUndoActionWithTheFinalValue() =>
         InEditorAsync(async (editor, tour) =>
         {
-            var (handle, layer, origin) = CurvatureHandle(editor);
+            var handle = Handle(editor, "DaisyTourHandleCurvature");
             var geometry = tour.AnnotationPresenters[0].EditGeometry!;
             var before = editor.ExportJson();
-            var pointer = new Pointer(Pointer.GetNextFreeId(), PointerType.Mouse, true);
-            handle.RaiseEvent(new PointerPressedEventArgs(handle, pointer, layer, origin, 0, Pressed, KeyModifiers.None, 1));
-            Move(handle, pointer, layer, origin + new Point(0, 10));
-            Move(handle, pointer, layer, origin + new Point(0, 24));
-            handle.RaiseEvent(new PointerReleasedEventArgs(handle, pointer, layer, origin + new Point(0, 24), 0, Released,
-                KeyModifiers.None, MouseButton.Left));
+            var (root, start, pointer) = PressAtCenter(handle, PointerType.Mouse);
+            Assert.AreSame(handle, pointer.Captured, "The handle takes the pointer over from its template part.");
+            MoveCaptured(pointer, root, start + new Point(0, 10));
+            MoveCaptured(pointer, root, start + new Point(0, 24));
+            ReleaseCaptured(pointer, root, start + new Point(0, 24));
             await RuntimeTestHelpers.WaitForRenderAsync();
-            Assert.AreEqual(DaisyTourHandleLayer.ProjectCurvature(origin + new Point(0, 24), geometry, origin), Curvature(editor), 0.001);
+            Assert.AreEqual(DaisyTourHandleLayer.ProjectCurvature(start + new Point(0, 24), geometry, start), Curvature(editor), 0.001);
             var after = editor.ExportJson();
             Assert.AreNotEqual(before, after);
             editor.Undo();
@@ -171,26 +257,126 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
     public Task When_TheCaptureIsLostDuringADrag_TheDragEndsAtTheLastMovedPoint() =>
         InEditorAsync(async (editor, tour) =>
         {
-            var (handle, layer, origin) = CurvatureHandle(editor);
+            var handle = Handle(editor, "DaisyTourHandleCurvature");
             var geometry = tour.AnnotationPresenters[0].EditGeometry!;
             var before = editor.ExportJson();
-            var pointer = new Pointer(Pointer.GetNextFreeId(), PointerType.Mouse, true);
-            handle.RaiseEvent(new PointerPressedEventArgs(handle, pointer, layer, origin, 0, Pressed, KeyModifiers.None, 1));
+            var (root, start, pointer) = PressAtCenter(handle, PointerType.Mouse);
             Assert.AreSame(handle, pointer.Captured, "The handle captures the pointer.");
-            Move(handle, pointer, layer, origin + new Point(0, 18));
+            MoveCaptured(pointer, root, start + new Point(0, 18));
             pointer.Capture(null);
             await RuntimeTestHelpers.WaitForRenderAsync();
-            Assert.AreEqual(DaisyTourHandleLayer.ProjectCurvature(origin + new Point(0, 18), geometry, origin), Curvature(editor), 0.001);
+            Assert.AreEqual(DaisyTourHandleLayer.ProjectCurvature(start + new Point(0, 18), geometry, start), Curvature(editor), 0.001);
             // A release that still arrives belongs to no drag.
-            handle.RaiseEvent(new PointerReleasedEventArgs(handle, pointer, layer, origin + new Point(0, 40), 0, Released,
+            handle.RaiseEvent(new PointerReleasedEventArgs(handle, pointer, root, start + new Point(0, 40), 0, Released,
                 KeyModifiers.None, MouseButton.Left));
-            Assert.AreEqual(DaisyTourHandleLayer.ProjectCurvature(origin + new Point(0, 18), geometry, origin), Curvature(editor), 0.001);
+            Assert.AreEqual(DaisyTourHandleLayer.ProjectCurvature(start + new Point(0, 18), geometry, start), Curvature(editor), 0.001);
             editor.Undo();
             Assert.AreEqual(before, editor.ExportJson(), "The drag that ended with the capture is one undo action.");
         });
 
-    private static void Move(Button handle, IPointer pointer, Visual layer, Point point) =>
-        handle.RaiseEvent(new PointerEventArgs(InputElement.PointerMovedEvent, handle, pointer, layer, point, 0, Moved, KeyModifiers.None));
+    // Without the check, the second finger's press restarts the drag on its own handle, and the first finger then moves
+    // that handle from the second finger's origin.
+    [Fact]
+    public Task When_ASecondPointerPressesDuringADrag_TheFirstDragKeepsItsHandle() =>
+        InEditorAsync(async (editor, tour) =>
+        {
+            var curvature = Handle(editor, "DaisyTourHandleCurvature");
+            var other = Handle(editor, "DaisyTourHandleSource");
+            var geometry = tour.AnnotationPresenters[0].EditGeometry!;
+            var before = editor.ExportJson();
+            var (root, start, first) = PressAtCenter(curvature, PointerType.Touch);
+            MoveCaptured(first, root, start + new Point(0, 10));
+            var (_, otherStart, second) = PressAtCenter(other, PointerType.Touch);
+            MoveCaptured(second, root, otherStart + new Point(30, 30));
+            MoveCaptured(first, root, start + new Point(0, 24));
+            ReleaseCaptured(first, root, start + new Point(0, 24));
+            ReleaseCaptured(second, root, otherStart + new Point(30, 30));
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            var style = editor.DraftProfile!.Steps.Single().Annotations.Single().Style!.Values;
+            Assert.AreEqual(DaisyTourHandleLayer.ProjectCurvature(start + new Point(0, 24), geometry, start), style.Curvature!.Value, 0.001,
+                "The first finger keeps dragging the curvature from its own origin.");
+            Assert.IsNull(style.SourceAnchor, "The second finger does not move the source end.");
+            Assert.IsNull(style.SourceOffsetX);
+            editor.Undo();
+            Assert.AreEqual(before, editor.ExportJson(), "The first drag is one undo action.");
+        });
+
+    // The arrow keys move a focused handle by 1 DIP, or by 10 DIP with Shift; each key press is one undo action.
+    [Fact]
+    public Task When_AFocusedHandleIsNudgedWithTheArrowKeys_ShiftMovesItTenTimesFurther() =>
+        InEditorAsync(async (editor, tour) =>
+        {
+            var handle = Handle(editor, "DaisyTourHandleCurvature");
+            var geometry = tour.AnnotationPresenters[0].EditGeometry!;
+            var before = editor.ExportJson();
+            var origin = new Point(0, 0);
+            Assert.IsTrue(handle.Focus());
+
+            Nudge(handle, KeyModifiers.None);
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            Assert.AreEqual(DaisyTourHandleLayer.ProjectCurvature(origin + new Point(1, 0), geometry, origin), Curvature(editor), 0.001);
+            editor.Undo();
+            Assert.AreEqual(before, editor.ExportJson(), "One key press is one undo action.");
+            await RuntimeTestHelpers.WaitForRenderAsync();
+
+            Nudge(handle, KeyModifiers.Shift);
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            Assert.AreEqual(DaisyTourHandleLayer.ProjectCurvature(origin + new Point(10, 0), geometry, origin), Curvature(editor), 0.001);
+            editor.Undo();
+            Assert.AreEqual(before, editor.ExportJson(), "One key press with Shift is one undo action.");
+        });
+
+    // The tour discards its presenters on every step and when it closes; an annotation's content control must leave
+    // the discarded presenter, or showing its step again throws because the control already has a parent.
+    [Fact]
+    public async Task When_AStepWithAnnotationContentIsShownAgain_TheContentMovesToTheNewPresenter()
+    {
+        var first = CreateTarget(new Thickness(40, 40, 0, 0));
+        var second = CreateTarget(new Thickness(320, 220, 0, 0));
+        var content = new TextBlock { Text = "Live content" };
+        var withContent = new DaisyTourStep { Id = "content", Target = first, Title = "Content", Description = "An annotation with a control." };
+        withContent.Annotations.Add(new DaisyTourAnnotation { Id = "note", Kind = DaisyTourAnnotationKind.SpeechBubble, Content = content });
+        var tour = new DaisyTour();
+        tour.Steps.Add(withContent);
+        tour.Steps.Add(new DaisyTourStep { Id = "next", Target = second, Title = "Next", Description = "Another step." });
+        var root = CreateRoot(tour, first, second);
+        var closed = new List<DaisyTourClosedEventArgs>();
+        tour.Closed += (_, args) => closed.Add(args);
+        try
+        {
+            RuntimeTestHelpers.AttachToHost(root);
+            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(TestTimeout);
+            await tour.StartAsync().WaitAsync(TestTimeout);
+            await ArrangeAsync(root);
+            AssertShown(tour, content, "first visit");
+
+            await tour.NextAsync().WaitAsync(TestTimeout);
+            await tour.BackAsync().WaitAsync(TestTimeout);
+            await ArrangeAsync(root);
+            Assert.IsTrue(tour.IsOpen, "Going back to the step keeps the tour open.");
+            Assert.AreEqual(0, tour.CurrentIndex);
+            AssertShown(tour, content, "after Back");
+
+            tour.Cancel();
+            closed.Clear();
+            await tour.StartAsync().WaitAsync(TestTimeout);
+            await ArrangeAsync(root);
+            Assert.IsTrue(tour.IsOpen, "Replaying keeps the tour open.");
+            AssertShown(tour, content, "after a replay");
+            Assert.AreEqual(0, closed.Count, "The replay does not close with an error.");
+        }
+        finally { await CleanupAsync(root, tour); }
+    }
+
+    private static void AssertShown(DaisyTour tour, Control content, string visit)
+    {
+        var presenter = tour.AnnotationPresenters.Single();
+        Assert.IsTrue(presenter.ContentHost.IsVisualAncestorOf(content), $"{visit}: the current presenter shows the content control.");
+        Assert.IsNotNull(TopLevel.GetTopLevel(content), $"{visit}: the content control is in the window.");
+    }
+
+    private static void Nudge(Button handle, KeyModifiers modifiers) =>
+        handle.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Right, KeyModifiers = modifiers, Source = handle });
 
     private static Rect Update(DaisyTourAnnotationPresenter presenter, DaisyTourAnnotation annotation, double scale)
     {
@@ -200,7 +386,8 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
         return presenter.SelectionBounds!.Value;
     }
 
-    private static Border ContentHost(DaisyTourAnnotationPresenter presenter) => (Border)presenter.Children[4];
+    private static Point Lerp(Point from, Point to, double amount) =>
+        new(from.X + (to.X - from.X) * amount, from.Y + (to.Y - from.Y) * amount);
 
     private static void AssertNear(Point expected, Point actual, string message)
     {
@@ -208,12 +395,11 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
         Assert.AreEqual(expected.Y, actual.Y, 0.5, message);
     }
 
-    private static (Button Handle, DaisyTourHandleLayer Layer, Point Origin) CurvatureHandle(DaisyTourEditor editor)
+    private static Button Handle(DaisyTourEditor editor, string automationId)
     {
-        var layer = editor.HandleLayer;
-        var handle = layer.Children.OfType<Button>().Single(button => AutomationProperties.GetAutomationId(button) == "DaisyTourHandleCurvature");
-        Assert.IsTrue(handle.IsVisible);
-        return (handle, layer, new Point(Canvas.GetLeft(handle) + handle.Width / 2, Canvas.GetTop(handle) + handle.Height / 2));
+        var handle = editor.HandleLayer.Children.OfType<Button>().Single(button => AutomationProperties.GetAutomationId(button) == automationId);
+        Assert.IsTrue(handle.IsVisible, $"{automationId} is shown.");
+        return handle;
     }
 
     private static double Curvature(DaisyTourEditor editor) =>

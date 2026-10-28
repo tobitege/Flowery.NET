@@ -85,15 +85,15 @@ public class Given_DaisyExpander
         var expander = new DaisyExpander { Header = "Section", Content = first };
         await RuntimeTestHelpers.AttachAsync(expander);
         Assert.Same(first, expander.ExpanderContent);
-        Assert.Same(first, ContentBorder(expander, first).Child is ContentPresenter { Child: { } shown } ? shown : null);
-        Assert.NotNull(HeaderButton(expander));
+        Assert.Same(first, ((ContentPresenter)ContentBorder(expander, first).Child!).Child);
+        Assert.Single(expander.GetVisualDescendants().OfType<Button>());
 
         var second = new TextBlock { Text = "Second" };
         expander.ExpanderContent = second;
         await RuntimeTestHelpers.WaitForRenderAsync();
         Assert.Same(second, expander.Content);
-        Assert.Same(second, ContentBorder(expander, second).Child is ContentPresenter { Child: { } replaced } ? replaced : null);
-        Assert.NotNull(HeaderButton(expander));
+        Assert.Same(second, ((ContentPresenter)ContentBorder(expander, second).Child!).Child);
+        Assert.Single(expander.GetVisualDescendants().OfType<Button>());
         Assert.Null(first.Parent);
     }
 
@@ -150,6 +150,57 @@ public class Given_DaisyExpander
     }
 
     [Fact]
+    public async Task When_Header_Colors_Are_Set_Before_And_After_The_Template_Is_Built_The_Header_Shows_Them()
+    {
+        var expander = new DaisyExpander { Header = "Section", HeaderBackground = Brushes.Blue, HeaderForeground = Brushes.Orange };
+        await RuntimeTestHelpers.AttachAsync(expander);
+        var chevron = (Path)Chevron(expander).Child!;
+        Assert.Same(Brushes.Blue, HeaderButton(expander).Background);
+        Assert.Same(Brushes.Orange, chevron.Fill);
+
+        expander.HeaderBackground = Brushes.Green;
+        expander.HeaderForeground = Brushes.Purple;
+        Assert.Same(Brushes.Green, HeaderButton(expander).Background);
+        Assert.Same(Brushes.Purple, chevron.Fill);
+    }
+
+    [Fact]
+    public async Task When_High_Contrast_Is_On_The_Header_Uses_The_Contrast_Colors_And_Returns_Afterwards()
+    {
+        var previous = DaisyAccessibility.HighContrastOverride;
+        var expander = new DaisyExpander
+        {
+            Header = "Section", ExpanderContent = new TextBlock { Text = "Body" }, HeaderBackground = Brushes.Blue,
+            BorderBrush = Brushes.Red, BorderThickness = new Thickness(0, 1, 0, 0)
+        };
+        try
+        {
+            await RuntimeTestHelpers.AttachAsync(expander);
+            DaisyAccessibility.HighContrastOverride = true;
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            var border = HeaderBorder(expander);
+            Assert.Same(DaisyResourceLookup.GetBrush("DaisyBaseContentBrush"), border.BorderBrush);
+            Assert.Equal(new Thickness(1), border.BorderThickness);
+            Assert.Same(DaisyResourceLookup.GetBrush("DaisyBase100Brush"), HeaderButton(expander).Background);
+            // In contrast mode the chevron takes the color of the header text.
+            var chevron = (Path)Chevron(expander).Child!;
+            HeaderPresenter(expander).Foreground = Brushes.Red;
+            Assert.Same(Brushes.Red, chevron.Fill);
+
+            DaisyAccessibility.HighContrastOverride = false;
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            Assert.Same(Brushes.Red, border.BorderBrush);
+            Assert.Equal(new Thickness(0, 1, 0, 0), border.BorderThickness);
+            Assert.Same(Brushes.Blue, HeaderButton(expander).Background);
+        }
+        finally
+        {
+            DaisyAccessibility.HighContrastOverride = previous;
+            await RuntimeTestHelpers.WaitForRenderAsync();
+        }
+    }
+
+    [Fact]
     public async Task When_The_Expander_Unloads_It_Leaves_The_Theme_Events()
     {
         var expander = new DaisyExpander { Header = "Section" };
@@ -167,7 +218,10 @@ public class Given_DaisyExpander
         expander.GetVisualDescendants().OfType<Button>().First();
 
     private static ContentPresenter HeaderPresenter(DaisyExpander expander) =>
-        HeaderButton(expander).GetVisualDescendants().OfType<ContentPresenter>().Single(presenter => presenter.Content is not Grid && presenter.Child is not Grid);
+        HeaderButton(expander).GetVisualDescendants().OfType<ContentPresenter>().Single(presenter => presenter.Content is not Grid);
+
+    private static Border HeaderBorder(DaisyExpander expander) =>
+        expander.GetVisualDescendants().OfType<Border>().First(border => border.Child is Button);
 
     private static Viewbox Chevron(DaisyExpander expander) =>
         expander.GetVisualDescendants().OfType<Viewbox>().Single();
