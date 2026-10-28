@@ -302,7 +302,10 @@ pwsh ./scripts/run_browser.ps1
 > If you are sensitive to flashing lights, for example because of photosensitive epilepsy, do not watch the window while the tests run.
 > Place it on a monitor outside your field of view with `-Monitor`, or let CI run the suite.
 
-Runs the runtime UI tests in a real desktop window on Windows. Requires native PowerShell 7.
+Runs the runtime UI tests in a real desktop window on Windows, Linux or macOS. Requires PowerShell 7.
+Linux needs a display; CI runs the script under `xvfb-run`.
+The projects build `net10.0-windows` on Windows and `net10.0` elsewhere.
+The glass tests that compare screenshots of `WindowsScreenCapture` (`Native/Given_GlassBackdrop.Screen.cs`) are part of the Windows build only.
 
 The script builds `Flowery.NET.RuntimeTests.Runner`, which also builds the test host `Flowery.NET.RuntimeTests`.
 The runner starts the host with `--runtime-tests <report.xml>`.
@@ -333,7 +336,7 @@ pwsh ./scripts/test_runtime.ps1 -SkipBuild -TestFilter Given_GlassBackdrop
 | `-Configuration` | string | `Debug` | Build configuration (`Debug` or `Release`) |
 | `-SkipBuild` | switch | off | Use the existing build output |
 | `-TestFilter` | string | none | Run only tests whose full name contains this text (case-insensitive) |
-| `-Monitor` | int | `0` | Place the window on `\\.\DISPLAY<n>`; `0` centers it on the primary screen at up to 1280 × 900 DIPs |
+| `-Monitor` | int | `0` | Place the window on `\\.\DISPLAY<n>` (Windows only); `0` centers it on the primary screen at up to 1280 × 900 DIPs |
 | `-WindowRegion` | string | `Full` | `Full`, `UpperHalf` or `LowerHalf` of the monitor's work area |
 
 The window is at most 1920 × 1080 DIPs, the room of a 1080p screen at 100% scaling.
@@ -354,7 +357,32 @@ A nonzero exit code means that at least one test failed, timed out or did not ru
 
 The tests do not access the clipboard or move other application windows.
 Some glass tests take screenshots of the test window and set it topmost for that moment.
-The suite supplements the headless tests in `Flowery.NET.Tests`; it does not test screenreader speech or other operating systems.
+The suite supplements the headless tests in `Flowery.NET.Tests`; it does not test screenreader speech.
+
+## CI start checks
+
+The CI workflow (`.github/workflows/ci.yml`) starts the published apps with these Python scripts.
+`ci_png.py` reads the pixels of their PNG screenshots with the Python standard library.
+
+| Script | App | What it checks |
+| --- | --- | --- |
+| `check_browser_gallery.py` | Browser Gallery, served from the published `wwwroot` in headless Chromium (Playwright) | The home page renders, the Button page opens from the sidebar, the Cupcake theme and the Extra Large size apply, and the browser logs no errors |
+| `check_android_gallery.py` | Android Gallery (`android-x64`) on an emulator (API 35, x86_64) | The APK installs, the home page shows, the Button page opens from the sidebar, the Cupcake theme applies, and logcat reports no crash |
+| `check_photos_app.py` | Published Flowery Photos on Windows, Linux (Xvfb with openbox) and macOS | A photo opens, rotates and saves as a copy; after a restart the copy opens, rotates and saves again, and the window keeps the size it had when it closed |
+
+The Browser and Android checks find their controls at fixed positions or through `uiautomator` and compare screenshots; the Photos check sends keys to the app (R, Ctrl+S) and resizes and closes its window through the platform (Win32, xdotool and wmctrl, or System Events).
+Each writes its screenshots and logs to `--output`, which the workflow uploads when the check fails (logcat always).
+The Photos check sends real keystrokes to the foreground window, so run it locally only in a session nobody uses, such as the Docker Linux desktop.
+
+```powershell
+# Browser Gallery, after dotnet publish Flowery.NET.Gallery.Browser -c Release -o bin/browser-publish
+python -m pip install playwright==1.64.0
+python -m playwright install chromium-headless-shell
+python scripts/check_browser_gallery.py --site bin/browser-publish/wwwroot --output artifacts/browser
+
+# Android Gallery on a running emulator (ANDROID_SERIAL picks one of several)
+python scripts/check_android_gallery.py --apk <published>/com.CompanyName.Flowery.NET.Gallery-Signed.apk --output artifacts/android
+```
 
 ## test_packages.ps1
 
