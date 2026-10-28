@@ -35,7 +35,6 @@ GitHub Pages Setup:
 
 import argparse
 import re
-import secrets
 import shutil
 from html import unescape
 from pathlib import Path
@@ -124,12 +123,14 @@ class MarkdownToHtml:
     def __init__(self):
         self.pages = {}
         self._trusted_html: list[str] = []
-        self._trusted_token = secrets.token_hex(8)
 
     def trusted(self, html: str) -> str:
-        """Return a placeholder that convert() replaces with this generator-made HTML as it is."""
+        """Return a placeholder that convert() replaces with this generator-made HTML as it is.
+
+        A doc that writes such a placeholder itself only repeats HTML the generator made.
+        """
         self._trusted_html.append(html)
-        return f'__TRUSTED_{self._trusted_token}_{len(self._trusted_html) - 1}__'
+        return f'__TRUSTED_HTML_{len(self._trusted_html) - 1}__'
 
     def convert(self, markdown: str, depth: int = 1) -> str:
         """Convert markdown to HTML.
@@ -161,13 +162,13 @@ class MarkdownToHtml:
         html = self._sanitize_html(html)
         html = self._convert_markdown(html, depth, inline_codes)
 
-        html = self._restore_inline_codes(html, inline_codes)
+        html = self._restore(html, '__INLINE_CODE_', inline_codes)
 
         # Restore code blocks
         for i, block in enumerate(code_blocks):
             html = html.replace(f'__CODE_BLOCK_{i}__', block)
 
-        return re.sub(rf'__TRUSTED_{self._trusted_token}_(\d+)__', lambda m: self._trusted_html[int(m.group(1))], html)
+        return self._restore(html, '__TRUSTED_HTML_', self._trusted_html)
 
     def _convert_markdown(self, html: str, depth: int, inline_codes: list[str]) -> str:
         """Convert the markdown rules of sanitized text, with code still in placeholders."""
@@ -212,7 +213,7 @@ class MarkdownToHtml:
         # Headers
         def heading(match):
             level, title = len(match.group(1)), match.group(2)
-            text = unescape(re.sub(r'<[^>]+>', '', self._restore_inline_codes(title, inline_codes)))
+            text = unescape(re.sub(r'<[^>]+>', '', self._restore(title, '__INLINE_CODE_', inline_codes)))
             slug = re.sub(r'[^\w -]', '', text).strip().lower().replace(' ', '-')
             return f'<h{level} id="{slug}">{title}</h{level}>'
         html = re.sub(r'^(#{1,6}) (.+)$', heading, html, flags=re.MULTILINE)
@@ -249,7 +250,7 @@ class MarkdownToHtml:
         result = []
         for line in lines:
             stripped = line.strip()
-            if stripped and not stripped.startswith(('<', '__CODE_BLOCK_', f'__TRUSTED_{self._trusted_token}_')):
+            if stripped and not stripped.startswith(('<', '__CODE_BLOCK_', '__TRUSTED_HTML_')):
                 result.append(f'<p>{stripped}</p>')
             else:
                 result.append(line)
@@ -261,8 +262,12 @@ class MarkdownToHtml:
         return html
 
     @staticmethod
-    def _restore_inline_codes(html: str, inline_codes: list[str]) -> str:
-        return re.sub(r'__INLINE_CODE_(\d+)__', lambda m: inline_codes[int(m.group(1))], html)
+    def _restore(html: str, prefix: str, items: list[str]) -> str:
+        """Replace each placeholder prefix + index + '__' with its item; one without an item stays text."""
+        def item(m):
+            index = int(m.group(1))
+            return items[index] if index < len(items) else m.group(0)
+        return re.sub(rf'{prefix}(\d+)__', item, html)
 
     def _sanitize_html(self, text: str) -> str:
         """Escape HTML outside code, keeping the tags of ALLOWED_TAGS and dropping comments."""
@@ -345,7 +350,7 @@ class MarkdownToHtml:
     @staticmethod
     def _has_placeholder(value: str) -> bool:
         """Code or trusted HTML restored into an attribute could end it with a quote, so attributes take none."""
-        return re.search(r'__(?:CODE_BLOCK|INLINE_CODE|TRUSTED)_', value) is not None
+        return re.search(r'__(?:CODE_BLOCK|INLINE_CODE|TRUSTED_HTML)_', value) is not None
 
     @staticmethod
     def _escape_attribute(value: str) -> str:

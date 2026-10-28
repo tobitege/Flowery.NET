@@ -6,9 +6,8 @@ Hidden characters can make text read differently than it looks: bidirectional co
 docs/llms.txt for AI assistants. Emoji stay allowed: their joiners and the tags of subdivision flags
 pass inside an emoji sequence only.
 
-Usage (from the repository root):
-    python Utils/check_characters.py              # the tracked documentation files
-    python Utils/check_characters.py PATH [...]   # files, or the text files below folders
+Usage: python Utils/check_characters.py
+It checks the text files of the documentation that git tracks; add a new file with git add first.
 """
 
 import subprocess
@@ -86,24 +85,13 @@ def check_file(path: Path) -> list[str]:
 
 
 def documentation_files() -> list[Path]:
+    """The tracked text files of the documentation."""
     output = subprocess.run(['git', 'ls-files', '-z', '--', *DOCUMENTATION], cwd=ROOT, check=True,
                             capture_output=True).stdout.decode('utf-8')
-    return [ROOT / name for name in output.split('\0') if name]
+    return [ROOT / name for name in output.split('\0') if name and Path(name).suffix.lower() in TEXT_SUFFIXES]
 
 
-def text_files(paths: list[Path]) -> list[Path]:
-    files = []
-    for path in paths:
-        if path.is_dir():
-            files.extend(sorted(child for child in path.rglob('*') if child.is_file()))
-        else:
-            files.append(path)
-    return [path for path in files if path.suffix.lower() in TEXT_SUFFIXES]
-
-
-def main(arguments: list[str]) -> int:
-    paths = [Path(argument) for argument in arguments] if arguments else documentation_files()
-    files = text_files(paths)
+def report(files: list[Path]) -> int:
     problems = [problem for path in files for problem in check_file(path)]
     for problem in problems:
         print(problem)
@@ -112,4 +100,4 @@ def main(arguments: list[str]) -> int:
 
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(report(documentation_files()))

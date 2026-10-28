@@ -10,7 +10,7 @@ import unicodedata
 from pathlib import Path
 import unittest
 
-from check_characters import EMOJI_BLOCKS, ROOT, check_file, documentation_files, find_problems, main
+from check_characters import EMOJI_BLOCKS, ROOT, check_file, documentation_files, find_problems, report
 
 ZWJ = chr(0x200D)
 VS16 = chr(0xFE0F)
@@ -65,20 +65,20 @@ class CharacterCheckTests(unittest.TestCase):
 
     def test_files_and_exit_code(self):
         with tempfile.TemporaryDirectory() as folder, contextlib.redirect_stdout(io.StringIO()):
-            folder = Path(folder)
-            (folder / 'clean.md').write_text('Clean ' + text(0x1F33C), encoding='utf-8')
-            (folder / 'image.png').write_bytes(bytes([0x89, 0x50, 0x4E, 0x47, 0x00, 0xFF]))
-            self.assertEqual(0, main([str(folder)]))
-            (folder / 'broken.md').write_bytes(b'caf\xe9')
-            self.assertIn('not UTF-8', check_file(folder / 'broken.md')[0])
-            (folder / 'hidden.py').write_text('x = 1' + chr(0x202E), encoding='utf-8')
-            self.assertEqual(1, main([str(folder)]))
+            clean, broken, hidden = Path(folder) / 'clean.md', Path(folder) / 'broken.md', Path(folder) / 'hidden.py'
+            clean.write_text('Clean ' + text(0x1F33C), encoding='utf-8')
+            broken.write_bytes(b'caf\xe9')
+            hidden.write_text('x = 1' + chr(0x202E), encoding='utf-8')
+            self.assertEqual(0, report([clean]))
+            self.assertIn('not UTF-8', check_file(broken)[0])
+            self.assertEqual(1, report([clean, hidden]))
 
-    def test_documentation_files_are_the_tracked_docs(self):
+    def test_documentation_files_are_the_tracked_text_docs(self):
         files = set(documentation_files())
         for name in ('README.md', 'CHANGELOG.md', 'llms-static/DaisyInput.md', 'Utils/generate_site.py'):
             self.assertIn(ROOT / name, files)
-        self.assertNotIn(ROOT / 'Flowery.NET/Controls/DaisyInput.cs', files)
+        for name in ('Flowery.NET/Controls/DaisyInput.cs', 'llms-static/images/DaisyButton.png'):
+            self.assertNotIn(ROOT / name, files)
 
 
 if __name__ == '__main__':

@@ -162,10 +162,10 @@ class SiteEscapingTests(unittest.TestCase):
         self.assertIn('&lt;b&gt;bold&lt;/b&gt;', alert)
         self.assertIn('<code>List&lt;T&gt;</code>', alert)
         token = self.converter.trusted('<div class="tabbed-gallery"><input type="radio"></div>')
-        html = self.converter.convert(f'## Overview\n{token}\n__TRUSTED_0000000000000000_0__')
+        html = self.converter.convert(f'## Overview\n{token}\n__TRUSTED_HTML_9__ __INLINE_CODE_9__')
         self.assertIn('<div class="tabbed-gallery"><input type="radio"></div>', html)
         self.assertNotIn(f'<p>{token}', html)
-        self.assertIn('__TRUSTED_0000000000000000_0__', html)
+        self.assertIn('__TRUSTED_HTML_9__ __INLINE_CODE_9__', html)
 
 
 if __name__ == '__main__':

@@ -177,7 +177,7 @@ Best practices:
 
 A pull request that changes only documentation (Markdown files, `llms-static/` and the docs tooling in `Utils/`) skips the CI build and the dependency audit. `.github/workflows/docs.yml` checks it instead:
 
-1) `python Utils/check_characters.py` fails on characters that do not print, such as bidirectional controls, zero-width characters and Unicode tags, except inside emoji. Without arguments it checks the tracked documentation files; it also takes files or folders.
+1) `python Utils/check_characters.py` fails on characters that do not print, such as bidirectional controls, zero-width characters and Unicode tags, except inside emoji. It checks the documentation files that git tracks, so add a new file with `git add` first.
 2) `generate_docs.py` and `generate_site.py` build the docs and the site as `generate-docs.yml` does.
 3) `test_documentation.py` and `test_check_characters.py` run.
 
