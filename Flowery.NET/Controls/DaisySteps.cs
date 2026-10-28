@@ -278,6 +278,11 @@ namespace Flowery.Controls
             set => SetValue(SizeProperty, value);
         }
 
+        // Compact items show the indicator without the label row, such as the progress of a DaisyTour.
+        internal bool IsCompact { get; set; }
+        // A button over the item, so the step can be selected with the pointer and the keyboard.
+        internal Button? NavigationButton { get; init; }
+
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
@@ -293,11 +298,29 @@ namespace Flowery.Controls
         {
             base.OnApplyTemplate(e);
             UpdatePseudoClasses();
+            if (IsCompact && e.NameScope.Find<Border>("PART_HCircle") is { } circle &&
+                e.NameScope.Find<Grid>("PART_HorizontalLayout") is { } layout)
+            {
+                // The connector lines keep 4 DIP on either side of the indicator, once its size resource resolves.
+                if (double.IsFinite(circle.Width)) layout.MinWidth = circle.Width + 8;
+                circle.PropertyChanged += (_, args) =>
+                {
+                    if (args.Property == WidthProperty && double.IsFinite(circle.Width)) layout.MinWidth = circle.Width + 8;
+                };
+            }
+            if (NavigationButton is { } button && VisualChildren.Count > 0 && VisualChildren[0] is Panel root)
+            {
+                (button.Parent as Panel)?.Children.Remove(button);
+                button.HorizontalAlignment = HorizontalAlignment.Stretch;
+                button.VerticalAlignment = VerticalAlignment.Stretch;
+                root.Children.Add(button);
+            }
         }
 
         private void UpdatePseudoClasses()
         {
             PseudoClasses.Set(":active", IsActive);
+            PseudoClasses.Set(":compact", IsCompact);
             PseudoClasses.Set(":neutral", Color == DaisyStepColor.Neutral);
             PseudoClasses.Set(":primary", Color == DaisyStepColor.Primary);
             PseudoClasses.Set(":secondary", Color == DaisyStepColor.Secondary);

@@ -45,6 +45,55 @@ internal static class RuntimeTestHelpers
     }
 
     /// <summary>
+    /// Replaces the host panel's content with <paramref name="element"/> and runs layout, without waiting for a frame.
+    /// </summary>
+    public static void AttachToHost(Control element)
+    {
+        var hostPanel = GetHostPanel();
+        hostPanel.Children.Clear();
+        hostPanel.Children.Add(element);
+        element.UpdateLayout();
+    }
+
+    /// <summary>Completes once <paramref name="element"/> has raised its Loaded event, or at once when it is loaded.</summary>
+    public static Task EnsureLoadedAsync(Control element)
+    {
+        if (element.IsLoaded)
+            return Task.CompletedTask;
+
+        var loaded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs args)
+        {
+            element.Loaded -= OnLoaded;
+            loaded.TrySetResult();
+        }
+        element.Loaded += OnLoaded;
+        return loaded.Task;
+    }
+
+    /// <summary>Runs one case of a table-driven test; a failure or an exception names the case.</summary>
+    public static async Task RunCaseAsync(string name, Func<Task> body, TimeSpan? timeout = null)
+    {
+        try { await body().WaitAsync(timeout ?? TimeSpan.FromSeconds(30)); }
+        catch (Exception error) when (!error.Message.StartsWith("$XunitDynamicSkip$", StringComparison.Ordinal))
+        {
+            throw new Xunit.Sdk.XunitException($"{name}: {error.Message}", error);
+        }
+    }
+
+    /// <summary>Polls <paramref name="condition"/> on the UI thread until it holds.</summary>
+    public static async Task WaitUntilAsync(Func<bool> condition, string description, TimeSpan? timeout = null)
+    {
+        var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromSeconds(5));
+        while (!condition())
+        {
+            if (DateTime.UtcNow > deadline)
+                throw new TimeoutException($"Timed out waiting until {description}.");
+            await Task.Delay(16);
+        }
+    }
+
+    /// <summary>
     /// Runs layout, then waits for two rendered frames so that the compositor has drawn the current state.
     /// </summary>
     public static async Task WaitForRenderAsync()

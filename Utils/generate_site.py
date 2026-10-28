@@ -490,6 +490,7 @@ class SiteGenerator:
         'ScreenColorPicker',
         'Scheduler',
         'TagPicker',
+        'Tour',
         'Weather',
     )
 

@@ -178,6 +178,11 @@
         <Setter Property="IsVisible" Value="True"/>
     </Style>
 
+    <!-- Compact items (the progress of a DaisyTour): the indicator alone, without the label row -->
+    <Style Selector="controls|DaisyStepItem:compact /template/ ContentPresenter#PART_HContentPresenter">
+        <Setter Property="IsVisible" Value="False"/>
+    </Style>
+
     <!-- Hide start line for first item (Horizontal) -->
     <Style Selector="controls|DaisyStepItem[IsFirst=True] /template/ Border#PART_HStartLine">
         <Setter Property="IsVisible" Value="False"/>
