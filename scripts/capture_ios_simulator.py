@@ -120,9 +120,14 @@ def main():
         # Keep the original failure if diagnostics also fail (for example during boot).
         try:
             simctl("io", udid, "screenshot", screenshots / "failure.png", check=False, timeout=20)
+            # The app and what the system logged about it, such as dyld or a refused code signature.
             diagnostic = simctl("spawn", udid, "log", "show", "--last", "5m", "--style", "compact",
-                                "--predicate", f'process == "{executable}"', check=False, timeout=60)
+                                "--predicate", f'process == "{executable}" OR eventMessage CONTAINS "{bundle_id}"',
+                                check=False, timeout=60)
             (logs / "simulator-failure.txt").write_text(diagnostic.stdout + diagnostic.stderr, encoding="utf-8")
+            # The simulator writes the crash reports of its apps on the host.
+            for report in (Path.home() / "Library/Logs/DiagnosticReports").glob(f"{executable}*"):
+                (logs / report.name).write_bytes(report.read_bytes())
         except (OSError, subprocess.TimeoutExpired):
             pass
         raise
