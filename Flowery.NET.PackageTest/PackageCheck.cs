@@ -68,7 +68,9 @@ internal static class PackageCheck
         var title = kanban.GetVisualDescendants().OfType<FlowTaskCard>()
             .SelectMany(card => card.GetVisualDescendants().OfType<TextBlock>())
             .FirstOrDefault(text => text is { Name: "PART_TitleText", Text: MainWindow.TaskTitle });
-        if (!kanban.IsBoardViewActive)
+        if (window.BoardSaveError is { } saveError)
+            failures.Add($"The Kanban could not save its board: {saveError}");
+        else if (!kanban.IsBoardViewActive)
             failures.Add($"The Kanban shows its {kanban.CurrentView} view instead of its board.");
         else if (title is null || !IsShown(title, window))
             failures.Add($"The Kanban did not show the card \"{MainWindow.TaskTitle}\" of its board.");

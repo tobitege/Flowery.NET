@@ -13,6 +13,11 @@ public partial class MainWindow : Window
     /// </summary>
     internal const string TaskTitle = "Check the Kanban package";
 
+    /// <summary>
+    /// The error of saving the board of the Kanban, or null when the board was saved.
+    /// </summary>
+    internal Exception? BoardSaveError { get; }
+
     public MainWindow()
     {
         InitializeComponent();
@@ -24,7 +29,10 @@ public partial class MainWindow : Window
         // A Kanban without saved boards opens on its home screen, so the board is saved before the Kanban loads.
         var board = CreateBoard();
         if (!Kanban.BoardStore.TrySaveBoard(board, out var error))
-            throw new InvalidOperationException("The Kanban could not save its board.", error);
+        {
+            BoardSaveError = error;
+            Packages.Text += $"\nThe Kanban could not save its board: {error?.Message}";
+        }
         Kanban.Board = board;
     }
 
