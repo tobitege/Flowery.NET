@@ -55,15 +55,15 @@ jobs:
           DEVELOPER_DIR="$BUILD_DEVELOPER_DIR" xcodebuild -version | tee "$ARTIFACT_DIR/logs/xcode-build.txt"
           xcodebuild -version | tee "$ARTIFACT_DIR/logs/xcode-simulator.txt"
           xcrun simctl list --json > "$ARTIFACT_DIR/logs/simulators.json"
-          # TEMP diagnostics
-          ls -la /Applications | grep -i xcode || true
-          ls -la "$BUILD_DEVELOPER_DIR/Platforms/MacOSX.platform/Developer/SDKs" || true
-          ls -la "$BUILD_DEVELOPER_DIR/Platforms" || true
-          DEVELOPER_DIR="$BUILD_DEVELOPER_DIR" xcodebuild -showsdks || true
-          DEVELOPER_DIR="$BUILD_DEVELOPER_DIR" xcrun --find actool || true
-          DEVELOPER_DIR="$BUILD_DEVELOPER_DIR" xcodebuild -sdk "$BUILD_DEVELOPER_DIR/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" -find actool || true
-          DEVELOPER_DIR="$BUILD_DEVELOPER_DIR" xcodebuild -checkFirstLaunchStatus; echo "first launch status $?"
-          xcode-select -p
+          # TEMP diagnostics: the environment that the ACTool task gives xcrun
+          for dir in "$BUILD_DEVELOPER_DIR" "$DEVELOPER_DIR"; do
+            echo "== $dir with the task's PATH"
+            env PATH="$dir/usr/bin" XCODE_DEVELOPER_USR_PATH="$dir/usr" DEVELOPER_DIR="$dir" /usr/bin/xcrun actool --version || echo "exit $?"
+            env PATH="$dir/usr/bin" XCODE_DEVELOPER_USR_PATH="$dir/usr" DEVELOPER_DIR="$dir" /usr/bin/xcrun --find actool || echo "exit $?"
+            env PATH="$dir/usr/bin" DEVELOPER_DIR="$dir" "$dir/usr/bin/xcodebuild" -sdk "$dir/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" -find actool || echo "exit $?"
+            echo "== $dir with the full PATH"
+            env XCODE_DEVELOPER_USR_PATH="$dir/usr" DEVELOPER_DIR="$dir" /usr/bin/xcrun actool --version || echo "exit $?"
+          done
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         env:
