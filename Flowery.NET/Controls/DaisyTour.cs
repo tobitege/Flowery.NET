@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -11,6 +10,7 @@ using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
@@ -28,7 +28,7 @@ using Flowery.Theming;
 namespace Flowery.Controls;
 
 /// <summary>A window-scoped, modal guided tour. Add one host to the window's visual tree.</summary>
-public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
+public sealed partial class DaisyTour : ContentControl
 {
     private sealed class TourCardPeer(DaisyTour owner) : ControlAutomationPeer(owner)
     {
@@ -52,14 +52,13 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
         internal bool Busy;
         internal bool Editing;
         // The visit of the current step: its number, its failed preparation, the warning it shows, the problems
-        // already reported, the reports and announcement waiting until the step settles, and whether the hidden
-        // step target was scrolled into view once since it was last visible.
+        // already reported, the reports waiting until the step settles, and whether the hidden step target was
+        // scrolled into view once since it was last visible.
         internal int Visit;
         internal Exception? PreparationError;
         internal DaisyTourTargetProblem? Warning;
         internal readonly HashSet<(DaisyTourTargetProblem, DaisyTourAnnotation?, Control?)> ReportedProblems = [];
         internal readonly List<TargetProblem> PendingReports = [];
-        internal bool PendingAnnouncement;
         internal bool HiddenTargetRevealed;
     }
 
@@ -84,7 +83,9 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
     }
 
     // The overlay layer of the window shows the surface above the app, like a popup over the window content.
+    // The scope gives the surface the theme variant of the tour instead of the window's.
     private OverlayLayer? _overlay;
+    private readonly ThemeVariantScope _scope = new();
     private readonly Canvas _surface = new() { Background = new SolidColorBrush(Colors.Transparent) };
     private readonly Path _backdrop = new() { IsHitTestVisible = false };
     private readonly Path _outline = new() { IsHitTestVisible = false, StrokeThickness = 2 };
@@ -126,6 +127,7 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
     {
         IsTabStop = false;
         IsHitTestVisible = false;
+        _scope.Child = _surface;
         _surface.DetachedFromVisualTree += OnPopupClosed;
         _surface.Children.Add(_backdrop);
         _surface.Children.Add(_outline);
@@ -144,6 +146,8 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
         _textScroll.Content = text;
         // The numbered steps sit side by side and scroll horizontally instead of sharing the card's width.
         _progress.ItemsPanel = new FuncTemplate<Panel?>(() => new StackPanel { Orientation = Orientation.Horizontal });
+        // The steps take the tour's size; the global size manager would give each loaded step the global size.
+        FlowerySizeManager.SetIgnoreGlobalSize(_progress, true);
         _progressScroll.Content = _progress;
         AddRow(_textScroll, 0);
         AddRow(_count, 1);
@@ -168,8 +172,14 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
     }
 
     public ObservableCollection<DaisyTourStep> Steps { get; } = [];
+    public static readonly DirectProperty<DaisyTour, bool> IsOpenProperty =
+        AvaloniaProperty.RegisterDirect<DaisyTour, bool>(nameof(IsOpen), tour => tour.IsOpen);
     public bool IsOpen => _session is not null;
+    public static readonly DirectProperty<DaisyTour, int> CurrentIndexProperty =
+        AvaloniaProperty.RegisterDirect<DaisyTour, int>(nameof(CurrentIndex), tour => tour.CurrentIndex, unsetValue: -1);
     public int CurrentIndex { get; private set; } = -1;
+    public static readonly DirectProperty<DaisyTour, DaisyTourStep?> CurrentStepProperty =
+        AvaloniaProperty.RegisterDirect<DaisyTour, DaisyTourStep?>(nameof(CurrentStep), tour => tour.CurrentStep);
     public DaisyTourStep? CurrentStep { get; private set; }
     public event EventHandler<DaisyTourClosedEventArgs>? Closed;
     /// <summary>A step cannot show everything it describes: its preparation failed, or its target or a connector end
@@ -177,7 +187,6 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
     /// stays open in a warning state. Raised after the step is laid out, once per cause and visit of the step, and
     /// not while the editor previews the tour.</summary>
     public event EventHandler<DaisyTourStepTargetUnavailableEventArgs>? StepTargetUnavailable;
-    public new event PropertyChangedEventHandler? PropertyChanged;
 
     internal Rect TargetBounds { get; private set; }
     /// <summary>The problem the step's warning shows, or null without a warning.</summary>
@@ -197,7 +206,7 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
         AvaloniaProperty.Register<DaisyTour, double>(nameof(HighlightCornerRadius), 8d);
     public double HighlightCornerRadius { get => GetValue(HighlightCornerRadiusProperty); set => SetValue(HighlightCornerRadiusProperty, value); }
     public static readonly StyledProperty<DaisyTourAnnotationStyle?> AnnotationDefaultsProperty =
-        AvaloniaProperty.Register<DaisyTour, DaisyTourAnnotationStyle?>(nameof(AnnotationDefaults), null);
+        AvaloniaProperty.Register<DaisyTour, DaisyTourAnnotationStyle?>(nameof(AnnotationDefaults));
     public DaisyTourAnnotationStyle? AnnotationDefaults { get => GetValue(AnnotationDefaultsProperty); set => SetValue(AnnotationDefaultsProperty, value); }
     /// <summary>Places the step card beside the target (default) or at a fixed window position.</summary>
     public static readonly StyledProperty<DaisyTourCardPosition> CardPositionProperty =
@@ -205,27 +214,27 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
     public DaisyTourCardPosition CardPosition { get => GetValue(CardPositionProperty); set => SetValue(CardPositionProperty, value); }
     /// <summary>Border of the step card. Without a brush, the <c>DaisyTourCardBorderBrush</c> resource or the muted theme text color applies.</summary>
     public static readonly StyledProperty<IBrush?> CardBorderBrushProperty =
-        AvaloniaProperty.Register<DaisyTour, IBrush?>(nameof(CardBorderBrush), null);
+        AvaloniaProperty.Register<DaisyTour, IBrush?>(nameof(CardBorderBrush));
     public IBrush? CardBorderBrush { get => GetValue(CardBorderBrushProperty); set => SetValue(CardBorderBrushProperty, value); }
     public static readonly StyledProperty<string?> NextTextProperty =
-        AvaloniaProperty.Register<DaisyTour, string?>(nameof(NextText), null);
+        AvaloniaProperty.Register<DaisyTour, string?>(nameof(NextText));
     public string? NextText { get => GetValue(NextTextProperty); set => SetValue(NextTextProperty, value); }
     public static readonly StyledProperty<string?> BackTextProperty =
-        AvaloniaProperty.Register<DaisyTour, string?>(nameof(BackText), null);
+        AvaloniaProperty.Register<DaisyTour, string?>(nameof(BackText));
     public string? BackText { get => GetValue(BackTextProperty); set => SetValue(BackTextProperty, value); }
     public static readonly StyledProperty<string?> SkipTextProperty =
-        AvaloniaProperty.Register<DaisyTour, string?>(nameof(SkipText), null);
+        AvaloniaProperty.Register<DaisyTour, string?>(nameof(SkipText));
     public string? SkipText { get => GetValue(SkipTextProperty); set => SetValue(SkipTextProperty, value); }
     public static readonly StyledProperty<string?> FinishTextProperty =
-        AvaloniaProperty.Register<DaisyTour, string?>(nameof(FinishText), null);
+        AvaloniaProperty.Register<DaisyTour, string?>(nameof(FinishText));
     public string? FinishText { get => GetValue(FinishTextProperty); set => SetValue(FinishTextProperty, value); }
-
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
         if (change.Property == StyleProfileProperty) OnStyleProfileChanged(this, change);
-        else if (change.Property.OwnerType == typeof(DaisyTour)) OnPresentationChanged(this, change);
+        // The session state (IsOpen, CurrentIndex, CurrentStep) is reported, not presented.
+        else if (change.Property.OwnerType == typeof(DaisyTour) && !change.Property.IsDirect) OnPresentationChanged(this, change);
     }
 
     private static void OnPresentationChanged(AvaloniaObject sender, AvaloniaPropertyChangedEventArgs args)
@@ -241,16 +250,20 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
         base.OnLoaded(e);
         DaisyThemeManager.ThemeChanged += OnThemeChanged;
         DaisyAccessibility.PreferencesChanged += OnPreferencesChanged;
+        FlowerySizeManager.SizeChanged += OnGlobalSizeChanged;
     }
 
     private void OnThemeChanged(object? sender, string themeName) => RefreshPresentation();
     private void OnPreferencesChanged(object? sender, EventArgs args) => RefreshPresentation();
+    // A profile that inherits the size follows the global size, also while the tour has a size of its own.
+    private void OnGlobalSizeChanged(object? sender, DaisySize size) => RefreshPresentation();
 
     protected override void OnUnloaded(RoutedEventArgs e)
     {
         Cancel();
         DaisyThemeManager.ThemeChanged -= OnThemeChanged;
         DaisyAccessibility.PreferencesChanged -= OnPreferencesChanged;
+        FlowerySizeManager.SizeChanged -= OnGlobalSizeChanged;
         base.OnUnloaded(e);
     }
 
@@ -281,22 +294,25 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
         _overlay = overlay;
         _surface.FlowDirection = FlowDirection.LeftToRight;
         ResizeSurface();
-        overlay.Children.Add(_surface);
+        overlay.Children.Add(_scope);
         overlay.PropertyChanged += OnRootChanged;
         FloweryLocalization.CultureChanged += OnCultureChanged;
-        root.AddHandler(GettingFocusEvent, OnGettingFocus);
+        // A handler that marks the event handled must not open a way out of the modal tour.
+        root.AddHandler(GettingFocusEvent, OnGettingFocus, RoutingStrategies.Bubble, handledEventsToo: true);
         session.Unsubscribe.Add(() => overlay.PropertyChanged -= OnRootChanged);
         session.Unsubscribe.Add(() => FloweryLocalization.CultureChanged -= OnCultureChanged);
         session.Unsubscribe.Add(() => root.RemoveHandler(GettingFocusEvent, OnGettingFocus));
         _availabilityTimer ??= CreateAvailabilityTimer();
         _availabilityTimer.Start();
-        session.Registration = cancellationToken.Register(() => DispatchCancel(session));
         // Moving the window changes which part of it the display shows.
         if (root is Window window)
         {
             window.PositionChanged += OnAppWindowChanged;
             session.Unsubscribe.Add(() => window.PositionChanged -= OnAppWindowChanged);
         }
+        // Registered last: a cancellation from another thread can close the session at once, and Close then
+        // unsubscribes everything above.
+        session.Registration = cancellationToken.Register(() => DispatchCancel(session));
         NotifyState();
         if (!ReferenceEquals(_session, session)) return;
         await TransitionAsync(session, 0);
@@ -340,7 +356,6 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
         session.PreparationError = null;
         session.ReportedProblems.Clear();
         session.PendingReports.Clear();
-        session.PendingAnnouncement = false;
         session.HiddenTargetRevealed = false;
         _backdrop.Data = new RectangleGeometry { Rect = new Rect(0, 0, _surface.Width, _surface.Height) };
         _surface.Focusable = true;
@@ -386,7 +401,7 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
             _surface.Focusable = false;
             NotifyState();
             // Avalonia raises no automation notifications; the card is a polite live region, and its name
-            // (UpdateCardName) carries the step announcement.
+            // (UpdateCardName) carries the step.
             FlushReports(session);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
@@ -451,10 +466,10 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
             session.StepUnsubscribe.Add(() => style.Changed -= OnAnnotationChanged);
         }
         foreach (var target in GetTargets(step))
-            session.Trackers.Add(new CompositionElementTracker(target, _surface, _ => QueueGeometry()));
+            session.Trackers.Add(new CompositionElementTracker(target, _surface, QueueGeometry));
         // Route limit controls move connectors without being highlighted or scrolled into view.
         foreach (var limit in step.Annotations.Select(annotation => annotation.RouteLimit).OfType<Control>().Distinct())
-            session.Trackers.Add(new CompositionElementTracker(limit, _surface, _ => QueueGeometry()));
+            session.Trackers.Add(new CompositionElementTracker(limit, _surface, QueueGeometry));
     }
 
     private static void ClearStepObservers(Session session)
@@ -579,14 +594,15 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
         DaisyTourTargetProblem? warning = layout.Problems.Count == 0 ? null : layout.Problems.MinBy(problem => problem.Priority).Kind;
         if (warning != session.Warning)
         {
-            // A warning that appears while the step is shown is announced. One that is there when the step opens
-            // starts the card's name, which the step announcement reads.
-            session.PendingAnnouncement |= session.Warning is null && !session.Busy;
+            // The warning note is a polite live region, and the warning starts the card's name, which is a polite
+            // live region as well; Avalonia raises no automation notifications.
             session.Warning = warning;
             ApplyWarning();
             if (warning is null && session.Editing) _editor?.OnPreviewTargetAvailable();
         }
         LayoutCard();
+        // Avalonia measures a valid card again only for a new constraint. Text that changed inside it is measured in
+        // the next layout pass, and OnCardSizeChanged places the card again before that frame renders.
         _card.Measure(new Size(_card.Width, _card.MaxHeight));
         var highlighted = layout.Holes.Count > 0;
         var allTargets = highlighted ? layout.Holes[0] : default;
@@ -687,16 +703,14 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
 
     private void FlushReports(Session session)
     {
-        if (session.PendingReports.Count == 0 && !session.PendingAnnouncement) return;
+        if (session.PendingReports.Count == 0) return;
         var reports = session.PendingReports.ToArray();
-        var announce = session.PendingAnnouncement;
         var visit = session.Visit;
         session.PendingReports.Clear();
-        session.PendingAnnouncement = false;
-        Dispatcher.UIThread.Post(() => Report(session, visit, reports, announce), DispatcherPriority.Normal);
+        Dispatcher.UIThread.Post(() => Report(session, visit, reports), DispatcherPriority.Normal);
     }
 
-    private void Report(Session session, int visit, TargetProblem[] reports, bool announce)
+    private void Report(Session session, int visit, TargetProblem[] reports)
     {
         foreach (var problem in reports)
         {
@@ -706,8 +720,6 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
             if (session.Editing) _editor?.OnPreviewTargetUnavailable(args);
             else Flowery.Services.FloweryEventRaiser.Raise(StepTargetUnavailable, this, args, nameof(StepTargetUnavailable));
         }
-        // Avalonia raises no automation notifications; the warning note is a polite live region that shows the text.
-        _ = announce;
     }
 
     // The card frame, a note above the description and the current progress step take the warning color.
@@ -956,6 +968,9 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
     private void RefreshPresentation()
     {
         if (_session is not { } session) return;
+        _scope.RequestedThemeVariant = ActualThemeVariant;
+        // Fluent's theme of a ThemeVariantScope sets a text color of its own; the card content keeps the theme's.
+        TextElement.SetForeground(_scope, ThemeBrush("DaisyBaseContentBrush"));
         _surface.FlowDirection = FlowDirection.LeftToRight;
         _card.FlowDirection = FloweryLocalization.Instance.IsRtl ? FlowDirection.RightToLeft : FlowDirection;
         _progress.FlowDirection = FlowDirection.LeftToRight;
@@ -1062,8 +1077,12 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
     private void ShowCurrentIndicator()
     {
         if (_cardCollapsed) return;
-        if (CurrentIndex >= 0 && CurrentIndex < _progressItems.Count)
-            _progressItems[CurrentIndex].BringIntoView();
+        if (CurrentIndex < 0 || CurrentIndex >= _progressItems.Count) return;
+        // Centered like WinUI's BringIntoView with a horizontal ratio of 0.5; Avalonia's scrolls only to the nearest edge.
+        var item = _progressItems[CurrentIndex];
+        if (item.TranslatePoint(new Point(item.Bounds.Width / 2, 0), _progress) is not { } center) return;
+        var maximum = Math.Max(0, _progressScroll.Extent.Width - _progressScroll.Viewport.Width);
+        _progressScroll.Offset = new Vector(Math.Clamp(center.X - _progressScroll.Viewport.Width / 2, 0, maximum), _progressScroll.Offset.Y);
     }
 
     private static PathGeometry RoundedRectangle(Rect rect, double requestedRadius)
@@ -1121,9 +1140,9 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
 
     private void OnGettingFocus(object? sender, FocusChangingEventArgs args)
     {
-        // Popups that the editor opens in their own window have another top level; overlay popups have a popup host.
+        // The handler sits on the tour's top level, so focus moves in popups with a top level of their own never
+        // reach it. Popups that the editor opens in the overlay layer have an overlay popup host.
         if (_session is not null && args.NewFocusedElement is Visual element &&
-            TopLevel.GetTopLevel(element) is { } root && root == TopLevel.GetTopLevel(this) &&
             !DaisyTourLayout.IsDescendant(element, _surface) &&
             (_editor is null || !element.GetVisualAncestors().Any(ancestor => ancestor is OverlayPopupHost)))
             args.TrySetNewFocusedElement(_session.Busy ? _surface : _next);
@@ -1146,8 +1165,9 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
     private void OnSkip(object? sender, RoutedEventArgs args) => Skip();
     private void OnPopupClosed(object? sender, VisualTreeAttachmentEventArgs args)
     {
-        // The surface leaves the overlay when the session closes; anything else that removes it ends the session.
-        if (_session is not null && _surface.GetVisualParent() is null) Cancel();
+        // Close removes the surface after it ended the session; anything else that removes it, also with an
+        // ancestor, ends the session.
+        if (_session is not null) Cancel();
     }
     private void OnStepsChanged(object? sender, NotifyCollectionChangedEventArgs args) => Cancel();
 
@@ -1175,7 +1195,7 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
         ClearStepObservers(session);
         foreach (var unsubscribe in session.Unsubscribe) unsubscribe();
         session.Unsubscribe.Clear();
-        _overlay?.Children.Remove(_surface);
+        _overlay?.Children.Remove(_scope);
         _overlay = null;
         _annotations.Children.Clear();
         _presenters.Clear();
@@ -1198,16 +1218,19 @@ public sealed partial class DaisyTour : ContentControl, INotifyPropertyChanged
         else Closed?.Invoke(this, new(reason, stepId, target, error));
     }
 
+    // The session state is reported at the same points as in WinUI, not at each assignment, and each time for all
+    // three properties.
+    private bool _reportedOpen;
+    private int _reportedIndex = -1;
+    private DaisyTourStep? _reportedStep;
+
     private void NotifyState()
     {
-        PropertyChanged?.Invoke(this, new(nameof(IsOpen)));
-        PropertyChanged?.Invoke(this, new(nameof(CurrentIndex)));
-        PropertyChanged?.Invoke(this, new(nameof(CurrentStep)));
-    }
-
-    private new void VerifyAccess()
-    {
-        if (!Dispatcher.UIThread.CheckAccess()) throw new InvalidOperationException("Tour operations require the Avalonia UI thread.");
+        var (open, index, step) = (_reportedOpen, _reportedIndex, _reportedStep);
+        (_reportedOpen, _reportedIndex, _reportedStep) = (IsOpen, CurrentIndex, CurrentStep);
+        RaisePropertyChanged(IsOpenProperty, open, IsOpen);
+        RaisePropertyChanged(CurrentIndexProperty, index, CurrentIndex);
+        RaisePropertyChanged(CurrentStepProperty, step, CurrentStep);
     }
 
     private void AddRow(Control element, int row)

@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Shapes;
+using Avalonia.Controls.Templates;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -18,13 +19,12 @@ namespace Flowery.Controls
     /// </summary>
     public partial class DaisyExpander : ContentControl
     {
-        // The layout is built in code; the control uses the plain ContentControl template.
-        protected override Type StyleKeyOverride => typeof(ContentControl);
-
         private Button? _headerButton;
         private Border? _headerBorder;
         private ContentPresenter? _headerContent;
         private Path? _chevron;
+        // The chevron follows the header text while contrast colors apply.
+        private IDisposable? _chevronFillBinding;
         private Border? _contentBorder;
         private ContentPresenter? _contentPresenter;
 
@@ -121,10 +121,12 @@ namespace Flowery.Controls
         {
             IsTabStop = false;
 
-            BuildLayout();
+            // The layout is the template: Content is the expandable content, shown by PART_ContentPresenter,
+            // and only the parts built here draw the border, background and padding.
+            Template = new FuncControlTemplate<DaisyExpander>(static (expander, scope) => expander.BuildLayout(scope));
         }
 
-        private void BuildLayout()
+        private Control BuildLayout(INameScope scope)
         {
             var rootPanel = new StackPanel
             {
@@ -153,7 +155,8 @@ namespace Flowery.Controls
             _headerContent = new ContentPresenter
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Center
+                VerticalAlignment = VerticalAlignment.Center,
+                Content = Header
             };
             Grid.SetColumn(_headerContent, 0);
             headerGrid.Children.Add(_headerContent);
@@ -163,6 +166,8 @@ namespace Flowery.Controls
             {
                 Width = ChevronSize,
                 Height = ChevronSize,
+                // The template can be built after the settings, so it starts from them.
+                IsVisible = ShowChevron,
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(8, 0, 4, 0)
             };
@@ -191,22 +196,26 @@ namespace Flowery.Controls
                 HorizontalAlignment = HorizontalAlignment.Stretch
             };
 
+            // The content host of the ContentControl: the expander's Content is its logical child.
             _contentPresenter = new ContentPresenter
             {
-                HorizontalAlignment = HorizontalAlignment.Stretch
-            };
+                Name = "PART_ContentPresenter",
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                [!ContentPresenter.ContentProperty] = this[!ContentProperty],
+                [!ContentPresenter.ContentTemplateProperty] = this[!ContentTemplateProperty]
+            }.RegisterInNameScope(scope);
             _contentBorder.Child = _contentPresenter;
 
             rootPanel.Children.Add(_headerBorder);
             rootPanel.Children.Add(_contentBorder);
-
-            Content = rootPanel;
 
             UpdateChevron();
             UpdateContentVisibility();
             UpdateHeaderPadding();
             UpdateContentPadding();
             UpdateBorder();
+            UpdateColors();
+            return rootPanel;
         }
 
         protected override void OnLoaded(RoutedEventArgs e)
@@ -215,22 +224,6 @@ namespace Flowery.Controls
             DaisyThemeManager.ThemeChanged += OnThemeChanged;
             // Contrast changes replace the palette without a theme change in Flowery.NET.
             DaisyAccessibility.PreferencesChanged += OnPreferencesChanged;
-            // Ensure header content is synced after control is fully loaded
-            // This is needed because the property might be set before _headerContent is ready
-            if (_headerContent != null && Header != null)
-            {
-                _headerContent.Content = Header;
-            }
-
-            // Ensure content is synced
-            if (_contentPresenter != null && ExpanderContent != null)
-            {
-                _contentPresenter.Content = ExpanderContent;
-            }
-
-            UpdateChevron();
-            UpdateContentVisibility();
-            UpdateColors();
             // LogContentState("Loaded");
             OnThemeChanged(this, DaisyThemeManager.CurrentThemeName ?? string.Empty);
         }
@@ -262,10 +255,10 @@ namespace Flowery.Controls
             else if (change.Property == ContentPaddingProperty) OnContentPaddingChanged(this, change);
             else if (change.Property == ChevronSizeProperty) OnChevronSizeChanged(this, change);
             else if (change.Property == ShowChevronProperty) OnShowChevronChanged(this, change);
-            else if (change.Property == IsEnabledProperty) UpdateColors();
+            // A disabled ancestor changes only the effective state of the expander.
+            else if (change.Property == IsEffectivelyEnabledProperty) UpdateColors();
             // Register for BorderBrush/BorderThickness changes (inherited from Control)
             else if (change.Property == BorderBrushProperty || change.Property == BorderThicknessProperty) UpdateBorder();
-            else if (change.Property == ContentProperty) OnContentChanged(change.OldValue, change.NewValue);
         }
 
         private void OnHeaderClick(object? sender, RoutedEventArgs e)
@@ -353,7 +346,7 @@ namespace Flowery.Controls
             try
             {
                 var pathData = IsExpanded ? FloweryPathHelpers.ChevronUpPath : FloweryPathHelpers.ChevronDownPath;
-                _chevron.Data = Geometry.Parse(pathData);
+                _chevron.Data = FloweryPathHelpers.ParseGeometry(pathData);
             }
             catch
             {
@@ -369,9 +362,12 @@ namespace Flowery.Controls
                 return;
 
             var foreground = HeaderForeground ?? DaisyResourceLookup.GetBrush("DaisyBaseContentBrush") ?? new SolidColorBrush(Colors.White);
+            // A local value does not replace a binding in Avalonia, so the contrast binding is removed explicitly.
+            _chevronFillBinding?.Dispose();
+            _chevronFillBinding = null;
             _chevron.Fill = foreground;
             if (DaisyAccessibility.IsHighContrast && _headerContent != null)
-                _chevron.Bind(Shape.FillProperty, _headerContent.GetObservable(ContentPresenter.ForegroundProperty));
+                _chevronFillBinding = _chevron.Bind(Shape.FillProperty, _headerContent.GetObservable(ContentPresenter.ForegroundProperty));
         }
 
         private void UpdateContentVisibility()
@@ -411,7 +407,7 @@ namespace Flowery.Controls
             if (_contentPresenter != null)
             {
                 if (DaisyAccessibility.IsHighContrast)
-                    _contentPresenter.Foreground = DaisyResourceLookup.GetBrush(IsEnabled ? "DaisyBaseContentBrush" : "DaisyBaseContentDisabledBrush");
+                    _contentPresenter.Foreground = DaisyResourceLookup.GetBrush(IsEffectivelyEnabled ? "DaisyBaseContentBrush" : "DaisyBaseContentDisabledBrush");
                 else
                     _contentPresenter.ClearValue(ContentPresenter.ForegroundProperty);
             }
@@ -454,30 +450,14 @@ namespace Flowery.Controls
         //     FloweryDiagnostics.Log($"{DateTimeOffset.Now:O} [DaisyExpander] {context}: contentType={typeName}, count={countInfo}");
         // }
 
-        private void OnContentChanged(object? oldContent, object? newContent)
-        {
-            // The base.Content is our layout panel, actual content goes to _contentPresenter
-            if (_contentPresenter != null && newContent != Content)
-            {
-                _contentPresenter.Content = newContent;
-                // FloweryDiagnostics.Log($"[DaisyExpander] Content changed: type={newContent?.GetType().FullName ?? "<null>"}");
-            }
-        }
-
         /// <summary>
-        /// Sets the actual expandable content (not the layout panel).
-        /// Use this instead of Content property.
+        /// Sets the actual expandable content. In Avalonia the layout is the template, so this is the same as
+        /// <see cref="ContentControl.Content"/>, which XAML child content sets and which can be bound or styled.
         /// </summary>
         public object? ExpanderContent
         {
-            get => _contentPresenter?.Content;
-            set
-            {
-                if (_contentPresenter != null)
-                {
-                    _contentPresenter.Content = value;
-                }
-            }
+            get => Content;
+            set => Content = value;
         }
 
     }

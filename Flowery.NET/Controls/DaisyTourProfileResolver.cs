@@ -167,4 +167,3 @@ internal static class DaisyTourProfileResolver
         return Color.FromArgb((byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value);
     }
 }
-

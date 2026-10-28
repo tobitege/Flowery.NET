@@ -58,7 +58,7 @@
                         </Grid>
                     </Border>
                     <ScrollViewer Height="210" VerticalScrollBarVisibility="Auto">
-                        <!-- An Avalonia StackPanel has no padding or background, so a border provides them. -->
+                        <!-- An Avalonia StackPanel has no padding, so a border provides it together with the background. -->
                         <Border Padding="16" Background="{DynamicResource DaisyBase200Brush}">
                             <StackPanel Spacing="24">
                                 <Border Height="260" />

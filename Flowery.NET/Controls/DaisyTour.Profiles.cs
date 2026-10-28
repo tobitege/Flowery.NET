@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Flowery.Theming;
 
 namespace Flowery.Controls;
 
@@ -103,9 +102,11 @@ public sealed partial class DaisyTour
 
     private double EffectiveHighlightPadding => TourSetting(HighlightPaddingProperty, HighlightPadding, 6d);
     private double EffectiveHighlightCornerRadius => TourSetting(HighlightCornerRadiusProperty, HighlightCornerRadius, 8d);
-    // A profile that inherits the size uses automatic sizing: the global size, unless the tour opts out of it.
+    // A profile that inherits the size uses automatic sizing: the global size where the size manager would supply
+    // it to the tour, otherwise the default size.
     private DaisySize EffectiveSize => TourSetting(SizeProperty, Size,
-        FlowerySizeManager.EnableGlobalAutoSize && !FlowerySizeManager.ShouldIgnoreGlobalSize(this) ? FlowerySizeManager.CurrentSize : DaisySize.Medium);
+        FlowerySizeManager.EnableGlobalAutoSize && FlowerySizeManager.UseGlobalSizeByDefault && !FlowerySizeManager.ShouldIgnoreGlobalSize(this)
+            ? FlowerySizeManager.CurrentSize : DaisySize.Medium);
     private DaisyTourCardPosition EffectiveCardPosition => TourSetting(CardPositionProperty, CardPosition, DaisyTourCardPosition.Target);
 
     internal object? EditorSetting(DaisyTourStep step, DaisyTourAnnotation annotation, string name, bool stepScope) => name switch
@@ -180,7 +181,8 @@ public sealed partial class DaisyTour
         _editor = null;
         _previewProfile = null;
         KeyboardNavigation.SetTabNavigation(_card, KeyboardNavigationMode.Cycle);
-        KeyboardNavigation.SetTabNavigation(_surface, KeyboardNavigationMode.Local);
+        // Back to the surface's default; WinUI's default is Local, Avalonia's is Continue.
+        _surface.ClearValue(KeyboardNavigation.TabNavigationProperty);
     }
 }
 

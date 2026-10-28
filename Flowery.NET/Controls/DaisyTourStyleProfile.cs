@@ -92,4 +92,3 @@ public sealed class DaisyTourStyleValues
     public double? HighlightPadding { get; set; }
     public double? HighlightCornerRadius { get; set; }
 }
-

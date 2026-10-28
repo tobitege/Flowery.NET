@@ -516,6 +516,20 @@ All theme names follow the pattern `Theme_{ThemeName}`:
 | `Theme_Winter` | Winter |
 | `Theme_Wireframe` | Wireframe |
 
+### Guided tour
+
+| Key | English (Default) | Description |
+| --- | ----------------- | ----------- |
+| `Tour_Next` | Next | DaisyTour Next button |
+| `Tour_Back` | Back | DaisyTour Back button |
+| `Tour_Skip` | Skip | DaisyTour Skip button |
+| `Tour_Finish` | Finish | DaisyTour button on the last step |
+| `Tour_StepCount` | Step {0} of {1} | Step count of the card and the progress buttons |
+| `Tour_TargetUnavailable` | This step's element can't be shown right now. | Warning note of a step whose target cannot be shown |
+| `Tour_PreparationFailed` | This step could not be prepared completely. | Warning note of a step whose `PrepareAsync` failed |
+
+The labels of `DaisyTourEditor` use the `TourEditor_*` keys and `Common_Apply`.
+
 ---
 
 ## Handling Culture Changes

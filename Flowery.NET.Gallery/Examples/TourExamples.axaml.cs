@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -14,7 +15,7 @@ using Flowery.NET.Gallery.Localization;
 
 namespace Flowery.NET.Gallery.Examples;
 
-public partial class TourExamples : UserControl, IScrollableExample
+public sealed partial class TourExamples : UserControl, IScrollableExample
 {
     private readonly DaisyTourStep[] _standardSteps;
 
@@ -242,8 +243,8 @@ public partial class TourExamples : UserControl, IScrollableExample
         CloseDesigner();
         Tour.Steps.Clear();
         // The fixed coordinate is taken once; unlike the control limit, it does not follow scrolling.
-        // The tour draws over the whole window, so the coordinate is relative to the window.
-        var keepClear = TopLevel.GetTopLevel(this) is { } root && KeepClearArea.TransformToVisual(root) is { } transform
+        // The tour draws in the overlay layer of the window, so the coordinate is relative to that layer.
+        var keepClear = OverlayLayer.GetOverlayLayer(this) is { } overlay && KeepClearArea.TransformToVisual(overlay) is { } transform
             ? new Rect(0, 0, KeepClearArea.Bounds.Width, KeepClearArea.Bounds.Height).TransformToAABB(transform)
             : default;
         var limits = new[]
@@ -340,7 +341,6 @@ public partial class TourExamples : UserControl, IScrollableExample
         step.Target = (DaisyButton)DetailsTab.Content;
         return Task.CompletedTask;
     }
-
 
     private void BindText(AvaloniaObject target, AvaloniaProperty property, string key)
     {

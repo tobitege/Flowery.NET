@@ -81,8 +81,8 @@ Keep step definitions in the application; the library does not discover targets 
 
 The `Closed` event supplies `DaisyTourClosedEventArgs`.
 Its `Reason` is `Completed`, `Skipped`, `Cancelled`, `TargetUnavailable`, or `Failed`.
-`TargetUnavailable` means the tour could not open because it belongs to no window.
-`Failed` means the tour itself could not continue; `Error` tells why.
+`TargetUnavailable` means the tour could not open because it belongs to no window or view with an overlay layer.
+`Failed` means the tour itself could not continue, such as when laying out a step throws; `Error` tells why.
 `AnnotationId` is always null, because target problems no longer close the tour.
 
 A target that cannot be shown never closes a running tour.
@@ -257,9 +257,10 @@ Without `Width` and `Height`, its box is sized so that an inscribed ellipse encl
 
 ## Appearance
 
-The host uses the existing Daisy theme, motion policy, and five `DaisySize` tiers.
+The host uses the existing Daisy theme and the five `DaisySize` tiers. It draws without animations.
 `Size` defaults to `Medium`; like the other Daisy controls, the tour follows the global size of `FlowerySizeManager` unless its `Size` is set in XAML, code, a style, or a binding.
-An active profile can override the size. Profile `inherit` uses the global size.
+An active profile can override the size. Profile `inherit` uses the global size when `FlowerySizeManager.EnableGlobalAutoSize` and `UseGlobalSizeByDefault` are on and the tour does not ignore the global size (`IgnoreGlobalSize`); otherwise it uses `Medium`.
+`DaisySize` has no `Auto` tier in Flowery.NET, so a Flowery.WinUI profile with `"size": "Auto"` is rejected; replace the value with `"inherit": ["size"]`.
 `HighlightPadding` defaults to 6 DIP, and `HighlightCornerRadius` defaults to 8 DIP.
 The highlight frame uses the theme's Primary color.
 The step card's border uses the theme's text color at 45% opacity, so it stands apart from the highlight and from Base300 borders.
@@ -283,10 +284,12 @@ Without overrides, the host uses the 12 built-in translations.
 `Tour_StepCount` supplies the parameterized step announcement.
 
 Bind application titles, descriptions, and annotation text through the existing localization service.
-In XAML, a localization markup extension derived from `LocalizeExtensionBase` works on steps and annotations like on any control:
+In XAML, a localization markup extension derived from `LocalizeExtensionBase` works on steps and annotations like on any control.
+Here `loc` is the namespace of the application's extension, such as `Flowery.NET.Gallery.Localization` in the Gallery:
 
 ```xml
-<controls:DaisyTourStep Id="create" Target="{Binding #CreateButton}"
+<controls:DaisyTourStep xmlns:loc="clr-namespace:MyApp.Localization"
+                        Id="create" Target="{Binding #CreateButton}"
                         Title="{loc:Localize Tour_CreateTitle}"
                         Description="{loc:Localize Tour_CreateDescription}" />
 ```
@@ -484,7 +487,7 @@ Use the Gallery to check these behaviors before release:
 - Resize the window through wrapping boundaries during a connector step.
 - Switch through all five sizes, themes, and languages during an open tour.
 - Move the window between monitors with different DPI settings.
-- Check keyboard navigation, a screen reader, high contrast, and reduced motion.
+- Check keyboard navigation, a screen reader, and high contrast.
 
 Runtime tests establish state and geometry behavior.
 They do not replace visual checks of alignment, clipping, focus indicators, or screen reader output.

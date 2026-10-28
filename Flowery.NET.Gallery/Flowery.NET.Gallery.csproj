@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Flowery.NET.RuntimeTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 

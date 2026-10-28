@@ -16,12 +16,13 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using Avalonia.Controls.Documents;
 using Flowery.Controls.ColorPicker;
-using HslColor = Flowery.Controls.ColorPicker.HslColor;
 using Flowery.Enums;
 using Flowery.Helpers;
 using Flowery.Localization;
 using Flowery.Theming;
+using HslColor = Flowery.Controls.ColorPicker.HslColor;
 
 namespace Flowery.Controls;
 
@@ -31,12 +32,17 @@ public sealed partial class DaisyTourEditor : ContentControl
     // The layout is built in code; the editor uses the plain ContentControl template.
     protected override Type StyleKeyOverride => typeof(ContentControl);
 
-    // Symbols without a DaisyIconSymbol: swap sides, and the minus of a collapsible panel.
-    private const string SwitchIconPath = "M21,9L17,5V8H10V10H17V13L21,9M7,11L3,15L7,19V16H14V14H7V11Z";
-    private static readonly string RemoveIconPath = FloweryPathHelpers.GetIconPathData("DaisyIconMinus") ?? "M19,13H5V11H19V13Z";
-    private static readonly string AddIconPath = FloweryPathHelpers.GetIconPathData("DaisyIconPlus") ?? "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
+    // Icons are parsed once per editor; static Avalonia objects would be shared across UI threads.
+    // Swap sides and the minus of a collapsible panel have no DaisyIconSymbol.
+    private readonly Geometry _switchIcon = StreamGeometry.Parse("M21,9L17,5V8H10V10H17V13L21,9M7,11L3,15L7,19V16H14V14H7V11Z");
+    private readonly Geometry _removeIcon = StreamGeometry.Parse(FloweryPathHelpers.GetIconPathData("DaisyIconMinus")!);
+    private readonly Geometry _addIcon = DaisyIconSymbolData.GetGeometry(DaisyIconSymbol.Add);
+    private readonly Geometry _moreIcon = DaisyIconSymbolData.GetGeometry(DaisyIconSymbol.More);
+    private readonly Geometry _editIcon = DaisyIconSymbolData.GetGeometry(DaisyIconSymbol.Edit);
+    private readonly Geometry _linkIcon = DaisyIconSymbolData.GetGeometry(DaisyIconSymbol.Link);
 
-    private static PathIcon PanelIcon(string data) => new() { Data = StreamGeometry.Parse(data), Width = 16, Height = 16 };
+    // A path icon keeps the aspect of a flat geometry; DaisyButton.IconData stretches it to a square.
+    private static PathIcon PanelIcon(Geometry data) => new() { Data = data, Width = 16, Height = 16 };
 
     private readonly DaisySelect _steps = new();
     private readonly DaisySelect _annotations = new();
@@ -79,6 +85,8 @@ public sealed partial class DaisyTourEditor : ContentControl
     private double? _desiredWidth;
     private double? _resizeStartWidth;
     private (int PointerId, double X, double Width)? _resizePointerStart;
+    // The pointer that drags the resize thumb; a canceled resize releases its capture, as WinUI's CancelDrag does.
+    private IPointer? _resizePointer;
     private double _viewportWidth;
     private int _openingGeneration;
 
@@ -89,9 +97,8 @@ public sealed partial class DaisyTourEditor : ContentControl
         KeyboardNavigation.SetTabNavigation(this, KeyboardNavigationMode.Local);
         foreach (var select in new[] { _steps, _annotations, _scope }) Compact(select);
         foreach (var button in new[] { _undo, _redo, _apply, _discard, _dock, _collapse }) Compact(button);
-        // A path icon keeps the aspect of a flat geometry; DaisyButton.IconData stretches it to a square.
-        _dock.Content = PanelIcon(SwitchIconPath);
-        _collapse.Content = PanelIcon(RemoveIconPath);
+        _dock.Content = PanelIcon(_switchIcon);
+        _collapse.Content = PanelIcon(_removeIcon);
         _dock.Variant = _collapse.Variant = _undo.Variant = _redo.Variant = DaisyButtonVariant.Ghost;
         _dock.Shape = _collapse.Shape = DaisyButtonShape.Square;
         _context.Children.Add(_stepLabel);
@@ -171,7 +178,8 @@ public sealed partial class DaisyTourEditor : ContentControl
         _resizeThumb.DragCompleted += OnResizeCompleted;
         _resizeThumb.AddHandler(PointerPressedEvent, OnResizePointerPressed, RoutingStrategies.Bubble, true);
         _resizeThumb.AddHandler(PointerReleasedEvent, OnResizePointerFinished, RoutingStrategies.Bubble, true);
-        _resizeThumb.AddHandler(PointerCaptureLostEvent, OnResizePointerFinished, RoutingStrategies.Bubble, true);
+        // A lost capture is a direct event; a Bubble handler would never run.
+        _resizeThumb.AddHandler(PointerCaptureLostEvent, OnResizePointerFinished, RoutingStrategies.Direct, true);
         _resizeThumb.KeyDown += OnResizeKeyDown;
         _dock.Click += (_, _) => { CancelResize(); _dockLeft = !_dockLeft; _tour?.RefreshEditorLayout(); };
         _collapse.Click += (_, _) =>
@@ -179,7 +187,7 @@ public sealed partial class DaisyTourEditor : ContentControl
             CancelResize();
             _collapsed = !_collapsed;
             _scroll.IsVisible = !_collapsed;
-            _collapse.Content = PanelIcon(_collapsed ? AddIconPath : RemoveIconPath);
+            _collapse.Content = PanelIcon(_collapsed ? _addIcon : _removeIcon);
             _title.IsVisible = tools.IsVisible = _footer.IsVisible = !_collapsed;
             _dock.IsVisible = !_collapsed;
             if (_collapsed)
@@ -238,13 +246,14 @@ public sealed partial class DaisyTourEditor : ContentControl
         if (IsOpen) throw new InvalidOperationException("This editor is already open.");
         LastError = null;
         _previewProblem = null;
-        if (this.GetVisualParent() is not null) throw new InvalidOperationException("The editor must not have a visual parent before opening.");
+        if (this.GetVisualParent() is not null || Parent is not null) throw new InvalidOperationException("The editor must not have a visual parent before opening.");
         var draft = tour.StyleProfile is { } profile ? DaisyTourStyleProfileSerializer.Clone(profile) : new DaisyTourStyleProfile { TourId = tour.Id };
         DaisyTourStyleProfileSerializer.Validate(draft, tour);
         var openingGeneration = ++_openingGeneration;
         _draft = draft;
         _tour = tour;
-        // The tour's own state notifications; AvaloniaObject.PropertyChanged reports Avalonia properties only.
+        // The tour's state, such as CurrentStep, by property name like WinUI's PropertyChanged; the Avalonia
+        // PropertyChanged event of the tour carries AvaloniaPropertyChangedEventArgs instead.
         ((INotifyPropertyChanged)tour).PropertyChanged += OnTourStateChanged;
         _initialSnapshot = DaisyTourStyleProfileSerializer.Serialize(_draft);
         _undoHistory.Clear();
@@ -469,6 +478,7 @@ public sealed partial class DaisyTourEditor : ContentControl
     private void OnResizePointerPressed(object? sender, PointerPressedEventArgs args)
     {
         if (!_resizing || _tour is not { } tour) return;
+        _resizePointer = args.Pointer;
         var point = args.GetCurrentPoint(tour.EditingSurface);
         if (point.Properties.IsLeftButtonPressed)
             _resizePointerStart = (args.Pointer.Id, point.Position.X, Math.Clamp(_desiredWidth ?? Width, 180, MaximumInspectorWidth));
@@ -494,6 +504,7 @@ public sealed partial class DaisyTourEditor : ContentControl
     {
         if (!_resizing) return;
         _resizing = false;
+        _resizePointer = null;
         if (canceled)
         {
             _resizePointerStart = null;
@@ -507,8 +518,11 @@ public sealed partial class DaisyTourEditor : ContentControl
     {
         _resizePointerStart = null;
         if (!_resizing) return;
-        // Avalonia's Thumb cannot cancel its drag; the resize ends as canceled and ignores the remaining deltas.
+        // Avalonia's Thumb cannot cancel its drag: the resize ends as canceled, and releasing the thumb's capture
+        // ends the drag of the thumb. Its DragCompleted then finds no resize to complete.
+        var pointer = _resizePointer;
         CompleteResize(canceled: true);
+        if (pointer?.Captured == _resizeThumb) pointer.Capture(null);
     }
 
     private void OnResizeKeyDown(object? sender, KeyEventArgs args)
@@ -528,7 +542,8 @@ public sealed partial class DaisyTourEditor : ContentControl
             else Discard();
             args.Handled = true;
         }
-        var control = args.KeyModifiers.HasFlag(KeyModifiers.Control);
+        // Ctrl on Windows and Linux, Cmd on macOS.
+        var control = (args.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Meta)) != 0;
         if (control && args.Key is Key.Z or Key.Y)
         {
             if (args.Key == Key.Z) Undo(); else Redo();
@@ -762,7 +777,7 @@ public sealed partial class DaisyTourEditor : ContentControl
         var label = Local("TourEditor_Field_" + name);
         var mode = new DaisyButton
         {
-            Content = new PathIcon { Data = DaisyIconSymbolData.GetGeometry(DaisyIconSymbol.More), Width = 14, Height = 14 },
+            Content = new PathIcon { Data = _moreIcon, Width = 14, Height = 14 },
             Variant = DaisyButtonVariant.Ghost, Shape = DaisyButtonShape.Square
         };
         Compact(mode);
@@ -770,10 +785,11 @@ public sealed partial class DaisyTourEditor : ContentControl
         AutomationProperties.SetAutomationId(mode, "DaisyTourEditorMode_" + name);
         AutomationProperties.SetName(mode, label + " · " + Local("TourEditor_Scope"));
         var menu = new MenuFlyout();
-        menu.Opening += (_, _) =>
+        menu.Opening += (sender, _) =>
         {
-            menu.FlyoutPresenterTheme = FlyoutPresenterStyle(typeof(MenuFlyoutPresenter), new Thickness(4));
-            foreach (var item in menu.Items.OfType<MenuItem>())
+            var opening = (MenuFlyout)sender!;
+            ApplyPresenterTheme(opening, FlyoutPresenterStyle(typeof(MenuFlyoutPresenter), new Thickness(4)));
+            foreach (var item in opening.Items.OfType<MenuItem>())
             {
                 item.Foreground = Foreground;
                 item.FontSize = 13;
@@ -823,8 +839,8 @@ public sealed partial class DaisyTourEditor : ContentControl
                 Describe(effective) + " (" + _resolvedSource + ")");
             var scope = CurrentOverride(false);
             if (field.Mode.Content is PathIcon icon)
-                icon.Data = DaisyIconSymbolData.GetGeometry(DaisyTourProfileResolver.GetValue(scope, name) is not null ? DaisyIconSymbol.Edit :
-                    scope?.Inherit.Contains(name) == true ? DaisyIconSymbol.Link : DaisyIconSymbol.More);
+                icon.Data = DaisyTourProfileResolver.GetValue(scope, name) is not null ? _editIcon :
+                    scope?.Inherit.Contains(name) == true ? _linkIcon : _moreIcon;
         }
         _error.IsVisible = !string.IsNullOrEmpty(_error.Text);
     }
@@ -956,7 +972,7 @@ public sealed partial class DaisyTourEditor : ContentControl
             content.Children.Add(caption);
             button.Content = content;
             var flyout = new Flyout { Content = picker };
-            flyout.Opening += (_, _) => flyout.FlyoutPresenterTheme = FlyoutPresenterStyle(typeof(FlyoutPresenter), new Thickness(12));
+            flyout.Opening += (sender, _) => ApplyPresenterTheme((Flyout)sender!, FlyoutPresenterStyle(typeof(FlyoutPresenter), new Thickness(12)));
             button.Flyout = flyout;
             var synchronizing = false;
             wheel.ColorChanged += (_, args) => { if (!synchronizing) color.Color = args.Color; };
@@ -1107,10 +1123,22 @@ public sealed partial class DaisyTourEditor : ContentControl
         RefreshValue();
     }
 
-    // The presenter theme keeps the default template of the presenter and replaces its colors and shape.
-    private ControlTheme FlyoutPresenterStyle(Type targetType, Thickness padding)
+    // Avalonia gives the presenter its FlyoutPresenterTheme before it raises Opening, while WinUI reads the presenter
+    // style after it. The theme of this opening therefore also goes to the presenter that already exists.
+    private static void ApplyPresenterTheme(PopupFlyoutBase flyout, ControlTheme? theme)
     {
-        var style = new ControlTheme(targetType) { BasedOn = Application.Current?.FindResource(targetType) as ControlTheme };
+        if (theme is null) return;
+        if (flyout is Flyout plain) plain.FlyoutPresenterTheme = theme;
+        else if (flyout is MenuFlyout menu) menu.FlyoutPresenterTheme = theme;
+        if (flyout.Popup.Child is Control presenter) presenter.Theme = theme;
+    }
+
+    // The presenter theme keeps the default template of the presenter and replaces its colors and shape.
+    // Without a default theme there is no template to keep, and the presenter keeps its own theme.
+    private ControlTheme? FlyoutPresenterStyle(Type targetType, Thickness padding)
+    {
+        if (Application.Current?.FindResource(targetType) is not ControlTheme basedOn) return null;
+        var style = new ControlTheme(targetType) { BasedOn = basedOn };
         style.Setters.Add(new Setter(BackgroundProperty, DaisyResourceLookup.GetBrush("DaisyBase100Brush")));
         style.Setters.Add(new Setter(ForegroundProperty, DaisyResourceLookup.GetBrush("DaisyBaseContentBrush")));
         style.Setters.Add(new Setter(BorderBrushProperty, DaisyAccessibility.IsHighContrast
@@ -1130,15 +1158,12 @@ public sealed partial class DaisyTourEditor : ContentControl
         _panel.BorderBrush = DaisyResourceLookup.GetBrush("DaisyBase300Brush");
         _resizeMark.Background = DaisyResourceLookup.GetBrush("DaisyBaseContentBrush");
         Foreground = DaisyResourceLookup.GetBrush("DaisyBaseContentBrush");
+        // The theme of the scope sets the system text color, which would hide the Daisy text color inherited from here.
+        _themeScope.SetValue(TextElement.ForegroundProperty, Foreground);
         var sectionBorder = DaisyResourceLookup.GetBrush("DaisyAccentBrush");
         _scopeSection.BorderBrush = sectionBorder;
         foreach (var section in _fieldsPanel.Children.OfType<DaisyExpander>())
             section.BorderBrush = sectionBorder;
-    }
-
-    private new void VerifyAccess()
-    {
-        if (!Dispatcher.UIThread.CheckAccess()) throw new InvalidOperationException("Tour editor operations require the Avalonia UI thread.");
     }
 
     private sealed class ResizeGrip : Grid

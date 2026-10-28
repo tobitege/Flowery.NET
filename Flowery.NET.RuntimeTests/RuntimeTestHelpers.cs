@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -37,9 +37,7 @@ internal static class RuntimeTestHelpers
     /// </summary>
     public static async Task<T> AttachAsync<T>(T control) where T : Control
     {
-        var hostPanel = GetHostPanel();
-        hostPanel.Children.Clear();
-        hostPanel.Children.Add(control);
+        AttachToHost(control);
         await WaitForRenderAsync();
         return control;
     }
@@ -71,11 +69,12 @@ internal static class RuntimeTestHelpers
         return loaded.Task;
     }
 
-    /// <summary>Runs one case of a table-driven test; a failure or an exception names the case.</summary>
+    /// <summary>Runs one case of a table-driven test. A failure, an exception or a timeout (30 seconds unless
+    /// <paramref name="timeout"/> is given) names the case; a skipped result passes through unchanged.</summary>
     public static async Task RunCaseAsync(string name, Func<Task> body, TimeSpan? timeout = null)
     {
         try { await body().WaitAsync(timeout ?? TimeSpan.FromSeconds(30)); }
-        catch (Exception error) when (!error.Message.StartsWith("$XunitDynamicSkip$", StringComparison.Ordinal))
+        catch (Exception error) when (error is not Xunit.Sdk.SkipException)
         {
             throw new Xunit.Sdk.XunitException($"{name}: {error.Message}", error);
         }

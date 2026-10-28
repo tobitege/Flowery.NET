@@ -150,20 +150,19 @@ public class DaisyTourAnnotationStyle : AvaloniaObject
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property.OwnerType == typeof(DaisyTourAnnotationStyle)) OnChanged(this, change);
+        if (change.Property.OwnerType == typeof(DaisyTourAnnotationStyle)) OnChanged(change);
     }
 
-    private static void OnChanged(AvaloniaObject sender, AvaloniaPropertyChangedEventArgs args)
+    private void OnChanged(AvaloniaPropertyChangedEventArgs args)
     {
-        var style = (DaisyTourAnnotationStyle)sender;
         if (args.Property == DashArrayProperty)
         {
             if (args.OldValue is DaisyTourDashCollection oldPattern)
-                oldPattern.CollectionChanged -= style.OnDashPatternChanged;
+                oldPattern.CollectionChanged -= OnDashPatternChanged;
             if (args.NewValue is DaisyTourDashCollection newPattern)
-                newPattern.CollectionChanged += style.OnDashPatternChanged;
+                newPattern.CollectionChanged += OnDashPatternChanged;
         }
-        style.NotifyChanged();
+        NotifyChanged();
     }
 
     private void OnDashPatternChanged(object? sender, NotifyCollectionChangedEventArgs args) => NotifyChanged();

@@ -17,7 +17,7 @@ namespace Flowery.Controls;
 internal readonly record struct DaisyTourRouteLimit(DaisyTourRouteSide Side, double Value);
 
 /// <summary>Retained XAML vectors in the tour overlay's DIP coordinate space.</summary>
-internal sealed partial class DaisyTourAnnotationPresenter : Canvas
+internal sealed class DaisyTourAnnotationPresenter : Canvas
 {
     private readonly Path _body = CreatePath();
     private readonly Path _tail = CreatePath();
@@ -100,7 +100,7 @@ internal sealed partial class DaisyTourAnnotationPresenter : Canvas
             shape.Data = null;
             shape.RenderTransform = null;
             shape.Stretch = Stretch.None;
-            // Absolute overlay geometry needs a nonzero native drawing area.
+            // Each shape spans the overlay, as in WinUI; Avalonia draws its absolute geometry without clipping either way.
             shape.Width = Width;
             shape.Height = Height;
             SetLeft(shape, 0);
@@ -885,12 +885,12 @@ internal sealed partial class DaisyTourAnnotationPresenter : Canvas
     }
 
     // Rotates and scales a custom course so that it starts at the source and ends at the target.
-    // Geometry parsed from path markup does not expose its figures; the middle of its left and
-    // right bounds edges then marks the course ends.
+    // Geometry parsed from path markup does not expose its figures; its contour then gives the course.
+    // A closed contour, such as an ellipse, meets the anchors at the middle of its left and right bounds edges.
     private List<Point>? FitCustomRoute(Geometry geometry, Point source, Point target)
     {
         var samples = geometry is PathGeometry { Figures.Count: > 0 } pathGeometry && pathGeometry.Figures![0] is { Segments.Count: > 0 } figure
-            ? Flatten(figure) : null;
+            ? Flatten(figure) : ContourSamples(geometry);
         var bounds = geometry.Bounds;
         var from = samples?[0] ?? new Point(bounds.Left, bounds.Top + bounds.Height / 2);
         var to = samples?[^1] ?? new Point(bounds.Right, bounds.Top + bounds.Height / 2);
@@ -909,6 +909,22 @@ internal sealed partial class DaisyTourAnnotationPresenter : Canvas
         _customRoute.Children!.Add(geometry);
         _customRoute.Transform = new MatrixTransform { Matrix = matrix };
         return samples is null ? [source, target] : samples.ConvertAll(point => Transform(matrix, point));
+    }
+
+    // Samples an open contour in 24 steps; null for a closed or unmeasurable contour.
+    private static List<Point>? ContourSamples(Geometry geometry)
+    {
+        var length = geometry.ContourLength;
+        if (!(length > 0.001) || !double.IsFinite(length))
+            return null;
+        var points = new List<Point>(25);
+        for (var index = 0; index <= 24; index++)
+        {
+            if (!geometry.TryGetPointAtDistance(length * index / 24, out var point))
+                return null;
+            points.Add(point);
+        }
+        return Distance(points[0], points[^1]) < 0.001 ? null : points;
     }
 
     private static Point Transform(Matrix matrix, Point point) =>

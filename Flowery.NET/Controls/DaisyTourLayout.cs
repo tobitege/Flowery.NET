@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Layout;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 
@@ -20,10 +19,23 @@ internal static class DaisyTourLayout
     internal static Rect VisibleArea(TopLevel root)
     {
         var content = new Rect(0, 0, root.ClientSize.Width, root.ClientSize.Height);
-        if (root is not Window window || window.Screens.ScreenFromWindow(window) is not { } display)
+        // A view without a window, such as on a phone, can reach under the system bars and display cutouts.
+        if (root is not Window window)
+            return SafeArea(content, root.InsetsManager?.SafeAreaPadding ?? default);
+        if (window.Screens.ScreenFromWindow(window) is not { } display)
             return content;
         var origin = window.PointToScreen(new Point(0, 0));
         return VisibleArea(content, origin.X, origin.Y, display.WorkingArea, window.RenderScaling);
+    }
+
+    /// <summary>The content without the insets that system bars and display cutouts cover.</summary>
+    /// <param name="content">The view content in DIP.</param>
+    /// <param name="insets">The safe-area padding of the view in DIP.</param>
+    internal static Rect SafeArea(Rect content, Thickness insets)
+    {
+        var safe = content.Deflate(insets);
+        // Insets that leave nothing keep the full content area, like a window outside its display.
+        return safe is { Width: > 0, Height: > 0 } ? safe : content;
     }
 
     /// <param name="content">The window content in DIP.</param>
@@ -90,9 +102,9 @@ internal static class DaisyTourLayout
     {
         var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         // Layout is forced explicitly; low-priority queue work can starve during active rendering.
+        // Avalonia's UpdateLayout runs the layout pass of the host's whole top level.
         Dispatcher.UIThread.Post(() =>
         {
-            (TopLevel.GetTopLevel(host) as Layoutable)?.UpdateLayout();
             host.UpdateLayout();
             completion.TrySetResult();
         }, DispatcherPriority.Normal);

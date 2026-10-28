@@ -88,7 +88,7 @@ public sealed class DaisyTourStep : AvaloniaObject
         AvaloniaProperty.Register<DaisyTourStep, string>(nameof(Id), "");
     public string Id { get => GetValue(IdProperty); set => SetValue(IdProperty, value); }
     public static readonly StyledProperty<Control?> TargetProperty =
-        AvaloniaProperty.Register<DaisyTourStep, Control?>(nameof(Target), null);
+        AvaloniaProperty.Register<DaisyTourStep, Control?>(nameof(Target));
     public Control? Target { get => GetValue(TargetProperty); set => SetValue(TargetProperty, value); }
     public static readonly StyledProperty<string> TitleProperty =
         AvaloniaProperty.Register<DaisyTourStep, string>(nameof(Title), "");
@@ -112,12 +112,11 @@ public sealed class DaisyTourStep : AvaloniaObject
         AvaloniaProperty.Register<DaisyTourStep, double>(nameof(CardY), double.NaN);
     public double CardY { get => GetValue(CardYProperty); set => SetValue(CardYProperty, value); }
     public static readonly StyledProperty<IDataTemplate?> ContentTemplateProperty =
-        AvaloniaProperty.Register<DaisyTourStep, IDataTemplate?>(nameof(ContentTemplate), null);
+        AvaloniaProperty.Register<DaisyTourStep, IDataTemplate?>(nameof(ContentTemplate));
     public IDataTemplate? ContentTemplate { get => GetValue(ContentTemplateProperty); set => SetValue(ContentTemplateProperty, value); }
     public static readonly StyledProperty<DaisyTourAnnotationStyle?> AnnotationDefaultsProperty =
-        AvaloniaProperty.Register<DaisyTourStep, DaisyTourAnnotationStyle?>(nameof(AnnotationDefaults), null);
+        AvaloniaProperty.Register<DaisyTourStep, DaisyTourAnnotationStyle?>(nameof(AnnotationDefaults));
     public DaisyTourAnnotationStyle? AnnotationDefaults { get => GetValue(AnnotationDefaultsProperty); set => SetValue(AnnotationDefaultsProperty, value); }
-
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {

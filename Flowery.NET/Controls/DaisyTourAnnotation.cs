@@ -57,9 +57,6 @@ public sealed class DaisyTourAnnotation : DaisyTourAnnotationStyle
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property.OwnerType == typeof(DaisyTourAnnotation)) OnAnnotationChanged(this, change);
+        if (change.Property.OwnerType == typeof(DaisyTourAnnotation)) NotifyChanged();
     }
-
-    private static void OnAnnotationChanged(AvaloniaObject sender, AvaloniaPropertyChangedEventArgs args)
-        => ((DaisyTourAnnotation)sender).NotifyChanged();
 }

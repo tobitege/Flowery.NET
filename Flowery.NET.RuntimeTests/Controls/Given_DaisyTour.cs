@@ -201,11 +201,14 @@ public class Given_DaisyTour
         try
         {
             await LoadAsync(root);
-            ChangeView(sidebar, null, 500);
+            Assert.IsTrue(ChangeView(sidebar, null, 500), "The sidebar scrolls its selection out of view.");
             await RenderFrameAsync(root);
+            // The offset is clamped to the extent, so the assertion compares with the offset that hid the selection.
+            var hiddenOffset = sidebar.Offset.Y;
+            Assert.IsTrue(hiddenOffset > 0, "The selection starts out of view.");
             await tour.StartAsync().WaitAsync(Timeout);
             AssertActive(tour, step, 0);
-            Assert.IsTrue(sidebar.Offset.Y < 500, "The sidebar must scroll its selection back into view.");
+            Assert.IsTrue(sidebar.Offset.Y < hiddenOffset, "The sidebar must scroll its selection back into view.");
             Assert.IsTrue(content.Offset.Y > 0, "The content region must reveal the target.");
             AssertFits(selection, sidebar);
             AssertFits(target, content);
@@ -1080,8 +1083,8 @@ public class Given_DaisyTour
         var course = new Rect(150, 180, 300, 20);
         var placed = DaisyTourLayout.AvoidObstacles(DaisyTourCardPosition.Target, DaisyTourPlacement.Auto, null, card, viewport, [course]);
         Assert.IsNotNull(placed, "A clear spot exists.");
-        var overlap = placed.Value.Intersect(course);
-        Assert.IsTrue(IsEmpty(overlap), $"The card {placed} must not cover the course.");
+        // WinUI's Intersect keeps rectangles that only touch, so a card on the edge of the course fails there too.
+        Assert.IsFalse(IntersectsOrTouches(placed.Value, course), $"The card {placed} must not cover the course.");
         Assert.IsTrue(placed.Value.Left >= 0 && placed.Value.Top >= 0 && placed.Value.Right <= viewport.Width && placed.Value.Bottom <= viewport.Height,
             $"The card {placed} stays in view.");
     }
@@ -1806,7 +1809,7 @@ public class Given_DaisyTour
         Assert.AreSame(stroke, path.Stroke);
         Assert.AreEqual(7d, path.StrokeThickness);
         Assert.AreEqual(4d, path.StrokeDashOffset);
-        Assert.AreEqual(0.6, presenter.Opacity, 0.000001, "WinUI stores opacity with native single-precision rounding.");
+        Assert.AreEqual(0.6, presenter.Opacity, "The annotation's own opacity applies.");
         CollectionAssert.AreEqual(new[] { 2d, 3d, 1d, 3d }, path.StrokeDashArray!.ToArray());
         Assert.IsNotNull(((Path)presenter.Children[2]).Data);
         Assert.IsNotNull(((Path)presenter.Children[3]).Data);
@@ -2046,9 +2049,10 @@ public class Given_DaisyTour
                     AssertInViewport(bounds, RootSize(root), $"{preset}/{size}");
                     var content = (Border)presenter.Children[4];
                     Assert.IsTrue(content.IsVisible);
-                    // Avalonia rounds the desired size up to whole device pixels, which can pass the limit by less than one.
-                    var pixel = 1 / (TopLevel.GetTopLevel(content)?.RenderScaling ?? 1);
-                    Assert.IsTrue(content.DesiredSize.Width <= content.MaxWidth + pixel && content.DesiredSize.Height <= content.MaxHeight + pixel,
+                    // Avalonia rounds the desired size up to whole device pixels, so the limit is rounded the same way.
+                    var scale = LayoutHelper.GetLayoutScale(content);
+                    Assert.IsTrue(content.DesiredSize.Width <= LayoutHelper.RoundLayoutValueUp(content.MaxWidth, scale) &&
+                        content.DesiredSize.Height <= LayoutHelper.RoundLayoutValueUp(content.MaxHeight, scale),
                         $"{preset}/{size}: {content.DesiredSize}, max={content.MaxWidth}x{content.MaxHeight}");
                 }
             }
@@ -2454,11 +2458,15 @@ public class Given_DaisyTour
     private static bool Overlaps(Rect first, Rect second)
     {
         first = first.Intersect(second);
-        return !IsEmpty(first) && first.Width > 0 && first.Height > 0;
+        return first.Width > 0 && first.Height > 0;
     }
 
     // Avalonia has no Rect.IsEmpty; an intersection without overlap has no size.
     private static bool IsEmpty(Rect rect) => rect.Width <= 0 || rect.Height <= 0;
+
+    // A nonempty WinUI intersection: the rectangles overlap or share an edge.
+    private static bool IntersectsOrTouches(Rect first, Rect second) =>
+        first.Left <= second.Right && second.Left <= first.Right && first.Top <= second.Bottom && second.Top <= first.Bottom;
 
     [Fact]
     public async Task When_EightStepsUseExtraLargeSize_TheCurrentCompactIndicatorRemainsVisible()
@@ -2616,6 +2624,160 @@ public class Given_DaisyTour
             AssertClosed(tour);
         }
         finally { release.TrySetResult(); await CleanupAsync(root, tour); }
+    }
+
+    [Fact]
+    public async Task When_TheTourBelongsToNoWindow_StartReportsTargetUnavailableOnce()
+    {
+        var tour = new DaisyTour();
+        tour.Steps.Add(new DaisyTourStep { Id = "first", Target = CreateTarget() });
+        tour.Steps.Add(new DaisyTourStep { Id = "second", Target = CreateTarget() });
+        var closed = new List<DaisyTourClosedEventArgs>();
+        tour.Closed += (_, args) => closed.Add(args);
+        await tour.StartAsync().WaitAsync(Timeout);
+        AssertClosed(tour);
+        Assert.HasCount(1, closed, "A tour without a window closes once.");
+        Assert.AreEqual(DaisyTourCloseReason.TargetUnavailable, closed[0].Reason);
+        Assert.AreEqual("first", closed[0].StepId);
+        Assert.IsNull(closed[0].Error);
+    }
+
+    [Fact]
+    public async Task When_TheTourItselfCannotContinue_ItClosesAsFailedWithTheError()
+    {
+        var target = CreateTarget();
+        var failure = new InvalidOperationException("The card content cannot be measured.");
+        // Card content that cannot be laid out is a failure of the tour itself, not a problem of its target.
+        var step = new DaisyTourStep
+        {
+            Id = "failing", Target = target,
+            ContentTemplate = new FuncDataTemplate<DaisyTourStep>((_, _) => new FailingMeasure(failure))
+        };
+        var tour = new DaisyTour();
+        tour.Steps.Add(step);
+        var root = CreateRoot(tour, target);
+        var closed = new List<DaisyTourClosedEventArgs>();
+        tour.Closed += (_, args) => closed.Add(args);
+        try
+        {
+            await LoadAsync(root);
+            await tour.StartAsync().WaitAsync(Timeout);
+            await ArrangeAsync(root);
+            AssertClosed(tour);
+            Assert.HasCount(1, closed, "A failed session closes once.");
+            Assert.AreEqual(DaisyTourCloseReason.Failed, closed[0].Reason);
+            Assert.AreEqual("failing", closed[0].StepId);
+            Assert.AreSame(target, closed[0].Target);
+            Assert.AreSame(failure, closed[0].Error);
+            Assert.IsFalse(OpenSurfaces(root).Any(surface => Descendants<Border>(surface).Any(border =>
+                AutomationProperties.GetAutomationId(border) == "DaisyTourCard")), "A failed tour leaves no card in the overlay.");
+            // The tour opens again once its content can be laid out.
+            step.ContentTemplate = null;
+            await tour.StartAsync().WaitAsync(Timeout);
+            AssertActive(tour, step, 0);
+        }
+        finally { await CleanupAsync(root, tour); }
+    }
+
+    [Fact]
+    public async Task When_CancelIsCalledOnAnOpenTour_ItClosesAsCancelledAndRestoresPreviousFocus()
+    {
+        var target = CreateTarget();
+        var previous = new Button { Content = "Previous focus", HorizontalAlignment = HorizontalAlignment.Right };
+        var step = new DaisyTourStep { Id = "cancel", Target = target };
+        var tour = new DaisyTour();
+        tour.Steps.Add(step);
+        var root = CreateRoot(tour, target, previous);
+        var closed = new List<DaisyTourClosedEventArgs>();
+        tour.Closed += (_, args) => closed.Add(args);
+        try
+        {
+            await LoadAsync(root);
+            Assert.IsTrue(previous.Focus(NavigationMethod.Unspecified));
+            await tour.StartAsync().WaitAsync(Timeout);
+            AssertActive(tour, step, 0);
+            Assert.AreNotSame(previous, FocusedElement(root), "The open tour keeps the focus in its card.");
+            tour.Cancel();
+            await ArrangeAsync(root);
+            AssertClosed(tour);
+            Assert.HasCount(1, closed);
+            Assert.AreEqual(DaisyTourCloseReason.Cancelled, closed[0].Reason);
+            Assert.AreEqual("cancel", closed[0].StepId);
+            Assert.AreSame(previous, FocusedElement(root), "Closing gives the focus back.");
+        }
+        finally { await CleanupAsync(root, tour); }
+    }
+
+    [Fact]
+    public async Task When_EscapeIsPressedInAnOpenTour_ItSkips()
+    {
+        var target = CreateTarget();
+        var step = new DaisyTourStep { Id = "escape", Target = target };
+        var tour = new DaisyTour();
+        tour.Steps.Add(step);
+        tour.Steps.Add(new DaisyTourStep { Id = "after-escape", Target = target });
+        var root = CreateRoot(tour, target);
+        var closed = new List<DaisyTourClosedEventArgs>();
+        tour.Closed += (_, args) => closed.Add(args);
+        try
+        {
+            await LoadAsync(root);
+            await tour.StartAsync().WaitAsync(Timeout);
+            AssertActive(tour, step, 0);
+            var focused = FocusedElement(root) as InputElement;
+            Assert.IsNotNull(focused, "The open tour has a focused element.");
+            Assert.IsTrue(DaisyTourLayout.IsDescendant(focused, GetSurface(tour)), "The focus is inside the tour.");
+            var escape = new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape };
+            focused.RaiseEvent(escape);
+            Assert.IsTrue(escape.Handled, "The tour handles Escape.");
+            await ArrangeAsync(root);
+            AssertClosed(tour);
+            Assert.HasCount(1, closed);
+            Assert.AreEqual(DaisyTourCloseReason.Skipped, closed[0].Reason);
+            Assert.AreEqual("escape", closed[0].StepId);
+        }
+        finally { await CleanupAsync(root, tour); }
+    }
+
+    [Fact]
+    public async Task When_TheStepTargetLeavesTheVisualTree_TheStepWarnsAndRecoversWhenItReturns()
+    {
+        var target = CreateTarget();
+        var step = new DaisyTourStep { Id = "detached", Target = target };
+        var tour = new DaisyTour();
+        tour.Steps.Add(step);
+        var root = CreateRoot(tour, target);
+        var reports = new List<DaisyTourStepTargetUnavailableEventArgs>();
+        tour.StepTargetUnavailable += (_, args) => reports.Add(args);
+        try
+        {
+            await LoadAsync(root);
+            await tour.StartAsync().WaitAsync(Timeout);
+            AssertActive(tour, step, 0);
+            // A removed control raises no layout event of its own; the step must still notice it.
+            root.Children.Remove(target);
+            await RuntimeTestHelpers.WaitUntilAsync(() => tour.Warning is not null, "the removed target puts the step in its warning state");
+            await RuntimeTestHelpers.WaitUntilAsync(() => reports.Count > 0, "the removed target is reported");
+            await ArrangeAsync(root);
+            AssertActive(tour, step, 0, DaisyTourTargetProblem.Target);
+            AssertWarning(tour, DaisyTourTargetProblem.Target);
+            Assert.AreEqual(DaisyTourTargetProblem.Target, reports.Single().Problem);
+            Assert.AreSame(target, reports[0].Target);
+            root.Children.Insert(0, target);
+            await RuntimeTestHelpers.WaitUntilAsync(() => tour.Warning is null, "the returned target clears the warning");
+            await ArrangeAsync(root);
+            AssertActive(tour, step, 0);
+            AssertWarning(tour, null);
+            AssertTargetBounds(tour, target);
+            Assert.HasCount(1, reports, "A cause is reported once per visit.");
+        }
+        finally { await CleanupAsync(root, tour); }
+    }
+
+    // A control whose measure fails, such as card content that throws while it is laid out.
+    private sealed class FailingMeasure(Exception failure) : Control
+    {
+        protected override Size MeasureOverride(Size availableSize) => throw failure;
     }
 
     private static async Task VerifyAnnotationPixelsAsync(DaisyTourAnnotationKind kind,
@@ -2800,7 +2962,8 @@ public class Given_DaisyTour
         EventHandler<DaisyTourClosedEventArgs> failed = (_, args) => opened.TrySetException(
             new InvalidOperationException($"Gallery tour closed while opening: {args.Reason}, Step={args.StepId}, " +
                 $"Annotation={args.AnnotationId}, Target={args.Target?.GetType().Name}, Error={args.Error?.Message}", args.Error));
-        tour.PropertyChanged += changed;
+        // AvaloniaObject raises INotifyPropertyChanged for the tour state properties.
+        ((INotifyPropertyChanged)tour).PropertyChanged += changed;
         tour.Closed += failed;
         try
         {
@@ -2815,7 +2978,7 @@ public class Given_DaisyTour
         }
         finally
         {
-            tour.PropertyChanged -= changed;
+            ((INotifyPropertyChanged)tour).PropertyChanged -= changed;
             tour.Closed -= failed;
         }
     }
@@ -2898,9 +3061,10 @@ public class Given_DaisyTour
             ? bounds.TransformToAABB(transform)
             : throw new AssertFailedException($"{element.GetType().Name} and {target.GetType().Name} share no visual root.");
 
-    // WinUI's open popups; the Avalonia tour shows its surface in the overlay layer of the window.
+    // WinUI's open popups; the Avalonia tour shows its surface in the overlay layer of the window, inside a theme scope.
     private static IEnumerable<Control> OpenSurfaces(Visual element) =>
-        OverlayLayer.GetOverlayLayer(element)?.Children.Where(child => child.IsVisible) ?? [];
+        OverlayLayer.GetOverlayLayer(element)?.Children.Where(child => child.IsVisible)
+            .Select(child => child is ThemeVariantScope { Child: Control inner } ? inner : child) ?? [];
 
     private static Control GetSurface(DaisyTour tour) =>
         OpenSurfaces(tour).Single(surface => Descendants<Border>(surface).Any(border => AutomationProperties.GetAutomationId(border) == "DaisyTourCard"));
@@ -2912,10 +3076,12 @@ public class Given_DaisyTour
         $"extent={viewer.Extent.Height}, scrollable={viewer.ScrollBarMaximum.Y}, actual={viewer.Bounds.Height}";
 
     // WinUI's ChangeView without animation; Avalonia takes the offset directly and clamps it to the extent.
+    // Like ChangeView, the result tells whether the view changed.
     private static bool ChangeView(ScrollViewer viewer, double? horizontal, double? vertical)
     {
+        var before = viewer.Offset;
         viewer.Offset = new Vector(horizontal ?? viewer.Offset.X, vertical ?? viewer.Offset.Y);
-        return true;
+        return viewer.Offset != before;
     }
 
     private static void AssertFits(Control child, Control parent)
@@ -2950,7 +3116,8 @@ public class Given_DaisyTour
 
     private static IInputElement? FocusedElement(Visual element) => TopLevel.GetTopLevel(element)?.FocusManager?.GetFocusedElement();
 
-    // A rendered bitmap as BGRA bytes at one pixel per DIP, like the WinUI pixel buffer.
+    // A rendered bitmap as BGRA bytes, in the byte order of WinUI's pixel buffer. It is rendered at one pixel per DIP;
+    // the tests map pixels to DIP through the bitmap size.
     private sealed record RenderedBitmap(byte[] Pixels, int PixelWidth, int PixelHeight);
 
     private static RenderedBitmap RenderBitmap(Visual visual)

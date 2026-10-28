@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -279,9 +279,11 @@ namespace Flowery.Controls
         }
 
         // Compact items show the indicator without the label row, such as the progress of a DaisyTour.
-        internal bool IsCompact { get; set; }
-        // A button over the item, so the step can be selected with the pointer and the keyboard.
+        internal bool IsCompact { get; init; }
+        // A button under the item's indicator, so the step can be selected with the pointer and the keyboard.
         internal Button? NavigationButton { get; init; }
+        private Border? _compactCircle;
+        private Grid? _compactLayout;
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
@@ -298,23 +300,47 @@ namespace Flowery.Controls
         {
             base.OnApplyTemplate(e);
             UpdatePseudoClasses();
+            if (_compactCircle is not null)
+                _compactCircle.PropertyChanged -= OnCompactCircleChanged;
+            _compactCircle = null;
+            _compactLayout = null;
             if (IsCompact && e.NameScope.Find<Border>("PART_HCircle") is { } circle &&
                 e.NameScope.Find<Grid>("PART_HorizontalLayout") is { } layout)
             {
-                // The connector lines keep 4 DIP on either side of the indicator, once its size resource resolves.
-                if (double.IsFinite(circle.Width)) layout.MinWidth = circle.Width + 8;
-                circle.PropertyChanged += (_, args) =>
-                {
-                    if (args.Property == WidthProperty && double.IsFinite(circle.Width)) layout.MinWidth = circle.Width + 8;
-                };
+                _compactCircle = circle;
+                _compactLayout = layout;
+                circle.PropertyChanged += OnCompactCircleChanged;
+                UpdateCompactWidth();
             }
-            if (NavigationButton is { } button && VisualChildren.Count > 0 && VisualChildren[0] is Panel root)
+            if (NavigationButton is { } button)
             {
+                if (e.NameScope.Find<Panel>("PART_Root") is not { } root)
+                    throw new InvalidOperationException("A DaisyStepItem with a navigation button needs a PART_Root panel in its template.");
                 (button.Parent as Panel)?.Children.Remove(button);
                 button.HorizontalAlignment = HorizontalAlignment.Stretch;
                 button.VerticalAlignment = VerticalAlignment.Stretch;
-                root.Children.Add(button);
+                // Under the indicator, so the hover and pressed backgrounds of the button do not cover it; the
+                // layouts let the pointer through to the button.
+                root.Children.Insert(0, button);
+                foreach (var part in new[] { "PART_HorizontalLayout", "PART_VerticalLayout" })
+                {
+                    if (e.NameScope.Find<Control>(part) is { } layoutPart)
+                        layoutPart.IsHitTestVisible = false;
+                }
             }
+        }
+
+        private void OnCompactCircleChanged(object? sender, AvaloniaPropertyChangedEventArgs args)
+        {
+            if (args.Property == WidthProperty)
+                UpdateCompactWidth();
+        }
+
+        // The connector lines keep 4 DIP on either side of the indicator, once its size resource resolves.
+        private void UpdateCompactWidth()
+        {
+            if (_compactCircle is { } circle && _compactLayout is { } layout && double.IsFinite(circle.Width))
+                layout.MinWidth = circle.Width + 8;
         }
 
         private void UpdatePseudoClasses()

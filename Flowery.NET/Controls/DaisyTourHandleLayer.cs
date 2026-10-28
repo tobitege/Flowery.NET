@@ -15,7 +15,7 @@ using Flowery.Theming;
 namespace Flowery.Controls;
 
 /// <summary>Pointer and keyboard editing over the same geometry used by the tour presenter.</summary>
-internal sealed partial class DaisyTourHandleLayer : Canvas
+internal sealed class DaisyTourHandleLayer : Canvas
 {
     private enum HandleKind { Source, Target, Curvature, FirstControl, SecondControl, BodyWidth, HeadLength, HeadWidth }
     private readonly DaisyTourEditor _editor;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -9,10 +10,11 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Flowery.Controls;
 using Flowery.NET.Gallery.Localization;
+using DaisyIconSymbol = Flowery.Enums.DaisyIconSymbol;
 
 namespace Flowery.NET.Gallery.Examples;
 
-public partial class TourExamples
+public sealed partial class TourExamples
 {
     private readonly DaisyTourEditor _tourEditor = new();
     private readonly StackPanel _editorFiles = new() { Spacing = 8 };
@@ -24,8 +26,8 @@ public partial class TourExamples
     private void InitializeTourDesigner()
     {
         var commands = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4 };
-        var import = new DaisyButton { IconSymbol = Flowery.Enums.DaisyIconSymbol.Folder, Shape = DaisyButtonShape.Square, Variant = DaisyButtonVariant.Ghost, Size = DaisySize.Small };
-        var export = new DaisyButton { IconSymbol = Flowery.Enums.DaisyIconSymbol.Save, Shape = DaisyButtonShape.Square, Variant = DaisyButtonVariant.Ghost, Size = DaisySize.Small };
+        var import = new DaisyButton { IconSymbol = DaisyIconSymbol.Folder, Shape = DaisyButtonShape.Square, Variant = DaisyButtonVariant.Ghost, Size = DaisySize.Small };
+        var export = new DaisyButton { IconSymbol = DaisyIconSymbol.Save, Shape = DaisyButtonShape.Square, Variant = DaisyButtonVariant.Ghost, Size = DaisySize.Small };
         FlowerySizeManager.SetIgnoreGlobalSize(import, true);
         FlowerySizeManager.SetIgnoreGlobalSize(export, true);
         BindText(import, AutomationProperties.NameProperty, "Gallery_Tour_Import");
@@ -140,7 +142,12 @@ public partial class TourExamples
         EditorTour.Cancel();
     }
 
-    private static FilePickerFileType JsonFileType() => new("JSON") { Patterns = ["*.json"], MimeTypes = ["application/json"] };
+    private static readonly FilePickerFileType JsonFileType = new("JSON")
+    {
+        Patterns = ["*.json"],
+        MimeTypes = ["application/json"],
+        AppleUniformTypeIdentifiers = ["public.json"]
+    };
 
     private async void ImportTourProfile_Click(object? sender, RoutedEventArgs e)
     {
@@ -154,15 +161,13 @@ public partial class TourExamples
             var result = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
             {
                 AllowMultiple = false,
-                FileTypeFilter = [JsonFileType()]
+                FileTypeFilter = [JsonFileType]
             });
             if (result is not [var file])
                 return;
-            // The storage provider reads files also where they have no file system path, such as in the browser.
             string json;
-            await using (var stream = await file.OpenReadAsync())
-            using (var reader = new StreamReader(stream, Encoding.UTF8))
-                json = await reader.ReadToEndAsync();
+            using (file)
+                json = await ReadProfileAsync(file);
             if (generation != _editorGeneration || !_tourEditor.IsOpen)
                 return;
             _tourEditor.ImportJson(json);
@@ -187,53 +192,80 @@ public partial class TourExamples
         var generation = _editorGeneration;
         _editorFileOperation = true;
         _editorFileHost.IsEnabled = false;
-        string? partialPath = null;
         try
         {
             var json = _tourEditor.ExportJson();
-            var result = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+            using var result = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
             {
                 SuggestedFileName = "gallery-tour", DefaultExtension = "json",
-                FileTypeChoices = [JsonFileType()],
+                FileTypeChoices = [JsonFileType],
                 ShowOverwritePrompt = true
             });
             if (result is null || generation != _editorGeneration || !_tourEditor.IsOpen)
                 return;
-            if (result.TryGetLocalPath() is { Length: > 0 } path)
-            {
-                partialPath = path + "." + Guid.NewGuid().ToString("N") + ".partial";
-                await using (var stream = new FileStream(partialPath, FileMode.CreateNew, FileAccess.Write,
-                    FileShare.None, 4096, FileOptions.Asynchronous))
-                {
-                    await stream.WriteAsync(Encoding.UTF8.GetBytes(json));
-                    await stream.FlushAsync();
-                    stream.Flush(flushToDisk: true);
-                }
-                File.Move(partialPath, path, overwrite: true);
-                partialPath = null;
-            }
-            else
-            {
-                // A file without a file system path, such as a browser download, takes the profile through its own stream.
-                await using var stream = await result.OpenWriteAsync();
-                if (stream.CanSeek)
-                    stream.SetLength(0);
-                await stream.WriteAsync(Encoding.UTF8.GetBytes(json));
-                await stream.FlushAsync();
-            }
+            await WriteProfileAsync(result, json);
             if (generation == _editorGeneration && _tourEditor.IsOpen)
                 _editorFileStatus.Text = GalleryLocalization.GetString("Gallery_Tour_Exported");
         }
         catch (Exception error)
         {
             if (generation == _editorGeneration && _tourEditor.IsOpen)
-                _editorFileStatus.Text = GalleryLocalization.GetString("Gallery_Tour_FileError") + " " + error.Message
-                    + (partialPath is null ? string.Empty : Environment.NewLine + partialPath);
+                _editorFileStatus.Text = GalleryLocalization.GetString("Gallery_Tour_FileError") + " " + error.Message;
         }
         finally
         {
             _editorFileOperation = false;
             _editorFileHost.IsEnabled = true;
+        }
+    }
+
+    // The storage provider reads files also where they have no file system path, such as in the browser.
+    internal static async Task<string> ReadProfileAsync(IStorageFile file)
+    {
+        using var reader = new StreamReader(await file.OpenReadAsync(), Encoding.UTF8);
+        return await reader.ReadToEndAsync();
+    }
+
+    internal static async Task WriteProfileAsync(IStorageFile file, string json)
+    {
+        if (file.TryGetLocalPath() is { Length: > 0 } path)
+        {
+            await WriteProfileFileAsync(path, json);
+            return;
+        }
+        // A file without a file system path, such as a browser download, takes the profile through its own stream.
+        await using var stream = await file.OpenWriteAsync();
+        await WriteProfileStreamAsync(stream, json);
+    }
+
+    // A platform stream can open with the previous content; a seekable one is emptied before the profile is written.
+    internal static async Task WriteProfileStreamAsync(Stream stream, string json)
+    {
+        if (stream.CanSeek)
+            stream.SetLength(0);
+        await stream.WriteAsync(Encoding.UTF8.GetBytes(json));
+        await stream.FlushAsync();
+    }
+
+    // Writes and flushes an adjacent temporary file, closes it, then replaces the destination. A failure names
+    // the temporary file when it exists, so the incomplete file can be examined.
+    internal static async Task WriteProfileFileAsync(string path, string json)
+    {
+        var partialPath = path + "." + Guid.NewGuid().ToString("N") + ".partial";
+        try
+        {
+            await using (var stream = new FileStream(partialPath, FileMode.CreateNew, FileAccess.Write,
+                FileShare.None, 4096, FileOptions.Asynchronous))
+            {
+                await stream.WriteAsync(Encoding.UTF8.GetBytes(json));
+                await stream.FlushAsync();
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(partialPath, path, overwrite: true);
+        }
+        catch (Exception error) when (File.Exists(partialPath))
+        {
+            throw new IOException(error.Message + Environment.NewLine + partialPath, error);
         }
     }
 }

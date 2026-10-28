@@ -24,6 +24,9 @@ internal static class MSTestAssert
 
     public static void AreEqual(double expected, double actual, double delta, string? message = null)
     {
+        // Like MSTest: a NaN or negative delta is a usage error, which would otherwise pass every comparison.
+        if (double.IsNaN(delta) || delta < 0)
+            throw new ArgumentOutOfRangeException(nameof(delta), delta, "The delta must be a nonnegative number.");
         if (double.IsNaN(expected) != double.IsNaN(actual) || Math.Abs(expected - actual) > delta)
             Fail($"Expected a difference no greater than <{delta}> between <{expected}> and <{actual}>. {message}");
     }
@@ -130,8 +133,9 @@ internal static class MSTestAssert
 
 internal static class MSTestCollectionAssert
 {
-    public static void AreEqual(IEnumerable expected, IEnumerable actual, string? message = null)
+    public static void AreEqual(IEnumerable? expected, IEnumerable? actual, string? message = null)
     {
+        if (BothNullOrOneNull(expected, actual, message)) return;
         var left = expected.Cast<object?>().ToArray();
         var right = actual.Cast<object?>().ToArray();
         if (!left.SequenceEqual(right))
@@ -139,8 +143,9 @@ internal static class MSTestCollectionAssert
     }
 
     // The same elements, each as often, in any order; elements compare with Equals like MSTest.
-    public static void AreEquivalent(IEnumerable expected, IEnumerable actual, string? message = null)
+    public static void AreEquivalent(IEnumerable? expected, IEnumerable? actual, string? message = null)
     {
+        if (BothNullOrOneNull(expected, actual, message)) return;
         var left = expected.Cast<object?>().ToList();
         var right = actual.Cast<object?>().ToList();
         var unmatched = new List<object?>(right);
@@ -153,6 +158,15 @@ internal static class MSTestCollectionAssert
         }).ToList();
         if (missing.Count > 0 || unmatched.Count > 0)
             MSTestAssert.Fail($"Expected the elements:<{string.Join(", ", left)}>. Actual:<{string.Join(", ", right)}>. {message}");
+    }
+
+    // Like MSTest: two null collections are equal, and one null collection fails. True when nothing is left to compare.
+    private static bool BothNullOrOneNull([NotNullWhen(false)] IEnumerable? expected, [NotNullWhen(false)] IEnumerable? actual, string? message)
+    {
+        if (expected is null && actual is null) return true;
+        if (expected is null || actual is null)
+            MSTestAssert.Fail($"Expected:<{(expected is null ? "(null)" : "a collection")}>. Actual:<{(actual is null ? "(null)" : "a collection")}>. {message}");
+        return false;
     }
 }
 

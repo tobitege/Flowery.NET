@@ -269,9 +269,12 @@ public class Given_DaisyTourEditorNavigation
                 AutomationProperties.GetAutomationId(button) == "DaisyTourEditorUndo");
             var redo = Descendants(editor).OfType<DaisyButton>().Single(button =>
                 AutomationProperties.GetAutomationId(button) == "DaisyTourEditorRedo");
-            // WinUI shows SymbolIcon(Symbol.Undo/Redo); the Avalonia buttons show the same symbols as IconSymbol.
+            // WinUI shows SymbolIcon(Symbol.Undo/Redo) as the only content; the Avalonia buttons show the same
+            // symbols as IconSymbol, without text content.
             Assert.AreEqual<DaisyIconSymbol?>(DaisyIconSymbol.Undo, undo.IconSymbol);
             Assert.AreEqual<DaisyIconSymbol?>(DaisyIconSymbol.Redo, redo.IconSymbol);
+            Assert.IsNull(undo.Content, "The undo button shows only its icon.");
+            Assert.IsNull(redo.Content, "The redo button shows only its icon.");
             Assert.IsFalse(string.IsNullOrWhiteSpace(AutomationProperties.GetName(undo)));
             Assert.AreEqual<object?>(AutomationProperties.GetName(undo), ToolTip.GetTip(undo));
             Assert.AreEqual<object?>(AutomationProperties.GetName(redo), ToolTip.GetTip(redo));

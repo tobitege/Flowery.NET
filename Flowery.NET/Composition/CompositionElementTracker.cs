@@ -8,6 +8,7 @@ using Avalonia.VisualTree;
 
 namespace Flowery.Composition;
 
+// The bounds are compared to report only changes; the tour asks for the new layout itself.
 internal readonly record struct CompositionElementBounds(Rect Bounds, double RasterizationScale, TopLevel Root);
 
 /// <summary>Reports changed bounds in a host's DIP coordinates after layout or scrolling.</summary>
@@ -15,14 +16,14 @@ internal sealed class CompositionElementTracker : IDisposable
 {
     private readonly Control _target;
     private readonly Control _host;
-    private readonly Action<CompositionElementBounds?> _changed;
+    private readonly Action _changed;
     private readonly HashSet<ScrollViewer> _scrollViewers = [];
     private TopLevel? _root;
     private CompositionElementBounds? _bounds;
     private bool _queued;
     private bool _disposed;
 
-    internal CompositionElementTracker(Control target, Control host, Action<CompositionElementBounds?> changed)
+    internal CompositionElementTracker(Control target, Control host, Action changed)
     {
         _target = target;
         _host = host;
@@ -103,7 +104,7 @@ internal sealed class CompositionElementTracker : IDisposable
         if (_bounds == bounds)
             return;
         _bounds = bounds;
-        _changed(bounds);
+        _changed();
     }
 
     private void StopObserving()
