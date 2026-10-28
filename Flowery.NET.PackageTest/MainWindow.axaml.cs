@@ -23,7 +23,8 @@ public partial class MainWindow : Window
 
         // A Kanban without saved boards opens on its home screen, so the board is saved before the Kanban loads.
         var board = CreateBoard();
-        Kanban.BoardStore.TrySaveBoard(board, out _);
+        if (!Kanban.BoardStore.TrySaveBoard(board, out var error))
+            throw new InvalidOperationException("The Kanban could not save its board.", error);
         Kanban.Board = board;
     }
 

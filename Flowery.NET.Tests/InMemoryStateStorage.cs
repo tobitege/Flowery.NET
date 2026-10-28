@@ -1,9 +1,10 @@
-using Flowery.Services;
+﻿using Flowery.Services;
 
 namespace Flowery.NET.Tests
 {
     /// <summary>
-    /// Keeps saved control state in memory, away from user data. Shared with Flowery.NET.RuntimeTests.
+    /// Keeps saved control state in memory, away from user data. Shared with Flowery.NET.RuntimeTests and
+    /// Flowery.NET.PackageTest.
     /// Like <see cref="FileStateStorage"/>, renaming a missing key fails.
     /// </summary>
     internal sealed class InMemoryStateStorage : IStateStorage

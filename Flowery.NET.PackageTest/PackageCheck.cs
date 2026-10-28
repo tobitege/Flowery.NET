@@ -73,13 +73,13 @@ internal static class PackageCheck
         else if (title is null || !IsShown(title, window))
             failures.Add($"The Kanban did not show the card \"{MainWindow.TaskTitle}\" of its board.");
         else
-            Console.WriteLine($"The Kanban shows the card \"{title.Text}\" at {title.TranslatePoint(default, window)}.");
+            Console.WriteLine($"The Kanban shows \"{title.Text}\" at {title.TranslatePoint(default, window)}.");
 
         window.Close();
         foreach (var failure in failures)
             Console.Error.WriteLine($"FAILED: {failure}");
         if (failures.Count == 0)
-            Console.WriteLine("OK: the glass blurs its live backdrop with Flowery.NET.Skia; the Kanban shows its board.");
+            Console.WriteLine("OK: Flowery.NET.Skia blurs the live backdrop of the glass; the Kanban shows its board.");
         return failures.Count == 0 ? 0 : 1;
     }
 

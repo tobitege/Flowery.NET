@@ -30,6 +30,11 @@
     <PackageReference Include="Flowery.NET.Kanban" Version="[$(FloweryPackageVersion)]" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The in-memory state storage of the headless tests, so the Kanban leaves the state of the Gallery alone. -->
+    <Compile Include="..\Flowery.NET.Tests\InMemoryStateStorage.cs" Link="InMemoryStateStorage.cs" />
+  </ItemGroup>
+
   <PropertyGroup>
     <!-- The Avalonia version of Flowery.NET, read from its project, so an update there reaches the Avalonia packages of
          this app too; Avalonia packages of different versions do not work together. -->
