@@ -252,6 +252,7 @@ Composite inputs such as `DaisyPasswordBox`, `DaisyNumericUpDown`, and `DaisyOtp
 - **Copy Button** (`DaisyCopyButton`): Copy-to-clipboard button with temporary success state feedback.
 - **Dropdown** (`DaisyDropdown`): Menu-style dropdown (Popup + DaisyMenu) for action menus.
 - **Expandable Card** (`DaisyExpandableCard`): Card that expands to reveal secondary content with smooth width animation.
+- **Expander** (`DaisyExpander`): Section with a clickable header, a chevron and separate header and content padding.
 - **Icon Text** (`DaisyIconText`): Reusable icon + text composition control with placement, sizing, and spacing options.
 - **Modifier Keys** (`DaisyModifierKeys`): Visualizes keyboard modifiers (Shift, Ctrl, Alt) and locks.
 - **Number Flow** (`DaisyNumberFlow`): High-quality numeric display with individual digit scrolling animations. Inspired by SmoothUI.
@@ -259,6 +260,7 @@ Composite inputs such as `DaisyPasswordBox`, `DaisyNumericUpDown`, and `DaisyOtp
 - **Popover** (`DaisyPopover`): Popup-based popover control for rich hover/click content.
 - **Scheduler** (`DaisyScheduler`): Calendar and resource planning with seven views, appointment editing requests, tooltips, and data tiles. [Documentation](llms-static/DaisyScheduler.md)
 - **Tag Picker** (`DaisyTagPicker`): Multi-select chip/tag picker with add/remove icons.
+- **Tour** (`DaisyTour`): Guided tour over the live controls of a window, with highlights, annotations, a step card and a style editor (`DaisyTourEditor`). [Documentation](llms-static/DaisyTour.md)
 
 ### Kanban Board
 

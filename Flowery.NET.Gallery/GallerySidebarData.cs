@@ -206,6 +206,14 @@ public static class GallerySidebarData
                 ]
             },
             new() {
+                Name = "Sidebar_Tour",
+                IconKey = "DaisyIconNavigation",
+                Items =
+                [
+                    new SidebarItem { Id = "tour", Name = "Sidebar_Tour", ControlName = "DaisyTour", TabHeader = "Sidebar_Tour" }
+                ]
+            },
+            new() {
                 Name = "Sidebar_Theming",
                 IconKey = "DaisyIconTheme",
                 Items =

@@ -96,6 +96,7 @@ public partial class MainView : UserControl
             ["Sidebar_Actions"] = () => GetOrCreateActionsExamples(),
             ["Sidebar_DataInput"] = () => new DataInputExamples(),
             ["Sidebar_Navigation"] = () => new NavigationExamples(),
+            ["Sidebar_Tour"] = () => new TourExamples(),
             ["Sidebar_DataDisplay"] = () => new DataDisplayExamples(),
             ["Sidebar_DateDisplay"] = () => new DateDisplayExamples(),
             ["Sidebar_Feedback"] = () => new FeedbackExamples(),

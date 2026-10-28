@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Flowery.Services;
@@ -193,6 +194,12 @@ namespace Flowery.Controls
         }
     }
 
+    // A step with a navigation button puts it into the template's root panel, under the indicator; a compact step
+    // keeps room for the connector lines beside the indicator of its horizontal layout.
+    [TemplatePart("PART_Root", typeof(Panel))]
+    [TemplatePart("PART_HCircle", typeof(Border))]
+    [TemplatePart("PART_HorizontalLayout", typeof(Grid))]
+    [TemplatePart("PART_VerticalLayout", typeof(Grid))]
     public class DaisyStepItem : ContentControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyStepItem);
@@ -278,6 +285,13 @@ namespace Flowery.Controls
             set => SetValue(SizeProperty, value);
         }
 
+        // Compact items show the indicator without the label row, such as the progress of a DaisyTour.
+        internal bool IsCompact { get; init; }
+        // A button under the item's indicator, so the step can be selected with the pointer and the keyboard.
+        internal Button? NavigationButton { get; init; }
+        private Border? _compactCircle;
+        private Grid? _compactLayout;
+
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
@@ -293,11 +307,53 @@ namespace Flowery.Controls
         {
             base.OnApplyTemplate(e);
             UpdatePseudoClasses();
+            if (_compactCircle is not null)
+                _compactCircle.PropertyChanged -= OnCompactCircleChanged;
+            _compactCircle = null;
+            _compactLayout = null;
+            if (IsCompact && e.NameScope.Find<Border>("PART_HCircle") is { } circle &&
+                e.NameScope.Find<Grid>("PART_HorizontalLayout") is { } layout)
+            {
+                _compactCircle = circle;
+                _compactLayout = layout;
+                circle.PropertyChanged += OnCompactCircleChanged;
+                UpdateCompactWidth();
+            }
+            if (NavigationButton is { } button)
+            {
+                if (e.NameScope.Find<Panel>("PART_Root") is not { } root)
+                    throw new InvalidOperationException("A DaisyStepItem with a navigation button needs a PART_Root panel in its template.");
+                (button.Parent as Panel)?.Children.Remove(button);
+                button.HorizontalAlignment = HorizontalAlignment.Stretch;
+                button.VerticalAlignment = VerticalAlignment.Stretch;
+                // Under the indicator, so the hover and pressed backgrounds of the button do not cover it; the
+                // layouts let the pointer through to the button.
+                root.Children.Insert(0, button);
+                foreach (var part in new[] { "PART_HorizontalLayout", "PART_VerticalLayout" })
+                {
+                    if (e.NameScope.Find<Control>(part) is { } layoutPart)
+                        layoutPart.IsHitTestVisible = false;
+                }
+            }
+        }
+
+        private void OnCompactCircleChanged(object? sender, AvaloniaPropertyChangedEventArgs args)
+        {
+            if (args.Property == WidthProperty)
+                UpdateCompactWidth();
+        }
+
+        // The connector lines keep 4 DIP on either side of the indicator, once its size resource resolves.
+        private void UpdateCompactWidth()
+        {
+            if (_compactCircle is { } circle && _compactLayout is { } layout && double.IsFinite(circle.Width))
+                layout.MinWidth = circle.Width + 8;
         }
 
         private void UpdatePseudoClasses()
         {
             PseudoClasses.Set(":active", IsActive);
+            PseudoClasses.Set(":compact", IsCompact);
             PseudoClasses.Set(":neutral", Color == DaisyStepColor.Neutral);
             PseudoClasses.Set(":primary", Color == DaisyStepColor.Primary);
             PseudoClasses.Set(":secondary", Color == DaisyStepColor.Secondary);

@@ -38,7 +38,7 @@
                 <Setter Property="VerticalAlignment" Value="Stretch"/>
                 <Setter Property="Template">
                     <ControlTemplate>
-                        <Panel>
+                        <Panel x:Name="PART_Root">
                             <!-- Horizontal layout (default) -->
                             <Grid x:Name="PART_HorizontalLayout" RowDefinitions="Auto, Auto" IsVisible="True">
                                 <!-- Line + Circle row -->
@@ -176,6 +176,11 @@
     </Style>
     <Style Selector="controls|DaisyStepItem[Orientation=Vertical] /template/ Grid#PART_VerticalLayout">
         <Setter Property="IsVisible" Value="True"/>
+    </Style>
+
+    <!-- Compact items (the progress of a DaisyTour): the indicator alone, without the label row -->
+    <Style Selector="controls|DaisyStepItem:compact /template/ ContentPresenter#PART_HContentPresenter">
+        <Setter Property="IsVisible" Value="False"/>
     </Style>
 
     <!-- Hide start line for first item (Horizontal) -->
