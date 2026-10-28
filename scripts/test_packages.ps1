@@ -1,5 +1,6 @@
-# Runs Flowery.NET.PackageTest, an app that references Flowery.NET and Flowery.NET.Skia as NuGet packages only.
-# Without -PackageDir or -NuGet it packs both projects first. -Check renders the app headless and checks the live blur.
+# Runs Flowery.NET.PackageTest, an app that references Flowery.NET, Flowery.NET.Skia and Flowery.NET.Kanban as NuGet
+# packages only. Without -PackageDir or -NuGet it packs the three projects first. -Check renders the app headless and
+# checks the live blur and the Kanban board.
 [CmdletBinding(DefaultParameterSetName = "Pack")]
 param(
     [Parameter(Mandatory, ParameterSetName = "Folder")]
@@ -24,7 +25,7 @@ if ($PSCmdlet.ParameterSetName -eq "Pack") {
     # NuGet never replaces a package version it extracted once.
     $Version = "$(($Output | Select-Object -Last 1).Trim())-local.$(Get-Date -Format yyyyMMddHHmmss)"
     $PackageDir = "$RepoRoot/obj/Flowery.NET.PackageTest/feed"
-    foreach ($Library in "Flowery.NET", "Flowery.NET.Skia") {
+    foreach ($Library in "Flowery.NET", "Flowery.NET.Skia", "Flowery.NET.Kanban") {
         dotnet pack "$RepoRoot/$Library/$Library.csproj" -c $Configuration -o $PackageDir "-p:Version=$Version"
         if ($LASTEXITCODE -ne 0) { throw "Packing $Library failed." }
     }

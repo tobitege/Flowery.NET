@@ -1,4 +1,4 @@
-# Build the NuGet packages for Flowery.NET and Flowery.NET.Skia
+# Build the NuGet packages for Flowery.NET, Flowery.NET.Skia and Flowery.NET.Kanban
 param(
     [string]$Configuration = "Release",
     [string]$OutputDir = "./nupkg"
@@ -7,7 +7,8 @@ param(
 $ErrorActionPreference = "Stop"
 $Projects = @(
     "$PSScriptRoot/../Flowery.NET/Flowery.NET.csproj",
-    "$PSScriptRoot/../Flowery.NET.Skia/Flowery.NET.Skia.csproj"
+    "$PSScriptRoot/../Flowery.NET.Skia/Flowery.NET.Skia.csproj",
+    "$PSScriptRoot/../Flowery.NET.Kanban/Flowery.NET.Kanban.csproj"
 )
 
 Write-Host "Building NuGet packages..." -ForegroundColor Cyan

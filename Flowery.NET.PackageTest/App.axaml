@@ -7,5 +7,6 @@
     <Application.Styles>
         <FluentTheme />
         <daisy:DaisyUITheme />
+        <StyleInclude Source="avares://Flowery.NET.Kanban/Themes/Generic.axaml" />
     </Application.Styles>
 </Application>

@@ -1,16 +1,19 @@
 ﻿using System.Runtime.InteropServices;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Flowery.Controls;
+using Flowery.NET.Kanban.Controls;
 using Flowery.Skia;
 
 namespace Flowery.NET.PackageTest;
 
 /// <summary>
 /// Renders the main window headless with SkiaSharp and checks that its glass blurs the live backdrop through the
-/// renderer of Flowery.NET.Skia.
+/// renderer of Flowery.NET.Skia, and that its Kanban shows the card of its board with the styles of Flowery.NET.Kanban.
 /// </summary>
 internal static class PackageCheck
 {
@@ -38,6 +41,7 @@ internal static class PackageCheck
 
         Console.WriteLine(MainWindow.Describe(typeof(DaisyGlass).Assembly));
         Console.WriteLine(MainWindow.Describe(typeof(FlowerySkia).Assembly));
+        Console.WriteLine(MainWindow.Describe(typeof(FlowKanban).Assembly));
 
         var failures = new List<string>();
         var glass = window.LiveGlass;
@@ -59,13 +63,35 @@ internal static class PackageCheck
         else if (behind > BlurredStep)
             failures.Add("The glass did not blur the stripes behind it.");
 
+        // The card exists only with the control themes of the Kanban styles.
+        var kanban = window.Kanban;
+        var title = kanban.GetVisualDescendants().OfType<FlowTaskCard>()
+            .SelectMany(card => card.GetVisualDescendants().OfType<TextBlock>())
+            .FirstOrDefault(text => text is { Name: "PART_TitleText", Text: MainWindow.TaskTitle });
+        if (window.BoardSaveError is { } saveError)
+            failures.Add($"The Kanban could not save its board: {saveError}");
+        else if (!kanban.IsBoardViewActive)
+            failures.Add($"The Kanban shows its {kanban.CurrentView} view instead of its board.");
+        else if (title is null || !IsShown(title, window))
+            failures.Add($"The Kanban did not show the card \"{MainWindow.TaskTitle}\" of its board.");
+        else
+            Console.WriteLine($"The Kanban shows \"{title.Text}\" at {title.TranslatePoint(default, window)}.");
+
         window.Close();
         foreach (var failure in failures)
             Console.Error.WriteLine($"FAILED: {failure}");
         if (failures.Count == 0)
-            Console.WriteLine("OK: the glass blurs its live backdrop with Flowery.NET.Skia.");
+            Console.WriteLine("OK: Flowery.NET.Skia blurs the live backdrop of the glass; the Kanban shows its board.");
         return failures.Count == 0 ? 0 : 1;
     }
+
+    /// <summary>
+    /// Returns whether <paramref name="control"/> is visible, has a size and lies inside <paramref name="window"/>.
+    /// </summary>
+    private static bool IsShown(Control control, Window window)
+        => control is { IsEffectivelyVisible: true, Bounds: { Width: > 0, Height: > 0 } }
+           && control.TranslatePoint(default, window) is { } origin
+           && new Rect(window.Bounds.Size).Contains(new Rect(origin, control.Bounds.Size));
 
     /// <summary>
     /// Returns the largest brightness difference between neighboring pixels of the row at <paramref name="y"/>, from

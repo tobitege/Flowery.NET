@@ -92,13 +92,16 @@ jobs:
         run: |
           dotnet build Flowery.NET/Flowery.NET.csproj -c Release -o ./build-output
           dotnet build Flowery.NET.Skia/Flowery.NET.Skia.csproj -c Release -o ./build-output
+          dotnet build Flowery.NET.Kanban/Flowery.NET.Kanban.csproj -c Release -o ./build-output
 
       - name: Create NuGet packages
         run: |
           dotnet pack Flowery.NET/Flowery.NET.csproj -c Release -o ./artifacts
           dotnet pack Flowery.NET.Skia/Flowery.NET.Skia.csproj -c Release -o ./artifacts
+          dotnet pack Flowery.NET.Kanban/Flowery.NET.Kanban.csproj -c Release -o ./artifacts
 
-      # Before anything is published, an app that references only these packages must get the live glass blur.
+      # Before anything is published, an app that references only these packages must get the live glass blur and
+      # show a Kanban board.
       - name: Test the NuGet packages
         shell: pwsh
         run: ./scripts/test_packages.ps1 -PackageDir ./artifacts -Check
@@ -110,6 +113,8 @@ jobs:
           cp ./build-output/Flowery.NET.pdb ./artifacts/lib/
           cp ./build-output/Flowery.NET.Skia.dll ./artifacts/lib/
           cp ./build-output/Flowery.NET.Skia.pdb ./artifacts/lib/
+          cp ./build-output/Flowery.NET.Kanban.dll ./artifacts/lib/
+          cp ./build-output/Flowery.NET.Kanban.pdb ./artifacts/lib/
           cd ./artifacts/lib
           zip ../Flowery.NET-lib.zip *
 
@@ -246,7 +251,8 @@ jobs:
 
           echo "| \`Flowery.NET.${{ needs.validate.outputs.version }}.nupkg\` | NuGet package (also on [nuget.org](https://www.nuget.org/packages/Flowery.NET)) |" >> release_notes.md
           echo "| \`Flowery.NET.Skia.${{ needs.validate.outputs.version }}.nupkg\` | SkiaSharp effects: live glass blur and shader backgrounds (also on [nuget.org](https://www.nuget.org/packages/Flowery.NET.Skia)) |" >> release_notes.md
-          echo "| \`Flowery.NET-lib.zip\` | Compiled DLLs and PDBs of both packages |" >> release_notes.md
+          echo "| \`Flowery.NET.Kanban.${{ needs.validate.outputs.version }}.nupkg\` | Kanban board controls (also on [nuget.org](https://www.nuget.org/packages/Flowery.NET.Kanban)) |" >> release_notes.md
+          echo "| \`Flowery.NET-lib.zip\` | Compiled DLLs and PDBs of the three packages |" >> release_notes.md
 
           cat >> release_notes.md << 'GALLERY'
 
@@ -316,4 +322,5 @@ jobs:
           echo "- **Tag:** ${{ needs.validate.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
           echo "- **NuGet:** https://www.nuget.org/packages/Flowery.NET/${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **NuGet (Skia):** https://www.nuget.org/packages/Flowery.NET.Skia/${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **NuGet (Kanban):** https://www.nuget.org/packages/Flowery.NET.Kanban/${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Release:** ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ needs.validate.outputs.tag }}" >> $GITHUB_STEP_SUMMARY

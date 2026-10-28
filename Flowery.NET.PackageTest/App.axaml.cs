@@ -1,12 +1,19 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Flowery.NET.Tests;
+using Flowery.Services;
 
 namespace Flowery.NET.PackageTest;
 
 public partial class App : Application
 {
-    public override void Initialize() => AvaloniaXamlLoader.Load(this);
+    public override void Initialize()
+    {
+        // Before the first Kanban, which takes the storage when it is created. Every run starts without saved state.
+        StateStorageProvider.Configure(new InMemoryStateStorage());
+        AvaloniaXamlLoader.Load(this);
+    }
 
     public override void OnFrameworkInitializationCompleted()
     {

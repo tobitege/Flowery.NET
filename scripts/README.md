@@ -358,16 +358,16 @@ The suite supplements the headless tests in `Flowery.NET.Tests`; it does not tes
 
 ## test_packages.ps1
 
-Runs [Flowery.NET.PackageTest](../Flowery.NET.PackageTest/README.md), an app that references Flowery.NET and Flowery.NET.Skia as NuGet packages only, with a glass that uses the live SkiaSharp blur.
-Without `-PackageDir` or `-NuGet`, the script packs both projects with a new prerelease version, such as `4.0.0-local.20261028143000`, into `obj\Flowery.NET.PackageTest\feed`.
+Runs [Flowery.NET.PackageTest](../Flowery.NET.PackageTest/README.md), an app that references Flowery.NET, Flowery.NET.Skia and Flowery.NET.Kanban as NuGet packages only, with a glass that uses the live SkiaSharp blur and a Kanban board.
+Without `-PackageDir` or `-NuGet`, the script packs the three projects with a new prerelease version, such as `4.0.0-local.20261028143000`, into `obj\Flowery.NET.PackageTest\feed`.
 
 ### Package Test: Usage
 
 ```powershell
-# Pack both projects and open the app with these packages
+# Pack the three projects and open the app with these packages
 pwsh ./scripts/test_packages.ps1
 
-# The same, but render the app headless and check the live blur, as CI does
+# The same, but render the app headless and check the live blur and the Kanban board, as CI does
 pwsh ./scripts/test_packages.ps1 -Check
 
 # Check the packages in a folder, as the release workflow does before it publishes them
