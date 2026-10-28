@@ -47,12 +47,15 @@ jobs:
           - os: windows-2025-vs2026
             rid: win-x64
             cross_rid: win-arm64
+            python: python
           - os: ubuntu-24.04
             rid: linux-x64
             cross_rid: linux-arm64
+            python: python3
           - os: macos-15
             rid: osx-arm64
             cross_rid: osx-x64
+            python: python3
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -64,12 +67,13 @@ jobs:
       - name: Run Photos tests
         run: dotnet test Flowery.NET.Photos.Tests/Flowery.NET.Photos.Tests.csproj -c ${{ matrix.configuration }}
 
-      # Publishes the runner's own runtime and cross-publishes the other architecture of the same OS.
+      # Cross-publishes the other architecture of the same OS, then publishes the runner's own runtime, which stays
+      # in ./publish for the start check.
       - name: Verify Photos release packages
         if: matrix.configuration == 'Release'
         shell: bash
         run: |
-          for rid in ${{ matrix.rid }} ${{ matrix.cross_rid }}; do
+          for rid in ${{ matrix.cross_rid }} ${{ matrix.rid }}; do
             rm -rf ./publish
             dotnet publish Flowery.NET.Photos.Desktop/Flowery.NET.Photos.Desktop.csproj \
               -c Release -r "$rid" --self-contained true \
@@ -79,6 +83,32 @@ jobs:
               -o ./publish
             python Utils/photos_release.py verify --rid "$rid"
           done
+
+      # Opens a photo, rotates it, saves a copy, and opens the copy after a restart, which must keep the window size.
+      - name: Install a window manager and xdotool
+        if: matrix.configuration == 'Release' && runner.os == 'Linux'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends openbox wmctrl xdotool
+
+      - name: Start the published app
+        if: matrix.configuration == 'Release' && runner.os != 'Linux'
+        shell: bash
+        run: ${{ matrix.python }} -B scripts/check_photos_app.py --app ./publish --output ./artifacts/photos
+
+      - name: Start the published app on Xvfb
+        if: matrix.configuration == 'Release' && runner.os == 'Linux'
+        run: >-
+          xvfb-run --auto-servernum --server-args='-screen 0 1600x1000x24'
+          sh -c 'openbox & sleep 2; python3 -B scripts/check_photos_app.py --app ./publish --output ./artifacts/photos'
+
+      - name: Upload the Photos logs, screenshots and photos
+        if: ${{ !success() && matrix.configuration == 'Release' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: photos-${{ runner.os }}
+          path: ./artifacts/photos
+          if-no-files-found: ignore
 
   build-library:
     runs-on: ubuntu-24.04
