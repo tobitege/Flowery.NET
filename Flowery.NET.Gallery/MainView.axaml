@@ -72,8 +72,9 @@
                                         </controls:DaisyButton>
 
                                         <StackPanel Grid.Column="1" Spacing="4">
+                                            <!-- A phone wraps "Components Gallery" to a second line. -->
                                             <TextBlock x:Name="HeaderTitle" FontSize="28"
-                                                FontWeight="Bold"
+                                                FontWeight="Bold" TextWrapping="Wrap"
                                                 Foreground="{DynamicResource DaisyBaseContentBrush}">
                                                 <Run Text="Flowery.NET" />
                                                 <Run x:Name="HeaderSubtitleRun"

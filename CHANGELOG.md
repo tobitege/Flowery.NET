@@ -177,6 +177,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gallery (desktop): the window keeps its saved size. It opens on the primary monitor and moves to its saved position; on a monitor with another scale that move rounded the size down by 2, so the window shrank with every start. The saved size is applied again once the window is open.
 - Gallery: on Android the on-screen keyboard covered the bottom of the page without making it smaller, so fields and buttons under it, such as Save in the scheduler's appointment editor, could not be scrolled into view. The page now keeps clear of the keyboard while it is open, and the focused field is brought into view.
 - Gallery (Android): with the keyboard open, the Kanban page left its board no height on a tablet. The page now folds its description and features into the title bar and hides the Gallery header, as the scheduler page does, keeps 8 at the sides below a width of 600, and names the touch gestures in its features.
+- Gallery: on a phone, the home page and the header fit the width of the screen. On an iPhone 17 (402 wide) the header title, the tagline, the "View on GitHub" button and the second card of the Special Thanks section were cut off at the right. The header title and the texts of the home page wrap, the hero buttons wrap to a second line, and below a width of 600 the sections keep 16 at their sides and the cards take the width of the page.
 
 #### Release and development
 
