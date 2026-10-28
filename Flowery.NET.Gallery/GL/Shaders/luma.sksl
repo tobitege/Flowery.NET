@@ -1,0 +1,17 @@
+// Author: gre
+// License: MIT
+
+// SkSL: the sampler is a child shader, read through a helper as getFromColor reads from.
+uniform shader luma;
+
+vec4 texture2D_luma(vec2 uv) {
+  return unpremul(luma.eval(vec2(uv.x, 1.0 - uv.y)));
+}
+
+vec4 transition(vec2 uv) {
+  return mix(
+    getToColor(uv),
+    getFromColor(uv),
+    step(progress, texture2D_luma(uv).r)
+  );
+}

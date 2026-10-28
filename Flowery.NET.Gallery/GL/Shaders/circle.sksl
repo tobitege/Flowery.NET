@@ -1,0 +1,19 @@
+// Author: Fernando Kuteken
+// License: MIT
+
+const vec2 center = vec2(0.5, 0.5);
+const float feather = 0.08;
+
+vec4 transition (vec2 uv) {
+  vec2 offset = uv - center;
+  offset.x *= ratio;
+  float dist = length(offset);
+  float dx = max(center.x, 1.0 - center.x);
+  float dy = max(center.y, 1.0 - center.y);
+  float maxRadius = length(vec2(dx * ratio, dy));
+  float t = clamp(progress, 0.0, 1.0);
+  float eased = t * t;
+  float radius = mix(0.0, maxRadius, eased);
+  float edge = smoothstep(radius - feather, radius + feather, dist);
+  return mix(getFromColor(uv), getToColor(uv), 1.0 - edge);
+}
