@@ -9,7 +9,9 @@ import tempfile
 import unicodedata
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
+import check_characters
 from check_characters import EMOJI_BLOCKS, ROOT, check_file, documentation_files, find_problems, report
 
 ZWJ = chr(0x200D)
@@ -72,6 +74,9 @@ class CharacterCheckTests(unittest.TestCase):
             self.assertEqual(0, report([clean]))
             self.assertIn('not UTF-8', check_file(broken)[0])
             self.assertEqual(1, report([clean, hidden]))
+            # Files of the repository are named relative to its root
+            with patch.object(check_characters, 'ROOT', Path(folder)):
+                self.assertEqual(['hidden.py:1:6: U+202E RIGHT-TO-LEFT OVERRIDE (Cf)'], check_file(hidden))
 
     def test_documentation_files_are_the_tracked_text_docs(self):
         files = set(documentation_files())

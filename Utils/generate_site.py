@@ -119,6 +119,8 @@ class MarkdownToHtml:
         'width', 'height', 'max-width', 'max-height', 'min-width', 'min-height', 'margin', 'margin-top',
         'margin-right', 'margin-bottom', 'margin-left', 'border-radius', 'box-shadow', 'display', 'vertical-align',
     }
+    # A line that _convert_tables reads as a table row
+    _TABLE_ROW_START = re.compile(r'[ \t]*\|')
 
     def __init__(self):
         self.pages = {}
@@ -154,7 +156,11 @@ class MarkdownToHtml:
         # Inline code - escaped, and kept out of the markdown rules below
         inline_codes = []
         def save_inline_code(m):
-            inline_codes.append(f'<code>{self._escape_html(m.group(1))}</code>')
+            code = m.group(1)
+            # In a table row, '\|' is an escaped pipe, also inside code (as on GitHub)
+            if self._TABLE_ROW_START.match(m.string, m.string.rfind('\n', 0, m.start()) + 1):
+                code = code.replace('\\|', '|')
+            inline_codes.append(f'<code>{self._escape_html(code)}</code>')
             return f'__INLINE_CODE_{len(inline_codes) - 1}__'
 
         html = re.sub(r'`([^`]+)`', save_inline_code, html)
@@ -192,19 +198,18 @@ class MarkdownToHtml:
             url = m.group(2)
             if not self._is_safe_url(url, self.LINK_SCHEMES):
                 return text
+            external = url.startswith(('http://', 'https://'))
             # Convert .md to .html for local links (not http/https)
-            if not url.startswith(('http://', 'https://', '#')):
+            if not external and not url.startswith('#'):
                 path, separator, fragment = url.partition('#')
                 name = Path(path).stem
                 if name in self.pages:
                     url = path_prefix + self.pages[name] + (separator + fragment if separator else '')
                 elif path.endswith('.md'):
                     url = path[:-3] + '.html' + (separator + fragment if separator else '')
-                return f'<a href="{self._escape_attribute(unescape(url))}">{text}</a>'
             # External links open in new tab
-            if url.startswith(('http://', 'https://')):
-                return f'<a href="{self._escape_attribute(unescape(url))}" target="_blank" rel="noopener">{text}</a>'
-            return f'<a href="{self._escape_attribute(unescape(url))}">{text}</a>'
+            target = ' target="_blank" rel="noopener"' if external else ''
+            return f'<a href="{self._escape_attribute(unescape(url))}"{target}>{text}</a>'
         html = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', convert_link, html)
 
         # Horizontal rules (---, ***, ___)
@@ -270,17 +275,35 @@ class MarkdownToHtml:
         return re.sub(rf'{prefix}(\d+)__', item, html)
 
     def _sanitize_html(self, text: str) -> str:
-        """Escape HTML outside code, keeping the tags of ALLOWED_TAGS and dropping comments."""
+        """Escape HTML outside code, keeping the tags of ALLOWED_TAGS balanced and dropping comments."""
         result = []
+        open_tags: list[str] = []
         position = 0
         for match in re.finditer(r'<!--.*?-->|<[^<>]*>', text, flags=re.DOTALL):
             result.append(self._escape_text(text[position:match.start()]))
             tag = match.group(0)
             if not tag.startswith('<!--'):
-                result.append(self._allowed_tag(tag) or self._escape_html(tag))
+                result.append(self._balanced_tag(tag, open_tags) or self._escape_html(tag))
             position = match.end()
         result.append(self._escape_text(text[position:]))
+        # Tags left open would take in the rest of the page, such as its navigation
+        if open_tags:
+            result.append('\n' + ''.join(f'</{name}>' for name in reversed(open_tags)))
         return ''.join(result)
+
+    def _balanced_tag(self, tag: str, open_tags: list[str]) -> Optional[str]:
+        """Return the allowed tag rebuilt, or None for any other tag and for an end tag that closes no open tag."""
+        rebuilt = self._allowed_tag(tag)
+        if rebuilt is None:
+            return None
+        name = re.match(r'</?([a-z]+)', rebuilt).group(1)
+        if rebuilt.startswith('</'):
+            if not open_tags or open_tags[-1] != name:
+                return None
+            open_tags.pop()
+        elif name not in self.VOID_TAGS:
+            open_tags.append(name)
+        return rebuilt
 
     @staticmethod
     def _escape_text(text: str) -> str:
@@ -358,7 +381,7 @@ class MarkdownToHtml:
         return value.replace('&', '&amp;').replace('"', '&quot;').replace('<', '&lt;').replace('>', '&gt;')
 
     def _escape_html(self, text: str) -> str:
-        """Escape HTML entities in code blocks."""
+        """Escape '&', '<' and '>' in code and in tags that are not allowed."""
         return (text
                 .replace('&', '&amp;')
                 .replace('<', '&lt;')
@@ -419,7 +442,7 @@ class MarkdownToHtml:
         html = ['<div class="table-wrapper"><table>']
 
         # Header row
-        header_cells = [c.strip() for c in lines[0].split('|')[1:-1]]
+        header_cells = self._table_cells(lines[0])
         html.append('<thead><tr>')
         for cell in header_cells:
             html.append(f'<th>{cell}</th>')
@@ -428,7 +451,7 @@ class MarkdownToHtml:
         # Body rows (skip separator line)
         html.append('<tbody>')
         for line in lines[2:]:
-            cells = [c.strip() for c in line.split('|')[1:-1]]
+            cells = self._table_cells(line)
             html.append('<tr>')
             for cell in cells:
                 html.append(f'<td>{cell}</td>')
@@ -438,11 +461,16 @@ class MarkdownToHtml:
         html.append('</table></div>')
         return '\n'.join(html)
 
+    @staticmethod
+    def _table_cells(line: str) -> list[str]:
+        """The cells of a table row; '\\|' is a pipe inside a cell, as on GitHub."""
+        return [cell.strip().replace('\\|', '|') for cell in re.split(r'(?<!\\)\|', line)[1:-1]]
+
 
 class SiteGenerator:
     """Generates static HTML site from markdown docs."""
 
-    # Marks custom controls in the overview tables of the home page
+    # Marks custom controls and guides in the sidebar and in the overview tables of the home page
     CUSTOM_BADGE = '<sup class="custom-badge">✦</sup>'
 
     # Custom controls (Avalonia-specific, not in original DaisyUI)
@@ -673,7 +701,7 @@ class SiteGenerator:
                 # Convert camelCase to spaced title (MigrationExample -> Migration Example)
                 display_name = ''.join(' ' + c if c.isupper() else c for c in guide_name).strip()
                 # Add custom badge for Effects (exclusive content)
-                badge = '<sup class="custom-badge">✦</sup>' if guide_name == 'Effects' else ''
+                badge = self.CUSTOM_BADGE if guide_name == 'Effects' else ''
                 sidebar_items.append(f'<li><a href="{guide_name}.html" target="viewer">{display_name}{badge}</a></li>')
 
         # Categories
@@ -690,7 +718,7 @@ class SiteGenerator:
         for ctrl in main_controls:
             display_name = ctrl['name'].replace('Daisy', '')
             is_custom = display_name.startswith(self.CUSTOM_CONTROL_PREFIXES)
-            badge = '<sup class="custom-badge">✦</sup>' if is_custom else ''
+            badge = self.CUSTOM_BADGE if is_custom else ''
             sidebar_items.append(f'<li><a href="controls/{ctrl["html_name"]}" target="viewer">{display_name}{badge}</a></li>')
 
         # Helpers section (if any)
@@ -701,7 +729,7 @@ class SiteGenerator:
             for ctrl in helper_controls_sorted:
                 display_name = ctrl['name'].replace('Daisy', '')
                 is_custom = display_name.startswith(self.CUSTOM_CONTROL_PREFIXES)
-                badge = '<sup class="custom-badge">✦</sup>' if is_custom else ''
+                badge = self.CUSTOM_BADGE if is_custom else ''
                 sidebar_items.append(f'<li><a href="controls/{ctrl["html_name"]}" target="viewer">{display_name}{badge}</a></li>')
 
         sidebar_html = '\n'.join(sidebar_items)

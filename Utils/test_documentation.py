@@ -6,6 +6,8 @@ import contextlib
 from html.parser import HTMLParser
 import io
 from pathlib import Path
+import re
+import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
@@ -92,13 +94,34 @@ public class Sample : Control
         self.assertEqual(manifests[0], manifests[1])
 
 
+class ElementCollector(HTMLParser):
+    """Collects the elements a browser builds from the HTML, with their attributes."""
+
+    def __init__(self):
+        super().__init__()
+        self.elements: list[tuple[str, list[tuple[str, str]]]] = []
+
+    def handle_starttag(self, tag, attrs):
+        self.elements.append((tag, attrs))
+
+
 def parsed_elements(html: str) -> list[tuple[str, list[tuple[str, str]]]]:
-    """The elements a browser builds from the HTML, with their attributes."""
-    elements = []
-    parser = HTMLParser()
-    parser.handle_starttag = lambda tag, attributes: elements.append((tag, attributes))
-    parser.feed(html)
-    return elements
+    collector = ElementCollector()
+    collector.feed(html)
+    return collector.elements
+
+
+def workflow_list(workflow: str, key: str) -> list[str]:
+    """The entries of the first list under key in a workflow file."""
+    lines = (ROOT / '.github' / 'workflows' / workflow).read_text(encoding='utf-8').splitlines()
+    start = next(index for index, line in enumerate(lines) if line.strip().startswith(f'{key}:'))
+    entries = []
+    for line in lines[start + 1:]:
+        entry = re.fullmatch(r"\s+- '?([^']+?)'?", line)
+        if not entry:
+            break
+        entries.append(entry.group(1))
+    return entries
 
 
 class SiteEscapingTests(unittest.TestCase):
@@ -166,6 +189,42 @@ class SiteEscapingTests(unittest.TestCase):
         self.assertIn('<div class="tabbed-gallery"><input type="radio"></div>', html)
         self.assertNotIn(f'<p>{token}', html)
         self.assertIn('__TRUSTED_HTML_9__ __INLINE_CODE_9__', html)
+
+    def test_allowed_tags_stay_balanced(self):
+        html = self.converter.convert('Text </details> <details><summary>More</summary> <sub>low\n\nRest')
+        self.assertIn('&lt;/details&gt;', html)
+        self.assertTrue(html.endswith('</sub></details>'))
+        self.assertIn('&lt;/kbd&gt;', self.converter.convert('<sub>a</kbd></sub>'))
+
+    def test_tables_take_escaped_pipes_into_cells(self):
+        html = self.converter.convert('| Key | Text |\n| --- | --- |\n| `\\|<-` | a \\| b |\n')
+        self.assertIn('<td><code>|&lt;-</code></td>', html)
+        self.assertIn('<td>a | b</td>', html)
+        self.assertEqual(2, html.count('<td>'))
+        self.assertIn('<code>\\|</code>', self.converter.convert('Outside a table `\\|` stays as written.'))
+
+
+class SiteGenerationTests(unittest.TestCase):
+    def test_generator_html_stays_unescaped(self):
+        with tempfile.TemporaryDirectory() as folder, contextlib.redirect_stdout(io.StringIO()):
+            SiteGenerator(ROOT / 'llms', Path(folder), ROOT / 'llms-static').generate()
+            home = (Path(folder) / 'home.html').read_text(encoding='utf-8')
+            index = (Path(folder) / 'index.html').read_text(encoding='utf-8')
+            pages = [page.read_text(encoding='utf-8') for page in (Path(folder) / 'controls').glob('*.html')]
+        for html in (home, index):
+            self.assertIn(SiteGenerator.CUSTOM_BADGE, html)
+            self.assertNotIn('&lt;sup class', html)
+        self.assertTrue(any('<div class="tabbed-gallery"' in page for page in pages))
+        self.assertFalse(any('&lt;div class="tabbed-gallery"' in page for page in pages))
+
+    def test_workflows_share_the_documentation_paths(self):
+        documentation = workflow_list('ci.yml', 'paths-ignore')
+        self.assertEqual(documentation, workflow_list('dependency-security.yml', 'paths-ignore'))
+        self.assertEqual(['.github/workflows/docs.yml', *documentation], workflow_list('docs.yml', 'paths'))
+        for workflow in ('ci.yml', 'dependency-security.yml'):
+            text = (ROOT / '.github' / 'workflows' / workflow).read_text(encoding='utf-8')
+            self.assertEqual(1, text.count('paths-ignore: &documentation'))
+            self.assertEqual(1, text.count('paths-ignore: *documentation'))
 
 
 if __name__ == '__main__':

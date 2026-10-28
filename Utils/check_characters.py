@@ -77,11 +77,12 @@ def tag_sequence_length(text: str, start: int) -> int:
 
 
 def check_file(path: Path) -> list[str]:
+    name = path.relative_to(ROOT).as_posix() if path.is_relative_to(ROOT) else str(path)
     try:
         text = path.read_bytes().decode('utf-8')
     except UnicodeDecodeError as error:
-        return [f'{path}: not UTF-8 ({error.reason} at byte {error.start})']
-    return [f'{path}:{line}:{column}: {description}' for line, column, description in find_problems(text)]
+        return [f'{name}: not UTF-8 ({error.reason} at byte {error.start})']
+    return [f'{name}:{line}:{column}: {description}' for line, column, description in find_problems(text)]
 
 
 def documentation_files() -> list[Path]:
