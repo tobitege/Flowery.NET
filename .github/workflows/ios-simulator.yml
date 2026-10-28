@@ -74,10 +74,11 @@ jobs:
             -p:FloweryIosSdkVersion="$IOS_SDK_VERSION" -p:EnableCodeSigning=false \
             "-bl:$ARTIFACT_DIR/logs/ios-build.binlog" \
             2>&1 | tee "$ARTIFACT_DIR/logs/ios-build.txt"
-          app_path=$(dotnet msbuild "$IOS_PROJECT" -nologo \
-            -p:Configuration=Release -p:RuntimeIdentifier=iossimulator-arm64 \
-            -p:FloweryIosSdkVersion="$IOS_SDK_VERSION" -p:EnableCodeSigning=false -getProperty:AppBundleDir)
+          # The SDK sets AppBundleDir in a target, so the evaluation (-getProperty) does not know it.
+          app_path=$(find "$GITHUB_WORKSPACE/bin/Release/Flowery.NET.Gallery.iOS/net10.0-ios$IOS_SDK_VERSION/iossimulator-arm64" \
+            -maxdepth 1 -type d -name '*.app' | head -n 1)
           test -d "$app_path"
+          echo "App: $app_path"
           printf 'app_path=%s\n' "$app_path" >> "$GITHUB_OUTPUT"
 
       - name: Capture Gallery controls in Light and Dark
