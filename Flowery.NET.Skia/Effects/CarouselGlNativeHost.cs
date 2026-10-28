@@ -336,12 +336,17 @@ namespace Flowery.Effects
             Resize();
             // A paused draw loop draws no next frame, so draw this one now, as sample does; WinUI waited for the
             // frame until its request timed out and failed the renderer.
-            if (View.State is { Running: false, Render: { } render })
-            {
-                render(CarouselGlCanvas.Now);
-                return View.ReadFrame();
-            }
+            if (DrawPausedFrame()) return View.ReadFrame();
             return await View.WaitFrameAsync();
+        }
+
+        // Draws a frame of a paused draw loop at the current time, as sample does; returns whether it drew. A paused
+        // loop draws only where its frame changes: a request that needs a frame, a new size and a new program.
+        private bool DrawPausedFrame()
+        {
+            if (View.State is not { Running: false, Render: { } render }) return false;
+            render(CarouselGlCanvas.Now);
+            return true;
         }
 
         private Task<CarouselGlFrame> Sample(double? elapsedSeconds)
@@ -370,6 +375,9 @@ namespace Flowery.Effects
             // !document.hidden: Avalonia has no page visibility; TopLevel.RequestAnimationFrame does not call back
             // while the window does not render, as requestAnimationFrame in a hidden page.
             if (_configuration is not null) _engine.SetOverlayActive(_requestedActive);
+            // A request that waits for the next frame of the running loop (configure, sample) would wait for good once
+            // the pause cancelled that frame, until its timeout failed the renderer: the paused loop draws it.
+            if (!active && View.HasFrameWaiters) DrawPausedFrame();
             return Task.FromResult(true);
         }
 
@@ -382,7 +390,13 @@ namespace Flowery.Effects
 
         private void OnViewSizeChanged(object? sender, SizeChangedEventArgs args)
         {
-            try { Resize(); }
+            try
+            {
+                Resize();
+                // The frame of a paused loop was drawn for the old size, and the canvas would stretch it over the new
+                // one; a running loop draws the new size with its next frame.
+                if (_configuration is not null) DrawPausedFrame();
+            }
             catch (Exception error) { Post(error); }
         }
 

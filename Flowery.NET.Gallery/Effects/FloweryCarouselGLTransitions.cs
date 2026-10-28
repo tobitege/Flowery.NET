@@ -721,6 +721,16 @@ namespace Flowery.NET.Gallery.Effects
             // gl.deleteProgram(previousProgram): the programs stay compiled for the process.
         }
 
+        // In JS the new program arrives after the configure request that asked for it has drawn its frame. A paused
+        // loop draws no next frame and would keep showing the old program and clock, so it draws the change once.
+        private static void DrawIfPaused(State state)
+        {
+            if (!state.running && state._render is { } render)
+            {
+                render(CarouselGlCanvas.Now);
+            }
+        }
+
         private static void SetCycleStart(State state, int imageIndex, double nowMs)
         {
             var cycleSeconds = GetTransitionCycleSeconds(state.transitionSec, state.intervalSec);
@@ -860,6 +870,7 @@ namespace Flowery.NET.Gallery.Effects
                             state.fromTexture = previousFromTexture;
                             state.toTexture = previousToTexture;
                             state.startTime = previousStartTime;
+                            DrawIfPaused(state);
                             return;
                         }
 
@@ -876,6 +887,7 @@ namespace Flowery.NET.Gallery.Effects
                         {
                             SetCycleStart(state, 0, CarouselGlCanvas.Now);
                         }
+                        DrawIfPaused(state);
                     }
                     catch (Exception err)
                     {

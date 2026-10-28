@@ -231,6 +231,9 @@ namespace Flowery.Effects
         /// <summary>Raised when the canvas fails (the bridge's <c>post({ error })</c>).</summary>
         public event EventHandler<Exception>? Failed;
 
+        /// <summary>Whether <see cref="WaitFrameAsync"/> calls wait for the next frame.</summary>
+        internal bool HasFrameWaiters => _nativeWaiters.Count > 0;
+
         /// <summary>
         /// Returns the display size of the canvas in local units: the larger of its bounds and a finite
         /// <see cref="Layoutable.Width"/> and <see cref="Layoutable.Height"/>, so that a detached canvas with a size

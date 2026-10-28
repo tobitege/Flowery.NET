@@ -353,6 +353,134 @@ namespace Flowery.NET.RuntimeTests.Native
         }
 
         [Fact]
+        public async Task When_APausedTransitionHostChangesItsTransition_ItShowsTheNewProgram()
+        {
+            // Regression: the engine applies a new transition after its definition loaded, which in JS follows the
+            // configure request; the paused frame then kept the old program and clock, and nothing redrew it.
+            var host = new CarouselGlTransitionHost { Width = 160, Height = 100, TransitionName = "fade", TransitionSeconds = 1, IntervalSeconds = 50 };
+            var motion = DaisyAccessibility.ReducedMotionOverride;
+            try
+            {
+                DaisyAccessibility.ReducedMotionOverride = false;
+                RuntimeTestHelpers.AttachToHost(host);
+                await RuntimeTestHelpers.EnsureLoadedAsync(host);
+                var first = await host.ReadFrameAsync(0);
+                var canvas = Assert.IsType<CarouselGlCanvas>(host.Content);
+                var state = Assert.IsType<FloweryCarouselGLTransitions.State>(canvas.State);
+                var second = await host.ReadFrameAsync(state.intervalSec + state.transitionSec);
+                Assert.True(MaxDifference(first.Pixel, second.Pixel) >= 20, "The fade must go between two different images.");
+
+                DaisyAccessibility.ReducedMotionOverride = true;
+                await RuntimeTestHelpers.WaitUntilAsync(() => !state.running, "the loop paused");
+                // The paused fade is 45 % of the way when the next transition replaces it; the new one starts its hold.
+                state.startTime = CarouselGlCanvas.Now - (state.intervalSec + 0.45 * state.transitionSec) * 1000;
+                host.TransitionName = "cube";
+                var cube = CarouselGlTransitionHost.AvailableShaders["cube"];
+                await RuntimeTestHelpers.WaitUntilAsync(() => state.definition?.Source == cube, "the cube transition applied");
+                await RuntimeTestHelpers.WaitForIdleAsync();
+                Assert.Same(state, canvas.State);
+                Assert.False(state.running);
+
+                using var screen = RuntimeTestHelpers.Render(host, "native-gl-paused-transition-change");
+                var pixel = screen.GetPixel(80, 50);
+                // A paused sample draws the cube at its hold, the frame the screen must already show.
+                var expected = await host.ReadFrameAsync();
+                Assert.True(Close(expected.Pixel, pixel, 3), $"The screen shows {pixel}, the new transition [{string.Join(", ", expected.Pixel)}].");
+                Assert.Null(host.LastRenderError);
+            }
+            finally
+            {
+                DaisyAccessibility.ReducedMotionOverride = motion;
+                RuntimeTestHelpers.GetHostPanel().Children.Clear();
+                await FlushAsync(host.Dispatcher);
+            }
+        }
+
+        [Fact]
+        public async Task When_APausedHostIsResized_ItShowsAFrameOfTheNewSize()
+        {
+            // Regression: a paused loop kept the frame drawn for the old size and stretched it over the new one; the
+            // text mask of the old size stretched its letters.
+            CarouselGlGalleryPresets.EnsureRegistered();
+            var host = new CarouselGlEffectHost { Width = 160, Height = 100, Effect = CarouselGlEffectKind.TextFill };
+            var motion = DaisyAccessibility.ReducedMotionOverride;
+            try
+            {
+                DaisyAccessibility.ReducedMotionOverride = false;
+                RuntimeTestHelpers.AttachToHost(host);
+                await RuntimeTestHelpers.EnsureLoadedAsync(host);
+                AssertFrame(await host.ReadFrameAsync(0), "running");
+                var canvas = Assert.IsType<CarouselGlCanvas>(host.Content);
+                DaisyAccessibility.ReducedMotionOverride = true;
+                await RuntimeTestHelpers.WaitUntilAsync(() => canvas.State is { Running: false }, "the loop paused");
+
+                host.Width = 400;
+                await RuntimeTestHelpers.WaitUntilAsync(() => canvas.Bounds.Width == 400, "the canvas has its new size");
+                await RuntimeTestHelpers.WaitForIdleAsync();
+                using var still = RuntimeTestHelpers.Render(host, "native-gl-paused-resize");
+                Assert.Equal(400, still.Width);
+
+                // A paused sample draws a fresh frame of the new size; the letters of the mask do not move.
+                var fresh = await host.ReadFrameAsync();
+                var scaling = TopLevel.GetTopLevel(host)!.RenderScaling;
+                Assert.Equal((int)Math.Floor(400 * scaling), fresh.Width);
+                await RuntimeTestHelpers.WaitForRenderAsync();
+                using var redrawn = RuntimeTestHelpers.Render(host, "native-gl-paused-resize-redrawn");
+                var differing = 0;
+                for (var y = 10; y < 90; y += 4)
+                {
+                    for (var x = 0; x < 400; x++)
+                    {
+                        if (Math.Abs(still.GetPixel(x, y).Alpha - redrawn.GetPixel(x, y).Alpha) > 16)
+                            differing++;
+                    }
+                }
+                Assert.True(differing == 0, $"{differing} pixels of the paused frame differ from a frame of the new size.");
+                Assert.Null(host.LastRenderError);
+            }
+            finally
+            {
+                DaisyAccessibility.ReducedMotionOverride = motion;
+                RuntimeTestHelpers.GetHostPanel().Children.Clear();
+                await FlushAsync(host.Dispatcher);
+            }
+        }
+
+        [Fact]
+        public async Task When_TheHostPausesWhileARequestWaitsForAFrame_TheRequestGetsItsFrame()
+        {
+            // Regression: a request waited for the next frame of the running loop; the pause cancelled that frame, and
+            // the request timed out after 30 s and failed the renderer.
+            CarouselGlGalleryPresets.EnsureRegistered();
+            var host = new CarouselGlEffectHost { Width = 160, Height = 100, Effect = CarouselGlEffectKind.Fade, TransitionSeconds = 1, IntervalSeconds = 0 };
+            var motion = DaisyAccessibility.ReducedMotionOverride;
+            try
+            {
+                DaisyAccessibility.ReducedMotionOverride = false;
+                RuntimeTestHelpers.AttachToHost(host);
+                await RuntimeTestHelpers.EnsureLoadedAsync(host);
+                AssertFrame(await host.ReadFrameAsync(0), "running");
+                var canvas = Assert.IsType<CarouselGlCanvas>(host.Content);
+                await RuntimeTestHelpers.WaitUntilAsync(() => canvas.State is { Running: true }, "the loop runs");
+
+                var pending = host.ReadFrameAsync();
+                Assert.False(pending.IsCompleted);
+                DaisyAccessibility.ReducedMotionOverride = true;
+                var frame = await pending.WaitAsync(TimeSpan.FromSeconds(5));
+                AssertFrame(frame, "paused while waiting");
+                Assert.False(canvas.State?.Running);
+                Assert.Null(host.LastRenderError);
+                Assert.True(host.IsRendererInitialized);
+            }
+            finally
+            {
+                DaisyAccessibility.ReducedMotionOverride = motion;
+                RuntimeTestHelpers.GetHostPanel().Children.Clear();
+                await FlushAsync(host.Dispatcher);
+            }
+        }
+
+        [Fact]
         public async Task When_FramesAreReadAtSeveralTimes_TheyFollowTheTransition()
         {
             CarouselGlGalleryPresets.EnsureRegistered();
@@ -475,6 +603,9 @@ namespace Flowery.NET.RuntimeTests.Native
             Assert.InRange(pixel[2], minBlue - 3, maxBlue + 3);
             Assert.Equal(255, pixel[3]);
         }
+
+        private static int MaxDifference(byte[] first, byte[] second) =>
+            Math.Max(Math.Abs(first[0] - second[0]), Math.Max(Math.Abs(first[1] - second[1]), Math.Abs(first[2] - second[2])));
 
         private static bool Close(byte[] frame, SKColor screen, int tolerance) =>
             Math.Abs(frame[0] - screen.Red) <= tolerance
