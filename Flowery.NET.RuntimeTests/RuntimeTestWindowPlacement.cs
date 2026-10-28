@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Avalonia;
@@ -99,7 +99,8 @@ internal static partial class RuntimeTestWindowPlacement
 
     private static string? GetDeviceName(Screen screen)
     {
-        if (screen.TryGetPlatformHandle() is not { } handle || handle.Handle == IntPtr.Zero)
+        // Linux and macOS have no device names such as \\.\DISPLAY2; their screens go by display name.
+        if (!OperatingSystem.IsWindows() || screen.TryGetPlatformHandle() is not { } handle || handle.Handle == IntPtr.Zero)
             return screen.DisplayName;
 
         var information = new MonitorInfoEx { Size = (uint)Marshal.SizeOf<MonitorInfoEx>() };
