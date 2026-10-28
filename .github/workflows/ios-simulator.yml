@@ -55,6 +55,15 @@ jobs:
           DEVELOPER_DIR="$BUILD_DEVELOPER_DIR" xcodebuild -version | tee "$ARTIFACT_DIR/logs/xcode-build.txt"
           xcodebuild -version | tee "$ARTIFACT_DIR/logs/xcode-simulator.txt"
           xcrun simctl list --json > "$ARTIFACT_DIR/logs/simulators.json"
+          # TEMP diagnostics
+          ls -la /Applications | grep -i xcode || true
+          ls -la "$BUILD_DEVELOPER_DIR/Platforms/MacOSX.platform/Developer/SDKs" || true
+          ls -la "$BUILD_DEVELOPER_DIR/Platforms" || true
+          DEVELOPER_DIR="$BUILD_DEVELOPER_DIR" xcodebuild -showsdks || true
+          DEVELOPER_DIR="$BUILD_DEVELOPER_DIR" xcrun --find actool || true
+          DEVELOPER_DIR="$BUILD_DEVELOPER_DIR" xcodebuild -sdk "$BUILD_DEVELOPER_DIR/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" -find actool || true
+          DEVELOPER_DIR="$BUILD_DEVELOPER_DIR" xcodebuild -checkFirstLaunchStatus; echo "first launch status $?"
+          xcode-select -p
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         env:
