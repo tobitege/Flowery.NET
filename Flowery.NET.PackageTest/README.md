@@ -3,7 +3,8 @@
 An Avalonia app that references Flowery.NET and Flowery.NET.Skia as NuGet packages, not as projects.
 It is set up like the [README quick start](../README.md#quick-start), calls `UseFlowerySkia()`, and shows a glass with `BlurMode="SkiaSharp"` over black and white stripes.
 With the live blur of Flowery.NET.Skia, the stripes behind the glass become an even gray.
-The glass names its effective blur mode and the version and commit of both packages.
+A bar below the stripes names the effective blur mode of the glass and the version and commit of both packages.
+The Avalonia packages of the app take the Avalonia version of `Flowery.NET.csproj`.
 
 Run it with [`scripts/test_packages.ps1`](../scripts/README.md#test_packagesps1), with packages packed from this checkout, from a folder or from nuget.org.
 The project is not part of `Flowery.NET.sln`, because nuget.org has the packages of the version in `Directory.Build.props` only after their release.

@@ -15,7 +15,7 @@ internal static class Program
         return 0;
     }
 
-    // The setup of the README quick start; also used by the visual designer.
+    // The setup of the README quick start; also used by the headless check and the visual designer.
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()

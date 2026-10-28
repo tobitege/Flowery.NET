@@ -17,5 +17,8 @@ public partial class MainWindow : Window
     /// Gets the name of an assembly with its package version and the commit it was built from.
     /// </summary>
     internal static string Describe(Assembly assembly)
-        => $"{assembly.GetName().Name} {assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion}";
+    {
+        var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        return $"{assembly.GetName().Name} {version}";
+    }
 }

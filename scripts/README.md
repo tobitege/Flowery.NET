@@ -381,9 +381,9 @@ pwsh ./scripts/test_packages.ps1 -NuGet -Version 4.0.0
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| `-PackageDir` | string | none | Test the packages in this folder instead of packing new ones |
-| `-NuGet` | switch | off | Test the packages on nuget.org |
-| `-Version` | string | `Version` in `Directory.Build.props` | Package version to test with `-PackageDir` or `-NuGet` |
+| `-PackageDir` | string | none | Test the packages in this folder instead of packing new ones; not with `-NuGet` |
+| `-NuGet` | switch | off | Test the packages on nuget.org; not with `-PackageDir` |
+| `-Version` | string | `Version` in `Directory.Build.props` | Package version to test; only with `-PackageDir` or `-NuGet` |
 | `-Check` | switch | off | Render the app headless instead of opening its window; the exit code is nonzero when the check fails |
 | `-Configuration` | string | `Release` | Build configuration (`Debug` or `Release`) |
 
