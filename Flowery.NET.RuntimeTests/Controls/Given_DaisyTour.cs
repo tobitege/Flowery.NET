@@ -21,6 +21,7 @@ using Flowery.NET.Gallery.Localization;
 using Flowery.Theming;
 using SkiaSharp;
 using Xunit;
+using static Flowery.NET.RuntimeTests.Controls.DaisyTourTestHelpers;
 using Assert = Flowery.NET.RuntimeTests.Controls.MSTestAssert;
 using CollectionAssert = Flowery.NET.RuntimeTests.Controls.MSTestCollectionAssert;
 using Path = Avalonia.Controls.Shapes.Path;
@@ -205,7 +206,8 @@ public class Given_DaisyTour
             await RenderFrameAsync(root);
             // The offset is clamped to the extent, so the assertion compares with the offset that hid the selection.
             var hiddenOffset = sidebar.Offset.Y;
-            Assert.IsTrue(hiddenOffset > 0, "The selection starts out of view.");
+            Assert.IsTrue(TransformBounds(selection, sidebar, new Rect(0, 0, selection.Bounds.Width, selection.Bounds.Height)).Bottom <= 0,
+                "The selection starts out of view.");
             await tour.StartAsync().WaitAsync(Timeout);
             AssertActive(tour, step, 0);
             Assert.IsTrue(sidebar.Offset.Y < hiddenOffset, "The sidebar must scroll its selection back into view.");
@@ -2675,6 +2677,8 @@ public class Given_DaisyTour
             step.ContentTemplate = null;
             await tour.StartAsync().WaitAsync(Timeout);
             AssertActive(tour, step, 0);
+            await ArrangeAsync(root);
+            AssertPlacedCard(tour, Card(tour), target);
         }
         finally { await CleanupAsync(root, tour); }
     }
@@ -2694,9 +2698,11 @@ public class Given_DaisyTour
         {
             await LoadAsync(root);
             Assert.IsTrue(previous.Focus(NavigationMethod.Unspecified));
+            Assert.AreSame(previous, FocusedElement(root));
             await tour.StartAsync().WaitAsync(Timeout);
             AssertActive(tour, step, 0);
-            Assert.AreNotSame(previous, FocusedElement(root), "The open tour keeps the focus in its card.");
+            Assert.IsTrue(FocusedElement(root) is Visual focused && DaisyTourLayout.IsDescendant(focused, GetSurface(tour)),
+                "The open tour keeps the focus in its card.");
             tour.Cancel();
             await ArrangeAsync(root);
             AssertClosed(tour);
@@ -2983,20 +2989,12 @@ public class Given_DaisyTour
         }
     }
 
-    private static Border CreateTarget() => new()
-    {
-        Width = 100, Height = 40, Margin = new Thickness(24),
-        HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top,
-        Child = new TextBlock { Text = "Tour target" }
-    };
+    private static Border CreateTarget() => DaisyTourTestHelpers.CreateTarget(new Thickness(24));
 
     private static Grid CreateRoot(DaisyTour tour, params Control[] children)
     {
-        var root = new Grid { Width = 600, Height = 400 };
         tour.Closed += (_, args) => tour.Tag = args;
-        foreach (var child in children) root.Children.Add(child);
-        root.Children.Add(tour);
-        return root;
+        return DaisyTourTestHelpers.CreateRoot(tour, children);
     }
 
     // A step that shows its targets has no warning; a test that expects one names the problem.
@@ -3061,14 +3059,6 @@ public class Given_DaisyTour
             ? bounds.TransformToAABB(transform)
             : throw new AssertFailedException($"{element.GetType().Name} and {target.GetType().Name} share no visual root.");
 
-    // WinUI's open popups; the Avalonia tour shows its surface in the overlay layer of the window, inside a theme scope.
-    private static IEnumerable<Control> OpenSurfaces(Visual element) =>
-        OverlayLayer.GetOverlayLayer(element)?.Children.Where(child => child.IsVisible)
-            .Select(child => child is ThemeVariantScope { Child: Control inner } ? inner : child) ?? [];
-
-    private static Control GetSurface(DaisyTour tour) =>
-        OpenSurfaces(tour).Single(surface => Descendants<Border>(surface).Any(border => AutomationProperties.GetAutomationId(border) == "DaisyTourCard"));
-
     private static IEnumerable<T> Descendants<T>(Visual root) where T : Visual => root.GetVisualDescendants().OfType<T>();
 
     private static string DescribeScroll(string name, ScrollViewer viewer) =>
@@ -3114,8 +3104,6 @@ public class Given_DaisyTour
     // Avalonia's TextBlock has no IsTextTrimmed; a trimmed line is collapsed.
     private static bool IsTextTrimmed(TextBlock block) => block.TextLayout.TextLines.Any(line => line.HasCollapsed);
 
-    private static IInputElement? FocusedElement(Visual element) => TopLevel.GetTopLevel(element)?.FocusManager?.GetFocusedElement();
-
     // A rendered bitmap as BGRA bytes, in the byte order of WinUI's pixel buffer. It is rendered at one pixel per DIP;
     // the tests map pixels to DIP through the bitmap size.
     private sealed record RenderedBitmap(byte[] Pixels, int PixelWidth, int PixelHeight);
@@ -3133,26 +3121,6 @@ public class Given_DaisyTour
     {
         RuntimeTestHelpers.AttachToHost(root);
         await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(Timeout);
-        await ArrangeAsync(root);
-    }
-
-    // WinUI's low queue priority runs after layout and rendering; Avalonia's Background priority does too.
-    private static async Task ArrangeAsync(Control root)
-    {
-        root.UpdateLayout();
-        // Target tracking queues geometry, which first yields for settled layout.
-        for (var turn = 0; turn < 2; turn++)
-        {
-            var ready = NewCompletion();
-            Dispatcher.UIThread.Post(() => ready.TrySetResult(), DispatcherPriority.Background);
-            await ready.Task.WaitAsync(Timeout);
-        }
-    }
-
-    private static async Task CleanupAsync(Control root, DaisyTour tour)
-    {
-        tour.Cancel();
-        RuntimeTestHelpers.GetHostPanel().Children.Remove(root);
         await ArrangeAsync(root);
     }
 }

@@ -24,7 +24,7 @@ internal static class MSTestAssert
 
     public static void AreEqual(double expected, double actual, double delta, string? message = null)
     {
-        // Like MSTest: a NaN or negative delta is a usage error, which would otherwise pass every comparison.
+        // Like MSTest: a NaN or negative delta is a usage error; a NaN delta would pass every comparison, a negative one fail every comparison.
         if (double.IsNaN(delta) || delta < 0)
             throw new ArgumentOutOfRangeException(nameof(delta), delta, "The delta must be a nonnegative number.");
         if (double.IsNaN(expected) != double.IsNaN(actual) || Math.Abs(expected - actual) > delta)
@@ -135,7 +135,7 @@ internal static class MSTestCollectionAssert
 {
     public static void AreEqual(IEnumerable? expected, IEnumerable? actual, string? message = null)
     {
-        if (BothNullOrOneNull(expected, actual, message)) return;
+        if (BothNull(expected, actual, message)) return;
         var left = expected.Cast<object?>().ToArray();
         var right = actual.Cast<object?>().ToArray();
         if (!left.SequenceEqual(right))
@@ -145,7 +145,7 @@ internal static class MSTestCollectionAssert
     // The same elements, each as often, in any order; elements compare with Equals like MSTest.
     public static void AreEquivalent(IEnumerable? expected, IEnumerable? actual, string? message = null)
     {
-        if (BothNullOrOneNull(expected, actual, message)) return;
+        if (BothNull(expected, actual, message)) return;
         var left = expected.Cast<object?>().ToList();
         var right = actual.Cast<object?>().ToList();
         var unmatched = new List<object?>(right);
@@ -161,7 +161,7 @@ internal static class MSTestCollectionAssert
     }
 
     // Like MSTest: two null collections are equal, and one null collection fails. True when nothing is left to compare.
-    private static bool BothNullOrOneNull([NotNullWhen(false)] IEnumerable? expected, [NotNullWhen(false)] IEnumerable? actual, string? message)
+    private static bool BothNull([NotNullWhen(false)] IEnumerable? expected, [NotNullWhen(false)] IEnumerable? actual, string? message)
     {
         if (expected is null && actual is null) return true;
         if (expected is null || actual is null)

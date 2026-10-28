@@ -516,7 +516,7 @@ All theme names follow the pattern `Theme_{ThemeName}`:
 | `Theme_Winter` | Winter |
 | `Theme_Wireframe` | Wireframe |
 
-### Guided tour
+### Guided Tour
 
 | Key | English (Default) | Description |
 | --- | ----------------- | ----------- |
@@ -528,7 +528,7 @@ All theme names follow the pattern `Theme_{ThemeName}`:
 | `Tour_TargetUnavailable` | This step's element can't be shown right now. | Warning note of a step whose target cannot be shown |
 | `Tour_PreparationFailed` | This step could not be prepared completely. | Warning note of a step whose `PrepareAsync` failed |
 
-The labels of `DaisyTourEditor` use the `TourEditor_*` keys and `Common_Apply`.
+The labels of `DaisyTourEditor` use the `TourEditor_*` keys, `Common_Apply`, and the color picker keys `ColorPicker_Title`, `ColorPicker_Lightness`, `ColorPicker_ClickAndDrag`, `ColorPicker_Undo` and `ColorPicker_Redo`.
 
 ---
 

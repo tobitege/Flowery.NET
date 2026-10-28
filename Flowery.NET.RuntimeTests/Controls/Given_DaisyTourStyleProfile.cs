@@ -31,7 +31,7 @@ public class Given_DaisyTourStyleProfile
         Assert.AreEqual(DaisyTourAnnotationPath.Bezier, copiedStyle.Values.Path);
         Assert.AreEqual("#FF12AB34", copiedStyle.Values.Stroke);
         Assert.AreEqual(4d, copy.AnnotationDefaults!.Values.StrokeThickness);
-        CollectionAssert.AreEqual(new[] { 1d, 3d }, copiedStyle.Values.DashArray!);
+        CollectionAssert.AreEqual(new[] { 1d, 3d }, copiedStyle.Values.DashArray);
         CollectionAssert.AreEqual(new[] { "headWidth" }, copiedStyle.Inherit);
         Assert.IsNull(copiedStyle.Values.HeadWidth);
         Assert.IsNull(copiedStyle.Values.Fill);

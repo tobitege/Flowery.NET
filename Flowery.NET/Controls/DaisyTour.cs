@@ -11,6 +11,7 @@ using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using Avalonia.Controls.Platform;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
@@ -122,6 +123,11 @@ public sealed partial class DaisyTour : ContentControl
     // session runs, this timer compares the availability of the step's targets with the last update.
     private DispatcherTimer? _availabilityTimer;
     private bool[]? _availability;
+    // The session state is reported at the same points as in WinUI, not at each assignment, and each time for all
+    // three properties.
+    private bool _reportedOpen;
+    private int _reportedIndex = -1;
+    private DaisyTourStep? _reportedStep;
 
     public DaisyTour()
     {
@@ -167,8 +173,9 @@ public sealed partial class DaisyTour : ContentControl
         AutomationProperties.SetAutomationId(_card, "DaisyTourCard");
         AutomationProperties.SetAutomationId(_warningNote, "DaisyTourWarning");
         AutomationProperties.SetLiveSetting(_card, AutomationLiveSetting.Polite);
-        AutomationProperties.SetLiveSetting(_warningNote, AutomationLiveSetting.Polite);
         Steps.CollectionChanged += OnStepsChanged;
+        // The surface's scope follows the tour's theme variant, also when the system or an ancestor scope changes it.
+        ActualThemeVariantChanged += OnActualThemeVariantChanged;
     }
 
     public ObservableCollection<DaisyTourStep> Steps { get; } = [];
@@ -255,6 +262,7 @@ public sealed partial class DaisyTour : ContentControl
 
     private void OnThemeChanged(object? sender, string themeName) => RefreshPresentation();
     private void OnPreferencesChanged(object? sender, EventArgs args) => RefreshPresentation();
+    private void OnActualThemeVariantChanged(object? sender, EventArgs args) => RefreshPresentation();
     // A profile that inherits the size follows the global size, also while the tour has a size of its own.
     private void OnGlobalSizeChanged(object? sender, DaisySize size) => RefreshPresentation();
 
@@ -309,6 +317,12 @@ public sealed partial class DaisyTour : ContentControl
         {
             window.PositionChanged += OnAppWindowChanged;
             session.Unsubscribe.Add(() => window.PositionChanged -= OnAppWindowChanged);
+        }
+        // A view without a window keeps the card out of its safe-area insets, which change with the system bars.
+        else if (root.InsetsManager is { } insets)
+        {
+            insets.SafeAreaChanged += OnSafeAreaChanged;
+            session.Unsubscribe.Add(() => insets.SafeAreaChanged -= OnSafeAreaChanged);
         }
         // Registered last: a cancellation from another thread can close the session at once, and Close then
         // unsubscribes everything above.
@@ -407,8 +421,8 @@ public sealed partial class DaisyTour : ContentControl
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception error)
         {
-            // Target problems keep the step open; this is a failure of the tour itself, such as a dispatcher
-            // that no longer accepts work.
+            // Target problems keep the step open; this is a failure of the tour itself, such as laying out a step
+            // that throws.
             if (ReferenceEquals(_session, session))
                 Close(session, DaisyTourCloseReason.Failed, step.Target, error);
         }
@@ -594,8 +608,8 @@ public sealed partial class DaisyTour : ContentControl
         DaisyTourTargetProblem? warning = layout.Problems.Count == 0 ? null : layout.Problems.MinBy(problem => problem.Priority).Kind;
         if (warning != session.Warning)
         {
-            // The warning note is a polite live region, and the warning starts the card's name, which is a polite
-            // live region as well; Avalonia raises no automation notifications.
+            // Avalonia raises no automation notifications; the warning starts the card's name, and the card is a
+            // polite live region.
             session.Warning = warning;
             ApplyWarning();
             if (warning is null && session.Editing) _editor?.OnPreviewTargetAvailable();
@@ -1079,10 +1093,13 @@ public sealed partial class DaisyTour : ContentControl
         if (_cardCollapsed) return;
         if (CurrentIndex < 0 || CurrentIndex >= _progressItems.Count) return;
         // Centered like WinUI's BringIntoView with a horizontal ratio of 0.5; Avalonia's scrolls only to the nearest edge.
+        // The center is measured in the scroll viewer, which includes the mirroring of right-to-left cards, and moved
+        // relative to the current offset, which the viewer applies the same way in both directions.
         var item = _progressItems[CurrentIndex];
-        if (item.TranslatePoint(new Point(item.Bounds.Width / 2, 0), _progress) is not { } center) return;
+        if (item.TranslatePoint(new Point(item.Bounds.Width / 2, 0), _progressScroll) is not { } center) return;
         var maximum = Math.Max(0, _progressScroll.Extent.Width - _progressScroll.Viewport.Width);
-        _progressScroll.Offset = new Vector(Math.Clamp(center.X - _progressScroll.Viewport.Width / 2, 0, maximum), _progressScroll.Offset.Y);
+        _progressScroll.Offset = new Vector(Math.Clamp(_progressScroll.Offset.X + center.X - _progressScroll.Viewport.Width / 2, 0, maximum),
+            _progressScroll.Offset.Y);
     }
 
     private static PathGeometry RoundedRectangle(Rect rect, double requestedRadius)
@@ -1131,6 +1148,7 @@ public sealed partial class DaisyTour : ContentControl
     }
 
     private void OnAppWindowChanged(object? sender, PixelPointEventArgs args) => QueueGeometry();
+    private void OnSafeAreaChanged(object? sender, SafeAreaChangedArgs args) => QueueGeometry();
 
     private void OnCultureChanged(object? sender, CultureInfo culture)
     {
@@ -1211,18 +1229,12 @@ public sealed partial class DaisyTour : ContentControl
         session.PendingStep = null;
         session.Cancellation.Dispose();
         if (session.PreviousFocus?.TryGetTarget(out var previous) == true && previous is Control control &&
-            TopLevel.GetTopLevel(control) is not null && control.IsEnabled && control.IsVisible)
+            TopLevel.GetTopLevel(control) is not null && control.IsEffectivelyEnabled && control.IsVisible)
             control.Focus();
         NotifyState();
         if (session.Editing) _editor?.OnPreviewClosed(error);
         else Closed?.Invoke(this, new(reason, stepId, target, error));
     }
-
-    // The session state is reported at the same points as in WinUI, not at each assignment, and each time for all
-    // three properties.
-    private bool _reportedOpen;
-    private int _reportedIndex = -1;
-    private DaisyTourStep? _reportedStep;
 
     private void NotifyState()
     {

@@ -309,8 +309,8 @@ internal sealed class DaisyTourAnnotationPresenter : Canvas
         if (hasContent)
         {
             // Avalonia's Measure skips a valid parent of a changed child, so the new text would keep the previous size.
-            foreach (var visual in _contentHost.GetSelfAndVisualDescendants())
-                (visual as Layoutable)?.InvalidateMeasure();
+            foreach (var layoutable in _contentHost.GetSelfAndVisualDescendants().OfType<Layoutable>())
+                layoutable.InvalidateMeasure();
             _contentHost.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         }
 
@@ -911,7 +911,8 @@ internal sealed class DaisyTourAnnotationPresenter : Canvas
         return samples is null ? [source, target] : samples.ConvertAll(point => Transform(matrix, point));
     }
 
-    // Samples an open contour in 24 steps; null for a closed or unmeasurable contour.
+    // Samples the first contour in 24 steps, like the first figure of a path geometry; Skia measures only that one.
+    // Null for a closed or unmeasurable contour.
     private static List<Point>? ContourSamples(Geometry geometry)
     {
         var length = geometry.ContourLength;

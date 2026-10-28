@@ -215,8 +215,9 @@ Its `Curvature`, 0.5 by default, scales each control's reach by the distance alo
 A control point without both coordinates uses the `SCurve` control point.
 `Custom` fits the annotation's `Geometry` between both anchors by rotation and uniform scaling.
 The first and last point of its figure meet the anchors, and the stroke keeps its thickness.
-Path markup such as `Geometry="M0,0 C20,-30 30,-30 50,0"` works the same way.
-A geometry without a path figure, such as an `EllipseGeometry`, meets the anchors at the middle of its left and right bounds edges.
+An Avalonia `PathFigure` is closed by default, so a `<PathFigure>` course needs `IsClosed="False"`; otherwise it draws a closing line back to its start.
+Path markup such as `Geometry="M0,0 C20,-30 30,-30 50,0"` works the same way: the ends of its first contour meet the anchors.
+A closed geometry, such as an `EllipseGeometry` or markup that ends with `Z`, meets the anchors at the middle of its left and right bounds edges.
 `ArrowStyle="Block"` is not applied to `Custom` paths.
 
 ```xml
@@ -257,7 +258,7 @@ Without `Width` and `Height`, its box is sized so that an inscribed ellipse encl
 
 ## Appearance
 
-The host uses the existing Daisy theme and the five `DaisySize` tiers. It draws without animations.
+The host uses the existing Daisy theme and the five `DaisySize` tiers. The tour itself does not animate; its buttons keep the usual DaisyButton transitions.
 `Size` defaults to `Medium`; like the other Daisy controls, the tour follows the global size of `FlowerySizeManager` unless its `Size` is set in XAML, code, a style, or a binding.
 An active profile can override the size. Profile `inherit` uses the global size when `FlowerySizeManager.EnableGlobalAutoSize` and `UseGlobalSizeByDefault` are on and the tour does not ignore the global size (`IgnoreGlobalSize`); otherwise it uses `Medium`.
 `DaisySize` has no `Auto` tier in Flowery.NET, so a Flowery.WinUI profile with `"size": "Auto"` is rejected; replace the value with `"inherit": ["size"]`.
@@ -459,6 +460,7 @@ The Gallery opens and saves profiles with the file dialog of the platform (`TopL
 It reads the complete import before it changes the draft.
 File dialog cancellation preserves the draft.
 For a file with a file system path, an export writes and flushes an adjacent temporary file, closes it, then replaces the destination; a file without one, such as a browser download, is written through its own stream.
+When the temporary file cannot be created next to the destination, such as in a sandboxed folder, the export writes through the file's own stream as well.
 The success message appears only after replacement completes.
 If an export fails, the error includes the temporary path when one exists.
 The incomplete file remains available for diagnosis.

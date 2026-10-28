@@ -13,12 +13,15 @@ namespace Flowery.NET.RuntimeTests.Controls;
 /// <summary>Covers the presenter and handle code that Avalonia needs differently from WinUI.</summary>
 public class Given_DaisyTourAnnotationPresenterAvalonia
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
+    private static readonly PointerPointProperties Pressed = new(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
+    private static readonly PointerPointProperties Moved = new(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other);
+    private static readonly PointerPointProperties Released = new(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased);
 
     // Avalonia's Measure skips a valid parent whose child changed; without the invalidation, the surface keeps
-    // the size of the previous text.
+    // the size of the previous text. A new scale changes the padding and limits of the host itself, so the host
+    // measures again without it; only the text change depends on the invalidation.
     [Fact]
-    public async Task When_TheTextOrScaleOfAMeasuredSurfaceChanges_ItsSizeFollowsAtOnce()
+    public async Task When_TheTextOfAMeasuredSurfaceChanges_ItsSizeFollowsAtOnce()
     {
         var root = new Canvas { Width = 600, Height = 400 };
         var presenter = new DaisyTourAnnotationPresenter { Width = 600, Height = 400 };
@@ -42,11 +45,6 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
             var shortAgain = Update(presenter, annotation, 1);
             Assert.AreEqual(shortText.Width, shortAgain.Width, 0.01, "The surface shrinks back with the text.");
             Assert.AreEqual(shortText.Height, shortAgain.Height, 0.01);
-            await RuntimeTestHelpers.WaitForRenderAsync();
-
-            var scaled = Update(presenter, annotation, 1.3);
-            Assert.IsTrue(scaled.Width > shortText.Width && scaled.Height > shortText.Height,
-                $"A larger scale grows the surface at once: {shortText} -> {scaled}.");
         }
         finally
         {
@@ -96,7 +94,56 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
         }
     }
 
-    // Real pointer events: Avalonia routes them differently and has no canceled pointer event.
+    // A closed contour has no ends; it meets the anchors at the middle of its left and right bounds edges, and the
+    // course between them is the chord. Without the closed check, its start and end coincide and no course is fitted.
+    [Fact]
+    public async Task When_ACustomPathIsClosed_ItMeetsTheAnchorsAtItsBoundsEdges()
+    {
+        var root = new Canvas { Width = 600, Height = 400 };
+        var presenter = new DaisyTourAnnotationPresenter { Width = 600, Height = 400 };
+        root.Children.Add(presenter);
+        var geometries = new (string Name, Geometry Geometry)[]
+        {
+            ("closed markup", Geometry.Parse("M0,0 L50,-40 L100,0 Z")),
+            ("ellipse", new EllipseGeometry { Center = new Point(50, 20), RadiusX = 50, RadiusY = 20 })
+        };
+        var source = new Point(120, 220);
+        var target = new Point(420, 220);
+        try
+        {
+            RuntimeTestHelpers.AttachToHost(root);
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            foreach (var (name, geometry) in geometries)
+            {
+                var annotation = new DaisyTourAnnotation
+                {
+                    Kind = DaisyTourAnnotationKind.Line, Path = DaisyTourAnnotationPath.Custom, Geometry = geometry,
+                    SourceAnchor = DaisyTourAnchor.Center, TargetAnchor = DaisyTourAnchor.Center
+                };
+                presenter.Update(annotation, new Rect(100, 200, 40, 40), new Rect(400, 200, 40, 40),
+                    Brushes.Red, Brushes.Lime, Brushes.Blue);
+                var body = (Avalonia.Controls.Shapes.Path)presenter.Children[1];
+                var route = Assert.IsInstanceOfType<GeometryGroup>(body.Data, $"{name}: the geometry is fitted between the anchors.");
+                var matrix = route.Transform!.Value;
+                var bounds = geometry.Bounds;
+                AssertNear(source, new Point(bounds.Left, bounds.Top + bounds.Height / 2).Transform(matrix),
+                    $"{name}: the middle of the left bounds edge meets the source anchor.");
+                AssertNear(target, new Point(bounds.Right, bounds.Top + bounds.Height / 2).Transform(matrix),
+                    $"{name}: the middle of the right bounds edge meets the target anchor.");
+                Assert.AreEqual(2, presenter.Course.Count, $"{name}: the course is the chord between the anchors.");
+                AssertNear(source, presenter.Course[0], $"{name}: the course starts at the source anchor.");
+                AssertNear(target, presenter.Course[1], $"{name}: the course ends at the target anchor.");
+            }
+        }
+        finally
+        {
+            RuntimeTestHelpers.GetHostPanel().Children.Remove(root);
+            await RuntimeTestHelpers.WaitForRenderAsync();
+        }
+    }
+
+    // Pointer events raised on the handle itself, without hit testing: they reach the handlers the way Avalonia
+    // routes them, and Avalonia has no canceled pointer event.
     [Fact]
     public Task When_AHandleIsDraggedWithThePointer_TheDragIsOneUndoActionWithTheFinalValue() =>
         InEditorAsync(async (editor, tour) =>
@@ -142,10 +189,6 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
             Assert.AreEqual(before, editor.ExportJson(), "The drag that ended with the capture is one undo action.");
         });
 
-    private static readonly PointerPointProperties Pressed = new(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed);
-    private static readonly PointerPointProperties Moved = new(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other);
-    private static readonly PointerPointProperties Released = new(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased);
-
     private static void Move(Button handle, IPointer pointer, Visual layer, Point point) =>
         handle.RaiseEvent(new PointerEventArgs(InputElement.PointerMovedEvent, handle, pointer, layer, point, 0, Moved, KeyModifiers.None));
 
@@ -176,7 +219,7 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
     private static double Curvature(DaisyTourEditor editor) =>
         editor.DraftProfile!.Steps.Single().Annotations.Single().Style!.Values.Curvature!.Value;
 
-    private static async Task InEditorAsync(Func<DaisyTourEditor, DaisyTour, Task> action)
+    private static Task InEditorAsync(Func<DaisyTourEditor, DaisyTour, Task> action)
     {
         var root = new Grid { Width = 752, Height = 480, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
         var source = new Button { Content = "Source", Width = 90, Height = 40, Margin = new Thickness(24, 40, 0, 0), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
@@ -189,24 +232,7 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
         root.Children.Add(source);
         root.Children.Add(target);
         root.Children.Add(tour);
-        var editor = new DaisyTourEditor();
-        try
-        {
-            RuntimeTestHelpers.AttachToHost(root);
-            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(Timeout);
-            await RuntimeTestHelpers.WaitForRenderAsync();
-            await editor.OpenAsync(tour).WaitAsync(Timeout);
-            await RuntimeTestHelpers.WaitUntilAsync(() => tour.IsOpen && !tour.IsTransitioning && tour.AnnotationPresenters.Count == 1 &&
-                tour.AnnotationPresenters[0].EditGeometry is not null, "the preview is laid out");
-            await RuntimeTestHelpers.WaitForRenderAsync();
-            await action(editor, tour);
-        }
-        finally
-        {
-            editor.Discard();
-            tour.Cancel();
-            RuntimeTestHelpers.GetHostPanel().Children.Remove(root);
-            await RuntimeTestHelpers.WaitForRenderAsync();
-        }
+        return TourEditorTestHelpers.InEditorAsync(root, tour, editor => action(editor, tour),
+            () => tour.IsOpen && !tour.IsTransitioning && tour.AnnotationPresenters.Count == 1 && tour.AnnotationPresenters[0].EditGeometry is not null);
     }
 }

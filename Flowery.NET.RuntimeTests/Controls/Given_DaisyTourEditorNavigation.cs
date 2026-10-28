@@ -5,10 +5,10 @@ using Avalonia.Automation.Provider;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Xunit;
+using static Flowery.NET.RuntimeTests.Controls.TourEditorTestHelpers;
 using Assert = Flowery.NET.RuntimeTests.Controls.MSTestAssert;
 using DaisyIconSymbol = Flowery.Enums.DaisyIconSymbol;
 using Path = Avalonia.Controls.Shapes.Path;
@@ -323,30 +323,5 @@ public class Given_DaisyTourEditorNavigation
         await ChangeGeometryAsync(tour, invoke.Invoke);
     }
 
-    private static async Task ChangeGeometryAsync(DaisyTour tour, Action change)
-    {
-        var updated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        void OnGeometryUpdated(object? sender, EventArgs args) => updated.TrySetResult();
-        tour.GeometryUpdated += OnGeometryUpdated;
-        try
-        {
-            change();
-            await updated.Task.WaitAsync(Timeout);
-        }
-        finally { tour.GeometryUpdated -= OnGeometryUpdated; }
-    }
-
     private static IEnumerable<Visual> Descendants(Visual parent) => parent.GetVisualDescendants();
-
-    // WinUI's low queue priority runs after layout and rendering; Avalonia's Background priority does too.
-    private static async Task SettleAsync(Control element)
-    {
-        element.UpdateLayout();
-        for (var turn = 0; turn < 2; turn++)
-        {
-            var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            Dispatcher.UIThread.Post(() => ready.TrySetResult(), DispatcherPriority.Background);
-            await ready.Task.WaitAsync(Timeout);
-        }
-    }
 }

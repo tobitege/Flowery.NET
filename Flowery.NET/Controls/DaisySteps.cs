@@ -1,6 +1,7 @@
 ﻿using System;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 using Flowery.Services;
@@ -193,6 +194,8 @@ namespace Flowery.Controls
         }
     }
 
+    // A step with a navigation button puts it into the template's root panel, under the indicator.
+    [TemplatePart("PART_Root", typeof(Panel))]
     public class DaisyStepItem : ContentControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyStepItem);

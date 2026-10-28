@@ -47,6 +47,17 @@ public class Given_DaisyExpander
     }
 
     [Fact]
+    public async Task When_Settings_Are_Made_Before_The_Template_Is_Built_The_Parts_Show_Them()
+    {
+        var content = new TextBlock { Text = "Body" };
+        var expander = new DaisyExpander { Header = "Section header", IsExpanded = false, ShowChevron = false, ExpanderContent = content };
+        await RuntimeTestHelpers.AttachAsync(expander);
+        Assert.Contains(HeaderButton(expander).GetVisualDescendants().OfType<TextBlock>(), text => text.Text == "Section header");
+        Assert.False(ContentBorder(expander, content).IsVisible);
+        Assert.False(Chevron(expander).IsVisible);
+    }
+
+    [Fact]
     public async Task When_The_Expander_Has_A_Top_Border_It_Is_Drawn_Once()
     {
         var expander = new DaisyExpander
@@ -56,7 +67,7 @@ public class Given_DaisyExpander
         };
         await RuntimeTestHelpers.AttachAsync(expander);
         // The control template must not draw the border, background or padding of the expander a second time.
-        var bordered = expander.GetVisualDescendants().OfType<Visual>().Where(static visual => visual switch
+        var bordered = expander.GetVisualDescendants().Where(static visual => visual switch
         {
             Border border => border.BorderThickness != default,
             ContentPresenter presenter => presenter.BorderThickness != default,

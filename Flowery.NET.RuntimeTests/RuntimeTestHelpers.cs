@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
@@ -60,7 +61,7 @@ internal static class RuntimeTestHelpers
             return Task.CompletedTask;
 
         var loaded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs args)
+        void OnLoaded(object? sender, RoutedEventArgs args)
         {
             element.Loaded -= OnLoaded;
             loaded.TrySetResult();

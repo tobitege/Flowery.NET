@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -16,7 +18,6 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Avalonia.Controls.Documents;
 using Flowery.Controls.ColorPicker;
 using Flowery.Enums;
 using Flowery.Helpers;
@@ -67,7 +68,18 @@ public sealed partial class DaisyTourEditor : ContentControl
     private readonly ScrollViewer _scroll = new() { HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
     private readonly Border _panel = new() { CornerRadius = new CornerRadius(12), Padding = new Thickness(16), BorderThickness = new Thickness(1) };
     private readonly ResizeGrip _resizeGrip = new() { Width = 12, HorizontalAlignment = HorizontalAlignment.Left };
-    private readonly Thumb _resizeThumb = new() { Focusable = true, IsTabStop = true, Background = new SolidColorBrush(Colors.Transparent) };
+    // Avalonia's Thumb has no default template and draws nothing, so the pointer could not hit it; the template
+    // draws its transparent background.
+    private readonly Thumb _resizeThumb = new()
+    {
+        Focusable = true, IsTabStop = true, Background = new SolidColorBrush(Colors.Transparent),
+        Template = new FuncControlTemplate<Thumb>(static (thumb, _) =>
+        {
+            var border = new Border();
+            border.Bind(Border.BackgroundProperty, thumb.GetObservable(BackgroundProperty));
+            return border;
+        })
+    };
     private readonly Border _resizeMark = new() { Width = 3, Height = 48, CornerRadius = new CornerRadius(1.5), IsHitTestVisible = false };
     // Carries the theme variant of the Daisy theme; Avalonia sets a requested variant only on a scope or a top level.
     private readonly ThemeVariantScope _themeScope = new();
@@ -246,14 +258,15 @@ public sealed partial class DaisyTourEditor : ContentControl
         if (IsOpen) throw new InvalidOperationException("This editor is already open.");
         LastError = null;
         _previewProblem = null;
-        if (this.GetVisualParent() is not null || Parent is not null) throw new InvalidOperationException("The editor must not have a visual parent before opening.");
+        if (this.GetVisualParent() is not null || Parent is not null) throw new InvalidOperationException("The editor must not have a parent before opening.");
         var draft = tour.StyleProfile is { } profile ? DaisyTourStyleProfileSerializer.Clone(profile) : new DaisyTourStyleProfile { TourId = tour.Id };
         DaisyTourStyleProfileSerializer.Validate(draft, tour);
         var openingGeneration = ++_openingGeneration;
         _draft = draft;
         _tour = tour;
-        // The tour's state, such as CurrentStep, by property name like WinUI's PropertyChanged; the Avalonia
-        // PropertyChanged event of the tour carries AvaloniaPropertyChangedEventArgs instead.
+        // CurrentStep is an Avalonia property; AvaloniaObject reports it by name through its explicit
+        // INotifyPropertyChanged event, like WinUI's PropertyChanged. tour.PropertyChanged is the Avalonia event
+        // with AvaloniaPropertyChangedEventArgs.
         ((INotifyPropertyChanged)tour).PropertyChanged += OnTourStateChanged;
         _initialSnapshot = DaisyTourStyleProfileSerializer.Serialize(_draft);
         _undoHistory.Clear();
@@ -479,6 +492,9 @@ public sealed partial class DaisyTourEditor : ContentControl
     {
         if (!_resizing || _tour is not { } tour) return;
         _resizePointer = args.Pointer;
+        // A press captures the element it hits, the border of the thumb's template. The thumb takes the capture,
+        // so it receives the capture loss, and a canceled resize can release it.
+        args.Pointer.Capture(_resizeThumb);
         var point = args.GetCurrentPoint(tour.EditingSurface);
         if (point.Properties.IsLeftButtonPressed)
             _resizePointerStart = (args.Pointer.Id, point.Position.X, Math.Clamp(_desiredWidth ?? Width, 180, MaximumInspectorWidth));
@@ -542,7 +558,14 @@ public sealed partial class DaisyTourEditor : ContentControl
             else Discard();
             args.Handled = true;
         }
-        // Ctrl on Windows and Linux, Cmd on macOS.
+        // The undo and redo gestures of the platform, such as Cmd+Shift+Z on macOS; redo first, as it can include
+        // the undo key. Without platform settings, Ctrl or Cmd with Z and Y.
+        if (Application.Current?.PlatformSettings?.HotkeyConfiguration is { } hotkeys)
+        {
+            if (hotkeys.Redo.Any(gesture => gesture.Matches(args))) { Redo(); args.Handled = true; }
+            else if (hotkeys.Undo.Any(gesture => gesture.Matches(args))) { Undo(); args.Handled = true; }
+            return;
+        }
         var control = (args.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Meta)) != 0;
         if (control && args.Key is Key.Z or Key.Y)
         {
@@ -1123,19 +1146,16 @@ public sealed partial class DaisyTourEditor : ContentControl
         RefreshValue();
     }
 
-    // Avalonia gives the presenter its FlyoutPresenterTheme before it raises Opening, while WinUI reads the presenter
-    // style after it. The theme of this opening therefore also goes to the presenter that already exists.
+    // WinUI reads the presenter style after Opening. Avalonia creates the presenter and applies its
+    // FlyoutPresenterTheme before it raises Opening, so the theme of each opening goes to the presenter itself.
     private static void ApplyPresenterTheme(PopupFlyoutBase flyout, ControlTheme? theme)
     {
-        if (theme is null) return;
-        if (flyout is Flyout plain) plain.FlyoutPresenterTheme = theme;
-        else if (flyout is MenuFlyout menu) menu.FlyoutPresenterTheme = theme;
-        if (flyout.Popup.Child is Control presenter) presenter.Theme = theme;
+        if (theme is not null && flyout.Popup.Child is { } presenter) presenter.Theme = theme;
     }
 
     // The presenter theme keeps the default template of the presenter and replaces its colors and shape.
     // Without a default theme there is no template to keep, and the presenter keeps its own theme.
-    private ControlTheme? FlyoutPresenterStyle(Type targetType, Thickness padding)
+    private static ControlTheme? FlyoutPresenterStyle(Type targetType, Thickness padding)
     {
         if (Application.Current?.FindResource(targetType) is not ControlTheme basedOn) return null;
         var style = new ControlTheme(targetType) { BasedOn = basedOn };

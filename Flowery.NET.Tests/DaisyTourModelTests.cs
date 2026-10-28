@@ -64,5 +64,22 @@ namespace Flowery.NET.Tests
             second.Add(6);
             Assert.Equal(5, changes);
         }
+
+        [AvaloniaFact]
+        public void When_AStepPropertyOrItsAnnotationsChange_ChangedIsRaised()
+        {
+            var step = new DaisyTourStep();
+            var changes = 0;
+            step.Changed += (_, _) => changes++;
+
+            step.Title = "Create";
+            step.Placement = DaisyTourPlacement.Bottom;
+            step.CardX = 0.5;
+            step.Target = new Border();
+            Assert.Equal(4, changes);
+
+            step.Annotations.Add(new DaisyTourAnnotation());
+            Assert.Equal(5, changes);
+        }
     }
 }

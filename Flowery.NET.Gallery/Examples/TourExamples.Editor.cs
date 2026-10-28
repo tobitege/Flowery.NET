@@ -16,6 +16,13 @@ namespace Flowery.NET.Gallery.Examples;
 
 public sealed partial class TourExamples
 {
+    private static readonly FilePickerFileType JsonFileType = new("JSON")
+    {
+        Patterns = ["*.json"],
+        MimeTypes = ["application/json"],
+        AppleUniformTypeIdentifiers = ["public.json"]
+    };
+
     private readonly DaisyTourEditor _tourEditor = new();
     private readonly StackPanel _editorFiles = new() { Spacing = 8 };
     private readonly ContentControl _editorFileHost = new();
@@ -142,13 +149,6 @@ public sealed partial class TourExamples
         EditorTour.Cancel();
     }
 
-    private static readonly FilePickerFileType JsonFileType = new("JSON")
-    {
-        Patterns = ["*.json"],
-        MimeTypes = ["application/json"],
-        AppleUniformTypeIdentifiers = ["public.json"]
-    };
-
     private async void ImportTourProfile_Click(object? sender, RoutedEventArgs e)
     {
         if (_editorFileOperation || !_tourEditor.IsOpen || TopLevel.GetTopLevel(this)?.StorageProvider is not { CanOpen: true } storage)
@@ -226,15 +226,24 @@ public sealed partial class TourExamples
         return await reader.ReadToEndAsync();
     }
 
-    internal static async Task WriteProfileAsync(IStorageFile file, string json)
+    internal static Task WriteProfileAsync(IStorageFile file, string json) =>
+        WriteProfileAsync(file.TryGetLocalPath(), file.OpenWriteAsync, json);
+
+    // A file without a file system path, such as a browser download, takes the profile through its own stream.
+    // So does a file whose folder cannot take the temporary file, such as a sandboxed folder on iOS or a Flatpak
+    // portal: creating the temporary file fails before it exists, and the file's own stream remains.
+    internal static async Task WriteProfileAsync(string? path, Func<Task<Stream>> openWrite, string json)
     {
-        if (file.TryGetLocalPath() is { Length: > 0 } path)
+        if (path is { Length: > 0 })
         {
-            await WriteProfileFileAsync(path, json);
-            return;
+            try
+            {
+                await WriteProfileFileAsync(path, json);
+                return;
+            }
+            catch (Exception error) when (error is not TemporaryFileException) { }
         }
-        // A file without a file system path, such as a browser download, takes the profile through its own stream.
-        await using var stream = await file.OpenWriteAsync();
+        await using var stream = await openWrite();
         await WriteProfileStreamAsync(stream, json);
     }
 
@@ -265,7 +274,10 @@ public sealed partial class TourExamples
         }
         catch (Exception error) when (File.Exists(partialPath))
         {
-            throw new IOException(error.Message + Environment.NewLine + partialPath, error);
+            throw new TemporaryFileException(error.Message + Environment.NewLine + partialPath, error);
         }
     }
+
+    // A failure after the temporary file was created; it names that file.
+    private sealed class TemporaryFileException(string message, Exception inner) : IOException(message, inner);
 }

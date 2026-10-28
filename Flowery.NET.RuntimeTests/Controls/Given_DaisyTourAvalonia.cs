@@ -9,10 +9,12 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
+using Avalonia.Styling;
 using Avalonia.VisualTree;
 using Flowery.Controls;
+using Flowery.Theming;
 using Xunit;
+using static Flowery.NET.RuntimeTests.Controls.DaisyTourTestHelpers;
 using Assert = Flowery.NET.RuntimeTests.Controls.MSTestAssert;
 using Path = Avalonia.Controls.Shapes.Path;
 
@@ -30,15 +32,17 @@ public class Given_DaisyTourAvalonia
         var previousSize = FlowerySizeManager.CurrentSize;
         var (tour, root) = CreateTour(3);
         tour.Size = DaisySize.ExtraLarge;
+        var circle = Assert.IsInstanceOfType<double>(
+            Application.Current!.TryGetResource("DaisyStepsExtraLargeCircleSize", null, out var resource) ? resource : null);
         try
         {
             FlowerySizeManager.ApplySize(DaisySize.Small);
             await StartAsync(root, tour);
-            AssertProgressSize(tour, DaisySize.ExtraLarge, 32);
+            AssertProgressSize(tour, DaisySize.ExtraLarge, circle);
             // A later change of the global size leaves the steps at the tour's size.
             FlowerySizeManager.ApplySize(DaisySize.Medium);
             await ArrangeAsync(root);
-            AssertProgressSize(tour, DaisySize.ExtraLarge, 32);
+            AssertProgressSize(tour, DaisySize.ExtraLarge, circle);
         }
         finally
         {
@@ -93,6 +97,123 @@ public class Given_DaisyTourAvalonia
     }
 
     [Fact]
+    public async Task When_ManyStepsScrollRightToLeft_TheCurrentStepIsCenteredOrInView()
+    {
+        // Regression: the left-to-right steps of a right-to-left card are mirrored in the scroll viewer, so a center
+        // measured in the steps' own coordinates scrolled the first step out of view and showed the last ones.
+        var (tour, root) = CreateTour(24);
+        tour.FlowDirection = FlowDirection.RightToLeft;
+        try
+        {
+            await StartAsync(root, tour);
+            var viewer = tour.Progress.FindAncestorOfType<ScrollViewer>()!;
+            Assert.IsTrue(viewer.Extent.Width > viewer.Viewport.Width + 1, "The progress scrolls.");
+            AssertStepInView(tour, viewer, 0, "The first step");
+            await InvokeAsync(tour, ProgressButton(tour, 12), 11);
+            await ArrangeAsync(root);
+            var middle = tour.Progress.Items.OfType<DaisyStepItem>().ElementAt(11);
+            Assert.AreEqual(viewer.Viewport.Width / 2, middle.TranslatePoint(new Point(middle.Bounds.Width / 2, 0), viewer)!.Value.X, 1,
+                "The middle step is centered.");
+            await InvokeAsync(tour, ProgressButton(tour, 24), 23);
+            await ArrangeAsync(root);
+            AssertStepInView(tour, viewer, 23, "The last step");
+        }
+        finally { await CleanupAsync(root, tour); }
+    }
+
+    [Fact]
+    public async Task When_TheTourHasAnotherThemeVariantThanTheWindow_TheSurfaceFollowsTheTour()
+    {
+        // Regression: the overlay surface took the window's theme variant, Fluent's scope theme replaced the card's
+        // text color, and a variant change of an ancestor scope did not reach an open tour.
+        var window = RuntimeTestHelpers.GetWindow();
+        var variant = window.ActualThemeVariant == ThemeVariant.Dark ? ThemeVariant.Light : ThemeVariant.Dark;
+        var target = CreateTarget(24);
+        var tour = new DaisyTour();
+        tour.Steps.Add(new DaisyTourStep
+        {
+            Id = "themed", Target = target, Title = "Themed",
+            ContentTemplate = new FuncDataTemplate<DaisyTourStep>((_, _) => new TextBlock { Text = "Custom content" })
+        });
+        var scope = new ThemeVariantScope { RequestedThemeVariant = variant, Child = CreateRoot(tour, target) };
+        var root = new Grid { Width = 600, Height = 400, Children = { scope } };
+        try
+        {
+            await StartAsync(root, tour);
+            var surface = GetSurface(tour);
+            Assert.AreEqual(variant, surface.ActualThemeVariant, "The surface has the tour's theme variant.");
+            var custom = surface.GetVisualDescendants().OfType<TextBlock>().Single(block => block.Text == "Custom content");
+            var content = Assert.IsInstanceOfType<ISolidColorBrush>(DaisyResourceLookup.GetBrush("DaisyBaseContentBrush"));
+            Assert.AreEqual(content.Color, Assert.IsInstanceOfType<ISolidColorBrush>(custom.Foreground).Color,
+                "Custom card content has the theme's text color.");
+
+            var other = variant == ThemeVariant.Dark ? ThemeVariant.Light : ThemeVariant.Dark;
+            scope.RequestedThemeVariant = other;
+            await ArrangeAsync(root);
+            Assert.AreEqual(other, surface.ActualThemeVariant, "An open tour follows a variant change of its ancestors.");
+        }
+        finally { await CleanupAsync(root, tour); }
+    }
+
+    [Fact]
+    public async Task When_SomethingElseRemovesTheSurfaceScope_TheTourClosesAsCancelledAndRestoresTheFocus()
+    {
+        // Regression: the surface sits in a theme scope, so only the scope leaves the overlay; the session must end.
+        var outside = new Button { Content = "Outside", Margin = new Thickness(300, 24, 0, 0), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top };
+        var (tour, root) = CreateTour(2, outside);
+        var closed = new List<DaisyTourClosedEventArgs>();
+        tour.Closed += (_, args) => closed.Add(args);
+        try
+        {
+            RuntimeTestHelpers.AttachToHost(root);
+            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(Timeout);
+            await ArrangeAsync(root);
+            outside.Focus();
+            Assert.AreSame(outside, FocusedElement(root), "The outside button has the focus before the tour.");
+            await tour.StartAsync().WaitAsync(Timeout);
+            await ArrangeAsync(root);
+
+            var overlay = OverlayLayer.GetOverlayLayer(tour)!;
+            overlay.Children.Remove(overlay.Children.OfType<ThemeVariantScope>().Single(scope => scope.Child == GetSurface(tour)));
+            await ArrangeAsync(root);
+
+            Assert.IsFalse(tour.IsOpen, "The tour closes when its surface leaves the overlay.");
+            Assert.HasCount(1, closed);
+            Assert.AreEqual(DaisyTourCloseReason.Cancelled, closed[0].Reason);
+            Assert.AreSame(outside, FocusedElement(root), "The focus returns to the outside button.");
+        }
+        finally { await CleanupAsync(root, tour); }
+    }
+
+    [Fact]
+    public async Task When_TheEditorCloses_TheSurfaceTabNavigationReturnsToItsDefault()
+    {
+        // Regression: the editor left the surface with an explicit Local tab navigation, which is not Avalonia's default.
+        var (tour, root) = CreateTour(2);
+        tour.Id = "tab-navigation";
+        var editor = new DaisyTourEditor();
+        try
+        {
+            RuntimeTestHelpers.AttachToHost(root);
+            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(Timeout);
+            await ArrangeAsync(root);
+            await editor.OpenAsync(tour).WaitAsync(Timeout);
+            await ArrangeAsync(root);
+            var surface = GetSurface(tour);
+            Assert.AreEqual(KeyboardNavigationMode.Cycle, KeyboardNavigation.GetTabNavigation(surface), "The editor cycles through the surface.");
+
+            editor.Discard();
+            await ArrangeAsync(root);
+            Assert.IsFalse(surface.IsSet(KeyboardNavigation.TabNavigationProperty), "The surface has no tab navigation of its own after editing.");
+        }
+        finally
+        {
+            editor.Discard();
+            await CleanupAsync(root, tour);
+        }
+    }
+
+    [Fact]
     public async Task When_AnAppControlTakesTheFocus_TheTourKeepsIt()
     {
         // Regression: the focus trap misses focus moves whose GettingFocus a handler marked as handled.
@@ -110,7 +231,7 @@ public class Given_DaisyTourAvalonia
             var next = tour.NextAsync();
             await WaitUntilAsync(() => tour.IsTransitioning, "the next step prepares");
             outside.Focus();
-            Assert.AreSame(Surface(tour), FocusedElement(root), "A preparing step keeps the focus on the tour surface.");
+            Assert.AreSame(GetSurface(tour), FocusedElement(root), "A preparing step keeps the focus on the tour surface.");
             preparation.SetResult();
             await next.WaitAsync(Timeout);
             Assert.AreEqual(1, tour.CurrentIndex);
@@ -168,7 +289,7 @@ public class Given_DaisyTourAvalonia
         try
         {
             await StartAsync(root, tour);
-            var paths = Surface(tour).GetVisualChildren().OfType<Path>().ToArray();
+            var paths = GetSurface(tour).GetVisualChildren().OfType<Path>().ToArray();
             var backdrop = Assert.IsInstanceOfType<GeometryGroup>(paths[0].Data);
             var outline = Assert.IsInstanceOfType<GeometryGroup>(paths[1].Data);
             Assert.HasCount(1, outline.Children!, "Both frames form one outline.");
@@ -245,20 +366,7 @@ public class Given_DaisyTourAvalonia
         return (tour, CreateRoot(tour, [target, .. extra]));
     }
 
-    private static Border CreateTarget(double left) => new()
-    {
-        Width = 100, Height = 40, Margin = new Thickness(left, 24, 0, 0),
-        HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top,
-        Child = new TextBlock { Text = "Tour target" }
-    };
-
-    private static Grid CreateRoot(DaisyTour tour, params Control[] children)
-    {
-        var root = new Grid { Width = 600, Height = 400 };
-        foreach (var child in children) root.Children.Add(child);
-        root.Children.Add(tour);
-        return root;
-    }
+    private static Border CreateTarget(double left) => DaisyTourTestHelpers.CreateTarget(new Thickness(left, 24, 0, 0));
 
     private static async Task StartAsync(Grid root, DaisyTour tour)
     {
@@ -290,38 +398,23 @@ public class Given_DaisyTourAvalonia
         }
     }
 
+    // The current step lies inside the viewport of its scroll viewer; in either flow direction its corners may swap.
+    private static void AssertStepInView(DaisyTour tour, ScrollViewer viewer, int index, string name)
+    {
+        Assert.AreEqual(index, tour.CurrentIndex);
+        var item = tour.Progress.Items.OfType<DaisyStepItem>().ElementAt(index);
+        var first = item.TranslatePoint(new Point(0, 0), viewer)!.Value.X;
+        var second = item.TranslatePoint(new Point(item.Bounds.Width, 0), viewer)!.Value.X;
+        Assert.IsTrue(Math.Min(first, second) >= -1 && Math.Max(first, second) <= viewer.Viewport.Width + 1,
+            $"{name} is in view: {Math.Min(first, second)}..{Math.Max(first, second)} of {viewer.Viewport.Width}.");
+    }
+
     private static Button ProgressButton(DaisyTour tour, int number) =>
         tour.Progress.GetVisualDescendants().OfType<Button>().Single(button => AutomationProperties.GetAutomationId(button) == "DaisyTourStep" + number);
 
     private static T Find<T>(DaisyTour tour, string automationId) where T : Control =>
-        Surface(tour).GetVisualDescendants().OfType<T>().Single(control => AutomationProperties.GetAutomationId(control) == automationId);
-
-    // The tour shows its surface, inside a theme variant scope, in the overlay layer of the window.
-    private static Canvas Surface(DaisyTour tour) =>
-        OverlayLayer.GetOverlayLayer(tour)!.Children.OfType<ThemeVariantScope>()
-            .Select(scope => scope.Child).OfType<Canvas>()
-            .Single(surface => surface.GetVisualDescendants().OfType<Border>().Any(border => AutomationProperties.GetAutomationId(border) == "DaisyTourCard"));
-
-    private static IInputElement? FocusedElement(Visual root) => TopLevel.GetTopLevel(root)!.FocusManager!.GetFocusedElement();
+        GetSurface(tour).GetVisualDescendants().OfType<T>().Single(control => AutomationProperties.GetAutomationId(control) == automationId);
 
     private static Task WaitUntilAsync(Func<bool> condition, string description) =>
         RuntimeTestHelpers.WaitUntilAsync(condition, description, Timeout);
-
-    private static async Task ArrangeAsync(Control root)
-    {
-        root.UpdateLayout();
-        for (var turn = 0; turn < 2; turn++)
-        {
-            var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            Dispatcher.UIThread.Post(() => ready.TrySetResult(), DispatcherPriority.Background);
-            await ready.Task.WaitAsync(Timeout);
-        }
-    }
-
-    private static async Task CleanupAsync(Control root, DaisyTour tour)
-    {
-        tour.Cancel();
-        RuntimeTestHelpers.GetHostPanel().Children.Remove(root);
-        await ArrangeAsync(root);
-    }
 }
