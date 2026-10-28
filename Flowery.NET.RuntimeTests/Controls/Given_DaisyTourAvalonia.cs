@@ -524,10 +524,12 @@ public class Given_DaisyTourAvalonia
             // Hit testing sees the moved grip once it has been rendered.
             await RuntimeTestHelpers.WaitForRenderAsync();
 
-            // The second finger presses, moves and lifts while the first one still holds the grip.
+            // The second finger presses, moves and lifts while the first one still holds the grip. It moves sideways,
+            // where the card text cannot scroll, so the scroll gesture does not take it before its release.
             var (_, otherStart, second) = PressAtCenter(grip, PointerType.Touch);
-            var otherEnd = new Point(otherStart.X + 80, otherStart.Y + 30);
+            var otherEnd = new Point(otherStart.X + 80, otherStart.Y);
             MoveCaptured(second, top, otherEnd);
+            Assert.IsNotNull(second.Captured, "The second finger's release reaches the grip.");
             ReleaseCaptured(second, top, otherEnd);
             await ArrangeAsync(root);
             Assert.IsTrue(tour.IsCardDragging, "The second finger does not end the first finger's drag.");
@@ -548,13 +550,9 @@ public class Given_DaisyTourAvalonia
     public async Task When_AFingerDragsTheCardMoveGripOverScrollableText_TheTextDoesNotTakeTheDrag()
     {
         // Regression: the scroll gesture of the card text took the finger, which ended the move after a few DIP.
-        var (tour, root) = CreateTour(2);
-        tour.Id = "card-editing";
-        tour.Steps[0].Description = string.Join(" ", Enumerable.Repeat("This description is longer than the card text area can show at once.", 60));
-        await TourEditorTestHelpers.InEditorAsync(root, tour, async _ =>
+        await InEditorAsync(async (tour, root) =>
         {
-            var text = GetSurface(tour).GetVisualDescendants().OfType<ScrollViewer>()
-                .First(viewer => viewer.VerticalScrollBarVisibility == ScrollBarVisibility.Auto);
+            var text = tour.TextScroll;
             Assert.IsTrue(text.Extent.Height > text.Viewport.Height + 1, "The card text can scroll.");
             var before = tour.CardBounds;
             var grip = Find<DaisyButton>(tour, "DaisyTourMoveCard");
@@ -571,7 +569,8 @@ public class Given_DaisyTourAvalonia
             Assert.AreEqual(0, text.Offset.Y, 0.01, "The card text does not scroll.");
             ReleaseCaptured(pointer, top, new Point(start.X, start.Y - 60));
             await ArrangeAsync(root);
-        }, () => tour.IsOpen && !tour.IsTransitioning);
+        }, tour => tour.Steps[0].Description = string.Join(" ",
+            Enumerable.Repeat("This description is longer than the card text area can show at once.", 60)));
     }
 
     [Fact]
@@ -583,7 +582,7 @@ public class Given_DaisyTourAvalonia
             var grip = Find<DaisyButton>(tour, "DaisyTourMoveCard");
             Assert.IsTrue(grip.Focus(), "The grip takes the keyboard focus.");
             var before = tour.CardBounds;
-            PressKey(grip, Key.Left, KeyModifiers.None);
+            PressKey(grip, Key.Left);
             await ArrangeAsync(root);
             Assert.AreEqual(before.X - 1, tour.CardBounds.X, 0.01, "Left moves the card by one.");
             PressKey(grip, Key.Up, KeyModifiers.Shift);
@@ -671,10 +670,12 @@ public class Given_DaisyTourAvalonia
     }
 
     // Opens the editor on a two-step tour; the card and its move grip are shown at the bottom of the preview.
-    private static Task InEditorAsync(Func<DaisyTour, Grid, Task> action)
+    // configure changes the tour before it opens.
+    private static Task InEditorAsync(Func<DaisyTour, Grid, Task> action, Action<DaisyTour>? configure = null)
     {
         var (tour, root) = CreateTour(2);
         tour.Id = "card-editing";
+        configure?.Invoke(tour);
         return TourEditorTestHelpers.InEditorAsync(root, tour, _ => action(tour, root), () => tour.IsOpen && !tour.IsTransitioning);
     }
 

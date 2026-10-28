@@ -202,6 +202,7 @@ public sealed partial class DaisyTour : ContentControl
     internal DaisySteps Progress => _progress;
     internal Path Backdrop => _backdrop;
     internal Path Outline => _outline;
+    internal ScrollViewer TextScroll => _textScroll;
     internal bool IsTransitioning => _session?.Busy == true;
     internal event EventHandler? GeometryUpdated;
 

@@ -1202,17 +1202,15 @@ public sealed partial class DaisyTourEditor : ContentControl
     // pointer that started its drag.
     private sealed class SinglePointerThumb : Thumb
     {
-        private IPointer? _dragPointer;
-
         // The pointer that drags the thumb; a canceled resize releases its capture, as WinUI's CancelDrag does.
-        internal IPointer? DragPointer => _dragPointer;
+        internal IPointer? DragPointer { get; private set; }
 
         protected override Type StyleKeyOverride => typeof(Thumb);
 
         protected override void OnPointerPressed(PointerPressedEventArgs e)
         {
             if (IsOtherPointer(e.Pointer)) return;
-            _dragPointer = e.Pointer;
+            DragPointer = e.Pointer;
             base.OnPointerPressed(e);
         }
 
@@ -1224,19 +1222,20 @@ public sealed partial class DaisyTourEditor : ContentControl
         protected override void OnPointerReleased(PointerReleasedEventArgs e)
         {
             if (IsOtherPointer(e.Pointer)) return;
-            _dragPointer = null;
+            DragPointer = null;
             base.OnPointerReleased(e);
         }
 
         protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
         {
             if (IsOtherPointer(e.Pointer)) return;
-            _dragPointer = null;
+            DragPointer = null;
             base.OnPointerCaptureLost(e);
         }
 
-        private bool IsOtherPointer(IPointer pointer) => _dragPointer is { } held && held != pointer;
+        private bool IsOtherPointer(IPointer pointer) => DragPointer is { } held && held != pointer;
     }
+
     private void VerifyOpen()
     {
         VerifyAccess();

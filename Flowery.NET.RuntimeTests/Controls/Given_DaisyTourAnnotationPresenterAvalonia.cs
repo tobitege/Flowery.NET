@@ -7,9 +7,9 @@ using Avalonia.Media;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Xunit;
-using Path = Avalonia.Controls.Shapes.Path;
 using static Flowery.NET.RuntimeTests.Controls.DaisyTourTestHelpers;
 using Assert = Flowery.NET.RuntimeTests.Controls.MSTestAssert;
+using Path = Avalonia.Controls.Shapes.Path;
 
 namespace Flowery.NET.RuntimeTests.Controls;
 
