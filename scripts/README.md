@@ -306,6 +306,7 @@ Runs the runtime UI tests in a real desktop window on Windows, Linux or macOS. R
 Linux needs a display; CI runs the script under `xvfb-run`.
 The projects build `net10.0-windows` on Windows and `net10.0` elsewhere.
 The glass tests that compare screenshots of `WindowsScreenCapture` (`Native/Given_GlassBackdrop.Screen.cs`) are part of the Windows build only.
+Linux skips the test of an embedded TopLevel (`Given_ScaleLifetime`), as Avalonia's X11 platform cannot create an `EmbeddableControlRoot`; it is reported as inconclusive.
 
 The script builds `Flowery.NET.RuntimeTests.Runner`, which also builds the test host `Flowery.NET.RuntimeTests`.
 The runner starts the host with `--runtime-tests <report.xml>`.
