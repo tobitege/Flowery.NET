@@ -32,7 +32,9 @@ internal static partial class RuntimeTestWindowPlacement
         if (string.IsNullOrWhiteSpace(device))
         {
             // Small desktops, such as the 1024x768 desktop of CI runners, get a window that fits their work area.
-            var primary = window.Screens.Primary ?? throw new InvalidOperationException("No screen is available.");
+            // Xvfb marks no screen as primary.
+            var primary = window.Screens.Primary ?? window.Screens.All.FirstOrDefault()
+                          ?? throw new InvalidOperationException("No screen is available.");
             window.Width = Math.Min(DefaultWidth, primary.WorkingArea.Width / primary.Scaling * 0.9);
             window.Height = Math.Min(DefaultHeight, primary.WorkingArea.Height / primary.Scaling * 0.9);
             window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
