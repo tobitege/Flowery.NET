@@ -254,6 +254,9 @@ class Check:
                     raise RuntimeError(f"{path.name} is not {source.name} rotated clockwise: its edges are "
                                        f"{edges(copy)}, the edges of {source.name} {edges(original)}")
                 print(f"Saved the rotated copy {path.name}, {copy.width} x {copy.height}", flush=True)
+                # Photos opens the copy after writing it, which ends the edit; a close before that asks whether to
+                # save the edit.
+                time.sleep(3)
                 return path
             if process.poll() is not None:
                 raise RuntimeError(f"Photos exited with code {process.returncode} instead of saving a copy")
