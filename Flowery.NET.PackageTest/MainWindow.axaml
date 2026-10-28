@@ -1,8 +1,9 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+    xmlns:kanban="clr-namespace:Flowery.NET.Kanban.Controls;assembly=Flowery.NET.Kanban"
     x:Class="Flowery.NET.PackageTest.MainWindow"
-    Title="Flowery.NET package test" Width="560" Height="400">
+    Title="Flowery.NET package test" Width="720" Height="760">
 
     <DockPanel>
         <!-- The text stays off the glass, so nothing but the backdrop shows through it. -->
@@ -12,6 +13,9 @@
                 <TextBlock x:Name="Packages" TextWrapping="Wrap" />
             </StackPanel>
         </Border>
+
+        <!-- The board of Flowery.NET.Kanban, wide enough for its columns side by side. -->
+        <kanban:FlowKanban x:Name="Kanban" DockPanel.Dock="Bottom" Height="380" />
 
         <!-- Hard black and white stripes, 4 pixels wide: through a blurring glass they become an even gray. -->
         <Grid>

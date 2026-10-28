@@ -99,7 +99,7 @@ jobs:
       - name: Run Tests
         run: dotnet test Flowery.NET.Tests/Flowery.NET.Tests.csproj -c ${{ matrix.configuration }}
 
-      # Packs both libraries and runs an app that references them only as packages; see Flowery.NET.PackageTest/README.md.
+      # Packs the three libraries and runs an app that references them only as packages; see Flowery.NET.PackageTest/README.md.
       - name: Test the NuGet packages
         if: matrix.configuration == 'Release'
         shell: pwsh
