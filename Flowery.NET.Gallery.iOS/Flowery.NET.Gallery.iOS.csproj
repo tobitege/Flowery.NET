@@ -1,7 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net10.0-ios26.0</TargetFramework>
+        <!-- The iOS SDK version of the target framework; each iOS pack accepts only its own Xcode. 26.0 needs Xcode 26.0.
+             The iOS simulator workflow builds 26.5 with Xcode 26.6 (-p:FloweryIosSdkVersion=26.5). -->
+        <FloweryIosSdkVersion Condition="'$(FloweryIosSdkVersion)' == ''">26.0</FloweryIosSdkVersion>
+        <TargetFramework>net10.0-ios$(FloweryIosSdkVersion)</TargetFramework>
         <SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
         <Nullable>enable</Nullable>
         <AppIcon>AppIcon</AppIcon>
