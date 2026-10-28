@@ -481,6 +481,50 @@ namespace Flowery.NET.RuntimeTests.Native
         }
 
         [Fact]
+        public async Task When_TheHostReloadsWhileAnUpdateWaitsOnItsClosedRenderer_TheUpdateStartsTheNewRenderer()
+        {
+            // Regression: an unload closed the session that a running update waited on, and the reload found that
+            // update still running, so it started none. The update then gave up on the closed session, and the reloaded
+            // host had no renderer ("No GL effect is selected."). The full runtime suite hit this in
+            // When_GlTransitionHostRendersAndReloads_ItRecreatesItsRenderer when the cancellation came back late.
+            CarouselGlGalleryPresets.EnsureRegistered();
+            var host = new CarouselGlEffectHost { Width = 160, Height = 100, Effect = CarouselGlEffectKind.Fade, TransitionSeconds = 1, IntervalSeconds = 0 };
+            var motion = DaisyAccessibility.ReducedMotionOverride;
+            try
+            {
+                // A running loop: the update of the next change waits for its next frame.
+                DaisyAccessibility.ReducedMotionOverride = false;
+                RuntimeTestHelpers.AttachToHost(host);
+                await RuntimeTestHelpers.EnsureLoadedAsync(host);
+                var source = await host.ReadFrameAsync(0);
+                AssertFrame(source, "source");
+                var closed = Assert.IsType<CarouselGlCanvas>(host.Content);
+
+                host.TransitionSeconds = 2;
+                var panel = RuntimeTestHelpers.GetHostPanel();
+                panel.Children.Clear();
+                panel.Children.Add(host);
+                // The reload is loaded before the update learns that its session closed: the cancellation reaches the
+                // update through the thread pool and a post of the default priority, below the Loaded jobs run here.
+                Dispatcher.UIThread.RunJobs(DispatcherPriority.Loaded);
+                Assert.True(host.IsLoaded);
+
+                var reloaded = await host.ReadFrameAsync(0).WaitAsync(TimeSpan.FromSeconds(10));
+                AssertFrame(reloaded, "reloaded");
+                Assert.True(host.IsRendererInitialized);
+                Assert.NotSame(closed, host.Content);
+                Assert.Equal(source.Pixel, reloaded.Pixel);
+                Assert.Null(host.LastRenderError);
+            }
+            finally
+            {
+                DaisyAccessibility.ReducedMotionOverride = motion;
+                RuntimeTestHelpers.GetHostPanel().Children.Clear();
+                await FlushAsync(host.Dispatcher);
+            }
+        }
+
+        [Fact]
         public async Task When_FramesAreReadAtSeveralTimes_TheyFollowTheTransition()
         {
             CarouselGlGalleryPresets.EnsureRegistered();

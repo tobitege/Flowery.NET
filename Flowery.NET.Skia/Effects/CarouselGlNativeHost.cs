@@ -98,13 +98,24 @@ namespace Flowery.Effects
                         session.Failed += OnRendererFailed;
                         Content = session.View;
                     }
-                    await session.InitializeAsync();
-                    var assets = new Dictionary<string, string>(StringComparer.Ordinal);
-                    foreach (var asset in configuration.Assets)
-                        assets.Add(asset.Key, await ResolveAssetAsync(asset.Value));
-                    configuration = configuration with { Assets = assets };
-                    await session.ConfigureAsync(configuration);
-                    await session.SetActiveAsync(IsActive);
+                    try
+                    {
+                        await session.InitializeAsync();
+                        var assets = new Dictionary<string, string>(StringComparer.Ordinal);
+                        foreach (var asset in configuration.Assets)
+                            assets.Add(asset.Key, await ResolveAssetAsync(asset.Value));
+                        configuration = configuration with { Assets = assets };
+                        await session.ConfigureAsync(configuration);
+                        await session.SetActiveAsync(IsActive);
+                    }
+                    // An unload closed this session meanwhile. A reload that came first found this update running and
+                    // left the new session to it (WinUI gave up here, and the reloaded host had no renderer); after an
+                    // unload alone the loop ends.
+                    catch (Exception closed) when (closed is OperationCanceledException or ObjectDisposedException
+                        && !ReferenceEquals(session, _session) && LastRenderError is null)
+                    {
+                        continue;
+                    }
                     if (revision == _revision) return;
                 }
             }
