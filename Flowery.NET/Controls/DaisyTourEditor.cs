@@ -70,7 +70,7 @@ public sealed partial class DaisyTourEditor : ContentControl
     private readonly ResizeGrip _resizeGrip = new() { Width = 12, HorizontalAlignment = HorizontalAlignment.Left };
     // Avalonia's Thumb has no default template and draws nothing, so the pointer could not hit it; the template
     // draws its transparent background.
-    private readonly Thumb _resizeThumb = new()
+    private readonly Thumb _resizeThumb = new SinglePointerThumb
     {
         Focusable = true, IsTabStop = true, Background = new SolidColorBrush(Colors.Transparent),
         Template = new FuncControlTemplate<Thumb>(static (thumb, _) =>
@@ -492,7 +492,8 @@ public sealed partial class DaisyTourEditor : ContentControl
 
     private void OnResizePointerPressed(object? sender, PointerPressedEventArgs args)
     {
-        if (!_resizing || _tour is not { } tour) return;
+        // Another pointer neither takes over a running resize nor records a start.
+        if (!_resizing || _resizePointer is { } held && held != args.Pointer || _tour is not { } tour) return;
         _resizePointer = args.Pointer;
         // A press captures the element it hits, the border of the thumb's template. The thumb takes the capture,
         // so it receives the capture loss, and a canceled resize can release it.
@@ -507,7 +508,8 @@ public sealed partial class DaisyTourEditor : ContentControl
         var pointer = args switch { PointerEventArgs released => released.Pointer, PointerCaptureLostEventArgs lost => lost.Pointer, _ => null };
         if (_resizePointerStart is not { } start || pointer is null || start.PointerId != pointer.Id || _tour is not { } tour) return;
         _resizePointerStart = null;
-        // A lost capture carries no position in Avalonia; the width of the last drag delta stays.
+        // A lost capture carries no position in Avalonia; the width of the last drag delta stays. This also keeps the
+        // width of a canceled touch, which WinUI reverted.
         if (args is not PointerEventArgs finished) return;
         // Thumb may complete before these handlers, with no final PointerMoved event.
         // Use the final position in the stationary surface, once, rather than adding another drag delta.
@@ -560,8 +562,8 @@ public sealed partial class DaisyTourEditor : ContentControl
             else Discard();
             args.Handled = true;
         }
-        // The undo and redo gestures of the platform, such as Cmd+Shift+Z on macOS; redo first, as it can include
-        // the undo key. Every Avalonia platform provides its settings.
+        // The undo and redo gestures of the platform, such as Cmd+Shift+Z for redo on macOS. Every Avalonia platform
+        // provides its settings.
         if (Application.Current?.PlatformSettings?.HotkeyConfiguration is not { } hotkeys) return;
         if (Matches(hotkeys.Redo, args)) { Redo(); args.Handled = true; }
         else if (Matches(hotkeys.Undo, args)) { Undo(); args.Handled = true; }
@@ -1191,6 +1193,45 @@ public sealed partial class DaisyTourEditor : ContentControl
     private sealed class ResizeGrip : Grid
     {
         public ResizeGrip() => Cursor = new Cursor(StandardCursorType.SizeWestEast);
+    }
+
+    // Avalonia's Thumb follows every pointer: the press of another pointer moves the origin of a running drag, its
+    // moves resize, and its release or lost capture ends the drag. A lost capture also reaches every ancestor of the
+    // element that had it, so a second finger lifted from the grip would end the resize. This thumb follows only the
+    // pointer that started its drag.
+    private sealed class SinglePointerThumb : Thumb
+    {
+        private IPointer? _dragPointer;
+
+        protected override Type StyleKeyOverride => typeof(Thumb);
+
+        protected override void OnPointerPressed(PointerPressedEventArgs e)
+        {
+            if (IsOtherPointer(e.Pointer)) return;
+            _dragPointer = e.Pointer;
+            base.OnPointerPressed(e);
+        }
+
+        protected override void OnPointerMoved(PointerEventArgs e)
+        {
+            if (!IsOtherPointer(e.Pointer)) base.OnPointerMoved(e);
+        }
+
+        protected override void OnPointerReleased(PointerReleasedEventArgs e)
+        {
+            if (IsOtherPointer(e.Pointer)) return;
+            _dragPointer = null;
+            base.OnPointerReleased(e);
+        }
+
+        protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+        {
+            if (IsOtherPointer(e.Pointer)) return;
+            _dragPointer = null;
+            base.OnPointerCaptureLost(e);
+        }
+
+        private bool IsOtherPointer(IPointer pointer) => _dragPointer is { } held && held != pointer;
     }
     private void VerifyOpen()
     {

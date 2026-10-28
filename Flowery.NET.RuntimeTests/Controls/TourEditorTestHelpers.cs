@@ -1,5 +1,4 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Threading;
 using Flowery.Controls;
 using static Flowery.NET.RuntimeTests.Controls.DaisyTourTestHelpers;
 
@@ -8,7 +7,6 @@ namespace Flowery.NET.RuntimeTests.Controls;
 /// <summary>Opening a tour editor in the test window, and waiting for its preview to settle.</summary>
 internal static class TourEditorTestHelpers
 {
-
     /// <summary>
     /// Attaches <paramref name="root"/>, which contains <paramref name="tour"/>, opens an editor for the tour, waits
     /// until <paramref name="ready"/> holds, runs <paramref name="action"/>, and closes and detaches everything.

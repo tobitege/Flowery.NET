@@ -64,8 +64,9 @@ public sealed partial class DaisyTour
         _cardMove.AddHandler(PointerPressedEvent, OnCardMovePressed, RoutingStrategies.Bubble, handledEventsToo: true);
         _cardMove.AddHandler(PointerMovedEvent, OnCardMoveMoved, RoutingStrategies.Bubble, handledEventsToo: true);
         _cardMove.AddHandler(PointerReleasedEvent, OnCardMoveFinished, RoutingStrategies.Bubble, handledEventsToo: true);
-        // Avalonia has no canceled pointer event; a capture lost without a release cancels the move.
-        _cardMove.AddHandler(PointerCaptureLostEvent, OnCardMoveCanceled, RoutingStrategies.Direct, handledEventsToo: true);
+        // As in WinUI, a lost capture finishes the move. Avalonia has no canceled pointer event, so a canceled touch,
+        // which loses its capture, keeps the last dragged position too, like a handle drag or an inspector resize.
+        _cardMove.AddHandler(PointerCaptureLostEvent, OnCardMoveFinished, RoutingStrategies.Direct, handledEventsToo: true);
         _cardMove.KeyDown += OnCardMoveKeyDown;
         var header = new Grid();
         header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -140,10 +141,11 @@ public sealed partial class DaisyTour
         args.Handled = true;
     }
 
-    private void OnCardMoveCanceled(object? sender, PointerCaptureLostEventArgs args)
+    // A lost capture carries no position; the card stays where the last move placed it.
+    private void OnCardMoveFinished(object? sender, PointerCaptureLostEventArgs args)
     {
         if (_cardDrag is not { } drag || drag.Pointer.Id != args.Pointer.Id) return;
-        CancelCardDrag();
+        ReleaseCardDrag();
         args.Handled = true;
     }
 

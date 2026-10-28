@@ -112,7 +112,7 @@ public class Given_DaisyTourEditorAvalonia
             await ChangeGeometryAsync(tour, () => MoveCaptured(pointer, root, new Point(start.X - 40, start.Y)));
             Assert.Equal(initial + 40, editor.InspectorBounds.Width, 1);
 
-            await ChangeGeometryAsync(tour, () => thumb.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Escape, Source = thumb }));
+            await ChangeGeometryAsync(tour, () => PressKey(thumb, Key.Escape));
             Assert.Equal(initial, editor.InspectorBounds.Width, 1);
             Assert.Null(pointer.Captured);
             Assert.True(editor.IsOpen, "Escape cancels the resize before it would discard the editor.");
@@ -122,6 +122,56 @@ public class Given_DaisyTourEditorAvalonia
             thumb.RaiseEvent(Moved(thumb, pointer, root, later));
             thumb.RaiseEvent(Released(thumb, pointer, root, later));
             await SettleAsync(editor);
+            Assert.Equal(initial, editor.InspectorBounds.Width, 1);
+        });
+    }
+
+    [Fact]
+    public async Task When_A_Second_Touch_Presses_The_Thumb_During_A_Resize_The_First_Keeps_The_Resize()
+    {
+        await InEditorAsync(async (tour, editor) =>
+        {
+            var initial = editor.InspectorBounds.Width;
+            var thumb = ResizeThumb(editor);
+            var (root, start, first) = PressAtCenter(thumb, PointerType.Touch);
+            await ChangeGeometryAsync(tour, () => MoveCaptured(first, root, new Point(start.X - 40, start.Y)));
+            Assert.Equal(initial + 40, editor.InspectorBounds.Width, 1);
+
+            // A second finger on the grip neither moves the origin of the drag nor resizes, and its release does not
+            // end the resize of the first finger. Hit testing sees the moved grip once it has been rendered.
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            var (_, otherStart, second) = PressAtCenter(thumb, PointerType.Touch);
+            var otherEnd = new Point(otherStart.X - 90, otherStart.Y);
+            MoveCaptured(second, root, otherEnd);
+            ReleaseCaptured(second, root, otherEnd);
+            await SettleAsync(editor);
+            Assert.Equal(initial + 40, editor.InspectorBounds.Width, 1);
+
+            var end = new Point(start.X - 60, start.Y);
+            await ChangeGeometryAsync(tour, () => MoveCaptured(first, root, end));
+            await ChangeGeometryAsync(tour, () => ReleaseCaptured(first, root, end));
+            Assert.Equal(initial + 60, editor.InspectorBounds.Width, 1);
+        });
+    }
+
+    [Fact]
+    public async Task When_Another_Button_Joins_A_Resize_Escape_Still_Restores_The_Width_From_Before()
+    {
+        await InEditorAsync(async (tour, editor) =>
+        {
+            var initial = editor.InspectorBounds.Width;
+            var (thumb, root, start, pointer) = PressThumb(editor);
+            var moved = new Point(start.X - 40, start.Y);
+            await ChangeGeometryAsync(tour, () => MoveCaptured(pointer, root, moved));
+
+            // The right button joins the drag: Avalonia's Thumb starts its drag again for the same pointer.
+            thumb.RaiseEvent(new PointerPressedEventArgs(thumb, pointer, root, moved, 0,
+                new PointerPointProperties(RawInputModifiers.LeftMouseButton | RawInputModifiers.RightMouseButton, PointerUpdateKind.RightButtonPressed),
+                KeyModifiers.None));
+            await SettleAsync(editor);
+            Assert.Equal(initial + 40, editor.InspectorBounds.Width, 1);
+
+            await ChangeGeometryAsync(tour, () => PressKey(thumb, Key.Escape));
             Assert.Equal(initial, editor.InspectorBounds.Width, 1);
         });
     }
@@ -149,16 +199,23 @@ public class Given_DaisyTourEditorAvalonia
         var previousTheme = DaisyThemeManager.CurrentThemeName;
         try
         {
-            // Each switch below changes the theme, so each one places the preview again.
-            Assert.True(DaisyThemeManager.ApplyTheme("Light"));
+            // The page is forced to the other variant, so only the editor's own code gives it the Daisy variant.
+            Assert.True(DaisyThemeManager.ApplyTheme("Dark"));
             await InEditorAsync(async (tour, editor) =>
             {
+                var page = tour.GetVisualAncestors().OfType<ThemeVariantScope>().First();
                 var scope = editor.GetVisualDescendants().OfType<ThemeVariantScope>().First();
-                await ChangeGeometryAsync(tour, () => Assert.True(DaisyThemeManager.ApplyTheme("Dark")));
+                Assert.Equal(ThemeVariant.Light, tour.ActualThemeVariant);
                 Assert.Equal(ThemeVariant.Dark, scope.ActualThemeVariant);
-                await ChangeGeometryAsync(tour, () => Assert.True(DaisyThemeManager.ApplyTheme("Light")));
+                // Each switch changes the theme, so it places the preview again.
+                await ChangeGeometryAsync(tour, () =>
+                {
+                    page.RequestedThemeVariant = ThemeVariant.Dark;
+                    Assert.True(DaisyThemeManager.ApplyTheme("Light"));
+                });
+                Assert.Equal(ThemeVariant.Dark, tour.ActualThemeVariant);
                 Assert.Equal(ThemeVariant.Light, scope.ActualThemeVariant);
-            });
+            }, ThemeVariant.Light);
         }
         finally
         {
@@ -179,24 +236,24 @@ public class Given_DaisyTourEditorAvalonia
             var changed = editor.ExportJson();
             foreach (var undo in hotkeys.Undo)
             {
-                Press(editor, undo);
+                PressKey(editor, undo.Key, undo.KeyModifiers);
                 Assert.Equal(original, editor.ExportJson());
-                Press(editor, hotkeys.Redo[0]);
+                PressKey(editor, hotkeys.Redo[0].Key, hotkeys.Redo[0].KeyModifiers);
                 Assert.Equal(changed, editor.ExportJson());
             }
             // A redo gesture that includes the undo key, such as Cmd+Shift+Z on macOS, redoes.
             foreach (var redo in hotkeys.Redo)
             {
-                Press(editor, hotkeys.Undo[0]);
+                PressKey(editor, hotkeys.Undo[0].Key, hotkeys.Undo[0].KeyModifiers);
                 Assert.Equal(original, editor.ExportJson());
-                Press(editor, redo);
+                PressKey(editor, redo.Key, redo.KeyModifiers);
                 Assert.Equal(changed, editor.ExportJson());
             }
             return Task.CompletedTask;
         });
     }
 
-    private static Task InEditorAsync(Func<DaisyTour, DaisyTourEditor, Task> action)
+    private static Task InEditorAsync(Func<DaisyTour, DaisyTourEditor, Task> action, ThemeVariant? pageVariant = null)
     {
         var root = new Grid { Width = 752, Height = 480 };
         var target = new Button
@@ -208,7 +265,9 @@ public class Given_DaisyTourEditorAvalonia
         tour.Steps.Add(new DaisyTourStep { Id = "step", Target = target, Title = "Step" });
         root.Children.Add(target);
         root.Children.Add(tour);
-        return TourEditorTestHelpers.InEditorAsync(root, tour, editor => action(tour, editor));
+        // A page variant puts the page in a scope with its own variant, apart from the Daisy theme.
+        Control page = pageVariant is null ? root : new ThemeVariantScope { RequestedThemeVariant = pageVariant, Child = root };
+        return TourEditorTestHelpers.InEditorAsync(page, tour, editor => action(tour, editor));
     }
 
     private static T Field<T>(DaisyTourEditor editor, string automationId) where T : Control =>
@@ -217,14 +276,9 @@ public class Given_DaisyTourEditorAvalonia
     private static Thumb ResizeThumb(DaisyTourEditor editor) =>
         editor.GetVisualDescendants().OfType<Thumb>().Single(item => AutomationProperties.GetAutomationId(item) == "DaisyTourEditorResize");
 
-    private static void PressKey(InputElement element, Key key) =>
-        element.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key, Source = element });
+    private static void PressKey(InputElement element, Key key, KeyModifiers modifiers = KeyModifiers.None) =>
+        element.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key, KeyModifiers = modifiers, Source = element });
 
-    private static void Press(DaisyTourEditor editor, KeyGesture gesture) =>
-        editor.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = gesture.Key, KeyModifiers = gesture.KeyModifiers, Source = editor });
-
-    // Presses the left button in the middle of the resize thumb like the mouse does: the element under the pointer
-    // takes the capture and receives the press, which bubbles to the thumb.
     // Presses the resize thumb like the mouse does; see PressAtCenter.
     private static (Thumb Thumb, TopLevel Root, Point Start, Pointer Pointer) PressThumb(DaisyTourEditor editor)
     {

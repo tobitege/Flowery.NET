@@ -12,9 +12,9 @@ public enum DaisyTourPlacement { Auto, Top, Bottom, Left, Right }
 
 /// <summary>Where the step card appears: beside the target, or at a fixed window position.</summary>
 public enum DaisyTourCardPosition { Default, Target, TopLeft, Top, TopRight, Left, Center, Right, BottomLeft, Bottom, BottomRight }
-/// <summary>Why a session ended. <c>TargetUnavailable</c>: the tour could not open because it belongs to no window.
-/// <c>Failed</c>: the tour itself could not continue, such as when its dispatcher no longer accepts work; the error
-/// tells why. A target that cannot be shown during a session keeps the step open and raises
+/// <summary>Why a session ended. <c>TargetUnavailable</c>: the tour could not open because it belongs to no window or
+/// view with an overlay layer. <c>Failed</c>: the tour itself could not continue, such as when laying out a step
+/// throws; the error tells why. A target that cannot be shown during a session keeps the step open and raises
 /// <see cref="DaisyTour.StepTargetUnavailable"/> instead.</summary>
 public enum DaisyTourCloseReason { Completed, Skipped, Cancelled, TargetUnavailable, Failed }
 

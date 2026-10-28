@@ -194,8 +194,12 @@ namespace Flowery.Controls
         }
     }
 
-    // A step with a navigation button puts it into the template's root panel, under the indicator.
+    // A step with a navigation button puts it into the template's root panel, under the indicator; a compact step
+    // keeps room for the connector lines beside the indicator of its horizontal layout.
     [TemplatePart("PART_Root", typeof(Panel))]
+    [TemplatePart("PART_HCircle", typeof(Border))]
+    [TemplatePart("PART_HorizontalLayout", typeof(Grid))]
+    [TemplatePart("PART_VerticalLayout", typeof(Grid))]
     public class DaisyStepItem : ContentControl
     {
         protected override Type StyleKeyOverride => typeof(DaisyStepItem);

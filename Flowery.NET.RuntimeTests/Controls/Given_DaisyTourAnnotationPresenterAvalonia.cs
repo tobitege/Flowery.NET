@@ -2,7 +2,6 @@
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
@@ -288,9 +287,10 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
             MoveCaptured(first, root, start + new Point(0, 10));
             var (_, otherStart, second) = PressAtCenter(other, PointerType.Touch);
             MoveCaptured(second, root, otherStart + new Point(30, 30));
+            // The second finger lifts first: neither its release nor its lost capture may end the first finger's drag.
+            ReleaseCaptured(second, root, otherStart + new Point(30, 30));
             MoveCaptured(first, root, start + new Point(0, 24));
             ReleaseCaptured(first, root, start + new Point(0, 24));
-            ReleaseCaptured(second, root, otherStart + new Point(30, 30));
             await RuntimeTestHelpers.WaitForRenderAsync();
             var style = editor.DraftProfile!.Steps.Single().Annotations.Single().Style!.Values;
             Assert.AreEqual(DaisyTourHandleLayer.ProjectCurvature(start + new Point(0, 24), geometry, start), style.Curvature!.Value, 0.001,

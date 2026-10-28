@@ -367,8 +367,97 @@ public class Given_DaisyTourAvalonia
         var window = RuntimeTestHelpers.GetWindow();
         Assert.AreEqual(DaisyTourLayout.VisibleArea(content, window, default), DaisyTourLayout.VisibleArea(content, window, insets),
             "A window uses the working area of its screen, not safe-area insets.");
-        Assert.AreEqual(DaisyTourLayout.VisibleArea(new Rect(0, 0, window.ClientSize.Width, window.ClientSize.Height), window, default),
-            DaisyTourLayout.VisibleArea(window), "A window as top level takes the window path.");
+        // That a window as top level takes the window path shows when it reaches past its working area; see
+        // When_TheWindowMovesAcrossTheEdgeOfItsWorkingArea_TheCardStaysInTheVisiblePart.
+    }
+
+    [Fact]
+    public async Task When_TheWindowMovesAcrossTheEdgeOfItsWorkingArea_TheCardStaysInTheVisiblePart()
+    {
+        // Regression: moving the window changes no layout, so without its position the card stayed below the taskbar.
+        var window = RuntimeTestHelpers.GetWindow();
+        var (tour, root) = CreateTour(1);
+        tour.CardPosition = DaisyTourCardPosition.Bottom;
+        var original = window.Position;
+        try
+        {
+            await StartAsync(root, tour);
+            var before = tour.CardBounds;
+            var screen = window.Screens.ScreenFromWindow(window);
+            Assert.IsNotNull(screen, "The window is on a screen.");
+            // Half of the content reaches below the working area.
+            var clientTop = window.PointToScreen(new Point(0, 0)).Y;
+            var half = (int)(window.ClientSize.Height * window.DesktopScaling / 2);
+            window.Position = new PixelPoint(original.X, original.Y + screen.WorkingArea.Bottom - half - clientTop);
+            try
+            {
+                await WaitUntilAsync(() => DaisyTourLayout.VisibleArea(window).Height < window.ClientSize.Height - 1,
+                    "the window reaches past its working area");
+            }
+            catch (TimeoutException)
+            {
+                Assert.Inconclusive("The window manager kept the window inside its working area.");
+            }
+            // A window takes the working area of its screen, which a view without a window would not know.
+            var visible = DaisyTourLayout.VisibleArea(window);
+            await WaitUntilAsync(() => tour.CardBounds.Bottom <= visible.Bottom + 0.5, "the card moves into the visible part");
+            Assert.IsTrue(tour.CardBounds.Bottom < before.Bottom, "The card left the part below the working area.");
+            Assert.IsTrue(tour.CardBounds.Top >= visible.Top - 0.5, $"The card {tour.CardBounds} stays in the visible part {visible}.");
+        }
+        finally
+        {
+            window.Position = original;
+            await CleanupAsync(root, tour);
+        }
+    }
+
+    [Fact]
+    public async Task When_HighContrastTurnsOnWhileAWarningIsShown_TheCardAndNoteTakeTheContrastColors()
+    {
+        // Regression: the tour reads its brushes once, so a contrast switch while it is open kept the decorative colors.
+        var tour = new DaisyTour();
+        tour.Steps.Add(new DaisyTourStep { Id = "missing" });
+        var root = CreateRoot(tour, []);
+        var original = DaisyAccessibility.HighContrastOverride;
+        try
+        {
+            DaisyAccessibility.HighContrastOverride = false;
+            await StartAsync(root, tour);
+            Assert.AreEqual(DaisyTourTargetProblem.Target, tour.Warning, "The step shows its warning.");
+            var note = Find<Border>(tour, "DaisyTourWarning");
+            var card = Find<Border>(tour, "DaisyTourCard");
+            var warning = ((ISolidColorBrush)DaisyResourceLookup.GetBrush("DaisyWarningBrush")!).Color;
+            Assert.AreEqual(warning, ((ISolidColorBrush)note.Background!).Color, "Without contrast the note has the warning fill.");
+
+            DaisyAccessibility.HighContrastOverride = true;
+            await ArrangeAsync(root);
+            var system = ((ISolidColorBrush)DaisyResourceLookup.GetBrush("DaisyBaseContentBrush")!).Color;
+            Assert.AreEqual(Colors.Transparent, ((ISolidColorBrush)note.Background!).Color, "The note drops its decorative fill.");
+            Assert.AreEqual(system, ((ISolidColorBrush)note.BorderBrush!).Color, "The note frame takes the contrast border.");
+            Assert.AreEqual(system, ((ISolidColorBrush)card.BorderBrush!).Color, "The card frame takes the contrast border.");
+        }
+        finally
+        {
+            DaisyAccessibility.HighContrastOverride = original;
+            await CleanupAsync(root, tour);
+        }
+    }
+
+    [Fact]
+    public async Task When_TheTourSizeChangesWhileOpen_TheCompactStepsKeepRoomForTheirLines()
+    {
+        // Regression: compact steps lost the 4 DIP of connector line on either side of the indicator, so the dots touched.
+        var (tour, root) = CreateTour(3);
+        tour.Size = DaisySize.Small;
+        try
+        {
+            await StartAsync(root, tour);
+            var small = AssertCompactWidth(tour, "Small");
+            tour.Size = DaisySize.ExtraLarge;
+            await ArrangeAsync(root);
+            Assert.IsTrue(AssertCompactWidth(tour, "ExtraLarge") > small, "The larger size has a larger indicator.");
+        }
+        finally { await CleanupAsync(root, tour); }
     }
 
     [Fact]
@@ -399,9 +488,10 @@ public class Given_DaisyTourAvalonia
     }
 
     [Fact]
-    public async Task When_TheCardMoveGripLosesTheCaptureWithoutARelease_TheCardReturns()
+    public async Task When_TheCardMoveGripLosesTheCaptureWithoutARelease_TheCardKeepsItsLastPosition()
     {
-        // Regression: a lost capture keeps the half-dragged position or leaves the drag running.
+        // Regression: a lost capture, such as switching to another window during the drag, threw the card back or
+        // left the drag running. As in WinUI, it finishes the move like a handle drag or an inspector resize.
         await InEditorAsync(async (tour, root) =>
         {
             var before = tour.CardBounds;
@@ -414,9 +504,9 @@ public class Given_DaisyTourAvalonia
             pointer.Capture(null);
             await ArrangeAsync(root);
             Assert.IsFalse(tour.IsCardDragging, "A lost capture ends the drag.");
-            Assert.AreEqual(before.X, tour.CardBounds.X, 1, "The card returns horizontally.");
-            Assert.AreEqual(before.Y, tour.CardBounds.Y, 1, "The card returns vertically.");
-            Assert.IsFalse(Find<DaisyButton>(tour, "DaisyTourSaveCard").IsEnabled, "A canceled move has nothing to save.");
+            Assert.AreEqual(before.X - 60, tour.CardBounds.X, 1, "The card keeps its last horizontal position.");
+            Assert.AreEqual(before.Y - 40, tour.CardBounds.Y, 1, "The card keeps its last vertical position.");
+            Assert.IsTrue(Find<DaisyButton>(tour, "DaisyTourSaveCard").IsEnabled, "The finished move can be saved.");
         });
     }
 
@@ -520,27 +610,24 @@ public class Given_DaisyTourAvalonia
     }
 
     // Opens the editor on a two-step tour; the card and its move grip are shown at the bottom of the preview.
-    private static async Task InEditorAsync(Func<DaisyTour, Grid, Task> action)
+    private static Task InEditorAsync(Func<DaisyTour, Grid, Task> action)
     {
         var (tour, root) = CreateTour(2);
         tour.Id = "card-editing";
-        var editor = new DaisyTourEditor();
-        try
+        return TourEditorTestHelpers.InEditorAsync(root, tour, _ => action(tour, root), () => tour.IsOpen && !tour.IsTransitioning);
+    }
+
+    // Every compact step keeps 4 DIP of connector line on either side of its indicator; returns the indicator width.
+    private static double AssertCompactWidth(DaisyTour tour, string size)
+    {
+        var width = 0d;
+        foreach (var item in tour.Progress.Items.OfType<DaisyStepItem>())
         {
-            RuntimeTestHelpers.AttachToHost(root);
-            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(TestTimeout);
-            await ArrangeAsync(root);
-            await editor.OpenAsync(tour).WaitAsync(TestTimeout);
-            await ArrangeAsync(root);
-            await RuntimeTestHelpers.WaitForRenderAsync();
-            Assert.IsTrue(tour.IsOpen && !tour.IsTransitioning, "The editor previews the tour.");
-            await action(tour, root);
+            var circle = item.GetVisualDescendants().OfType<Border>().Single(border => border.Name == "PART_HCircle");
+            width = circle.Bounds.Width;
+            Assert.AreEqual(width + 8, item.Bounds.Width, 0.5, $"{size}: the step keeps room for its lines beside the indicator.");
         }
-        finally
-        {
-            editor.Discard();
-            await CleanupAsync(root, tour);
-        }
+        return width;
     }
 
     private static void Invoke(Button button)
