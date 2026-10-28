@@ -309,8 +309,8 @@ def main():
     args = parser.parse_args()
     output = args.output.resolve()
     # The check writes its state and photos there; it neither mixes them with other files nor deletes any.
-    if output.exists() and any(output.iterdir()):
-        parser.error(f"{output} is not empty; pass a new or empty folder")
+    if output.exists() and (not output.is_dir() or any(output.iterdir())):
+        parser.error(f"{output} is not an empty folder; pass a new or empty folder")
     output.mkdir(parents=True, exist_ok=True)
     check = Check(args.app.resolve(strict=True), output)
     check.photos.mkdir()
