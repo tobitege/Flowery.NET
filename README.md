@@ -49,8 +49,6 @@ Optional packages add the Kanban board and the SkiaSharp glass effects.
 - **Tests.** Headless unit tests and runtime tests that run in a real desktop window.
 - **Framework.** The libraries target .NET 10 and Avalonia 12.
 
-**Note:** I'm looking for feedback on iOS builds, I don't have any (physical) environment to test this!
-
 ## Documentation
 
 📖 **[View the full documentation](https://tobitege.github.io/Flowery.NET/)** - Browse all controls with properties, enum values, and XAML usage examples. Also consult the Gallery's extensive example collection
