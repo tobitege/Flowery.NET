@@ -80,7 +80,7 @@ namespace Flowery.Effects
         /// <param name="source">A <c>data:</c> URI, an <c>http(s)://</c> URL or a URL that starts with <c>//</c>.</param>
         protected static async Task<SKImage> DecodeImageAsync(string source)
         {
-            byte[]? bytes = null;
+            byte[] bytes;
             try
             {
                 if (source.StartsWith("data:", StringComparison.Ordinal))
@@ -94,7 +94,7 @@ namespace Flowery.Effects
             {
                 throw new InvalidOperationException("Failed to load image: " + source, error);
             }
-            var encoded = (bytes is null ? null : SKImage.FromEncodedData(bytes))
+            var encoded = SKImage.FromEncodedData(bytes)
                 ?? throw new InvalidOperationException("Failed to load image: " + source);
             // Decoded once, as a loaded Image element is; a lazy image could decode again on every software draw.
             var raster = encoded.ToRasterImage(true);
@@ -519,7 +519,9 @@ namespace Flowery.Effects
             canvas.Save();
             // The drawing buffer stretches over the bounds, as a GL canvas over its display size.
             canvas.Scale((float)(Bounds.Width / resolution.Width), (float)(Bounds.Height / resolution.Height));
-            using (var paint = new SKPaint { Shader = _holder.Shader })
+            // Avalonia multiplies the opacity of the host and its parents into each paint instead of drawing a layer, so
+            // a custom draw applies it; Skia multiplies a shader by the alpha of its paint.
+            using (var paint = new SKPaint { Shader = _holder.Shader, Color = SKColors.White.WithAlpha((byte)Math.Round(255 * Math.Clamp(lease.CurrentOpacity, 0, 1))) })
                 canvas.DrawRect(SKRect.Create((float)resolution.Width, (float)resolution.Height), paint);
             canvas.Restore();
         }

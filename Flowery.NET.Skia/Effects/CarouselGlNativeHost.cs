@@ -63,7 +63,9 @@ namespace Flowery.Effects
         public async Task<IReadOnlyList<string>> CompileShadersAsync()
         {
             await ReadFrameAsync();
-            return await _session!.CompileAsync();
+            // The read frame resumes in a later dispatcher job; an unload before it closed the session.
+            var session = _session ?? throw new InvalidOperationException("No GL effect is selected.");
+            return await session.CompileAsync();
         }
 
         protected static string ReadEmbeddedText(Assembly assembly, string resourceName)

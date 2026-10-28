@@ -1,5 +1,8 @@
-﻿using System.Reflection;
+﻿using System.Collections.Concurrent;
+using System.Reflection;
 using Avalonia.Controls;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using Flowery.Controls;
@@ -525,6 +528,90 @@ namespace Flowery.NET.RuntimeTests.Native
         }
 
         [Fact]
+        public async Task When_TheHostOrAParentIsHalfTransparent_TheFrameIsDrawnHalfTransparent()
+        {
+            // Regression: Avalonia multiplies opacity into each paint instead of drawing a layer, and the frame paint
+            // ignored it, so a host stayed opaque in a fade or under Opacity="0.5".
+            CarouselGlGalleryPresets.EnsureRegistered();
+            // The interval holds the first image, so every render shows the frame that was read back.
+            var host = new CarouselGlEffectHost { Width = 160, Height = 100, Effect = CarouselGlEffectKind.Fade, TransitionSeconds = 1, IntervalSeconds = 100 };
+            var parent = new Border { Child = host };
+            var backdrop = new Border
+            {
+                Background = Brushes.Black,
+                Child = parent,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Top
+            };
+            try
+            {
+                RuntimeTestHelpers.AttachToHost(backdrop);
+                await RuntimeTestHelpers.EnsureLoadedAsync(host);
+                var frame = await host.ReadFrameAsync(0);
+                AssertFrame(frame, "opaque");
+                Assert.Equal(255, frame.Pixel[3]);
+                foreach (var (hostOpacity, parentOpacity, name) in new[] { (1.0, 1.0, "opaque"), (0.5, 1.0, "host"), (1.0, 0.5, "parent") })
+                {
+                    host.Opacity = hostOpacity;
+                    parent.Opacity = parentOpacity;
+                    await RuntimeTestHelpers.WaitForRenderAsync();
+                    using var screen = RuntimeTestHelpers.Render(backdrop, "native-gl-opacity-" + name);
+                    var pixel = screen.GetPixel(80, 50);
+                    // Over black, a frame at an opacity keeps that share of each color.
+                    var opacity = hostOpacity * parentOpacity;
+                    var expected = frame.Pixel.Take(3).Select(channel => (byte)Math.Round(channel * opacity)).ToArray();
+                    Assert.True(Close(expected, pixel, 3), $"With the {name} at {opacity}, the screen shows {pixel}, expected [{string.Join(", ", expected)}].");
+                }
+            }
+            finally
+            {
+                RuntimeTestHelpers.GetHostPanel().Children.Clear();
+                await FlushAsync(host.Dispatcher);
+            }
+        }
+
+        [Fact]
+        public async Task When_TheHostUnloadsBeforeCompileShadersResumes_ItThrowsTheHostError()
+        {
+            // Regression: CompileShadersAsync resumed after its frame in a later dispatcher job and used the session
+            // that an unload had closed meanwhile, which threw a NullReferenceException.
+            CarouselGlGalleryPresets.EnsureRegistered();
+            var host = new CarouselGlEffectHost { Width = 160, Height = 100, Effect = CarouselGlEffectKind.Fade, TransitionSeconds = 1, IntervalSeconds = 0 };
+            var motion = DaisyAccessibility.ReducedMotionOverride;
+            try
+            {
+                // Paused, the frame request answers at once with a frame of its own.
+                DaisyAccessibility.ReducedMotionOverride = true;
+                RuntimeTestHelpers.AttachToHost(host);
+                await RuntimeTestHelpers.EnsureLoadedAsync(host);
+                AssertFrame(await host.ReadFrameAsync(0), "paused");
+
+                // The awaits of the call take this context, which holds their continuations until the test runs them.
+                var stepped = new SteppedContext();
+                var previous = SynchronizationContext.Current;
+                Task<IReadOnlyList<string>> compile;
+                SynchronizationContext.SetSynchronizationContext(stepped);
+                try { compile = host.CompileShadersAsync(); }
+                finally { SynchronizationContext.SetSynchronizationContext(previous); }
+
+                // The answer of the frame request arrives; the call resumes only when the test runs its continuation.
+                await RuntimeTestHelpers.WaitUntilAsync(() => stepped.HasPosts, "the frame request answered");
+                RuntimeTestHelpers.GetHostPanel().Children.Clear();
+                Assert.False(host.IsRendererInitialized);
+                stepped.RunPosts();
+
+                var error = await Assert.ThrowsAsync<InvalidOperationException>(() => compile);
+                Assert.Equal("No GL effect is selected.", error.Message);
+            }
+            finally
+            {
+                DaisyAccessibility.ReducedMotionOverride = motion;
+                RuntimeTestHelpers.GetHostPanel().Children.Clear();
+                await FlushAsync(host.Dispatcher);
+            }
+        }
+
+        [Fact]
         public async Task When_FramesAreReadAtSeveralTimes_TheyFollowTheTransition()
         {
             CarouselGlGalleryPresets.EnsureRegistered();
@@ -666,6 +753,32 @@ namespace Flowery.NET.RuntimeTests.Native
 
         private static Task FlushAsync(Dispatcher dispatcher) =>
             dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Background).GetTask();
+
+        // A synchronization context that holds the continuations posted to it, from any thread, until the test runs them
+        // on the UI thread, so that a test can act between two steps of an asynchronous call.
+        private sealed class SteppedContext : SynchronizationContext
+        {
+            private readonly ConcurrentQueue<(SendOrPostCallback Callback, object? State)> _posts = new();
+
+            public bool HasPosts => !_posts.IsEmpty;
+
+            public override void Post(SendOrPostCallback d, object? state) => _posts.Enqueue((d, state));
+
+            public void RunPosts()
+            {
+                var previous = Current;
+                SetSynchronizationContext(this);
+                try
+                {
+                    while (_posts.TryDequeue(out var post))
+                        post.Callback(post.State);
+                }
+                finally
+                {
+                    SetSynchronizationContext(previous);
+                }
+            }
+        }
 
         // A host whose engine fails to compile its program, as an engine whose SkSL has an error.
         private sealed class InvalidShaderHost : CarouselGlNativeHost

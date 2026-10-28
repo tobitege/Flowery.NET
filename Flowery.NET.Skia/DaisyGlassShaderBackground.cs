@@ -162,16 +162,19 @@ namespace Flowery.Skia
                 if (context.TryGetFeature<ISkiaSharpApiLeaseFeature>() is not { } feature)
                     return;
                 using var lease = feature.Lease();
-                Draw(lease.SkCanvas, (float)Bounds.Width, (float)Bounds.Height, _effect, _time, _color);
+                // Avalonia multiplies opacity into each paint instead of drawing a layer: the background opacity of the
+                // glass and the opacity of its parents reach a custom draw only through the lease.
+                Draw(lease.SkCanvas, (float)Bounds.Width, (float)Bounds.Height, _effect, _time, _color, lease.CurrentOpacity);
             }
         }
 
         /// <summary>
         /// Draws <paramref name="effect"/> at <paramref name="time"/> into a <paramref name="width"/> by
-        /// <paramref name="height"/> area at the canvas origin; <see cref="DaisyGlassAnimation.LiquidColor"/> draws in
-        /// <paramref name="color"/>.
+        /// <paramref name="height"/> area at the canvas origin with <paramref name="opacity"/>;
+        /// <see cref="DaisyGlassAnimation.LiquidColor"/> draws in <paramref name="color"/>.
         /// </summary>
-        internal static void Draw(SKCanvas canvas, float width, float height, DaisyGlassAnimation effect, float time, Color color = default)
+        internal static void Draw(SKCanvas canvas, float width, float height, DaisyGlassAnimation effect, float time, Color color = default,
+            double opacity = 1)
         {
             var shaderEffect = GetEffect(effect);
             using var uniforms = new SKRuntimeEffectUniforms(shaderEffect)
@@ -182,7 +185,8 @@ namespace Flowery.Skia
             if (effect == DaisyGlassAnimation.LiquidColor)
                 uniforms["tint"] = new[] { color.R / 255f, color.G / 255f, color.B / 255f };
             using var shader = shaderEffect.ToShader(uniforms);
-            using var paint = new SKPaint { Shader = shader };
+            // Skia multiplies a shader by the alpha of its paint.
+            using var paint = new SKPaint { Shader = shader, Color = SKColors.White.WithAlpha((byte)Math.Round(255 * Math.Clamp(opacity, 0, 1))) };
             canvas.DrawRect(SKRect.Create(width, height), paint);
         }
     }

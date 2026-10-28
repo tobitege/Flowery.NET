@@ -131,6 +131,7 @@ The host starts its renderer session when it is loaded.
 It pauses the draw loop when it leaves the effective viewport, while it or a parent is hidden (`IsVisible`), and while animations are reduced (`DaisyAccessibility.IsReducedMotion`), and resumes it afterwards.
 A paused host keeps showing its last frame; the WinUI host hid its canvas and showed nothing.
 A paused host also draws a changed setting, such as `IntervalSeconds`, at once.
+The frames follow the `Opacity` of the host and its parents, as in the slide fade of a `DaisyCarousel`.
 Unload closes the session, cancels pending requests, removes event handlers, and releases the canvas and its images.
 
 CarouselGlNativeHost exposes these diagnostics:
@@ -152,7 +153,7 @@ CarouselGlNativeHost exposes these diagnostics:
 | Pixel | The center pixel as non-premultiplied RGBA, read back from a raster render of the same frame shader |
 | Width, Height | The size of the drawing buffer in device pixels |
 
-With `elapsedSeconds`, the host draws the frame at that time of its animation; without it, it waits for the next frame of the running loop.
+With `elapsedSeconds`, the host draws the frame at that time of its animation; without it, a running host waits for the next frame of its loop, and a paused host draws the frame at once.
 Renderer failures remain visible: the host shows "GL renderer: " and the error message, and diagnostic requests fail.
 Frame and shader diagnostics require a loaded host.
 
