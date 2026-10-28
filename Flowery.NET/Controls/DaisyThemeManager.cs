@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Avalonia;
@@ -293,6 +294,9 @@ namespace Flowery.Controls
             }
         }
 
+        // A palette loads by URI through the compiled XAML loader of this assembly, which nothing references directly.
+        // A full trim, as in browser publishes, removed it with every palette but Light and Dark, so themes did not change.
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicMethods, "CompiledAvaloniaXaml.!XamlLoader", "Flowery.NET")]
         private static ResourceDictionary LoadAxamlPalette(string themeName)
         {
             var uri = new Uri($"avares://Flowery.NET/Themes/Palettes/Daisy{themeName}.axaml");

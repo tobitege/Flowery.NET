@@ -135,6 +135,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Glass: in `SkiaSharp` mode, a glass disposes the rounded rectangles and gradient shaders it draws with, and the shader backgrounds dispose their uniforms. They were left to the finalizer, which then ran almost all the time while glass was on screen.
 - Glass: a `DaisyGlass` without a fixed size in `BitmapCapture` mode keeps its size. The captured backdrop reaches up to 20 past each edge and was part of the measure, so every capture widened the glass until it filled its background container.
 
+#### Themes
+
+- `DaisyThemeManager`: themes change again in apps whose publish trims every assembly, such as the Browser Gallery. A theme palette loads by URI through the compiled XAML loader of Flowery.NET, which nothing referenced directly, so the trimmer removed it with every palette but Light and Dark. Choosing a theme then changed only the text of the theme dropdown, whose previews stayed grey and which showed Light while Dark was applied.
+
 #### Controls
 
 - `DaisyToggle`: dragging the knob sideways threw a `NullReferenceException`, because the template had no `PART_SwitchKnob`, which `ToggleSwitch` measures a drag against. A drag over half the track now switches the toggle.
@@ -176,6 +180,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Release: the release publishes `Flowery.NET.Kanban` on nuget.org next to Flowery.NET and Flowery.NET.Skia. The README has told users to install the package since it was added in 3.0.0, but no release packed it, so nuget.org had no package with this ID and `dotnet add package Flowery.NET.Kanban` failed. The release notes list the package, `Flowery.NET-lib.zip` holds its DLL and PDB, and `scripts/build_nuget.ps1` packs it too.
 - Docs: the documentation site deploys again on every push to `avalonia12`, the default branch. It deployed only from `main`, which has not changed since March, so the site lacked the controls and changes since then, such as `DaisyScheduler`.
+- Release: a Gallery release builds every asset and sets its tag on the same commit. `release-gallery.yml` checked out the release branch again in every job, so a push during the run could mix assets of two commits and tag a commit none of them came from. It now resolves the branch once and names the commit in the release notes and the summary.
 - Docs site: HTML in the docs is escaped outside code, except `<img>`, `<br>`, `<details>`, `<summary>`, `<kbd>`, `<sub>` and `<sup>` with checked attributes, which are kept balanced so an open tag cannot take in the rest of the page, and links and images keep only relative, `https:` and `http:` URLs (links also `mailto:`). Raw HTML and `javascript:` links went into the pages as they were. Inline code is escaped too: type names such as `StyledProperty<DaisySize>` showed only up to the `<`, and a `*` in code started italics. An escaped `\|` in a table cell is a pipe in the cell, also in code, as on GitHub; it split the cell. Lines that start with inline code get the paragraph spacing of the others, and the `DaisyAccessibility` page shows `Func<bool, bool>` in full.
 
 ## [3.10.0] - 2026-10-22
