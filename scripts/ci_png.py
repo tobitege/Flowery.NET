@@ -1,8 +1,8 @@
 """Reads the pixels of a PNG screenshot with the Python standard library.
 
-Used by the CI checks (check_browser_gallery.py, check_android_gallery.py), which compare pixels of screenshots and
-should not need Pillow. Supports what Chromium and Android's screencap write: 8 bits per channel, RGB or RGBA, not
-interlaced.
+Used by the CI checks (check_browser_gallery.py, check_android_gallery.py, check_photos_app.py), which compare pixels
+of screenshots and saved photos and should not need Pillow. Supports what Chromium, Android's screencap and SkiaSharp
+write: 8 bits per channel, RGB or RGBA, not interlaced, with any of the five row filters. test_ci_png.py tests it.
 """
 
 import struct

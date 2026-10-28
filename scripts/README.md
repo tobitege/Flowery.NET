@@ -363,7 +363,7 @@ The suite supplements the headless tests in `Flowery.NET.Tests`; it does not tes
 ## CI start checks
 
 The CI workflow (`.github/workflows/ci.yml`) starts the published apps with these Python scripts.
-`ci_png.py` reads the pixels of their PNG screenshots with the Python standard library.
+`ci_png.py` reads the pixels of their PNG screenshots with the Python standard library; `test_ci_png.py` tests it, and CI runs it with `python3 -B -m unittest discover -s scripts -p 'test_*.py'`.
 
 | Script | App | What it checks |
 | --- | --- | --- |
@@ -373,11 +373,14 @@ The CI workflow (`.github/workflows/ci.yml`) starts the published apps with thes
 
 The Browser and Android checks find their controls at fixed positions or through `uiautomator` and compare screenshots; the Photos check sends keys to the app (R, Ctrl+S) and resizes and closes its window through the platform (Win32, xdotool and wmctrl, or System Events).
 Each writes its screenshots and logs to `--output`, which the workflow uploads when the check fails (logcat always).
+The Android check counts only crashes of the Gallery's own processes; other apps of the emulator crash now and then.
 The Photos check sends real keystrokes to the foreground window, so run it locally only in a session nobody uses, such as the Docker Linux desktop.
+It needs a new or empty `--output` folder and deletes nothing.
+`check_browser_gallery.requirements.txt` pins Playwright and its dependencies with the hashes of their files on PyPI.
 
 ```powershell
 # Browser Gallery, after dotnet publish Flowery.NET.Gallery.Browser -c Release -o bin/browser-publish
-python -m pip install playwright==1.64.0
+python -m pip install --require-hashes -r scripts/check_browser_gallery.requirements.txt
 python -m playwright install chromium-headless-shell
 python scripts/check_browser_gallery.py --site bin/browser-publish/wwwroot --output artifacts/browser
 

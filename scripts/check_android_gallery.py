@@ -26,6 +26,21 @@ PACKAGE = "com.CompanyName.Flowery.NET.Gallery"
 # Errors of the Java runtime and unhandled .NET exceptions. The debug lines of AndroidRuntime come from every am and
 # uiautomator call and do not count.
 CRASH = re.compile(r" E AndroidRuntime|FATAL EXCEPTION|Unhandled (managed )?exception", re.IGNORECASE)
+# The processes of the Gallery, as ActivityManager starts them and as a crash names them. Other apps of the emulator,
+# such as Google services, crash now and then; their crashes do not count.
+GALLERY_PROCESS = re.compile(r"Start proc (\d+):" + re.escape(PACKAGE) + r"/|Process: " + re.escape(PACKAGE) + r", PID: (\d+)")
+
+
+def gallery_crashes(log):
+    """Returns the crash lines of the Gallery's processes in a logcat in threadtime format."""
+    pids = {pid for match in GALLERY_PROCESS.finditer(log) for pid in match.groups() if pid}
+    crashes = []
+    for line in log.splitlines():
+        # date, time, PID, TID, then level, tag and message
+        fields = line.split(maxsplit=4)
+        if len(fields) == 5 and fields[2] in pids and CRASH.search(line):
+            crashes.append(line)
+    return crashes
 
 
 def adb(*args, check=True, timeout=120, binary=False):
@@ -130,8 +145,7 @@ def main():
             logcat.terminate()
             logcat.wait(timeout=30)
 
-    log = (output / "logcat.txt").read_text(encoding="utf-8", errors="replace")
-    crashes = [line for line in log.splitlines() if CRASH.search(line)]
+    crashes = gallery_crashes((output / "logcat.txt").read_text(encoding="utf-8", errors="replace"))
     if crashes:
         check.fail("logcat reports a crash:\n" + "\n".join(crashes[:20]))
     if check.failures:

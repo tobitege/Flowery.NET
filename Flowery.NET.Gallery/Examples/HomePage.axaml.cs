@@ -63,10 +63,9 @@ public partial class HomePage : UserControl
 
         var narrow = IsNarrow(Bounds.Width);
         var side = narrow ? NarrowSidePadding : 40 * paddingScale;
-        // Each card has a margin of 10 on both sides. While the sidebar folds away, the page can be narrower than its
-        // padding for a moment.
-        if (narrow)
-            cardWidth = Math.Clamp(Bounds.Width - 2 * side - 20, 120, cardWidth);
+        // While the sidebar folds away, the page can be narrower than its padding for a moment.
+        if (narrow && FloweryCard != null)
+            cardWidth = Math.Clamp(Bounds.Width - 2 * side - FloweryCard.Margin.Left - FloweryCard.Margin.Right, 120, cardWidth);
 
         // Hero section padding and emoji
         if (HeroSection != null)

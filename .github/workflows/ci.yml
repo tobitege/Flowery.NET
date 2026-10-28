@@ -145,6 +145,9 @@ jobs:
       - name: Run Photos release tests
         run: python3 -B -m unittest discover -s Utils -p test_photos_release.py
 
+      - name: Run the tests of the CI check scripts
+        run: python3 -B -m unittest discover -s scripts -p 'test_*.py'
+
   runtime-tests:
     # Renders the controls and Gallery pages in a real desktop window; see scripts/README.md. Linux draws on Xvfb.
     # Only Windows has the tests that compare screen captures (Given_GlassBackdrop.Screen.cs).
@@ -244,10 +247,12 @@ jobs:
             -c Release \
             -o ./browser-publish
 
+      # Playwright and its dependencies come with pinned versions and hashes.
       - name: Install Playwright and headless Chromium
         run: |
           python3 -m venv "$RUNNER_TEMP/playwright"
-          "$RUNNER_TEMP/playwright/bin/pip" install --quiet playwright==1.64.0
+          "$RUNNER_TEMP/playwright/bin/pip" install --quiet --require-hashes \
+            -r scripts/check_browser_gallery.requirements.txt
           "$RUNNER_TEMP/playwright/bin/python" -m playwright install --with-deps chromium-headless-shell
 
       - name: Start the Browser Gallery in headless Chromium

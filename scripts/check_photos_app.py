@@ -19,9 +19,9 @@ hosted runners grant. The app logs, screenshots and photos go to --output.
 """
 
 import argparse
+import math
 import os
 from pathlib import Path
-import shutil
 import struct
 import subprocess
 import sys
@@ -59,8 +59,8 @@ def same_color(first, second):
     return all(abs(a - b) <= 24 for a, b in zip(first, second))
 
 
-def run(command, check=True, timeout=60):
-    result = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False)
+def run(command, check=True, timeout=60, env=None):
+    result = subprocess.run(command, capture_output=True, text=True, timeout=timeout, check=False, env=env)
     if check and result.returncode:
         raise RuntimeError(f"{' '.join(command)} failed: {result.stdout}{result.stderr}")
     return result.stdout.strip()
@@ -79,7 +79,7 @@ class WindowsDriver:
         self.user32 = ctypes.WinDLL("user32", use_last_error=True)
         self.user32.GetForegroundWindow.restype = wintypes.HWND
 
-    def find_window(self, pid):
+    def windows(self, pid):
         found = []
         callback_type = self.ctypes.WINFUNCTYPE(self.wintypes.BOOL, self.wintypes.HWND, self.wintypes.LPARAM)
 
@@ -91,7 +91,10 @@ class WindowsDriver:
             return True
 
         self.user32.EnumWindows(callback_type(callback), 0)
-        return max(found, key=lambda hwnd: self.size(hwnd)[0] * self.size(hwnd)[1], default=None)
+        return found
+
+    def find_window(self, pid):
+        return max(self.windows(pid), key=lambda hwnd: math.prod(self.size(hwnd)), default=None)
 
     def activate(self, window):
         if self.user32.GetForegroundWindow() == window:
@@ -138,18 +141,22 @@ class WindowsDriver:
         self.user32.PostMessageW(window, 0x0010, 0, 0)  # WM_CLOSE
 
     def screenshot(self, path):
+        # The path goes in through the environment, so no character of it can end the PowerShell string.
         script = ("Add-Type -AssemblyName System.Windows.Forms,System.Drawing; "
                   "$b = [System.Windows.Forms.SystemInformation]::VirtualScreen; "
                   "$bitmap = New-Object System.Drawing.Bitmap $b.Width, $b.Height; "
                   "[System.Drawing.Graphics]::FromImage($bitmap).CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size); "
-                  f"$bitmap.Save('{path}')")
-        run(["powershell", "-NoProfile", "-Command", script], check=False)
+                  "$bitmap.Save($env:FLOWERY_SCREENSHOT)")
+        run(["powershell", "-NoProfile", "-Command", script], check=False,
+            env=dict(os.environ, FLOWERY_SCREENSHOT=str(path)))
 
 
 class LinuxDriver:
+    def windows(self, pid):
+        return run(["xdotool", "search", "--onlyvisible", "--pid", str(pid)], check=False).split()
+
     def find_window(self, pid):
-        windows = run(["xdotool", "search", "--onlyvisible", "--pid", str(pid)], check=False).split()
-        return max(windows, key=lambda window: self.size(window)[0] * self.size(window)[1], default=None)
+        return max(self.windows(pid), key=lambda window: math.prod(self.size(window)), default=None)
 
     def key(self, window, key, control=False):
         run(["xdotool", "windowactivate", "--sync", window])
@@ -176,11 +183,15 @@ class MacDriver:
                   "end tell"]
         return run(["osascript", *sum((["-e", line] for line in script), [])])
 
-    def find_window(self, pid):
+    def windows(self, pid):
+        # System Events addresses the windows through the process, so the process stands for them.
         try:
-            return pid if int(self.system_events(pid, ["count windows of p"])) > 0 else None
+            return [pid] * int(self.system_events(pid, ["count windows of p"]))
         except (RuntimeError, ValueError):
-            return None
+            return []
+
+    def find_window(self, pid):
+        return pid if self.windows(pid) else None
 
     def key(self, window, key, control=False):
         self.system_events(window, ["set frontmost of p to true", "delay 0.5",
@@ -210,13 +221,14 @@ class Check:
         self.state = output / "state"
         self.photos = output / "photos"
         self.starts = 0
+        self.log = None
 
     def start(self, photo):
         self.starts += 1
         environment = dict(os.environ, FLOWERY_STATE_ROOT=str(self.state))
-        log = (self.output / f"app-{self.starts}.log").open("w", encoding="utf-8")
+        self.log = (self.output / f"app-{self.starts}.log").open("w", encoding="utf-8")
         process = subprocess.Popen([str(self.executable), str(photo)], cwd=self.executable.parent, env=environment,
-                                   stdout=log, stderr=subprocess.STDOUT)
+                                   stdout=self.log, stderr=subprocess.STDOUT)
         deadline = time.monotonic() + 60
         window = None
         while window is None:
@@ -261,7 +273,9 @@ class Check:
             if process.poll() is not None:
                 raise RuntimeError(f"Photos exited with code {process.returncode} instead of saving a copy")
             if time.monotonic() > deadline:
-                raise RuntimeError(f"Photos saved no copy of {source.name} within 30 s")
+                raise RuntimeError(f"Photos saved no copy of {source.name} within 30 s. Either R and Ctrl+S came "
+                                   f"before the photo was open ({SETTLE_SECONDS} s after the window appeared), or "
+                                   "the window did not get them")
             time.sleep(1)
 
     def stop(self, process, window):
@@ -269,21 +283,35 @@ class Check:
         try:
             code = process.wait(timeout=30)
         except subprocess.TimeoutExpired:
+            # A dialog is a window of its own: with more than the main window open, Photos asks something, such as
+            # whether to save an edit that a close came too early for.
+            windows = len(self.driver.windows(process.pid))
             process.kill()
-            raise RuntimeError("Photos did not exit within 30 s after its window was closed")
+            raise RuntimeError("Photos did not exit within 30 s after its window was closed; " +
+                               (f"it shows {windows} windows, so a dialog waits for an answer" if windows > 1 else
+                                f"it shows {windows} window(s)"))
+        finally:
+            self.close_log()
         if code:
             raise RuntimeError(f"Photos exited with code {code}")
+
+    def close_log(self):
+        if self.log is not None:
+            self.log.close()
+            self.log = None
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--app", type=Path, required=True, help="the published app folder")
-    parser.add_argument("--output", type=Path, required=True, help="folder for logs, screenshots and photos")
+    parser.add_argument("--output", type=Path, required=True,
+                        help="a new or empty folder for logs, screenshots and photos")
     args = parser.parse_args()
     output = args.output.resolve()
-    if output.exists():
-        shutil.rmtree(output)
-    output.mkdir(parents=True)
+    # The check writes its state and photos there; it neither mixes them with other files nor deletes any.
+    if output.exists() and any(output.iterdir()):
+        parser.error(f"{output} is not empty; pass a new or empty folder")
+    output.mkdir(parents=True, exist_ok=True)
     check = Check(args.app.resolve(strict=True), output)
     check.photos.mkdir()
     photo = check.photos / "photo.png"
@@ -316,6 +344,8 @@ def main():
     finally:
         if process is not None and process.poll() is None:
             process.kill()
+            process.wait(timeout=30)
+        check.close_log()
     print("Photos opens, edits, saves and reopens a photo and keeps its window size across a restart", flush=True)
     return 0
 

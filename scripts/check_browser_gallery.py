@@ -7,7 +7,8 @@ browser logs no errors. Screenshots and the console log go to --output.
 
 The Gallery draws into a canvas, so the checks click at fixed positions of a 1280 x 800 viewport and compare pixels.
 
-    pip install playwright==1.64.0 && python -m playwright install --with-deps chromium-headless-shell
+    pip install --require-hashes -r scripts/check_browser_gallery.requirements.txt
+    python -m playwright install --with-deps chromium-headless-shell
     python scripts/check_browser_gallery.py --site bin/browser-publish/wwwroot --output artifacts/browser
 """
 
@@ -117,7 +118,12 @@ def main():
             page.on("response", on_response)
             page.on("requestfailed", lambda request: errors.append(f"Request failed: {request.url}"))
             check = Check(page, output)
-            run(check, page, url)
+            try:
+                run(check, page, url)
+            except Exception:
+                # Such as a page that never closes its splash: the screenshot shows how far it got.
+                page.screenshot(path=str(output / "failure.png"))
+                raise
             browser.close()
     finally:
         server.shutdown()
