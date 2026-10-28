@@ -4,7 +4,7 @@
 
 # 🌼 Flowery.NET
 
-**A C# port of the popular [DaisyUI](https://daisyui.com/) component library for [Avalonia UI](https://avaloniaui.net/).**
+**More than 100 themed controls for [Avalonia UI](https://avaloniaui.net/) on the desktop, in the browser, on Android and on iOS.**
 
 [![NuGet](https://img.shields.io/nuget/v/Flowery.NET?style=flat-square)](https://www.nuget.org/packages/Flowery.NET)
 [![Downloads](https://img.shields.io/nuget/dt/Flowery.NET?style=flat-square)](https://www.nuget.org/packages/Flowery.NET)
@@ -16,6 +16,21 @@
 </div>
 
 ![Flowery.NET.Gallery Screenshot](Flowery.NET.Gallery.png)
+
+<div align="center">
+<table>
+  <tr>
+    <th>iPhone 17 (iOS 26.5 simulator)</th>
+    <th colspan="3">Android 15 (emulator)</th>
+  </tr>
+  <tr>
+    <td><img src="screenshots/iphone-home.png" alt="The Gallery home page on an iPhone in the Light theme" width="190"></td>
+    <td><img src="screenshots/android-home.png" alt="The Gallery home page on Android in the Dark theme" width="190"></td>
+    <td><img src="screenshots/android-button.png" alt="The Button page of the Gallery on Android in the Dark theme" width="190"></td>
+    <td><img src="screenshots/android-glass-interface.png" alt="The Glass Interface page of the Gallery on Android" width="190"></td>
+  </tr>
+</table>
+</div>
 
 <div align="center">
 
