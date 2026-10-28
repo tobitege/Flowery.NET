@@ -16,7 +16,6 @@ using Flowery.Theming;
 using Xunit;
 using static Flowery.NET.RuntimeTests.Controls.DaisyTourTestHelpers;
 using Assert = Flowery.NET.RuntimeTests.Controls.MSTestAssert;
-using Path = Avalonia.Controls.Shapes.Path;
 
 namespace Flowery.NET.RuntimeTests.Controls;
 
@@ -287,9 +286,8 @@ public class Given_DaisyTourAvalonia
         try
         {
             await StartAsync(root, tour);
-            var paths = GetSurface(tour).GetVisualChildren().OfType<Path>().ToArray();
-            var backdrop = Assert.IsInstanceOfType<GeometryGroup>(paths[0].Data);
-            var outline = Assert.IsInstanceOfType<GeometryGroup>(paths[1].Data);
+            var backdrop = Assert.IsInstanceOfType<GeometryGroup>(tour.Backdrop.Data);
+            var outline = Assert.IsInstanceOfType<GeometryGroup>(tour.Outline.Data);
             Assert.HasCount(1, outline.Children!, "Both frames form one outline.");
             Assert.HasCount(2, backdrop.Children!, "The backdrop has the window and one cutout.");
         }
@@ -389,9 +387,10 @@ public class Given_DaisyTourAvalonia
             var clientTop = window.PointToScreen(new Point(0, 0)).Y;
             var half = (int)(window.ClientSize.Height * window.DesktopScaling / 2);
             window.Position = new PixelPoint(original.X, original.Y + screen.WorkingArea.Bottom - half - clientTop);
+            // Whether the window may reach past its working area is up to the window manager; its real position tells.
             try
             {
-                await WaitUntilAsync(() => DaisyTourLayout.VisibleArea(window).Height < window.ClientSize.Height - 1,
+                await WaitUntilAsync(() => window.PointToScreen(new Point(0, window.ClientSize.Height)).Y > screen.WorkingArea.Bottom + 1,
                     "the window reaches past its working area");
             }
             catch (TimeoutException)
@@ -400,6 +399,7 @@ public class Given_DaisyTourAvalonia
             }
             // A window takes the working area of its screen, which a view without a window would not know.
             var visible = DaisyTourLayout.VisibleArea(window);
+            Assert.IsTrue(visible.Height < window.ClientSize.Height - 1, $"The visible part {visible} leaves out the content below the working area.");
             await WaitUntilAsync(() => tour.CardBounds.Bottom <= visible.Bottom + 0.5, "the card moves into the visible part");
             Assert.IsTrue(tour.CardBounds.Bottom < before.Bottom, "The card left the part below the working area.");
             Assert.IsTrue(tour.CardBounds.Top >= visible.Top - 0.5, $"The card {tour.CardBounds} stays in the visible part {visible}.");
@@ -511,6 +511,70 @@ public class Given_DaisyTourAvalonia
     }
 
     [Fact]
+    public async Task When_ASecondFingerPressesTheCardMoveGripDuringADrag_TheFirstKeepsTheDrag()
+    {
+        // Regression: a second pointer threw the first finger's drag back and took it over.
+        await InEditorAsync(async (tour, root) =>
+        {
+            var before = tour.CardBounds;
+            var grip = Find<DaisyButton>(tour, "DaisyTourMoveCard");
+            var (top, start, first) = PressAtCenter(grip, PointerType.Touch);
+            MoveCaptured(first, top, new Point(start.X - 60, start.Y - 40));
+            await ArrangeAsync(root);
+            // Hit testing sees the moved grip once it has been rendered.
+            await RuntimeTestHelpers.WaitForRenderAsync();
+
+            // The second finger presses, moves and lifts while the first one still holds the grip.
+            var (_, otherStart, second) = PressAtCenter(grip, PointerType.Touch);
+            var otherEnd = new Point(otherStart.X + 80, otherStart.Y + 30);
+            MoveCaptured(second, top, otherEnd);
+            ReleaseCaptured(second, top, otherEnd);
+            await ArrangeAsync(root);
+            Assert.IsTrue(tour.IsCardDragging, "The second finger does not end the first finger's drag.");
+            Assert.AreEqual(before.X - 60, tour.CardBounds.X, 1, "The card stays with the first finger horizontally.");
+            Assert.AreEqual(before.Y - 40, tour.CardBounds.Y, 1, "The card stays with the first finger vertically.");
+
+            MoveCaptured(first, top, new Point(start.X - 80, start.Y - 50));
+            await ArrangeAsync(root);
+            Assert.AreEqual(before.X - 80, tour.CardBounds.X, 1, "The first finger keeps dragging from its own origin.");
+            Assert.AreEqual(before.Y - 50, tour.CardBounds.Y, 1, "The first finger keeps dragging from its own origin.");
+            ReleaseCaptured(first, top, new Point(start.X - 80, start.Y - 50));
+            await ArrangeAsync(root);
+            Assert.IsFalse(tour.IsCardDragging, "The first finger's release ends the drag.");
+        });
+    }
+
+    [Fact]
+    public async Task When_AFingerDragsTheCardMoveGripOverScrollableText_TheTextDoesNotTakeTheDrag()
+    {
+        // Regression: the scroll gesture of the card text took the finger, which ended the move after a few DIP.
+        var (tour, root) = CreateTour(2);
+        tour.Id = "card-editing";
+        tour.Steps[0].Description = string.Join(" ", Enumerable.Repeat("This description is longer than the card text area can show at once.", 60));
+        await TourEditorTestHelpers.InEditorAsync(root, tour, async _ =>
+        {
+            var text = GetSurface(tour).GetVisualDescendants().OfType<ScrollViewer>()
+                .First(viewer => viewer.VerticalScrollBarVisibility == ScrollBarVisibility.Auto);
+            Assert.IsTrue(text.Extent.Height > text.Viewport.Height + 1, "The card text can scroll.");
+            var before = tour.CardBounds;
+            var grip = Find<DaisyButton>(tour, "DaisyTourMoveCard");
+            var (top, start, pointer) = PressAtCenter(grip, PointerType.Touch);
+            for (var step = 1; step <= 6; step++)
+            {
+                MoveCaptured(pointer, top, new Point(start.X, start.Y - 10 * step));
+                Assert.AreSame(grip, pointer.Captured, $"The grip keeps the finger after {10 * step} DIP.");
+            }
+            await ArrangeAsync(root);
+            Assert.AreSame(grip, pointer.Captured, "The grip keeps the finger.");
+            Assert.IsTrue(tour.IsCardDragging, "The drag is still running.");
+            Assert.AreEqual(before.Y - 60, tour.CardBounds.Y, 1, "The card follows the finger upward.");
+            Assert.AreEqual(0, text.Offset.Y, 0.01, "The card text does not scroll.");
+            ReleaseCaptured(pointer, top, new Point(start.X, start.Y - 60));
+            await ArrangeAsync(root);
+        }, () => tour.IsOpen && !tour.IsTransitioning);
+    }
+
+    [Fact]
     public async Task When_TheFocusedCardMoveGripGetsArrowKeys_TheCardMovesByOneOrTenWithShift()
     {
         // Regression: the arrow keys do not move the card, or Shift does not take the larger steps.
@@ -580,10 +644,7 @@ public class Given_DaisyTourAvalonia
 
     private static async Task InvokeAsync(DaisyTour tour, Button button, int index)
     {
-        var peer = ControlAutomationPeer.CreatePeerForElement(button);
-        var invoke = peer.GetProvider<IInvokeProvider>();
-        Assert.IsNotNull(invoke);
-        invoke.Invoke();
+        Invoke(button);
         await WaitUntilAsync(() => tour.CurrentIndex == index && !tour.IsTransitioning, $"step {index + 1} is shown");
     }
 
@@ -636,9 +697,6 @@ public class Given_DaisyTourAvalonia
         Assert.IsNotNull(invoke);
         invoke.Invoke();
     }
-
-    private static void PressKey(Control target, Key key, KeyModifiers modifiers) =>
-        target.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key, KeyModifiers = modifiers, Source = target });
 
     private static Button ProgressButton(DaisyTour tour, int number) =>
         tour.Progress.GetVisualDescendants().OfType<Button>().Single(button => AutomationProperties.GetAutomationId(button) == "DaisyTourStep" + number);

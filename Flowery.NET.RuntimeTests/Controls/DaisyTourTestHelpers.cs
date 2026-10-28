@@ -79,12 +79,24 @@ internal static class DaisyTourTestHelpers
         return (root, start, pointer);
     }
 
+    // Raises a key press on an element, as the keyboard does on the focused element.
+    internal static void PressKey(InputElement element, Key key, KeyModifiers modifiers = KeyModifiers.None) =>
+        element.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key, KeyModifiers = modifiers, Source = element });
+
+    // A move with the left button held and its release, as the pointer devices raise them.
+    internal static PointerEventArgs MovedArgs(Interactive source, Pointer pointer, TopLevel root, Point position) =>
+        new(InputElement.PointerMovedEvent, source, pointer, root, position, 0,
+            new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other), KeyModifiers.None);
+
+    internal static PointerReleasedEventArgs ReleasedArgs(Interactive source, Pointer pointer, TopLevel root, Point position) =>
+        new(source, pointer, root, position, 0,
+            new PointerPointProperties(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased), KeyModifiers.None, MouseButton.Left);
+
     // Moves go to the element that holds the capture.
     internal static void MoveCaptured(Pointer pointer, TopLevel root, Point position)
     {
         var captured = (Interactive)pointer.Captured!;
-        captured.RaiseEvent(new PointerEventArgs(InputElement.PointerMovedEvent, captured, pointer, root, position, 0,
-            new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other), KeyModifiers.None));
+        captured.RaiseEvent(MovedArgs(captured, pointer, root, position));
     }
 
     // The release goes to the element that holds the capture, which the pointer then lets go; after a lost capture
@@ -92,8 +104,7 @@ internal static class DaisyTourTestHelpers
     internal static void ReleaseCaptured(Pointer pointer, TopLevel root, Point position)
     {
         if (pointer.Captured is not Interactive captured) return;
-        captured.RaiseEvent(new PointerReleasedEventArgs(captured, pointer, root, position, 0,
-            new PointerPointProperties(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased), KeyModifiers.None, MouseButton.Left));
+        captured.RaiseEvent(ReleasedArgs(captured, pointer, root, position));
         pointer.Capture(null);
     }
 }

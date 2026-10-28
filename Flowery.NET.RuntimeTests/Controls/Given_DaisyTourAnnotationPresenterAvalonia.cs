@@ -7,6 +7,7 @@ using Avalonia.Media;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Xunit;
+using Path = Avalonia.Controls.Shapes.Path;
 using static Flowery.NET.RuntimeTests.Controls.DaisyTourTestHelpers;
 using Assert = Flowery.NET.RuntimeTests.Controls.MSTestAssert;
 
@@ -31,18 +32,18 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
         {
             RuntimeTestHelpers.AttachToHost(root);
             await RuntimeTestHelpers.WaitForRenderAsync();
-            var shortText = Update(presenter, annotation, 1);
+            var shortText = Update(presenter, annotation);
             await RuntimeTestHelpers.WaitForRenderAsync();
 
             annotation.Text = string.Join(" ", Enumerable.Repeat("This explanation is much longer and wraps.", 4));
-            var longText = Update(presenter, annotation, 1);
+            var longText = Update(presenter, annotation);
             Assert.IsTrue(longText.Width > shortText.Width && longText.Height > shortText.Height,
                 $"The longer text grows the surface at once: {shortText} -> {longText}.");
             Assert.AreEqual(longText.Width, presenter.ContentHost.DesiredSize.Width, 0.01);
             await RuntimeTestHelpers.WaitForRenderAsync();
 
             annotation.Text = "Short.";
-            var shortAgain = Update(presenter, annotation, 1);
+            var shortAgain = Update(presenter, annotation);
             Assert.AreEqual(shortText.Width, shortAgain.Width, 0.01, "The surface shrinks back with the text.");
             Assert.AreEqual(shortText.Height, shortAgain.Height, 0.01);
         }
@@ -222,7 +223,7 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
         InEditorAsync((editor, tour) =>
         {
             var course = tour.AnnotationPresenters[0].Course;
-            var hitPath = editor.HandleLayer.Children.OfType<Avalonia.Controls.Shapes.Path>().Single(path => path.Tag is 0);
+            var hitPath = editor.HandleLayer.Children.OfType<Path>().Single(path => path.Tag is 0);
             var pen = new Pen(Brushes.Transparent, hitPath.StrokeThickness);
             Assert.IsFalse(hitPath.Data!.StrokeContains(pen, Lerp(course[0], course[^1], 0.25)), "The hit area ends at the course ends.");
             Assert.IsTrue(hitPath.Data.StrokeContains(pen, course[course.Count / 2]), "The hit area follows the course.");
@@ -312,14 +313,14 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
             var origin = new Point(0, 0);
             Assert.IsTrue(handle.Focus());
 
-            Nudge(handle, KeyModifiers.None);
+            PressKey(handle, Key.Right);
             await RuntimeTestHelpers.WaitForRenderAsync();
             Assert.AreEqual(DaisyTourHandleLayer.ProjectCurvature(origin + new Point(1, 0), geometry, origin), Curvature(editor), 0.001);
             editor.Undo();
             Assert.AreEqual(before, editor.ExportJson(), "One key press is one undo action.");
             await RuntimeTestHelpers.WaitForRenderAsync();
 
-            Nudge(handle, KeyModifiers.Shift);
+            PressKey(handle, Key.Right, KeyModifiers.Shift);
             await RuntimeTestHelpers.WaitForRenderAsync();
             Assert.AreEqual(DaisyTourHandleLayer.ProjectCurvature(origin + new Point(10, 0), geometry, origin), Curvature(editor), 0.001);
             editor.Undo();
@@ -375,13 +376,10 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
         Assert.IsNotNull(TopLevel.GetTopLevel(content), $"{visit}: the content control is in the window.");
     }
 
-    private static void Nudge(Button handle, KeyModifiers modifiers) =>
-        handle.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = Key.Right, KeyModifiers = modifiers, Source = handle });
-
-    private static Rect Update(DaisyTourAnnotationPresenter presenter, DaisyTourAnnotation annotation, double scale)
+    private static Rect Update(DaisyTourAnnotationPresenter presenter, DaisyTourAnnotation annotation)
     {
         presenter.Update(annotation, new Rect(200, 150, 120, 40), new Rect(520, 340, 40, 30),
-            Brushes.Red, Brushes.Lime, Brushes.Blue, scale: scale);
+            Brushes.Red, Brushes.Lime, Brushes.Blue);
         Assert.IsNotNull(presenter.SelectionBounds);
         return presenter.SelectionBounds!.Value;
     }

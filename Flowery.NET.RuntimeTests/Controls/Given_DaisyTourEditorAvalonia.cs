@@ -77,10 +77,11 @@ public class Given_DaisyTourEditorAvalonia
             var initial = editor.InspectorBounds.Width;
             var (thumb, root, start, pointer) = PressThumb(editor);
             Assert.Same(thumb, pointer.Captured);
-            var end = new Point(start.X - 40, start.Y);
-            await ChangeGeometryAsync(tour, () => MoveCaptured(pointer, root, end));
-            await ChangeGeometryAsync(tour, () => ReleaseCaptured(pointer, root, end));
-            Assert.Equal(initial + 40, editor.InspectorBounds.Width, 1);
+            await ChangeGeometryAsync(tour, () => MoveCaptured(pointer, root, new Point(start.X - 40, start.Y)));
+            Assert.Equal(initial + 40, editor.InspectorBounds.Width, tolerance: 0.5);
+            // The release lands away from the last move, with no final move: the inspector takes its position.
+            await ChangeGeometryAsync(tour, () => ReleaseCaptured(pointer, root, new Point(start.X - 55, start.Y)));
+            Assert.Equal(initial + 55, editor.InspectorBounds.Width, tolerance: 0.5);
         });
     }
 
@@ -96,9 +97,9 @@ public class Given_DaisyTourEditorAvalonia
             await SettleAsync(editor);
 
             // A release that still arrives belongs to a drag that is over.
-            thumb.RaiseEvent(Released(thumb, pointer, root, new Point(start.X - 80, start.Y)));
+            thumb.RaiseEvent(ReleasedArgs(thumb, pointer, root, new Point(start.X - 80, start.Y)));
             await SettleAsync(editor);
-            Assert.Equal(initial + 40, editor.InspectorBounds.Width, 1);
+            Assert.Equal(initial + 40, editor.InspectorBounds.Width, tolerance: 0.5);
         });
     }
 
@@ -110,19 +111,19 @@ public class Given_DaisyTourEditorAvalonia
             var initial = editor.InspectorBounds.Width;
             var (thumb, root, start, pointer) = PressThumb(editor);
             await ChangeGeometryAsync(tour, () => MoveCaptured(pointer, root, new Point(start.X - 40, start.Y)));
-            Assert.Equal(initial + 40, editor.InspectorBounds.Width, 1);
+            Assert.Equal(initial + 40, editor.InspectorBounds.Width, tolerance: 0.5);
 
             await ChangeGeometryAsync(tour, () => PressKey(thumb, Key.Escape));
-            Assert.Equal(initial, editor.InspectorBounds.Width, 1);
+            Assert.Equal(initial, editor.InspectorBounds.Width, tolerance: 0.5);
             Assert.Null(pointer.Captured);
             Assert.True(editor.IsOpen, "Escape cancels the resize before it would discard the editor.");
 
             // The rest of the canceled drag changes nothing.
             var later = new Point(start.X - 80, start.Y);
-            thumb.RaiseEvent(Moved(thumb, pointer, root, later));
-            thumb.RaiseEvent(Released(thumb, pointer, root, later));
+            thumb.RaiseEvent(MovedArgs(thumb, pointer, root, later));
+            thumb.RaiseEvent(ReleasedArgs(thumb, pointer, root, later));
             await SettleAsync(editor);
-            Assert.Equal(initial, editor.InspectorBounds.Width, 1);
+            Assert.Equal(initial, editor.InspectorBounds.Width, tolerance: 0.5);
         });
     }
 
@@ -135,7 +136,7 @@ public class Given_DaisyTourEditorAvalonia
             var thumb = ResizeThumb(editor);
             var (root, start, first) = PressAtCenter(thumb, PointerType.Touch);
             await ChangeGeometryAsync(tour, () => MoveCaptured(first, root, new Point(start.X - 40, start.Y)));
-            Assert.Equal(initial + 40, editor.InspectorBounds.Width, 1);
+            Assert.Equal(initial + 40, editor.InspectorBounds.Width, tolerance: 0.5);
 
             // A second finger on the grip neither moves the origin of the drag nor resizes, and its release does not
             // end the resize of the first finger. Hit testing sees the moved grip once it has been rendered.
@@ -145,34 +146,46 @@ public class Given_DaisyTourEditorAvalonia
             MoveCaptured(second, root, otherEnd);
             ReleaseCaptured(second, root, otherEnd);
             await SettleAsync(editor);
-            Assert.Equal(initial + 40, editor.InspectorBounds.Width, 1);
+            Assert.Equal(initial + 40, editor.InspectorBounds.Width, tolerance: 0.5);
 
             var end = new Point(start.X - 60, start.Y);
             await ChangeGeometryAsync(tour, () => MoveCaptured(first, root, end));
             await ChangeGeometryAsync(tour, () => ReleaseCaptured(first, root, end));
-            Assert.Equal(initial + 60, editor.InspectorBounds.Width, 1);
+            Assert.Equal(initial + 60, editor.InspectorBounds.Width, tolerance: 0.5);
+
+            // Once the first finger has finished, a third one resizes on its own, and its release away from its last
+            // move sets the width.
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            var before = editor.InspectorBounds.Width;
+            var (_, thirdStart, third) = PressAtCenter(thumb, PointerType.Touch);
+            await ChangeGeometryAsync(tour, () => MoveCaptured(third, root, new Point(thirdStart.X - 20, thirdStart.Y)));
+            Assert.Equal(before + 20, editor.InspectorBounds.Width, tolerance: 0.5);
+            await ChangeGeometryAsync(tour, () => ReleaseCaptured(third, root, new Point(thirdStart.X - 35, thirdStart.Y)));
+            Assert.Equal(before + 35, editor.InspectorBounds.Width, tolerance: 0.5);
         });
     }
 
     [Fact]
-    public async Task When_Another_Button_Joins_A_Resize_Escape_Still_Restores_The_Width_From_Before()
+    public async Task When_A_Pens_Second_Button_Joins_A_Resize_Escape_Still_Restores_The_Width_From_Before()
     {
         await InEditorAsync(async (tour, editor) =>
         {
             var initial = editor.InspectorBounds.Width;
-            var (thumb, root, start, pointer) = PressThumb(editor);
+            var thumb = ResizeThumb(editor);
+            var (root, start, pointer) = PressAtCenter(thumb, PointerType.Pen);
             var moved = new Point(start.X - 40, start.Y);
             await ChangeGeometryAsync(tour, () => MoveCaptured(pointer, root, moved));
 
-            // The right button joins the drag: Avalonia's Thumb starts its drag again for the same pointer.
+            // A pen's second button joins the drag: Avalonia's Thumb starts its drag again for the same pointer. A mouse
+            // reports another button as a move instead.
             thumb.RaiseEvent(new PointerPressedEventArgs(thumb, pointer, root, moved, 0,
                 new PointerPointProperties(RawInputModifiers.LeftMouseButton | RawInputModifiers.RightMouseButton, PointerUpdateKind.RightButtonPressed),
                 KeyModifiers.None));
             await SettleAsync(editor);
-            Assert.Equal(initial + 40, editor.InspectorBounds.Width, 1);
+            Assert.Equal(initial + 40, editor.InspectorBounds.Width, tolerance: 0.5);
 
             await ChangeGeometryAsync(tour, () => PressKey(thumb, Key.Escape));
-            Assert.Equal(initial, editor.InspectorBounds.Width, 1);
+            Assert.Equal(initial, editor.InspectorBounds.Width, tolerance: 0.5);
         });
     }
 
@@ -187,9 +200,9 @@ public class Given_DaisyTourEditorAvalonia
             var initial = editor.InspectorBounds.Width;
             // Docked on the right, the inner edge is the left one: Right narrows the inspector, Left widens it.
             await ChangeGeometryAsync(tour, () => PressKey(thumb, Key.Right));
-            Assert.Equal(initial - 10, editor.InspectorBounds.Width, 1);
+            Assert.Equal(initial - 10, editor.InspectorBounds.Width, tolerance: 0.5);
             await ChangeGeometryAsync(tour, () => PressKey(thumb, Key.Left));
-            Assert.Equal(initial, editor.InspectorBounds.Width, 1);
+            Assert.Equal(initial, editor.InspectorBounds.Width, tolerance: 0.5);
         });
     }
 
@@ -276,9 +289,6 @@ public class Given_DaisyTourEditorAvalonia
     private static Thumb ResizeThumb(DaisyTourEditor editor) =>
         editor.GetVisualDescendants().OfType<Thumb>().Single(item => AutomationProperties.GetAutomationId(item) == "DaisyTourEditorResize");
 
-    private static void PressKey(InputElement element, Key key, KeyModifiers modifiers = KeyModifiers.None) =>
-        element.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Key = key, KeyModifiers = modifiers, Source = element });
-
     // Presses the resize thumb like the mouse does; see PressAtCenter.
     private static (Thumb Thumb, TopLevel Root, Point Start, Pointer Pointer) PressThumb(DaisyTourEditor editor)
     {
@@ -286,12 +296,4 @@ public class Given_DaisyTourEditorAvalonia
         var (root, start, pointer) = PressAtCenter(thumb);
         return (thumb, root, start, pointer);
     }
-
-    private static PointerEventArgs Moved(Interactive source, Pointer pointer, TopLevel root, Point position) =>
-        new(InputElement.PointerMovedEvent, source, pointer, root, position, 0,
-            new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.Other), KeyModifiers.None);
-
-    private static PointerReleasedEventArgs Released(Interactive source, Pointer pointer, TopLevel root, Point position) =>
-        new(source, pointer, root, position, 0,
-            new PointerPointProperties(RawInputModifiers.None, PointerUpdateKind.LeftButtonReleased), KeyModifiers.None, MouseButton.Left);
 }

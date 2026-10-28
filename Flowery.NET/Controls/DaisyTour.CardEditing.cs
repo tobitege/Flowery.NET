@@ -113,6 +113,8 @@ public sealed partial class DaisyTour
     {
         if (_editor is not { } editor || _session is not { Busy: false } ||
             !args.GetCurrentPoint(_surface).Properties.IsLeftButtonPressed) return;
+        // A second pointer, such as another finger, does not take over a running drag.
+        if (_cardDrag is not null) return;
         editor.CancelGesture();
         _cardDrag = (args.Pointer, args.GetPosition(_surface), new Point(CardBounds.X, CardBounds.Y), _temporaryCardPosition);
         args.Pointer.Capture(_cardMove);
@@ -121,6 +123,8 @@ public sealed partial class DaisyTour
             ReleaseCardDrag();
             return;
         }
+        // The scroll gesture of the card text must not take the finger that moves the card.
+        args.PreventGestureRecognition();
         _cardMove.Focus(NavigationMethod.Pointer);
         args.Handled = true;
     }

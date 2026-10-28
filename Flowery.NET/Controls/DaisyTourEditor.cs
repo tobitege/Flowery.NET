@@ -70,7 +70,7 @@ public sealed partial class DaisyTourEditor : ContentControl
     private readonly ResizeGrip _resizeGrip = new() { Width = 12, HorizontalAlignment = HorizontalAlignment.Left };
     // Avalonia's Thumb has no default template and draws nothing, so the pointer could not hit it; the template
     // draws its transparent background.
-    private readonly Thumb _resizeThumb = new SinglePointerThumb
+    private readonly SinglePointerThumb _resizeThumb = new()
     {
         Focusable = true, IsTabStop = true, Background = new SolidColorBrush(Colors.Transparent),
         Template = new FuncControlTemplate<Thumb>(static (thumb, _) =>
@@ -97,8 +97,6 @@ public sealed partial class DaisyTourEditor : ContentControl
     private double? _desiredWidth;
     private double? _resizeStartWidth;
     private (int PointerId, double X, double Width)? _resizePointerStart;
-    // The pointer that drags the resize thumb; a canceled resize releases its capture, as WinUI's CancelDrag does.
-    private IPointer? _resizePointer;
     private double _viewportWidth;
     private int _openingGeneration;
 
@@ -479,7 +477,8 @@ public sealed partial class DaisyTourEditor : ContentControl
 
     private void OnResizeStarted(object? sender, VectorEventArgs args)
     {
-        // Another button pressed during a drag starts the thumb again; the drag keeps its start width.
+        // A pen's second button pressed during a drag starts the thumb again (a mouse reports another button as a
+        // move); the drag keeps its start width.
         if (_resizing) return;
         _resizeStartWidth = _desiredWidth;
         _resizing = true;
@@ -492,30 +491,33 @@ public sealed partial class DaisyTourEditor : ContentControl
 
     private void OnResizePointerPressed(object? sender, PointerPressedEventArgs args)
     {
-        // Another pointer neither takes over a running resize nor records a start.
-        if (!_resizing || _resizePointer is { } held && held != args.Pointer || _tour is not { } tour) return;
-        _resizePointer = args.Pointer;
-        // A press captures the element it hits, the border of the thumb's template. The thumb takes the capture,
-        // so it receives the capture loss, and a canceled resize can release it.
+        // Another pointer neither takes over a running resize nor records a start; the thumb follows only the pointer
+        // that started its drag.
+        if (!_resizing || _resizeThumb.DragPointer != args.Pointer || _tour is not { } tour) return;
+        // A press captures the element it hits, the border of the thumb's template. The thumb takes the capture, so a
+        // canceled resize can release it.
         args.Pointer.Capture(_resizeThumb);
         var point = args.GetCurrentPoint(tour.EditingSurface);
         if (point.Properties.IsLeftButtonPressed)
             _resizePointerStart = (args.Pointer.Id, point.Position.X, Math.Clamp(_desiredWidth ?? Width, 180, MaximumInspectorWidth));
     }
 
-    private void OnResizePointerFinished(object? sender, RoutedEventArgs args)
+    private void OnResizePointerFinished(object? sender, PointerReleasedEventArgs args)
     {
-        var pointer = args switch { PointerEventArgs released => released.Pointer, PointerCaptureLostEventArgs lost => lost.Pointer, _ => null };
-        if (_resizePointerStart is not { } start || pointer is null || start.PointerId != pointer.Id || _tour is not { } tour) return;
+        if (_resizePointerStart is not { } start || start.PointerId != args.Pointer.Id || _tour is not { } tour) return;
         _resizePointerStart = null;
-        // A lost capture carries no position in Avalonia; the width of the last drag delta stays. This also keeps the
-        // width of a canceled touch, which WinUI reverted.
-        if (args is not PointerEventArgs finished) return;
         // Thumb may complete before these handlers, with no final PointerMoved event.
         // Use the final position in the stationary surface, once, rather than adding another drag delta.
-        var delta = finished.GetPosition(tour.EditingSurface).X - start.X;
+        var delta = args.GetPosition(tour.EditingSurface).X - start.X;
         _desiredWidth = Math.Clamp(start.Width + (_dockLeft ? delta : -delta), 180, MaximumInspectorWidth);
         tour.RefreshEditorLayout();
+    }
+
+    // A lost capture carries no position in Avalonia; the width of the last drag delta stays. This also keeps the
+    // width of a canceled touch, which WinUI reverted.
+    private void OnResizePointerFinished(object? sender, PointerCaptureLostEventArgs args)
+    {
+        if (_resizePointerStart is { } start && start.PointerId == args.Pointer.Id) _resizePointerStart = null;
     }
 
     private void OnResizeCompleted(object? sender, VectorEventArgs args) => CompleteResize(canceled: false);
@@ -524,7 +526,6 @@ public sealed partial class DaisyTourEditor : ContentControl
     {
         if (!_resizing) return;
         _resizing = false;
-        _resizePointer = null;
         if (canceled)
         {
             _resizePointerStart = null;
@@ -540,7 +541,7 @@ public sealed partial class DaisyTourEditor : ContentControl
         if (!_resizing) return;
         // Avalonia's Thumb cannot cancel its drag: the resize ends as canceled, and releasing the thumb's capture
         // ends the drag of the thumb. Its DragCompleted then finds no resize to complete.
-        var pointer = _resizePointer;
+        var pointer = _resizeThumb.DragPointer;
         CompleteResize(canceled: true);
         if (pointer?.Captured == _resizeThumb) pointer.Capture(null);
     }
@@ -1202,6 +1203,9 @@ public sealed partial class DaisyTourEditor : ContentControl
     private sealed class SinglePointerThumb : Thumb
     {
         private IPointer? _dragPointer;
+
+        // The pointer that drags the thumb; a canceled resize releases its capture, as WinUI's CancelDrag does.
+        internal IPointer? DragPointer => _dragPointer;
 
         protected override Type StyleKeyOverride => typeof(Thumb);
 

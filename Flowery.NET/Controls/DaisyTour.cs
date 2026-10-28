@@ -200,6 +200,8 @@ public sealed partial class DaisyTour : ContentControl
     internal DaisyTourTargetProblem? Warning => _session?.Warning;
     internal Rect CardBounds { get; private set; }
     internal DaisySteps Progress => _progress;
+    internal Path Backdrop => _backdrop;
+    internal Path Outline => _outline;
     internal bool IsTransitioning => _session?.Busy == true;
     internal event EventHandler? GeometryUpdated;
 
