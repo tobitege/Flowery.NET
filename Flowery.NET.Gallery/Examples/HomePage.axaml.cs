@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Avalonia;
@@ -29,6 +29,20 @@ public partial class HomePage : UserControl
         FlowerySizeManager.SizeChanged -= OnGlobalSizeChanged;
     }
 
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+        // A narrow page sizes its cards to its width, which changes again while the sidebar folds away.
+        if (IsNarrow(e.PreviousSize.Width) || IsNarrow(e.NewSize.Width))
+            ApplySizeToLayout(FlowerySizeManager.CurrentSize);
+    }
+
+    // A phone in portrait: the sections keep less room at their sides, and the cards fit the page.
+    private static bool IsNarrow(double width) => width is > 0 and < NarrowWidth;
+
+    private const double NarrowWidth = 600;
+    private const double NarrowSidePadding = 16;
+
     private void OnGlobalSizeChanged(object? sender, DaisySize size)
     {
         ApplySizeToLayout(size);
@@ -47,23 +61,29 @@ public partial class HomePage : UserControl
             _ => (1.0, 1.0, 380.0, 120.0)
         };
 
+        var narrow = IsNarrow(Bounds.Width);
+        var side = narrow ? NarrowSidePadding : 40 * paddingScale;
+        // While the sidebar folds away, the page can be narrower than its padding for a moment.
+        if (narrow && FloweryCard != null)
+            cardWidth = Math.Clamp(Bounds.Width - 2 * side - FloweryCard.Margin.Left - FloweryCard.Margin.Right, 120, cardWidth);
+
         // Hero section padding and emoji
         if (HeroSection != null)
-            HeroSection.Padding = new Thickness(40 * paddingScale, 60 * paddingScale);
+            HeroSection.Padding = new Thickness(side, 60 * paddingScale);
 
         if (HeroEmoji != null)
             HeroEmoji.FontSize = 64 * emojiScale;
 
         // About section padding
         if (AboutSection != null)
-            AboutSection.Padding = new Thickness(40 * paddingScale, 50 * paddingScale);
+            AboutSection.Padding = new Thickness(side, 50 * paddingScale);
 
         if (AboutContent != null)
             AboutContent.MaxWidth = 800 * paddingScale;
 
         // Thanks section padding and emoji
         if (ThanksSection != null)
-            ThanksSection.Padding = new Thickness(40 * paddingScale, 50 * paddingScale);
+            ThanksSection.Padding = new Thickness(side, 50 * paddingScale);
 
         if (ThanksContent != null)
             ThanksContent.MaxWidth = 900 * paddingScale;

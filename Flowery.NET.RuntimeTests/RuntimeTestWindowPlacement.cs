@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Avalonia;
@@ -32,7 +32,9 @@ internal static partial class RuntimeTestWindowPlacement
         if (string.IsNullOrWhiteSpace(device))
         {
             // Small desktops, such as the 1024x768 desktop of CI runners, get a window that fits their work area.
-            var primary = window.Screens.Primary ?? throw new InvalidOperationException("No screen is available.");
+            // Xvfb marks no screen as primary.
+            var primary = window.Screens.Primary ?? window.Screens.All.FirstOrDefault()
+                          ?? throw new InvalidOperationException("No screen is available.");
             window.Width = Math.Min(DefaultWidth, primary.WorkingArea.Width / primary.Scaling * 0.9);
             window.Height = Math.Min(DefaultHeight, primary.WorkingArea.Height / primary.Scaling * 0.9);
             window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -99,7 +101,8 @@ internal static partial class RuntimeTestWindowPlacement
 
     private static string? GetDeviceName(Screen screen)
     {
-        if (screen.TryGetPlatformHandle() is not { } handle || handle.Handle == IntPtr.Zero)
+        // Linux and macOS have no device names such as \\.\DISPLAY2; their screens go by display name.
+        if (!OperatingSystem.IsWindows() || screen.TryGetPlatformHandle() is not { } handle || handle.Handle == IntPtr.Zero)
             return screen.DisplayName;
 
         var information = new MonitorInfoEx { Size = (uint)Marshal.SizeOf<MonitorInfoEx>() };

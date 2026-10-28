@@ -47,12 +47,15 @@ jobs:
           - os: windows-2025-vs2026
             rid: win-x64
             cross_rid: win-arm64
+            python: python
           - os: ubuntu-24.04
             rid: linux-x64
             cross_rid: linux-arm64
+            python: python3
           - os: macos-15
             rid: osx-arm64
             cross_rid: osx-x64
+            python: python3
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -64,12 +67,13 @@ jobs:
       - name: Run Photos tests
         run: dotnet test Flowery.NET.Photos.Tests/Flowery.NET.Photos.Tests.csproj -c ${{ matrix.configuration }}
 
-      # Publishes the runner's own runtime and cross-publishes the other architecture of the same OS.
+      # Cross-publishes the other architecture of the same OS, then publishes the runner's own runtime, which stays
+      # in ./publish for the start check.
       - name: Verify Photos release packages
         if: matrix.configuration == 'Release'
         shell: bash
         run: |
-          for rid in ${{ matrix.rid }} ${{ matrix.cross_rid }}; do
+          for rid in ${{ matrix.cross_rid }} ${{ matrix.rid }}; do
             rm -rf ./publish
             dotnet publish Flowery.NET.Photos.Desktop/Flowery.NET.Photos.Desktop.csproj \
               -c Release -r "$rid" --self-contained true \
@@ -79,6 +83,32 @@ jobs:
               -o ./publish
             python Utils/photos_release.py verify --rid "$rid"
           done
+
+      # Opens a photo, rotates it, saves a copy, and opens the copy after a restart, which must keep the window size.
+      - name: Install a window manager and xdotool
+        if: matrix.configuration == 'Release' && runner.os == 'Linux'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends openbox wmctrl xdotool
+
+      - name: Start the published app
+        if: matrix.configuration == 'Release' && runner.os != 'Linux'
+        shell: bash
+        run: ${{ matrix.python }} -B scripts/check_photos_app.py --app ./publish --output ./artifacts/photos
+
+      - name: Start the published app on Xvfb
+        if: matrix.configuration == 'Release' && runner.os == 'Linux'
+        run: >-
+          xvfb-run --auto-servernum --server-args='-screen 0 1600x1000x24'
+          sh -c 'openbox & sleep 2; python3 -B scripts/check_photos_app.py --app ./publish --output ./artifacts/photos'
+
+      - name: Upload the Photos logs, screenshots and photos
+        if: ${{ !success() && matrix.configuration == 'Release' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: photos-${{ runner.os }}
+          path: ./artifacts/photos
+          if-no-files-found: ignore
 
   build-library:
     runs-on: ubuntu-24.04
@@ -115,13 +145,18 @@ jobs:
       - name: Run Photos release tests
         run: python3 -B -m unittest discover -s Utils -p test_photos_release.py
 
+      - name: Run the tests of the CI check scripts
+        run: python3 -B -m unittest discover -s scripts -p 'test_*.py'
+
   runtime-tests:
-    # Renders the controls and Gallery pages in a real desktop window; see scripts/README.md.
-    runs-on: windows-2025-vs2026
+    # Renders the controls and Gallery pages in a real desktop window; see scripts/README.md. Linux draws on Xvfb.
+    # Only Windows has the tests that compare screen captures (Given_GlassBackdrop.Screen.cs).
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
+        os: [windows-2025-vs2026, ubuntu-24.04, macos-15]
         configuration: [Debug, Release]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -131,15 +166,22 @@ jobs:
           global-json-file: global.json
 
       - name: Run runtime UI tests
+        if: runner.os != 'Linux'
         shell: pwsh
         run: ./scripts/test_runtime.ps1 -Configuration ${{ matrix.configuration }}
+
+      - name: Run runtime UI tests on Xvfb
+        if: runner.os == 'Linux'
+        run: >-
+          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24'
+          pwsh ./scripts/test_runtime.ps1 -Configuration ${{ matrix.configuration }}
 
       - name: Upload runtime test results
         # Also after a timeout or cancellation, when the progress log shows the hanging test.
         if: ${{ !success() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: runtime-tests-${{ matrix.configuration }}
+          name: runtime-tests-${{ runner.os }}-${{ matrix.configuration }}
           path: |
             ./TestResults/${{ matrix.configuration }}
             ./logs
@@ -183,9 +225,54 @@ jobs:
             -p:EnableCompressionInSingleFile=true \
             -o ./publish
 
-  build-android:
-    # One ABI is enough to catch Android build breaks; releases build all four APKs.
+  build-browser:
+    # Publishes the Browser Gallery as the releases do (_build-gallery.yml) and starts it in headless Chromium.
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      # WasmBuildNative links the SkiaSharp and HarfBuzz native libraries into dotnet.native.wasm.
+      - name: Install WebAssembly build tools
+        run: dotnet workload install wasm-tools
+
+      - name: Publish Browser Gallery
+        run: |
+          dotnet publish Flowery.NET.Gallery.Browser/Flowery.NET.Gallery.Browser.csproj \
+            -c Release \
+            -o ./browser-publish
+
+      # Playwright and its dependencies come with pinned versions and hashes.
+      - name: Install Playwright and headless Chromium
+        run: |
+          python3 -m venv "$RUNNER_TEMP/playwright"
+          "$RUNNER_TEMP/playwright/bin/pip" install --quiet --require-hashes \
+            -r scripts/check_browser_gallery.requirements.txt
+          "$RUNNER_TEMP/playwright/bin/python" -m playwright install --with-deps chromium-headless-shell
+
+      - name: Start the Browser Gallery in headless Chromium
+        run: >-
+          "$RUNNER_TEMP/playwright/bin/python" -B scripts/check_browser_gallery.py
+          --site ./browser-publish/wwwroot --output ./artifacts/browser
+
+      - name: Upload screenshots and the console log
+        if: ${{ !success() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: browser-gallery
+          path: ./artifacts/browser
+          if-no-files-found: ignore
+
+  build-android:
+    # One ABI is enough to catch Android build breaks; releases build all four APKs. x86_64 is the ABI of the emulator,
+    # which starts the APK.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -214,7 +301,38 @@ jobs:
           dotnet publish Flowery.NET.Gallery.Android/Flowery.NET.Gallery.Android.csproj \
             -c Release \
             -f ${{ steps.android.outputs.target_framework }} \
-            -r android-arm64 \
+            -r android-x64 \
             -p:AndroidPackageFormat=apk \
             -o ./android-publish
-          find ./android-publish -name "*.apk" | grep -q . || { echo "::error::No Android APK was produced."; exit 1; }
+          test -f ./android-publish/com.CompanyName.Flowery.NET.Gallery-Signed.apk \
+            || { echo "::error::No signed Android APK was produced."; exit 1; }
+
+      # The emulator needs KVM, which the hosted Linux runners offer to members of the kvm group only.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # Android 15 (API 35), x86_64, Google APIs, on a Pixel 6 profile. More devices or ABIs are a separate decision.
+      - name: Start the Gallery in the Android emulator
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: >-
+            python3 -B scripts/check_android_gallery.py
+            --apk ./android-publish/com.CompanyName.Flowery.NET.Gallery-Signed.apk --output ./artifacts/android
+
+      - name: Upload screenshots, UI dumps and logcat
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: android-gallery
+          path: ./artifacts/android
+          if-no-files-found: ignore
