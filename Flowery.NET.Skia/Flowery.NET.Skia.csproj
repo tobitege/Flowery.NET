@@ -8,11 +8,11 @@
 
     <PackageId>Flowery.NET.Skia</PackageId>
     <Authors>tobitege</Authors>
-    <Description>SkiaSharp effects for Flowery.NET: live backdrop blur with liquid-glass optics and animated shader backgrounds for the DaisyGlass controls.</Description>
+    <Description>SkiaSharp effects for Flowery.NET: live backdrop blur with liquid-glass optics and animated shader backgrounds for the DaisyGlass controls, and GL carousel transitions and effects drawn with SkSL shaders on every Avalonia target.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/tobitege/Flowery.NET</PackageProjectUrl>
     <RepositoryUrl>https://github.com/tobitege/Flowery.NET</RepositoryUrl>
-    <PackageTags>avalonia;flowery;daisyui;glass;skia;shader</PackageTags>
+    <PackageTags>avalonia;flowery;daisyui;glass;skia;shader;sksl;carousel;transitions</PackageTags>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

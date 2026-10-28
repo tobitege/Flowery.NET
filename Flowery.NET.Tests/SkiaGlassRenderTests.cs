@@ -31,6 +31,26 @@ public class SkiaGlassRenderTests
         Assert.NotEqual(Pixels(early), Pixels(late));
     }
 
+    [Fact]
+    public void A_Shader_Background_Draws_At_The_Opacity_It_Is_Given()
+    {
+        // Skia multiplies a shader by the alpha of its paint, which carries the opacity of the lease.
+        using var opaque = Draw(DaisyGlassAnimation.Plasma, 1);
+        using var half = new SKBitmap(new SKImageInfo(64, 32, SKColorType.Rgba8888, SKAlphaType.Premul));
+        using (var canvas = new SKCanvas(half))
+            DaisyGlassShaderBackground.Draw(canvas, 64, 32, DaisyGlassAnimation.Plasma, 1, opacity: 0.5);
+
+        var expected = Pixels(opaque);
+        var actual = Pixels(half);
+        for (var i = 0; i < actual.Length; i++)
+        {
+            Assert.InRange(actual[i].Alpha, 127, 129);
+            Assert.InRange(actual[i].Red, expected[i].Red - 3, expected[i].Red + 3);
+            Assert.InRange(actual[i].Green, expected[i].Green - 3, expected[i].Green + 3);
+            Assert.InRange(actual[i].Blue, expected[i].Blue - 3, expected[i].Blue + 3);
+        }
+    }
+
     [AvaloniaFact]
     public void Without_A_Change_The_Backdrop_Is_Not_Measured_Again_Right_Away()
     {

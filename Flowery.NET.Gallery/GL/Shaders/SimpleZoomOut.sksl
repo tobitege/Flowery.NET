@@ -1,0 +1,23 @@
+// Author: Tianshuo
+// License: MIT
+
+
+uniform float zoom_quickness; // = 0.8
+// SkSL: no bool uniforms; fade is an int (0 = false).
+uniform int fade; // = true
+// SkSL: global initializers must be constant; nQuick is set at the start of transition(),
+// where GL runs this initializer (at the start of main).
+float nQuick;
+
+vec2 zoom(vec2 uv, float amount) {
+  return 0.5 + ((uv - 0.5) * (1.0-amount));	
+}
+
+vec4 transition (vec2 uv) {
+  nQuick = clamp(zoom_quickness,0.2,1.0);
+  return mix(
+    getFromColor(uv),
+    getToColor(zoom(uv,1.-smoothstep(1.-nQuick, 1., progress))),
+   fade != 0 ? smoothstep(1.0-nQuick, 1., progress):(progress<1.0-nQuick?0.0:1.0)
+  );
+}

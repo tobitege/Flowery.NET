@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -79,6 +79,10 @@ public partial class SectionHeader : UserControl
         ["contributiongraph"] = "DaisyContributionGraph",
         ["animatednumber"] = "DaisyAnimatedNumber",
         ["numberflow"] = "DaisyNumberFlow",
+
+        // Carousel GL
+        ["carouselgl"] = "FloweryCarouselGL",
+        ["carouselgltransitions"] = "FloweryCarouselGL",
 
         // Date Display
         ["date-timeline"] = "DaisyDateTimeline",

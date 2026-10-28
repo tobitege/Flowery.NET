@@ -1,0 +1,22 @@
+// License: MIT
+// Author: pthrasher
+// adapted by gre from https://gist.github.com/pthrasher/8e6226b215548ba12734
+
+const vec2 center = vec2(0.5, 0.5);
+const float feather = 0.08;
+
+vec4 transition(vec2 uv) {
+  vec2 offset = uv - center;
+  offset.x *= ratio;
+  float dist = length(offset);
+  float dx = max(center.x, 1.0 - center.x);
+  float dy = max(center.y, 1.0 - center.y);
+  float maxRadius = length(vec2(dx * ratio, dy));
+  float angle = atan(offset.y, offset.x);
+  float wave = 0.06 * sin(angle * 6.0 + progress * 8.0)
+    + 0.03 * sin(angle * 12.0 - progress * 6.0);
+  float t = clamp(progress + wave, 0.0, 1.0);
+  float radius = mix(0.0, maxRadius, t);
+  float edge = smoothstep(radius - feather, radius + feather, dist);
+  return mix(getFromColor(uv), getToColor(uv), 1.0 - edge);
+}

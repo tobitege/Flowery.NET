@@ -88,7 +88,7 @@ public class Sample : Control
                 site.generate()
             manifests.append(site.converter.pages)
             index = site._generate_llms_txt_from_curated()
-            for name in ('DaisyScheduler', 'FlowKanban', 'FlowKanbanDialogBase', 'LocalizeExtensionBase', 'working_with_animations'):
+            for name in ('DaisyScheduler', 'FlowKanban', 'FlowKanbanDialogBase', 'FloweryCarouselGL', 'LocalizeExtensionBase', 'working_with_animations'):
                 self.assertIn(name, index)
             self.assertEqual(ROOT / 'llms-static', site.curated_dir)
         self.assertEqual(manifests[0], manifests[1])

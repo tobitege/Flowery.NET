@@ -80,6 +80,22 @@ public static class GallerySidebarData
                 ]
             },
             new() {
+                Name = "Sidebar_CarouselGL",
+                IconKey = "DaisyIconRepost",
+                Items =
+                [
+                    new SidebarItem { Id = "carousel-gl", Name = "Sidebar_CarouselGL", TabHeader = "Sidebar_CarouselGL" }
+                ]
+            },
+            new() {
+                Name = "Sidebar_CarouselGLTransitions",
+                IconKey = "DaisyIconRepost",
+                Items =
+                [
+                    new SidebarItem { Id = "carousel-gl-transitions", Name = "Sidebar_CarouselGLTransitions", TabHeader = "Sidebar_CarouselGLTransitions" }
+                ]
+            },
+            new() {
                 Name = "Sidebar_DataDisplay",
                 IconKey = "DaisyIconDataDisplay",
                 Items =

@@ -1,0 +1,280 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:effects="clr-namespace:Flowery.Effects;assembly=Flowery.NET.Skia"
+             xmlns:loc="clr-namespace:Flowery.NET.Gallery.Localization"
+             xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
+             x:Class="Flowery.NET.Gallery.Examples.CarouselGlExamples">
+
+    <!-- The Narrow and Wide states of the WinUI page (AdaptiveTrigger, MinWindowWidth 720) are set in code:
+         Avalonia has no adaptive triggers (ApplyResponsiveState). -->
+    <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
+                  Background="Transparent" Padding="0,0,0,32">
+        <StackPanel x:Name="ContentStack" Spacing="24" Margin="24,0,24,32">
+
+            <StackPanel Spacing="14">
+                <local:SectionHeader SectionId="carousel-gl" Title="{loc:Localize Gallery_CarouselGL_Title}" />
+                <TextBlock Text="{loc:Localize Gallery_CarouselGL_Description}" TextWrapping="Wrap" Opacity="0.7"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                <TextBlock x:Name="DebugDefinesText"
+                           FontSize="11"
+                           Opacity="0.6"
+                           TextWrapping="Wrap"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                <TextBlock Text="{loc:Localize Gallery_CarouselGL_Config_Subtitle}" FontWeight="SemiBold" Opacity="0.85"
+                           Margin="0,12,0,0" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                <TextBlock Text="{loc:Localize Gallery_CarouselGL_Config_Description}" TextWrapping="Wrap" Opacity="0.7"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,4">
+                    <TextBlock Text="{loc:Localize Gallery_Carousel_OnOff}" FontSize="11" Opacity="0.6"
+                               Foreground="{DynamicResource DaisyBaseContentBrush}"
+                               VerticalAlignment="Center" />
+                    <controls:DaisyToggle x:Name="GlPreviewEnabledToggle" IsChecked="True"
+                                          AutomationProperties.Name="{loc:Localize Gallery_Carousel_OnOff}"
+                                          IsCheckedChanged="GlPreviewEnabledToggle_Changed" />
+                </StackPanel>
+
+                <!-- A WinUI border clips its child to the rounded corners; an Avalonia border does so with ClipToBounds. -->
+                <Border x:Name="GlPreviewBorder"
+                        Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"
+                        BorderThickness="1" CornerRadius="12" Height="220" MaxWidth="520" ClipToBounds="True"
+                        HorizontalAlignment="Stretch">
+                    <effects:CarouselGlEffectHost x:Name="GlPreviewHost" Effect="Fade"
+                                                  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+                </Border>
+
+                <WrapPanel Orientation="Horizontal" ItemSpacing="16" LineSpacing="16" Margin="0,8,0,0">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Mode_Label}" FontSize="12" Opacity="0.7"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <controls:DaisySelect x:Name="GlModeSelect" Width="150" SelectedIndex="1"
+                                              AutomationProperties.Name="{loc:Localize Gallery_Carousel_Mode_Label}"
+                                              SelectionChanged="GlModeSelect_SelectionChanged">
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Mode_Manual}" Tag="Manual" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Mode_Slideshow}" Tag="Slideshow" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Mode_Random}" Tag="Random" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Mode_Kiosk}" Tag="Kiosk" />
+                        </controls:DaisySelect>
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Transition_Label}" FontSize="12" Opacity="0.7"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <controls:DaisySelect x:Name="GlTransitionSelect" Width="180" SelectedIndex="1"
+                                              AutomationProperties.Name="{loc:Localize Gallery_Carousel_Transition_Label}"
+                                              SelectionChanged="GlTransitionSelect_SelectionChanged">
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_None}" Tag="None" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_Fade}" Tag="Fade" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_FadeBlack}" Tag="FadeThroughBlack" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_FadeWhite}" Tag="FadeThroughWhite" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_SlideLeft}" Tag="SlideLeft" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_SlideRight}" Tag="SlideRight" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_SlideUp}" Tag="SlideUp" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_SlideDown}" Tag="SlideDown" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_PushLeft}" Tag="PushLeft" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_PushRight}" Tag="PushRight" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_PushUp}" Tag="PushUp" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_PushDown}" Tag="PushDown" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_ZoomIn}" Tag="ZoomIn" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_ZoomOut}" Tag="ZoomOut" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_ZoomCross}" Tag="ZoomCross" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_CarouselGL_Transition_FlipPlane}" Tag="FlipPlane" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_FlipH}" Tag="FlipHorizontal" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_FlipV}" Tag="FlipVertical" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_CubeLeft}" Tag="CubeLeft" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_CubeRight}" Tag="CubeRight" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_CoverLeft}" Tag="CoverLeft" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_CoverRight}" Tag="CoverRight" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_RevealLeft}" Tag="RevealLeft" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_RevealRight}" Tag="RevealRight" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_WipeLeft}" Tag="WipeLeft" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_WipeRight}" Tag="WipeRight" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_WipeUp}" Tag="WipeUp" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_WipeDown}" Tag="WipeDown" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_BlindsH}" Tag="BlindsHorizontal" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_BlindsV}" Tag="BlindsVertical" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_SlicesH}" Tag="SlicesHorizontal" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_SlicesV}" Tag="SlicesVertical" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_Checkerboard}" Tag="Checkerboard" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_Spiral}" Tag="Spiral" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_MatrixRain}" Tag="MatrixRain" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_Wormhole}" Tag="Wormhole" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_Dissolve}" Tag="Dissolve" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_Pixelate}" Tag="Pixelate" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Transition_Random}" Tag="Random" />
+                        </controls:DaisySelect>
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Duration_Label}" FontSize="12" Opacity="0.7"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <controls:DaisySelect x:Name="GlDurationSelect" Width="110" SelectedIndex="2"
+                                              AutomationProperties.Name="{loc:Localize Gallery_Carousel_Duration_Label}"
+                                              SelectionChanged="GlDurationSelect_SelectionChanged">
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Duration_Instant}" Tag="0.1" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Duration_Fast}" Tag="0.25" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Duration_Normal}" Tag="0.4" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Duration_Slow}" Tag="0.6" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Duration_VerySlow}" Tag="1.0" />
+                        </controls:DaisySelect>
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Effect_Label}" FontSize="12" Opacity="0.7"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <controls:DaisySelect x:Name="GlEffectSelect" Width="150" SelectedIndex="0"
+                                              AutomationProperties.Name="{loc:Localize Gallery_Carousel_Effect_Label}"
+                                              SelectionChanged="GlEffectSelect_SelectionChanged">
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Effect_None}" Tag="None" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Effect_PanAndZoom}" Tag="EffectPanAndZoom" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Effect_ZoomIn}" Tag="EffectZoomIn" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Effect_ZoomOut}" Tag="EffectZoomOut" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Effect_PanLeft}" Tag="EffectPanLeft" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Effect_PanRight}" Tag="EffectPanRight" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Effect_PanUp}" Tag="EffectPanUp" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Effect_PanDown}" Tag="EffectPanDown" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Effect_Drift}" Tag="EffectDrift" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Effect_Pulse}" Tag="EffectPulse" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Effect_Breath}" Tag="EffectBreath" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Effect_Throw}" Tag="EffectThrow" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_TextFill_Title}" Tag="TextFill" />
+                        </controls:DaisySelect>
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Interval_Label}" FontSize="12" Opacity="0.7"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <controls:DaisyNumericUpDown x:Name="GlIntervalBox" Width="90"
+                                                     AutomationProperties.Name="{loc:Localize Gallery_Carousel_Interval_Label}" />
+                    </StackPanel>
+                    <controls:DaisyToggle x:Name="GlInfiniteToggle" Content="{loc:Localize Gallery_Carousel_Infinite_Label}"
+                                          VerticalAlignment="Bottom" Margin="0,0,0,2"
+                                          IsCheckedChanged="GlInfiniteToggle_Changed" />
+                </WrapPanel>
+
+                <TextBlock Text="{loc:Localize Gallery_CarouselGL_Config_Note}" FontSize="11" Opacity="0.6" TextWrapping="Wrap"
+                           Margin="0,6,0,0" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+
+                <WrapPanel Orientation="Horizontal" ItemSpacing="16" LineSpacing="16" Margin="0,8,0,0">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Param_SlicesGrid}" FontSize="11" Opacity="0.6"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <controls:DaisyNumericUpDown x:Name="GlSliceCountBox" Width="90"
+                                                     AutomationProperties.Name="{loc:Localize Gallery_Carousel_Param_SlicesGrid}" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Param_Stagger}" FontSize="11" Opacity="0.6"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <controls:DaisyToggle x:Name="GlStaggerToggle" IsChecked="True"
+                                              AutomationProperties.Name="{loc:Localize Gallery_Carousel_Param_Stagger}" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Param_StaggerDelay}" FontSize="11" Opacity="0.6"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <controls:DaisyNumericUpDown x:Name="GlStaggerMsBox" Width="90"
+                                                     AutomationProperties.Name="{loc:Localize Gallery_Carousel_Param_StaggerDelay}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Param_PixelSize}" FontSize="11" Opacity="0.6"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <controls:DaisyNumericUpDown x:Name="GlPixelateSizeBox" Width="90"
+                                                     AutomationProperties.Name="{loc:Localize Gallery_Carousel_Param_PixelSize}" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Param_DissolveDensity}" FontSize="11" Opacity="0.6"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <!-- Two decimals for the steps of 0.05: the default format "0" showed 0.5 as 1. -->
+                        <controls:DaisyNumericUpDown x:Name="GlDissolveDensityBox" Width="100" FormatString="0.00"
+                                                     AutomationProperties.Name="{loc:Localize Gallery_Carousel_Param_DissolveDensity}" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Param_FlipAngle}" FontSize="11" Opacity="0.6"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <controls:DaisyNumericUpDown x:Name="GlFlipAngleBox" Width="90"
+                                                     AutomationProperties.Name="{loc:Localize Gallery_Carousel_Param_FlipAngle}" />
+                    </StackPanel>
+                </WrapPanel>
+
+                <controls:DaisyCard Variant="Compact" Size="Small" Margin="0,12,0,0">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Guide_Title}" FontWeight="Bold"
+                                   Foreground="{DynamicResource DaisyPrimaryBrush}" Opacity="0.9" />
+
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:Localize Gallery_Carousel_Guide_GridLabel}"
+                                       FontWeight="SemiBold" Width="100" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_GridDesc}" Opacity="0.8" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{loc:Localize Gallery_Carousel_Guide_StaggerMsLabel}"
+                                       FontWeight="SemiBold" Width="100" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_StaggerMsDesc}" Opacity="0.8" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:Localize Gallery_Carousel_Guide_StaggerToggleLabel}"
+                                       FontWeight="SemiBold" Width="100" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_StaggerToggleDesc}" Opacity="0.8" />
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:Localize Gallery_Carousel_Guide_PixelSizeLabel}"
+                                       FontWeight="SemiBold" Width="100" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_PixelSizeDesc}" Opacity="0.8" />
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:Localize Gallery_Carousel_Guide_DissolveDensityLabel}"
+                                       FontWeight="SemiBold" Width="100" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_DissolveDensityDesc}" Opacity="0.8" />
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="{loc:Localize Gallery_Carousel_Guide_FlipAngleLabel}"
+                                       FontWeight="SemiBold" Width="100" />
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_FlipAngleDesc}" Opacity="0.8" />
+                        </Grid>
+                    </StackPanel>
+                </controls:DaisyCard>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
+            <StackPanel Spacing="14">
+                <TextBlock Text="{loc:Localize Gallery_CarouselGL_Mask_Title}" FontWeight="SemiBold" Opacity="0.85"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                <TextBlock Text="{loc:Localize Gallery_CarouselGL_Mask_Description}"
+                           Opacity="0.7" TextWrapping="Wrap" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                <Border x:Name="GlMaskPreviewBorder"
+                        Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"
+                        BorderThickness="1" CornerRadius="12" Height="220" MaxWidth="480" ClipToBounds="True"
+                        HorizontalAlignment="Stretch">
+                    <effects:CarouselGlEffectHost x:Name="GlMaskHost" Effect="MaskTransition"
+                                                  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+                </Border>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
+            <StackPanel Spacing="14">
+                <TextBlock Text="{loc:Localize Gallery_CarouselGL_Flip_Title}" FontWeight="SemiBold" Opacity="0.85"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                <TextBlock Text="{loc:Localize Gallery_CarouselGL_Flip_Description}"
+                           Opacity="0.7" TextWrapping="Wrap" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                <Border x:Name="GlFlipPreviewBorder"
+                        Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"
+                        BorderThickness="1" CornerRadius="12" Height="220" MaxWidth="520" ClipToBounds="True"
+                        HorizontalAlignment="Stretch">
+                    <effects:CarouselGlEffectHost x:Name="GlFlipHost" Effect="FlipPlane"
+                                                  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+                </Border>
+            </StackPanel>
+
+            <controls:DaisyDivider />
+
+            <StackPanel Spacing="14">
+                <TextBlock Text="{loc:Localize Gallery_CarouselGL_TextFill_Title}" FontWeight="SemiBold" Opacity="0.85"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                <TextBlock Text="{loc:Localize Gallery_CarouselGL_TextFill_Description}"
+                           Opacity="0.7" TextWrapping="Wrap" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                <Border x:Name="GlTextPreviewBorder"
+                        Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"
+                        BorderThickness="1" CornerRadius="12" Height="200" MaxWidth="520" ClipToBounds="True"
+                        HorizontalAlignment="Stretch">
+                    <effects:CarouselGlEffectHost x:Name="GlTextHost" Effect="TextFill"
+                                                  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+                </Border>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

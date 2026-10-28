@@ -29,6 +29,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The SkSL ports of the gl-transitions catalog, read by CarouselGlTransitionHost -->
+    <EmbeddedResource Include="GL\Shaders\*.sksl" LogicalName="Flowery.GL.Shaders.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Embed JSON localization files as resources -->
     <EmbeddedResource Include="Localization\en.json" />
     <EmbeddedResource Include="Localization\de.json" />

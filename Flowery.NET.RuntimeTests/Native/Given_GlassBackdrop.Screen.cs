@@ -193,6 +193,62 @@ public partial class Given_GlassBackdrop
         return (first, last);
     }
 
+    [Fact]
+    public async Task When_A_Live_Glass_Or_Its_Parent_Is_Half_Transparent_The_Glass_Is_Drawn_Half_Transparent()
+    {
+        // Regression: Avalonia multiplies opacity into each paint instead of drawing a layer, and the live SkiaSharp glass
+        // applied it to none of its paints, so in a fade or at Opacity 0.5 its blurred backdrop and tint stayed opaque.
+        var window = RuntimeTestHelpers.GetWindow();
+        // A strong red tint over blue, without shine, rim or bend: the glass differs clearly from its backdrop.
+        var glass = new DaisyGlass
+        {
+            Width = 160,
+            Height = 120,
+            CornerRadius = new CornerRadius(0),
+            EnableBackdropBlur = true,
+            BlurMode = GlassBlurMode.SkiaSharp,
+            GlassBlur = 2,
+            GlassTint = Colors.Red,
+            GlassTintOpacity = 0.8,
+            GlassReflectOpacity = 0,
+            GlassCurvature = 0,
+            GlassBend = 0,
+            GlassDispersion = 0
+        };
+        var parent = new Border { Child = glass };
+        Canvas.SetLeft(parent, 120);
+        Canvas.SetTop(parent, 70);
+        var canvas = new Canvas { Width = 400, Height = 260, Background = Brushes.Blue, Children = { parent } };
+        await RuntimeTestHelpers.AttachAsync(canvas);
+        await RuntimeTestHelpers.WaitForRenderAsync();
+        var scale = window.RenderScaling;
+        // Inside the glass below its top shine, and beside it on the bare backdrop.
+        var (insideX, insideY) = ((int)(200 * scale), (int)(170 * scale));
+        var (outsideX, outsideY) = ((int)(60 * scale), (int)(170 * scale));
+        SKColor full, backdrop;
+        using (var opaque = SKBitmap.Decode(await SaveScreenAsync(window, canvas, "glass-opacity-full")))
+        {
+            full = opaque.GetPixel(insideX, insideY);
+            backdrop = opaque.GetPixel(outsideX, outsideY);
+        }
+        Assert.True(full.Red - backdrop.Red > 100, $"The tinted glass {full} must differ clearly from its backdrop {backdrop}.");
+
+        foreach (var (glassOpacity, parentOpacity, name) in new[] { (0.5, 1.0, "glass"), (1.0, 0.5, "parent") })
+        {
+            glass.Opacity = glassOpacity;
+            parent.Opacity = parentOpacity;
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            await RuntimeTestHelpers.WaitForRenderAsync();
+            using var faded = SKBitmap.Decode(await SaveScreenAsync(window, canvas, "glass-opacity-" + name));
+            var pixel = faded.GetPixel(insideX, insideY);
+            // Half the glass over its backdrop lies halfway between the two.
+            var expected = Color.FromRgb((byte)((full.Red + backdrop.Red) / 2), (byte)((full.Green + backdrop.Green) / 2),
+                (byte)((full.Blue + backdrop.Blue) / 2));
+            Assert.True(RuntimeTestHelpers.IsClose(pixel, expected, 8),
+                $"With the {name} at 0.5 the glass shows {pixel}; at full opacity {full}, its backdrop {backdrop}, expected {expected}.");
+        }
+    }
+
     private static async Task<string> SaveScreenAsync(Window window, Control control, string name)
     {
         window.Topmost = true;

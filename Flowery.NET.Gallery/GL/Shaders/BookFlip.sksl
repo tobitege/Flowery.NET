@@ -1,0 +1,33 @@
+// Author: hong
+// License: MIT
+
+vec2 skewRight(vec2 p) {
+  float skewX = (p.x - progress)/(0.5 - progress) * 0.5;
+  float skewY =  (p.y - 0.5)/(0.5 + progress * (p.x - 0.5) / 0.5)* 0.5  + 0.5;
+  return vec2(skewX, skewY);
+}
+
+vec2 skewLeft(vec2 p) {
+  float skewX = (p.x - 0.5)/(progress - 0.5) * 0.5 + 0.5;
+  float skewY = (p.y - 0.5) / (0.5 + (1.0 - progress ) * (0.5 - p.x) / 0.5) * 0.5  + 0.5;
+  return vec2(skewX, skewY);
+}
+
+vec4 addShade() {
+  float shadeVal  =  max(0.7, abs(progress - 0.5) * 2.0);
+  return vec4(vec3(shadeVal ), 1.0);
+}
+
+vec4 transition (vec2 p) {
+  float pr = step(1.0 - progress, p.x);
+
+  // SkSL: pr is 0 or 1, so each half selects its side instead of mixing. At progress 0.5 the skews divide by
+  // zero: WebGL samples the infinite coordinates at the edge, Skia gets NaN, which mix() keeps at a weight of 0.
+  if (p.x < 0.5) {
+    if (pr < 0.5) return getFromColor(p);
+    return getToColor(skewLeft(p)) * addShade();
+  } else {
+    if (pr < 0.5) return getFromColor(skewRight(p)) * addShade();
+    return getToColor(p);
+  }
+}
