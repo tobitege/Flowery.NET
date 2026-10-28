@@ -3,8 +3,9 @@
 Called by the build-photos job of .github/workflows/ci.yml after the Release publish for the runner's own runtime.
 Drives the unchanged app from outside, as a user would, on the platform it runs on:
 
-1. Starts the app with a copy of a sample photo, rotates it (R) and saves a copy (Ctrl+S, which asks nothing).
-   The copy must have the rotated size.
+1. Writes a 320 x 200 PNG with a red, a green and a blue band from left to right, starts the app with it, rotates
+   it clockwise (R) and saves a copy (Ctrl+S, which asks nothing). The copy must be 200 x 320 with red on top and
+   blue at the bottom. The shipped samples are square, so their size would not show the rotation.
 2. Resizes the window and closes it. Photos saves the window size when it closes and restores it at start.
 3. Starts the app again with the saved copy, checks the window size, rotates and saves the copy once more, which
    shows that the copy opened in the editor, and closes the app.
@@ -25,25 +26,37 @@ import struct
 import subprocess
 import sys
 import time
+import zlib
+
+import ci_png
 
 # Opening the photo waits for the library scan of an empty library; keys before that change nothing.
 SETTLE_SECONDS = 8
+RED = (220, 40, 40)
+GREEN = (40, 180, 60)
+BLUE = (40, 60, 220)
 
 
-def jpeg_size(path):
-    """Returns (width, height) from the frame header of a JPEG."""
-    data = path.read_bytes()
-    position = 2
-    while position < len(data):
-        if data[position] != 0xFF:
-            raise ValueError(f"{path} is not a valid JPEG")
-        marker = data[position + 1]
-        length = struct.unpack(">H", data[position + 2:position + 4])[0]
-        if 0xC0 <= marker <= 0xCF and marker not in (0xC4, 0xC8, 0xCC):
-            height, width = struct.unpack(">HH", data[position + 5:position + 9])
-            return width, height
-        position += 2 + length
-    raise ValueError(f"{path} has no frame header")
+def write_png(path, width, height, color):
+    """Writes an 8-bit RGB PNG; color(x, y) returns the (red, green, blue) of each pixel."""
+    rows = b"".join(b"\x00" + bytes(channel for x in range(width) for channel in color(x, y)) for y in range(height))
+
+    def chunk(kind, data):
+        return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
+
+    path.write_bytes(b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0))
+                     + chunk(b"IDAT", zlib.compress(rows)) + chunk(b"IEND", b""))
+
+
+def edges(image):
+    """Returns the colors near the middle of the left, top, right and bottom edges."""
+    width, height = image.width, image.height
+    return [image.pixel(x, y) for x, y in
+            ((8, height // 2), (width // 2, 8), (width - 9, height // 2), (width // 2, height - 9))]
+
+
+def same_color(first, second):
+    return all(abs(a - b) <= 24 for a, b in zip(first, second))
 
 
 def run(command, check=True, timeout=60):
@@ -218,23 +231,29 @@ class Check:
         return process, window
 
     def rotate_and_save(self, process, window, source):
-        """Rotates the open photo and saves a copy; returns the copy."""
+        """Rotates the open photo clockwise and saves a copy; returns the copy."""
         before = set(self.photos.iterdir())
+        original = ci_png.read(source.read_bytes())
         self.driver.key(window, "r")
         time.sleep(2)
         self.driver.key(window, "s", control=True)
         deadline = time.monotonic() + 30
         while True:
-            # The copy is complete once it has a frame header.
             for path in set(self.photos.iterdir()) - before:
                 try:
-                    width, height = jpeg_size(path)
-                except (OSError, ValueError, struct.error):
+                    copy = ci_png.read(path.read_bytes())
+                except (OSError, ValueError, struct.error, zlib.error):
+                    # Not written completely yet.
                     continue
-                expected = tuple(reversed(jpeg_size(source)))
-                if (width, height) != expected:
-                    raise RuntimeError(f"{path.name} is {width} x {height}, not rotated to {expected[0]} x {expected[1]}")
-                print(f"Saved the rotated copy {path.name}, {width} x {height}", flush=True)
+                if (copy.width, copy.height) != (original.height, original.width):
+                    raise RuntimeError(f"{path.name} is {copy.width} x {copy.height}, not rotated to "
+                                       f"{original.height} x {original.width}")
+                # Clockwise, the left edge becomes the top, the top the right, and so on.
+                left, top, right, bottom = edges(original)
+                if not all(map(same_color, edges(copy), (bottom, left, top, right))):
+                    raise RuntimeError(f"{path.name} is not {source.name} rotated clockwise: its edges are "
+                                       f"{edges(copy)}, the edges of {source.name} {edges(original)}")
+                print(f"Saved the rotated copy {path.name}, {copy.width} x {copy.height}", flush=True)
                 return path
             if process.poll() is not None:
                 raise RuntimeError(f"Photos exited with code {process.returncode} instead of saving a copy")
@@ -264,12 +283,8 @@ def main():
     output.mkdir(parents=True)
     check = Check(args.app.resolve(strict=True), output)
     check.photos.mkdir()
-    # A landscape sample, so the rotation changes its size.
-    sample = next(path for path in sorted((args.app / "Assets" / "Samples").glob("wallpaper_*.jpg"))
-                  if jpeg_size(path)[0] != jpeg_size(path)[1])
-    photo = check.photos / "photo.jpg"
-    shutil.copyfile(sample, photo)
-    print(f"Photo: {sample.name}, {jpeg_size(photo)[0]} x {jpeg_size(photo)[1]}", flush=True)
+    photo = check.photos / "photo.png"
+    write_png(photo, 320, 200, lambda x, y: RED if x < 107 else GREEN if x < 213 else BLUE)
 
     process = None
     try:
