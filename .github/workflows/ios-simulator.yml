@@ -1,6 +1,7 @@
 name: iOS Gallery Simulator
 
-# Independent, manual build and visual inspection. No release or device signing.
+# Independent, manual build and visual inspection. No release or device signing: the simulator build is signed
+# ad hoc, without a certificate, because the simulator on Apple Silicon kills an app with unsigned libraries.
 on:
   workflow_dispatch:
     inputs:
@@ -71,7 +72,7 @@ jobs:
         id: build
         run: |
           dotnet build "$IOS_PROJECT" -c Release -r iossimulator-arm64 \
-            -p:FloweryIosSdkVersion="$IOS_SDK_VERSION" -p:EnableCodeSigning=false \
+            -p:FloweryIosSdkVersion="$IOS_SDK_VERSION" \
             "-bl:$ARTIFACT_DIR/logs/ios-build.binlog" \
             2>&1 | tee "$ARTIFACT_DIR/logs/ios-build.txt"
           # The SDK sets AppBundleDir in a target, so the evaluation (-getProperty) does not know it.
