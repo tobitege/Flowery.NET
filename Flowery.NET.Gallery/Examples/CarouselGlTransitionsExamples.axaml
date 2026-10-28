@@ -1,0 +1,88 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:galleryEffects="clr-namespace:Flowery.NET.Gallery.Effects"
+             xmlns:loc="clr-namespace:Flowery.NET.Gallery.Localization"
+             xmlns:local="clr-namespace:Flowery.NET.Gallery.Examples"
+             x:Class="Flowery.NET.Gallery.Examples.CarouselGlTransitionsExamples">
+
+    <!-- The Narrow and Wide states of the WinUI page (AdaptiveTrigger, MinWindowWidth 720) are set in code:
+         Avalonia has no adaptive triggers (ApplyResponsiveState). -->
+    <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
+                  Background="Transparent" Padding="0,0,0,32">
+        <StackPanel x:Name="ContentStack" Spacing="24" Margin="24,0,24,32">
+
+            <StackPanel Spacing="14">
+                <local:SectionHeader SectionId="carousel-gl-transitions" Title="{loc:Localize Gallery_CarouselGLTransitions_Title}" />
+                <TextBlock Text="{loc:Localize Gallery_CarouselGLTransitions_Description}" TextWrapping="Wrap" Opacity="0.7"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                <TextBlock Text="{loc:Localize Gallery_CarouselGL_Config_Subtitle}" FontWeight="SemiBold" Opacity="0.85"
+                           Margin="0,12,0,0" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                <TextBlock Text="{loc:Localize Gallery_CarouselGL_Config_Description}" TextWrapping="Wrap" Opacity="0.7"
+                           Foreground="{DynamicResource DaisyBaseContentBrush}" />
+
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,4">
+                    <TextBlock Text="{loc:Localize Gallery_Carousel_OnOff}" FontSize="11" Opacity="0.6"
+                               Foreground="{DynamicResource DaisyBaseContentBrush}"
+                               VerticalAlignment="Center" />
+                    <controls:DaisyToggle x:Name="GlPreviewEnabledToggle" IsChecked="True"
+                                          AutomationProperties.Name="{loc:Localize Gallery_Carousel_OnOff}"
+                                          IsCheckedChanged="GlPreviewEnabledToggle_Changed" />
+                </StackPanel>
+
+                <!-- A WinUI border clips its child to the rounded corners; an Avalonia border does so with ClipToBounds. -->
+                <Border x:Name="GlPreviewBorder"
+                        Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"
+                        BorderThickness="1" CornerRadius="12" Height="220" MinWidth="200" MaxWidth="560" ClipToBounds="True"
+                        HorizontalAlignment="Stretch">
+                    <galleryEffects:CarouselGlTransitionHost x:Name="GlPreviewHost"
+                                                             HorizontalContentAlignment="Stretch"
+                                                             VerticalContentAlignment="Stretch" />
+                </Border>
+
+                <WrapPanel Orientation="Horizontal" ItemSpacing="16" LineSpacing="16" Margin="0,8,0,0">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Mode_Label}" FontSize="12" Opacity="0.7"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <controls:DaisySelect x:Name="GlModeSelect" Width="150" SelectedIndex="1"
+                                              AutomationProperties.Name="{loc:Localize Gallery_Carousel_Mode_Label}"
+                                              SelectionChanged="GlModeSelect_SelectionChanged">
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Mode_Manual}" Tag="Manual" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Mode_Slideshow}" Tag="Slideshow" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Mode_Random}" Tag="Random" />
+                        </controls:DaisySelect>
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Transition_Label}" FontSize="12" Opacity="0.7"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <!-- The 100 transition names are shader names and stay untranslated; the code fills the items. -->
+                        <controls:DaisySelect x:Name="GlTransitionSelect" Width="220" SelectedIndex="0"
+                                              AutomationProperties.Name="{loc:Localize Gallery_Carousel_Transition_Label}"
+                                              SelectionChanged="GlTransitionSelect_SelectionChanged" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Duration_Label}" FontSize="12" Opacity="0.7"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <controls:DaisySelect x:Name="GlDurationSelect" Width="110" SelectedIndex="2"
+                                              AutomationProperties.Name="{loc:Localize Gallery_Carousel_Duration_Label}"
+                                              SelectionChanged="GlDurationSelect_SelectionChanged">
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Duration_Instant}" Tag="0.1" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Duration_Fast}" Tag="0.25" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Duration_Normal}" Tag="0.4" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Duration_Slow}" Tag="0.6" />
+                            <ComboBoxItem Content="{loc:Localize Gallery_Carousel_Duration_VerySlow}" Tag="1.0" />
+                        </controls:DaisySelect>
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Localize Gallery_Carousel_Interval_Label}" FontSize="12" Opacity="0.7"
+                                   Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                        <!-- One decimal for the steps of 0.5: the default format "0" showed 1.5 as 2. -->
+                        <controls:DaisyNumericUpDown x:Name="GlIntervalBox" Width="90" FormatString="0.#"
+                                                     AutomationProperties.Name="{loc:Localize Gallery_Carousel_Interval_Label}" />
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

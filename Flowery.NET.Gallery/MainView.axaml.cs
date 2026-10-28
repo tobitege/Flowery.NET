@@ -102,6 +102,8 @@ public partial class MainView : UserControl
             ["Sidebar_Feedback"] = () => new FeedbackExamples(),
             ["Sidebar_Glass"] = () => new GlassExamples(),
             ["Sidebar_Cards"] = () => new CardsExamples(),
+            ["Sidebar_CarouselGL"] = () => new CarouselGlExamples(),
+            ["Sidebar_CarouselGLTransitions"] = () => new CarouselGlTransitionsExamples(),
             ["Sidebar_Divider"] = () => new DividerExamples(),
             ["Sidebar_Layout"] = () => new LayoutExamples(),
             ["Sidebar_Theming"] = () => new ThemingExamples(),

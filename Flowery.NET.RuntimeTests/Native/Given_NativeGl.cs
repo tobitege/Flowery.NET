@@ -167,6 +167,42 @@ namespace Flowery.NET.RuntimeTests.Native
         }
 
         [Fact]
+        public async Task When_TheHostIsHidden_ItPausesItsLoopUntilItIsShownAgain()
+        {
+            // Regression: a host in a hidden parent, such as a Gallery page that is kept but hidden, drew on every
+            // frame; the WinUI host paused with the hidden document of its WebView2.
+            CarouselGlGalleryPresets.EnsureRegistered();
+            var host = new CarouselGlEffectHost { Width = 160, Height = 100, Effect = CarouselGlEffectKind.Fade, TransitionSeconds = 1, IntervalSeconds = 0 };
+            var parent = new Border { Child = host };
+            try
+            {
+                RuntimeTestHelpers.AttachToHost(parent);
+                await RuntimeTestHelpers.EnsureLoadedAsync(host);
+                AssertFrame(await host.ReadFrameAsync(0), "running");
+                await RuntimeTestHelpers.WaitUntilAsync(() => host.Content is CarouselGlCanvas { State.Running: true }, "the loop runs");
+
+                parent.IsVisible = false;
+                await RuntimeTestHelpers.WaitUntilAsync(() => host.Content is CarouselGlCanvas { State.Running: false }, "the hidden loop paused");
+                var canvas = Assert.IsType<CarouselGlCanvas>(host.Content);
+                var frames = canvas.Frames;
+                await RuntimeTestHelpers.WaitForRenderAsync();
+                await RuntimeTestHelpers.WaitForRenderAsync();
+                Assert.Equal(frames, canvas.Frames);
+
+                parent.IsVisible = true;
+                await RuntimeTestHelpers.WaitUntilAsync(() => host.Content is CarouselGlCanvas { State.Running: true }, "the shown loop runs again");
+                await RuntimeTestHelpers.WaitUntilAsync(() => canvas.Frames > frames, "the shown loop draws");
+                Assert.Same(canvas, host.Content);
+                Assert.Null(host.LastRenderError);
+            }
+            finally
+            {
+                RuntimeTestHelpers.GetHostPanel().Children.Clear();
+                await FlushAsync(host.Dispatcher);
+            }
+        }
+
+        [Fact]
         public async Task When_HostLoadsAndUnloads_ItStartsAndClosesItsRenderer()
         {
             CarouselGlGalleryPresets.EnsureRegistered();

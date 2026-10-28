@@ -16,6 +16,7 @@ namespace Flowery.Effects
         private Task? _updateTask;
         private int _revision;
         private bool _inViewport = true;
+        private bool _isEffectivelyVisible = true;
 
         protected CarouselGlNativeHost()
         {
@@ -24,6 +25,8 @@ namespace Flowery.Effects
             IsTabStop = false;
             // Loaded and Unloaded: the OnLoaded and OnUnloaded overrides.
             EffectiveViewportChanged += OnEffectiveViewportChanged;
+            // Visual.IsEffectivelyVisibleChanged is internal; showing or hiding the host or a parent runs a layout pass.
+            LayoutUpdated += OnLayoutUpdated;
         }
 
         // A derived host has no control theme of its own; the ContentControl theme presents the canvas.
@@ -101,7 +104,7 @@ namespace Flowery.Effects
                         assets.Add(asset.Key, await ResolveAssetAsync(asset.Value));
                     configuration = configuration with { Assets = assets };
                     await session.ConfigureAsync(configuration);
-                    await session.SetActiveAsync(_inViewport && !DaisyAccessibility.IsReducedMotion);
+                    await session.SetActiveAsync(IsActive);
                     if (revision == _revision) return;
                 }
             }
@@ -182,11 +185,22 @@ namespace Flowery.Effects
 
         private async void OnMotionChanged(object? sender, EventArgs args) => await UpdateActivityAsync();
 
+        private async void OnLayoutUpdated(object? sender, EventArgs args)
+        {
+            if (_isEffectivelyVisible == IsEffectivelyVisible) return;
+            _isEffectivelyVisible = IsEffectivelyVisible;
+            await UpdateActivityAsync();
+        }
+
+        // !document.hidden: WebView2 hid the document of a collapsed host, which paused its draw loop. A hidden
+        // Avalonia control still gets animation frames, so the host pauses while it or a parent is not visible.
+        private bool IsActive => _inViewport && IsEffectivelyVisible && !DaisyAccessibility.IsReducedMotion;
+
         private async Task UpdateActivityAsync()
         {
             var session = _session;
             if (session?.IsInitialized != true) return;
-            try { await session.SetActiveAsync(_inViewport && !DaisyAccessibility.IsReducedMotion); }
+            try { await session.SetActiveAsync(IsActive); }
             catch (OperationCanceledException) when (!ReferenceEquals(session, _session)) { }
             catch (ObjectDisposedException) when (!ReferenceEquals(session, _session)) { }
             catch (Exception error) { if (ReferenceEquals(session, _session)) OnRendererFailed(this, error); }

@@ -920,6 +920,8 @@ class DocumentationGenerator:
             "CustomControls": "Custom",
             "SchedulerExamples": "Custom",
             "TourExamples": "Custom",
+            "CarouselGlExamples": "Custom",
+            "CarouselGlTransitionsExamples": "Custom",
             "ColorPickerExamples": "Color Picker"
         }
 
@@ -1099,6 +1101,9 @@ class DocumentationGenerator:
             'contributiongraph': 'DaisyContributionGraph',
             'animatednumber': 'DaisyAnimatedNumber',
             'numberflow': 'DaisyNumberFlow',
+            # GL carousel effects (from CarouselGlExamples.axaml and CarouselGlTransitionsExamples.axaml)
+            'carouselgl': 'FloweryCarouselGL',
+            'carouselgltransitions': 'FloweryCarouselGL',
             'timeline': 'DaisyTimeline',
             'datetimeline': 'DaisyDateTimeline',
             'breadcrumbs': 'DaisyBreadcrumbs',

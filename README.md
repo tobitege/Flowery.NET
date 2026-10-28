@@ -30,7 +30,7 @@
 Flowery.NET is a cross-platform control library for Avalonia UI, on Windows, Linux and macOS, in the browser (WebAssembly), on Android and on iOS.
 It offers more than 100 themed controls, 37 built-in themes that switch at runtime, global sizing, glass and neumorphic effects and twelve UI languages.
 The control set and 35 of the themes take their names and look from the DaisyUI design language, adapted to Avalonia rather than copied; many controls, the scheduler, the Kanban board and the effects have no DaisyUI counterpart.
-Optional packages add the Kanban board and the SkiaSharp glass effects.
+Optional packages add the Kanban board and the SkiaSharp effects: the live glass blur and the GL carousel effects.
 
 ## Features
 
@@ -42,6 +42,7 @@ Optional packages add the Kanban board and the SkiaSharp glass effects.
 - **Kanban.** Boards with a home screen, swimlanes, work limits, JSON storage with import and export, undo and redo, filtering, statistics, bulk editing and keyboard support. Assignees come from the host app as a list or through callbacks; the package does no sign-in and talks to no account service. Separate package. [Feature overview](Flowery.NET.Kanban/FEATURES.md)
 - **Touch.** Scheduler and Kanban share one touch model for touch and pen: a tap opens, holding selects and then moves, resizes or drags, and a swipe only scrolls. Both are tested on Android phones and tablets.
 - **Glass.** Glass themes for the standard controls, a glass mode that puts every input control on glass, and a designer for glass looks. The optional Flowery.NET.Skia package adds the live backdrop blur with liquid-glass optics, refraction and animated shader backgrounds.
+- **GL carousel effects.** Flowery.NET.Skia also draws 51 carousel transitions and effects with SkSL shaders on every target, such as masks, flips, cubes, slides, dissolve, pixelate, pan and zoom and a text fill. The Gallery adds the 100 gl-transitions shaders. [Guide](llms-static/FloweryCarouselGL.md)
 - **Neumorphic effect.** Raised, Inset and Flat soft-UI shadows for about 50 controls, switchable globally or per control. [Usage guide](llms-static/DaisyNeumorphic.md)
 - **Accessibility.** Screen reader names and states for controls that show state visually, keyboard navigation, reduced motion and high contrast.
 - **Localization.** Twelve languages with runtime switching and localizable theme names. [Guide](LOCALIZATION.md)
@@ -84,6 +85,8 @@ public static AppBuilder BuildAvaloniaApp()
         .UsePlatformDetect()
         .UseFlowerySkia();
 ```
+
+The same package contains the GL carousel effects (`CarouselGlEffectHost` in `Flowery.Effects`), which need no registration. See [GL carousel effects](llms-static/FloweryCarouselGL.md).
 
 > **Upgrading from 3.x:** Flowery.NET 4.0 no longer references SkiaSharp (`Avalonia.Skia`).
 >
@@ -276,6 +279,12 @@ xmlns:kanban="clr-namespace:Flowery.NET.Kanban.Controls;assembly=Flowery.NET.Kan
 
 - **Glass** (`DaisyGlass`): Glassmorphism/frosted effect container with multiple blur modes (Simulated, BitmapCapture, SkiaSharp GPU-accelerated).
 - **Glass on the standard controls**: glass themes for `DaisyButton`, `DaisyBadge`, `DaisyInput`, `DaisyNavbar`, `DaisyModal`, `DaisyButtonGroup` (a segmented control with a sliding pill), `DaisyRange` (a thumb that turns into a lens), `DaisyToggle` and `DaisyMenu`, and `DaisyGlassSurface`, which puts any input control on the same live glass. The dark Glassy theme tints them navy.
+
+### GL Carousel Effects
+
+- **Effect host** (`CarouselGlEffectHost`, Flowery.NET.Skia): 51 carousel transitions and effects drawn with SkSL shaders on Windows, Linux, macOS, in the browser, on Android and on iOS: masks, blinds, slices, checkerboard, spiral, matrix rain, wormhole, dissolve, pixelate, flips and cubes, fades, slides, pushes, zooms, covers, reveals and wipes, pan, zoom, drift, pulse, breath and throw effects, and a text fill. [Documentation](llms-static/FloweryCarouselGL.md)
+- **Custom engines**: `CarouselGlNativeHost` and `CarouselGlEngine` host your own SkSL programs and images, with frame read-back for tests.
+- **Gallery**: the Carousel GL page previews the effects in manual, slideshow, random and kiosk modes; the Carousel GL Transitions page plays the 100 gl-transitions shaders, ported to SkSL.
 
 ### Neumorphic Effect
 
@@ -535,6 +544,7 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and release notes.
 - [**XtremeCRM/Xtreme.Components**](https://github.com/XtremeCRM/Xtreme.Components) by [**russshumate**](https://github.com/russshumate) - MIT-licensed source of the scheduler adapted as `DaisyScheduler`.
 - [**smoothui**](https://github.com/educlopez/smoothui) - Inspiration for visual effects (React/Tailwind/Framer Motion).
 - [**liquid-glass**](https://github.com/samasante/liquid-glass) - Kudos to Sam Asante for the Liquid Glass optics reference that inspired the DaisyGlass SkiaSharp lens parameters.
+- [**gl-transitions**](https://github.com/gl-transitions/gl-transitions) - The transition shaders that the Gallery's Carousel GL Transitions page plays, ported to SkSL; each shader names its author and license (MIT or BSD).
 - [**@frandelfo**](https://github.com/frandelfo) - Multi-platform Gallery architecture (Desktop, Browser, Android, iOS).
 
 > **Disclaimer:** This project is not affiliated with, endorsed by, or sponsored by any of the above.
