@@ -98,6 +98,11 @@ jobs:
           dotnet pack Flowery.NET/Flowery.NET.csproj -c Release -o ./artifacts
           dotnet pack Flowery.NET.Skia/Flowery.NET.Skia.csproj -c Release -o ./artifacts
 
+      # Before anything is published, an app that references only these packages must get the live glass blur.
+      - name: Test the NuGet packages
+        shell: pwsh
+        run: ./scripts/test_packages.ps1 -PackageDir ./artifacts -Check
+
       - name: Create library zip
         run: |
           mkdir -p ./artifacts/lib

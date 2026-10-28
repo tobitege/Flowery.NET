@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- An app that references Flowery.NET and Flowery.NET.Skia as NuGet packages, not as projects, to test the packages
+       before and after a release; scripts/test_packages.ps1 runs it. It is not part of Flowery.NET.sln, because nuget.org
+       has the packages of the version in Directory.Build.props only after their release. -->
+  <PropertyGroup>
+    <!-- A console app: on Windows, dotnet run passes neither the output nor the exit code of a WinExe on. -->
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+
+    <!-- The version of both packages, by default the version this checkout releases. -->
+    <FloweryPackageVersion Condition="'$(FloweryPackageVersion)' == ''">$(Version)</FloweryPackageVersion>
+    <!-- A folder with packed packages, searched next to nuget.org. -->
+    <RestoreAdditionalProjectSources>$(FloweryPackageSource)</RestoreAdditionalProjectSources>
+    <!-- A package of the same ID and version can come from such a folder or from nuget.org, and NuGet never replaces a
+         package it extracted once. So the app keeps its packages out of the global package folder, in one folder per
+         source. -->
+    <RestorePackagesPath Condition="'$(FloweryPackageSource)' == ''">$(BaseIntermediateOutputPath)packages\nuget.org\</RestorePackagesPath>
+    <RestorePackagesPath Condition="'$(FloweryPackageSource)' != ''">$(BaseIntermediateOutputPath)packages\local\</RestorePackagesPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Flowery.NET" Version="[$(FloweryPackageVersion)]" />
+    <PackageReference Include="Flowery.NET.Skia" Version="[$(FloweryPackageVersion)]" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The Avalonia version of Flowery.NET. -->
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Headless" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+  </ItemGroup>
+
+</Project>
