@@ -7,6 +7,12 @@ name: CI Build
 
 on:
   workflow_dispatch:
+    inputs:
+      macos:
+        # macOS runners are often not available, so pull requests and pushes skip the macOS jobs.
+        description: Also build and test on macOS
+        type: boolean
+        default: false
   push:
     branches:
       - main
@@ -41,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2025-vs2026, ubuntu-24.04, macos-15]
+        os: [windows-2025-vs2026, ubuntu-24.04]
         configuration: [Debug, Release]
         include:
           - os: windows-2025-vs2026
@@ -52,12 +58,8 @@ jobs:
             rid: linux-x64
             cross_rid: linux-arm64
             python: python3
-          - os: macos-15
-            rid: osx-arm64
-            cross_rid: osx-x64
-            python: python3
     runs-on: ${{ matrix.os }}
-    steps:
+    steps: &photos-steps
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
@@ -110,6 +112,22 @@ jobs:
           path: ./artifacts/photos
           if-no-files-found: ignore
 
+  build-photos-macos:
+    # Runs only on demand: workflow_dispatch with macos.
+    if: inputs.macos
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15]
+        configuration: [Debug, Release]
+        include:
+          - os: macos-15
+            rid: osx-arm64
+            cross_rid: osx-x64
+            python: python3
+    runs-on: ${{ matrix.os }}
+    steps: *photos-steps
+
   build-library:
     runs-on: ubuntu-24.04
     strategy:
@@ -156,9 +174,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2025-vs2026, ubuntu-24.04, macos-15]
+        os: [windows-2025-vs2026, ubuntu-24.04]
         configuration: [Debug, Release]
-    steps:
+    steps: &runtime-steps
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
@@ -187,6 +205,18 @@ jobs:
             ./logs
           if-no-files-found: ignore
 
+  runtime-tests-macos:
+    # Runs only on demand: workflow_dispatch with macos.
+    if: inputs.macos
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15]
+        configuration: [Debug, Release]
+    steps: *runtime-steps
+
   build-gallery:
     strategy:
       matrix:
@@ -199,14 +229,10 @@ jobs:
             rid: linux-x64
           - os: ubuntu-24.04
             rid: linux-arm64
-          - os: macos-15
-            rid: osx-arm64
-          - os: macos-15
-            rid: osx-x64
 
     runs-on: ${{ matrix.os }}
 
-    steps:
+    steps: &gallery-steps
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
@@ -224,6 +250,21 @@ jobs:
             -p:IncludeNativeLibrariesForSelfExtract=true \
             -p:EnableCompressionInSingleFile=true \
             -o ./publish
+
+  build-gallery-macos:
+    # Runs only on demand: workflow_dispatch with macos.
+    if: inputs.macos
+    strategy:
+      matrix:
+        include:
+          - os: macos-15
+            rid: osx-arm64
+          - os: macos-15
+            rid: osx-x64
+
+    runs-on: ${{ matrix.os }}
+
+    steps: *gallery-steps
 
   build-browser:
     # Publishes the Browser Gallery as the releases do (_build-gallery.yml) and starts it in headless Chromium.
