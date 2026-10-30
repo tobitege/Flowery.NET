@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### FlowKanban
 
 - `FlowKanban`: on a touch screen, on Android, iOS and in the browser, spreading two fingers zooms the board in and pinching them zooms it out, one size tier per quarter of their distance, within the tiers of the zoom buttons (`ExtraSmall` to `ExtraLarge`), as `DaisyScheduler` does with its columns. It works in the standard, compact and swimlane layouts, also with fingers between the parts of a layout, such as the column choice and the column of the compact layout. Once the second finger lands, the pinch takes both fingers: the board does not scroll, and on Android and iOS a pending hold of the first finger selects no card and a card it drags goes back without a drop. One finger works as before. The Gallery names the gesture in the touch features of its Kanban page.
+- `FlowKanban`: a board lower than 480, such as on a phone on its side, gives its height to the cards. The search moves beside the board title, the status bar shows only a status message, and the room around the columns, the column headers and Add Card are flatter (the `:short` pseudo-class of `FlowKanban`, `FlowKanbanColumn` and `FlowKanbanAddCard`). On a phone on its side the cards had about 20 of 411 pixels; they have about 170 now.
 
 #### Gallery
 
@@ -120,6 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Gallery
 
+- Gallery: on phones and tablets the hamburger button always shows, so the sidebar can be hidden beside a wide page too; turning the device keeps that choice until the sidebar changes between beside and over the page. A phone or tablet lower than 480 (the compact height of Material Design, a phone on its side) opens the sidebar over the page, so the page keeps its width. On its side the header and the category title bar stay thin, also on pages that fold their intro, instead of only after scrolling, and the Kanban page keeps narrow margins. The desktop keeps its sidebar.
 - Gallery: new logo, a six-petal violet flower with one warm petal, shared by the Flowery family (Flowery.Uno uses blue, Flowery.WinUI teal). It replaces the Avalonia default icon and splash everywhere: the Desktop window and executable icon (`app_icon.ico`), the Android launcher icon (adaptive) and splash, the iOS app icon (`AppIcon` asset catalog) and launch screen, and the Browser favicon and splash. The Home banner (`flowery-banner.png`) is redrawn too. `app_icon.icns` is included for macOS app bundles.
 - Gallery: in the glass demos (Glass Card, Liquid Glass, Bitmap Capture and Full Width), every glass panel has a row of six stars. Two stay left of it and four run half behind its lower edge, so sharp and covered stars sit side by side; the panels are 100 apart to make room. The star and diamond rows in the demos' text columns are gone.
 - Gallery: the desktop app turns on region clipping (`CompositionOptions.UseRegionDirtyRectClipping`), so the animated glass buttons no longer keep the glass buttons around them redrawing. The Glass Button section uses about 18 % of one CPU core instead of about 78 % before the frame rate, the leak fix and region clipping (Debug build, moving disc stopped).
@@ -193,6 +195,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `FlowKanban` home view: a tap on a board tile did not open the board, and the menu of a tile showed its entries without text and without a command. The view looked up each tile before its item template had built it; it now wires up every tile when it is built, also when the view is attached again and builds its tiles anew.
 - `FlowKanban`: on a board lower than its sidebar, the sidebar buttons overlapped each other. The sidebar scrolls instead and keeps the statistics at its bottom while it has the room.
 - `FlowKanban`: cards and columns could no longer be drawn when a background thread was the first to use the card or column class. Their shared transparent and drag highlight brushes then belonged to that thread, and drawing them on the UI thread failed. They are immutable brushes now, which belong to no thread.
+- `FlowKanban`: the column choice of the compact layout went empty, and the board showed its first column, after the board was wide for a moment, such as while a phone turns. The choice lost its items while another layout showed; it keeps them now.
 
 #### Gallery
 
