@@ -18,7 +18,7 @@ using Xunit;
 namespace Flowery.NET.Tests;
 
 // The Kanban board on a phone or tablet: the on-screen keyboard, touch taps and a low board.
-public class KanbanAndroidRegressionTests
+public partial class KanbanAndroidRegressionTests
 {
     [AvaloniaFact]
     public async Task A_Dialog_Moves_Above_The_On_Screen_Keyboard_And_Back()

@@ -212,9 +212,13 @@
             column?.DropTask(drag.TaskId, visual => PointIn(drag, visual));
         }
 
+        // Something else took the finger: the system cancelled the touch, or a second finger landed and the board's pinch
+        // took both (FlowKanban.Pinch). The finger neither holds, taps nor drops anything then.
         private void OnCardPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
         {
-            if (_touchDrag is { IsMoving: true } drag && ReferenceEquals(drag.Pointer, e.Pointer))
+            if (ReferenceEquals(_tapPointer, e.Pointer))
+                EndTouchPress();
+            if (_touchDrag is { } drag && ReferenceEquals(drag.Pointer, e.Pointer))
                 CancelTouchDrag();
         }
 

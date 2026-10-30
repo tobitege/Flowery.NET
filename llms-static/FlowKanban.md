@@ -29,6 +29,12 @@ After a hold, the finger drags the card: a copy follows the finger, the column u
 Near an edge of the board or a column, the view scrolls along. Avalonia has no platform drag and drop on Android, so the board moves the card itself.
 The sidebar scrolls when the board is lower than its buttons.
 
+## Pinch to Zoom
+
+On a touch screen, on Android, iOS and in the browser, spreading two fingers zooms the board in and pinching them zooms it out, one size tier per quarter of their distance, within the same tiers as the zoom buttons and `Ctrl + +` / `Ctrl + -` (`ExtraSmall` to `ExtraLarge`), in the standard, compact and swimlane layouts.
+Once the second finger lands, the pinch takes both fingers, so the board does not scroll while they pinch. On Android and iOS a pinch neither moves nor selects cards: a pending hold of the first finger selects nothing, and a card it drags goes back without a drop.
+In the browser the page does not zoom, since Avalonia keeps touch gestures on its canvas. One finger works as before.
+
 ## Neumorphic Effect
 
 The board root sets `DaisyNeumorphic.ScopeEnabled="False"`, so columns, cards and their Daisy controls stay flat when a global [neumorphic](DaisyNeumorphic.md) mode is active.
