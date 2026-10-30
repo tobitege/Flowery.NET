@@ -35,6 +35,10 @@ On a touch screen, on Android, iOS and in the browser, spreading two fingers zoo
 Once the second finger lands, the pinch takes both fingers, so the board does not scroll while they pinch. On Android and iOS a pinch neither moves nor selects cards: a pending hold of the first finger selects nothing, and a card it drags goes back without a drop.
 In the browser the page does not zoom, since Avalonia keeps touch gestures on its canvas. One finger works as before.
 
+## Short Board
+
+A board lower than 480, such as on a phone on its side, sets the `:short` pseudo-class on `FlowKanban`, its columns (`FlowKanbanColumn`) and their Add Card (`FlowKanbanAddCard`) and gives the height to the cards: the search moves beside the board title, the status bar shows only a status message, and the room around the columns, the column headers and Add Card are flatter. Styles for `:short` change more.
+
 ## Neumorphic Effect
 
 The board root sets `DaisyNeumorphic.ScopeEnabled="False"`, so columns, cards and their Daisy controls stay flat when a global [neumorphic](DaisyNeumorphic.md) mode is active.

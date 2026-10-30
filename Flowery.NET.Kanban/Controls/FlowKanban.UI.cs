@@ -815,6 +815,7 @@ namespace Flowery.NET.Kanban.Controls
 
             if (!_cachedColumnControls.Contains(column))
                 _cachedColumnControls.Add(column);
+            column.SetShort(IsShort);
 
             var key = (column.ColumnData.Id, NormalizeLaneId(column.LaneFilterId));
             _columnByKey[key] = column;
@@ -1496,7 +1497,9 @@ namespace Flowery.NET.Kanban.Controls
                 }
             }
 
-            CompactColumnsSource = IsCompactLayoutVisible ? compactColumns : null;
+            // Kept while another layout shows: without its items the column choice drops the chosen column, and has none
+            // once the board is compact again, such as after a phone turns.
+            CompactColumnsSource = compactColumns;
             EnsureCompactSelectedColumn(compactColumns);
         }
 

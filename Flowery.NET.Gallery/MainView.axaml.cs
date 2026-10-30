@@ -42,9 +42,11 @@ public partial class MainView : UserControl
     private const double MaxSidebarWidthPercent = 0.35;
 
     /// <summary>
-    /// Scroll threshold in pixels before the header collapses on mobile.
+    /// A phone or tablet lower than this overlays the sidebar as well: inline it takes room the content needs, and the
+    /// hamburger button opens it. 480 is where the compact height class of Material Design ends, which phones on their
+    /// side are in and tablets are not.
     /// </summary>
-    private const double HeaderCollapseScrollThreshold = 20;
+    private const double MinInlineSidebarHeight = 480;
 
     private readonly Dictionary<string, Func<Control>> _categoryControls;
     private readonly Dictionary<string, Control> _categoryControlCache;
@@ -195,50 +197,52 @@ public partial class MainView : UserControl
         if (MainSplitView != null)
             MainSplitView.OpenPaneLength = sidebarWidth;
 
-        // Update CategoryTitle font size
-        if (CategoryTitle != null)
+        ApplyCategoryTitleBar(size);
+    }
+
+    // The category title bar follows the global size; while the header is collapsed (a phone on its side) it is thin.
+    private void ApplyCategoryTitleBar(DaisySize size)
+    {
+        if (CategoryTitle == null || CategoryTitleBar == null || CategoryChevrons == null)
+            return;
+
+        CategoryChevrons.IsVisible = !_isHeaderCollapsed;
+        if (_isHeaderCollapsed)
         {
-            CategoryTitle.FontSize = size switch
-            {
-                DaisySize.ExtraSmall => 16,
-                DaisySize.Small => 18,
-                DaisySize.Medium => 22,
-                DaisySize.Large => 26,
-                DaisySize.ExtraLarge => 30,
-                _ => 22
-            };
+            CategoryTitle.FontSize = 16;
+            SetCategoryTitleBarPadding(new Thickness(16, 2, 16, 6));
+            return;
         }
 
-        // Update CategoryTitleBar padding
-        if (CategoryTitleBar != null)
+        CategoryTitle.FontSize = size switch
         {
-            var padding = size switch
-            {
-                DaisySize.ExtraSmall => new Thickness(16, 2, 16, 8),
-                DaisySize.Small => new Thickness(20, 3, 20, 14),
-                DaisySize.Medium => new Thickness(24, 4, 24, 20),
-                DaisySize.Large => new Thickness(28, 6, 28, 24),
-                DaisySize.ExtraLarge => new Thickness(32, 8, 32, 28),
-                _ => new Thickness(24, 4, 24, 20)
-            };
-            SetCategoryTitleBarPadding(padding);
-        }
-
-        // Update CategoryChevrons size
-        if (CategoryChevrons != null)
+            DaisySize.ExtraSmall => 16,
+            DaisySize.Small => 18,
+            DaisySize.Medium => 22,
+            DaisySize.Large => 26,
+            DaisySize.ExtraLarge => 30,
+            _ => 22
+        };
+        SetCategoryTitleBarPadding(size switch
         {
-            var chevronSize = size switch
-            {
-                DaisySize.ExtraSmall => (Width: 16.0, Height: 10.0),
-                DaisySize.Small => (Width: 20.0, Height: 12.0),
-                DaisySize.Medium => (Width: 24.0, Height: 14.0),
-                DaisySize.Large => (Width: 28.0, Height: 16.0),
-                DaisySize.ExtraLarge => (Width: 32.0, Height: 18.0),
-                _ => (Width: 24.0, Height: 14.0)
-            };
-            CategoryChevrons.Width = chevronSize.Width;
-            CategoryChevrons.Height = chevronSize.Height;
-        }
+            DaisySize.ExtraSmall => new Thickness(16, 2, 16, 8),
+            DaisySize.Small => new Thickness(20, 3, 20, 14),
+            DaisySize.Medium => new Thickness(24, 4, 24, 20),
+            DaisySize.Large => new Thickness(28, 6, 28, 24),
+            DaisySize.ExtraLarge => new Thickness(32, 8, 32, 28),
+            _ => new Thickness(24, 4, 24, 20)
+        });
+        var chevronSize = size switch
+        {
+            DaisySize.ExtraSmall => (Width: 16.0, Height: 10.0),
+            DaisySize.Small => (Width: 20.0, Height: 12.0),
+            DaisySize.Medium => (Width: 24.0, Height: 14.0),
+            DaisySize.Large => (Width: 28.0, Height: 16.0),
+            DaisySize.ExtraLarge => (Width: 32.0, Height: 18.0),
+            _ => (Width: 24.0, Height: 14.0)
+        };
+        CategoryChevrons.Width = chevronSize.Width;
+        CategoryChevrons.Height = chevronSize.Height;
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
@@ -248,51 +252,32 @@ public partial class MainView : UserControl
             ScreenshotButton.IsVisible = !_isMobilePlatform;
 
         // Apply responsive layout on initial load
-        UpdateResponsiveLayout(this.Bounds.Width);
+        UpdateResponsiveLayout(this.Bounds.Size);
 
-        // On mobile, initialize orientation and attach scroll handler
+        // A phone on its side has little height: the header stays thin there.
         if (_isMobilePlatform)
         {
             _isLandscape = this.Bounds.Width > this.Bounds.Height;
-
-            // Ensure header starts expanded (especially in portrait)
-            if (!_isLandscape)
-                SetHeaderCollapsed(false);
-
-            if (_activeCategoryContent != null && _currentScrollViewer == null)
-                AttachScrollHandler(_activeCategoryContent);
+            SetHeaderCollapsed(_isLandscape);
         }
-
-        // SetHeaderCollapsed above writes fixed medium-size values; restore the current size after it.
-        ApplySizeToGalleryElements(FlowerySizeManager.CurrentSize);
     }
 
     private bool _isLandscape;
 
     private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
     {
-        UpdateResponsiveLayout(e.NewSize.Width);
+        UpdateResponsiveLayout(e.NewSize);
 
-        // On mobile, determine orientation and update header accordingly
+        // A phone on its side has little height: the header stays thin there, and full upright.
         if (_isMobilePlatform)
         {
-            var wasLandscape = _isLandscape;
             _isLandscape = e.NewSize.Width > e.NewSize.Height;
-
-            // If switching from landscape to portrait, expand header
-            if (wasLandscape && !_isLandscape && _isHeaderCollapsed)
-            {
-                SetHeaderCollapsed(false);
-            }
-            // If in portrait mode, always ensure header is expanded
-            else if (!_isLandscape && _isHeaderCollapsed)
-            {
-                SetHeaderCollapsed(false);
-            }
+            if (_isLandscape != _isHeaderCollapsed)
+                SetHeaderCollapsed(_isLandscape);
         }
     }
 
-    private void UpdateResponsiveLayout(double width)
+    private void UpdateResponsiveLayout(Size size)
     {
         if (MainSplitView == null || HamburgerButton == null || ComponentSidebar == null)
             return;
@@ -300,16 +285,23 @@ public partial class MainView : UserControl
         // Collapse sidebar if:
         // 1. Content area would be too narrow (less than MinContentWidth)
         // 2. Sidebar would take more than MaxSidebarWidthPercent of screen
-        var contentWidthIfInline = width - SidebarWidth;
-        var sidebarPercent = SidebarWidth / width;
+        // 3. A phone or tablet is lower than MinInlineSidebarHeight, such as a phone on its side
+        var contentWidthIfInline = size.Width - SidebarWidth;
+        var sidebarPercent = SidebarWidth / size.Width;
 
-        bool shouldCollapse = contentWidthIfInline < MinContentWidth || sidebarPercent > MaxSidebarWidthPercent;
+        bool shouldCollapse = contentWidthIfInline < MinContentWidth || sidebarPercent > MaxSidebarWidthPercent ||
+            _isMobilePlatform && size.Height < MinInlineSidebarHeight;
 
         // Compact: overlay sidebar with hamburger toggle
-        // Wide: inline sidebar always visible
-        MainSplitView.DisplayMode = shouldCollapse ? SplitViewDisplayMode.Overlay : SplitViewDisplayMode.Inline;
-        HamburgerButton.IsVisible = shouldCollapse;
-        MainSplitView.IsPaneOpen = !shouldCollapse;
+        // Wide: inline sidebar, always visible on the desktop. Phones and tablets keep the hamburger button there too, so
+        // the user can hide the sidebar, and a resize (a turn) keeps that choice until the mode changes.
+        var mode = shouldCollapse ? SplitViewDisplayMode.Overlay : SplitViewDisplayMode.Inline;
+        HamburgerButton.IsVisible = shouldCollapse || _isMobilePlatform;
+        if (!_isMobilePlatform || MainSplitView.DisplayMode != mode)
+        {
+            MainSplitView.DisplayMode = mode;
+            MainSplitView.IsPaneOpen = !shouldCollapse;
+        }
         UpdateCollapsibleIntro();
     }
 
@@ -404,15 +396,6 @@ public partial class MainView : UserControl
                     scrollable.ScrollToSection(sectionId);
                 }
             }
-
-            // On mobile, attach scroll handler for header collapse
-            if (_isMobilePlatform && contentChanged)
-            {
-                global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                {
-                    AttachScrollHandler(newContent);
-                }, global::Avalonia.Threading.DispatcherPriority.Loaded);
-            }
         }
     }
 
@@ -482,42 +465,6 @@ public partial class MainView : UserControl
 
     private void OnIntroVisibilityChanged(object? sender, EventArgs e) => UpdateCollapsibleIntro();
 
-    private ScrollViewer? _currentScrollViewer;
-
-    private void AttachScrollHandler(Control content)
-    {
-        // Detach from previous ScrollViewer
-        if (_currentScrollViewer != null)
-        {
-            _currentScrollViewer.ScrollChanged -= OnContentScrollChanged;
-            _currentScrollViewer = null;
-        }
-
-        // Find ScrollViewer in the content
-        var scrollViewer = content.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
-        if (scrollViewer != null)
-        {
-            _currentScrollViewer = scrollViewer;
-            scrollViewer.ScrollChanged += OnContentScrollChanged;
-        }
-    }
-
-    private void OnContentScrollChanged(object? sender, ScrollChangedEventArgs e)
-    {
-        // Only allow scroll-based collapse in landscape mode, and not while the header is hidden for a collapsible intro
-        if (!_isLandscape || _collapsibleIntro != null)
-            return;
-
-        if (sender is not ScrollViewer scrollViewer)
-            return;
-
-        var shouldCollapse = scrollViewer.Offset.Y > HeaderCollapseScrollThreshold;
-        if (shouldCollapse != _isHeaderCollapsed)
-        {
-            SetHeaderCollapsed(shouldCollapse);
-        }
-    }
-
     private void SetHeaderCollapsed(bool collapsed)
     {
         _isHeaderCollapsed = collapsed;
@@ -538,13 +485,6 @@ public partial class MainView : UserControl
                 HeaderOrbLeft.IsVisible = false;
             if (HeaderAccentBar != null)
                 HeaderAccentBar.Height = 2;
-            // Compact category title bar
-            if (CategoryTitleBar != null)
-                SetCategoryTitleBarPadding(new Thickness(16, 2, 16, 6));
-            if (CategoryTitle != null)
-                CategoryTitle.FontSize = 16;
-            if (CategoryChevrons != null)
-                CategoryChevrons.IsVisible = false;
         }
         else
         {
@@ -559,14 +499,9 @@ public partial class MainView : UserControl
                 HeaderOrbLeft.IsVisible = true;
             if (HeaderAccentBar != null)
                 HeaderAccentBar.Height = 3;
-            // Full category title bar
-            if (CategoryTitleBar != null)
-                SetCategoryTitleBarPadding(new Thickness(24, 4, 24, 20));
-            if (CategoryTitle != null)
-                CategoryTitle.FontSize = 22;
-            if (CategoryChevrons != null)
-                CategoryChevrons.IsVisible = true;
         }
+
+        ApplyCategoryTitleBar(FlowerySizeManager.CurrentSize);
     }
 
     private void UpdateFlowDirection()
