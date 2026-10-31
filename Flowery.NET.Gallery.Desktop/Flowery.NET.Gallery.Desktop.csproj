@@ -11,7 +11,8 @@
              case a reference needs them; the app uses neither framework. -->
         <DisableTransitiveFrameworkReferenceDownloads>true</DisableTransitiveFrameworkReferenceDownloads>
         <!-- A publish for a runtime ships precompiled code: the Gallery starts in about half the time, since it JIT
-             compiles little at startup. It needs SafeEmbeddedFontCollection, see NotoFontProvider. -->
+             compiles little at startup. Its fonts need the stand-ins of SafeEmbeddedFontCollection: WithSafeInterFont in
+             Program and WithNotoFonts (NotoFontProvider). -->
         <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != ''">true</PublishReadyToRun>
     </PropertyGroup>
 

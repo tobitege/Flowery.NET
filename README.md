@@ -101,7 +101,7 @@ public static AppBuilder BuildAvaloniaApp()
 
 The same package contains the GL carousel effects (`CarouselGlEffectHost` in `Flowery.Effects`), which need no registration. See [GL carousel effects](llms-static/FloweryCarouselGL.md).
 
-It also has font collections for apps published with ReadyToRun or NativeAOT. When a font has no face for a requested weight or style, such as italic Inter, Avalonia makes a bold or oblique stand-in by reading the font through a Skia stream that optimized code can free during the read, which ends the app with an access violation. Use `WithSafeInterFont()` in place of `WithInterFont()`, and `SafeEmbeddedFontCollection` in place of `EmbeddedFontCollection` for your own fonts:
+It also has font collections for apps that run optimized code: published with ReadyToRun or NativeAOT, or with the font code made hot by the JIT. When a font has no face for a requested weight or style, such as italic Inter, Avalonia makes a bold or oblique stand-in by reading the font through a Skia stream that optimized code can free during the read, which ends the app with an access violation. Use `WithSafeInterFont()` in place of `WithInterFont()`, and `SafeEmbeddedFontCollection` in place of `EmbeddedFontCollection` for your own fonts:
 
 ```csharp
 AppBuilder.Configure<App>()
