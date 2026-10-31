@@ -1112,7 +1112,7 @@ namespace Flowery.NET.Kanban.Controls
 
         private void UpdateBoardStatusBarVisibility()
         {
-            IsBoardStatusBarVisible = HasStatusMessage || (IsBoardViewActive && IsStatusBarVisible);
+            IsBoardStatusBarVisible = HasStatusMessage || (IsBoardViewActive && IsStatusBarVisible && !IsShort);
         }
 
         private void UpdateLayoutVisibilityState()

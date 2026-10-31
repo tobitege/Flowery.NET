@@ -240,6 +240,7 @@ namespace Flowery.NET.Kanban.Controls
             ToggleColumnCollapseCommand = new RelayCommand<FlowKanbanColumnData>(ExecuteToggleColumnCollapse);
             ZoomInCommand = new RelayCommand(ExecuteZoomIn, CanZoomIn);
             ZoomOutCommand = new RelayCommand(ExecuteZoomOut, CanZoomOut);
+            InitializePinch();
             ToggleStatusBarCommand = new RelayCommand(() => IsStatusBarVisible = !IsStatusBarVisible);
             ToggleArchiveColumnVisibilityCommand = new RelayCommand(ExecuteToggleArchiveColumnVisibility);
             ShowKeyboardHelpCommand = new RelayCommand(ExecuteShowKeyboardHelp);

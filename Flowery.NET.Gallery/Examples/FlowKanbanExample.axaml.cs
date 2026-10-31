@@ -15,12 +15,15 @@ namespace Flowery.NET.Gallery.Examples;
 public partial class FlowKanbanExample : UserControl, ICollapsibleIntroExample
 {
     private const double CompactWidth = 600;
+    // A phone or tablet lower than this, such as a phone on its side, gives the board the room of the margins too.
+    private const double CompactHeight = 480;
 
-    // What the board supports by touch (see FlowTaskCard.Touch.cs): a tap edits, a hold selects and drags.
+    // What the board supports by touch (see FlowTaskCard.Touch.cs): a tap edits, a hold selects and drags, two fingers zoom.
     private const string TouchFeatures =
         "• Tap '+ Add Card' to type a new task directly\n" +
         "• Tap a card to edit title, description, and color\n" +
         "• Hold a card to select it, and drag it with your finger to another column; while cards are selected, tap to add or remove them, and move, prioritize, tag, schedule, or delete them with the bar below the board\n" +
+        "• Spread or pinch two fingers to zoom the board\n" +
         "• Color-coded task cards using DaisyColor palette\n" +
         "• JSON persistence via Save/Load buttons in sidebar\n" +
         "• Built on FlowKanbanData, FlowKanbanColumnData, and FlowTask models";
@@ -64,11 +67,12 @@ public partial class FlowKanbanExample : UserControl, ICollapsibleIntroExample
         Unloaded += OnUnloaded;
     }
 
-    // A phone-wide page gives the board the width of the side margins the other pages keep.
+    // A phone-wide or low page gives the board the room of the margins the other pages keep.
     protected override void OnSizeChanged(SizeChangedEventArgs e)
     {
         base.OnSizeChanged(e);
-        PageGrid.Margin = e.NewSize.Width < CompactWidth ? new Thickness(8, 0, 8, 8) : new Thickness(24, 0, 24, 24);
+        var isLow = (OperatingSystem.IsAndroid() || OperatingSystem.IsIOS()) && e.NewSize.Height < CompactHeight;
+        PageGrid.Margin = e.NewSize.Width < CompactWidth || isLow ? new Thickness(8, 0, 8, 8) : new Thickness(24, 0, 24, 24);
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)

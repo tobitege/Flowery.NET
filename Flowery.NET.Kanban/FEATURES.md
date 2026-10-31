@@ -67,6 +67,7 @@ The adaptive mode uses the available height and the measured card height.
 ## Board Display Controls
 
 - Users can zoom the complete board through the supported Flowery.NET sizes.
+- On a touch screen, users zoom the board by spreading or pinching two fingers.
 - Users can resize all columns with the pointer or the keyboard.
 - The host app can set the minimum, maximum, and current column width.
 - Users can collapse individual columns into narrow rails.

@@ -18,7 +18,7 @@ using Xunit;
 namespace Flowery.NET.Tests;
 
 // The Kanban board on a phone or tablet: the on-screen keyboard, touch taps and a low board.
-public class KanbanAndroidRegressionTests
+public partial class KanbanAndroidRegressionTests
 {
     [AvaloniaFact]
     public async Task A_Dialog_Moves_Above_The_On_Screen_Keyboard_And_Back()
@@ -337,6 +337,81 @@ public class KanbanAndroidRegressionTests
             timer?.Stop();
             window.Close();
             StateStorageProvider.Configure(previousStorage);
+        }
+    }
+
+    // On a phone on its side the board is short: the search moves beside the title, the status bar goes and Add Card is
+    // flat, so the cards keep some height.
+    [AvaloniaFact]
+    public void A_Short_Board_Puts_The_Search_Beside_The_Title_Hides_The_Status_Bar_And_Flattens_Add_Card()
+    {
+        var board = new FlowKanban { AutoSaveAfterEdits = false, Board = new FlowKanbanData { Columns = { new FlowKanbanColumnData { Title = "Todo" } } } };
+        var window = CreateWindow(board, 800);
+        try
+        {
+            board.CurrentView = FlowKanbanView.Board;
+            Flush(window);
+            // The home view has a search of its own.
+            var header = window.GetVisualDescendants().OfType<Grid>().Single(static grid => grid.Name == "PART_BoardHeader");
+            var title = header.GetVisualDescendants().OfType<TextBlock>().Single(static text => text.Name == "PART_BoardTitle");
+            var search = header.GetVisualDescendants().OfType<DaisyInput>().Single(static input => input.Name == "PART_SearchInput");
+            double Top(Visual visual) => visual.TranslatePoint(default, window)!.Value.Y;
+            DaisyButton AddButton() => window.GetVisualDescendants().OfType<DaisyButton>().First(static button => button.Name == "PART_AddButton" && button.IsEffectivelyVisible);
+            var tallAddHeight = AddButton().Bounds.Height;
+            Assert.True(Top(search) > Top(title) + title.Bounds.Height / 2, "the search is below the title");
+            Assert.True(board.IsBoardStatusBarVisible);
+
+            window.Height = 400;
+            Flush(window);
+            Assert.True(Top(search) < Top(title) + title.Bounds.Height, "the search is beside the title");
+            Assert.True(search.TranslatePoint(default, window)!.Value.X > title.TranslatePoint(new Point(title.Bounds.Width, 0), window)!.Value.X);
+            Assert.False(board.IsBoardStatusBarVisible);
+            // The columns keep their Add Card flat.
+            Assert.True(AddButton().Bounds.Height < tallAddHeight, $"Add Card {AddButton().Bounds.Height} is not lower than {tallAddHeight}");
+
+            window.Height = 800;
+            Flush(window);
+            Assert.True(Top(search) > Top(title) + title.Bounds.Height / 2);
+            Assert.True(board.IsBoardStatusBarVisible);
+            Assert.Equal(tallAddHeight, AddButton().Bounds.Height, 1);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    // A phone that turns makes the board wide for a moment, which shows the standard layout, and compact again.
+    [AvaloniaFact]
+    public void The_Compact_Layout_Keeps_The_Chosen_Column_After_The_Board_Was_Wide()
+    {
+        var todo = new FlowKanbanColumnData { Title = "Todo" };
+        var done = new FlowKanbanColumnData { Title = "Done" };
+        var board = new FlowKanban { AutoSaveAfterEdits = false, Board = new FlowKanbanData { Columns = { todo, done } } };
+        var window = CreateWindow(board, 800);
+        try
+        {
+            window.Width = 400;
+            board.CurrentView = FlowKanbanView.Board;
+            Flush(window);
+            Assert.True(board.IsCompactLayoutVisible);
+            var choice = window.GetVisualDescendants().OfType<ComboBox>().Single(static box => box.Name == "PART_CompactColumnSelect");
+            choice.SelectedItem = done;
+            Flush(window);
+
+            window.Width = 1400;
+            Flush(window);
+            Assert.False(board.IsCompactLayoutVisible);
+            window.Width = 400;
+            Flush(window);
+
+            Assert.True(board.IsCompactLayoutVisible);
+            Assert.Same(done, board.CompactSelectedColumn);
+            Assert.Same(done, choice.SelectedItem);
+        }
+        finally
+        {
+            window.Close();
         }
     }
 

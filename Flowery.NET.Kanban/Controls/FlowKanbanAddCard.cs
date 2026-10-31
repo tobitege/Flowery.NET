@@ -38,6 +38,7 @@ namespace Flowery.NET.Kanban.Controls
             if (_parentKanban != null)
             {
                 AddCardSize = _parentKanban.BoardSize;
+                SetShort(_parentKanban.IsShort);
                 _parentKanban.BoardSizeChanged += OnParentSizeChanged;
                 ApplySizing();
             }
@@ -51,6 +52,9 @@ namespace Flowery.NET.Kanban.Controls
                 _parentKanban = null;
             }
         }
+
+        // A short board (FlowKanban.Short) keeps its Add Card flat; the column passes changes on.
+        internal void SetShort(bool isShort) => PseudoClasses.Set(":short", isShort);
 
         private void OnParentSizeChanged(object? sender, DaisySize newSize)
         {

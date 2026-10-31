@@ -758,6 +758,14 @@ namespace Flowery.NET.Kanban.Controls
             parent.SearchFilterChanged += OnSearchFilterChanged;
         }
 
+        // Follows the :short state of its board (FlowKanban.Short): the header and Add Card take less height.
+        internal void SetShort(bool isShort)
+        {
+            PseudoClasses.Set(":short", isShort);
+            foreach (var addCard in this.GetVisualDescendants().OfType<FlowKanbanAddCard>())
+                addCard.SetShort(isShort);
+        }
+
         private void OnBoardSizeChanged(object? sender, DaisySize newSize)
         {
             ColumnSize = newSize;

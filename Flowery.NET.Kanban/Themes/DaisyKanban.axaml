@@ -353,6 +353,10 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <!-- The Add Card of a short board (FlowKanban.Short) is flat. -->
+        <Style Selector="^:short /template/ controls|DaisyButton#PART_AddButton">
+            <Setter Property="Size" Value="ExtraSmall" />
+        </Style>
     </ControlTheme>
     <ControlTheme x:Key="{x:Type kanban:FlowKanbanColumn}" TargetType="kanban:FlowKanbanColumn">
         <Setter Property="Background"
@@ -639,6 +643,16 @@
         </Setter>
         <Style Selector="^.keyboard-focus /template/ Border#PART_ColumnBorder">
             <Setter Property="BorderBrush" Value="{DynamicResource DaisyAccentBrush}" />
+        </Style>
+        <!-- The column of a short board (FlowKanban.Short) keeps its header and Add Card flat. -->
+        <Style Selector="^:short /template/ Grid#PART_ColumnHeaderGrid">
+            <Setter Property="Margin" Value="0,0,0,2" />
+        </Style>
+        <Style Selector="^:short /template/ kanban|FlowKanbanAddCard#PART_AddCardTop">
+            <Setter Property="Margin" Value="0,0,0,2" />
+        </Style>
+        <Style Selector="^:short /template/ kanban|FlowKanbanAddCard#PART_AddCardBottom">
+            <Setter Property="Margin" Value="0,2,0,0" />
         </Style>
     </ControlTheme>
     <ControlTheme x:Key="{x:Type kanban:FlowKanbanHome}" TargetType="kanban:FlowKanbanHome">
@@ -1291,7 +1305,13 @@
                         <Grid x:Name="PART_BoardContentHost"
                               Grid.Row="2"
                               Grid.Column="0"
+                              Background="Transparent"
                               IsVisible="{Binding IsBoardViewActive, RelativeSource={RelativeSource TemplatedParent}}">
+                            <!-- Two fingers zoom the board in every layout (FlowKanban.Pinch); the background takes the
+                                 fingers also between the parts of a layout, such as the column choice and the column. -->
+                            <Grid.GestureRecognizers>
+                                <PinchGestureRecognizer />
+                            </Grid.GestureRecognizers>
                             <!-- Main Board -->
                             <ScrollViewer HorizontalScrollBarVisibility="Auto"
                                           VerticalScrollBarVisibility="Disabled"
@@ -1943,6 +1963,27 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <!-- A short board (FlowKanban.Short) puts the search beside the title, -->
+        <Style Selector="^:short /template/ Grid#PART_BoardHeader">
+            <Setter Property="Margin" Value="16,6,16,2" />
+        </Style>
+        <Style Selector="^:short /template/ controls|DaisyInput#PART_SearchInput">
+            <Setter Property="Grid.Row" Value="0" />
+            <Setter Property="Grid.Column" Value="2" />
+            <Setter Property="Grid.ColumnSpan" Value="2" />
+            <Setter Property="Margin" Value="12,0,0,0" />
+        </Style>
+        <Style Selector="^:short /template/ Grid#PART_FilterToggleHost">
+            <Setter Property="Grid.Row" Value="0" />
+            <Setter Property="Margin" Value="4,0,0,0" />
+        </Style>
+        <!-- and keeps less room around the columns. -->
+        <Style Selector="^:short /template/ ItemsControl#PART_ColumnsItemsControl">
+            <Setter Property="Padding" Value="16,4" />
+        </Style>
+        <Style Selector="^:short /template/ Border#PART_CompactColumnsHost">
+            <Setter Property="Padding" Value="16,4,20,4" />
+        </Style>
     </ControlTheme>
     </Styles.Resources>
 </Styles>
