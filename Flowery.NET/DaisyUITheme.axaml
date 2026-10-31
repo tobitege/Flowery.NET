@@ -2,7 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
         x:Class="Flowery.DaisyUITheme">
-    <Style Selector=":is(Control)">
+    <!-- Both properties inherit, so a binding on each window and popup root reaches every control. A binding on every
+         control would cost each one two bindings. -->
+    <Style Selector=":is(TopLevel)">
         <Setter Property="controls:DaisyAccessibility.MotionEnabled"
                 Value="{Binding MotionEnabled, Source={x:Static controls:DaisyAccessibility.Preferences}}" />
         <Setter Property="controls:DaisyAccessibility.HighContrastEnabled"

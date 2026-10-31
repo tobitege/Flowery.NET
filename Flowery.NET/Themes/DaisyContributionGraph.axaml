@@ -10,6 +10,54 @@
   </Design.PreviewWith>
 
   <Styles.Resources>
+    <!-- The look of a cell. A theme of its own attaches only to the cells: as app styles, these selectors would attach
+         to every Border of the app. Styles for Border.daisy-contribution-cell in the app still override it. -->
+    <ControlTheme x:Key="DaisyContributionCellTheme" TargetType="Border">
+      <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Opacity" Value="1" />
+
+      <Style Selector="^[(controls|DaisyContributionGraph.IsMonthStartCell)=True]">
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisySecondaryBrush}" />
+      </Style>
+
+      <Style Selector="^:pointerover">
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
+      </Style>
+
+      <Style Selector="^[Tag=-1]">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Opacity" Value="0" />
+      </Style>
+
+      <Style Selector="^[Tag=0]">
+        <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
+        <Setter Property="Opacity" Value="1" />
+      </Style>
+
+      <Style Selector="^[Tag=1]">
+        <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+        <Setter Property="Opacity" Value="0.25" />
+      </Style>
+
+      <Style Selector="^[Tag=2]">
+        <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+        <Setter Property="Opacity" Value="0.45" />
+      </Style>
+
+      <Style Selector="^[Tag=3]">
+        <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+        <Setter Property="Opacity" Value="0.65" />
+      </Style>
+
+      <Style Selector="^[Tag=4]">
+        <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
+        <Setter Property="Opacity" Value="1" />
+      </Style>
+    </ControlTheme>
+
     <ControlTheme x:Key="{x:Type controls:DaisyContributionGraph}" TargetType="controls:DaisyContributionGraph">
       <Setter Property="FontSize" Value="12" />
       <Setter Property="CellSize" Value="10" />
@@ -80,6 +128,7 @@
                   <ItemsControl.ItemTemplate>
                     <DataTemplate>
                       <Border Classes="daisy-contribution-cell"
+                              Theme="{StaticResource DaisyContributionCellTheme}"
                               Tag="{Binding Level}"
                               controls:DaisyContributionGraph.IsMonthStartCell="{Binding IsMonthStart}"
                               Width="{Binding CellSize, RelativeSource={RelativeSource AncestorType=controls:DaisyContributionGraph}}"
@@ -98,11 +147,11 @@
                         IsVisible="{Binding ShowLegend, RelativeSource={RelativeSource TemplatedParent}}">
               <TextBlock Text="Less" Foreground="{DynamicResource DaisyBaseContentBrush}" Opacity="0.7" />
               <StackPanel Orientation="Horizontal" Spacing="2">
-                <Border Classes="daisy-contribution-cell" Tag="0" Width="10" Height="10" CornerRadius="2" />
-                <Border Classes="daisy-contribution-cell" Tag="1" Width="10" Height="10" CornerRadius="2" />
-                <Border Classes="daisy-contribution-cell" Tag="2" Width="10" Height="10" CornerRadius="2" />
-                <Border Classes="daisy-contribution-cell" Tag="3" Width="10" Height="10" CornerRadius="2" />
-                <Border Classes="daisy-contribution-cell" Tag="4" Width="10" Height="10" CornerRadius="2" />
+                <Border Classes="daisy-contribution-cell" Theme="{StaticResource DaisyContributionCellTheme}" Tag="0" Width="10" Height="10" CornerRadius="2" />
+                <Border Classes="daisy-contribution-cell" Theme="{StaticResource DaisyContributionCellTheme}" Tag="1" Width="10" Height="10" CornerRadius="2" />
+                <Border Classes="daisy-contribution-cell" Theme="{StaticResource DaisyContributionCellTheme}" Tag="2" Width="10" Height="10" CornerRadius="2" />
+                <Border Classes="daisy-contribution-cell" Theme="{StaticResource DaisyContributionCellTheme}" Tag="3" Width="10" Height="10" CornerRadius="2" />
+                <Border Classes="daisy-contribution-cell" Theme="{StaticResource DaisyContributionCellTheme}" Tag="4" Width="10" Height="10" CornerRadius="2" />
               </StackPanel>
               <TextBlock Text="More" Foreground="{DynamicResource DaisyBaseContentBrush}" Opacity="0.7" />
             </StackPanel>
@@ -111,51 +160,5 @@
       </Setter>
     </ControlTheme>
   </Styles.Resources>
-
-  <Style Selector="Border.daisy-contribution-cell">
-    <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Opacity" Value="1" />
-  </Style>
-
-  <Style Selector="Border.daisy-contribution-cell[(controls|DaisyContributionGraph.IsMonthStartCell)=True]">
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="BorderBrush" Value="{DynamicResource DaisySecondaryBrush}" />
-  </Style>
-
-  <Style Selector="Border.daisy-contribution-cell:pointerover">
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="BorderBrush" Value="{DynamicResource DaisyBaseContentBrush}" />
-  </Style>
-
-  <Style Selector="Border.daisy-contribution-cell[Tag=-1]">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="Opacity" Value="0" />
-  </Style>
-
-  <Style Selector="Border.daisy-contribution-cell[Tag=0]">
-    <Setter Property="Background" Value="{DynamicResource DaisyBase300Brush}" />
-    <Setter Property="Opacity" Value="1" />
-  </Style>
-
-  <Style Selector="Border.daisy-contribution-cell[Tag=1]">
-    <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
-    <Setter Property="Opacity" Value="0.25" />
-  </Style>
-
-  <Style Selector="Border.daisy-contribution-cell[Tag=2]">
-    <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
-    <Setter Property="Opacity" Value="0.45" />
-  </Style>
-
-  <Style Selector="Border.daisy-contribution-cell[Tag=3]">
-    <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
-    <Setter Property="Opacity" Value="0.65" />
-  </Style>
-
-  <Style Selector="Border.daisy-contribution-cell[Tag=4]">
-    <Setter Property="Background" Value="{DynamicResource DaisyPrimaryBrush}" />
-    <Setter Property="Opacity" Value="1" />
-  </Style>
 
 </Styles>

@@ -7,8 +7,9 @@
     </Design.PreviewWith>
 
     <!-- DaisyGlassDesigner builds its parts in code; these styles give them their look.
-         The selectors start at the designer, so nothing leaks into the app, except the two overlay classes
-         (gbd-overlay, gbd-overlay-card) of ShowOverlayAsync, whose border lies in the overlay layer. -->
+         The selectors start at the designer, so nothing leaks into the app. The two borders of ShowOverlayAsync,
+         which lie in the overlay layer, have control themes (DaisyGlassDesignerOverlayTheme and
+         DaisyGlassDesignerOverlayCardTheme). -->
     <Style Selector="controls|DaisyGlassDesigner">
         <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
     </Style>
@@ -343,17 +344,20 @@
         <Setter Property="Background" Value="#1E293B" />
     </Style>
 
-    <!-- Overlay opened by ShowOverlayAsync -->
-    <Style Selector="Border.gbd-overlay">
-        <Setter Property="Background" Value="#99000000" />
-    </Style>
-    <Style Selector="Border.gbd-overlay-card">
-        <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />
-        <Setter Property="CornerRadius" Value="24" />
-        <Setter Property="BoxShadow" Value="0 24 64 0 #66000000" />
-        <Setter Property="HorizontalAlignment" Value="Center" />
-        <Setter Property="VerticalAlignment" Value="Top" />
-    </Style>
+    <!-- Overlay opened by ShowOverlayAsync. Themes of their own attach only to its two borders: as app styles, the
+         class selectors would attach to every Border of the app. Styles for the classes in the app still override them. -->
+    <Styles.Resources>
+        <ControlTheme x:Key="DaisyGlassDesignerOverlayTheme" TargetType="Border">
+            <Setter Property="Background" Value="#99000000" />
+        </ControlTheme>
+        <ControlTheme x:Key="DaisyGlassDesignerOverlayCardTheme" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />
+            <Setter Property="CornerRadius" Value="24" />
+            <Setter Property="BoxShadow" Value="0 24 64 0 #66000000" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+        </ControlTheme>
+    </Styles.Resources>
     <Style Selector="Border.gbd-overlay-card controls|DaisyGlassDesigner Border.gbd-root">
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Background" Value="Transparent" />

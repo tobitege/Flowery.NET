@@ -1,6 +1,9 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+    <!-- The styles for the parts of a variant are in the Styles of its template root, where they are only matched
+         against the elements of that template. Their selectors still name the variant, for templates that serve
+         several variants. -->
 
     <!-- ==================== DOCUMENT FLIP ON ==================== -->
     <!-- DocumentFlipOn - 3 stacked document pages with flip animation -->
@@ -8,6 +11,33 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=DocumentFlipOn] /template/ Border.front-page[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="TranslateTransform.X" Value="-30"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-30"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.5">
+                                        <Setter Property="TranslateTransform.X" Value="3"/>
+                                        <Setter Property="TranslateTransform.Y" Value="3"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=DocumentFlipOn] /template/ Border.mid-page[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.35"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="0.55"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.55"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.35"/></KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Grid Width="96" Height="96">
                         <!-- Back page (offset) -->
                         <Border Width="62" Height="76" Margin="6,6,0,0"
@@ -38,37 +68,29 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=DocumentFlipOn] /template/ Border.front-page[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.5" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="TranslateTransform.X" Value="-30"/>
-                    <Setter Property="TranslateTransform.Y" Value="-30"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.5">
-                    <Setter Property="TranslateTransform.X" Value="3"/>
-                    <Setter Property="TranslateTransform.Y" Value="3"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
-    <Style Selector="controls|DaisyLoading[Variant=DocumentFlipOn] /template/ Border.mid-page[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.5" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.35"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="0.55"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.55"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.35"/></KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== DOCUMENT FLIP OFF ==================== -->
     <Style Selector="controls|DaisyLoading[Variant=DocumentFlipOff]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=DocumentFlipOff] /template/ Border.front-page-off[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="TranslateTransform.X" Value="3"/>
+                                        <Setter Property="TranslateTransform.Y" Value="3"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.5">
+                                        <Setter Property="TranslateTransform.X" Value="30"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-30"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Grid Width="96" Height="96">
                         <Border Width="62" Height="76" Margin="6,6,0,0"
                                 Background="{TemplateBinding Foreground}" Opacity="0.15"
@@ -96,29 +118,24 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=DocumentFlipOff] /template/ Border.front-page-off[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.5" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="TranslateTransform.X" Value="3"/>
-                    <Setter Property="TranslateTransform.Y" Value="3"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.5">
-                    <Setter Property="TranslateTransform.X" Value="30"/>
-                    <Setter Property="TranslateTransform.Y" Value="-30"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== MAIL SEND ==================== -->
     <!-- MailSend - Paper sliding into envelope -->
     <Style Selector="controls|DaisyLoading[Variant=MailSend]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=MailSend] /template/ Border.paper[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:2" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.8"><Setter Property="TranslateTransform.Y" Value="46"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.4"><Setter Property="TranslateTransform.Y" Value="46"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:2"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Canvas Width="96" Height="96" ClipToBounds="True">
                         <!-- Paper (slides down into envelope) -->
                         <Border Classes="paper" Width="58" Height="40" Canvas.Left="19" Canvas.Top="6"
@@ -147,22 +164,31 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=MailSend] /template/ Border.paper[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:2" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:0.8"><Setter Property="TranslateTransform.Y" Value="46"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:1.4"><Setter Property="TranslateTransform.Y" Value="46"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:2"><Setter Property="TranslateTransform.Y" Value="0"/></KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== CLOUD UPLOAD ==================== -->
     <Style Selector="controls|DaisyLoading[Variant=CloudUpload]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=CloudUpload] /template/ Path.upload-arrow[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.4" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="TranslateTransform.Y" Value="10"/>
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.7">
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.4">
+                                        <Setter Property="TranslateTransform.Y" Value="10"/>
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Grid Width="96" Height="96">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
@@ -185,30 +211,31 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=CloudUpload] /template/ Path.upload-arrow[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.4" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="TranslateTransform.Y" Value="10"/>
-                    <Setter Property="Opacity" Value="0.3"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.7">
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.4">
-                    <Setter Property="TranslateTransform.Y" Value="10"/>
-                    <Setter Property="Opacity" Value="0.3"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== CLOUD DOWNLOAD ==================== -->
     <Style Selector="controls|DaisyLoading[Variant=CloudDownload]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=CloudDownload] /template/ Path.download-arrow[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.4" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="TranslateTransform.Y" Value="-10"/>
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.7">
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.4">
+                                        <Setter Property="TranslateTransform.Y" Value="-10"/>
+                                        <Setter Property="Opacity" Value="0.3"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Grid Width="96" Height="96">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
@@ -231,30 +258,50 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=CloudDownload] /template/ Path.download-arrow[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.4" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="TranslateTransform.Y" Value="-10"/>
-                    <Setter Property="Opacity" Value="0.3"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.7">
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.4">
-                    <Setter Property="TranslateTransform.Y" Value="-10"/>
-                    <Setter Property="Opacity" Value="0.3"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== DOCUMENT STAMP (OK) ==================== -->
     <Style Selector="controls|DaisyLoading[Variant=DocumentStamp]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=DocumentStamp] /template/ Border.stamp[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:2" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="2.5"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="2.5"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.2">
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.3">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="0.9"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="0.9"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.4">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.8">
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:2">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="2.5"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="2.5"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Canvas Width="96" Height="96">
                         <!-- Document -->
                         <Border Width="60" Height="76" Canvas.Left="18" Canvas.Top="10"
@@ -282,49 +329,50 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=DocumentStamp] /template/ Border.stamp[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:2" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="ScaleTransform.ScaleX" Value="2.5"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="2.5"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.2">
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.3">
-                    <Setter Property="ScaleTransform.ScaleX" Value="0.9"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="0.9"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.4">
-                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.8">
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:2">
-                    <Setter Property="ScaleTransform.ScaleX" Value="2.5"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="2.5"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== DOCUMENT REJECT (X) ==================== -->
     <Style Selector="controls|DaisyLoading[Variant=DocumentReject]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=DocumentReject] /template/ Border.reject-stamp[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:2" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="2.5"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="2.5"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.2">
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.3">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="0.9"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="0.9"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.4">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.8">
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:2">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="2.5"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="2.5"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Canvas Width="96" Height="96">
                         <!-- Document -->
                         <Border Width="60" Height="76" Canvas.Left="18" Canvas.Top="10"
@@ -353,49 +401,73 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=DocumentReject] /template/ Border.reject-stamp[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:2" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="ScaleTransform.ScaleX" Value="2.5"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="2.5"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.2">
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.3">
-                    <Setter Property="ScaleTransform.ScaleX" Value="0.9"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="0.9"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.4">
-                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.8">
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:2">
-                    <Setter Property="ScaleTransform.ScaleX" Value="2.5"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="2.5"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== CHART PULSE ==================== -->
     <Style Selector="controls|DaisyLoading[Variant=ChartPulse]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar1[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar2[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.15">
+                                    <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar3[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.3">
+                                    <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar4[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.45">
+                                    <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar5[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.6">
+                                    <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.sweep[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:2.4" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.2"><Setter Property="TranslateTransform.X" Value="96"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.22"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:2.4"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Canvas Width="96" Height="96">
                         <!-- 5 bars with different heights -->
                         <Border Classes="bar1" Width="10" Height="21" Canvas.Left="8" Canvas.Top="51"
@@ -422,67 +494,50 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar1[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.2" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar2[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.15">
-                <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar3[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.3">
-                <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar4[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.45">
-                <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.bar5[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.2" IterationCount="Infinite" Delay="0:0:0.6">
-                <KeyFrame KeyTime="0:0:0"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6"><Setter Property="ScaleTransform.ScaleY" Value="1"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:1.2"><Setter Property="ScaleTransform.ScaleY" Value="0.3"/></KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=ChartPulse] /template/ Border.sweep[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:2.4" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:1.2"><Setter Property="TranslateTransform.X" Value="96"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:1.22"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:2.4"><Setter Property="TranslateTransform.X" Value="0"/></KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== CALENDAR TICK ==================== -->
     <Style Selector="controls|DaisyLoading[Variant=CalendarTick]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=CalendarTick] /template/ Path.checkmark[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:2" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="0"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="0"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.2">
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.4">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="1.2"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="1.2"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.5">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.8">
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:2">
+                                        <Setter Property="ScaleTransform.ScaleX" Value="0"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="0"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Canvas Width="96" Height="96">
                         <!-- Calendar body -->
                         <Border Width="64" Height="72" Canvas.Left="16" Canvas.Top="20"
@@ -508,49 +563,88 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=CalendarTick] /template/ Path.checkmark[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:2" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="ScaleTransform.ScaleX" Value="0"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="0"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.2">
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.4">
-                    <Setter Property="ScaleTransform.ScaleX" Value="1.2"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="1.2"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.5">
-                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.8">
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:2">
-                    <Setter Property="ScaleTransform.ScaleX" Value="0"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="0"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== APPROVAL FLOW ==================== -->
     <Style Selector="controls|DaisyLoading[Variant=ApprovalFlow]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=ApprovalFlow] /template/ Ellipse.dot1[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:2.4" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="Opacity" Value="0.2"/>
+                                        <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.32">
+                                        <Setter Property="Opacity" Value="1"/>
+                                        <Setter Property="ScaleTransform.ScaleX" Value="1.3"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="1.3"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.8">
+                                        <Setter Property="Opacity" Value="0.5"/>
+                                        <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:2.4">
+                                        <Setter Property="Opacity" Value="0.2"/>
+                                        <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=ApprovalFlow] /template/ Ellipse.dot2[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:2.4" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0.8">
+                                        <Setter Property="Opacity" Value="0.2"/>
+                                        <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.12">
+                                        <Setter Property="Opacity" Value="1"/>
+                                        <Setter Property="ScaleTransform.ScaleX" Value="1.3"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="1.3"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="Opacity" Value="0.5"/>
+                                        <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:2.4">
+                                        <Setter Property="Opacity" Value="0.2"/>
+                                        <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=ApprovalFlow] /template/ Ellipse.dot3[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:2.4" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="Opacity" Value="0.2"/>
+                                        <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.92">
+                                        <Setter Property="Opacity" Value="1"/>
+                                        <Setter Property="ScaleTransform.ScaleX" Value="1.3"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="1.3"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:2.4">
+                                        <Setter Property="Opacity" Value="0.5"/>
+                                        <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                                        <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Canvas Width="96" Height="96">
                         <!-- Flow lines -->
                         <Border Width="20" Height="2" Canvas.Left="26" Canvas.Top="47"
@@ -580,85 +674,49 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=ApprovalFlow] /template/ Ellipse.dot1[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:2.4" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="Opacity" Value="0.2"/>
-                    <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.32">
-                    <Setter Property="Opacity" Value="1"/>
-                    <Setter Property="ScaleTransform.ScaleX" Value="1.3"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="1.3"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.8">
-                    <Setter Property="Opacity" Value="0.5"/>
-                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:2.4">
-                    <Setter Property="Opacity" Value="0.2"/>
-                    <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=ApprovalFlow] /template/ Ellipse.dot2[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:2.4" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0.8">
-                    <Setter Property="Opacity" Value="0.2"/>
-                    <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.12">
-                    <Setter Property="Opacity" Value="1"/>
-                    <Setter Property="ScaleTransform.ScaleX" Value="1.3"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="1.3"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="Opacity" Value="0.5"/>
-                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:2.4">
-                    <Setter Property="Opacity" Value="0.2"/>
-                    <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=ApprovalFlow] /template/ Ellipse.dot3[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:2.4" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="Opacity" Value="0.2"/>
-                    <Setter Property="ScaleTransform.ScaleX" Value="0.6"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="0.6"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.92">
-                    <Setter Property="Opacity" Value="1"/>
-                    <Setter Property="ScaleTransform.ScaleX" Value="1.3"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="1.3"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:2.4">
-                    <Setter Property="Opacity" Value="0.5"/>
-                    <Setter Property="ScaleTransform.ScaleX" Value="1"/>
-                    <Setter Property="ScaleTransform.ScaleY" Value="1"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== BRIEFCASE SPIN ==================== -->
     <Style Selector="controls|DaisyLoading[Variant=BriefcaseSpin]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=BriefcaseSpin] /template/ Canvas.briefcase-group[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="RotateTransform.Angle" Value="-5"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.3">
+                                        <Setter Property="RotateTransform.Angle" Value="5"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-4"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6">
+                                        <Setter Property="RotateTransform.Angle" Value="-5"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.9">
+                                        <Setter Property="RotateTransform.Angle" Value="5"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-4"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.2">
+                                        <Setter Property="RotateTransform.Angle" Value="-5"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=BriefcaseSpin] /template/ Border.latch[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Canvas Classes="briefcase-group" Width="96" Height="96" RenderTransformOrigin="0.5,0.5">
                         <!-- Briefcase body -->
                         <Border Width="60" Height="44" Canvas.Left="18" Canvas.Top="38"
@@ -677,48 +735,86 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=BriefcaseSpin] /template/ Canvas.briefcase-group[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.2" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="RotateTransform.Angle" Value="-5"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.3">
-                    <Setter Property="RotateTransform.Angle" Value="5"/>
-                    <Setter Property="TranslateTransform.Y" Value="-4"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6">
-                    <Setter Property="RotateTransform.Angle" Value="-5"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.9">
-                    <Setter Property="RotateTransform.Angle" Value="5"/>
-                    <Setter Property="TranslateTransform.Y" Value="-4"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.2">
-                    <Setter Property="RotateTransform.Angle" Value="-5"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
-    <Style Selector="controls|DaisyLoading[Variant=BriefcaseSpin] /template/ Border.latch[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.2" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6"><Setter Property="Opacity" Value="1"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:1.2"><Setter Property="Opacity" Value="0.6"/></KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== BATTERY ==================== -->
     <Style Selector="controls|DaisyLoading[Variant=BatteryCharging], controls|DaisyLoading[Variant=BatteryEmptying]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=BatteryCharging] /template/ Border.battery-bar1[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=BatteryCharging] /template/ Border.battery-bar2[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:0.375"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=BatteryCharging] /template/ Border.battery-bar3[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=BatteryCharging] /template/ Border.battery-bar4[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=BatteryEmptying] /template/ Border.battery-bar1[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:0.95"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=BatteryEmptying] /template/ Border.battery-bar2[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:0.625"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=BatteryEmptying] /template/ Border.battery-bar3[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:0.375"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=BatteryEmptying] /template/ Border.battery-bar4[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:0.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Grid Width="96" Height="96">
                         <StackPanel Orientation="Horizontal"
                                     HorizontalAlignment="Center"
@@ -748,79 +844,70 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=BatteryCharging] /template/ Border.battery-bar1[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
-        </Animation></Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=BatteryCharging] /template/ Border.battery-bar2[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:0.375"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-        </Animation></Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=BatteryCharging] /template/ Border.battery-bar3[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-        </Animation></Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=BatteryCharging] /template/ Border.battery-bar4[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.0"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.1"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-        </Animation></Style.Animations>
-    </Style>
-
-    <Style Selector="controls|DaisyLoading[Variant=BatteryEmptying] /template/ Border.battery-bar1[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:0.95"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
-        </Animation></Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=BatteryEmptying] /template/ Border.battery-bar2[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:0.625"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:0.75"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
-        </Animation></Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=BatteryEmptying] /template/ Border.battery-bar3[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:0.25"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:0.375"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
-        </Animation></Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=BatteryEmptying] /template/ Border.battery-bar4[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:1.5" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:0.125"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.5"><Setter Property="Opacity" Value="1"/></KeyFrame>
-        </Animation></Style.Animations>
-    </Style>
-
     <!-- ==================== TRAFFIC LIGHT ==================== -->
     <Style Selector="controls|DaisyLoading[Variant=TrafficLightUp], controls|DaisyLoading[Variant=TrafficLightRight], controls|DaisyLoading[Variant=TrafficLightDown], controls|DaisyLoading[Variant=TrafficLightLeft]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=TrafficLightRight] /template/ Border.traffic-body">
+                            <Setter Property="RotateTransform.Angle" Value="90"/>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=TrafficLightLeft] /template/ Border.traffic-body">
+                            <Setter Property="RotateTransform.Angle" Value="270"/>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=TrafficLightUp] /template/ Ellipse.traffic-green[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=TrafficLightRight] /template/ Ellipse.traffic-green[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=TrafficLightLeft] /template/ Ellipse.traffic-green[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=TrafficLightUp] /template/ Ellipse.traffic-yellow[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=TrafficLightRight] /template/ Ellipse.traffic-yellow[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=TrafficLightLeft] /template/ Ellipse.traffic-yellow[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=TrafficLightUp] /template/ Ellipse.traffic-red[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=TrafficLightRight] /template/ Ellipse.traffic-red[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=TrafficLightLeft] /template/ Ellipse.traffic-red[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=TrafficLightDown] /template/ Ellipse.traffic-red[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=TrafficLightDown] /template/ Ellipse.traffic-yellow[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=TrafficLightDown] /template/ Ellipse.traffic-green[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
+                                <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="1"/></KeyFrame>
+                                <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
+                            </Animation></Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Grid Width="96" Height="96">
                         <Border Classes="traffic-body"
                                 Width="38" Height="84"
@@ -846,59 +933,6 @@
                 </Viewbox>
             </ControlTemplate>
         </Setter>
-    </Style>
-
-    <Style Selector="controls|DaisyLoading[Variant=TrafficLightRight] /template/ Border.traffic-body">
-        <Setter Property="RotateTransform.Angle" Value="90"/>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=TrafficLightLeft] /template/ Border.traffic-body">
-        <Setter Property="RotateTransform.Angle" Value="270"/>
-    </Style>
-
-    <Style Selector="controls|DaisyLoading[Variant=TrafficLightUp] /template/ Ellipse.traffic-green[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=TrafficLightRight] /template/ Ellipse.traffic-green[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=TrafficLightLeft] /template/ Ellipse.traffic-green[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="1"/></KeyFrame>
-        </Animation></Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=TrafficLightUp] /template/ Ellipse.traffic-yellow[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=TrafficLightRight] /template/ Ellipse.traffic-yellow[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=TrafficLightLeft] /template/ Ellipse.traffic-yellow[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-        </Animation></Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=TrafficLightUp] /template/ Ellipse.traffic-red[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=TrafficLightRight] /template/ Ellipse.traffic-red[(controls|DaisyAccessibility.MotionEnabled)=True], controls|DaisyLoading[Variant=TrafficLightLeft] /template/ Ellipse.traffic-red[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-        </Animation></Style.Animations>
-    </Style>
-
-    <Style Selector="controls|DaisyLoading[Variant=TrafficLightDown] /template/ Ellipse.traffic-red[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="1"/></KeyFrame>
-        </Animation></Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=TrafficLightDown] /template/ Ellipse.traffic-yellow[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:0.9"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-        </Animation></Style.Animations>
-    </Style>
-    <Style Selector="controls|DaisyLoading[Variant=TrafficLightDown] /template/ Ellipse.traffic-green[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations><Animation Duration="0:0:2.7" IterationCount="Infinite">
-            <KeyFrame KeyTime="0:0:0"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:1.8"><Setter Property="Opacity" Value="1"/></KeyFrame>
-            <KeyFrame KeyTime="0:0:2.7"><Setter Property="Opacity" Value="0.15"/></KeyFrame>
-        </Animation></Style.Animations>
     </Style>
 
 </Styles>

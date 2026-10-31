@@ -1,6 +1,9 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+    <!-- The styles for the parts of a variant are in the Styles of its template root, where they are only matched
+         against the elements of that template. Their selectors still name the variant, for templates that serve
+         several variants. -->
 
     <!-- ==================== WIN95 FILE COPY ==================== -->
     <!-- Win95FileCopy - Folders with flying papers in arc -->
@@ -8,6 +11,119 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <!-- Paper flying animations with arc motion -->
+                        <Style Selector="controls|DaisyLoading[Variant=Win95FileCopy] /template/ Border.paper1[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.6" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.4">
+                                        <Setter Property="TranslateTransform.X" Value="20"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-8"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.8">
+                                        <Setter Property="TranslateTransform.X" Value="42"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.81">
+                                        <Setter Property="TranslateTransform.X" Value="42"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.59">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=Win95FileCopy] /template/ Border.paper2[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.4">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.4">
+                                        <Setter Property="TranslateTransform.X" Value="20"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-10"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.8">
+                                        <Setter Property="TranslateTransform.X" Value="42"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.81">
+                                        <Setter Property="TranslateTransform.X" Value="42"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.59">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=Win95FileCopy] /template/ Border.paper3[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.8">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.4">
+                                        <Setter Property="TranslateTransform.X" Value="20"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-12"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.8">
+                                        <Setter Property="TranslateTransform.X" Value="42"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.81">
+                                        <Setter Property="TranslateTransform.X" Value="42"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.59">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Grid Width="96" Height="96">
                         <!-- Left folder -->
                         <Canvas HorizontalAlignment="Left" VerticalAlignment="Center" Margin="12,10,0,0">
@@ -68,124 +184,110 @@
         </Setter>
     </Style>
 
-    <!-- Paper flying animations with arc motion -->
-    <Style Selector="controls|DaisyLoading[Variant=Win95FileCopy] /template/ Border.paper1[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.6" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.4">
-                    <Setter Property="TranslateTransform.X" Value="20"/>
-                    <Setter Property="TranslateTransform.Y" Value="-8"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.8">
-                    <Setter Property="TranslateTransform.X" Value="42"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.81">
-                    <Setter Property="TranslateTransform.X" Value="42"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.59">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
-    <Style Selector="controls|DaisyLoading[Variant=Win95FileCopy] /template/ Border.paper2[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.4">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.4">
-                    <Setter Property="TranslateTransform.X" Value="20"/>
-                    <Setter Property="TranslateTransform.Y" Value="-10"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.8">
-                    <Setter Property="TranslateTransform.X" Value="42"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.81">
-                    <Setter Property="TranslateTransform.X" Value="42"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.59">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
-    <Style Selector="controls|DaisyLoading[Variant=Win95FileCopy] /template/ Border.paper3[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.8">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.4">
-                    <Setter Property="TranslateTransform.X" Value="20"/>
-                    <Setter Property="TranslateTransform.Y" Value="-12"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.8">
-                    <Setter Property="TranslateTransform.X" Value="42"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.81">
-                    <Setter Property="TranslateTransform.X" Value="42"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.59">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== WIN95 DELETE ==================== -->
     <!-- Win95Delete - Papers flying INTO recycle bin from above -->
     <Style Selector="controls|DaisyLoading[Variant=Win95Delete]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <!-- Papers fly DOWN into bin and fade out at lid level -->
+                        <Style Selector="controls|DaisyLoading[Variant=Win95Delete] /template/ Border.del-paper1[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.6" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.5">
+                                        <Setter Property="TranslateTransform.X" Value="12"/>
+                                        <Setter Property="TranslateTransform.Y" Value="28"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6">
+                                        <Setter Property="TranslateTransform.X" Value="14"/>
+                                        <Setter Property="TranslateTransform.Y" Value="32"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.5">
+                                        <Setter Property="TranslateTransform.X" Value="14"/>
+                                        <Setter Property="TranslateTransform.Y" Value="32"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=Win95Delete] /template/ Border.del-paper2[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.2">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.5">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="30"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="34"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.5">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="34"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=Win95Delete] /template/ Border.del-paper3[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.4">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.5">
+                                        <Setter Property="TranslateTransform.X" Value="-12"/>
+                                        <Setter Property="TranslateTransform.Y" Value="28"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6">
+                                        <Setter Property="TranslateTransform.X" Value="-14"/>
+                                        <Setter Property="TranslateTransform.Y" Value="32"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.5">
+                                        <Setter Property="TranslateTransform.X" Value="-14"/>
+                                        <Setter Property="TranslateTransform.Y" Value="32"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Canvas Width="96" Height="96" ClipToBounds="True">
                         <!-- Large centered recycle bin -->
                         <!-- Lid handle -->
@@ -243,109 +345,23 @@
         </Setter>
     </Style>
 
-    <!-- Papers fly DOWN into bin and fade out at lid level -->
-    <Style Selector="controls|DaisyLoading[Variant=Win95Delete] /template/ Border.del-paper1[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.6" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.5">
-                    <Setter Property="TranslateTransform.X" Value="12"/>
-                    <Setter Property="TranslateTransform.Y" Value="28"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6">
-                    <Setter Property="TranslateTransform.X" Value="14"/>
-                    <Setter Property="TranslateTransform.Y" Value="32"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.5">
-                    <Setter Property="TranslateTransform.X" Value="14"/>
-                    <Setter Property="TranslateTransform.Y" Value="32"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
-    <Style Selector="controls|DaisyLoading[Variant=Win95Delete] /template/ Border.del-paper2[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.2">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.5">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="30"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="34"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.5">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="34"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
-    <Style Selector="controls|DaisyLoading[Variant=Win95Delete] /template/ Border.del-paper3[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.4">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.5">
-                    <Setter Property="TranslateTransform.X" Value="-12"/>
-                    <Setter Property="TranslateTransform.Y" Value="28"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6">
-                    <Setter Property="TranslateTransform.X" Value="-14"/>
-                    <Setter Property="TranslateTransform.Y" Value="32"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.5">
-                    <Setter Property="TranslateTransform.X" Value="-14"/>
-                    <Setter Property="TranslateTransform.Y" Value="32"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== WIN95 SEARCH ==================== -->
     <!-- Win95Search - Flashlight sweeping over folders -->
     <Style Selector="controls|DaisyLoading[Variant=Win95Search]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <Style Selector="controls|DaisyLoading[Variant=Win95Search] /template/ Canvas.flashlight-group[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:2" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="-24"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1"><Setter Property="TranslateTransform.X" Value="24"/></KeyFrame>
+                                    <KeyFrame KeyTime="0:0:2"><Setter Property="TranslateTransform.X" Value="-24"/></KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Grid Width="96" Height="96">
                         <!-- Row of folders at bottom -->
                         <StackPanel Orientation="Horizontal" Spacing="4"
@@ -411,22 +427,110 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyLoading[Variant=Win95Search] /template/ Canvas.flashlight-group[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:2" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0"><Setter Property="TranslateTransform.X" Value="-24"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:1"><Setter Property="TranslateTransform.X" Value="24"/></KeyFrame>
-                <KeyFrame KeyTime="0:0:2"><Setter Property="TranslateTransform.X" Value="-24"/></KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
     <!-- ==================== WIN95 EMPTY RECYCLE ==================== -->
     <!-- Win95EmptyRecycle - Papers flying OUT of recycle bin upward -->
     <Style Selector="controls|DaisyLoading[Variant=Win95EmptyRecycle]">
         <Setter Property="Template">
             <ControlTemplate>
                 <Viewbox Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <!-- Papers fade in at center, fly UP, fade out at top -->
+                        <Style Selector="controls|DaisyLoading[Variant=Win95EmptyRecycle] /template/ Border.empty-paper1[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.6" IterationCount="Infinite">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.05">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.5">
+                                        <Setter Property="TranslateTransform.X" Value="-12"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-28"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6">
+                                        <Setter Property="TranslateTransform.X" Value="-14"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-32"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="TranslateTransform.X" Value="-14"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-32"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=Win95EmptyRecycle] /template/ Border.empty-paper2[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.2">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.05">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.5">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-30"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-34"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-34"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+
+                        <Style Selector="controls|DaisyLoading[Variant=Win95EmptyRecycle] /template/ Border.empty-paper3[(controls|DaisyAccessibility.MotionEnabled)=True]">
+                            <Style.Animations>
+                                <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.4">
+                                    <KeyFrame KeyTime="0:0:0">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.05">
+                                        <Setter Property="TranslateTransform.X" Value="0"/>
+                                        <Setter Property="TranslateTransform.Y" Value="0"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.5">
+                                        <Setter Property="TranslateTransform.X" Value="12"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-28"/>
+                                        <Setter Property="Opacity" Value="1"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:0.6">
+                                        <Setter Property="TranslateTransform.X" Value="14"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-32"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                    <KeyFrame KeyTime="0:0:1.6">
+                                        <Setter Property="TranslateTransform.X" Value="14"/>
+                                        <Setter Property="TranslateTransform.Y" Value="-32"/>
+                                        <Setter Property="Opacity" Value="0"/>
+                                    </KeyFrame>
+                                </Animation>
+                            </Style.Animations>
+                        </Style>
+                    </Viewbox.Styles>
                     <Canvas Width="96" Height="96" ClipToBounds="True">
                         <!-- Large centered recycle bin -->
                         <!-- Lid handle -->
@@ -482,103 +586,6 @@
                 </Viewbox>
             </ControlTemplate>
         </Setter>
-    </Style>
-
-    <!-- Papers fade in at center, fly UP, fade out at top -->
-    <Style Selector="controls|DaisyLoading[Variant=Win95EmptyRecycle] /template/ Border.empty-paper1[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.6" IterationCount="Infinite">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.05">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.5">
-                    <Setter Property="TranslateTransform.X" Value="-12"/>
-                    <Setter Property="TranslateTransform.Y" Value="-28"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6">
-                    <Setter Property="TranslateTransform.X" Value="-14"/>
-                    <Setter Property="TranslateTransform.Y" Value="-32"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="TranslateTransform.X" Value="-14"/>
-                    <Setter Property="TranslateTransform.Y" Value="-32"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
-    <Style Selector="controls|DaisyLoading[Variant=Win95EmptyRecycle] /template/ Border.empty-paper2[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.2">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.05">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.5">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="-30"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="-34"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="-34"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
-    <Style Selector="controls|DaisyLoading[Variant=Win95EmptyRecycle] /template/ Border.empty-paper3[(controls|DaisyAccessibility.MotionEnabled)=True]">
-        <Style.Animations>
-            <Animation Duration="0:0:1.6" IterationCount="Infinite" Delay="0:0:0.4">
-                <KeyFrame KeyTime="0:0:0">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.05">
-                    <Setter Property="TranslateTransform.X" Value="0"/>
-                    <Setter Property="TranslateTransform.Y" Value="0"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.5">
-                    <Setter Property="TranslateTransform.X" Value="12"/>
-                    <Setter Property="TranslateTransform.Y" Value="-28"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:0.6">
-                    <Setter Property="TranslateTransform.X" Value="14"/>
-                    <Setter Property="TranslateTransform.Y" Value="-32"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-                <KeyFrame KeyTime="0:0:1.6">
-                    <Setter Property="TranslateTransform.X" Value="14"/>
-                    <Setter Property="TranslateTransform.Y" Value="-32"/>
-                    <Setter Property="Opacity" Value="0"/>
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
     </Style>
 
 </Styles>

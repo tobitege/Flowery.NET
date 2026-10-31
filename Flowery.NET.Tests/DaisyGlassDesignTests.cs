@@ -741,6 +741,41 @@ public class DaisyGlassDesignTests
     }
 
     [AvaloniaFact]
+    public async Task The_Overlay_Dims_The_App_Behind_A_Rounded_Card_That_High_Contrast_Shows_Without_A_Shadow()
+    {
+        var previousContrast = DaisyAccessibility.HighContrastOverride;
+        DaisyAccessibility.HighContrastOverride = false;
+        var host = new Border();
+        var window = Show(host, 1100, 1300);
+        try
+        {
+            var overlay = OverlayLayer.GetOverlayLayer(host)!;
+            var open = DaisyGlassDesigner.ShowOverlayAsync(host);
+            Dispatcher.UIThread.RunJobs();
+            var backdrop = overlay.GetVisualDescendants().OfType<Border>().Single(static border => border.Classes.Contains("gbd-overlay"));
+            var card = overlay.GetVisualDescendants().OfType<Border>().Single(static border => border.Classes.Contains("gbd-overlay-card"));
+
+            Assert.Equal(Color.Parse("#99000000"), Assert.IsAssignableFrom<ISolidColorBrush>(backdrop.Background).Color);
+            Assert.Same(window.FindResource("DaisyBase100Brush"), card.Background);
+            Assert.Equal(new CornerRadius(24), card.CornerRadius);
+            Assert.Equal(BoxShadows.Parse("0 24 64 0 #66000000"), card.BoxShadow);
+
+            // The shadow comes from the card's control theme, which the high contrast styles of the app override.
+            DaisyAccessibility.HighContrastOverride = true;
+            Dispatcher.UIThread.RunJobs();
+            Assert.Equal(Colors.Transparent, card.BoxShadow[0].Color);
+
+            OverlayButton(overlay, "GlassDesigner_Cancel").PointerClick();
+            Assert.Null(await open);
+        }
+        finally
+        {
+            window.Close();
+            DaisyAccessibility.HighContrastOverride = previousContrast;
+        }
+    }
+
+    [AvaloniaFact]
     public async Task Editing_A_Glass_Button_Applies_The_Design_It_Started_From()
     {
         var button = new DaisyButton { Content = "Mine", Variant = DaisyButtonVariant.Accent, Theme = DaisyGlassSurfaceTests.GlassTheme("DaisyGlassButtonTheme") };

@@ -1,6 +1,9 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+    <!-- The styles for the parts of a variant are in the Styles of its template root, where they are only matched
+         against the elements of that template. Their selectors still name the variant, for templates that serve
+         several variants. -->
 
     <!-- ===================== BATTERY VARIANT ===================== -->
     <!-- Battery with 4 segmented inner bars that light up based on BatteryChargePercent -->
@@ -95,6 +98,45 @@
                 <Border Background="#000000"
                         CornerRadius="5"
                         Padding="3">
+                    <Border.Styles>
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="10" />
+                            <Setter Property="Height" Value="10" />
+                        </Style>
+
+                        <!-- Traffic light vertical active states -->
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][TrafficLightActive=Red] /template/ Ellipse#PART_RedLight">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][TrafficLightActive=Yellow] /template/ Ellipse#PART_YellowLight">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][TrafficLightActive=Green] /template/ Ellipse#PART_GreenLight">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][Size=ExtraSmall] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="6" />
+                            <Setter Property="Height" Value="6" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][Size=Small] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="8" />
+                            <Setter Property="Height" Value="8" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][Size=Large] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="12" />
+                            <Setter Property="Height" Value="12" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][Size=ExtraLarge] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="14" />
+                            <Setter Property="Height" Value="14" />
+                        </Style>
+                    </Border.Styles>
                     <!-- Inner housing -->
                     <Border Background="{DynamicResource DaisyNeutralBrush}"
                             CornerRadius="3"
@@ -122,54 +164,22 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="10" />
-        <Setter Property="Height" Value="10" />
-    </Style>
-
-    <!-- Traffic light vertical active states -->
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][TrafficLightActive=Red] /template/ Ellipse#PART_RedLight">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][TrafficLightActive=Yellow] /template/ Ellipse#PART_YellowLight">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][TrafficLightActive=Green] /template/ Ellipse#PART_GreenLight">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-
     <!-- Traffic light vertical size variants -->
     <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][Size=ExtraSmall]">
         <Setter Property="Width" Value="16" />
         <Setter Property="Height" Value="32" />
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][Size=ExtraSmall] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="6" />
-        <Setter Property="Height" Value="6" />
-    </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][Size=Small]">
         <Setter Property="Width" Value="18" />
         <Setter Property="Height" Value="38" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][Size=Small] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="8" />
-        <Setter Property="Height" Value="8" />
     </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][Size=Large]">
         <Setter Property="Width" Value="22" />
         <Setter Property="Height" Value="50" />
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][Size=Large] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Height" Value="12" />
-    </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][Size=ExtraLarge]">
         <Setter Property="Width" Value="24" />
         <Setter Property="Height" Value="56" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightVertical][Size=ExtraLarge] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="14" />
-        <Setter Property="Height" Value="14" />
     </Style>
 
     <!-- ===================== TRAFFIC LIGHT HORIZONTAL ===================== -->
@@ -182,6 +192,45 @@
                 <Border Background="#000000"
                         CornerRadius="5"
                         Padding="3">
+                    <Border.Styles>
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="10" />
+                            <Setter Property="Height" Value="10" />
+                        </Style>
+
+                        <!-- Traffic light horizontal active states -->
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][TrafficLightActive=Red] /template/ Ellipse#PART_RedLight">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][TrafficLightActive=Yellow] /template/ Ellipse#PART_YellowLight">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][TrafficLightActive=Green] /template/ Ellipse#PART_GreenLight">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][Size=ExtraSmall] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="6" />
+                            <Setter Property="Height" Value="6" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][Size=Small] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="8" />
+                            <Setter Property="Height" Value="8" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][Size=Large] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="12" />
+                            <Setter Property="Height" Value="12" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][Size=ExtraLarge] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="14" />
+                            <Setter Property="Height" Value="14" />
+                        </Style>
+                    </Border.Styles>
                     <!-- Inner housing -->
                     <Border Background="{DynamicResource DaisyNeutralBrush}"
                             CornerRadius="3"
@@ -209,54 +258,22 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="10" />
-        <Setter Property="Height" Value="10" />
-    </Style>
-
-    <!-- Traffic light horizontal active states -->
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][TrafficLightActive=Red] /template/ Ellipse#PART_RedLight">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][TrafficLightActive=Yellow] /template/ Ellipse#PART_YellowLight">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][TrafficLightActive=Green] /template/ Ellipse#PART_GreenLight">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-
     <!-- Traffic light horizontal size variants -->
     <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][Size=ExtraSmall]">
         <Setter Property="Width" Value="32" />
         <Setter Property="Height" Value="16" />
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][Size=ExtraSmall] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="6" />
-        <Setter Property="Height" Value="6" />
-    </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][Size=Small]">
         <Setter Property="Width" Value="38" />
         <Setter Property="Height" Value="18" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][Size=Small] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="8" />
-        <Setter Property="Height" Value="8" />
     </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][Size=Large]">
         <Setter Property="Width" Value="50" />
         <Setter Property="Height" Value="22" />
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][Size=Large] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Height" Value="12" />
-    </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][Size=ExtraLarge]">
         <Setter Property="Width" Value="56" />
         <Setter Property="Height" Value="24" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontal][Size=ExtraLarge] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="14" />
-        <Setter Property="Height" Value="14" />
     </Style>
 
     <!-- ===================== TRAFFIC LIGHT HORIZONTAL (REVERSED) ===================== -->
@@ -270,6 +287,45 @@
                 <Border Background="#000000"
                         CornerRadius="5"
                         Padding="3">
+                    <Border.Styles>
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="10" />
+                            <Setter Property="Height" Value="10" />
+                        </Style>
+
+                        <!-- Traffic light horizontal (reversed) active states -->
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][TrafficLightActive=Red] /template/ Ellipse#PART_RedLight">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][TrafficLightActive=Yellow] /template/ Ellipse#PART_YellowLight">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][TrafficLightActive=Green] /template/ Ellipse#PART_GreenLight">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][Size=ExtraSmall] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="6" />
+                            <Setter Property="Height" Value="6" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][Size=Small] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="8" />
+                            <Setter Property="Height" Value="8" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][Size=Large] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="12" />
+                            <Setter Property="Height" Value="12" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][Size=ExtraLarge] /template/ Ellipse.traffic-light-light">
+                            <Setter Property="Width" Value="14" />
+                            <Setter Property="Height" Value="14" />
+                        </Style>
+                    </Border.Styles>
                     <!-- Inner housing -->
                     <Border Background="{DynamicResource DaisyNeutralBrush}"
                             CornerRadius="3"
@@ -297,54 +353,22 @@
         </Setter>
     </Style>
 
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="10" />
-        <Setter Property="Height" Value="10" />
-    </Style>
-
-    <!-- Traffic light horizontal (reversed) active states -->
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][TrafficLightActive=Red] /template/ Ellipse#PART_RedLight">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][TrafficLightActive=Yellow] /template/ Ellipse#PART_YellowLight">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][TrafficLightActive=Green] /template/ Ellipse#PART_GreenLight">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-
     <!-- Traffic light horizontal (reversed) size variants -->
     <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][Size=ExtraSmall]">
         <Setter Property="Width" Value="32" />
         <Setter Property="Height" Value="16" />
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][Size=ExtraSmall] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="6" />
-        <Setter Property="Height" Value="6" />
-    </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][Size=Small]">
         <Setter Property="Width" Value="38" />
         <Setter Property="Height" Value="18" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][Size=Small] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="8" />
-        <Setter Property="Height" Value="8" />
     </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][Size=Large]">
         <Setter Property="Width" Value="50" />
         <Setter Property="Height" Value="22" />
     </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][Size=Large] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Height" Value="12" />
-    </Style>
     <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][Size=ExtraLarge]">
         <Setter Property="Width" Value="56" />
         <Setter Property="Height" Value="24" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=TrafficLightHorizontalReversed][Size=ExtraLarge] /template/ Ellipse.traffic-light-light">
-        <Setter Property="Width" Value="14" />
-        <Setter Property="Height" Value="14" />
     </Style>
 
     <!-- ===================== WIFI SIGNAL ===================== -->
@@ -357,6 +381,27 @@
                 <Viewbox Width="{TemplateBinding Width}"
                          Height="{TemplateBinding Height}"
                          Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <!-- WiFi signal strength states (0-3) -->
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=WifiSignal] /template/ Ellipse#PART_Dot">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=WifiSignal][SignalStrength=1] /template/ Path#PART_Arc1,
+                                         controls|DaisyStatusIndicator[Variant=WifiSignal][SignalStrength=2] /template/ Path#PART_Arc1,
+                                         controls|DaisyStatusIndicator[Variant=WifiSignal][SignalStrength=3] /template/ Path#PART_Arc1">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=WifiSignal][SignalStrength=2] /template/ Path#PART_Arc2,
+                                         controls|DaisyStatusIndicator[Variant=WifiSignal][SignalStrength=3] /template/ Path#PART_Arc2">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=WifiSignal][SignalStrength=3] /template/ Path#PART_Arc3">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+                    </Viewbox.Styles>
                     <Canvas Width="20" Height="16">
                         <!-- WiFi arcs (from outer to inner) -->
                         <!-- Arc 3 (outer) -->
@@ -395,23 +440,6 @@
         </Setter>
     </Style>
 
-    <!-- WiFi signal strength states (0-3) -->
-    <Style Selector="controls|DaisyStatusIndicator[Variant=WifiSignal] /template/ Ellipse#PART_Dot">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=WifiSignal][SignalStrength=1] /template/ Path#PART_Arc1,
-                     controls|DaisyStatusIndicator[Variant=WifiSignal][SignalStrength=2] /template/ Path#PART_Arc1,
-                     controls|DaisyStatusIndicator[Variant=WifiSignal][SignalStrength=3] /template/ Path#PART_Arc1">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=WifiSignal][SignalStrength=2] /template/ Path#PART_Arc2,
-                     controls|DaisyStatusIndicator[Variant=WifiSignal][SignalStrength=3] /template/ Path#PART_Arc2">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=WifiSignal][SignalStrength=3] /template/ Path#PART_Arc3">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-
     <!-- WiFi size variants -->
     <Style Selector="controls|DaisyStatusIndicator[Variant=WifiSignal][Size=ExtraSmall]">
         <Setter Property="Width" Value="12" />
@@ -440,6 +468,38 @@
                 <Viewbox Width="{TemplateBinding Width}"
                          Height="{TemplateBinding Height}"
                          Stretch="Uniform">
+                    <Viewbox.Styles>
+                        <!-- Cellular signal strength states (0-5) -->
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=1] /template/ Border#PART_Bar1,
+                                         controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=2] /template/ Border#PART_Bar1,
+                                         controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=3] /template/ Border#PART_Bar1,
+                                         controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=4] /template/ Border#PART_Bar1,
+                                         controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=5] /template/ Border#PART_Bar1">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=2] /template/ Border#PART_Bar2,
+                                         controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=3] /template/ Border#PART_Bar2,
+                                         controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=4] /template/ Border#PART_Bar2,
+                                         controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=5] /template/ Border#PART_Bar2">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=3] /template/ Border#PART_Bar3,
+                                         controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=4] /template/ Border#PART_Bar3,
+                                         controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=5] /template/ Border#PART_Bar3">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=4] /template/ Border#PART_Bar4,
+                                         controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=5] /template/ Border#PART_Bar4">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+
+                        <Style Selector="controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=5] /template/ Border#PART_Bar5">
+                            <Setter Property="Opacity" Value="1" />
+                        </Style>
+                    </Viewbox.Styles>
                     <Canvas Width="20" Height="16">
                         <!-- Bar 1 (shortest) -->
                         <Border Name="PART_Bar1"
@@ -480,33 +540,6 @@
                 </Viewbox>
             </ControlTemplate>
         </Setter>
-    </Style>
-
-    <!-- Cellular signal strength states (0-5) -->
-    <Style Selector="controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=1] /template/ Border#PART_Bar1,
-                     controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=2] /template/ Border#PART_Bar1,
-                     controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=3] /template/ Border#PART_Bar1,
-                     controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=4] /template/ Border#PART_Bar1,
-                     controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=5] /template/ Border#PART_Bar1">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=2] /template/ Border#PART_Bar2,
-                     controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=3] /template/ Border#PART_Bar2,
-                     controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=4] /template/ Border#PART_Bar2,
-                     controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=5] /template/ Border#PART_Bar2">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=3] /template/ Border#PART_Bar3,
-                     controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=4] /template/ Border#PART_Bar3,
-                     controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=5] /template/ Border#PART_Bar3">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=4] /template/ Border#PART_Bar4,
-                     controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=5] /template/ Border#PART_Bar4">
-        <Setter Property="Opacity" Value="1" />
-    </Style>
-    <Style Selector="controls|DaisyStatusIndicator[Variant=CellularSignal][SignalStrength=5] /template/ Border#PART_Bar5">
-        <Setter Property="Opacity" Value="1" />
     </Style>
 
     <!-- Cellular size variants -->
