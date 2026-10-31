@@ -13,6 +13,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Flowery.NET.Photos\Flowery.NET.Photos.csproj" />
+    <!-- SafeEmbeddedFontCollection: font stand-ins that optimized code cannot crash. -->
+    <ProjectReference Include="..\Flowery.NET.Skia\Flowery.NET.Skia.csproj" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">

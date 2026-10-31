@@ -10,6 +10,9 @@
         <!-- A publish for a runtime downloads no ASP.NET Core or Windows Desktop runtime pack, which the SDK fetches in
              case a reference needs them; the app uses neither framework. -->
         <DisableTransitiveFrameworkReferenceDownloads>true</DisableTransitiveFrameworkReferenceDownloads>
+        <!-- A publish for a runtime ships precompiled code: the Gallery starts in about half the time, since it JIT
+             compiles little at startup. It needs SafeEmbeddedFontCollection, see NotoFontProvider. -->
+        <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != ''">true</PublishReadyToRun>
     </PropertyGroup>
 
     <PropertyGroup>

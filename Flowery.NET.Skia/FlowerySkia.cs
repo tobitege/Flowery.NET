@@ -29,6 +29,13 @@ namespace Flowery.Skia
             Register();
             return builder;
         }
+
+        /// <summary>
+        /// Adds the Inter fonts of the Avalonia.Fonts.Inter package like <c>WithInterFont()</c>, as a
+        /// <see cref="SafeEmbeddedFontCollection"/>: Inter has no italic faces, so italic text needs a stand-in.
+        /// </summary>
+        public static AppBuilder WithSafeInterFont(this AppBuilder builder) =>
+            builder.ConfigureFonts(static fontManager => fontManager.AddFontCollection(SafeEmbeddedFontCollection.CreateInter()));
     }
 
     /// <summary>

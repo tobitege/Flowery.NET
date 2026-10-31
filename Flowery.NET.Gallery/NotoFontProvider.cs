@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using Avalonia;
 using Avalonia.Media.Fonts;
+using Flowery.Skia;
 
 namespace Flowery.NET.Gallery;
 
@@ -41,7 +42,7 @@ public static class NotoFontProvider
             {
                 try
                 {
-                    fontManager.AddFontCollection(new EmbeddedFontCollection(FontKey, FontSource));
+                    fontManager.AddFontCollection(CreateCollection());
                 }
                 catch (Exception ex)
                 {
@@ -56,4 +57,10 @@ public static class NotoFontProvider
             return builder; // Return builder unchanged if configuration fails
         }
     }
+
+    /// <summary>
+    /// The Noto font collection that <see cref="WithNotoFonts"/> adds. The fonts have only regular faces, so bold and
+    /// italic text needs the stand-ins of a <see cref="SafeEmbeddedFontCollection"/>.
+    /// </summary>
+    internal static FontCollectionBase CreateCollection() => new SafeEmbeddedFontCollection(FontKey, FontSource);
 }

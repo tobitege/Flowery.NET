@@ -6,6 +6,7 @@ using Avalonia.Browser;
 using Flowery.NET.Gallery;
 using Flowery.NET.Gallery.Browser;
 using Flowery.Services;
+using Flowery.Skia;
 
 [assembly: SupportedOSPlatform("browser")]
 
@@ -25,7 +26,7 @@ internal sealed partial class Program
 #endif
 
         await BuildAvaloniaApp()
-            .WithInterFont()
+            .WithSafeInterFont()
             .WithNotoFonts()
             .StartBrowserAppAsync("out");
     }
