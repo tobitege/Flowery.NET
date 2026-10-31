@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Rendering.Composition;
+using Flowery.Skia;
 
 namespace Flowery.NET.Gallery.Desktop;
 
@@ -36,7 +37,7 @@ sealed class Program
             // Separate redrawn areas keep a glass control out of a redraw it does not need: by default every changed
             // area of a frame merges into one rectangle, which can reach glass far from the change.
             .With(new CompositionOptions { UseRegionDirtyRectClipping = true })
-            .WithInterFont()
+            .WithSafeInterFont()
             .WithNotoFonts()
             .LogToTrace();
 

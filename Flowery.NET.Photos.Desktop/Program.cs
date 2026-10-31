@@ -1,6 +1,6 @@
 ﻿using Avalonia;
-using Avalonia.Media.Fonts;
 using Flowery.NET.Photos;
+using Flowery.Skia;
 
 namespace Flowery.NET.Photos.Desktop;
 
@@ -28,8 +28,8 @@ internal static class Program
     }
 
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>()
-        .UsePlatformDetect().WithInterFont()
-        .ConfigureFonts(manager => manager.AddFontCollection(new EmbeddedFontCollection(
+        .UsePlatformDetect().WithSafeInterFont()
+        .ConfigureFonts(manager => manager.AddFontCollection(new SafeEmbeddedFontCollection(
             new Uri("fonts:Flowery.NET.Photos"), new Uri(Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts")))))
         .LogToTrace();
 }

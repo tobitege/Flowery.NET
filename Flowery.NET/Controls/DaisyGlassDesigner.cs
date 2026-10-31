@@ -308,6 +308,9 @@ namespace Flowery.Controls
         private static ControlTheme? GlassButtonTheme() =>
             Application.Current?.FindResource("DaisyGlassButtonTheme") as ControlTheme;
 
+        // The target lies in a window or view (it has an overlay layer), so the lookup reaches the app's resources.
+        private static ControlTheme? OverlayTheme(Visual target, string key) => target.FindResource(key) as ControlTheme;
+
         /// <summary>
         /// Opens a designer over the app and returns the design when the user applies it, or <c>null</c> when the user
         /// cancels. It works on every platform, since it uses the overlay layer of the window or view.
@@ -338,6 +341,7 @@ namespace Flowery.Controls
             var card = new Border
             {
                 Classes = { "gbd-overlay-card" },
+                Theme = OverlayTheme(target, "DaisyGlassDesignerOverlayCardTheme"),
                 MaxWidth = 1040,
                 // Anchored at the top, so the card does not jump when a tab changes its height.
                 Margin = new Thickness(16, 40, 16, 16),
@@ -363,6 +367,7 @@ namespace Flowery.Controls
             var backdrop = new Border
             {
                 Classes = { "gbd-overlay" },
+                Theme = OverlayTheme(target, "DaisyGlassDesignerOverlayTheme"),
                 Width = overlay.Bounds.Width,
                 Height = overlay.Bounds.Height,
                 Focusable = true,

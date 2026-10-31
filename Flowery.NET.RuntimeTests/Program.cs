@@ -1,6 +1,7 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Flowery.NET.Gallery;
+using Flowery.Skia;
 
 namespace Flowery.NET.RuntimeTests;
 
@@ -30,7 +31,7 @@ internal static class Program
     private static AppBuilder BuildAvaloniaApp(string reportPath)
         => AppBuilder.Configure(() => new RuntimeTestApp(reportPath))
             .UsePlatformDetect()
-            .WithInterFont()
+            .WithSafeInterFont()
             .WithNotoFonts()
             .LogToTrace();
 }

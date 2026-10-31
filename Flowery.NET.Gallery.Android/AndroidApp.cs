@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using Android.App;
 using Android.Runtime;
 using Avalonia;
 using Avalonia.Android;
+using Flowery.Skia;
 
 namespace Flowery.NET.Gallery.Android;
 
@@ -17,7 +18,7 @@ public class AndroidApp : AvaloniaAndroidApplication<App>
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
         return base.CustomizeAppBuilder(builder)
-            .WithInterFont()
+            .WithSafeInterFont()
             .WithNotoFonts();
     }
 }

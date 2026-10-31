@@ -44,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The labels are translated into the 12 languages of the library; the Gallery shows the designer in a Glass Designer section.
 - Glassy: a dark theme made for the glass themes, with navy bases, a system-like blue, green and red, and WCAG contrast for the text on its colors. The new resource `DaisyGlassTintColor` (white by default) is the tint of the glass themes, `DaisyGlass`, and the glass cards; Glassy sets it to navy, and its backdrop is a violet and blue wave. The theme name is translated into the 12 languages.
 
+#### Fonts
+
+- `Flowery.NET.Skia`: `SafeEmbeddedFontCollection`, in place of `EmbeddedFontCollection`, and `WithSafeInterFont()`, in place of `WithInterFont()`, for apps that run optimized code: published with ReadyToRun or NativeAOT, or with the font code made hot by the JIT. When a font has no face for a requested weight or style, Avalonia makes a bold or oblique stand-in from bytes it reads through a Skia stream that it neither disposes nor keeps alive (`SkiaTypeface.TryGetStream`), so optimized code can finalize the stream during the read and the app ends with an access violation. These collections read the bytes themselves and make the stand-ins as Avalonia.Skia does.
+
 #### Themes
 
 - Theme backdrop: a theme can define a backdrop for the app, the brush `DaisyBackdropBrush` (a color, a gradient, a drawing or an `ImageBrush`, also from `avares://`) and an optional animated `DaisyBackdropEffect` (a `DaisyGlassBackground`). `DaisyBackdrop` draws both as the lowest layer of a window, under its content, and switches with the theme; its effect shows a still frame with reduced motion and hides with high contrast, where the backdrop is the plain contrast background. An app that wants only the brush uses `Background="{DynamicResource DaisyBackdropBrush}"`. A theme without a backdrop of its own shows `Base100`, and in the glass mode soft glows in its primary and secondary color on `Base100`, like the Gallery header.
@@ -111,6 +115,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+#### Performance
+
+- `DaisyDateTimeline` builds only the days in view. Its default range holds about 120 days, and every one of them was built with its template; the Gallery's date page opens in 0.25 s instead of 1.8 s.
+- Accessibility: `DaisyAccessibility.MotionEnabled` and `HighContrastEnabled` are bound once on each window and popup root and reach the controls by inheritance, instead of through two bindings on every control. A value set on a container now also applies to the controls inside it.
+- The cells of `DaisyContributionGraph` and the two borders of `DaisyGlassDesigner.ShowOverlayAsync` take their look from control themes (`DaisyContributionCellTheme`, `DaisyGlassDesignerOverlayTheme`, `DaisyGlassDesignerOverlayCardTheme`). As app styles for their classes, the looks were matched against every `Border` of an app. App styles for `daisy-contribution-cell`, `gbd-overlay` and `gbd-overlay-card` still override them. In high contrast the overlay card has no shadow, like other borders.
+- The styles for the parts of the `DaisyLoading` variants and of the glyph variants of `DaisyStatusIndicator` are in the templates of their variants. As app styles, they were matched against every `Border`, `Ellipse` and `Path` of an app: a plain `Border` now allocates about 9 KB instead of 31 KB when it appears. With the other changes of this section, opening every Gallery page allocates less than half the memory and takes about a third less time. `Win95Startup` and `Win95StartupColor` share one template.
+
 #### Glass
 
 - Glass: the liquid-glass rim of the `SkiaSharp` mode is drawn on the glass edge and fades inward. Its inner edge was a crisp line with a smaller corner radius, which read as a second, squarer rectangle inside small controls such as buttons and fields.
@@ -121,6 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Gallery
 
+- Gallery (desktop): a publish for a runtime, as in the releases, ships ReadyToRun code, so the Gallery compiles little at startup: it shows its first page in about 1.0 s instead of 1.8 s. The single-file executable for win-x64 grows from 109 MB to 133 MB.
 - Gallery: on phones and tablets the hamburger button always shows, so the sidebar can be hidden beside a wide page too; turning the device keeps that choice until the sidebar changes between beside and over the page. A phone or tablet lower than 480 (the compact height of Material Design, a phone on its side) opens the sidebar over the page, so the page keeps its width. On its side the header and the category title bar stay thin, also on pages that fold their intro, instead of only after scrolling, and the Kanban page keeps narrow margins. The desktop keeps its sidebar.
 - Gallery: new logo, a six-petal violet flower with one warm petal, shared by the Flowery family (Flowery.Uno uses blue, Flowery.WinUI teal). It replaces the Avalonia default icon and splash everywhere: the Desktop window and executable icon (`app_icon.ico`), the Android launcher icon (adaptive) and splash, the iOS app icon (`AppIcon` asset catalog) and launch screen, and the Browser favicon and splash. The Home banner (`flowery-banner.png`) is redrawn too. `app_icon.icns` is included for macOS app bundles.
 - Gallery: in the glass demos (Glass Card, Liquid Glass, Bitmap Capture and Full Width), every glass panel has a row of six stars. Two stay left of it and four run half behind its lower edge, so sharp and covered stars sit side by side; the panels are 100 apart to make room. The star and diamond rows in the demos' text columns are gone.
@@ -199,6 +211,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Gallery
 
+- Gallery, Photos app: bold and italic text could end the app with an access violation. The Noto fonts have only regular faces and Inter has no italic ones, and Avalonia reads the bytes for a bold or oblique stand-in through a Skia stream that it neither disposes nor keeps alive, so optimized code (ReadyToRun, NativeAOT, or the JIT once the method is hot) could finalize the stream during the read. Both apps add their fonts with the collections of Flowery.NET.Skia (`WithSafeInterFont()`, `SafeEmbeddedFontCollection`).
 - Gallery (desktop): the window keeps its saved size. It opens on the primary monitor and moves to its saved position; on a monitor with another scale that move rounded the size down by 2, so the window shrank with every start. The saved size is applied again once the window is open.
 - Gallery: on Android the on-screen keyboard covered the bottom of the page without making it smaller, so fields and buttons under it, such as Save in the scheduler's appointment editor, could not be scrolled into view. The page now keeps clear of the keyboard while it is open, and the focused field is brought into view.
 - Gallery (Android): with the keyboard open, the Kanban page left its board no height on a tablet. The page now folds its description and features into the title bar and hides the Gallery header, as the scheduler page does, keeps 8 at the sides below a width of 600, and names the touch gestures in its features.

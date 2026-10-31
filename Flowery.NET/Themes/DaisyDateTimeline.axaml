@@ -192,7 +192,8 @@
                             <ItemsControl x:Name="PART_ItemsControl">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal" />
+                                        <!-- Builds only the days in view: the default range holds about 120 days. -->
+                                        <VirtualizingStackPanel Orientation="Horizontal" />
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                             </ItemsControl>
