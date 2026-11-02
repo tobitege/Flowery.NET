@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.0.0] - Unreleased
+## [4.0.0] - 2026-11-02
 
 ### Breaking Changes
 
@@ -83,6 +83,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `CarouselGlEffectHost` in Flowery.NET.Skia, ported from Flowery.WinUI: a control that draws carousel transitions and effects with SkSL shaders (`SKRuntimeEffect`) through the Skia renderer of Avalonia, so they run on Windows, Linux, macOS, in the browser, on Android and on iOS, without a WebView. `Effect` selects one of the 51 effects of `CarouselGlEffectKind`: masks, blinds, slices, checkerboard, spiral, matrix rain, wormhole, dissolve, pixelate, flips and cubes, fades, slides, pushes, zooms, covers, reveals, wipes and Random, the pan, zoom, drift, pulse, breath and throw effects, and a text fill. `OverlayEffect` puts a continuous effect over a transition; `IntervalSeconds`, `TransitionSeconds`, `TransitionSliceCount`, `TransitionStaggerSlices`, `TransitionSliceStaggerMs`, `TransitionPixelateSize`, `TransitionDissolveDensity` and `TransitionFlipAngle` tune it. Out of view, in a hidden parent and with reduced motion the host pauses and keeps its last frame. The documentation is in `llms-static/FloweryCarouselGL.md`.
 - `CarouselGlEffectRegistry` and `CarouselGlEffectDefinition` hold the mode, variant and images of each effect; `Register` gives an effect the images of an app, as `avares://` resources, files, `http(s)` URLs or data URIs.
 - `CarouselGlNativeHost`, `CarouselGlEngine` and `CarouselGlCanvas` host custom SkSL programs: a host creates its engine in `CreateEngine()` and its effect in `CreateConfiguration()`. `ReadFrameAsync` reads the Skia backend, the frame count and the center pixel of a frame, also at a given time of the animation, and `IsRendererInitialized`, `LastRenderError`, `RenderFailed` and `CompileShadersAsync` report the state of the renderer. A renderer error stays visible in the host.
+
+#### Kiosk
+
+- Flowery Kiosk (`Flowery.NET.Kiosk` with the host `Flowery.NET.Kiosk.Desktop`), ported from Flowery.WinUI: a demo app for Windows, Linux and macOS that cycles through six slides, each with its own theme: authentication, data visualization, communication, enhanced controls, runtime scaling and background patterns. The slides change every eight seconds with a fade, through `FlowerySlideshowController`, and the arrow keys, Space, N and P move between them by hand; only one transition runs at a time, and a manual move restarts the eight seconds. `--manual` turns autoplay off. When the window closes, the slides stop their timers and animations, and the runtime scaling slide gives back the scale settings it changed. A failure ends the app with exit code 1 and writes `crash.log` to the state folder (`FLOWERY_STATE_ROOT`, by default `Flowery.NET.Kiosk` in the local application data).
+- Kiosk: `--smoke-test <absolute XML path>` runs 34 checks in the real window and writes them to an XML report with a log and screenshots: every slide with its theme, function and rendered pixels, the scaling geometry at seven zoom levels, the release of timers after unload, manual navigation in both directions, the progress bar and one automatic cycle of eight seconds per slide. `scripts/test_kiosk.ps1` builds the app, runs it and checks the report; CI runs it on Windows and on Linux (Xvfb), on macOS on demand, and uploads the report as the artifact `kiosk-smoke-<OS>-<configuration>`.
 
 #### Scheduler
 
@@ -179,6 +184,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Controls
 
+- `DaisyInput` and `DaisyCard`: a control that does not scale (`FloweryScaleManager.EnableScaling` false) keeps the fonts of its size inside a scaled area. A size change applied the scale factor of the scaled ancestor anyway, so an input in the Kiosk's scaling demo, which sets the sizes itself, showed its text at up to twice the size; `DaisyBadge`, `DaisyClock`, `DaisyPasswordBox` and `DaisyStatusIndicator` already checked this.
 - `DaisyToggle`: dragging the knob sideways threw a `NullReferenceException`, because the template had no `PART_SwitchKnob`, which `ToggleSwitch` measures a drag against. A drag over half the track now switches the toggle.
 - `FloweryComponentSidebar`: item icons are looked up in the application resources each time. A static cache kept the first geometry found for a key and gave it to every item created later, also after the resources changed or in another application on another thread.
 - Accessibility: the names of the number input (`DaisyNumericUpDown`) and its increase, decrease and clear buttons, of the increase and decrease buttons of `DaisyNumberFlow` and `DaisyRange`, and of the previous and next buttons of `DaisyCarousel`, `DaisyStack` and `DaisyTabsHeaderButtons` are translated into the 11 other languages; screen readers announced them in English. `DaisyNumberFlow` keeps its English name as the control name.

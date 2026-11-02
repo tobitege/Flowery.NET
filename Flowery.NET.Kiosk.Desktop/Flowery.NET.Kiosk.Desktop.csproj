@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <ApplicationIcon>..\Flowery.NET.Gallery\Assets\app_icon.ico</ApplicationIcon>
+    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework Condition="$([MSBuild]::IsOSPlatform('Windows'))">net10.0-windows10.0.19041.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <!-- A publish for a runtime downloads no ASP.NET Core or Windows Desktop runtime pack, which the SDK fetches in
+         case a reference needs them; the app uses neither framework. -->
+    <DisableTransitiveFrameworkReferenceDownloads>true</DisableTransitiveFrameworkReferenceDownloads>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Flowery.NET.Kiosk\Flowery.NET.Kiosk.csproj" />
+    <!-- SafeEmbeddedFontCollection: font stand-ins that optimized code cannot crash. -->
+    <ProjectReference Include="..\Flowery.NET.Skia\Flowery.NET.Skia.csproj" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+  </ItemGroup>
+</Project>

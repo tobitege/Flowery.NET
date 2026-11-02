@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:daisy="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:services="clr-namespace:Flowery.Services;assembly=Flowery.NET"
+             x:Class="Flowery.NET.Kiosk.Slides.ScalingSlide"
+             services:FloweryScaleManager.EnableScaling="True">
+
+  <Grid x:Name="SlideRoot" Margin="24,16,24,120">
+    <!-- Main Content -->
+    <Grid x:Name="DemoLayout" ColumnDefinitions="Auto,*" ColumnSpacing="24" VerticalAlignment="Center">
+      <!-- Left: Header and zoom level - excluded from scaling -->
+      <StackPanel x:Name="ZoomPanel" Spacing="12" Width="180" HorizontalAlignment="Center" VerticalAlignment="Center" services:FloweryScaleManager.EnableScaling="False">
+        <StackPanel Spacing="6">
+          <TextBlock Text="RUNTIME SCALING" HorizontalAlignment="Center" Foreground="{DynamicResource DaisyPrimaryBrush}" FontWeight="Bold" LetterSpacing="2" FontSize="10" />
+          <TextBlock Text="FloweryScaleManager Demo" TextWrapping="Wrap" TextAlignment="Center" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+          <TextBlock Text="Watch controls scale in real-time" TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Opacity="0.7" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+        </StackPanel>
+        <daisy:DaisyRadialProgress x:Name="ZoomProgress" Value="50" Maximum="200" Size="Medium" Variant="Primary" Width="140" Height="140" HorizontalAlignment="Center" />
+
+        <TextBlock Text="FloweryScaleManager" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+        <TextBlock Text="Real-time UI scaling" FontSize="10" Opacity="0.6" HorizontalAlignment="Center" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+      </StackPanel>
+
+      <!-- Right: Demo Controls that will scale. The slide sets their size tier, padding and spacing from the zoom, as
+           in Flowery.WinUI; the scalable controls of Flowery.NET would scale their fonts by the factor again. -->
+      <daisy:DaisyCard x:Name="DemoCard" Grid.Column="1" BodyPadding="18" MaxWidth="640" VerticalAlignment="Center"
+                       services:FloweryScaleManager.EnableScaling="False">
+        <StackPanel x:Name="DemoCardContent" Spacing="12">
+          <TextBlock x:Name="DemoTitle" Text="Interactive Controls" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+
+          <daisy:DaisyInput x:Name="DemoInput" Label="SAMPLE INPUT" PlaceholderText="Text scales..." Variant="Bordered" Size="Small" />
+
+          <WrapPanel x:Name="DemoButtonRow" Orientation="Horizontal" ItemSpacing="8" LineSpacing="8">
+            <daisy:DaisyButton x:Name="DemoButton1" Content="Primary" Variant="Primary" Size="Small" />
+            <daisy:DaisyButton x:Name="DemoButton2" Content="Secondary" Variant="Secondary" Size="Small" />
+            <daisy:DaisyButton x:Name="DemoButton3" Content="Ghost" Variant="Ghost" Size="Small" />
+          </WrapPanel>
+
+          <daisy:DaisyProgress x:Name="DemoProgress" Value="65" Variant="Accent" Height="6" />
+
+          <WrapPanel x:Name="DemoBadgeRow" Orientation="Horizontal" ItemSpacing="6" LineSpacing="6">
+            <daisy:DaisyBadge x:Name="DemoBadge1" Content="SCALES" Variant="Primary" Size="ExtraSmall" />
+            <daisy:DaisyBadge x:Name="DemoBadge2" Content="IN" Variant="Secondary" Size="ExtraSmall" />
+            <daisy:DaisyBadge x:Name="DemoBadge3" Content="REAL-TIME" Variant="Accent" Size="ExtraSmall" />
+          </WrapPanel>
+        </StackPanel>
+      </daisy:DaisyCard>
+    </Grid>
+  </Grid>
+</UserControl>

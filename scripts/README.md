@@ -1,7 +1,7 @@
 # Flowery.NET Build & Run Scripts
 
 PowerShell scripts for building and running the Flowery.NET demo applications.
-Both `build_all.ps1` and `build_desktop.ps1` include the Photos desktop app.
+Both `build_all.ps1` and `build_desktop.ps1` include the Photos and Kiosk desktop apps.
 The full script also builds Photos tests.
 The desktop script includes those tests with `-IncludeTests`.
 
@@ -359,6 +359,44 @@ A nonzero exit code means that at least one test failed, timed out or did not ru
 The tests do not access the clipboard or move other application windows.
 Some glass tests take screenshots of the test window and set it topmost for that moment.
 The suite supplements the headless tests in `Flowery.NET.Tests`; it does not test screenreader speech.
+
+## test_kiosk.ps1
+
+Runs the smoke run of the Kiosk app (`--smoke-test`) in its real desktop window and checks the report it writes.
+It runs on Windows, Linux and macOS; Linux needs a display, such as `xvfb-run`.
+The run takes about two minutes, most of it one automatic cycle through the six slides; the window changes theme with each slide.
+The script stops the app after four minutes.
+
+```powershell
+# Debug build, then the smoke run
+pwsh ./scripts/test_kiosk.ps1
+
+# Release, without building again
+pwsh ./scripts/test_kiosk.ps1 -Configuration Release -SkipBuild
+
+# A published Kiosk; nothing is built
+pwsh ./scripts/test_kiosk.ps1 -ExecutablePath ./publish-kiosk/Flowery.NET.Kiosk.Desktop.exe
+```
+
+### Kiosk Tests: Parameters
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `-Configuration` | string | `Debug` | Build configuration (`Debug` or `Release`) |
+| `-SkipBuild` | switch | off | Use the existing build output |
+| `-ExecutablePath` | string | none | Run this Kiosk executable instead of the build output |
+
+### Kiosk Tests: Output
+
+- `TestResults/Kiosk/<Configuration>/<run>/kiosk-smoke.xml`: the report with `total`, `passed`, `failed` and `inconclusive` counts and one entry per check
+- `TestResults/Kiosk/<Configuration>/<run>/kiosk-smoke.xml.log`: one line per check with its message
+- `TestResults/Kiosk/<Configuration>/<run>/*.png`: screenshots of the communication, scaling, patterns and progress checks
+- `TestResults/Kiosk/<Configuration>/<run>/state/`: the state folder of the run (`FLOWERY_STATE_ROOT`)
+- `logs/kiosk-tests-<Configuration>-<run>.log`: the console output
+
+An inconclusive check depends on the session rather than the code, such as the unscaled zoom panel overflowing a small screen; it shows as a warning and does not fail the run.
+A nonzero exit code means that a check failed, the app failed, or the report is missing or invalid.
+CI uploads the run folder and the console log as the artifact `kiosk-smoke-<OS>-<Configuration>` after every run.
 
 ## CI start checks
 

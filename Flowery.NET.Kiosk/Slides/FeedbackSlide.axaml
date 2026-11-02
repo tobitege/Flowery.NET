@@ -1,0 +1,101 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:daisy="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             x:Class="Flowery.NET.Kiosk.Slides.FeedbackSlide">
+
+  <Grid Margin="40,40,40,120" ColumnDefinitions="*,*">
+
+    <!-- Left: Chat & Avatars -->
+    <StackPanel Grid.Column="0" Spacing="20" VerticalAlignment="Top" Margin="0,0,20,0">
+      <StackPanel Spacing="6">
+        <TextBlock Text="COMMUNICATION" Foreground="{DynamicResource DaisyPrimaryBrush}" FontWeight="Bold" LetterSpacing="2" FontSize="10" />
+        <TextBlock Text="Chat Bubbles" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+      </StackPanel>
+
+      <!-- Single Chat Bubble -->
+      <daisy:DaisyChatBubble x:Name="Chat1" Header="Flowery.NET" Footer="Just now" Variant="Primary">
+        <TextBlock Text="Welcome to the Flowery.NET component library! This chat bubble demonstrates themed messaging with headers, footers, and multiple variants." TextWrapping="Wrap" FontSize="13" />
+      </daisy:DaisyChatBubble>
+
+      <!-- Avatars Section -->
+      <StackPanel Spacing="10">
+        <TextBlock Text="AVATAR STACK" FontSize="11" Opacity="0.6" FontWeight="Bold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+        <StackPanel Orientation="Horizontal" Spacing="-12">
+          <daisy:DaisyAvatar Size="Medium" Shape="Circle" HasRing="True" RingColor="Primary" BorderThickness="3" BorderBrush="{DynamicResource DaisyBase200Brush}" IsPlaceholder="True">
+            <PathIcon Data="{StaticResource DaisyIconUser}" Width="20" Height="20" />
+          </daisy:DaisyAvatar>
+          <daisy:DaisyAvatar Size="Medium" Shape="Circle" HasRing="True" RingColor="Secondary" BorderThickness="3" BorderBrush="{DynamicResource DaisyBase200Brush}" IsPlaceholder="True">
+            <PathIcon Data="{StaticResource DaisyIconFaceHappy}" Width="20" Height="20" />
+          </daisy:DaisyAvatar>
+          <daisy:DaisyAvatar Size="Medium" Shape="Circle" HasRing="True" RingColor="Accent" BorderThickness="3" BorderBrush="{DynamicResource DaisyBase200Brush}" IsPlaceholder="True">
+            <PathIcon Data="{StaticResource DaisyIconStarOutline}" Width="20" Height="20" />
+          </daisy:DaisyAvatar>
+          <daisy:DaisyAvatar Size="Medium" Shape="Circle" HasRing="True" RingColor="Success" BorderThickness="3" BorderBrush="{DynamicResource DaisyBase200Brush}" IsPlaceholder="True">
+            <PathIcon Data="{StaticResource DaisyIconCheck}" Width="20" Height="20" />
+          </daisy:DaisyAvatar>
+          <daisy:DaisyBadge Content="+5 more" Variant="Ghost" Size="Small" Margin="18,0,0,0" VerticalAlignment="Center" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Toast Preview -->
+      <daisy:DaisyCard BodyPadding="16">
+        <StackPanel Spacing="10">
+          <TextBlock Text="TOAST NOTIFICATIONS" FontSize="11" Opacity="0.6" FontWeight="Bold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+          <daisy:DaisyAlert Content="Success! Your changes have been saved." Variant="Success" />
+          <daisy:DaisyAlert Content="Warning: Low disk space detected." Variant="Warning" />
+        </StackPanel>
+      </daisy:DaisyCard>
+    </StackPanel>
+
+    <!-- Right: Rating & Loading -->
+    <StackPanel Grid.Column="1" Spacing="20" VerticalAlignment="Top" Margin="20,0,0,0">
+      <StackPanel Spacing="6">
+        <TextBlock Text="FEEDBACK CONTROLS" Foreground="{DynamicResource DaisySecondaryBrush}" FontWeight="Bold" LetterSpacing="2" FontSize="10" />
+        <TextBlock Text="Ratings &amp; Status" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+      </StackPanel>
+
+      <!-- Star Rating -->
+      <daisy:DaisyCard BodyPadding="20">
+        <StackPanel Spacing="12" HorizontalAlignment="Center">
+          <TextBlock Text="How would you rate this library?" FontSize="13" HorizontalAlignment="Center" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+          <daisy:DaisyRating x:Name="StarRating" Maximum="5" Value="5" Size="Large" HorizontalAlignment="Center" />
+          <TextBlock Text="5 out of 5 stars" FontSize="11" Opacity="0.6" HorizontalAlignment="Center" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+        </StackPanel>
+      </daisy:DaisyCard>
+
+      <!-- Loading Animations -->
+      <daisy:DaisyCard BodyPadding="16" Background="Black">
+        <StackPanel Spacing="10">
+          <TextBlock Text="LOADING ANIMATIONS" FontSize="11" Opacity="0.6" FontWeight="Bold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+          <!-- Row 1: Creative variants -->
+          <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
+            <daisy:DaisyLoading Variant="Spinner" Size="Small" />
+            <daisy:DaisyLoading Variant="CometTrail" Size="Small" Color="Primary" />
+            <daisy:DaisyLoading Variant="Wave" Size="Small" Color="Secondary" />
+            <daisy:DaisyLoading Variant="Pulse" Size="Small" Color="Accent" />
+            <daisy:DaisyLoading Variant="MatrixRain" Size="Small" Color="Success" />
+            <daisy:DaisyLoading Variant="TunnelZoom" Size="Small" Color="Info" />
+          </StackPanel>
+          <!-- Row 2: Business/Professional variants -->
+          <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
+            <daisy:DaisyLoading Variant="DocumentFlipOff" Size="Small" />
+            <!-- Flowery.WinUI shows InvoiceStamp, which Flowery.NET does not have; DocumentStamp is the closest. -->
+            <daisy:DaisyLoading Variant="DocumentStamp" Size="Small" Color="Primary" />
+            <daisy:DaisyLoading Variant="CalendarTick" Size="Small" Color="Success" />
+            <daisy:DaisyLoading Variant="BatteryCharging" Size="Small" Color="Warning" />
+            <daisy:DaisyLoading Variant="TrafficLightDown" Size="Small" Color="Error" />
+            <daisy:DaisyLoading Variant="Win95FileCopy" Size="Small" Color="Info" />
+          </StackPanel>
+        </StackPanel>
+      </daisy:DaisyCard>
+
+      <!-- Feature Badges -->
+      <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+        <daisy:DaisyBadge Content="PRIMARY" Size="Medium" Variant="Primary" />
+        <daisy:DaisyBadge Content="ACCENT" Size="Medium" Variant="Accent" />
+        <daisy:DaisyBadge Content="SUCCESS" Size="Medium" Variant="Success" />
+        <daisy:DaisyBadge Content="OUTLINE" Size="Medium" Variant="Info" IsOutline="True" />
+      </StackPanel>
+    </StackPanel>
+  </Grid>
+</UserControl>

@@ -224,7 +224,8 @@ namespace Flowery.Controls
 
             if (change.Property == SizeProperty)
             {
-                ApplyScaleFactor(FloweryScaleManager.GetScaleFactor(this));
+                // A card that does not scale ignores the factor it inherits from a scaled ancestor.
+                ApplyScaleFactor(FloweryScaleManager.GetEnableScaling(this) ? FloweryScaleManager.GetScaleFactor(this) : 1.0);
             }
 
             if (change.Property == ColorVariantProperty ||

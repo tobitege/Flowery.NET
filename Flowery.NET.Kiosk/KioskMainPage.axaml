@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:daisy="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:services="clr-namespace:Flowery.Services;assembly=Flowery.NET"
+             x:Class="Flowery.NET.Kiosk.KioskMainPage"
+             Focusable="True"
+             Background="{DynamicResource DaisyBase100Brush}">
+
+  <Grid x:Name="RootContainer">
+    <!-- Background Layer (for global effects) -->
+    <Grid x:Name="BackgroundLayer" />
+
+    <!-- Slides Layer -->
+    <Grid x:Name="SlidesContainer" services:FloweryScaleManager.EnableScaling="True">
+      <!-- We use two borders with content presenters to facilitate transitions -->
+      <Border x:Name="SlideContentA" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <ContentControl x:Name="SlidePresenterA" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+      </Border>
+      <Border x:Name="SlideContentB" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <ContentControl x:Name="SlidePresenterB" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+      </Border>
+    </Grid>
+
+    <!-- Overlay Layer (Text/Keywords) -->
+    <Grid x:Name="OverlayLayer" Margin="40" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+      <StackPanel Spacing="10">
+        <TextBlock x:Name="SlideTitle" FontSize="{StaticResource KioskSlideTitleFontSize}" FontWeight="Bold" Foreground="{DynamicResource DaisyPrimaryBrush}" />
+        <TextBlock x:Name="KeywordsView" FontSize="{StaticResource KioskSlideKeywordsFontSize}" Foreground="{DynamicResource DaisyBaseContentBrush}" Opacity="0.8" />
+      </StackPanel>
+    </Grid>
+
+    <!-- Navigation Status (Progress Bar) -->
+    <daisy:DaisyProgress x:Name="SlideProgress" Variant="Primary" VerticalAlignment="Top" Height="4" />
+  </Grid>
+</UserControl>

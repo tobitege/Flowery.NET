@@ -61,7 +61,7 @@ Optional packages add the Kanban board and the SkiaSharp effects: the live glass
 - **Neumorphic effect.** Raised, Inset and Flat soft-UI shadows for about 50 controls, switchable globally or per control. [Usage guide](llms-static/DaisyNeumorphic.md)
 - **Accessibility.** Screen reader names and states for controls that show state visually, keyboard navigation, reduced motion and high contrast.
 - **Localization.** Twelve languages with runtime switching and localizable theme names. [Guide](LOCALIZATION.md)
-- **Demo apps.** A Gallery with live examples of every control for desktop, browser, Android and iOS, and Flowery Photos, a desktop photo viewer and editor.
+- **Demo apps.** A Gallery with live examples of every control for desktop, browser, Android and iOS, Flowery Photos, a desktop photo viewer and editor, and Flowery Kiosk, a self-running slideshow of themed control demos.
 - **Tests.** Headless unit tests and runtime tests that run in a real desktop window.
 - **Framework.** The libraries target .NET 10 and Avalonia 12.
 
@@ -504,6 +504,15 @@ Themes, control sizes, and all twelve languages change at runtime.
 dotnet run --project Flowery.NET.Photos.Desktop
 ```
 
+## Flowery Kiosk
+
+[Flowery Kiosk](Flowery.NET.Kiosk/README.md) is a desktop demo for Windows, Linux and macOS that cycles through six themed slides of Daisy controls every eight seconds.
+The arrow keys move between the slides; `--manual` turns autoplay off.
+
+```powershell
+dotnet run --project Flowery.NET.Kiosk.Desktop
+```
+
 ## Build & Run Scripts (PowerShell)
 
 The `scripts/` folder contains PowerShell helpers for common build and run workflows:
@@ -519,6 +528,7 @@ The `scripts/` folder contains PowerShell helpers for common build and run workf
   - `scripts/run-android.ps1`: Runs/builds the Android gallery host (requires Android SDK and running emulator!)
 - **Test scripts**:
   - `scripts/test_runtime.ps1`: Runs the runtime UI tests on Windows. They render every control and Gallery page in a real desktop window and check the pixels, for example that shadows and theme colors reach the screen. **Photosensitivity warning:** the test window flashes rapidly while the tests run; see `scripts/README.md`.
+  - `scripts/test_kiosk.ps1`: Runs the smoke run of the Kiosk app in its desktop window on Windows, Linux or macOS and checks its report.
 
 For details and parameters, see `scripts/README.md`.
 
