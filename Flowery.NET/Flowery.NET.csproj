@@ -51,7 +51,7 @@
   </PropertyGroup>
   <ItemGroup Condition="'$(FlowerySvgPatterns)' == 'true'">
     <PackageReference Include="Svg.Skia" Version="5.1.1" />
-    <AvaloniaResource Include="Assets\Patterns\**\*.svg" />
+    <AvaloniaResource Include="Assets\Patterns\*.svg" />
   </ItemGroup>
 
   <ItemGroup>

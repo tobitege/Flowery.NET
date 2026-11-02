@@ -11,9 +11,9 @@ namespace Flowery.Enums
         Tiled,
 
         /// <summary>
-        /// Tile the SVG pattern assets of the library, drawn with Svg.Skia: white patterns on dark themes, black ones on
-        /// light themes. The default. A build of Flowery.NET with <c>FlowerySvgPatterns=false</c> has no assets and draws
-        /// the generated tiles of <see cref="Tiled"/> instead.
+        /// Tile the SVG pattern assets of the library, drawn with Svg.Skia, in the foreground brush of the card. The
+        /// default. A build of Flowery.NET with <c>FlowerySvgPatterns=false</c> has no assets and draws the generated
+        /// tiles of <see cref="Tiled"/> instead.
         /// </summary>
         SvgAsset
     }

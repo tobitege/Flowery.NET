@@ -21,7 +21,7 @@ dotnet run --project Flowery.NET.Kiosk.Desktop
 
 ## Use
 
-The slides change every eight seconds with a fade; the bar at the top shows the time to the next slide.
+The slides change every eight seconds with a fade; the bar at the top shows the time to the next slide, and stays empty while the slides change only by hand.
 Right, Space and N show the next slide, Left and P the previous one; both wrap around.
 A slide changed by hand gets the full eight seconds again.
 With reduced motion turned on in the system, the slides change only by hand.

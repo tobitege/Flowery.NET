@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowery.NET.Kiosk", "Flower
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowery.NET.Kiosk.Desktop", "Flowery.NET.Kiosk.Desktop\Flowery.NET.Kiosk.Desktop.csproj", "{D47BDD2B-BDD4-4827-B4C7-0A41F59F8F97}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowery.NET.Kiosk.Tests", "Flowery.NET.Kiosk.Tests\Flowery.NET.Kiosk.Tests.csproj", "{6B1E4F0A-2C7D-4E59-9B3A-8D1F5C2E7A44}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -251,6 +253,18 @@ Global
 		{D47BDD2B-BDD4-4827-B4C7-0A41F59F8F97}.Release|x64.Build.0 = Release|Any CPU
 		{D47BDD2B-BDD4-4827-B4C7-0A41F59F8F97}.Release|x86.ActiveCfg = Release|Any CPU
 		{D47BDD2B-BDD4-4827-B4C7-0A41F59F8F97}.Release|x86.Build.0 = Release|Any CPU
+		{6B1E4F0A-2C7D-4E59-9B3A-8D1F5C2E7A44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B1E4F0A-2C7D-4E59-9B3A-8D1F5C2E7A44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B1E4F0A-2C7D-4E59-9B3A-8D1F5C2E7A44}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6B1E4F0A-2C7D-4E59-9B3A-8D1F5C2E7A44}.Debug|x64.Build.0 = Debug|Any CPU
+		{6B1E4F0A-2C7D-4E59-9B3A-8D1F5C2E7A44}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6B1E4F0A-2C7D-4E59-9B3A-8D1F5C2E7A44}.Debug|x86.Build.0 = Debug|Any CPU
+		{6B1E4F0A-2C7D-4E59-9B3A-8D1F5C2E7A44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B1E4F0A-2C7D-4E59-9B3A-8D1F5C2E7A44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B1E4F0A-2C7D-4E59-9B3A-8D1F5C2E7A44}.Release|x64.ActiveCfg = Release|Any CPU
+		{6B1E4F0A-2C7D-4E59-9B3A-8D1F5C2E7A44}.Release|x64.Build.0 = Release|Any CPU
+		{6B1E4F0A-2C7D-4E59-9B3A-8D1F5C2E7A44}.Release|x86.ActiveCfg = Release|Any CPU
+		{6B1E4F0A-2C7D-4E59-9B3A-8D1F5C2E7A44}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

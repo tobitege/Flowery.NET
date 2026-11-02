@@ -1,5 +1,3 @@
-using Avalonia.Animation.Easings;
-
 namespace Flowery.NET.Kiosk.Slides;
 
 public partial class DataSlide : UserControl
@@ -61,7 +59,7 @@ public partial class DataSlide : UserControl
         element.RenderTransform = transform;
         var start = TimeSpan.FromSeconds(delay);
         _ = KioskAnimation.RunAsync(element, TranslateTransform.XProperty, offset, 0d, TimeSpan.FromSeconds(1.2), token,
-            start, new ElasticEaseOut(), transform);
+            start, new KioskElasticEase { Oscillations = 1, Springiness = 6 }, transform);
         _ = KioskAnimation.RunAsync(element, Visual.OpacityProperty, 0d, 1d, TimeSpan.FromSeconds(0.8), token, start);
     }
 

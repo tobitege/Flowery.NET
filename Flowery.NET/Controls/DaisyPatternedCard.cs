@@ -17,6 +17,7 @@ namespace Flowery.Controls
 
         private Canvas? _patternLayer;
         private Canvas? _ornamentLayer;
+        private TopLevel? _topLevel;
 
         /// <summary>
         /// Defines the <see cref="Pattern"/> property.
@@ -72,6 +73,29 @@ namespace Flowery.Controls
             RebuildLayers();
         }
 
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            _topLevel = TopLevel.GetTopLevel(this);
+            if (_topLevel != null)
+                _topLevel.ScalingChanged += OnScalingChanged;
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            if (_topLevel != null)
+                _topLevel.ScalingChanged -= OnScalingChanged;
+            _topLevel = null;
+            base.OnDetachedFromVisualTree(e);
+        }
+
+        // The SVG patterns are drawn at the scaling of the display; on another display they are drawn again.
+        private void OnScalingChanged(object? sender, EventArgs e)
+        {
+            if (Pattern != DaisyCardPattern.None && PatternMode == FloweryPatternMode.SvgAsset)
+                RebuildPatternLayer();
+        }
+
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
@@ -119,14 +143,15 @@ namespace Flowery.Controls
             var patternBrush = Foreground ?? Brushes.White;
 
 #if FLOWERY_SVG_PATTERNS
-            // Asset mode (SVG files); a build without the SVG patterns draws the generated tiles instead.
+            // Asset mode: the SVG pattern as a mask filled with the same brush; a build without the SVG patterns draws
+            // the generated tiles instead.
             if (PatternMode == FloweryPatternMode.SvgAsset && FloweryPatternSvgLoader.HasSvgAsset(Pattern))
             {
                 var renderScaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
-                var assetCanvas = FloweryPatternSvgLoader.CreateTiledCanvas(Pattern, width, height, renderScaling);
-                if (assetCanvas != null)
+                var assetLayer = FloweryPatternSvgLoader.CreatePatternLayer(Pattern, width, height, patternBrush, renderScaling);
+                if (assetLayer != null)
                 {
-                    _patternLayer.Children.Add(assetCanvas);
+                    _patternLayer.Children.Add(assetLayer);
                     return;
                 }
             }

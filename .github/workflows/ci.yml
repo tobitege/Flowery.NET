@@ -234,6 +234,9 @@ jobs:
         with:
           global-json-file: global.json
 
+      - name: Run Kiosk tests
+        run: dotnet test Flowery.NET.Kiosk.Tests/Flowery.NET.Kiosk.Tests.csproj -c ${{ matrix.configuration }}
+
       - name: Run the Kiosk smoke run
         if: runner.os != 'Linux'
         shell: pwsh

@@ -13,6 +13,9 @@
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Flowery.NET.Kiosk.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <AvaloniaResource Include="..\Flowery.NET.Gallery\Assets\app_icon.ico" Link="Assets\app_icon.ico" />
     <Content Include="Assets\Kiosk\*.svg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

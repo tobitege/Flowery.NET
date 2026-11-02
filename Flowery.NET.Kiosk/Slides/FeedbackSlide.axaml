@@ -66,7 +66,8 @@
       <!-- Loading Animations -->
       <daisy:DaisyCard BodyPadding="16" Background="Black">
         <StackPanel Spacing="10">
-          <TextBlock Text="LOADING ANIMATIONS" FontSize="11" Opacity="0.6" FontWeight="Bold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+          <!-- The card is black in every theme, so its heading is white rather than the theme text color. -->
+          <TextBlock x:Name="LoadingHeading" Text="LOADING ANIMATIONS" FontSize="11" Opacity="0.6" FontWeight="Bold" Foreground="White" />
           <!-- Row 1: Creative variants -->
           <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
             <daisy:DaisyLoading Variant="Spinner" Size="Small" />

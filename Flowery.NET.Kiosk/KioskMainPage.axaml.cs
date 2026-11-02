@@ -65,10 +65,29 @@ public partial class KioskMainPage : UserControl
             _controller.Mode = manual ? FlowerySlideshowMode.Manual : FlowerySlideshowMode.Slideshow;
             if (manual)
                 _controller.Stop();
-            else
-                StartProgress();
+            SyncProgress();
         }
     }
+
+    /// <summary>
+    /// The bar counts down to the next slide only while the slideshow timer runs: not in manual mode and not with
+    /// reduced motion, where the controller starts no timer.
+    /// </summary>
+    private void SyncProgress()
+    {
+        if (_controller.IsRunning)
+            StartProgress();
+        else
+            StopProgress();
+    }
+
+    // The controller starts or stops its timer in its own handler of the same event; the bar follows afterwards.
+    private void OnAccessibilityPreferencesChanged(object? sender, EventArgs args) =>
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_ready.Task.IsCompletedSuccessfully && !_shutdown)
+                SyncProgress();
+        });
 
     /// <summary>Reports a failure that happened outside a navigation, such as during the shutdown.</summary>
     internal void ReportFailure(Exception exception) => NavigationFailed?.Invoke(this, exception);
@@ -78,6 +97,7 @@ public partial class KioskMainPage : UserControl
         if (_started || _shutdown)
             return;
         _started = true;
+        DaisyAccessibility.PreferencesChanged += OnAccessibilityPreferencesChanged;
         try
         {
             await NavigateToAsync(0, _lifetime.Token);
@@ -204,12 +224,12 @@ public partial class KioskMainPage : UserControl
             _currentIndex = index;
             incomingContainer.Opacity = 1;
             OverlayLayer.Opacity = 1;
-            StartProgress();
             if (!_manualMode)
             {
                 _controller.Mode = FlowerySlideshowMode.Slideshow;
                 _controller.Start();
             }
+            SyncProgress();
             SlideShown?.Invoke(this, index);
             Focus();
         }
@@ -284,6 +304,7 @@ public partial class KioskMainPage : UserControl
         Loaded -= OnLoaded;
         Unloaded -= OnUnloaded;
         KeyDown -= OnKeyDown;
+        DaisyAccessibility.PreferencesChanged -= OnAccessibilityPreferencesChanged;
         // Cancel runs the callbacks on the UI thread, which the animations need; CancelAsync would not.
         _lifetime.Cancel();
         _navigation?.Cancel();

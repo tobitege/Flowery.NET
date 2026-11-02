@@ -48,7 +48,7 @@ internal static class KioskSmokeTests
         });
         // The cards draw their patterns as generated tiles; CheckPatternsAsync checks that each card of the patterns
         // slide draws one.
-        await CheckAsync(report, "OriginalIcons", () =>
+        await CheckAsync(report, "AppIconAndSplashScreen", () =>
         {
             RequireFile(Path.Combine(AppContext.BaseDirectory, "Assets", "Kiosk", "app_icon.svg"));
             RequireFile(Path.Combine(AppContext.BaseDirectory, "Assets", "Kiosk", "splash_screen.svg"));
@@ -154,11 +154,30 @@ internal static class KioskSmokeTests
             await arrived;
             Require(page.CurrentIndex == 5 && !page.IsAutoRunning, "Manual previous did not wrap to the last slide.");
         });
-        await CheckAsync(report, "ProgressAdvancesOnFrames", async () =>
+        await CheckAsync(report, "ProgressOnlyWhileTheSlideshowRuns", async () =>
         {
-            await WaitForProgressAsync(page, token);
-            CheckProgressVisibility(page);
-            SaveScreenshot(page, Path.Combine(report.Folder, "progress-coffee-theme.png"));
+            Require(!page.IsAutoRunning && page.ProgressValue == 0, $"Manual mode shows a countdown: {page.ProgressValue:F2}.");
+            var previousMotion = DaisyAccessibility.ReducedMotionOverride;
+            try
+            {
+                DaisyAccessibility.ReducedMotionOverride = true;
+                page.ConfigureManualMode(false);
+                await WaitForFrameAsync(page, token);
+                Require(!page.IsAutoRunning && page.ProgressValue == 0,
+                    $"With reduced motion the slideshow must not run or count down: running {page.IsAutoRunning}, progress {page.ProgressValue:F2}.");
+
+                DaisyAccessibility.ReducedMotionOverride = false;
+                await WaitForProgressAsync(page, token);
+                Require(page.IsAutoRunning, "The slideshow did not start when reduced motion ended.");
+                CheckProgressVisibility(page);
+                SaveScreenshot(page, Path.Combine(report.Folder, "progress-coffee-theme.png"));
+            }
+            finally
+            {
+                page.ConfigureManualMode(true);
+                DaisyAccessibility.ReducedMotionOverride = previousMotion;
+            }
+            Require(!page.IsAutoRunning && page.ProgressValue == 0, "Manual mode did not stop the countdown.");
         });
         try
         {
@@ -274,6 +293,15 @@ internal static class KioskSmokeTests
         rating.Value = 3;
         Require(rating.Value == 3, "The rating control did not accept a changed value.");
         Require(Descendants<DaisyLoading>(slide).Count() == 12, "The twelve loading variants are incomplete.");
+
+        // The heading of the black loading card stays readable in the light theme of the slide.
+        var heading = Find<TextBlock>(slide, "LoadingHeading");
+        var card = heading.FindAncestorOfType<DaisyCard>() ?? throw new InvalidOperationException("The loading card is missing.");
+        var background = (card.Background as ISolidColorBrush ?? throw new InvalidOperationException("The loading card has no solid background.")).Color;
+        var text = heading.Foreground as ISolidColorBrush ?? throw new InvalidOperationException("The loading heading has no solid color.");
+        var shown = CompositeColor(text, background, heading.Opacity);
+        var contrast = ContrastRatio(shown, background);
+        Require(contrast >= 4.5, $"The loading heading has a contrast of {contrast:F2} on its card in {DaisyThemeManager.CurrentThemeName}.");
     }
 
     private static void CheckShowcase(ShowcaseSlide slide)
@@ -585,10 +613,11 @@ internal static class KioskSmokeTests
             $"The progress fill has no visible area: fill={bounds}, progress={progress.Bounds.Width:F2}x{progress.Bounds.Height:F2}, visible={visibleWidth:F2}x{visibleHeight:F2}.");
     }
 
-    private static Color CompositeColor(ISolidColorBrush foreground, Color background)
+    // The brush over the background, with the opacity of the brush and of the element that draws it.
+    private static Color CompositeColor(ISolidColorBrush foreground, Color background, double elementOpacity = 1)
     {
         var color = foreground.Color;
-        var alpha = color.A / 255.0 * foreground.Opacity;
+        var alpha = color.A / 255.0 * foreground.Opacity * elementOpacity;
         return Color.FromArgb(255,
             (byte)Math.Round(color.R * alpha + background.R * (1 - alpha)),
             (byte)Math.Round(color.G * alpha + background.G * (1 - alpha)),
