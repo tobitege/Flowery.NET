@@ -49,6 +49,7 @@ $desktopProject = Join-Path $repoRoot "Flowery.NET.Gallery.Desktop/Flowery.NET.G
 $photosProject = Join-Path $repoRoot 'Flowery.NET.Photos.Desktop/Flowery.NET.Photos.Desktop.csproj'
 $photosTestsProject = Join-Path $repoRoot 'Flowery.NET.Photos.Tests/Flowery.NET.Photos.Tests.csproj'
 $kioskProject = Join-Path $repoRoot 'Flowery.NET.Kiosk.Desktop/Flowery.NET.Kiosk.Desktop.csproj'
+$kioskTestsProject = Join-Path $repoRoot 'Flowery.NET.Kiosk.Tests/Flowery.NET.Kiosk.Tests.csproj'
 $testsProject = Join-Path $repoRoot "Flowery.NET.Tests/Flowery.NET.Tests.csproj"
 
 $noRestoreArg = if ($NoRestore) { " --no-restore" } else { "" }
@@ -64,6 +65,7 @@ Invoke-Step 'Build: Flowery.NET.Kiosk.Desktop' "dotnet build `"$kioskProject`" -
 
 if ($IncludeTests) {
     Invoke-Step 'Build: Flowery.NET.Photos.Tests' "dotnet build `"$photosTestsProject`" -c $Configuration$noRestoreArg"
+    Invoke-Step 'Build: Flowery.NET.Kiosk.Tests' "dotnet build `"$kioskTestsProject`" -c $Configuration$noRestoreArg"
     Invoke-Step "Build: Flowery.NET.Tests" "dotnet build `"$testsProject`" -c $Configuration$noRestoreArg"
 }
 

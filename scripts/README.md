@@ -2,7 +2,7 @@
 
 PowerShell scripts for building and running the Flowery.NET demo applications.
 Both `build_all.ps1` and `build_desktop.ps1` include the Photos and Kiosk desktop apps.
-The full script also builds Photos tests.
+The full script also builds the Photos and Kiosk tests.
 The desktop script includes those tests with `-IncludeTests`.
 
 ## Understanding .NET Workloads

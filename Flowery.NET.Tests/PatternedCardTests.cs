@@ -106,6 +106,34 @@ public class PatternedCardTests
     }
 
     [AvaloniaFact]
+    public void A_Card_Draws_Its_Pattern_Again_When_The_Display_Scaling_Changes()
+    {
+        var card = new DaisyPatternedCard { Width = 200, Height = 100, Pattern = DaisyCardPattern.Dots };
+        using var window = new TestWindow(card);
+        var before = PatternLayer(card);
+        var reportScaling = ScalingCallback(window.Window);
+
+        reportScaling(2);
+
+        Assert.NotSame(before, PatternLayer(card));
+        card.PatternMode = FloweryPatternMode.Tiled;
+        var tiles = card.GetVisualDescendants().OfType<Canvas>().SelectMany(canvas => canvas.Children).ToArray();
+        reportScaling(1);
+        Assert.Equal(tiles, card.GetVisualDescendants().OfType<Canvas>().SelectMany(canvas => canvas.Children));
+    }
+
+    // The callback through which the platform window reports a move to a display with another scaling; Avalonia keeps
+    // it internal, so the test reads it from the headless window.
+    private static Action<double> ScalingCallback(Window window)
+    {
+        var platform = window.PlatformImpl ?? throw new InvalidOperationException("The window has no platform window.");
+        var property = platform.GetType().GetProperty("ScalingChanged")
+            ?? throw new InvalidOperationException("The headless window has no ScalingChanged callback.");
+        return property.GetValue(platform) as Action<double>
+            ?? throw new InvalidOperationException("The window did not register for scaling changes.");
+    }
+
+    [AvaloniaFact]
     public void The_Mask_Matches_The_Scaling_Of_The_Display()
     {
         Assert.Equal(1, FloweryPatternSvgLoader.GetMaskScale(1));
