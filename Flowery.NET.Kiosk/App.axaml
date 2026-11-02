@@ -1,0 +1,20 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:flowery="clr-namespace:Flowery;assembly=Flowery.NET"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             x:Class="Flowery.NET.Kiosk.App">
+  <Application.Resources>
+    <FontFamily x:Key="NotoSansFamily">fonts:Flowery.NET.Kiosk#Noto Sans, fonts:Flowery.NET.Kiosk#Noto Sans CJK SC, fonts:Flowery.NET.Kiosk#Noto Sans CJK JP, fonts:Flowery.NET.Kiosk#Noto Sans CJK KR, fonts:Flowery.NET.Kiosk#Noto Sans Arabic</FontFamily>
+    <sys:Double x:Key="KioskSlideTitleFontSize">43</sys:Double>
+    <sys:Double x:Key="KioskSlideKeywordsFontSize">20</sys:Double>
+  </Application.Resources>
+  <Application.Styles>
+    <FluentTheme />
+    <flowery:DaisyUITheme />
+    <Style Selector="Window">
+      <Setter Property="FontFamily" Value="{StaticResource NotoSansFamily}" />
+      <Setter Property="Background" Value="{DynamicResource DaisyBase100Brush}" />
+      <Setter Property="Foreground" Value="{DynamicResource DaisyBaseContentBrush}" />
+    </Style>
+  </Application.Styles>
+</Application>

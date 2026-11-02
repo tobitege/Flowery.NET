@@ -17,6 +17,7 @@ namespace Flowery.Controls
 
         private Canvas? _patternLayer;
         private Canvas? _ornamentLayer;
+        private TopLevel? _topLevel;
 
         /// <summary>
         /// Defines the <see cref="Pattern"/> property.
@@ -37,10 +38,11 @@ namespace Flowery.Controls
         /// Defines the <see cref="PatternMode"/> property.
         /// </summary>
         public static readonly StyledProperty<FloweryPatternMode> PatternModeProperty =
-            AvaloniaProperty.Register<DaisyPatternedCard, FloweryPatternMode>(nameof(PatternMode), FloweryPatternMode.Tiled);
+            AvaloniaProperty.Register<DaisyPatternedCard, FloweryPatternMode>(nameof(PatternMode), FloweryPatternMode.SvgAsset);
 
         /// <summary>
-        /// Gets or sets the pattern rendering mode (Tiled or SvgAsset).
+        /// Gets or sets the pattern rendering mode: the SVG pattern assets (<see cref="FloweryPatternMode.SvgAsset"/>,
+        /// the default) or generated tiles (<see cref="FloweryPatternMode.Tiled"/>).
         /// </summary>
         public FloweryPatternMode PatternMode
         {
@@ -69,6 +71,29 @@ namespace Flowery.Controls
             _patternLayer = e.NameScope.Find<Canvas>("PART_PatternLayer");
             _ornamentLayer = e.NameScope.Find<Canvas>("PART_OrnamentLayer");
             RebuildLayers();
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            _topLevel = TopLevel.GetTopLevel(this);
+            if (_topLevel != null)
+                _topLevel.ScalingChanged += OnScalingChanged;
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            if (_topLevel != null)
+                _topLevel.ScalingChanged -= OnScalingChanged;
+            _topLevel = null;
+            base.OnDetachedFromVisualTree(e);
+        }
+
+        // The SVG patterns are drawn at the scaling of the display; on another display they are drawn again.
+        private void OnScalingChanged(object? sender, EventArgs e)
+        {
+            if (Pattern != DaisyCardPattern.None && PatternMode == FloweryPatternMode.SvgAsset)
+                RebuildPatternLayer();
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -117,16 +142,20 @@ namespace Flowery.Controls
 
             var patternBrush = Foreground ?? Brushes.White;
 
-            // Asset mode (PNG files)
+#if FLOWERY_SVG_PATTERNS
+            // Asset mode: the SVG pattern as a mask filled with the same brush; a build without the SVG patterns draws
+            // the generated tiles instead.
             if (PatternMode == FloweryPatternMode.SvgAsset && FloweryPatternSvgLoader.HasSvgAsset(Pattern))
             {
-                var tiledCanvas = FloweryPatternSvgLoader.CreateTiledCanvas(Pattern, width, height);
-                if (tiledCanvas != null)
+                var renderScaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
+                var assetLayer = FloweryPatternSvgLoader.CreatePatternLayer(Pattern, width, height, patternBrush, renderScaling);
+                if (assetLayer != null)
                 {
-                    _patternLayer.Children.Add(tiledCanvas);
+                    _patternLayer.Children.Add(assetLayer);
                     return;
                 }
             }
+#endif
 
             // Tile generator mode (Generated paths)
             if (FloweryPatternTileGenerator.SupportsTiling(Pattern))

@@ -1,47 +1,138 @@
-﻿using System;
-using System.Linq;
-using Flowery.Enums;
-using Flowery.Controls;
+#if FLOWERY_SVG_PATTERNS
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Avalonia;
-using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Flowery.Enums;
+using SkiaSharp;
+using Svg.Skia;
 
 namespace Flowery.Helpers
 {
     /// <summary>
-    /// Loads and caches pattern assets for DaisyPatternedCard.
-    /// Uses PNG files for fast loading.
-    /// Selects appropriate color variant (black/white) based on current theme.
+    /// Draws the SVG pattern assets of <see cref="Controls.DaisyPatternedCard"/>. The SVGs are white with the opacity
+    /// of the pattern, so Svg.Skia draws each one once per display scaling into a mask; the brush of the card fills
+    /// the mask, as it colors the generated tiles. The loader runs on the UI thread.
     /// </summary>
     internal static class FloweryPatternSvgLoader
     {
-        private static readonly object BitmapCacheLock = new();
-        private static readonly System.Collections.Generic.Dictionary<string, Bitmap> BitmapCache =
-            new(StringComparer.OrdinalIgnoreCase);
+        internal const double TileSize = 120;
 
-        /// <summary>
-        /// Gets the PNG asset path for a pattern, selecting the appropriate color folder.
-        /// </summary>
+        private static readonly Dictionary<(DaisyCardPattern Pattern, int Scale), Bitmap?> Masks = [];
+
         public static string? GetAssetPath(DaisyCardPattern pattern)
         {
             var fileName = GetPatternFileName(pattern);
-            if (fileName == null) return null;
+            return fileName == null ? null : $"avares://Flowery.NET/Assets/Patterns/{fileName}.svg";
+        }
 
-            // Select color based on theme - use white for dark themes, black for light themes
-            var colorFolder = IsDarkTheme() ? "white" : "black";
+        public static bool HasSvgAsset(DaisyCardPattern pattern) => GetPatternFileName(pattern) != null;
 
-            // Use Avalonia resource format
-            return $"avares://Flowery.NET/Assets/Patterns/{colorFolder}/{fileName}.png";
+        /// <summary>
+        /// Creates a rectangle of the given size that shows the pattern in <paramref name="brush"/>, or null when the
+        /// asset does not load.
+        /// </summary>
+        /// <param name="pattern">The pattern.</param>
+        /// <param name="width">The width of the rectangle.</param>
+        /// <param name="height">The height of the rectangle.</param>
+        /// <param name="brush">The brush of the pattern.</param>
+        /// <param name="renderScaling">The scaling of the display, which sets the resolution of the mask.</param>
+        public static Rectangle? CreatePatternLayer(DaisyCardPattern pattern, double width, double height, IBrush brush,
+            double renderScaling)
+        {
+            var mask = GetMask(pattern, renderScaling);
+            if (mask == null) return null;
+
+            return new Rectangle
+            {
+                Width = width,
+                Height = height,
+                Fill = brush,
+                IsHitTestVisible = false,
+                OpacityMask = new ImageBrush(mask)
+                {
+                    TileMode = TileMode.Tile,
+                    Stretch = Stretch.Fill,
+                    AlignmentX = AlignmentX.Left,
+                    AlignmentY = AlignmentY.Top,
+                    DestinationRect = new RelativeRect(0, 0, TileSize, TileSize, RelativeUnit.Absolute)
+                }
+            };
+        }
+
+        /// <summary>The whole-number scale the mask of a display scaling is drawn at; 1.5 takes the mask of 2.</summary>
+        internal static int GetMaskScale(double renderScaling) => Math.Clamp((int)Math.Ceiling(renderScaling), 1, 4);
+
+        internal static Bitmap? GetMask(DaisyCardPattern pattern, double renderScaling)
+        {
+            var scale = GetMaskScale(renderScaling);
+            if (!Masks.TryGetValue((pattern, scale), out var mask))
+            {
+                mask = CreateMask(pattern, scale);
+                Masks[(pattern, scale)] = mask;
+            }
+            return mask;
+        }
+
+        private static Bitmap? CreateMask(DaisyCardPattern pattern, int scale)
+        {
+            var assetPath = GetAssetPath(pattern);
+            if (assetPath == null) return null;
+            try
+            {
+                using var tile = RenderTile(assetPath, scale);
+                if (tile == null)
+                    return null;
+
+                var pixels = tile.Width;
+                var mask = new WriteableBitmap(new PixelSize(pixels, pixels), new Vector(96 * scale, 96 * scale),
+                    PixelFormat.Bgra8888, AlphaFormat.Premul);
+                using (var target = mask.Lock())
+                {
+                    var source = tile.Bytes;
+                    var rowBytes = tile.RowBytes;
+                    for (var row = 0; row < pixels; row++)
+                        Marshal.Copy(source, row * rowBytes, target.Address + row * target.RowBytes, rowBytes);
+                }
+                return mask;
+            }
+            catch (Exception exception)
+            {
+                // Without the native SkiaSharp library, for example, the card draws the generated tiles.
+                Avalonia.Logging.Logger.TryGet(Avalonia.Logging.LogEventLevel.Warning, "Flowery")?.Log(null,
+                    "The pattern asset {Path} did not load: {Error}", assetPath, exception.Message);
+                return null;
+            }
         }
 
         /// <summary>
-        /// Gets the asset path (kept for backwards compatibility).
+        /// Draws one tile of an SVG asset with Svg.Skia into a premultiplied BGRA bitmap of
+        /// <see cref="TileSize"/> times <paramref name="scale"/> pixels, or returns null when the SVG has no picture.
         /// </summary>
-        public static string? GetSvgAssetPath(DaisyCardPattern pattern)
+        /// <param name="assetPath">The avares URI of the SVG asset.</param>
+        /// <param name="scale">The pixels per DIP.</param>
+        internal static SKBitmap? RenderTile(string assetPath, int scale)
         {
-            return GetAssetPath(pattern);
+            using var stream = AssetLoader.Open(new Uri(assetPath));
+            using var svg = new SKSvg();
+            if (svg.Load(stream) is not { } picture)
+                return null;
+
+            var pixels = (int)(TileSize * scale);
+            var tile = new SKBitmap(new SKImageInfo(pixels, pixels, SKColorType.Bgra8888, SKAlphaType.Premul));
+            using (var canvas = new SKCanvas(tile))
+            {
+                canvas.Clear(SKColors.Transparent);
+                var bounds = picture.CullRect;
+                if (bounds.Width > 0 && bounds.Height > 0)
+                    canvas.Scale(pixels / bounds.Width, pixels / bounds.Height);
+                canvas.DrawPicture(picture);
+            }
+            return tile;
         }
 
         private static string? GetPatternFileName(DaisyCardPattern pattern)
@@ -64,124 +155,6 @@ namespace Flowery.Helpers
                 _ => null
             };
         }
-
-        private static bool IsDarkTheme()
-        {
-            // Check if we're using a dark theme via DaisyThemeManager
-            var themeName = DaisyThemeManager.CurrentThemeName;
-            if (!string.IsNullOrEmpty(themeName))
-            {
-                // Better approach: check theme metadata from manager
-                var theme = DaisyThemeManager.AvailableThemes.FirstOrDefault(t =>
-                    string.Equals(t.Name, themeName, StringComparison.OrdinalIgnoreCase));
-
-                // As drawn: a base override can make the current theme the other kind.
-                if (theme != null)
-                {
-                    return DaisyThemeManager.IsCurrentThemeDark;
-                }
-            }
-
-            // Fallback: check system theme
-            try
-            {
-                if (Application.Current != null && Application.Current.TryGetResource("DaisyBase100Brush", null, out var brush))
-                {
-                    if (brush is ISolidColorBrush scb)
-                    {
-                        // If base background is dark, it's a dark theme
-                        var luminance = (0.299 * scb.Color.R + 0.587 * scb.Color.G + 0.114 * scb.Color.B) / 255;
-                        return luminance < 0.5;
-                    }
-                }
-            }
-            catch { }
-
-            return false; // Default to light theme
-        }
-
-        /// <summary>
-        /// Creates a tiled canvas using PNG images.
-        /// </summary>
-        public static Canvas? CreateTiledCanvas(DaisyCardPattern pattern, double width, double height)
-        {
-            var assetPath = GetAssetPath(pattern);
-            if (assetPath == null) return null;
-            var bitmap = GetCachedBitmap(assetPath);
-            if (bitmap == null) return null;
-
-            const double TileSize = 120;
-            int tilesX = (int)Math.Ceiling(width / TileSize) + 1;
-            int tilesY = (int)Math.Ceiling(height / TileSize) + 1;
-
-            var canvas = new Canvas
-            {
-                Width = width,
-                Height = height,
-                IsHitTestVisible = false
-            };
-
-            // Create tiled PNG images
-            for (int tx = 0; tx < tilesX; tx++)
-            {
-                for (int ty = 0; ty < tilesY; ty++)
-                {
-                    var image = new Image
-                    {
-                        Source = bitmap,
-                        Width = TileSize,
-                        Height = TileSize,
-                        Stretch = Stretch.Fill,
-                        IsHitTestVisible = false
-                    };
-
-                    Canvas.SetLeft(image, tx * TileSize);
-                    Canvas.SetTop(image, ty * TileSize);
-                    canvas.Children.Add(image);
-                }
-            }
-
-            return canvas;
-        }
-
-        private static Bitmap? GetCachedBitmap(string assetPath)
-        {
-            lock (BitmapCacheLock)
-            {
-                if (BitmapCache.TryGetValue(assetPath, out var cached))
-                {
-                    return cached;
-                }
-
-                try
-                {
-                    var uri = new Uri(assetPath);
-                    using var stream = AssetLoader.Open(uri);
-                    var bitmap = new Bitmap(stream);
-                    BitmapCache[assetPath] = bitmap;
-                    return bitmap;
-                }
-                catch
-                {
-                    return null;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Creates a tiled canvas using assets (kept for backwards compatibility).
-        /// </summary>
-        public static Canvas? CreateSvgTiledCanvas(DaisyCardPattern pattern, double width, double height)
-        {
-            return CreateTiledCanvas(pattern, width, height);
-        }
-
-        /// <summary>
-        /// Check if a pattern has an asset available.
-        /// </summary>
-        public static bool HasSvgAsset(DaisyCardPattern pattern)
-        {
-            return pattern != DaisyCardPattern.None && GetPatternFileName(pattern) != null;
-        }
     }
 }
+#endif

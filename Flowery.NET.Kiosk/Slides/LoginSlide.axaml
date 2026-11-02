@@ -1,0 +1,97 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:daisy="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             x:Class="Flowery.NET.Kiosk.Slides.LoginSlide">
+
+  <!-- Full-width background -->
+  <Grid Background="{DynamicResource DaisyBase200Brush}" ColumnDefinitions="6*,4*" ClipToBounds="True">
+
+    <!-- Hero Section -->
+    <Grid Grid.Column="0">
+      <!-- Decorative Background Patterns -->
+      <Grid x:Name="HeroCanvas" Opacity="0.1" IsHitTestVisible="False">
+        <Ellipse Width="200" Height="200" Fill="{DynamicResource DaisyPrimaryBrush}"
+                 HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-60,-60,0,0" />
+        <Ellipse Width="280" Height="280" Fill="{DynamicResource DaisySecondaryBrush}"
+                 HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-120,-60" />
+      </Grid>
+
+      <StackPanel VerticalAlignment="Center" Margin="50,0,50,120" Spacing="24">
+        <StackPanel Spacing="6">
+          <daisy:DaisyBadge Content="COMING SOON" Variant="Secondary" Size="Small" HorizontalAlignment="Left" />
+          <TextBlock x:Name="HeroTitle" Text="Flowery.NET" FontSize="52" FontWeight="Black" Foreground="{DynamicResource DaisyPrimaryBrush}" />
+
+          <!-- Feature list with stacked fade-in animation -->
+          <StackPanel x:Name="FeaturesList" Spacing="3">
+            <TextBlock x:Name="Feature1" Text="✓ 35+ themes inspired by DaisyUI" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+            <TextBlock x:Name="Feature2" Text="✓ 80+ themed and sizable controls" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+            <TextBlock x:Name="Feature3" Text="✓ Runtime Sizing and Scaling features" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+            <TextBlock x:Name="Feature4" Text="✓ Weather cards and Color picker controls" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+            <TextBlock x:Name="Feature5" Text="✓ Genuine animations and status indicators" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+            <TextBlock x:Name="Feature6" Text="✓ Flexible input controls" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+            <TextBlock x:Name="Feature7" Text="✓ Avalonia on desktop, mobile and the browser" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+          </StackPanel>
+        </StackPanel>
+
+        <TextBlock x:Name="HeroDescription"
+                   Text="This entire demo is built with Flowery.NET components. Every button, input, badge, and animation you see is powered by our library."
+                   FontSize="13" Opacity="0.7" TextWrapping="Wrap" MaxWidth="420" LineHeight="20" HorizontalAlignment="Left" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+
+        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
+          <daisy:DaisyButton x:Name="HeroButton1" Content="Get Started" Variant="Primary" Size="Medium" Shape="Wide" />
+          <daisy:DaisyButton x:Name="HeroButton2" Content="View Gallery" ButtonStyle="Outline" Size="Medium" Shape="Wide" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="-8" Margin="0,8,0,0" HorizontalAlignment="Left">
+          <daisy:DaisyAvatar Size="Small" Shape="Circle" HasRing="True" RingColor="Primary" BorderThickness="2" BorderBrush="{DynamicResource DaisyBase100Brush}" IsPlaceholder="True">
+            <PathIcon Data="{StaticResource DaisyIconUser}" Width="14" Height="14" />
+          </daisy:DaisyAvatar>
+          <daisy:DaisyAvatar Size="Small" Shape="Circle" HasRing="True" RingColor="Secondary" BorderThickness="2" BorderBrush="{DynamicResource DaisyBase100Brush}" IsPlaceholder="True">
+            <PathIcon Data="{StaticResource DaisyIconFaceHappy}" Width="14" Height="14" />
+          </daisy:DaisyAvatar>
+          <daisy:DaisyAvatar Size="Small" Shape="Circle" HasRing="True" RingColor="Accent" BorderThickness="2" BorderBrush="{DynamicResource DaisyBase100Brush}" IsPlaceholder="True">
+            <PathIcon Data="{StaticResource DaisyIconStarOutline}" Width="14" Height="14" />
+          </daisy:DaisyAvatar>
+          <daisy:DaisyBadge Content="DaisyAvatar Controls" Variant="Ghost" Size="Small" Margin="14,0,0,0" VerticalAlignment="Center" />
+        </StackPanel>
+      </StackPanel>
+    </Grid>
+
+    <!-- Login Form Section -->
+    <Grid Grid.Column="1" Background="{DynamicResource DaisyBase100Brush}">
+      <daisy:DaisyCard x:Name="LoginFormCard" VerticalAlignment="Center" HorizontalAlignment="Center" Width="340" BodyPadding="28" Background="{DynamicResource DaisyBase200Brush}">
+        <StackPanel Spacing="18">
+          <StackPanel Spacing="6" HorizontalAlignment="Center">
+            <daisy:DaisyAvatar Size="Medium" Shape="Circle" HasRing="True" RingColor="Primary" IsPlaceholder="True" HorizontalAlignment="Center">
+              <PathIcon Data="{StaticResource DaisyIconUser}" Width="20" Height="20" />
+            </daisy:DaisyAvatar>
+            <TextBlock Text="Welcome Back" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+            <TextBlock Text="Sign in to your account" FontSize="12" Opacity="0.5" HorizontalAlignment="Center" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+          </StackPanel>
+
+          <StackPanel Spacing="10">
+            <daisy:DaisyInput x:Name="EmailInput" Label="EMAIL" PlaceholderText="Email Address" Variant="Bordered" Size="Small" />
+            <daisy:DaisyInput x:Name="PasswordInput" Label="PASSWORD" PlaceholderText="Password" Variant="Bordered" Size="Small" />
+
+            <Grid>
+              <daisy:DaisyCheckBox Content="Keep me signed in" Size="Small" />
+              <daisy:DaisyButton Content="Forgot Password?" Variant="Link" Size="ExtraSmall" HorizontalAlignment="Right" />
+            </Grid>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Stretch">
+            <daisy:DaisyStatusIndicator Variant="Spin" Color="Primary" VerticalAlignment="Center" />
+            <daisy:DaisyButton Content="Sign In" Variant="Primary" Size="Medium" Shape="Block" HorizontalAlignment="Stretch" />
+          </StackPanel>
+
+          <daisy:DaisyDivider Content="OR SIGN IN WITH OTP" DividerStyle="Glow" FontSize="10" Opacity="0.7" />
+
+          <StackPanel Spacing="8">
+            <daisy:DaisyOtpInput Length="6" SeparatorInterval="3" Size="Small" HorizontalAlignment="Center" />
+            <TextBlock Text="Enter the 6-digit code sent to your email" FontSize="10" Opacity="0.5" HorizontalAlignment="Center" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+          </StackPanel>
+        </StackPanel>
+      </daisy:DaisyCard>
+    </Grid>
+  </Grid>
+</UserControl>

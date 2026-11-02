@@ -70,6 +70,8 @@ $galleryProject = Join-Path $repoRoot "Flowery.NET.Gallery/Flowery.NET.Gallery.c
 $desktopProject = Join-Path $repoRoot "Flowery.NET.Gallery.Desktop/Flowery.NET.Gallery.Desktop.csproj"
 $photosProject = Join-Path $repoRoot 'Flowery.NET.Photos.Desktop/Flowery.NET.Photos.Desktop.csproj'
 $photosTestsProject = Join-Path $repoRoot 'Flowery.NET.Photos.Tests/Flowery.NET.Photos.Tests.csproj'
+$kioskProject = Join-Path $repoRoot 'Flowery.NET.Kiosk.Desktop/Flowery.NET.Kiosk.Desktop.csproj'
+$kioskTestsProject = Join-Path $repoRoot 'Flowery.NET.Kiosk.Tests/Flowery.NET.Kiosk.Tests.csproj'
 $browserProject = Join-Path $repoRoot "Flowery.NET.Gallery.Browser/Flowery.NET.Gallery.Browser.csproj"
 $testsProject = Join-Path $repoRoot "Flowery.NET.Tests/Flowery.NET.Tests.csproj"
 $androidProject = Join-Path $repoRoot "Flowery.NET.Gallery.Android/Flowery.NET.Gallery.Android.csproj"
@@ -88,6 +90,8 @@ Invoke-Step "Build: Flowery.NET.Gallery" "dotnet build `"$galleryProject`" -c $C
 Invoke-Step "Build: Flowery.NET.Gallery.Desktop" "dotnet build `"$desktopProject`" -c $Configuration"
 Invoke-Step 'Build: Flowery.NET.Photos.Desktop' "dotnet build `"$photosProject`" -c $Configuration"
 Invoke-Step 'Build: Flowery.NET.Photos.Tests' "dotnet build `"$photosTestsProject`" -c $Configuration"
+Invoke-Step 'Build: Flowery.NET.Kiosk.Desktop' "dotnet build `"$kioskProject`" -c $Configuration"
+Invoke-Step 'Build: Flowery.NET.Kiosk.Tests' "dotnet build `"$kioskTestsProject`" -c $Configuration"
 Invoke-Step "Build: Flowery.NET.Gallery.Browser" "dotnet build `"$browserProject`" -c $Configuration"
 Invoke-Step "Build: Flowery.NET.Tests" "dotnet build `"$testsProject`" -c $Configuration"
 

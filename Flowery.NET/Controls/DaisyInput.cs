@@ -73,7 +73,9 @@ namespace Flowery.Controls
             }
             else if (change.Property == SizeProperty)
             {
-                ApplyScaleFactor(FloweryScaleManager.GetScaleFactor(this));
+                // The template reads the scaled font sizes, so a new size always updates them; an input that does not
+                // scale ignores the factor it inherits from a scaled ancestor.
+                ApplyScaleFactor(FloweryScaleManager.GetEnableScaling(this) ? FloweryScaleManager.GetScaleFactor(this) : 1.0);
             }
         }
 

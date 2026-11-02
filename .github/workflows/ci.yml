@@ -217,6 +217,59 @@ jobs:
         configuration: [Debug, Release]
     steps: *runtime-steps
 
+  kiosk-smoke:
+    # Starts the Kiosk app with --smoke-test in a real desktop window; Linux draws on Xvfb. The report, its log and the
+    # screenshots are uploaded after every run.
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025-vs2026, ubuntu-24.04]
+        configuration: [Debug, Release]
+    steps: &kiosk-steps
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Run Kiosk tests
+        run: dotnet test Flowery.NET.Kiosk.Tests/Flowery.NET.Kiosk.Tests.csproj -c ${{ matrix.configuration }}
+
+      - name: Run the Kiosk smoke run
+        if: runner.os != 'Linux'
+        shell: pwsh
+        run: ./scripts/test_kiosk.ps1 -Configuration ${{ matrix.configuration }}
+
+      - name: Run the Kiosk smoke run on Xvfb
+        if: runner.os == 'Linux'
+        run: >-
+          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24'
+          pwsh ./scripts/test_kiosk.ps1 -Configuration ${{ matrix.configuration }}
+
+      - name: Upload the Kiosk smoke report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: kiosk-smoke-${{ runner.os }}-${{ matrix.configuration }}
+          path: |
+            ./TestResults/Kiosk/${{ matrix.configuration }}
+            ./logs/kiosk-tests-*.log
+          if-no-files-found: ignore
+
+  kiosk-smoke-macos:
+    # Runs only on demand: workflow_dispatch with macos.
+    if: inputs.macos
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15]
+        configuration: [Debug, Release]
+    steps: *kiosk-steps
+
   build-gallery:
     strategy:
       matrix:

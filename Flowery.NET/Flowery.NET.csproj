@@ -42,6 +42,18 @@
     <PackageReference Include="Avalonia" Version="12.1.4" />
   </ItemGroup>
 
+  <!-- The SVG pattern assets of DaisyPatternedCard (PatternMode="SvgAsset", the default), drawn with Svg.Skia. A build
+       with -p:FlowerySvgPatterns=false leaves out the package and the assets; the cards then draw generated tiles.
+       Svg.Skia 5.2 needs SkiaSharp 4, Avalonia 12.1 ships SkiaSharp 3.119, so the package stays on 5.1. -->
+  <PropertyGroup>
+    <FlowerySvgPatterns Condition="'$(FlowerySvgPatterns)' == ''">true</FlowerySvgPatterns>
+    <DefineConstants Condition="'$(FlowerySvgPatterns)' == 'true'">$(DefineConstants);FLOWERY_SVG_PATTERNS</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(FlowerySvgPatterns)' == 'true'">
+    <PackageReference Include="Svg.Skia" Version="5.1.1" />
+    <AvaloniaResource Include="Assets\Patterns\*.svg" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="Flowery.NET.Tests" />
     <InternalsVisibleTo Include="Flowery.NET.RuntimeTests" />

@@ -1,0 +1,81 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:daisy="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+             xmlns:weather="clr-namespace:Flowery.Controls.Custom.Weather;assembly=Flowery.NET"
+             xmlns:colorpicker="clr-namespace:Flowery.Controls.ColorPicker;assembly=Flowery.NET"
+             x:Class="Flowery.NET.Kiosk.Slides.ShowcaseSlide">
+
+  <Grid Margin="30,30,30,120" ColumnDefinitions="*,*">
+
+    <!-- Left: Weather Card -->
+    <StackPanel Grid.Column="0" Spacing="16" VerticalAlignment="Top" Margin="0,0,16,0">
+      <StackPanel Spacing="4">
+        <TextBlock Text="WEATHER CARD" FontSize="10" LetterSpacing="2" FontWeight="Bold" Foreground="{DynamicResource DaisySecondaryBrush}" />
+        <TextBlock Text="Real-time Data Display" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+      </StackPanel>
+
+      <weather:DaisyWeatherCard
+          x:Name="WeatherCard"
+          Temperature="22"
+          FeelsLike="24"
+          Condition="Sunny"
+          TemperatureUnit="C"
+          UvIndex="6"
+          UvMax="8"
+          WindSpeed="12"
+          WindMax="25"
+          WindUnit="km/h"
+          Humidity="65"
+          HumidityMax="85"
+          Sunrise="06:15:00"
+          Sunset="20:45:00"
+          ShowForecast="False"
+          ShowMetrics="True" />
+    </StackPanel>
+
+    <!-- Right: Color Picker -->
+    <StackPanel Grid.Column="1" Spacing="16" VerticalAlignment="Top" Margin="16,0,0,0">
+      <StackPanel Spacing="4">
+        <TextBlock Text="COLOR PICKER" FontSize="10" LetterSpacing="2" FontWeight="Bold" Foreground="{DynamicResource DaisySecondaryBrush}" />
+        <TextBlock Text="Interactive Selection" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+      </StackPanel>
+
+      <daisy:DaisyCard BodyPadding="20">
+        <StackPanel Spacing="16" HorizontalAlignment="Center">
+          <colorpicker:DaisyColorWheel
+              x:Name="ColorWheel"
+              Width="180"
+              Height="180"
+              Lightness="0.5"
+              SelectionSize="12"
+              ColorStep="2" />
+
+          <!-- Color preview -->
+          <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*,*">
+            <StackPanel Grid.Column="0" Spacing="4">
+              <TextBlock Text="SELECTED" FontSize="9" FontWeight="SemiBold" Opacity="0.6" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+              <Border x:Name="ColorPreview" Width="60" Height="36" CornerRadius="6" Background="#FF5722" HorizontalAlignment="Left" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Right">
+              <TextBlock Text="HEX" FontSize="9" FontWeight="SemiBold" Opacity="0.6" Foreground="{DynamicResource DaisyBaseContentBrush}" HorizontalAlignment="Right" />
+              <TextBlock x:Name="HexText" Text="#FF5722" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource DaisyPrimaryBrush}" HorizontalAlignment="Right" />
+            </StackPanel>
+          </Grid>
+
+          <!-- Preset colors -->
+          <StackPanel Spacing="6">
+            <TextBlock Text="PRESETS" FontSize="9" FontWeight="SemiBold" Opacity="0.6" Foreground="{DynamicResource DaisyBaseContentBrush}" />
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+              <Border Width="28" Height="28" CornerRadius="14" Background="#EF4444" />
+              <Border Width="28" Height="28" CornerRadius="14" Background="#F59E0B" />
+              <Border Width="28" Height="28" CornerRadius="14" Background="#10B981" />
+              <Border Width="28" Height="28" CornerRadius="14" Background="#3B82F6" />
+              <Border Width="28" Height="28" CornerRadius="14" Background="#8B5CF6" />
+              <Border Width="28" Height="28" CornerRadius="14" Background="#EC4899" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </daisy:DaisyCard>
+    </StackPanel>
+  </Grid>
+</UserControl>
