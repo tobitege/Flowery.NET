@@ -40,7 +40,8 @@ namespace Flowery.Controls
             AvaloniaProperty.Register<DaisyPatternedCard, FloweryPatternMode>(nameof(PatternMode), FloweryPatternMode.Tiled);
 
         /// <summary>
-        /// Gets or sets the pattern rendering mode (Tiled or SvgAsset).
+        /// Gets or sets the pattern rendering mode. Both modes draw the generated tiles in Flowery.NET; see
+        /// <see cref="FloweryPatternMode.SvgAsset"/>.
         /// </summary>
         public FloweryPatternMode PatternMode
         {
@@ -117,18 +118,7 @@ namespace Flowery.Controls
 
             var patternBrush = Foreground ?? Brushes.White;
 
-            // Asset mode (PNG files)
-            if (PatternMode == FloweryPatternMode.SvgAsset && FloweryPatternSvgLoader.HasSvgAsset(Pattern))
-            {
-                var tiledCanvas = FloweryPatternSvgLoader.CreateTiledCanvas(Pattern, width, height);
-                if (tiledCanvas != null)
-                {
-                    _patternLayer.Children.Add(tiledCanvas);
-                    return;
-                }
-            }
-
-            // Tile generator mode (Generated paths)
+            // Both modes draw the generated tiles.
             if (FloweryPatternTileGenerator.SupportsTiling(Pattern))
             {
                 var tiledCanvas = FloweryPatternTileGenerator.CreateTiledPatternCanvas(Pattern, patternBrush, width, height);

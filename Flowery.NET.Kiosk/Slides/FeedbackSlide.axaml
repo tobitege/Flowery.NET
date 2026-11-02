@@ -79,7 +79,6 @@
           <!-- Row 2: Business/Professional variants -->
           <StackPanel Orientation="Horizontal" Spacing="16" HorizontalAlignment="Center">
             <daisy:DaisyLoading Variant="DocumentFlipOff" Size="Small" />
-            <!-- Flowery.WinUI shows InvoiceStamp, which Flowery.NET does not have; DocumentStamp is the closest. -->
             <daisy:DaisyLoading Variant="DocumentStamp" Size="Small" Color="Primary" />
             <daisy:DaisyLoading Variant="CalendarTick" Size="Small" Color="Success" />
             <daisy:DaisyLoading Variant="BatteryCharging" Size="Small" Color="Warning" />

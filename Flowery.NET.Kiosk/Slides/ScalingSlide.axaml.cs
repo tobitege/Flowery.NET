@@ -69,7 +69,7 @@ public partial class ScalingSlide : UserControl
         DemoButtonRow.ItemSpacing = DemoButtonRow.LineSpacing = ScaleHelper.SpacingXS(factor);
         DemoBadgeRow.ItemSpacing = DemoBadgeRow.LineSpacing = ScaleHelper.SpacingXS(factor);
         DemoTitle.FontSize = ScaleHelper.FontSubheading(factor);
-        // The size styles of Flowery.NET set the padding of each size tier, which WinUI sets here by hand.
+        // The size styles set the padding of each size tier.
         var size = ScaleFactorToSize(factor);
         DemoInput.Size = size;
         DemoButton1.Size = size;

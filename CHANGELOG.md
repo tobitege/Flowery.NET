@@ -131,6 +131,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Glass: the liquid-glass rim of the `SkiaSharp` mode is drawn on the glass edge and fades inward. Its inner edge was a crisp line with a smaller corner radius, which read as a second, squarer rectangle inside small controls such as buttons and fields.
 
+#### Controls
+
+- `DaisyPatternedCard`: `PatternMode="SvgAsset"` draws the same generated tiles as `Tiled`, as it always did in practice. The mode looked for PNG pattern files that the library never shipped and fell back to the tiles; that lookup is removed.
+
 #### Scheduler
 
 - `DaisyScheduler`: Planner and Timeline hours are as wide as their header label and a one-hour bar with its whole start time, for the current size, font, culture and clock format, and widen to fill the visible width. A new width rescales the bars in place, and the Planner labels every hour.

@@ -21,8 +21,8 @@
         <TextBlock Text="Real-time UI scaling" FontSize="10" Opacity="0.6" HorizontalAlignment="Center" Foreground="{DynamicResource DaisyBaseContentBrush}" />
       </StackPanel>
 
-      <!-- Right: Demo Controls that will scale. The slide sets their size tier, padding and spacing from the zoom, as
-           in Flowery.WinUI; the scalable controls of Flowery.NET would scale their fonts by the factor again. -->
+      <!-- Right: Demo Controls that will scale. The slide sets their size tier, padding and spacing from the zoom;
+           with scaling on, the scalable controls would scale their fonts by the factor again. -->
       <daisy:DaisyCard x:Name="DemoCard" Grid.Column="1" BodyPadding="18" MaxWidth="640" VerticalAlignment="Center"
                        services:FloweryScaleManager.EnableScaling="False">
         <StackPanel x:Name="DemoCardContent" Spacing="12">

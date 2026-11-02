@@ -11,9 +11,7 @@ namespace Flowery.NET.Kiosk;
 
 /// <summary>
 /// The smoke run of <c>--smoke-test</c>: it drives the kiosk in its real desktop window, checks every slide, the
-/// manual navigation and one automatic cycle, and writes the results to the report. Ported from Flowery.WinUI's
-/// KioskSmokeTests; the checks of WinUI internals (native TextBox, PRI resources, Win32 icon messages) check the
-/// Avalonia counterparts instead.
+/// manual navigation and one automatic cycle, and writes the results to the report.
 /// </summary>
 internal static class KioskSmokeTests
 {
@@ -48,8 +46,8 @@ internal static class KioskSmokeTests
                 "The embedded Noto Sans font does not load.");
             return Task.CompletedTask;
         });
-        // Flowery.WinUI also counts its shared SVG pattern files here. The cards of Flowery.NET draw their patterns as
-        // generated tiles; CheckPatternsAsync checks that each card of the patterns slide draws one.
+        // The cards draw their patterns as generated tiles; CheckPatternsAsync checks that each card of the patterns
+        // slide draws one.
         await CheckAsync(report, "OriginalIcons", () =>
         {
             RequireFile(Path.Combine(AppContext.BaseDirectory, "Assets", "Kiosk", "app_icon.svg"));

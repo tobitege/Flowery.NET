@@ -1,8 +1,7 @@
 namespace Flowery.NET.Kiosk;
 
 /// <summary>
-/// The preset values of <see cref="FloweryScaleConfig"/> for a given scale factor, as Flowery.WinUI's ScaleHelper gives
-/// them; only the presets the kiosk uses.
+/// The preset values of <see cref="FloweryScaleConfig"/> for a given scale factor; only the presets the kiosk uses.
 /// </summary>
 internal static class ScaleHelper
 {

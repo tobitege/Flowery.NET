@@ -12,8 +12,8 @@ namespace Flowery.Enums
         Tiled,
 
         /// <summary>
-        /// Load pattern from pre-built PNG asset files (generated from SVG).
-        /// Experimental - monochrome patterns with fixed size.
+        /// Draws the same generated tiles as <see cref="Tiled"/>; there are no pattern asset files.
+        /// Kept for compatibility.
         /// </summary>
         SvgAsset
     }
