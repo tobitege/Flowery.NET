@@ -8,6 +8,11 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <!-- As in Flowery.NET: -p:FlowerySvgPatterns=false tests the build without the SVG pattern assets. -->
+  <PropertyGroup Condition="'$(FlowerySvgPatterns)' != 'false'">
+    <DefineConstants>$(DefineConstants);FLOWERY_SVG_PATTERNS</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.4" />
     <PackageReference Include="ProTest.Avalonia.Headless.XUnit.v4" Version="12.1.4" />

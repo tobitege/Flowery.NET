@@ -37,11 +37,11 @@ namespace Flowery.Controls
         /// Defines the <see cref="PatternMode"/> property.
         /// </summary>
         public static readonly StyledProperty<FloweryPatternMode> PatternModeProperty =
-            AvaloniaProperty.Register<DaisyPatternedCard, FloweryPatternMode>(nameof(PatternMode), FloweryPatternMode.Tiled);
+            AvaloniaProperty.Register<DaisyPatternedCard, FloweryPatternMode>(nameof(PatternMode), FloweryPatternMode.SvgAsset);
 
         /// <summary>
-        /// Gets or sets the pattern rendering mode. Both modes draw the generated tiles in Flowery.NET; see
-        /// <see cref="FloweryPatternMode.SvgAsset"/>.
+        /// Gets or sets the pattern rendering mode: the SVG pattern assets (<see cref="FloweryPatternMode.SvgAsset"/>,
+        /// the default) or generated tiles (<see cref="FloweryPatternMode.Tiled"/>).
         /// </summary>
         public FloweryPatternMode PatternMode
         {
@@ -118,7 +118,21 @@ namespace Flowery.Controls
 
             var patternBrush = Foreground ?? Brushes.White;
 
-            // Both modes draw the generated tiles.
+#if FLOWERY_SVG_PATTERNS
+            // Asset mode (SVG files); a build without the SVG patterns draws the generated tiles instead.
+            if (PatternMode == FloweryPatternMode.SvgAsset && FloweryPatternSvgLoader.HasSvgAsset(Pattern))
+            {
+                var renderScaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
+                var assetCanvas = FloweryPatternSvgLoader.CreateTiledCanvas(Pattern, width, height, renderScaling);
+                if (assetCanvas != null)
+                {
+                    _patternLayer.Children.Add(assetCanvas);
+                    return;
+                }
+            }
+#endif
+
+            // Tile generator mode (Generated paths)
             if (FloweryPatternTileGenerator.SupportsTiling(Pattern))
             {
                 var tiledCanvas = FloweryPatternTileGenerator.CreateTiledPatternCanvas(Pattern, patternBrush, width, height);
