@@ -2,8 +2,6 @@ name: Build Gallery (Reusable)
 
 # Internal reusable workflow - called by release.yml and release-gallery.yml
 # Not meant to be triggered directly
-# The Browser job runs the local action .github/actions/publish-browser-gallery from the checked-out ref, so a branch
-# released from must contain it (main and alpha only after the 4.0.0 changes are merged into them).
 
 on:
   workflow_call:
@@ -172,8 +170,17 @@ jobs:
         with:
           global-json-file: global.json
 
+      # WasmBuildNative links the SkiaSharp and HarfBuzz native libraries into dotnet.native.wasm.
+      - name: Install WebAssembly build tools
+        run: dotnet workload install wasm-tools
+
       - name: Publish Browser Gallery
-        uses: ./.github/actions/publish-browser-gallery
+        run: |
+          dotnet publish Flowery.NET.Gallery.Browser/Flowery.NET.Gallery.Browser.csproj \
+            -c Release \
+            -o ./browser-publish
+          test -f ./browser-publish/wwwroot/index.html && test -d ./browser-publish/wwwroot/_framework \
+            || { echo "::error::The published wwwroot has no index.html or _framework folder."; exit 1; }
 
       - name: Zip Browser artifact
         shell: bash
