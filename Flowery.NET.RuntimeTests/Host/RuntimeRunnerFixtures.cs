@@ -104,6 +104,14 @@ public class RuntimeRunnerFixtures
     [Fact(Explicit = true, Timeout = 100)]
     public Task Times_Out() => Task.Delay(TimeSpan.FromSeconds(1));
 
+    [Fact(Explicit = true)]
+    public Task Times_Out_In_A_Case() =>
+        RuntimeTestHelpers.RunCaseAsync("slow case", static () => Task.Delay(TimeSpan.FromSeconds(1)), TimeSpan.FromMilliseconds(100));
+
+    [Fact(Explicit = true)]
+    public Task Fails_With_A_Timeout_In_A_Case() =>
+        RuntimeTestHelpers.RunCaseAsync("c", static () => throw new TimeoutException());
+
     public static class SkipConditions
     {
         public static bool Always => true;

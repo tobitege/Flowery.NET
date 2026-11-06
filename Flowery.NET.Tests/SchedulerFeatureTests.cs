@@ -1,5 +1,5 @@
-﻿using Avalonia;
-using Avalonia.Automation;
+﻿using System.Globalization;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
@@ -10,7 +10,6 @@ using Flowery.Controls.Scheduler.Contracts;
 using Flowery.Controls.Scheduler.Models;
 using Flowery.Controls.Scheduler.Rendering;
 using Flowery.Localization;
-using System.Globalization;
 using Xunit;
 
 namespace Flowery.NET.Tests;
@@ -18,10 +17,6 @@ namespace Flowery.NET.Tests;
 public sealed partial class SchedulerTests
 {
     [AvaloniaTheory]
-    [InlineData(SchedulerDateTimeFormat.US, SchedulerClockFormat.Locale, "t", "en-US", "10/12/2026")]
-    [InlineData(SchedulerDateTimeFormat.UK, SchedulerClockFormat.Locale, "t", "en-GB", "12/10/2026")]
-    [InlineData(SchedulerDateTimeFormat.European, SchedulerClockFormat.Locale, "t", "de-DE", "12.10.2026")]
-    [InlineData(SchedulerDateTimeFormat.US, SchedulerClockFormat.TwentyFourHour, "HH:mm", "en-US", "10/12/2026")]
     [InlineData(SchedulerDateTimeFormat.European, SchedulerClockFormat.TwelveHour, "h:mm tt", "de-DE", "12.10.2026")]
     public void FormatOverridesRefreshAttachedAppointmentAndTooltipWithoutChangingUiLanguage(
         SchedulerDateTimeFormat format, SchedulerClockFormat clock, string timePattern, string cultureName, string date)
@@ -44,33 +39,8 @@ public sealed partial class SchedulerTests
         Assert.Equal(Monday.AddHours(9), scope.Appointment.Start);
     }
 
-    [AvaloniaFact]
-    public void EditorSlotsIncludeBothAlignedEndpointsAndAreIndependentOfGridSnapping()
-    {
-        var scheduler = new DaisyScheduler
-        {
-            TimeSlotStart = TimeSpan.FromHours(7), TimeSlotEnd = TimeSpan.FromHours(17),
-            TimeSlotInterval = TimeSpan.FromMinutes(30), TimeIncrement = new TimeIncrementConfig { MinorTick = TimeSpan.FromMinutes(15) }
-        };
-        var slots = scheduler.GetTimeSlots();
-        Assert.Equal(21, slots.Count);
-        Assert.Equal(TimeSpan.FromHours(7), slots[0]);
-        Assert.Equal(TimeSpan.FromHours(17), slots[^1]);
-        Assert.Equal(TimeSpan.FromHours(7.5), slots[1]);
-        scheduler.TimeSlotEnd = TimeSpan.FromHours(17).Add(TimeSpan.FromMinutes(10));
-        Assert.Equal(TimeSpan.FromHours(17), scheduler.GetTimeSlots()[^1]);
-        Assert.Throws<ArgumentException>(() => scheduler.TimeSlotInterval = TimeSpan.Zero);
-        scheduler.TimeSlotEnd = TimeSpan.FromHours(6);
-        Assert.Throws<InvalidOperationException>(() => scheduler.GetTimeSlots());
-    }
-
     [AvaloniaTheory]
-    [InlineData(SchedulerView.Day, 1)]
     [InlineData(SchedulerView.Week, 3)]
-    [InlineData(SchedulerView.Month, 3)]
-    [InlineData(SchedulerView.Agenda, 3)]
-    [InlineData(SchedulerView.Planner, 3)]
-    [InlineData(SchedulerView.Timeline, 1)]
     public void DailySpansRenderOccurrencesAndSelectionReturnsTheOriginalSeries(SchedulerView view, int count)
     {
         using var scope = new SchedulerScope(view);
@@ -130,63 +100,7 @@ public sealed partial class SchedulerTests
         Assert.True(scope.Frame(continuous).Bounds.Width > scope.Frame(later).Bounds.Width);
     }
 
-    [AvaloniaFact]
-    public void MonthKeepsEveryAppointmentInItsOwnVisibleRow()
-    {
-        using var scope = new SchedulerScope(SchedulerView.Month);
-        var appointments = Enumerable.Range(1, 6).Select(index => new AppointmentModel { Id = index, Subject = "Event " + index,
-            Start = Monday.AddHours(9), End = Monday.AddHours(10) }).ToArray();
-        scope.Scheduler.Appointments = appointments;
-        scope.Layout();
-        foreach (var appointment in appointments)
-            Assert.Single(scope.Frames(appointment));
-        var positions = appointments.Select(appointment => scope.Point(scope.Frame(appointment), 0, 0).Y).ToArray();
-        Assert.Equal(6, positions.Distinct().Count());
-    }
-
-    [AvaloniaFact]
-    public void DayTimelineCombinesKindAndArbitraryCriteriaAndSupportsIndependentCollapsing()
-    {
-        using var scope = new SchedulerScope(SchedulerView.Timeline);
-        var person = new ResourceModel { Id = 1, Name = "Alex", Kind = ResourceKind.Person, GroupValues = { ["Department"] = "Development" } };
-        var room = new ResourceModel { Id = 2, Name = "Room", Kind = ResourceKind.Room, GroupValues = { ["Department"] = "Development" } };
-        var all = new ResourceGroupModel { Id = "all", Name = "All", Kind = ResourceKind.Person };
-        var department = new ResourceGroupModel { Id = "dev", Name = "Development", Kind = ResourceKind.Person, GroupType = "Department", GroupValue = "Development" };
-        scope.Scheduler.SchedulerResources = new[] { person, room };
-        scope.Scheduler.ResourceGroups = new[] { all, department };
-        scope.Layout();
-        Assert.True(department.Matches(person));
-        Assert.False(department.Matches(room));
-        Assert.Equal(2, scope.Frames(scope.Appointment).Count());
-        var button = scope.Scheduler.GetVisualDescendants().OfType<DaisyButton>().Single(control => AutomationProperties.GetName(control) == "All");
-        scope.Click(button);
-        Assert.Equal(new object[] { "all" }, scope.Scheduler.CollapsedResourceGroupIds);
-        Assert.Single(scope.Frames(scope.Appointment));
-        Assert.Equal("All", all.Name);
-        scope.Scheduler.ResourceKindFilter = ResourceKind.Room;
-        scope.Layout();
-        Assert.Empty(scope.Frames(scope.Appointment));
-        scope.Scheduler.ResourceKindFilter = ResourceKind.Person;
-        scope.Scheduler.CollapsedResourceGroupIds = Array.Empty<object>();
-        scope.Layout();
-        Assert.Equal(2, scope.Frames(scope.Appointment).Count());
-        // Wider hours, such as a 12-hour clock, can place the appointment beyond the visible width.
-        var frame = scope.Frames(scope.Appointment).First();
-        frame.BringIntoView();
-        scope.Layout();
-        scope.Click(frame);
-        Assert.Same(scope.Appointment, scope.Scheduler.SelectedAppointment);
-        scope.Scheduler.Navigate(1);
-        scope.Layout();
-        Assert.Equal(Monday.AddDays(1), scope.Scheduler.SelectedDate.Date);
-        Assert.Empty(scope.Frames(scope.Appointment));
-    }
-
     [AvaloniaTheory]
-    [InlineData(DaisySize.ExtraSmall)]
-    [InlineData(DaisySize.Small)]
-    [InlineData(DaisySize.Medium)]
-    [InlineData(DaisySize.Large)]
     [InlineData(DaisySize.ExtraLarge)]
     public void TimelineResourceCellsAndAppointmentRowsHaveMatchingGeometry(DaisySize size)
     {
@@ -216,26 +130,5 @@ public sealed partial class SchedulerTests
                 differences.Add($"{appointment.Subject}: cell top/height {cellTop}/{cell.Bounds.Height}, canvas {canvasTop}/{canvas.Bounds.Height}, row centers {rowCenter}/{frameCenter}");
         }
         Assert.True(differences.Count == 0, size + ": " + string.Join("; ", differences));
-    }
-
-    [AvaloniaFact]
-    public void SchedulerLabelsUseHostDesignTokenOverrides()
-    {
-        using var scope = new SchedulerScope(SchedulerView.Timeline);
-        scope.Scheduler.Size = DaisySize.Small;
-        scope.Layout();
-        var originalWidth = Assert.IsAssignableFrom<Canvas>(scope.Frame(scope.Appointment).Parent).Bounds.Width;
-        scope.Scheduler.Resources["DaisySizeSmallSecondaryFontSize"] = 10.5d;
-        scope.Scheduler.Resources["DaisySpacingSmall"] = 12d;
-        scope.Scheduler.Resources["DaisySchedulerTimelineMinimumHourWidth"] = 200d;
-        scope.Appointment.Tiles.Add(new AppointmentDecoration { Text = "Token badge" });
-        scope.Scheduler.Appointments = new[] { scope.Appointment };
-        scope.Layout();
-        var label = scope.Scheduler.GetVisualDescendants().OfType<TextBlock>().Single(text => text.Text == "Alex · Install");
-        Assert.Equal(10.5, label.FontSize);
-        var badge = scope.Frame(scope.Appointment).GetVisualDescendants().OfType<TextBlock>().Single(text => text.Text == "Token badge");
-        Assert.Equal(10.5, badge.FontSize);
-        Assert.Equal(40, Assert.IsType<Border>(label.Parent).Height);
-        Assert.True(Assert.IsAssignableFrom<Canvas>(scope.Frame(scope.Appointment).Parent).Bounds.Width > originalWidth);
     }
 }

@@ -5,7 +5,6 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
-using Avalonia.Input.Raw;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -19,7 +18,6 @@ using Xunit;
 
 namespace Flowery.NET.Tests;
 
-[Collection("LocalizationTests")]
 public class ReviewEvidenceTests
 {
     [AvaloniaFact]

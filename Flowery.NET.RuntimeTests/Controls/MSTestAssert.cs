@@ -98,14 +98,6 @@ internal static class MSTestAssert
     [DoesNotReturn]
     public static void Fail(string? message = null) => throw new AssertFailedException(message ?? "Assert.Fail failed.");
 
-    /// <summary>MSTest's inconclusive result is a skipped test in xunit.</summary>
-    [DoesNotReturn]
-    public static void Inconclusive(string? message = null)
-    {
-        Xunit.Assert.Skip(message ?? "Inconclusive.");
-        throw new InvalidOperationException("Unreachable.");
-    }
-
     public static T Throws<T>(Action action, string? message = null) where T : Exception
     {
         try { action(); }
@@ -133,15 +125,6 @@ internal static class MSTestAssert
 
 internal static class MSTestCollectionAssert
 {
-    public static void AreEqual(IEnumerable? expected, IEnumerable? actual, string? message = null)
-    {
-        if (BothNull(expected, actual, message)) return;
-        var left = expected.Cast<object?>().ToArray();
-        var right = actual.Cast<object?>().ToArray();
-        if (!left.SequenceEqual(right))
-            MSTestAssert.Fail($"Expected:<{string.Join(", ", left)}>. Actual:<{string.Join(", ", right)}>. {message}");
-    }
-
     // The same elements, each as often, in any order; elements compare with Equals like MSTest.
     public static void AreEquivalent(IEnumerable? expected, IEnumerable? actual, string? message = null)
     {

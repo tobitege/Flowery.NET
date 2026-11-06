@@ -27,12 +27,12 @@
                     <TextBlock x:Name="DesignerStatus" TextWrapping="Wrap"
                                AutomationProperties.LiveSetting="Polite"
                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                    <!-- An Avalonia ComboBox has no header, so its label stands above it. -->
+                    <!-- A select has no header, so its label stands above it. -->
                     <StackPanel Spacing="4" HorizontalAlignment="Left">
                         <TextBlock Text="{loc:Localize Gallery_Tour_CardPosition}" Foreground="{DynamicResource DaisyBaseContentBrush}" />
-                        <ComboBox x:Name="CardPositionSelector" MinWidth="200"
-                                  AutomationProperties.Name="{loc:Localize Gallery_Tour_CardPosition}"
-                                  SelectionChanged="CardPosition_SelectionChanged" />
+                        <controls:DaisySelect x:Name="CardPositionSelector" MinWidth="200"
+                                              AutomationProperties.Name="{loc:Localize Gallery_Tour_CardPosition}"
+                                              SelectionChanged="CardPosition_SelectionChanged" />
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Margin="24" Spacing="24">

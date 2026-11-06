@@ -762,8 +762,8 @@ namespace Flowery.NET.Kanban.Controls
         internal void SetShort(bool isShort)
         {
             PseudoClasses.Set(":short", isShort);
-            foreach (var addCard in this.GetVisualDescendants().OfType<FlowKanbanAddCard>())
-                addCard.SetShort(isShort);
+            _addCardTop?.SetShort(isShort);
+            _addCardBottom?.SetShort(isShort);
         }
 
         private void OnBoardSizeChanged(object? sender, DaisySize newSize)

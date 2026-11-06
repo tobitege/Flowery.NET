@@ -1,14 +1,10 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
-using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Controls.Scheduler.Models;
-using Flowery.Controls.Scheduler.Rendering;
 using Xunit;
 
 namespace Flowery.NET.Tests;

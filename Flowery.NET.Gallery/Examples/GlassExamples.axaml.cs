@@ -7,7 +7,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 
@@ -25,7 +24,7 @@ public partial class GlassExamples : UserControl, IScrollableExample
     private Vector _ballVelocity = new(190, 140);
     private TimeSpan? _lastBallFrame;
     private bool _ballFrameRequested;
-    private bool _ballCheckQueued;
+    private bool _ballWaitsForLayout;
     private bool _ballInView = true;
 
     public GlassExamples()
@@ -62,31 +61,41 @@ public partial class GlassExamples : UserControl, IScrollableExample
         RequestBallFrame();
     }
 
+    /// <summary>How often the ball loop ran: once per frame while the ball moves, and not at all while it waits.</summary>
+    internal int BallLoopRuns { get; private set; }
+
     private void RequestBallFrame()
     {
+        BallLoopRuns++;
         if (_ballFrameRequested || GlassButtonMotionToggle.IsChecked != true || !_ballInView
             || TopLevel.GetTopLevel(this) is not { } topLevel)
         {
             _lastBallFrame = null;
             return;
         }
-        // The Gallery keeps a page it showed once and only hides it, and nothing reports when it is shown again, so a
-        // hidden ball looks again a few times per second instead of asking for every frame.
+        // The Gallery keeps a page it showed once and only hides it. Visual.IsEffectivelyVisibleChanged is internal, but
+        // showing the page or a parent again runs a layout pass, so a hidden ball waits for one instead of for frames.
         if (!GlassDemoBall.IsEffectivelyVisible)
         {
             _lastBallFrame = null;
-            if (_ballCheckQueued)
-                return;
-            _ballCheckQueued = true;
-            DispatcherTimer.RunOnce(() =>
+            if (!_ballWaitsForLayout)
             {
-                _ballCheckQueued = false;
-                RequestBallFrame();
-            }, TimeSpan.FromMilliseconds(250));
+                _ballWaitsForLayout = true;
+                GlassDemoBall.LayoutUpdated += OnHiddenBallLayoutUpdated;
+            }
             return;
         }
         _ballFrameRequested = true;
         topLevel.RequestAnimationFrame(OnBallFrame);
+    }
+
+    private void OnHiddenBallLayoutUpdated(object? sender, EventArgs e)
+    {
+        if (!GlassDemoBall.IsEffectivelyVisible)
+            return;
+        GlassDemoBall.LayoutUpdated -= OnHiddenBallLayoutUpdated;
+        _ballWaitsForLayout = false;
+        RequestBallFrame();
     }
 
     private void OnBallFrame(TimeSpan time)
@@ -135,7 +144,7 @@ public partial class GlassExamples : UserControl, IScrollableExample
         GlassInterfaceMenu.Classes.Set("light", !dark);
     }
 
-    public void OpenGlassInterfaceMenu_Click(object? sender, RoutedEventArgs e) => GlassInterfaceMenuPopup.IsOpen = true;
+    private void OpenGlassInterfaceMenu_Click(object? sender, RoutedEventArgs e) => GlassInterfaceMenuPopup.IsOpen = true;
 
     // A demo action: closes the menu, which keeps no selection.
     private void InvokeGlassInterfaceMenuItem()
@@ -146,12 +155,12 @@ public partial class GlassExamples : UserControl, IScrollableExample
         GlassInterfaceMenuPopup.IsOpen = false;
     }
 
-    public void OpenGlassModal_Click(object? sender, RoutedEventArgs e)
+    private void OpenGlassModal_Click(object? sender, RoutedEventArgs e)
     {
         GlassShowcaseModal.IsOpen = true;
     }
 
-    public void CloseGlassModal_Click(object? sender, RoutedEventArgs e)
+    private void CloseGlassModal_Click(object? sender, RoutedEventArgs e)
     {
         GlassShowcaseModal.IsOpen = false;
     }

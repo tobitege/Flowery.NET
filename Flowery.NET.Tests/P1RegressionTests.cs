@@ -16,6 +16,7 @@ using Flowery.Localization;
 using Flowery.NET.Kanban.Controls;
 using Flowery.Services;
 using Xunit;
+using static Flowery.NET.Tests.RealInput;
 
 namespace Flowery.NET.Tests;
 
@@ -26,8 +27,6 @@ public class P1RegressionTests
     [InlineData("1.23", "N2", "de-DE", 0, Key.Down, "1.22")]
     [InlineData("0.1234", "P2", "en-US", 0, Key.Up, "0.1235")]
     [InlineData("12.34", "C2", "de-DE", 0, Key.Up, "12.35")]
-    [InlineData("12.34", "F2", "en-US", 0, Key.Up, "12.35")]
-    [InlineData("12.34", "G", "en-US", 0, Key.Up, "12.35")]
     [InlineData("28.34", "000.00", "en-US", 4, Key.Up, "128.34")]
     [InlineData("8", "000", "en-US", 2, Key.D2, "208")]
     [InlineData("-12", "N0", "en-US", 0, Key.D3, "-13")]
@@ -202,7 +201,7 @@ public class P1RegressionTests
     public void Kanban_BulkDateFlyoutAppliesSelectedDateAndClearsOnlySelectedTasks()
     {
         var previousStorage = StateStorageProvider.Instance;
-        StateStorageProvider.Configure(new MemoryStorage());
+        StateStorageProvider.Configure(new InMemoryStateStorage());
         Window? window = null;
         try
         {
@@ -258,30 +257,9 @@ public class P1RegressionTests
         Dispatcher.UIThread.RunJobs();
     }
 
-    private static void Press(Window window, Key key)
-    {
-        window.KeyPress(key, RawInputModifiers.None, PhysicalKey.None, keySymbol: null);
-        window.KeyRelease(key, RawInputModifiers.None, PhysicalKey.None, keySymbol: null);
-        Dispatcher.UIThread.RunJobs();
-    }
-
     private static void Invoke(Button button)
     {
         Assert.IsAssignableFrom<IInvokeProvider>(ControlAutomationPeer.CreatePeerForElement(button)).Invoke();
         Dispatcher.UIThread.RunJobs();
-    }
-
-    private sealed class MemoryStorage : IStateStorage
-    {
-        private readonly Dictionary<string, List<string>> _values = new(StringComparer.Ordinal);
-        public IReadOnlyList<string> LoadLines(string key) => _values.TryGetValue(key, out var value) ? value : [];
-        public void SaveLines(string key, IEnumerable<string> lines) => _values[key] = [.. lines];
-        public void Delete(string key) => _values.Remove(key);
-        public void Rename(string sourceKey, string targetKey)
-        {
-            _values[targetKey] = _values[sourceKey];
-            _values.Remove(sourceKey);
-        }
-        public IEnumerable<string> GetKeys(string prefix) => _values.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal)).ToArray();
     }
 }

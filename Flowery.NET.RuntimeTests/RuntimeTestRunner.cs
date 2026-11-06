@@ -235,6 +235,9 @@ internal static class RuntimeTestRunner
         catch (Exception exception)
         {
             failure = RuntimeTestHelpers.Unwrap(exception);
+            // A timed-out case of a table-driven test keeps running like a timed-out test.
+            if (failure is RuntimeTestHelpers.CaseTimeoutException)
+                return (failure, true);
         }
 
         return (Combine(failure, await DisposeAsync(instance)), false);

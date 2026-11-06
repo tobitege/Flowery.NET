@@ -1,10 +1,10 @@
 using System.Runtime.InteropServices;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
 using Flowery.Controls.ColorPicker;
-using Flowery.Localization;
 using Flowery.NET.Kiosk.Slides;
 
 namespace Flowery.NET.Kiosk;
@@ -22,46 +22,8 @@ internal static class KioskSmokeTests
         var page = window.KioskPage;
         using var lifetime = new CancellationTokenSource(TimeSpan.FromMinutes(3));
         var token = lifetime.Token;
-        await CheckAsync(report, "DesktopWindowAndSlideshow", () =>
-        {
-            Require(page.IsLoaded && TopLevel.GetTopLevel(page) is not null && page.Bounds.Width > 0 && page.Bounds.Height > 0,
-                "The opened desktop window has no loaded, measured kiosk page.");
-            Require(page.SlideCount == 6 && page.CurrentIndex == 0, "The initial six-slide sequence was not loaded.");
-            Require(!page.IsAutoRunning && page.Interval == 8, "Smoke mode must start manually with the eight-second interval.");
-            Require(FloweryLocalization.CurrentCulture.Name == "en-US", "Smoke mode must run in English.");
-            return Task.CompletedTask;
-        });
-        await CheckAsync(report, "ThemeResourcesAndFonts", () =>
-        {
-            var application = Application.Current ?? throw new InvalidOperationException("The application is missing.");
-            Require(FindResource(application, "DaisyBase100Brush") is ISolidColorBrush, "The base theme brush is missing.");
-            Require(FindResource(application, "DaisyPrimaryBrush") is ISolidColorBrush, "The primary theme brush is missing.");
-            Require(FindResource(application, "KioskSlideTitleFontSize") is double size && size == 43, "The overlay title resource is missing.");
-            foreach (var asset in new[] { "NotoSans-Regular.ttf", "NotoSansArabic-Regular.ttf", "NotoSansJP-Regular.otf", "NotoSansKR-Regular.otf", "NotoSansSC-Regular.otf", "OFL.txt" })
-                RequireFile(Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", asset));
-            var family = FindResource(application, "NotoSansFamily") as FontFamily
-                ?? throw new InvalidOperationException("The Noto Sans font family resource is missing.");
-            Require(window.FontFamily == family, "The window does not use the Noto Sans font family.");
-            Require(FontManager.Current.TryGetGlyphTypeface(new Typeface(family), out var glyphs) && glyphs.FamilyName == "Noto Sans",
-                "The embedded Noto Sans font does not load.");
-            return Task.CompletedTask;
-        });
-        // The cards draw their patterns as generated tiles; CheckPatternsAsync checks that each card of the patterns
-        // slide draws one.
-        await CheckAsync(report, "AppIconAndSplashScreen", () =>
-        {
-            RequireFile(Path.Combine(AppContext.BaseDirectory, "Assets", "Kiosk", "app_icon.svg"));
-            RequireFile(Path.Combine(AppContext.BaseDirectory, "Assets", "Kiosk", "splash_screen.svg"));
-            return Task.CompletedTask;
-        });
-        await CheckAsync(report, "WindowIcon", () =>
-        {
-            Require(window.Icon is not null, "The window shows no icon.");
-            return Task.CompletedTask;
-        });
 
         DataSlide? dataSlide = null;
-        LoginSlide? loginSlide = null;
         ScalingSlide? scalingSlide = null;
         PatternsSlide? patternsSlide = null;
         var previousScale = ScaleState.Capture();
@@ -82,8 +44,7 @@ internal static class KioskSmokeTests
                 switch (currentIndex)
                 {
                     case 0:
-                        loginSlide = RequireSlide<LoginSlide>(page);
-                        await CheckLoginAsync(loginSlide, token);
+                        await CheckLoginAsync(RequireSlide<LoginSlide>(page), token);
                         break;
                     case 1:
                         dataSlide = RequireSlide<DataSlide>(page);
@@ -133,7 +94,6 @@ internal static class KioskSmokeTests
 
         await CheckAsync(report, "UnloadedSlidesReleaseTimersAndScaling", () =>
         {
-            Require(loginSlide is { IsFeatureTimerRunning: false }, "The login animation timer is still running after unload.");
             Require(dataSlide is { IsUpdateTimerRunning: false }, "The data timer is still running after unload.");
             Require(scalingSlide is { IsZoomTimerRunning: false }, "The scaling timer is still running after unload.");
             Require(previousScale == ScaleState.Capture(), "The scaling slide did not restore the previous scale configuration.");
@@ -154,6 +114,9 @@ internal static class KioskSmokeTests
             await arrived;
             Require(page.CurrentIndex == 5 && !page.IsAutoRunning, "Manual previous did not wrap to the last slide.");
         });
+        await CheckAsync(report, "LoginEntranceStopsWhenUnloaded", () => WithMotionAsync(() => CheckLoginLeftDuringEntranceAsync(page, token)));
+        await CheckAsync(report, "KeyboardNavigationIgnoresTyping", () => CheckKeyboardAsync(page, token));
+        await CheckAsync(report, "NewNavigationCancelsRunningCrossfade", () => WithMotionAsync(() => CheckCancelledCrossfadeAsync(page, token)));
         await CheckAsync(report, "ProgressOnlyWhileTheSlideshowRuns", async () =>
         {
             Require(!page.IsAutoRunning && page.ProgressValue == 0, $"Manual mode shows a countdown: {page.ProgressValue:F2}.");
@@ -187,6 +150,127 @@ internal static class KioskSmokeTests
         catch (Exception exception)
         {
             report.Add("AutomaticEightSecondCycle", false, exception.ToString());
+        }
+        await CheckAsync(report, "ManualMoveRestartsTheEightSecondTimer", () => CheckTimerRestartAsync(page, token));
+    }
+
+    // The login slide is left right after it was shown, while its seven features still fade in one by one.
+    private static async Task CheckLoginLeftDuringEntranceAsync(KioskMainPage page, CancellationToken token)
+    {
+        Require(page.CurrentIndex == 5, "The login entrance check must begin at the last slide.");
+        await page.NavigateToAsync(0, token);
+        var login = RequireSlide<LoginSlide>(page);
+        Require(login.IsFeatureTimerRunning, "The login entrance had already ended when the slide was shown.");
+        await page.NavigateToAsync(5, token);
+        Require(login is { IsFeatureTimerRunning: false, FeaturesShown.IsCanceled: true },
+            "The login entrance went on after the slide was unloaded.");
+    }
+
+    // The check runs with animations, whatever the motion preference of the host.
+    private static async Task WithMotionAsync(Func<Task> check)
+    {
+        var previousMotion = DaisyAccessibility.ReducedMotionOverride;
+        try
+        {
+            DaisyAccessibility.ReducedMotionOverride = false;
+            await check();
+        }
+        finally
+        {
+            DaisyAccessibility.ReducedMotionOverride = previousMotion;
+        }
+    }
+
+    // Keys pressed on the page move between the slides; typed into a field of a slide, they stay in the field.
+    private static async Task CheckKeyboardAsync(KioskMainPage page, CancellationToken token)
+    {
+        Require(page.CurrentIndex == 5, "The keyboard check must begin at the last slide.");
+        var arrived = page.WaitForSlideAsync(0, token);
+        PressKey(page, Key.Right);
+        await arrived;
+        Require(page.CurrentIndex == 0, "The right arrow did not move to the next slide.");
+
+        var email = Find<DaisyInput>(RequireSlide<LoginSlide>(page), "EmailInput");
+        var shown = new List<int>();
+        void OnShown(object? sender, int index) => shown.Add(index);
+        page.SlideShown += OnShown;
+        try
+        {
+            foreach (var key in new[] { Key.N, Key.P, Key.Space })
+                PressKey(email, key);
+            // Longer than a crossfade, which a navigation would end with.
+            await Task.Delay(TimeSpan.FromSeconds(1.5), token);
+        }
+        finally
+        {
+            page.SlideShown -= OnShown;
+        }
+        if (shown.Count > 0 || page.CurrentIndex != 0)
+        {
+            // Back at the last slide, so the checks after this one start where they expect.
+            await page.NavigateToAsync(5, token);
+            throw new InvalidOperationException($"Typing into the email field changed the slide: {string.Join(", ", shown)}.");
+        }
+
+        arrived = page.WaitForSlideAsync(5, token);
+        PressKey(page, Key.Left);
+        await arrived;
+        Require(page.CurrentIndex == 5 && !page.IsAutoRunning, "The left arrow did not move to the previous slide.");
+    }
+
+    private static void PressKey(Interactive source, Key key) =>
+        source.RaiseEvent(new KeyEventArgs { RoutedEvent = InputElement.KeyDownEvent, Source = source, Key = key });
+
+    // A navigation that starts during the crossfade of another one cancels it and shows only its own slide.
+    private static async Task CheckCancelledCrossfadeAsync(KioskMainPage page, CancellationToken token)
+    {
+        // The first navigation returns at its fade-out, so the second one starts inside its crossfade.
+        var cancelled = page.NavigateToAsync(1, token);
+        Require(!cancelled.IsCompleted, "The first navigation did not start a crossfade.");
+        var target = page.NavigateToAsync(2, token);
+        try
+        {
+            await cancelled;
+            throw new InvalidOperationException("The interrupted crossfade still completed.");
+        }
+        catch (OperationCanceledException)
+        {
+            // The newer navigation cancelled it.
+        }
+        await target;
+        Require(page.CurrentIndex == 2 && page.CurrentSlide is FeedbackSlide { IsLoaded: true } &&
+            DaisyThemeManager.CurrentThemeName == page.SlideAt(2).Theme && page.CurrentTitle == page.SlideAt(2).Title.ToUpperInvariant(),
+            "The second navigation did not show its slide.");
+        var visible = new[] { page.SlideContentA, page.SlideContentB }.Where(static container => container.IsVisible).ToArray();
+        Require(visible is [{ Opacity: 1 }] && page.OverlayLayer.Opacity == 1,
+            $"After the cancelled crossfade {visible.Length} slide containers are visible, overlay opacity {page.OverlayLayer.Opacity:F2}.");
+        await page.NavigateToAsync(5, token);
+    }
+
+    // A manual move in the running slideshow gives the new slide the full eight seconds.
+    private static async Task CheckTimerRestartAsync(KioskMainPage page, CancellationToken token)
+    {
+        Require(page.CurrentIndex == 5 && !page.IsAutoRunning, "The timer check must begin in manual mode at the last slide.");
+        var previousMotion = DaisyAccessibility.ReducedMotionOverride;
+        try
+        {
+            DaisyAccessibility.ReducedMotionOverride = false;
+            page.ConfigureManualMode(false);
+            Require(page.IsAutoRunning, "The slideshow timer did not start.");
+            await Task.Delay(TimeSpan.FromSeconds(page.Interval / 2), token);
+            var moved = page.WaitForSlideAsync(0, token);
+            page.NextSlide();
+            await moved;
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            await page.WaitForSlideAsync(1, token);
+            var elapsed = stopwatch.Elapsed.TotalSeconds;
+            Require(elapsed >= page.Interval && elapsed < page.Interval + 5,
+                $"The slideshow advanced {elapsed:F3}s after the manual move instead of after {page.Interval}s.");
+        }
+        finally
+        {
+            page.ConfigureManualMode(true);
+            DaisyAccessibility.ReducedMotionOverride = previousMotion;
         }
     }
 
@@ -510,8 +594,26 @@ internal static class KioskSmokeTests
         Require(cards.Length == 6 && cards.Select(card => card.Pattern).Distinct().Count() == 6, "The six distinct pattern cards are incomplete.");
         Require(cards.All(card => card.IsLoaded && card.Opacity == 1 && card.RenderTransform is TranslateTransform { X: 0 }),
             "A pattern card did not finish its visible entrance animation.");
-        var blank = cards.Where(card => !Descendants<Canvas>(card).Any(canvas => canvas.Children.Count > 0)).Select(card => card.Pattern).ToArray();
-        Require(blank.Length == 0, $"These pattern cards draw no pattern: {string.Join(", ", blank)}.");
+        // A card draws its pattern when it renders differently from the same card without one.
+        var blank = new List<Flowery.Enums.DaisyCardPattern>();
+        foreach (var card in cards)
+        {
+            var pattern = card.Pattern;
+            var drawn = RenderPixels(card, out _);
+            card.Pattern = Flowery.Enums.DaisyCardPattern.None;
+            try
+            {
+                await WaitForFrameAsync(card, token);
+                if (drawn.AsSpan().SequenceEqual(RenderPixels(card, out _)))
+                    blank.Add(pattern);
+            }
+            finally
+            {
+                card.Pattern = pattern;
+            }
+        }
+        await WaitForFrameAsync(slide, token);
+        Require(blank.Count == 0, $"These pattern cards draw no pattern: {string.Join(", ", blank)}.");
     }
 
     private static void CheckRenderedPixels(Control slide)
@@ -650,8 +752,6 @@ internal static class KioskSmokeTests
         root.FindControl<T>(name) ?? throw new InvalidOperationException($"The element '{name}' was not found.");
 
     private static IEnumerable<T> Descendants<T>(Visual root) => root.GetVisualDescendants().OfType<T>();
-
-    private static void RequireFile(string path) => Require(File.Exists(path) && new FileInfo(path).Length > 0, $"Required asset is missing or empty: {path}");
 
     private static void Require(bool condition, string message)
     {

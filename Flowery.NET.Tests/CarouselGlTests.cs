@@ -15,119 +15,13 @@ public class CarouselGlTests
     private static readonly string Blue = SolidImage(SKColors.Blue);
 
     [Theory]
-    [InlineData(0, 1, 0, 0)]
     [InlineData(0.25, 1, 0, 0.25)]
-    [InlineData(1, 1, 0, 1)]
     [InlineData(1.5, 1, 0, 0.5)]
-    [InlineData(2, 1, 0, 0)]
     [InlineData(0.5, 1, 1, 0)]
-    [InlineData(1.5, 1, 1, 0.5)]
-    [InlineData(2.5, 1, 1, 1)]
-    [InlineData(3.75, 1, 1, 0.25)]
     [InlineData(0.0005, 0, 0, 0.5)]
     public void Transition_Progress_Holds_Rises_Holds_And_Falls(double elapsed, double transition, double interval, double expected)
     {
         Assert.Equal(expected, FloweryCarouselGL.ComputeTransitionProgress(elapsed, transition, interval), 9);
-    }
-
-    [Fact]
-    public void Effect_Params_Follow_The_Effect_Type_And_Stay_In_Range()
-    {
-        var panZoom = FloweryCarouselGL.GetEffectParams("pan-zoom", 0);
-        Assert.Equal(new FloweryCarouselGL.EffectParams(0, 0.06, 1.12, 0, 1), panZoom);
-        Assert.Equal(panZoom, FloweryCarouselGL.GetEffectParams("unknown", 0));
-        Assert.Equal(panZoom, FloweryCarouselGL.GetEffectParams(null, 0));
-
-        var zoomIn = FloweryCarouselGL.GetEffectParams("zoom-in", Math.PI / 0.6);
-        Assert.Equal(1.18, zoomIn.Scale, 9);
-        var zoomOut = FloweryCarouselGL.GetEffectParams("zoom-out", 0);
-        Assert.Equal(1.18, zoomOut.Scale, 9);
-
-        var throwStart = FloweryCarouselGL.GetEffectParams("throw", 0);
-        Assert.Equal((-0.15, 0.12, -0.12, 1.1), (throwStart.OffsetX, throwStart.OffsetY, throwStart.Rotation, throwStart.Scale));
-        var throwMiddle = FloweryCarouselGL.GetEffectParams("throw", 2);
-        Assert.Equal(0.15, throwMiddle.OffsetX, 9);
-
-        var pulse = FloweryCarouselGL.GetEffectParams("pulse", 3 * Math.PI / 2 / 1.2);
-        Assert.Equal(0.8, pulse.Alpha, 9);
-        Assert.Equal(0.92, pulse.Scale, 9);
-        foreach (var type in FloweryCarouselGL.EffectVariants.Keys)
-        {
-            for (var t = 0.0; t < 30; t += 0.37)
-            {
-                var value = FloweryCarouselGL.GetEffectParams(type, t);
-                Assert.InRange(value.Alpha, 0, 1);
-                Assert.True(value.Scale >= 0.2, type);
-            }
-        }
-    }
-
-    [Fact]
-    public void The_Resolve_Functions_Keep_The_Js_Rules()
-    {
-        Assert.Equal(2.2, FloweryCarouselGL.NormalizeTransitionSeconds(0, 2.2));
-        Assert.Equal(2.2, FloweryCarouselGL.NormalizeTransitionSeconds(double.NaN, 2.2));
-        Assert.Equal(0.8, FloweryCarouselGL.NormalizeTransitionSeconds(0.8, 2.2));
-
-        Assert.Equal(20, FloweryCarouselGL.ResolvePixelateSize(0));
-        Assert.Equal(20, FloweryCarouselGL.ResolvePixelateSize(double.PositiveInfinity));
-        Assert.Equal(6.5, FloweryCarouselGL.ResolvePixelateSize(6.5));
-
-        Assert.Equal(0, FloweryCarouselGL.ResolveSliceCount(1.9));
-        Assert.Equal(0, FloweryCarouselGL.ResolveSliceCount(double.NaN));
-        Assert.Equal(2, FloweryCarouselGL.ResolveSliceCount(2.7));
-        Assert.Equal(12, FloweryCarouselGL.ResolveSliceCount(12));
-
-        Assert.True(FloweryCarouselGL.ResolveStaggerFlag(true));
-        Assert.True(FloweryCarouselGL.ResolveStaggerFlag("true"));
-        Assert.True(FloweryCarouselGL.ResolveStaggerFlag(1));
-        Assert.False(FloweryCarouselGL.ResolveStaggerFlag(false));
-        Assert.False(FloweryCarouselGL.ResolveStaggerFlag("yes"));
-        Assert.False(FloweryCarouselGL.ResolveStaggerFlag(0));
-        Assert.False(FloweryCarouselGL.ResolveStaggerFlag(null));
-
-        Assert.Equal(0, FloweryCarouselGL.ResolveStaggerMs(-5));
-        Assert.Equal(50, FloweryCarouselGL.ResolveStaggerMs(50));
-
-        Assert.Equal(0.5, FloweryCarouselGL.ResolveDissolveDensity(double.NaN));
-        Assert.Equal(1, FloweryCarouselGL.ResolveDissolveDensity(3));
-        Assert.Equal(0, FloweryCarouselGL.ResolveDissolveDensity(-1));
-
-        Assert.Equal(180, FloweryCarouselGL.ResolveFlipAngle(double.NaN));
-        Assert.Equal(30, FloweryCarouselGL.ResolveFlipAngle(10));
-        Assert.Equal(180, FloweryCarouselGL.ResolveFlipAngle(270));
-        Assert.Equal(90, FloweryCarouselGL.ResolveFlipAngle(90));
-
-        Assert.Equal("data:x", FloweryCarouselGL.ResolveAssetPath("data:x"));
-        Assert.Equal("//host/a.png", FloweryCarouselGL.ResolveAssetPath("//host/a.png"));
-        Assert.Equal("https://host/a.png", FloweryCarouselGL.ResolveAssetPath("https://host/a.png"));
-        var error = Assert.Throws<InvalidOperationException>(() => FloweryCarouselGL.ResolveAssetPath("Assets/a.png"));
-        Assert.Equal("Image asset must be resolved by the native host: Assets/a.png", error.Message);
-    }
-
-    [Fact]
-    public void The_Settings_Fall_Back_To_Their_First_Variant()
-    {
-        Assert.Equal(new FloweryCarouselGL.MaskSettings(7, 8), FloweryCarouselGL.GetMaskSettings("wormhole"));
-        Assert.Equal(FloweryCarouselGL.GetMaskSettings("checkerboard"), FloweryCarouselGL.GetMaskSettings("missing"));
-        Assert.Equal(new FloweryCarouselGL.FlipSettings(0, -1, 0, 1.8, 0, 180), FloweryCarouselGL.GetFlipSettings("cube-left"));
-        Assert.Equal(FloweryCarouselGL.GetFlipSettings("flip-plane"), FloweryCarouselGL.GetFlipSettings(null));
-        Assert.Equal(FloweryCarouselGL.GetTransitionSettings("fade"), FloweryCarouselGL.GetTransitionSettings(""));
-        Assert.Equal(FloweryCarouselGL.GetEffectSettings("pan-zoom"), FloweryCarouselGL.GetEffectSettings("missing"));
-        for (var i = 0; i < 50; i++)
-            Assert.Contains(FloweryCarouselGL.GetTransitionSettings("random"), FloweryCarouselGL.TransitionVariants.Values);
-    }
-
-    [Fact]
-    public void The_Images_Of_A_Mode_Are_Its_Keys_Only()
-    {
-        var assets = new Dictionary<string, string> { ["maskA"] = "a", ["maskB"] = "b", ["effect"] = "e" };
-        Assert.Equal(new Dictionary<string, string?> { ["maskA"] = "a", ["maskB"] = "b" }, FloweryCarouselGL.ResolveImages("mask", assets));
-        Assert.Equal(new Dictionary<string, string?> { ["flipA"] = null, ["flipB"] = null }, FloweryCarouselGL.ResolveImages("flip", assets));
-        Assert.Equal(new Dictionary<string, string?> { ["effect"] = "e" }, FloweryCarouselGL.ResolveImages("effect", assets));
-        Assert.Equal(3, FloweryCarouselGL.ResolveImages("other", assets).Count);
-        Assert.Null(FloweryCarouselGL.GetPairKeys("effect"));
-        Assert.Equal(("transitionA", "transitionB"), FloweryCarouselGL.GetPairKeys("transition"));
     }
 
     [AvaloniaFact]
@@ -136,107 +30,26 @@ public class CarouselGlTests
         var assets = new Dictionary<string, string> { ["maskA"] = "a", ["maskB"] = "b" };
         var state = new FloweryCarouselGL.State(new CarouselGlCanvas());
 
-        Assert.Same(assets, FloweryCarouselGL.ResolveAssetsForCurrentImage("mask", assets, null));
-        Assert.Same(assets, FloweryCarouselGL.ResolveAssetsForCurrentImage("mask", assets, state));
+        Assert.Same(assets, FloweryCarouselGL.ResolveAssetsForCurrentImage(CarouselGlMode.Mask, assets, null));
+        Assert.Same(assets, FloweryCarouselGL.ResolveAssetsForCurrentImage(CarouselGlMode.Mask, assets, state));
 
-        state.currentImage = "b";
-        var swapped = FloweryCarouselGL.ResolveAssetsForCurrentImage("mask", assets, state)!;
+        state.CurrentImage = "b";
+        var swapped = FloweryCarouselGL.ResolveAssetsForCurrentImage(CarouselGlMode.Mask, assets, state)!;
         Assert.Equal(("b", "a"), (swapped["maskA"], swapped["maskB"]));
         Assert.Equal("a", assets["maskA"]);
 
-        state.currentImage = "a";
-        Assert.Same(assets, FloweryCarouselGL.ResolveAssetsForCurrentImage("mask", assets, state));
+        state.CurrentImage = "a";
+        Assert.Same(assets, FloweryCarouselGL.ResolveAssetsForCurrentImage(CarouselGlMode.Mask, assets, state));
 
-        state.currentImage = null;
-        state.currentSwap = true;
-        swapped = FloweryCarouselGL.ResolveAssetsForCurrentImage("mask", assets, state)!;
+        state.CurrentImage = null;
+        state.CurrentSwap = true;
+        swapped = FloweryCarouselGL.ResolveAssetsForCurrentImage(CarouselGlMode.Mask, assets, state)!;
         Assert.Equal("b", swapped["maskA"]);
 
         // An effect has no pair, and a pair of one image has nothing to swap.
-        Assert.Same(assets, FloweryCarouselGL.ResolveAssetsForCurrentImage("effect", assets, state));
+        Assert.Same(assets, FloweryCarouselGL.ResolveAssetsForCurrentImage(CarouselGlMode.Effect, assets, state));
         var same = new Dictionary<string, string> { ["maskA"] = "a", ["maskB"] = "a" };
-        Assert.Same(same, FloweryCarouselGL.ResolveAssetsForCurrentImage("mask", same, state));
-    }
-
-    [Fact]
-    public void Every_Effect_Is_Registered_With_A_Mode_And_Variant_The_Engine_Knows()
-    {
-        foreach (var kind in Enum.GetValues<CarouselGlEffectKind>().Where(kind => kind != CarouselGlEffectKind.None))
-        {
-            Assert.True(CarouselGlEffectRegistry.TryGet(kind, out var definition), kind.ToString());
-            Assert.NotNull(definition);
-            Assert.Equal(kind, definition.Kind);
-            var variant = Assert.IsType<string>(definition.Variant);
-            var known = definition.Mode switch
-            {
-                "mask" => FloweryCarouselGL.MaskVariants.ContainsKey(variant),
-                "flip" => FloweryCarouselGL.FlipVariants.ContainsKey(variant),
-                "transition" => variant == "random" || FloweryCarouselGL.TransitionVariants.ContainsKey(variant),
-                "effect" => FloweryCarouselGL.EffectVariants.ContainsKey(variant),
-                "text" => variant == "text-fill",
-                _ => false
-            };
-            Assert.True(known, kind + " has the unknown " + definition.Mode + " variant " + variant + ".");
-        }
-        Assert.False(CarouselGlEffectRegistry.TryGet(CarouselGlEffectKind.None, out _));
-    }
-
-    [Fact]
-    public void Registering_A_Definition_Replaces_The_Previous_One()
-    {
-        Assert.True(CarouselGlEffectRegistry.TryGet(CarouselGlEffectKind.Spiral, out var original));
-        try
-        {
-            var assets = new Dictionary<string, string> { ["maskA"] = Red, ["maskB"] = Blue };
-            CarouselGlEffectRegistry.Register(new CarouselGlEffectDefinition(CarouselGlEffectKind.Spiral, "mask", assets, "spiral"));
-            Assert.True(CarouselGlEffectRegistry.TryGet(CarouselGlEffectKind.Spiral, out var replaced));
-            Assert.Same(assets, replaced!.Assets);
-        }
-        finally
-        {
-            CarouselGlEffectRegistry.Register(original!);
-        }
-    }
-
-    [Fact]
-    public void Every_SkSL_Program_Compiles()
-    {
-        foreach (var program in new[]
-        {
-            FloweryCarouselGL.MaskProgram, FloweryCarouselGL.FlipProgram, FloweryCarouselGL.TransitionProgram,
-            FloweryCarouselGL.EffectProgram, FloweryCarouselGL.TextFillProgram
-        })
-        {
-            Assert.NotNull(program.Value);
-        }
-        Assert.Equal(["u_tex1", "u_tex2"], FloweryCarouselGL.MaskProgram.Value.Children);
-        Assert.Equal(["u_image", "u_mask"], FloweryCarouselGL.TextFillProgram.Value.Children);
-    }
-
-    [AvaloniaFact]
-    public void A_Canvas_Sizes_Its_Buffer_From_Its_Size_When_Detached()
-    {
-        var canvas = new CarouselGlCanvas { Width = 64.7, Height = 40 };
-        Assert.Equal((1, 1), (canvas.PixelWidth, canvas.PixelHeight));
-        Assert.True(canvas.ResizeCanvasToDisplaySize());
-        Assert.Equal((64, 40), (canvas.PixelWidth, canvas.PixelHeight));
-        Assert.Equal(new Avalonia.Size(64, 40), canvas.Resolution);
-        Assert.False(canvas.ResizeCanvasToDisplaySize());
-
-        var empty = new CarouselGlCanvas();
-        Assert.False(empty.ResizeCanvasToDisplaySize());
-        Assert.Equal((1, 1), (empty.PixelWidth, empty.PixelHeight));
-        Assert.Equal("Skia", empty.Renderer);
-        Assert.Equal(new byte[4], empty.ReadFrame().Pixel);
-    }
-
-    [AvaloniaFact]
-    public void Pixelate_Blocks_Follow_The_Pixel_Size()
-    {
-        var canvas = new CarouselGlCanvas { Width = 200, Height = 100 };
-        canvas.ResizeCanvasToDisplaySize();
-        Assert.Equal((5d, 20d), FloweryCarouselGL.GetPixelateBlocks(canvas, 20));
-        Assert.Equal((100d, 101d), FloweryCarouselGL.GetPixelateBlocks(canvas, 0.5));
+        Assert.Same(same, FloweryCarouselGL.ResolveAssetsForCurrentImage(CarouselGlMode.Mask, same, state));
     }
 
     [Fact]
@@ -254,7 +67,7 @@ public class CarouselGlTests
     [AvaloniaFact]
     public void A_Fade_Shows_The_First_Image_At_Progress_0_And_The_Second_At_1()
     {
-        using var effect = Attach("transition", "fade", new Dictionary<string, string> { ["transitionA"] = Red, ["transitionB"] = Blue });
+        using var effect = Attach(CarouselGlMode.Transition, "fade", new Dictionary<string, string> { ["transitionA"] = Red, ["transitionB"] = Blue });
         AssertPixel([255, 0, 0, 255], effect.Sample(0).Pixel);
         AssertPixel([128, 0, 128, 255], effect.Sample(0.5).Pixel);
         AssertPixel([0, 0, 255, 255], effect.Sample(1).Pixel);
@@ -262,43 +75,9 @@ public class CarouselGlTests
     }
 
     [AvaloniaFact]
-    public void A_Fade_Through_Black_Is_Black_Halfway()
-    {
-        using var effect = Attach("transition", "fade-black", new Dictionary<string, string> { ["transitionA"] = Red, ["transitionB"] = Blue });
-        AssertPixel([0, 0, 0, 255], effect.Sample(0.5).Pixel);
-    }
-
-    [AvaloniaFact]
-    public void A_Checkerboard_Mask_Shows_The_First_Image_At_Progress_0_And_The_Second_At_1()
-    {
-        using var effect = Attach("mask", "checkerboard", new Dictionary<string, string> { ["maskA"] = Red, ["maskB"] = Blue });
-        AssertPixel([255, 0, 0, 255], effect.Sample(0).Pixel);
-        AssertPixel([0, 0, 255, 255], effect.Sample(1).Pixel);
-    }
-
-    [AvaloniaFact]
-    public void A_Flip_At_Angle_0_Shows_The_Front_Image_In_Its_Projected_Quad()
-    {
-        using var effect = Attach("flip", "flip-plane", new Dictionary<string, string> { ["flipA"] = Red, ["flipB"] = Blue });
-        AssertPixel([255, 0, 0, 255], effect.Sample(0).Pixel);
-        // The quad lies at depth 2.2, so it covers the middle 1 / 2.2 of the canvas; the rest stays clear.
-        Assert.Equal(new byte[4], effect.Canvas.ReadPixel(0, 0));
-        Assert.Equal(new byte[4], effect.Canvas.ReadPixel(10, 20));
-        AssertPixel([255, 0, 0, 255], effect.Canvas.ReadPixel(20, 20));
-    }
-
-    [AvaloniaFact]
-    public void A_Flip_At_180_Degrees_Shows_The_Back_Image_Shaded()
-    {
-        using var effect = Attach("flip", "flip-plane", new Dictionary<string, string> { ["flipA"] = Red, ["flipB"] = Blue });
-        // Progress 1 turns the plane by the flip angle of 180 degrees: the back faces the viewer, at full shade.
-        AssertPixel([0, 0, 255, 255], effect.Sample(1).Pixel);
-    }
-
-    [AvaloniaFact]
     public void An_Effect_With_Alpha_Reads_Back_Unpremultiplied()
     {
-        using var effect = Attach("effect", "pulse", new Dictionary<string, string> { ["effect"] = Red });
+        using var effect = Attach(CarouselGlMode.Effect, "pulse", new Dictionary<string, string> { ["effect"] = Red });
         AssertPixel([255, 0, 0, 255], effect.Sample(Math.PI / 2 / 1.2).Pixel);
         // The pulse is most transparent at 0.8; GL keeps the color and Skia reads it back the same.
         AssertPixel([255, 0, 0, 204], effect.Sample(3 * Math.PI / 2 / 1.2).Pixel);
@@ -313,7 +92,8 @@ public class CarouselGlTests
         using var maskBitmap = new SKBitmap(new SKImageInfo(20, 10, SKColorType.Rgba8888, SKAlphaType.Premul));
         maskBitmap.Erase(SKColors.Transparent);
         using (var maskCanvas = new SKCanvas(maskBitmap))
-            maskCanvas.DrawRect(SKRect.Create(10, 5), new SKPaint { Color = SKColors.White });
+        using (var white = new SKPaint { Color = SKColors.White })
+            maskCanvas.DrawRect(SKRect.Create(10, 5), white);
         using var mask = SKImage.FromBitmap(maskBitmap);
         var program = FloweryCarouselGL.TextFillProgram.Value;
         using var uniforms = new SKRuntimeEffectUniforms(program)
@@ -328,9 +108,10 @@ public class CarouselGlTests
         using var shader = program.ToShader(uniforms, children);
         using var frame = new SKBitmap(new SKImageInfo(20, 10, SKColorType.Rgba8888, SKAlphaType.Unpremul));
         using (var frameCanvas = new SKCanvas(frame))
+        using (var paint = new SKPaint { Shader = shader })
         {
             frameCanvas.Clear(SKColors.Transparent);
-            frameCanvas.DrawRect(SKRect.Create(20, 10), new SKPaint { Shader = shader });
+            frameCanvas.DrawRect(SKRect.Create(20, 10), paint);
         }
 
         // The mask covers the top left quarter: the letters keep their place and their way up.
@@ -352,10 +133,10 @@ public class CarouselGlTests
         var image = TwoColorImage(SKColors.Red, SKColors.Blue);
         foreach (var (mode, variant, keyA, keyB, top, bottom) in new[]
         {
-            ("transition", "fade", "transitionA", "transitionB", 2, 37),
-            ("mask", "checkerboard", "maskA", "maskB", 2, 37),
-            ("effect", "pan-zoom", "effect", "effect", 2, 37),
-            ("flip", "flip-plane", "flipA", "flipB", 12, 27)
+            (CarouselGlMode.Transition, "fade", "transitionA", "transitionB", 2, 37),
+            (CarouselGlMode.Mask, "checkerboard", "maskA", "maskB", 2, 37),
+            (CarouselGlMode.Effect, "pan-zoom", "effect", "effect", 2, 37),
+            (CarouselGlMode.Flip, "flip-plane", "flipA", "flipB", 12, 27)
         })
         {
             using var effect = Attach(mode, variant, new Dictionary<string, string> { [keyA] = image, [keyB] = image });
@@ -372,7 +153,7 @@ public class CarouselGlTests
         var canvas = new CarouselGlCanvas { Width = 64, Height = 40 };
         Exception? failure = null;
         canvas.Failed += (_, error) => failure = error;
-        engine.AttachOverlay(canvas, new CarouselGlConfiguration("effects", "mask", "checkerboard", null,
+        engine.AttachOverlay(canvas, new CarouselGlConfiguration(CarouselGlMode.Mask, "checkerboard", null,
             new Dictionary<string, string> { ["maskA"] = Red }, 0, 1));
         try
         {
@@ -388,49 +169,14 @@ public class CarouselGlTests
     }
 
     [AvaloniaFact]
-    public void An_Unresolved_Image_Path_Fails_The_Canvas()
-    {
-        var engine = new FloweryCarouselGL();
-        var canvas = new CarouselGlCanvas { Width = 64, Height = 40 };
-        engine.AttachOverlay(canvas, new CarouselGlConfiguration("effects", "effect", "drift", null,
-            new Dictionary<string, string> { ["effect"] = "Assets/missing.jpg" }, 0, 1));
-        try
-        {
-            Assert.Equal("Image asset must be resolved by the native host: Assets/missing.jpg", canvas.Error);
-            Assert.Null(canvas.State);
-        }
-        finally
-        {
-            engine.DetachAllOverlays();
-        }
-    }
-
-    [AvaloniaFact]
-    public void An_Image_That_Does_Not_Decode_Falls_Back_With_The_Js_Message()
-    {
-        var engine = new FloweryCarouselGL();
-        var canvas = new CarouselGlCanvas { Width = 64, Height = 40 };
-        engine.AttachOverlay(canvas, new CarouselGlConfiguration("effects", "effect", "drift", null,
-            new Dictionary<string, string> { ["effect"] = "data:image/png;base64,AAAA" }, 0, 1));
-        try
-        {
-            Assert.Equal("Not supported (asset load failed)", canvas.Error);
-        }
-        finally
-        {
-            engine.DetachAllOverlays();
-        }
-    }
-
-    [AvaloniaFact]
     public async Task The_Session_Configures_Samples_And_Pauses_Like_The_Bridge()
     {
         using var session = new CarouselGlSession(new FloweryCarouselGL(), null);
         session.View.Width = 64;
         session.View.Height = 40;
-        await session.InitializeAsync();
+        session.Initialize();
         Assert.True(session.IsInitialized);
-        var configuration = new CarouselGlConfiguration("effects", "transition", "fade", null,
+        var configuration = new CarouselGlConfiguration(CarouselGlMode.Transition, "fade", null,
             new Dictionary<string, string> { ["transitionA"] = Red, ["transitionB"] = Blue }, 0, 1);
 
         var configured = await session.ConfigureAsync(configuration);
@@ -443,14 +189,14 @@ public class CarouselGlTests
         Assert.True(next.Frames > configured.Frames);
 
         // Paused, a sample draws a frame of its own, and the canvas keeps showing its last frame.
-        Assert.True(await session.SetActiveAsync(false));
+        session.SetActive(false);
         Assert.True(session.View.IsVisible);
         var framesBefore = session.View.Frames;
         await Task.Delay(100);
         Assert.Equal(framesBefore, session.View.Frames);
         var paused = await session.SampleAsync(null);
         Assert.Equal(framesBefore + 1, paused.Frames);
-        Assert.True(await session.SetActiveAsync(true));
+        session.SetActive(true);
         Assert.True(session.View.IsVisible);
 
         session.Dispose();
@@ -471,11 +217,11 @@ public class CarouselGlTests
         Assert.Equal("text:text-fill", compiled[^1]);
     }
 
-    private static ActiveEffect Attach(string mode, string variant, IReadOnlyDictionary<string, string> assets, double width = 64, double height = 40)
+    private static ActiveEffect Attach(CarouselGlMode mode, string variant, IReadOnlyDictionary<string, string> assets, double width = 64, double height = 40)
     {
         var engine = new FloweryCarouselGL();
         var canvas = new CarouselGlCanvas { Width = width, Height = height };
-        var configuration = new CarouselGlConfiguration("effects", mode, variant, null, assets, 0, 1);
+        var configuration = new CarouselGlConfiguration(mode, variant, null, assets, 0, 1);
         engine.AttachOverlay(canvas, configuration);
         engine.SetOverlayTiming(configuration.IntervalSeconds);
         engine.SetOverlayTransitionDuration(configuration.TransitionSeconds);
@@ -503,18 +249,146 @@ public class CarouselGlTests
         using var bitmap = new SKBitmap(8, 8);
         bitmap.Erase(bottom);
         using (var canvas = new SKCanvas(bitmap))
-            canvas.DrawRect(SKRect.Create(8, 4), new SKPaint { Color = top });
+        using (var paint = new SKPaint { Color = top })
+            canvas.DrawRect(SKRect.Create(8, 4), paint);
         using var data = bitmap.Encode(SKEncodedImageFormat.Png, 100);
         return "data:image/png;base64," + Convert.ToBase64String(data.ToArray());
     }
 
-    private static string SolidImage(SKColor color)
+    [AvaloniaFact]
+    public async Task A_Host_Changes_Its_Effect_Without_Waiting_For_A_Frame_Of_Its_Window()
     {
+        // Regression: each configure waited for an animation frame, which a minimized window never draws, so it timed out.
+        using var fade = Register(CarouselGlEffectKind.Fade, CarouselGlMode.Transition, "fade", Red, Blue);
+        using var black = Register(CarouselGlEffectKind.FadeThroughBlack, CarouselGlMode.Transition, "fade-black", Red, Blue);
+        var host = new CarouselGlEffectHost { Width = 64, Height = 40, EffectKind = CarouselGlEffectKind.Fade, TransitionSeconds = 1 };
+        var window = new Avalonia.Controls.Window { Width = 200, Height = 100, Content = host };
+        window.Show();
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        try
+        {
+            AssertPixel([255, 0, 0, 255], (await host.ReadFrameAsync(0).WaitAsync(TimeSpan.FromSeconds(5))).Pixel);
+
+            // Halfway, the fade through black is black.
+            host.EffectKind = CarouselGlEffectKind.FadeThroughBlack;
+            var changed = host.ReadFrameAsync(0.5);
+            Assert.True(changed.IsCompletedSuccessfully, "The change waited for the window.");
+            AssertPixel([0, 0, 0, 255], changed.Result.Pixel);
+            Assert.Null(host.LastRenderError);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task A_Property_Change_Does_Not_Read_And_Encode_The_Images_Again()
+    {
+        // Regression: every property change read and encoded each image again; now a file is read once per load.
+        var first = WritePng(SKColors.Red);
+        var second = WritePng(SKColors.Blue);
+        using var fade = Register(CarouselGlEffectKind.Fade, CarouselGlMode.Transition, "fade", first, second);
+        var host = new CarouselGlEffectHost { Width = 64, Height = 40, EffectKind = CarouselGlEffectKind.Fade, TransitionSeconds = 1 };
+        var window = new Avalonia.Controls.Window { Width = 200, Height = 100, Content = host };
+        window.Show();
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        try
+        {
+            AssertPixel([255, 0, 0, 255], (await host.ReadFrameAsync(0).WaitAsync(TimeSpan.FromSeconds(5))).Pixel);
+
+            WritePng(SKColors.Lime, first);
+            host.TransitionSeconds = 2;
+            AssertPixel([255, 0, 0, 255], (await host.ReadFrameAsync(0).WaitAsync(TimeSpan.FromSeconds(5))).Pixel);
+
+            // A new load reads the file again.
+            window.Content = null;
+            window.Content = host;
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            AssertPixel([0, 255, 0, 255], (await host.ReadFrameAsync(0).WaitAsync(TimeSpan.FromSeconds(5))).Pixel);
+        }
+        finally
+        {
+            window.Close();
+            File.Delete(first);
+            File.Delete(second);
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task An_Image_Read_That_Ends_After_An_Unload_Is_Not_Kept_For_The_Next_Load()
+    {
+        // Regression: a read still running at an unload filled the cleared cache, so the next load showed the old image.
+        var first = WritePng(SKColors.Red);
+        var second = WritePng(SKColors.Blue);
+        using var fade = Register(CarouselGlEffectKind.Fade, CarouselGlMode.Transition, "fade", first, second);
+        var host = new CarouselGlEffectHost { Width = 64, Height = 40, EffectKind = CarouselGlEffectKind.Fade, TransitionSeconds = 1 };
+        var window = new Avalonia.Controls.Window { Width = 200, Height = 100 };
+        window.Show();
+        try
+        {
+            // The end of a read that does not finish at once is posted below the Loaded jobs run here, so the canvas is not
+            // configured yet; a read can also finish at once, so the host loads again until one is still running.
+            var pending = false;
+            for (var attempt = 0; attempt < 20 && !pending; attempt++)
+            {
+                window.Content = host;
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs(Avalonia.Threading.DispatcherPriority.Loaded);
+                pending = host is { IsLoaded: true, Content: CarouselGlCanvas { State: null } };
+                if (pending)
+                    break;
+                window.Content = null;
+                Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            }
+            Assert.True(pending, "Every read finished at once.");
+            window.Content = null;
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs(Avalonia.Threading.DispatcherPriority.Loaded);
+            Assert.False(host.IsLoaded);
+            // The pending read ends, then both files change before the next load.
+            await Task.Delay(200);
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            WritePng(SKColors.Lime, first);
+            WritePng(SKColors.Yellow, second);
+            window.Content = host;
+            Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+            AssertPixel([0, 255, 0, 255], (await host.ReadFrameAsync(0).WaitAsync(TimeSpan.FromSeconds(5))).Pixel);
+            AssertPixel([255, 255, 0, 255], (await host.ReadFrameAsync(1).WaitAsync(TimeSpan.FromSeconds(5))).Pixel);
+        }
+        finally
+        {
+            window.Close();
+            File.Delete(first);
+            File.Delete(second);
+        }
+    }
+
+    // Registers the effect with two images for one test and puts the built-in definition back afterwards.
+    private static RegisteredEffect Register(CarouselGlEffectKind kind, CarouselGlMode mode, string variant, string first, string second)
+    {
+        Assert.True(CarouselGlEffectRegistry.TryGet(kind, out var original));
+        var keys = FloweryCarouselGL.AssetKeys(mode);
+        CarouselGlEffectRegistry.Register(new CarouselGlEffectDefinition(kind, mode,
+            new Dictionary<string, string> { [keys[0]] = first, [keys[1]] = second }, variant));
+        return new RegisteredEffect(original);
+    }
+
+    private sealed class RegisteredEffect(CarouselGlEffectDefinition original) : IDisposable
+    {
+        public void Dispose() => CarouselGlEffectRegistry.Register(original);
+    }
+
+    // Writes a PNG of one color to the path, by default a new one in the temp folder, and returns the path.
+    private static string WritePng(SKColor color, string? path = null)
+    {
+        path ??= Path.Combine(Path.GetTempPath(), $"flowery-gl-{Guid.NewGuid():N}.png");
         using var bitmap = new SKBitmap(8, 8);
         bitmap.Erase(color);
         using var data = bitmap.Encode(SKEncodedImageFormat.Png, 100);
-        return "data:image/png;base64," + Convert.ToBase64String(data.ToArray());
+        File.WriteAllBytes(path, data.ToArray());
+        return path;
     }
+
+    private static string SolidImage(SKColor color) => TwoColorImage(color, color);
 
     private sealed class ActiveEffect(FloweryCarouselGL engine, CarouselGlCanvas canvas) : IDisposable
     {

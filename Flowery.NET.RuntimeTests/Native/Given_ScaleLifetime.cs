@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Reflection;
 using Avalonia.Controls.Embedding;
 using Avalonia.Threading;

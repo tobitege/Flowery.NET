@@ -40,11 +40,20 @@ jobs:
         with:
           python-version: '3.12'
 
+      # The checks of docs.yml, so a push that skipped them deploys nothing unchecked
+      - name: Check for hidden characters
+        run: python -B Utils/check_characters.py
+
       - name: Generate markdown documentation
         run: python Utils/generate_docs.py
 
       - name: Generate HTML site
         run: python Utils/generate_site.py
+
+      - name: Run documentation tests
+        run: |
+          python -B -m unittest discover -s Utils -p test_documentation.py
+          python -B -m unittest discover -s Utils -p test_check_characters.py
 
       - name: Setup Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6

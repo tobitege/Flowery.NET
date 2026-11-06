@@ -93,19 +93,34 @@ public class Given_RuntimeTestRunner
         Assert.Equal(before + 2, RuntimeRunnerDisposalFixtures.DisposeCount);
     }
 
-    [Fact]
-    public async Task When_A_Test_Times_Out_The_Run_Stops_And_Reports_The_Rest_As_Not_Run()
+    [Theory]
+    [InlineData("Times_Out", "The test did not finish within 0.1 seconds.")]
+    [InlineData("Times_Out_In_A_Case", "slow case did not finish within 0.1 seconds.")]
+    public async Task When_A_Test_Or_One_Of_Its_Cases_Times_Out_The_Run_Stops_And_Reports_The_Rest_As_Not_Run(string method, string message)
     {
         var results = await RuntimeTestRunner.RunCasesAsync(
-            [FindSingle(nameof(RuntimeRunnerFixtures.Times_Out)), FindSingle(nameof(RuntimeRunnerFixtures.Passes))],
+            [FindSingle(method), FindSingle(nameof(RuntimeRunnerFixtures.Passes))],
             RuntimeTestHelpers.GetHostPanel(), TextWriter.Null);
         // The timed-out sample keeps running; let it end before later tests start.
         await Task.Delay(TimeSpan.FromSeconds(1.5));
 
         Assert.Equal("TimedOut", results[0].Outcome.ToString());
-        Assert.Equal("The test did not finish within 0.1 seconds.", results[0].Message);
+        Assert.Equal(message, results[0].Message);
         Assert.Equal("NotRun", results[1].Outcome.ToString());
-        Assert.Equal($"{FixtureName}.Times_Out timed out and may still be running on the UI thread.", results[1].Message);
+        Assert.Equal($"{FixtureName}.{method} timed out and may still be running on the UI thread.", results[1].Message);
+    }
+
+    [Fact]
+    public async Task When_A_Case_Fails_With_Its_Own_Timeout_It_Is_A_Failure_And_The_Run_Goes_On()
+    {
+        // A TimeoutException of the case itself, such as from WaitUntilAsync, is a finished case, not a hung one.
+        var results = await RuntimeTestRunner.RunCasesAsync(
+            [FindSingle(nameof(RuntimeRunnerFixtures.Fails_With_A_Timeout_In_A_Case)), FindSingle(nameof(RuntimeRunnerFixtures.Passes))],
+            RuntimeTestHelpers.GetHostPanel(), TextWriter.Null);
+
+        Assert.Equal("Failed", results[0].Outcome.ToString());
+        Assert.StartsWith("Xunit.Sdk.XunitException: c: ", results[0].Message);
+        Assert.Equal("Passed", results[1].Outcome.ToString());
     }
 
     /// <summary>

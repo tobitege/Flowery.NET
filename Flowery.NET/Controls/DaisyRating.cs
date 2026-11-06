@@ -282,7 +282,8 @@ namespace Flowery.Controls
             var text = DaisyAccessibility.GetEffectiveAccessibleText(rating, localizedDefault);
             var valueText = FormatValue(rating.Value, rating.Precision);
             var maxText = FormatValue(rating.Maximum, RatingPrecision.Full);
-            return $"{text}: {valueText} of {maxText} stars";
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                FloweryLocalization.GetStringInternal("Accessibility_RatingStars"), text, valueText, maxText);
         }
 
         private static string FormatValue(double value, RatingPrecision precision)

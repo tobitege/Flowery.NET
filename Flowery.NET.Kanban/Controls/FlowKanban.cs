@@ -749,6 +749,7 @@ namespace Flowery.NET.Kanban.Controls
         private readonly Dictionary<FlowKanbanColumnData, ObservableCollection<FlowTask>> _trackedTaskCollections = new();
         private readonly Dictionary<FlowTask, ObservableCollection<FlowSubtask>> _trackedSubtaskCollections = new();
         private DispatcherTimer? _autoSaveTimer;
+        internal DispatcherTimer? AutoSaveTimer => _autoSaveTimer;
         private IActivatableLifetime? _activatableLifetime;
         private ManagedTimer? _doneAgingTimer;
 
@@ -1642,10 +1643,11 @@ namespace Flowery.NET.Kanban.Controls
             if (e.Kind != ActivationKind.Background)
                 return;
 
-            if (Dispatcher.UIThread.CheckAccess())
+            // The system may raise it on another thread and end the app right after, so the save runs before it returns.
+            if (Dispatcher.CheckAccess())
                 FlushAutoSave();
             else
-                Dispatcher.UIThread.Invoke(() => FlushAutoSave());
+                Dispatcher.Invoke(() => FlushAutoSave());
         }
 
         private void OnAutoSaveTimerTick(object? sender, EventArgs e)

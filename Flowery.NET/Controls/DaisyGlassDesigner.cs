@@ -12,6 +12,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Layout;
+using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using Avalonia.Platform.Storage;
@@ -22,6 +23,7 @@ using Flowery.Controls.ColorPicker;
 using Flowery.Enums;
 using Flowery.Helpers;
 using Flowery.Localization;
+using Flowery.Services;
 
 namespace Flowery.Controls
 {
@@ -31,8 +33,10 @@ namespace Flowery.Controls
     /// is a <see cref="DaisyButton"/> with the glass button theme; its text, variant, style, size and shape are preview
     /// options, not part of the design, which applies to every control on glass.
     /// Embed it in a page, or open it over the app with <see cref="ShowOverlayAsync"/> or <see cref="EditAsync"/>.
+    /// Its fonts follow <see cref="Size"/> through the <c>DaisySize*FontSize</c> tokens, and so do its tiles and swatches;
+    /// both follow the global size and, inside <c>FloweryScaleManager.EnableScaling</c>, the scale factor.
     /// </summary>
-    public class DaisyGlassDesigner : UserControl
+    public class DaisyGlassDesigner : UserControl, IScalableControl
     {
         // In the order of the tab bar. Fill and Motion sit next to each other, since the animated background lies over the
         // fill.
@@ -64,10 +68,13 @@ namespace Flowery.Controls
         private DaisyCopyButton _copyButton = null!;
         private StackPanel _importPanel = null!;
         private TextBox _importBox = null!;
-        private TextBlock _importError = null!;
-        private TextBlock _fileError = null!;
+        private Border _importError = null!;
+        private TextBlock _importErrorText = null!;
+        private Border _fileError = null!;
+        private TextBlock _fileErrorText = null!;
         private readonly Dictionary<Tab, RadioButton> _tabButtons = new();
         private CancellationTokenSource? _motion;
+        internal bool IsDiscMoving => _motion is not null;
         private DaisyToggle? _move;
         private CultureInfo? _builtCulture;
         // One suffix per designer keeps its radio groups apart from those of another designer.
@@ -83,6 +90,9 @@ namespace Flowery.Controls
         /// </summary>
         public DaisyGlassDesigner()
         {
+            // The styles of the parts belong to this designer alone, so the app does not match them against all its controls.
+            Styles.Add(new StyleInclude((Uri?)null) { Source = PartsUri });
+            UpdateScale();
             _preview = new DaisyButton
             {
                 Content = _previewText,
@@ -98,9 +108,6 @@ namespace Flowery.Controls
             };
             _blob = new Border
             {
-                Width = 120,
-                Height = 120,
-                CornerRadius = new CornerRadius(60),
                 Background = new SolidColorBrush(Color.FromUInt32(0xFFFACC15)),
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Center,
@@ -108,9 +115,126 @@ namespace Flowery.Controls
                 IsHitTestVisible = false,
                 RenderTransform = new TranslateTransform()
             };
+            SizeDisc();
             Build();
             Load(_design);
         }
+
+        /// <summary>
+        /// Defines the <see cref="Size"/> property.
+        /// </summary>
+        public static readonly StyledProperty<DaisySize> SizeProperty =
+            AvaloniaProperty.Register<DaisyGlassDesigner, DaisySize>(nameof(Size), DaisySize.Medium);
+
+        /// <summary>
+        /// Gets or sets the size of the designer's text, tiles and swatches. The global size sets it, as for the other
+        /// controls; <see cref="PreviewSize"/> is the size of the preview button.
+        /// </summary>
+        public DaisySize Size
+        {
+            get => GetValue(SizeProperty);
+            set => SetValue(SizeProperty, value);
+        }
+
+        // The window scale factor of FloweryScaleManager, 1 outside a scaled area.
+        private double _scaleFactor = 1;
+
+        // The factor of the code-built tiles; a change builds the tab again.
+        private double _dimensionScale = 1;
+
+        // The fonts of the parts at the medium size, by resource key and token tier ("" for the primary tier), and the
+        // template sizes of the tiles and swatches.
+        private static readonly (string Key, double Medium, string Tier)[] FontSizes =
+        [
+            ("GlassDesignerTitleFontSize", 22, "Header"),
+            ("GlassDesignerStageWordFontSize", 64, "Header"),
+            ("GlassDesignerStageLineFontSize", 24, "Header"),
+            ("GlassDesignerTextFontSize", 13, ""),
+            ("GlassDesignerIconFontSize", 15, ""),
+            ("GlassDesignerSmallFontSize", 12, "Secondary"),
+            ("GlassDesignerCodeFontSize", 12.5, "Secondary"),
+            ("GlassDesignerCodeLineHeight", 19, "Secondary"),
+            ("GlassDesignerLabelFontSize", 11, "Tertiary")
+        ];
+
+        private static readonly (string Key, double Medium)[] Dimensions =
+        [
+            ("GlassDesignerSwatchSize", 22),
+            ("GlassDesignerGradientTileWidth", 120),
+            ("GlassDesignerGradientTileHeight", 56),
+            ("GlassDesignerColorWidth", 48),
+            ("GlassDesignerColorHeight", 30),
+            ("GlassDesignerIconButtonSize", 28)
+        ];
+
+        // Text does not shrink below this under the window scale factor; a smaller size tier can go below it.
+        private const double MinScaledFontSize = 10;
+
+        /// <inheritdoc/>
+        public void ApplyScaleFactor(double scaleFactor)
+        {
+            _scaleFactor = scaleFactor;
+            UpdateScale();
+        }
+
+        /// <inheritdoc/>
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+        {
+            base.OnPropertyChanged(change);
+            // A designer that does not scale ignores the factor it inherits from a scaled ancestor.
+            if (change.Property == SizeProperty)
+                ApplyScaleFactor(FloweryScaleManager.GetEnableScaling(this) ? FloweryScaleManager.GetScaleFactor(this) : 1.0);
+        }
+
+        // Puts the fonts and template sizes of this size and scale factor into the designer's resources, which the styles
+        // of the parts read, and builds the tab again when its tiles change size.
+        private void UpdateScale()
+        {
+            foreach (var (key, medium, tier) in FontSizes)
+                Resources[key] = ScaledFont(medium, tier);
+            var dimension = FloweryScaleManager.ApplyScale(TierRatio(""), _scaleFactor);
+            foreach (var (key, medium) in Dimensions)
+                Resources[key] = Math.Round(medium * dimension);
+            Resources["GlassDesignerSwatchCornerRadius"] = new CornerRadius(Math.Round(22 * dimension) / 2);
+            Resources["GlassDesignerIconButtonCornerRadius"] = new CornerRadius(Math.Round(28 * dimension) / 2);
+            if (Math.Abs(dimension - _dimensionScale) < 0.001)
+                return;
+            _dimensionScale = dimension;
+            SizeDisc();
+            if (_fields is null)
+                return;
+            _stage.Height = Scaled(StageHeight);
+            ShowTab(_tab);
+        }
+
+        // A font size of the tier at the current size and scale factor, for the parts that set their font in code.
+        private double ScaledFont(double medium, string tier)
+        {
+            var size = medium * TierRatio(tier);
+            return FloweryScaleManager.ApplyScale(size, Math.Min(size, MinScaledFontSize), _scaleFactor);
+        }
+
+        private const double StageHeight = 240;
+        private const double DiscSize = 120;
+
+        // The disc that drifts behind the preview, which survives a rebuild for another language.
+        private void SizeDisc()
+        {
+            if (_blob is null)
+                return;
+            _blob.Width = _blob.Height = Scaled(DiscSize);
+            _blob.CornerRadius = new CornerRadius(_blob.Width / 2);
+        }
+
+        // The font size of the tier at this size relative to the medium size.
+        private double TierRatio(string tier) =>
+            Token($"DaisySize{Size}{tier}FontSize", 1) / Token($"DaisySizeMedium{tier}FontSize", 1);
+
+        private double Token(string key, double fallback) =>
+            this.TryFindResource(key, out var value) && value is double number && number > 0 ? number : fallback;
+
+        // A size of a code-built tile at the current size and scale factor.
+        private double Scaled(double medium) => Math.Round(medium * _dimensionScale);
 
         private void Build()
         {
@@ -126,7 +250,7 @@ namespace Flowery.Controls
             _codeText = new SelectableTextBlock { Classes = { "gbd-code-text" }, TextWrapping = TextWrapping.NoWrap };
             _copyButton = new DaisyCopyButton { Size = DaisySize.Small, ButtonStyle = DaisyButtonStyle.Soft };
             _importBox = new TextBox { AcceptsReturn = true, Height = 140, TextWrapping = TextWrapping.Wrap };
-            _importError = new TextBlock { Classes = { "gbd-error" }, TextWrapping = TextWrapping.Wrap, IsVisible = false };
+            (_importError, _importErrorText) = ErrorAlert();
             _importPanel = CreateImportPanel();
             _codeDrawer = CreateCodeDrawer();
 
@@ -445,6 +569,8 @@ namespace Flowery.Controls
         {
             base.OnAttachedToVisualTree(e);
             FloweryLocalization.CultureChanged += OnCultureChanged;
+            // The size tokens of the app are at hand only now for a designer that got its size before.
+            UpdateScale();
             // A language change while detached was not seen; a disc that moved before detaching moves again.
             if (!Equals(_builtCulture, FloweryLocalization.CurrentCulture))
                 OnCultureChanged(this, FloweryLocalization.CurrentCulture);
@@ -505,8 +631,11 @@ namespace Flowery.Controls
             if (_loading)
                 return;
 
+            // The preview shows the design before the edit, so only what the edit changed is written: a slider tick
+            // leaves the fill and the animated background as they are.
+            var before = _design.Clone();
             edit(_design);
-            _design.ApplyTo(_preview, reuseBackground: true);
+            _design.ApplyTo(_preview, reuseBackground: true, before);
             ShowKept();
             if (rebuildTab)
                 ShowTab(_tab);
@@ -590,7 +719,7 @@ namespace Flowery.Controls
                     Background = StageBrush(backdrop),
                     IsChecked = backdrop == _backdrop
                 };
-                ToolTip.SetTip(swatch, backdrop.ToString());
+                ToolTip.SetTip(swatch, BackdropName(backdrop));
                 swatch.IsCheckedChanged += (_, _) =>
                 {
                     if (swatch.IsChecked != true)
@@ -631,7 +760,7 @@ namespace Flowery.Controls
             {
                 Classes = { "gbd-stage" },
                 Margin = new Thickness(24, 0),
-                Height = 240,
+                Height = Scaled(StageHeight),
                 ClipToBounds = true,
                 Background = StageBrush(_backdrop),
                 Child = new Panel { Children = { orbs, behind, _preview, controls } }
@@ -649,6 +778,24 @@ namespace Flowery.Controls
             HorizontalAlignment = horizontal,
             VerticalAlignment = vertical,
             Margin = margin
+        };
+
+        private static string BackdropName(Backdrop backdrop) => backdrop switch
+        {
+            Backdrop.Sunset => L("GlassDesigner_BackdropSunset", "Sunset"),
+            Backdrop.Night => L("GlassDesigner_BackdropNight", "Night"),
+            Backdrop.Paper => L("GlassDesigner_BackdropPaper", "Paper"),
+            _ => L("GlassDesigner_BackdropAurora", "Aurora")
+        };
+
+        private static string TabName(Tab tab) => tab switch
+        {
+            Tab.Button => L("GlassDesigner_TabButton", "Button"),
+            Tab.Glass => L("GlassDesigner_TabGlass", "Glass"),
+            Tab.Pattern => L("GlassDesigner_TabPattern", "Pattern"),
+            Tab.Fill => L("GlassDesigner_TabFill", "Fill"),
+            Tab.Motion => L("GlassDesigner_TabMotion", "Animation"),
+            _ => L("GlassDesigner_TabPresets", "Presets")
         };
 
         private static IBrush StageBrush(Backdrop backdrop)
@@ -729,7 +876,7 @@ namespace Flowery.Controls
                 {
                     Classes = { "gbd-tab" },
                     GroupName = "gbd-tab-" + _groups,
-                    Content = L("GlassDesigner_Tab" + tab, tab.ToString()),
+                    Content = TabName(tab),
                     IsChecked = tab == _tab
                 };
                 AutomationProperties.SetAutomationId(button, "GlassDesigner_Tab" + tab);
@@ -775,7 +922,8 @@ namespace Flowery.Controls
             };
             Grid.SetColumn(actions, 1);
 
-            _fileError = new TextBlock { Classes = { "gbd-error" }, TextWrapping = TextWrapping.Wrap, IsVisible = false, Margin = new Thickness(0, 8, 0, 0) };
+            (_fileError, _fileErrorText) = ErrorAlert();
+            _fileError.Margin = new Thickness(0, 8, 0, 0);
             Grid.SetRow(_fileError, 1);
             Grid.SetColumnSpan(_fileError, 2);
 
@@ -825,10 +973,11 @@ namespace Flowery.Controls
                 AllowMultiple = false,
                 FileTypeFilter = [DesignFileType()]
             });
-            if (files is not [var file])
-                return;
+            // A picked file holds platform access, such as a security-scoped URL on iOS, until it is disposed.
             try
             {
+                if (files is not [var file])
+                    return;
                 await using var stream = await file.OpenReadAsync();
                 await LoadAsync(stream);
                 _fileError.IsVisible = false;
@@ -836,6 +985,12 @@ namespace Flowery.Controls
             catch (Exception ex) when (ex is JsonException or System.IO.IOException or UnauthorizedAccessException)
             {
                 ShowFileError(L("GlassDesigner_OpenError", "This file is not a design: {0}"), ex.Message);
+            }
+            finally
+            {
+                // No test: IStorageFile cannot be implemented outside Avalonia, and headless has no storage provider.
+                foreach (var picked in files)
+                    picked.Dispose();
             }
         }
 
@@ -854,9 +1009,11 @@ namespace Flowery.Controls
             });
             if (file is null)
                 return;
+            // No test: IStorageFile cannot be implemented outside Avalonia, and headless has no storage provider.
+            using var picked = file;
             try
             {
-                await using var stream = await file.OpenWriteAsync();
+                await using var stream = await picked.OpenWriteAsync();
                 await SaveAsync(stream);
                 _fileError.IsVisible = false;
             }
@@ -895,6 +1052,8 @@ namespace Flowery.Controls
 
         private static readonly Uri DocsUri = new("https://tobitege.github.io/Flowery.NET/#DaisyGlassDesigner");
 
+        private static readonly Uri PartsUri = new("avares://Flowery.NET/Themes/DaisyGlassDesignerParts.axaml");
+
         private const string HelpSample =
             "using var stream = AssetLoader.Open(new Uri(\"avares://MyApp/Assets/Glass/MyLook.json\"));\n" +
             "using var reader = new StreamReader(stream);\n" +
@@ -918,7 +1077,7 @@ namespace Flowery.Controls
             content.Children.Add(new TextBlock
             {
                 Text = L("GlassDesigner_HelpTitle", "How to use a design"),
-                FontSize = 20,
+                FontSize = ScaledFont(20, "Header"),
                 FontWeight = FontWeight.Bold,
                 TextWrapping = TextWrapping.Wrap
             });
@@ -933,7 +1092,7 @@ namespace Flowery.Controls
                 {
                     Text = HelpSample,
                     FontFamily = new FontFamily("Cascadia Mono, Consolas, Menlo, monospace"),
-                    FontSize = 12,
+                    FontSize = ScaledFont(12, "Secondary"),
                     TextWrapping = TextWrapping.Wrap
                 }
             });
@@ -1005,9 +1164,16 @@ namespace Flowery.Controls
 
         private readonly record struct Paragraph(string Key, string Fallback);
 
+        // An error message on the error surface of the theme, whose text color has 4.5:1 on it in every palette.
+        private static (Border Alert, TextBlock Text) ErrorAlert()
+        {
+            var text = new TextBlock { TextWrapping = TextWrapping.Wrap };
+            return (new Border { Classes = { "gbd-error" }, IsVisible = false, Child = text }, text);
+        }
+
         private void ShowFileError(string format, string message)
         {
-            _fileError.Text = string.Format(CultureInfo.CurrentCulture, format, message);
+            _fileErrorText.Text = string.Format(CultureInfo.CurrentCulture, format, message);
             _fileError.IsVisible = true;
         }
 
@@ -1067,8 +1233,8 @@ namespace Flowery.Controls
                     Content = new Border
                     {
                         Classes = { "gbd-tile-stage" },
-                        Width = 150,
-                        Height = 84,
+                        Width = Scaled(150),
+                        Height = Scaled(84),
                         Background = StageBrush(Backdrop.Aurora),
                         Child = new Panel
                         {
@@ -1196,7 +1362,7 @@ namespace Flowery.Controls
                 {
                     Classes = { "gbd-tile" },
                     Margin = new Thickness(0, 0, 6, 6),
-                    Content = new Border { CornerRadius = new CornerRadius(12), Width = 76, Height = 34, Background = brush }
+                    Content = new Border { CornerRadius = new CornerRadius(12), Width = Scaled(76), Height = Scaled(34), Background = brush }
                 };
                 ToolTip.SetTip(tile, name);
                 AutomationProperties.SetName(tile, name);
@@ -1305,8 +1471,8 @@ namespace Flowery.Controls
                         {
                             new DaisyGlass
                             {
-                                Width = 72,
-                                Height = 44,
+                                Width = Scaled(72),
+                                Height = Scaled(44),
                                 Padding = new Thickness(0),
                                 CornerRadius = new CornerRadius(10),
                                 BlurMode = GlassBlurMode.Simulated,
@@ -1538,7 +1704,7 @@ namespace Flowery.Controls
                 }
                 catch (JsonException ex)
                 {
-                    _importError.Text = string.Format(CultureInfo.CurrentCulture, L("GlassDesigner_ImportError", "This is not a design: {0}"), ex.Message);
+                    _importErrorText.Text = string.Format(CultureInfo.CurrentCulture, L("GlassDesigner_ImportError", "This is not a design: {0}"), ex.Message);
                     _importError.IsVisible = true;
                 }
             };

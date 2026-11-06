@@ -15,9 +15,6 @@ internal static class ControlCatalog
     public static IReadOnlyList<Type> GetDaisyControls() =>
         GetControls(typeof(DaisyButton).Assembly, "Flowery.Controls").Where(IsDaisyArea).ToList();
 
-    public static IReadOnlyList<Type> GetColorPickerControls() =>
-        GetControls(typeof(DaisyButton).Assembly, "Flowery.Controls.ColorPicker");
-
     public static IReadOnlyList<Type> GetCustomControls() =>
         GetControls(typeof(DaisyButton).Assembly, "Flowery.Controls.Custom");
 

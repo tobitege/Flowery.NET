@@ -9,6 +9,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data.Converters;
 using Avalonia.Interactivity;
+using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Flowery.Localization;
@@ -514,8 +515,9 @@ namespace Flowery.Controls
         private readonly ObservableCollection<string> _availableBackdrops =
             [ThemeChoice, .. Enum.GetNames<Enums.DaisyGlassAnimation>(), BackdropColor, BackdropImage];
 
-        // The entry that names the color or image in use, such as "#0B1B5E" or "beach.jpg": the selector shows it, so
-        // "Color..." and "Image..." stay free to pick another one.
+        // The entry of the color or image in use, the text of the override such as "#0B1B5E" or "image:C:\Photos\beach.jpg",
+        // which the selector shows as "#0B1B5E" or "beach.jpg", so "Color..." and "Image..." stay free to pick another one.
+        // The built-in entries never start with "#" or "image:", so an image named like an effect cannot take its place.
         private string? _customBackdrop;
 
         /// <summary>
@@ -530,8 +532,10 @@ namespace Flowery.Controls
         /// <summary>
         /// Gets or sets the choice of the backdrop selector, one of <see cref="AvailableBackdrops"/>, which sets
         /// <see cref="DaisyThemeManager.BackdropOverride"/>. Choosing <c>Color...</c> or <c>Image...</c> asks for one
-        /// first and goes back to the previous choice when the user cancels; the color or image in use then shows as an
-        /// entry of its own.
+        /// first and goes back to the previous choice when the user cancels or the picker fails; the color or image in use
+        /// then shows as an entry of its own, whose value is the text of the override, such as <c>#0B1B5E</c> or
+        /// <c>image:C:\Photos\beach.jpg</c>. The selector shows the entries in the language of the controls, and an image
+        /// by its file name.
         /// </summary>
         public string Backdrop
         {
@@ -561,40 +565,63 @@ namespace Flowery.Controls
         {
             null => ThemeChoice,
             _ when backdrop.StartsWith("effect:", StringComparison.Ordinal) => backdrop["effect:".Length..],
-            _ when backdrop.StartsWith("image:", StringComparison.Ordinal)
-                => System.IO.Path.GetFileName(backdrop["image:".Length..]) is { Length: > 0 } name ? name : backdrop,
             _ => backdrop
+        };
+
+        /// <summary>
+        /// Returns the text the selectors show for a choice: the backdrop of the theme, <c>Color...</c> and
+        /// <c>Image...</c> in the language of the controls, an image by its file name, anything else as it is.
+        /// </summary>
+        internal static string ChoiceLabel(string choice) => choice switch
+        {
+            ThemeChoice => FloweryLocalization.GetString("ComponentSidebar_ThemeChoice", ThemeChoice),
+            BackdropColor => FloweryLocalization.GetString("ComponentSidebar_PickColor", BackdropColor),
+            BackdropImage => FloweryLocalization.GetString("ComponentSidebar_PickImage", BackdropImage),
+            _ when choice.StartsWith("image:", StringComparison.Ordinal)
+                => System.IO.Path.GetFileName(choice["image:".Length..]) is { Length: > 0 } name ? name : choice,
+            _ => choice
         };
 
         private async System.Threading.Tasks.Task PickBackdropAsync(string choice)
         {
             string? backdrop = null;
-            if (choice == BackdropColor)
+            try
             {
-                var start = DaisyThemeManager.BackdropOverride is { } text && Color.TryParse(text, out var current) ? current
-                    : Application.Current is { } app && app.TryFindResource("DaisyBase100Color", app.ActualThemeVariant, out var value)
-                      && value is Color theme ? theme : Colors.SteelBlue;
-                if (await ColorPicker.DaisyColorPickerDialog.ShowOverlayAsync(this, start) is { } color)
-                    backdrop = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
-            }
-            else if (TopLevel.GetTopLevel(this)?.StorageProvider is { CanOpen: true } storage)
-            {
-                var files = await storage.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+                if (choice == BackdropColor)
                 {
-                    AllowMultiple = false,
-                    FileTypeFilter = [Avalonia.Platform.Storage.FilePickerFileTypes.ImageAll]
-                });
-                // A platform without file paths, such as the browser, offers no image backdrop.
-                if (files is [var file] && Avalonia.Platform.Storage.StorageProviderExtensions.TryGetLocalPath(file) is { } path)
-                    backdrop = "image:" + path;
+                    var start = DaisyThemeManager.BackdropOverride is { } text && Color.TryParse(text, out var current) ? current
+                        : Application.Current is { } app && app.TryFindResource("DaisyBase100Color", app.ActualThemeVariant, out var value)
+                          && value is Color theme ? theme : Colors.SteelBlue;
+                    if (await ColorPicker.DaisyColorPickerDialog.ShowOverlayAsync(this, start) is { } color)
+                        backdrop = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+                }
+                else if (TopLevel.GetTopLevel(this)?.StorageProvider is { CanOpen: true } storage)
+                {
+                    var files = await storage.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+                    {
+                        AllowMultiple = false,
+                        FileTypeFilter = [Avalonia.Platform.Storage.FilePickerFileTypes.ImageAll]
+                    });
+                    // A platform without file paths, such as the browser, offers no image backdrop.
+                    if (files is [var file] && Avalonia.Platform.Storage.StorageProviderExtensions.TryGetLocalPath(file) is { } path)
+                        backdrop = "image:" + path;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Such as a color dialog without an overlay layer to show in; the selector goes back below.
+                LogPickerError(ex);
             }
 
             if (backdrop != null && backdrop != DaisyThemeManager.BackdropOverride)
                 DaisyThemeManager.BackdropOverride = backdrop;
             else
-                // The selector shows the choice the user cancelled; put the current one back.
+                // The selector shows the choice the user cancelled, or that failed; put the current one back.
                 RaisePropertyChanged(BackdropProperty, choice, _backdrop);
         }
+
+        private void LogPickerError(Exception exception) =>
+            Logger.TryGet(LogEventLevel.Error, LogArea.Control)?.Log(this, "FloweryComponentSidebar: the picker failed: {Exception}", exception);
 
         private void OnBackdropOverrideChanged(object? sender, EventArgs e)
         {
@@ -654,8 +681,15 @@ namespace Flowery.Controls
             var start = DaisyThemeManager.BaseOverride
                 ?? (Application.Current is { } app && app.TryFindResource("DaisyBase100Color", app.ActualThemeVariant, out var value)
                     && value is Color theme ? theme : Colors.SteelBlue);
-            if (await ColorPicker.DaisyColorPickerDialog.ShowOverlayAsync(this, start) is { } color)
-                DaisyThemeManager.BaseOverride = color;
+            try
+            {
+                if (await ColorPicker.DaisyColorPickerDialog.ShowOverlayAsync(this, start) is { } color)
+                    DaisyThemeManager.BaseOverride = color;
+            }
+            catch (Exception ex)
+            {
+                LogPickerError(ex);
+            }
         }
 
         private void OnBaseOverrideChanged(object? sender, EventArgs e)
@@ -1257,5 +1291,18 @@ namespace Flowery.Controls
         {
             throw new NotSupportedException();
         }
+    }
+
+    /// <summary>
+    /// The text of a choice of the backdrop or base color selector (see <see cref="FloweryComponentSidebar.ChoiceLabel"/>).
+    /// The first value is the choice; a second value, bound to the texts of the current language, only renews the text
+    /// when the language changes.
+    /// </summary>
+    internal sealed class SidebarChoiceLabelConverter : IMultiValueConverter
+    {
+        public static readonly SidebarChoiceLabelConverter Instance = new();
+
+        public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture) =>
+            values is [string choice, ..] ? FloweryComponentSidebar.ChoiceLabel(choice) : null;
     }
 }

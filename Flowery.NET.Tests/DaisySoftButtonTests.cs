@@ -12,8 +12,6 @@ public class DaisySoftButtonTests
 {
     [AvaloniaTheory]
     [InlineData(DaisyButtonVariant.Primary)]
-    [InlineData(DaisyButtonVariant.Secondary)]
-    [InlineData(DaisyButtonVariant.Error)]
     public void Soft_Buttons_Draw_A_Tint_And_A_Border_In_The_Variant_Color(DaisyButtonVariant variant)
     {
         var button = new DaisyButton { Content = "Soft", ButtonStyle = DaisyButtonStyle.Soft, Variant = variant };

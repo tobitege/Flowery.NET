@@ -346,14 +346,14 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
         try
         {
             RuntimeTestHelpers.AttachToHost(root);
-            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(TestTimeout);
+            await RuntimeTestHelpers.EnsureLoadedAsync(root);
             await tour.StartAsync().WaitAsync(TestTimeout);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             AssertShown(tour, content, "first visit");
 
             await tour.NextAsync().WaitAsync(TestTimeout);
             await tour.BackAsync().WaitAsync(TestTimeout);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.IsTrue(tour.IsOpen, "Going back to the step keeps the tour open.");
             Assert.AreEqual(0, tour.CurrentIndex);
             AssertShown(tour, content, "after Back");
@@ -361,7 +361,7 @@ public class Given_DaisyTourAnnotationPresenterAvalonia
             tour.Cancel();
             closed.Clear();
             await tour.StartAsync().WaitAsync(TestTimeout);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.IsTrue(tour.IsOpen, "Replaying keeps the tour open.");
             AssertShown(tour, content, "after a replay");
             Assert.AreEqual(0, closed.Count, "The replay does not close with an error.");

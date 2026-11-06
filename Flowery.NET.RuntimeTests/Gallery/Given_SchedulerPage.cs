@@ -12,6 +12,7 @@ using Flowery.NET.Gallery;
 using Flowery.NET.Gallery.Examples;
 using Flowery.NET.Gallery.Localization;
 using Xunit;
+using static Flowery.NET.RuntimeTests.Gallery.GalleryTestHelpers;
 
 namespace Flowery.NET.RuntimeTests.Gallery;
 
@@ -146,8 +147,7 @@ public class Given_SchedulerPage
         var scheduler = page.FindControl<DaisyScheduler>("DemoScheduler")!;
         var day = scheduler.SelectedDate.Date;
         // An all-day appointment as the scheduler creates it from its all-day row: its end is the next midnight.
-        typeof(SchedulerExamples).GetMethod("OpenEditor", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-            .Invoke(page, [new AppointmentModel { Id = Guid.NewGuid(), Start = day, End = day.AddDays(1), IsAllDay = true }, true]);
+        page.OpenEditor(new AppointmentModel { Id = Guid.NewGuid(), Start = day, End = day.AddDays(1), IsAllDay = true }, isNew: true);
         await RuntimeTestHelpers.WaitForRenderAsync();
         var end = page.FindControl<DaisyCalendarDatePicker>("EndInput")!;
         var endTime = page.FindControl<DaisySelect>("EndTimeInput")!;
@@ -181,7 +181,7 @@ public class Given_SchedulerPage
         var bar = mainView.FindControl<Border>("CategoryTitleBar")!;
         var menu = mainView.FindControl<Button>("CategoryMenuButton")!;
 
-        await NavigateAsync(mainView, "Sidebar_Scheduler");
+        await NavigateAsync(mainView, static item => item.TabHeader == "Sidebar_Scheduler");
         var intro = VisiblePage(mainView).FindControl<Control>("IntroPanel")!;
         Assert.False(header.IsVisible);
         Assert.False(intro.IsVisible);
@@ -196,9 +196,9 @@ public class Given_SchedulerPage
         Assert.False(intro.IsVisible);
 
         // A page without an intro shows the header again; the intro keeps its state for the next visit.
-        await NavigateAsync(mainView, "Sidebar_Actions");
+        await NavigateAsync(mainView, static item => item.TabHeader == "Sidebar_Actions");
         Assert.True(header.IsVisible);
-        await NavigateAsync(mainView, "Sidebar_Scheduler");
+        await NavigateAsync(mainView, static item => item.TabHeader == "Sidebar_Scheduler");
         Assert.False(header.IsVisible);
         Assert.False(intro.IsVisible);
 
@@ -211,11 +211,33 @@ public class Given_SchedulerPage
     }
 
     [Fact]
-    public async Task When_The_Title_Bar_Does_Not_Fold_The_Intro_The_Editor_Leaves_It_Shown()
+    public async Task When_The_Editor_Has_An_Error_It_Shows_It_In_The_Error_Color()
     {
+        // Regression: the text took DaisyErrorForegroundBrush, which no theme defines, so the error was not red.
         var page = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples());
         await OpenNewAsync(page.FindControl<DaisyScheduler>("DemoScheduler")!);
-        Assert.True(page.FindControl<Control>("IntroPanel")!.IsVisible);
+        var error = page.FindControl<TextBlock>("EditorError")!;
+        error.Text = "Invalid";
+        Assert.True(page.TryFindResource("DaisyErrorBrush", page.ActualThemeVariant, out var brush));
+        Assert.Same(brush, error.Foreground);
+    }
+
+    [Fact]
+    public async Task When_Show_Appointments_For_Names_A_Resource_The_Scheduler_Shows_Only_Its_Appointments()
+    {
+        var page = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples());
+        var scheduler = page.FindControl<DaisyScheduler>("DemoScheduler")!;
+        var showFor = page.FindControl<DaisySelect>("ShowForOption")!;
+        Assert.Equal(GalleryLocalization.GetString("Scheduler_Everyone"), showFor.SelectedItem);
+        Assert.Null(scheduler.VisibleResourceIds);
+
+        showFor.SelectedItem = "Casey";
+        Assert.Equal(new object[] { 3 }, scheduler.VisibleResourceIds);
+        showFor.SelectedItem = "Room A";
+        Assert.Equal(new object[] { "room-a" }, scheduler.VisibleResourceIds);
+
+        showFor.SelectedIndex = 0;
+        Assert.Null(scheduler.VisibleResourceIds);
     }
 
     private static async Task OpenNewAsync(DaisyScheduler scheduler)
@@ -228,25 +250,4 @@ public class Given_SchedulerPage
     private static void Press(Visual root, Interactive target) =>
         target.RaiseEvent(new PointerPressedEventArgs(target, new Pointer(Pointer.GetNextFreeId(), PointerType.Mouse, true), root, default, 0,
             PointerPointProperties.None, KeyModifiers.None));
-
-    private static async Task NavigateAsync(MainView mainView, string tabHeader)
-    {
-        var sidebar = mainView.FindControl<FloweryComponentSidebar>("ComponentSidebar")!;
-        var category = sidebar.Categories!.First(category => category.Items.Any(item => item.TabHeader == tabHeader));
-        var item = category.Items.First(item => item.TabHeader == tabHeader);
-        sidebar.SelectedItem = item;
-        sidebar.RaiseEvent(new SidebarItemSelectedEventArgs(FloweryComponentSidebar.ItemSelectedEvent, item, category));
-        await RuntimeTestHelpers.WaitForRenderAsync();
-    }
-
-    private static Control VisiblePage(MainView mainView) =>
-        mainView.FindControl<Panel>("MainContentHost")!.Children.Single(static child => child.IsVisible);
-
-    private static void Tap(Visual root, Interactive target)
-    {
-        var pointer = new Pointer(Pointer.GetNextFreeId(), PointerType.Touch, true);
-        var release = new PointerEventArgs(InputElement.PointerReleasedEvent, target, pointer, root, default, 0,
-            PointerPointProperties.None, KeyModifiers.None);
-        target.RaiseEvent(new TappedEventArgs(InputElement.TappedEvent, release));
-    }
 }

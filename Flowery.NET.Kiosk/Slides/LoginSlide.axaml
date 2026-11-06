@@ -9,7 +9,7 @@
     <!-- Hero Section -->
     <Grid Grid.Column="0">
       <!-- Decorative Background Patterns -->
-      <Grid x:Name="HeroCanvas" Opacity="0.1" IsHitTestVisible="False">
+      <Grid Opacity="0.1" IsHitTestVisible="False">
         <Ellipse Width="200" Height="200" Fill="{DynamicResource DaisyPrimaryBrush}"
                  HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-60,-60,0,0" />
         <Ellipse Width="280" Height="280" Fill="{DynamicResource DaisySecondaryBrush}"
@@ -19,10 +19,10 @@
       <StackPanel VerticalAlignment="Center" Margin="50,0,50,120" Spacing="24">
         <StackPanel Spacing="6">
           <daisy:DaisyBadge Content="COMING SOON" Variant="Secondary" Size="Small" HorizontalAlignment="Left" />
-          <TextBlock x:Name="HeroTitle" Text="Flowery.NET" FontSize="52" FontWeight="Black" Foreground="{DynamicResource DaisyPrimaryBrush}" />
+          <TextBlock Text="Flowery.NET" FontSize="52" FontWeight="Black" Foreground="{DynamicResource DaisyPrimaryBrush}" />
 
           <!-- Feature list with stacked fade-in animation -->
-          <StackPanel x:Name="FeaturesList" Spacing="3">
+          <StackPanel Spacing="3">
             <TextBlock x:Name="Feature1" Text="✓ 35+ themes inspired by DaisyUI" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
             <TextBlock x:Name="Feature2" Text="✓ 80+ themed and sizable controls" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
             <TextBlock x:Name="Feature3" Text="✓ Runtime Sizing and Scaling features" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource DaisyBaseContentBrush}" />
@@ -33,13 +33,13 @@
           </StackPanel>
         </StackPanel>
 
-        <TextBlock x:Name="HeroDescription"
+        <TextBlock
                    Text="This entire demo is built with Flowery.NET components. Every button, input, badge, and animation you see is powered by our library."
                    FontSize="13" Opacity="0.7" TextWrapping="Wrap" MaxWidth="420" LineHeight="20" HorizontalAlignment="Left" Foreground="{DynamicResource DaisyBaseContentBrush}" />
 
         <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Left">
-          <daisy:DaisyButton x:Name="HeroButton1" Content="Get Started" Variant="Primary" Size="Medium" Shape="Wide" />
-          <daisy:DaisyButton x:Name="HeroButton2" Content="View Gallery" ButtonStyle="Outline" Size="Medium" Shape="Wide" />
+          <daisy:DaisyButton Content="Get Started" Variant="Primary" Size="Medium" Shape="Wide" />
+          <daisy:DaisyButton Content="View Gallery" ButtonStyle="Outline" Size="Medium" Shape="Wide" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="-8" Margin="0,8,0,0" HorizontalAlignment="Left">
@@ -59,7 +59,7 @@
 
     <!-- Login Form Section -->
     <Grid Grid.Column="1" Background="{DynamicResource DaisyBase100Brush}">
-      <daisy:DaisyCard x:Name="LoginFormCard" VerticalAlignment="Center" HorizontalAlignment="Center" Width="340" BodyPadding="28" Background="{DynamicResource DaisyBase200Brush}">
+      <daisy:DaisyCard VerticalAlignment="Center" HorizontalAlignment="Center" Width="340" BodyPadding="28" Background="{DynamicResource DaisyBase200Brush}">
         <StackPanel Spacing="18">
           <StackPanel Spacing="6" HorizontalAlignment="Center">
             <daisy:DaisyAvatar Size="Medium" Shape="Circle" HasRing="True" RingColor="Primary" IsPlaceholder="True" HorizontalAlignment="Center">

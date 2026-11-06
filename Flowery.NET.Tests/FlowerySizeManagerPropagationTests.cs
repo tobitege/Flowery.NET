@@ -47,7 +47,7 @@ public class FlowerySizeManagerPropagationTests
         Assert.Equal(DaisySize.Small, input.Size);
     }
 
-    private sealed class SizeScope : IDisposable
+    internal sealed class SizeScope : IDisposable
     {
         private readonly Window? _previousWindow = FlowerySizeManager.MainWindow;
         private readonly DaisySize _previousSize = FlowerySizeManager.CurrentSize;

@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+using System.Globalization;
+using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -14,6 +15,7 @@ internal static class RuntimeTestHelpers
 {
     private static readonly TimeSpan FrameTimeout = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan SettleTimeout = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan LoadTimeout = TimeSpan.FromSeconds(10);
 
     public static Window GetWindow()
     {
@@ -54,28 +56,55 @@ internal static class RuntimeTestHelpers
         element.UpdateLayout();
     }
 
-    /// <summary>Completes once <paramref name="element"/> has raised its Loaded event, or at once when it is loaded.</summary>
-    public static Task EnsureLoadedAsync(Control element)
+    /// <summary>
+    /// Completes once <paramref name="element"/> has raised its Loaded event, or at once when it is loaded.
+    /// Throws a <see cref="TimeoutException"/> when it is not loaded within <see cref="LoadTimeout"/>.
+    /// </summary>
+    public static async Task EnsureLoadedAsync(Control element)
     {
         if (element.IsLoaded)
-            return Task.CompletedTask;
+            return;
 
         var loaded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        void OnLoaded(object? sender, RoutedEventArgs args)
+        void OnLoaded(object? sender, RoutedEventArgs args) => loaded.TrySetResult();
+        element.Loaded += OnLoaded;
+        try
+        {
+            await loaded.Task.WaitAsync(LoadTimeout);
+        }
+        catch (TimeoutException)
+        {
+            throw new TimeoutException($"{element.GetType().Name} was not loaded within {LoadTimeout.TotalSeconds:0} seconds.");
+        }
+        finally
         {
             element.Loaded -= OnLoaded;
-            loaded.TrySetResult();
         }
-        element.Loaded += OnLoaded;
-        return loaded.Task;
     }
 
-    /// <summary>Runs one case of a table-driven test. A failure, an exception or a timeout (30 seconds unless
-    /// <paramref name="timeout"/> is given) names the case; a skipped result passes through unchanged.</summary>
+    /// <summary>
+    /// Runs one case of a table-driven test. A failure or an exception names the case; a skipped result passes
+    /// through unchanged. A case that does not finish within 30 seconds (or <paramref name="timeout"/>) may still
+    /// run on the UI thread, so it throws a <see cref="CaseTimeoutException"/>, which stops the run like a test timeout.
+    /// A <see cref="TimeoutException"/> that the case itself throws is a normal failure. On a case timeout the test's
+    /// own finally blocks run while the case is still running, and an exception from that cleanup replaces the
+    /// <see cref="CaseTimeoutException"/>, so the run then goes on.
+    /// </summary>
     public static async Task RunCaseAsync(string name, Func<Task> body, TimeSpan? timeout = null)
     {
-        try { await body().WaitAsync(timeout ?? TimeSpan.FromSeconds(30)); }
-        catch (Exception error) when (error is not Xunit.Sdk.SkipException)
+        var limit = timeout ?? TimeSpan.FromSeconds(30);
+        Task? task = null;
+        try
+        {
+            task = body();
+            await task.WaitAsync(limit);
+        }
+        catch (TimeoutException error) when (task is { IsCompleted: false })
+        {
+            throw new CaseTimeoutException(string.Create(CultureInfo.InvariantCulture,
+                $"{name} did not finish within {limit.TotalSeconds:0.###} seconds."), error);
+        }
+        catch (Exception error) when (error is not (Xunit.Sdk.SkipException or CaseTimeoutException))
         {
             throw new Xunit.Sdk.XunitException($"{name}: {error.Message}", error);
         }
@@ -192,6 +221,9 @@ internal static class RuntimeTestHelpers
         Directory.CreateDirectory(directory);
         return Path.Combine(directory, fileName);
     }
+
+    /// <summary>A case of <see cref="RunCaseAsync"/> timed out; the runner reports it as a timeout and stops.</summary>
+    internal sealed class CaseTimeoutException(string message, Exception innerException) : TimeoutException(message, innerException);
 
     private sealed class FrameSignal
     {

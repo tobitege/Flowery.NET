@@ -262,7 +262,10 @@ namespace Flowery.Controls
         /// Gets or sets the collection of selected indices when SelectionMode is Multiple.
         /// Modifying this collection updates the visual selection state. A view model can bind its own collection
         /// to it; <c>null</c> sets a new empty collection. Switching to Single selection leaves it as it is, so the
-        /// multiple selection comes back with the mode.
+        /// multiple selection comes back with the mode. The group watches the collection only while it is in the visual
+        /// tree, so a view model that outlives a page does not keep its groups alive. Changes made in the meantime raise
+        /// no <see cref="SelectedIndicesChanged"/>; they show, and raise <see cref="SelectionChanged"/>, when the group is
+        /// loaded again.
         /// </summary>
         public ObservableCollection<int> SelectedIndices
         {
@@ -272,9 +275,12 @@ namespace Flowery.Controls
                 value ??= new ObservableCollection<int>();
                 if (ReferenceEquals(value, _selectedIndices))
                     return;
-                _selectedIndices.CollectionChanged -= OnSelectedIndicesChanged;
+                var attached = this.IsAttachedToVisualTree();
+                if (attached)
+                    _selectedIndices.CollectionChanged -= OnSelectedIndicesChanged;
                 SetAndRaise(SelectedIndicesProperty, ref _selectedIndices, value);
-                _selectedIndices.CollectionChanged += OnSelectedIndicesChanged;
+                if (attached)
+                    _selectedIndices.CollectionChanged += OnSelectedIndicesChanged;
                 OnSelectedIndicesChanged(_selectedIndices, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
             }
         }
@@ -325,7 +331,6 @@ namespace Flowery.Controls
             AttachedToVisualTree += OnAttachedToVisualTree;
             DetachedFromVisualTree += OnDetachedFromVisualTree;
 
-            _selectedIndices.CollectionChanged += OnSelectedIndicesChanged;
             SubscribeItemsCollection(Items);
         }
 
@@ -388,12 +393,25 @@ namespace Flowery.Controls
         private void OnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
         {
             SubscribeItemsCollection(Items);
+            // Only while attached: the collection may belong to a view model that outlives the group.
+            _selectedIndices.CollectionChanged -= OnSelectedIndicesChanged;
+            _selectedIndices.CollectionChanged += OnSelectedIndicesChanged;
             _lifecycle.HandleLoaded();
             ApplyAll();
         }
 
+        protected override void OnLoaded(RoutedEventArgs e)
+        {
+            base.OnLoaded(e);
+            // Changes of SelectedIndices while the group was detached; the segments of a group attached again have their
+            // containers only now.
+            ApplyAll();
+            UpdateSelection(tellScreenReaders: false);
+        }
+
         private void OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
         {
+            _selectedIndices.CollectionChanged -= OnSelectedIndicesChanged;
             if (_itemsObservable != null)
             {
                 _itemsObservable.CollectionChanged -= OnItemsCollectionChanged;
@@ -534,8 +552,17 @@ namespace Flowery.Controls
         {
             if (!AutoSelect || FindSegmentIndex(segment) is not { } index)
                 return null;
-            return SelectionMode == DaisyButtonGroupSelectionMode.Multiple ? _selectedIndices.Contains(index) : SelectedIndex == index;
+            return IsIndexSelected(index);
         }
+
+        /// <summary>
+        /// Gets the selected segments, of any button type, in their order; none when the group does not select.
+        /// </summary>
+        internal IEnumerable<Button> GetSelectedSegments() =>
+            AutoSelect ? GetSegments().Where(segment => IsIndexSelected(segment.Index)).Select(static segment => segment.Button) : [];
+
+        private bool IsIndexSelected(int index) =>
+            SelectionMode == DaisyButtonGroupSelectionMode.Multiple ? _selectedIndices.Contains(index) : SelectedIndex == index;
 
         /// <summary>
         /// Selects <paramref name="segment"/> (Single), or adds it to or removes it from the selection (Multiple), as a
@@ -772,8 +799,9 @@ namespace Flowery.Controls
 
     /// <summary>
     /// Exposes a group in single selection (<see cref="DaisyButtonGroup.AutoSelect"/>) to screen readers as a selection
-    /// container, whose <see cref="DaisyButton"/> segments are its items. In multiple selection the segments are toggles
-    /// of their own, so the group is a plain group.
+    /// container, whose segments are its items: <see cref="DaisyButton"/> segments also as selectable items, plain buttons
+    /// at least in the selection. In multiple selection the segments are toggles of their own, so the group is a plain
+    /// group.
     /// </summary>
     internal sealed class DaisyButtonGroupAutomationPeer(DaisyButtonGroup owner) : ControlAutomationPeer(owner), ISelectionProvider
     {
@@ -791,12 +819,7 @@ namespace Flowery.Controls
 
         public bool IsSelectionRequired => false;
 
-        public IReadOnlyList<AutomationPeer> GetSelection() =>
-        [
-            .. Group.GetLogicalDescendants().OfType<DaisyButton>()
-                .Where(button => Group.IsSegmentSelected(button) == true)
-                .Select(CreatePeerForElement)
-        ];
+        public IReadOnlyList<AutomationPeer> GetSelection() => [.. Group.GetSelectedSegments().Select(CreatePeerForElement)];
     }
 
     /// <summary>

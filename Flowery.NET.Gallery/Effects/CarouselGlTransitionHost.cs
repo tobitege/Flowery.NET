@@ -64,7 +64,7 @@ namespace Flowery.NET.Gallery.Effects
 
         protected override CarouselGlConfiguration? CreateConfiguration() => string.IsNullOrWhiteSpace(TransitionName)
             ? null
-            : new CarouselGlConfiguration("transitions", "transition", TransitionName, null, Images, IntervalSeconds, TransitionSeconds);
+            : new CarouselGlConfiguration(CarouselGlMode.Transition, TransitionName, null, Images, IntervalSeconds, TransitionSeconds);
 
         private static void OnParametersChanged(CarouselGlTransitionHost sender, AvaloniaPropertyChangedEventArgs args) =>
             sender.RefreshRenderer();
@@ -81,7 +81,8 @@ namespace Flowery.NET.Gallery.Effects
                 if (name.EndsWith(".sksl", StringComparison.Ordinal)) name = name[..^5];
                 result.Add(name, ReadEmbeddedText(assembly, resource));
             }
-            if (result.Count != 100) throw new InvalidOperationException("The complete GL transition catalog requires 100 shaders.");
+            var count = FloweryCarouselGLTransitions.GlTransitions.Length;
+            if (result.Count != count) throw new InvalidOperationException($"The complete GL transition catalog requires {count} shaders.");
             return result;
         }
     }

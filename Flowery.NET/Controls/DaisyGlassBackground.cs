@@ -144,9 +144,10 @@ namespace Flowery.Controls
 
         private static void OnColorValuesChanged(object? sender, PlatformColorValues e) => OnAccentColorChanged();
 
-        private static void OnAccentColorChanged()
+        // Without an accent the next AccentColor() reads it again; the tests pass the accent a system reports.
+        internal static void OnAccentColorChanged(Color? accent = null)
         {
-            _accentColor = null;
+            _accentColor = accent;
             AccentColorChanged?.Invoke(null, EventArgs.Empty);
         }
 
@@ -182,6 +183,7 @@ namespace Flowery.Controls
 
         private bool _attached;
         private bool _frameRequested;
+        internal bool FrameRequested => _frameRequested;
         private IDisposable? _wait;
         private bool _hiddenCheckQueued;
         private bool _inViewport = true;
@@ -347,7 +349,7 @@ namespace Flowery.Controls
         // A frame redraws when it is nearer to the next redraw time than the frame after it. The time past that point
         // carries over, so 30 per second on a 144 Hz display alternates between every fourth and fifth frame. Without a
         // rate every frame redraws and nothing carries over.
-        private static bool IsRedrawFrame(ref double sinceRedraw, double elapsed, double frameRate)
+        internal static bool IsRedrawFrame(ref double sinceRedraw, double elapsed, double frameRate)
         {
             if (frameRate <= 0)
             {

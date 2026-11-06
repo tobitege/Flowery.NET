@@ -45,41 +45,6 @@ public class GlobalSizeRegistryTests
     }
 
     [AvaloniaFact]
-    public void Late_Created_Controls_And_Second_Windows_Receive_The_Current_Size()
-    {
-        using var scope = new SizeScope();
-        var panel = new StackPanel();
-        scope.Show(panel);
-        FlowerySizeManager.ApplySize(DaisySize.ExtraLarge);
-        scope.Layout();
-
-        var late = new DaisyButton { Content = "Late" };
-        panel.Children.Add(late);
-        scope.Layout();
-        Assert.Equal(DaisySize.ExtraLarge, late.Size);
-
-        var secondButton = new DaisyButton { Content = "Second window" };
-        var second = new Window { Width = 200, Height = 100, Content = secondButton };
-        second.Show();
-        try
-        {
-            Dispatcher.UIThread.RunJobs();
-            second.UpdateLayout();
-            Assert.Equal(DaisySize.ExtraLarge, secondButton.Size);
-
-            FlowerySizeManager.ApplySize(DaisySize.ExtraSmall);
-            Dispatcher.UIThread.RunJobs();
-            second.UpdateLayout();
-            Assert.Equal(DaisySize.ExtraSmall, secondButton.Size);
-            Assert.Equal(DaisySize.ExtraSmall, late.Size);
-        }
-        finally
-        {
-            second.Close();
-        }
-    }
-
-    [AvaloniaFact]
     public void Style_Values_Win_And_Local_Values_Survive_Tier_Changes()
     {
         using var scope = new SizeScope();

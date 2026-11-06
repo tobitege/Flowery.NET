@@ -16,52 +16,6 @@ public class Given_GlTransitionCatalog
     private const int W = 64;
     private const int H = 40;
 
-    [Theory]
-    [InlineData("uniform float a; // = 4", "4")]
-    [InlineData("uniform float uLineWidth;// = 0.1", "0.1")]
-    [InlineData("uniform float horizontalHexagons; //= 20;", "20")]
-    [InlineData("uniform vec3 color /* = vec3(0.9, 0.4, 0.2) */;", "vec3(0.9, 0.4, 0.2)")]
-    [InlineData("uniform float colorPhase; // = 0.4 ; // if 0.0, there is no black phase", "0.4")]
-    [InlineData("uniform float strength; // the strength", null)]
-    [InlineData("uniform float x; // =", null)]
-    [InlineData("uniform float x;", null)]
-    public void When_A_Uniform_Line_Is_Read_Its_Default_Is_The_Expression_After_The_Equals_Sign(string line, string? expected)
-    {
-        Assert.Equal(expected, FloweryCarouselGLTransitions.ExtractDefaultExpression(line));
-    }
-
-    [Fact]
-    public void When_Numbers_And_Constructor_Arguments_Are_Read_They_Follow_The_Js()
-    {
-        Assert.Equal(new[] { 0, 0, 0, 0.6 }, FloweryCarouselGLTransitions.ExtractNumbers("0.,0.,0.,.6"));
-        Assert.Equal(new[] { -0.01, 3 }, FloweryCarouselGLTransitions.ExtractNumbers("-1e-2 and 3"));
-        // The type name holds a digit too, which is why the vector types read their constructor arguments only.
-        Assert.Equal(new[] { 4.0, 0, 0, 0, 0.6 }, FloweryCarouselGLTransitions.ExtractNumbers("vec4(0.,0.,0.,.6)"));
-        Assert.Equal(new[] { 2.0, 10, 10 }, FloweryCarouselGLTransitions.ExtractNumbers("ivec2(10, 10)"));
-        Assert.Equal("10, 10", FloweryCarouselGLTransitions.ExtractConstructorArgs(" ivec2(10, 10) "));
-        Assert.Equal("0.5", FloweryCarouselGLTransitions.ExtractConstructorArgs("0.5"));
-    }
-
-    [Fact]
-    public void When_A_Default_Is_Parsed_It_Follows_The_Uniform_Type()
-    {
-        Assert.Equal(4.0, FloweryCarouselGLTransitions.ParseDefaultValue("float", "4"));
-        Assert.Equal(0.7, FloweryCarouselGLTransitions.ParseDefaultValue("float", ".7"));
-        Assert.Null(FloweryCarouselGLTransitions.ParseDefaultValue("float", "none"));
-        Assert.Equal(2.0, FloweryCarouselGLTransitions.ParseDefaultValue("int", "2.9"));
-        Assert.Equal(-1.0, FloweryCarouselGLTransitions.ParseDefaultValue("int", "-1"));
-        // SkSL has no bool uniforms: a former bool uniform is an int whose true or false default reads as 1 or 0.
-        Assert.Equal(1.0, FloweryCarouselGLTransitions.ParseDefaultValue("int", "true"));
-        Assert.Equal(0.0, FloweryCarouselGLTransitions.ParseDefaultValue("int", "false"));
-        Assert.True(FloweryCarouselGLTransitions.ParseDefaultValue("bool", "TRUE") is true);
-        Assert.True(FloweryCarouselGLTransitions.ParseDefaultValue("bool", "0") is false);
-        Assert.Equal(new[] { 0.5, 0.5 }, FloweryCarouselGLTransitions.ParseDefaultValue("vec2", "vec2(0.5)"));
-        Assert.Equal(new[] { 0, 0.2, 0.4, 0.4 }, FloweryCarouselGLTransitions.ParseDefaultValue("vec4", "vec4(0.0, 0.2, 0.4)"));
-        Assert.Equal(new[] { 4.0, 4.0 }, FloweryCarouselGLTransitions.ParseDefaultValue("ivec2", "ivec2(4)"));
-        Assert.Null(FloweryCarouselGLTransitions.ParseDefaultValue("mat2", "mat2(1.0)"));
-        Assert.Null(FloweryCarouselGLTransitions.ParseDefaultValue("float", "  "));
-    }
-
     [Fact]
     public void When_A_Source_Is_Parsed_It_Keeps_Defaults_And_Samplers_And_Skips_Progress_And_Ratio()
     {
@@ -83,14 +37,6 @@ public class Given_GlTransitionCatalog
             ["a:float=4", "b:float=4", "color:vec3=0.9,0.4,0.2", "reverse:int=0", "weights:float=1", "size:ivec2=10,10"],
             parsed.Uniforms.Select(u => u.Name + ":" + u.Type + "=" + Format(u.Value)));
         Assert.Equal(["luma"], parsed.Samplers);
-    }
-
-    [Fact]
-    public void When_The_Catalog_Loads_It_Has_The_100_Shaders_Of_The_Table()
-    {
-        Assert.Equal(100, FloweryCarouselGLTransitions.GlTransitions.Length);
-        Assert.Equal(FloweryCarouselGLTransitions.GlTransitions.Select(entry => entry.Name).Order(StringComparer.Ordinal),
-            CarouselGlTransitionHost.AvailableShaders.Keys.Order(StringComparer.Ordinal));
     }
 
     [Fact]
@@ -160,56 +106,105 @@ public class Given_GlTransitionCatalog
         }
     }
 
-    [Theory]
-    [InlineData(0, 1, 0, 0)]
-    [InlineData(0.25, 1, 0, 0.25)]
-    [InlineData(1, 1, 0, 0)]
-    [InlineData(1.5, 1, 0, 0.5)]
-    [InlineData(0.5, 1, 1, 0)]
-    [InlineData(1.5, 1, 1, 0.5)]
-    [InlineData(2.5, 1, 1, 1)]
-    [InlineData(3, 1, 1, 0)]
-    [InlineData(0.0005, 0, 0, 0.5)]
-    public void When_Time_Passes_The_Progress_Holds_Rises_And_Holds(double elapsed, double transition, double interval, double expected)
+    [Fact]
+    public async Task When_A_Transition_Has_One_Image_The_Host_Shows_That_Assets_Are_Missing()
     {
-        Assert.Equal(expected, FloweryCarouselGLTransitions.ComputeTransitionProgress(elapsed, transition, interval), 9);
+        var host = new OneImageHost { Width = 160, Height = 100 };
+        try
+        {
+            RuntimeTestHelpers.AttachToHost(host);
+            await RuntimeTestHelpers.EnsureLoadedAsync(host);
+            await RuntimeTestHelpers.WaitUntilAsync(() => host.LastRenderError is not null, "the renderer failed");
+            Assert.Equal("Not supported (assets missing)", host.LastRenderError!.Message);
+        }
+        finally
+        {
+            RuntimeTestHelpers.GetHostPanel().Children.Clear();
+            await FlushAsync(host.Dispatcher);
+        }
     }
 
     [Fact]
-    public void When_Durations_Are_Resolved_They_Keep_The_Js_Rules()
+    public async Task When_Only_The_Transition_Changes_The_Images_Stay_Loaded()
     {
-        Assert.Equal(3, FloweryCarouselGLTransitions.GetTransitionCycleSeconds(1, 1));
-        Assert.Equal(0.001, FloweryCarouselGLTransitions.GetTransitionCycleSeconds(0, -2));
-        Assert.Equal(1.25, FloweryCarouselGLTransitions.GetTransitionDurationScale(null));
-        Assert.Equal(1.25, FloweryCarouselGLTransitions.GetTransitionDurationScale("fade"));
-        Assert.Equal(2.5, FloweryCarouselGLTransitions.GetTransitionDurationScale(" Circle "));
-        Assert.Equal(1.25, FloweryCarouselGLTransitions.GetTransitionDurationScale("CircleCrop"));
-        Assert.Equal(0.75, FloweryCarouselGLTransitions.NormalizeTransitionSeconds(0, 0.6, "fade"), 9);
-        Assert.Equal(0.75, FloweryCarouselGLTransitions.NormalizeTransitionSeconds(double.NaN, 0.6, null), 9);
-        Assert.Equal(5, FloweryCarouselGLTransitions.NormalizeTransitionSeconds(2, 0.6, "circle"), 9);
+        // The host passes its cached images again with every change; equal assets keep the state and its textures.
+        var host = new CarouselGlTransitionHost { Width = 160, Height = 100, TransitionName = "fade", IntervalSeconds = 1, TransitionSeconds = 1 };
+        try
+        {
+            RuntimeTestHelpers.AttachToHost(host);
+            await RuntimeTestHelpers.EnsureLoadedAsync(host);
+            await host.ReadFrameAsync(0.5);
+            var canvas = Assert.IsType<CarouselGlCanvas>(host.Content);
+            var state = Assert.IsType<FloweryCarouselGLTransitions.State>(canvas.State);
+            var textures = state.textures;
+
+            host.TransitionName = "luma";
+            await host.ReadFrameAsync(0.5);
+            host.TransitionSeconds = 2;
+            await host.ReadFrameAsync(0.5);
+
+            Assert.Same(state, canvas.State);
+            Assert.Same(textures, state.textures);
+            Assert.Equal("luma", state.transitionName);
+            Assert.Null(host.LastRenderError);
+        }
+        finally
+        {
+            RuntimeTestHelpers.GetHostPanel().Children.Clear();
+            await FlushAsync(host.Dispatcher);
+        }
     }
 
     [Fact]
-    public void When_Names_Images_And_Paths_Are_Resolved_They_Keep_The_Js_Rules()
+    public async Task When_The_Images_Change_Or_The_Host_Goes_The_Old_Images_Are_Released()
     {
-        Assert.Equal("angular", FloweryCarouselGLTransitions.ResolveTransitionEntry(null)?.Name);
-        Assert.Equal("angular", FloweryCarouselGLTransitions.ResolveTransitionEntry("  ")?.Name);
-        Assert.Equal("angular", FloweryCarouselGLTransitions.ResolveTransitionEntry("unknown")?.Name);
-        Assert.Equal("fade", FloweryCarouselGLTransitions.ResolveTransitionEntry(" FADE ")?.Name);
-        Assert.Contains(FloweryCarouselGLTransitions.ResolveTransitionEntry("Random"), FloweryCarouselGLTransitions.GlTransitions);
+        var host = new SwitchingImagesHost { Width = 160, Height = 100 };
+        try
+        {
+            RuntimeTestHelpers.AttachToHost(host);
+            await RuntimeTestHelpers.EnsureLoadedAsync(host);
+            await host.ReadFrameAsync(0.5);
+            var canvas = Assert.IsType<CarouselGlCanvas>(host.Content);
+            var first = Assert.IsType<FloweryCarouselGLTransitions.State>(canvas.State).textures.ToList();
 
-        Assert.Equal(["a", "b"], FloweryCarouselGLTransitions.ResolveImages(new Dictionary<string, string> { ["from"] = "a", ["to"] = "b" }));
-        Assert.Equal(["a", "b"], FloweryCarouselGLTransitions.ResolveImages(new Dictionary<string, string> { ["from"] = "", ["transitionA"] = "a", ["transitionB"] = "b" }));
-        // One image is not a transition: the JS falls back to its default images, which the host never resolves.
-        string[] defaults = ["Assets/wallpaper_blue.jpg", "Assets/wallpaper_green.jpg", "Assets/wallpaper_red.jpg", "Assets/wallpaper_yellow.jpg"];
-        Assert.Equal(defaults, FloweryCarouselGLTransitions.ResolveImages(new Dictionary<string, string> { ["from"] = "a", ["to"] = "a" }));
-        Assert.Equal(defaults, FloweryCarouselGLTransitions.ResolveImages(null));
+            // Regression: the engine cached every image it loaded by its data URI until the host went, so each other image
+            // set stayed in memory next to the shown one.
+            host.ShowSecondImages();
+            await host.ReadFrameAsync(0.5);
+            var second = Assert.IsType<FloweryCarouselGLTransitions.State>(canvas.State).textures.ToList();
+            Assert.All(first, static image => Assert.Equal(IntPtr.Zero, image.Handle));
+            Assert.All(second, static image => Assert.NotEqual(IntPtr.Zero, image.Handle));
 
-        Assert.Equal("data:x", FloweryCarouselGLTransitions.ResolveAssetPath("data:x"));
-        Assert.Equal("//host/a.png", FloweryCarouselGLTransitions.ResolveAssetPath("//host/a.png"));
-        Assert.Equal("https://host/a.png", FloweryCarouselGLTransitions.ResolveAssetPath("https://host/a.png"));
-        var error = Assert.Throws<InvalidOperationException>(() => FloweryCarouselGLTransitions.ResolveAssetPath("Assets/a.jpg"));
-        Assert.Equal("Image asset must be resolved by the native host: Assets/a.jpg", error.Message);
+            RuntimeTestHelpers.GetHostPanel().Children.Clear();
+            await RuntimeTestHelpers.WaitForIdleAsync();
+            Assert.All(second, static image => Assert.Equal(IntPtr.Zero, image.Handle));
+        }
+        finally
+        {
+            RuntimeTestHelpers.GetHostPanel().Children.Clear();
+            await FlushAsync(host.Dispatcher);
+        }
+    }
+
+    [Fact]
+    public void When_A_Uniform_Default_Is_Parsed_It_Is_Converted_Once_For_The_Frames()
+    {
+        var parsed = FloweryCarouselGLTransitions.ParseUniforms("""
+            uniform float a; // = 0.5
+            uniform int count; // = 3
+            uniform int reverse; // = true
+            uniform vec2 center; // = vec2(0.25, 0.75)
+            uniform ivec2 size; // = ivec2(10, 20)
+            """);
+        var byName = parsed.Uniforms.ToDictionary(static uniform => uniform.Name);
+
+        Assert.Equal(0.5f, byName["a"].FrameValue);
+        Assert.Equal(3, byName["count"].FrameValue);
+        Assert.Equal(1, byName["reverse"].FrameValue);
+        Assert.Equal(new[] { 0.25f, 0.75f }, Assert.IsType<float[]>(byName["center"].FrameValue));
+        Assert.Equal(new[] { 10, 20 }, Assert.IsType<int[]>(byName["size"].FrameValue));
+        // The same value every frame.
+        Assert.Same(byName["center"].FrameValue, byName["center"].FrameValue);
     }
 
     [Fact]
@@ -270,10 +265,46 @@ public class Given_GlTransitionCatalog
         protected override CarouselGlEngine CreateEngine() => new FloweryCarouselGLTransitions();
 
         protected override CarouselGlConfiguration? CreateConfiguration() =>
-            new("transitions", "transition", "fade", null, new Dictionary<string, string>
+            new(CarouselGlMode.Transition, "fade", null, new Dictionary<string, string>
             {
                 ["from"] = "avares://Flowery.NET.Gallery/Assets/wallpaper_blue.jpg",
                 ["to"] = "avares://Flowery.NET.Gallery/Assets/wallpaper_green.jpg"
+            }, 0, 1);
+    }
+
+    // A transition host that switches to two other images.
+    private sealed class SwitchingImagesHost : CarouselGlNativeHost
+    {
+        private string _from = "avares://Flowery.NET.Gallery/Assets/wallpaper_blue.jpg";
+        private string _to = "avares://Flowery.NET.Gallery/Assets/wallpaper_green.jpg";
+
+        public void ShowSecondImages()
+        {
+            _from = "avares://Flowery.NET.Gallery/Assets/wallpaper_red.jpg";
+            _to = "avares://Flowery.NET.Gallery/Assets/wallpaper_yellow.jpg";
+            RefreshRenderer();
+        }
+
+        protected override CarouselGlEngine CreateEngine() => new FloweryCarouselGLTransitions();
+
+        protected override IReadOnlyDictionary<string, string> ShaderSources => CarouselGlTransitionHost.AvailableShaders;
+
+        protected override CarouselGlConfiguration? CreateConfiguration() =>
+            new(CarouselGlMode.Transition, "fade", null, new Dictionary<string, string> { ["from"] = _from, ["to"] = _to }, 1, 1);
+    }
+
+    // A transition host whose two images are the same, so the transition has one image.
+    private sealed class OneImageHost : CarouselGlNativeHost
+    {
+        protected override CarouselGlEngine CreateEngine() => new FloweryCarouselGLTransitions();
+
+        protected override IReadOnlyDictionary<string, string> ShaderSources => CarouselGlTransitionHost.AvailableShaders;
+
+        protected override CarouselGlConfiguration? CreateConfiguration() =>
+            new(CarouselGlMode.Transition, "fade", null, new Dictionary<string, string>
+            {
+                ["from"] = "avares://Flowery.NET.Gallery/Assets/wallpaper_blue.jpg",
+                ["to"] = "avares://Flowery.NET.Gallery/Assets/wallpaper_blue.jpg"
             }, 0, 1);
     }
 

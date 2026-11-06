@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Avalonia;
 using Avalonia.Controls;
@@ -76,12 +76,7 @@ public class Given_GalleryPages
     {
         // As on Android, where the header and the intro of the scheduler page give their height to the scheduler.
         var mainView = await RuntimeTestHelpers.AttachAsync(new MainView(collapsesIntros: true));
-        var sidebar = mainView.FindControl<FloweryComponentSidebar>("ComponentSidebar")!;
-        var item = sidebar.Categories!.SelectMany(static category => category.Items).First(static item => item.TabHeader == "Sidebar_Scheduler");
-        sidebar.RaiseEvent(new SidebarItemSelectedEventArgs(FloweryComponentSidebar.ItemSelectedEvent, item,
-            sidebar.Categories!.First(category => category.Items.Contains(item))));
-        await RuntimeTestHelpers.WaitForRenderAsync();
-        var page = mainView.FindControl<Panel>("MainContentHost")!.Children.Single(static child => child.IsVisible);
+        var page = await GalleryTestHelpers.NavigateAsync(mainView, static item => item.TabHeader == "Sidebar_Scheduler");
         page.FindControl<DaisyScheduler>("DemoScheduler")!.GetVisualDescendants().OfType<Button>()
             .Single(static button => button.Tag is SchedulerToolbarButton { Id: "new" }).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         await RuntimeTestHelpers.WaitForRenderAsync();

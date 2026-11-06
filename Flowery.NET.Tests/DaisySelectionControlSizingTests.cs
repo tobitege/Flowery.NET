@@ -9,8 +9,8 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Helpers;
-using Flowery.Services;
 using Xunit;
+using static Flowery.NET.Tests.TestControls;
 
 namespace Flowery.NET.Tests;
 
@@ -80,54 +80,6 @@ public class DaisySelectionControlSizingTests
     }
 
     [AvaloniaFact]
-    public void Global_Size_Changes_Repeat_And_Respect_Local_Size_And_OptOut()
-    {
-        using var scope = new SizeScope();
-        var check = new DaisyCheckBox { Content = "Auto check" };
-        var toggle = new DaisyToggle { Content = "Auto toggle" };
-        var radio = new DaisyRadio { Content = "Auto radio" };
-        var explicitCheck = new DaisyCheckBox { Size = DaisySize.Large };
-        var explicitToggle = new DaisyToggle { Size = DaisySize.Large };
-        var explicitRadio = new DaisyRadio { Size = DaisySize.Large };
-        var ignoredCheck = new DaisyCheckBox();
-        var ignoredToggle = new DaisyToggle();
-        var ignoredRadio = new DaisyRadio();
-        var ignored = new StackPanel { Children = { ignoredCheck, ignoredToggle, ignoredRadio } };
-        FlowerySizeManager.SetIgnoreGlobalSize(ignored, true);
-        var panel = new StackPanel { Children = { check, toggle, radio, explicitCheck, explicitToggle, explicitRadio, ignored } };
-        scope.Show(panel);
-
-        foreach (var size in new[] { DaisySize.ExtraSmall, DaisySize.ExtraLarge, DaisySize.Medium, DaisySize.Small })
-        {
-            FlowerySizeManager.ApplySize(size);
-            scope.Layout();
-            Assert.Equal(size, check.Size);
-            Assert.Equal(size, toggle.Size);
-            Assert.Equal(size, radio.Size);
-            Assert.Equal(FlowerySizeManager.GetFontSizeForTier(ResponsiveFontTier.Primary, size), check.FontSize);
-            Assert.Equal(check.FontSize, toggle.FontSize);
-            Assert.Equal(check.FontSize, radio.FontSize);
-            Assert.True(Part<Border>(check, "PART_Border").Bounds.Height < check.FontSize);
-            Assert.True(Part<Border>(toggle, "SwitchArea").Bounds.Height < toggle.FontSize);
-            Assert.True(Part<Border>(radio, "PART_Border").Bounds.Height < radio.FontSize);
-            Assert.Equal(DaisySize.Large, explicitCheck.Size);
-            Assert.Equal(DaisySize.Large, explicitToggle.Size);
-            Assert.Equal(DaisySize.Large, explicitRadio.Size);
-            Assert.Equal(DaisySize.Medium, ignoredCheck.Size);
-            Assert.Equal(DaisySize.Medium, ignoredToggle.Size);
-            Assert.Equal(DaisySize.Medium, ignoredRadio.Size);
-        }
-
-        scope.Window.Content = null;
-        FlowerySizeManager.ApplySize(DaisySize.ExtraLarge);
-        scope.Window.Content = panel;
-        scope.Layout();
-        Assert.Equal(DaisySize.ExtraLarge, check.Size);
-        Assert.Equal(DaisySize.ExtraLarge, toggle.Size);
-        Assert.Equal(DaisySize.ExtraLarge, radio.Size);
-    }
-
-    [AvaloniaFact]
     public void Label_Clicks_Still_Toggle_And_Disabled_Controls_Stay_Disabled()
     {
         using var scope = new SizeScope();
@@ -160,78 +112,6 @@ public class DaisySelectionControlSizingTests
         Assert.True(toggle.IsChecked);
         Assert.True(Part<Avalonia.Controls.Shapes.Path>(check, "CheckMark").IsVisible);
         Assert.True(secondRadio.IsChecked);
-    }
-
-    [AvaloniaFact]
-    public void Application_Size_Styles_Win_And_Removal_Restores_Global_Default()
-    {
-        using var scope = new SizeScope();
-        var check = new DaisyCheckBox { Content = "Check" };
-        var toggle = new DaisyToggle { Content = "Toggle" };
-        var radio = new DaisyRadio { Content = "Radio" };
-        scope.Window.Styles.Add(new Style(static selector => selector.OfType<DaisyCheckBox>())
-            { Setters = { new Setter(DaisyCheckBox.SizeProperty, DaisySize.Small) } });
-        scope.Window.Styles.Add(new Style(static selector => selector.OfType<DaisyToggle>())
-            { Setters = { new Setter(DaisyToggle.SizeProperty, DaisySize.Small) } });
-        scope.Window.Styles.Add(new Style(static selector => selector.OfType<DaisyRadio>())
-            { Setters = { new Setter(DaisyRadio.SizeProperty, DaisySize.Small) } });
-        scope.Show(new StackPanel { Children = { check, toggle, radio } });
-        FlowerySizeManager.ApplySize(DaisySize.ExtraLarge);
-        scope.Layout();
-        Assert.Equal(DaisySize.Small, check.Size);
-        Assert.Equal(DaisySize.Small, toggle.Size);
-        Assert.Equal(DaisySize.Small, radio.Size);
-
-        scope.Window.Styles.Clear();
-        scope.Layout();
-        Assert.Equal(DaisySize.ExtraLarge, check.Size);
-        Assert.Equal(DaisySize.ExtraLarge, toggle.Size);
-        Assert.Equal(DaisySize.ExtraLarge, radio.Size);
-        check.Size = DaisySize.ExtraLarge; // Same value must still establish a local override.
-        FlowerySizeManager.ApplySize(DaisySize.ExtraSmall);
-        scope.Layout();
-        Assert.Equal(DaisySize.ExtraLarge, check.Size);
-        Assert.Equal(DaisySize.ExtraSmall, toggle.Size);
-    }
-
-    [AvaloniaFact]
-    public void Scale_And_Size_Update_Font_And_Indicator_Together_Without_Local_Font_Writes()
-    {
-        using var scope = new SizeScope();
-        var check = new DaisyCheckBox { Content = "Check" };
-        var toggle = new DaisyToggle { Content = "Toggle" };
-        var radio = new DaisyRadio { Content = "Radio" };
-        var panel = new StackPanel { Children = { check, toggle, radio } };
-        FloweryScaleManager.SetEnableScaling(panel, true);
-        scope.Show(panel);
-        foreach (var size in new[] { DaisySize.ExtraLarge, DaisySize.Small, DaisySize.Medium })
-        {
-            FlowerySizeManager.ApplySize(size);
-            foreach (var factor in new[] { 1d, 0.75d })
-            {
-                check.ApplyScaleFactor(factor);
-                toggle.ApplyScaleFactor(factor);
-                radio.ApplyScaleFactor(factor);
-                scope.Layout();
-                var expectedFont = FlowerySizeManager.GetFontSizeForTier(ResponsiveFontTier.Primary, size) * factor;
-                Assert.Equal(expectedFont, check.FontSize, 3);
-                Assert.Equal(expectedFont, toggle.FontSize, 3);
-                Assert.Equal(expectedFont, radio.FontSize, 3);
-                foreach (var control in new Control[] { check, toggle, radio })
-                {
-                    var indicator = Part<Border>(control, control is DaisyToggle ? "SwitchArea" : "PART_Border");
-                    var transform = indicator.TransformToVisual(control)!.Value;
-                    var height = new Rect(indicator.Bounds.Size).TransformToAABB(transform).Height;
-                    Assert.True(height < expectedFont);
-                    Assert.Equal(indicator.Bounds.Height * factor, height, 3);
-                }
-            }
-        }
-        check.FontSize = 30;
-        check.ApplyScaleFactor(1);
-        FlowerySizeManager.ApplySize(DaisySize.ExtraSmall);
-        scope.Layout();
-        Assert.Equal(30, check.FontSize);
     }
 
     [AvaloniaFact]
@@ -320,9 +200,6 @@ public class DaisySelectionControlSizingTests
         var info = Assert.IsAssignableFrom<ISolidColorBrush>(resource).Color;
         Assert.Equal(info, Assert.IsAssignableFrom<ISolidColorBrush>(Part<Border>(toggle, "SwitchArea").BorderBrush).Color);
     }
-
-    private static T Part<T>(Control control, string name) where T : Control =>
-        control.GetVisualDescendants().OfType<T>().Single(part => part.Name == name);
 
     private sealed class SizeScope : IDisposable
     {

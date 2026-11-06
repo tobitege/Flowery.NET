@@ -1,7 +1,6 @@
 #if FLOWERY_SVG_PATTERNS
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls.Shapes;
 using Avalonia.Media;
@@ -91,13 +90,10 @@ namespace Flowery.Helpers
                 var pixels = tile.Width;
                 var mask = new WriteableBitmap(new PixelSize(pixels, pixels), new Vector(96 * scale, 96 * scale),
                     PixelFormat.Bgra8888, AlphaFormat.Premul);
+                // Straight from the pixels of the tile into the bitmap, without a copy in between.
                 using (var target = mask.Lock())
-                {
-                    var source = tile.Bytes;
-                    var rowBytes = tile.RowBytes;
-                    for (var row = 0; row < pixels; row++)
-                        Marshal.Copy(source, row * rowBytes, target.Address + row * target.RowBytes, rowBytes);
-                }
+                using (var source = tile.PeekPixels())
+                    source.ReadPixels(tile.Info, target.Address, target.RowBytes, 0, 0);
                 return mask;
             }
             catch (Exception exception)

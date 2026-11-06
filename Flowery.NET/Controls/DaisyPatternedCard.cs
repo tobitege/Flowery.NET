@@ -89,11 +89,14 @@ namespace Flowery.Controls
             base.OnDetachedFromVisualTree(e);
         }
 
-        // The SVG patterns are drawn at the scaling of the display; on another display they are drawn again.
+        // The SVG patterns are drawn at the scaling of the display; on another display they are drawn again. A build
+        // without them draws generated tiles, which do not depend on the scaling.
         private void OnScalingChanged(object? sender, EventArgs e)
         {
+#if FLOWERY_SVG_PATTERNS
             if (Pattern != DaisyCardPattern.None && PatternMode == FloweryPatternMode.SvgAsset)
                 RebuildPatternLayer();
+#endif
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)

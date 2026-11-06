@@ -31,8 +31,7 @@ namespace Flowery.Helpers
             if (!SupportsTiling(pattern))
                 return null;
 
-            int tilesX = (int)Math.Ceiling(width / TileSize) + 1;
-            int tilesY = (int)Math.Ceiling(height / TileSize) + 1;
+            var (tilesX, tilesY) = TileCount(width, height);
 
             var canvas = new Canvas
             {
@@ -66,6 +65,13 @@ namespace Flowery.Helpers
 
             return canvas;
         }
+
+        /// <summary>
+        /// Returns how many tiles <see cref="CreateTiledPatternCanvas"/> lays out along each side for an area of that
+        /// size; the tiles of a canvas cover any area with the same count.
+        /// </summary>
+        internal static (int Columns, int Rows) TileCount(double width, double height) =>
+            ((int)Math.Ceiling(width / TileSize) + 1, (int)Math.Ceiling(height / TileSize) + 1);
 
         private static void AddPatternToTile(DaisyCardPattern pattern, IBrush brush, Canvas tile)
         {

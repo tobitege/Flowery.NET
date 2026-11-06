@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -51,7 +52,10 @@ public sealed partial class DaisyTourEditor : ContentControl
     private readonly StackPanel _fieldsPanel = new() { Spacing = 8 };
     private readonly StackPanel _context = new() { Spacing = 8 };
     private readonly Grid _footer = new() { ColumnSpacing = 8 };
-    private readonly Dictionary<string, (Control Input, DaisyButton Mode)> _fields = [];
+    private readonly Dictionary<string, Field> _fields = [];
+    private readonly Dictionary<int, (DaisyExpander Expander, StackPanel Rows)> _sections = [];
+    // The fields the inspector shows for the selected scope, step and annotation.
+    private string[] _shownFields = [];
     private readonly Dictionary<int, bool> _expandedSections = [];
     private readonly TextBlock _stepLabel = new() { FontSize = 12 };
     private readonly TextBlock _annotationLabel = new() { FontSize = 12 };
@@ -89,6 +93,7 @@ public sealed partial class DaisyTourEditor : ContentControl
     private DaisyTourStyleProfile? _draft;
     private CancellationTokenSource? _cancellation;
     private string? _gestureSnapshot;
+    private bool _gestureGeometryOnly;
     private bool _refreshing;
     private bool _closing;
     private bool _dockLeft;
@@ -304,7 +309,7 @@ public sealed partial class DaisyTourEditor : ContentControl
     {
         VerifyOpen();
         DaisyTourStyleProfileSerializer.Validate(profile, _tour);
-        var replacement = DaisyTourStyleProfileSerializer.Clone(profile);
+        var replacement = profile.Copy();
         CancelGesture();
         _tour!.ClearCardPositionPreview();
         RecordUndo();
@@ -313,7 +318,15 @@ public sealed partial class DaisyTourEditor : ContentControl
         RefreshValue();
     }
 
-    public void ImportJson(string json) => ImportProfile(DaisyTourStyleProfileSerializer.Deserialize(json));
+    /// <summary>Replaces the draft with a profile read from JSON. Throws <see cref="JsonException"/> for JSON that is
+    /// no valid profile of this tour, including one that belongs to another tour or names unknown steps.</summary>
+    public void ImportJson(string json)
+    {
+        var profile = DaisyTourStyleProfileSerializer.Deserialize(json);
+        // Only the validation against the tour throws ArgumentException, before anything changes.
+        try { ImportProfile(profile); }
+        catch (ArgumentException error) { throw new JsonException(error.Message, error); }
+    }
     public DaisyTourStyleProfile ExportProfile()
     {
         VerifyOpen();
@@ -335,7 +348,7 @@ public sealed partial class DaisyTourEditor : ContentControl
     public void Redo() => RestoreHistory(_redoHistory, _undoHistory);
 
     /// <summary>Changes one authored value at the selected scope; null restores the application setting.</summary>
-    public void SetValue(string propertyName, object? value)
+    public void SetOverride(string propertyName, object? value)
     {
         VerifyOpen();
         ValidateProperty(propertyName);
@@ -382,10 +395,13 @@ public sealed partial class DaisyTourEditor : ContentControl
         RefreshValue();
     }
 
-    internal void BeginGesture()
+    /// <param name="geometryOnly">Whether the gesture changes only geometry, like a handle drag, so its changes update
+    /// only the geometry of the preview. A color drag can change the card too.</param>
+    internal void BeginGesture(bool geometryOnly = true)
     {
-        if (_draft is not null && _gestureSnapshot is null)
-            _gestureSnapshot = DaisyTourStyleProfileSerializer.Serialize(_draft);
+        if (_draft is null || _gestureSnapshot is not null) return;
+        _gestureSnapshot = DaisyTourStyleProfileSerializer.Serialize(_draft);
+        _gestureGeometryOnly = geometryOnly;
     }
 
     internal void EndGesture()
@@ -553,9 +569,9 @@ public sealed partial class DaisyTourEditor : ContentControl
         args.Handled = true;
     }
 
+    // The surface's KeyDown handler gets only keys that nothing has handled yet.
     internal void HandleKey(KeyEventArgs args)
     {
-        if (args.Handled) return;
         if (args.Key == Key.Escape)
         {
             if (_resizing) CancelResize();
@@ -604,8 +620,7 @@ public sealed partial class DaisyTourEditor : ContentControl
             _annotations.SelectedItem = null;
             _steps.Items.Clear();
             _annotations.Items.Clear();
-            _fields.Clear();
-            _fieldsPanel.Children.Clear();
+            ClearFields();
             _refreshing = false;
             HandleLayer.Clear();
         }
@@ -642,7 +657,7 @@ public sealed partial class DaisyTourEditor : ContentControl
     private void PublishDraft()
     {
         if (_draft is null) return;
-        _tour?.UpdatePreview(_draft, geometryOnly: _gestureSnapshot is not null);
+        _tour?.UpdatePreview(_draft, geometryOnly: _gestureSnapshot is not null && _gestureGeometryOnly);
         // A draft change clears an input error, not a problem of the previewed step that still lasts.
         _error.Text = _previewProblem?.Message ?? string.Empty;
         if (_gestureSnapshot is null)
@@ -684,11 +699,9 @@ public sealed partial class DaisyTourEditor : ContentControl
         CancelGesture();
         HandleLayer.ReleaseGesture();
         RefreshAnnotations();
-        _steps.IsEnabled = false;
-        _annotations.IsEnabled = false;
+        // The transition disables the lists and enables them again before it gives the focus back to the step list.
         try { await _tour.EditStepAsync(_steps.SelectedIndex); }
         catch (Exception error) { ShowError(error); }
-        finally { _steps.IsEnabled = IsOpen; _annotations.IsEnabled = IsOpen; }
         RefreshValue();
         UpdateHandles();
     }
@@ -761,6 +774,11 @@ public sealed partial class DaisyTourEditor : ContentControl
         return true;
     }
 
+    // The sections in the order the inspector shows them.
+    private static readonly int[] SectionOrder = [0, 4, 1, 2, 3];
+
+    // Fields are built when they are first shown and updated in place afterwards, so a field that stays keeps its
+    // focus, such as a list that changes the kind of the annotation.
     private void RefreshValue()
     {
         // Fields need the active preview's resolved values; startup and selection prepare them first.
@@ -768,40 +786,77 @@ public sealed partial class DaisyTourEditor : ContentControl
         _refreshing = true;
         try
         {
-            _fields.Clear();
-            _fieldsPanel.Children.Clear();
-            var names = DaisyTourProfileResolver.PropertyNames.Where(IsPropertyAvailable).Where(IsRelevantProperty).ToArray();
-            foreach (var group in new[] { 0, 4, 1, 2, 3 })
+            _shownFields = DaisyTourProfileResolver.PropertyNames.Where(IsPropertyAvailable).Where(IsRelevantProperty).ToArray();
+            var sections = new List<Control>();
+            foreach (var group in SectionOrder)
             {
-                var properties = names.Where(name => PropertyGroup(name) == group).ToArray();
-                if (properties.Length == 0) continue;
-                var rows = new StackPanel { Spacing = 10 };
-                foreach (var name in properties) rows.Children.Add(BuildField(name));
-                var key = group switch { 0 => "Appearance", 1 => "Line", 4 => "Connections", 2 => "Geometry", _ => "Text" };
-                var section = new DaisyExpander
-                {
-                    Header = new TextBlock { Text = Local("TourEditor_" + key), FontSize = 13, FontWeight = FontWeight.SemiBold },
-                    HeaderPadding = new Thickness(0, 8, 0, 8),
-                    BorderThickness = new Thickness(0, 1, 0, 0),
-                    BorderBrush = DaisyResourceLookup.GetBrush("DaisyAccentBrush"),
-                    ContentPadding = new Thickness(0, 4, 0, 8),
-                    HorizontalContentAlignment = HorizontalAlignment.Stretch,
-                    IsExpanded = _expandedSections.GetValueOrDefault(group, group is 0 or 1 or 4),
-                    ExpanderContent = rows
-                };
-                section.PropertyChanged += (_, args) =>
-                {
-                    if (args.Property == DaisyExpander.IsExpandedProperty) _expandedSections[group] = section.IsExpanded;
-                };
-                _fieldsPanel.Children.Add(section);
+                var rows = _shownFields.Where(name => PropertyGroup(name) == group).Select(name => FieldFor(name).Row).ToList();
+                if (rows.Count == 0) continue;
+                var section = SectionFor(group);
+                Arrange(section.Rows.Children, rows);
+                sections.Add(section.Expander);
             }
+            Arrange(_fieldsPanel.Children, sections);
+            var scope = CurrentOverride(false);
+            foreach (var name in _shownFields)
+                _fields[name].Show(DaisyTourProfileResolver.GetValue(scope, name) ?? EffectiveValue(name));
         }
         finally { _refreshing = false; }
         RefreshValueDescription();
     }
 
-    private Control BuildField(string name)
+    // Removes the children that are not wanted and inserts the missing ones. Both lists follow the same order, so the
+    // children that stay are never moved, which would take the focus from them.
+    private static void Arrange(Avalonia.Controls.Controls children, IReadOnlyList<Control> wanted)
     {
+        for (var index = children.Count - 1; index >= 0; index--)
+        {
+            if (!wanted.Contains(children[index])) children.RemoveAt(index);
+        }
+        for (var index = 0; index < wanted.Count; index++)
+        {
+            if (index >= children.Count || !ReferenceEquals(children[index], wanted[index])) children.Insert(index, wanted[index]);
+        }
+    }
+
+    private (DaisyExpander Expander, StackPanel Rows) SectionFor(int group)
+    {
+        if (_sections.TryGetValue(group, out var existing)) return existing;
+        var rows = new StackPanel { Spacing = 10 };
+        var key = group switch { 0 => "Appearance", 1 => "Line", 4 => "Connections", 2 => "Geometry", _ => "Text" };
+        var expander = new DaisyExpander
+        {
+            Header = new TextBlock { Text = Local("TourEditor_" + key), FontSize = 13, FontWeight = FontWeight.SemiBold },
+            HeaderPadding = new Thickness(0, 8, 0, 8),
+            BorderThickness = new Thickness(0, 1, 0, 0),
+            BorderBrush = DaisyResourceLookup.GetBrush("DaisyAccentBrush"),
+            ContentPadding = new Thickness(0, 4, 0, 8),
+            HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            IsExpanded = _expandedSections.GetValueOrDefault(group, group is 0 or 1 or 4),
+            ExpanderContent = rows
+        };
+        // A culture change builds the sections again; they keep whether they are expanded.
+        expander.PropertyChanged += (_, args) =>
+        {
+            if (args.Property == DaisyExpander.IsExpandedProperty) _expandedSections[group] = args.GetNewValue<bool>();
+        };
+        var section = (expander, rows);
+        _sections.Add(group, section);
+        return section;
+    }
+
+    // Labels are built into the fields, so a culture change builds them again.
+    private void ClearFields()
+    {
+        _fields.Clear();
+        _sections.Clear();
+        _shownFields = [];
+        _fieldsPanel.Children.Clear();
+    }
+
+    private Field FieldFor(string name)
+    {
+        if (_fields.TryGetValue(name, out var existing)) return existing;
         var label = Local("TourEditor_Field_" + name);
         var mode = new DaisyButton
         {
@@ -836,11 +891,9 @@ public sealed partial class DaisyTourEditor : ContentControl
             menu.Items.Add(item);
         }
         mode.Flyout = menu;
-        var value = DaisyTourProfileResolver.GetValue(CurrentOverride(false), name) ?? EffectiveValue(name);
-        var input = BuildInput(name, value);
+        var (input, show) = BuildInput(name);
         AutomationProperties.SetName(input, label);
         AutomationProperties.SetAutomationId(input, "DaisyTourEditorValue_" + name);
-        _fields.Add(name, (input, mode));
         var row = new Grid { ColumnSpacing = 6 };
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.42, GridUnitType.Star) });
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(0.58, GridUnitType.Star) });
@@ -852,14 +905,17 @@ public sealed partial class DaisyTourEditor : ContentControl
         Grid.SetColumn(mode, 2);
         row.Children.Add(input);
         row.Children.Add(mode);
-        return row;
+        var field = new Field(row, input, mode, show);
+        _fields.Add(name, field);
+        return field;
     }
 
     private void RefreshValueDescription()
     {
         if (!IsOpen) return;
-        foreach (var (name, field) in _fields)
+        foreach (var name in _shownFields)
         {
+            var field = _fields[name];
             var effective = EffectiveValue(name);
             ToolTip.SetTip(field.Mode,
                 Local("TourEditor_ApplicationValue") + ": " + Describe(ApplicationValue(name)) + "\n" +
@@ -929,24 +985,23 @@ public sealed partial class DaisyTourEditor : ContentControl
         return resolved.Value;
     }
 
-    private Control BuildInput(string name, object? value)
+    // The input of a field, and how it shows a value without editing it.
+    private (Control Input, Action<object?> Show) BuildInput(string name)
     {
         var type = DaisyTourProfileResolver.ValueType(name);
         if (type?.IsEnum == true)
         {
             var combo = new DaisySelect { ItemsSource = Enum.GetValues(type).Cast<object>().Where(item => item.ToString() != "Default").ToArray() };
             Compact(combo);
-            combo.SelectedItem = value;
             combo.SelectionChanged += (_, _) => { if (combo.SelectedItem is { } selected) EditInput(name, selected, combo); };
-            return combo;
+            return (combo, value => combo.SelectedItem = value);
         }
         if (type == typeof(double))
         {
             var number = new DaisyNumericUpDown
             {
                 Minimum = decimal.MinValue, Maximum = decimal.MaxValue, MaxDecimalPlaces = 4,
-                Increment = name is "opacity" or "curvature" or "cardX" or "cardY" || name.StartsWith("controlPoint", StringComparison.Ordinal) ? 0.05m : 1m,
-                Value = value is double d && double.IsFinite(d) && d > (double)decimal.MinValue && d < (double)decimal.MaxValue ? (decimal)d : null
+                Increment = name is "opacity" or "curvature" or "cardX" or "cardY" || name.StartsWith("controlPoint", StringComparison.Ordinal) ? 0.05m : 1m
             };
             Compact(number);
             if (name is "opacity" or "cardX" or "cardY") { number.Minimum = 0; number.Maximum = 1; }
@@ -954,77 +1009,15 @@ public sealed partial class DaisyTourEditor : ContentControl
             {
                 if (args.Property == DaisyNumericUpDown.ValueProperty && number.Value is { } edited) EditInput(name, (double)edited, number);
             };
-            return number;
+            return (number, value => number.Value =
+                value is double d && double.IsFinite(d) && d > (double)decimal.MinValue && d < (double)decimal.MaxValue ? (decimal)d : null);
         }
         if (type == typeof(string))
         {
-            var button = new DaisyButton { HorizontalContentAlignment = HorizontalAlignment.Left };
-            Compact(button);
-            var color = new DaisyColorEditor { ShowAlphaChannel = true, ShowRgbSliders = false, ShowHslSliders = false, Width = 240 };
-            if (value is ISolidColorBrush brush) color.Color = brush.Color;
-            else if (value is string text && text.Length == 9 && uint.TryParse(text.AsSpan(1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var rgba))
-                color.Color = Color.FromArgb((byte)(rgba >> 24), (byte)(rgba >> 16), (byte)(rgba >> 8), (byte)rgba);
-            var wheel = new DaisyColorWheel
-            {
-                Width = 208, Height = 208, HorizontalAlignment = HorizontalAlignment.Center,
-                Lightness = new HslColor(color.Color).L, Color = color.Color
-            };
-            AutomationProperties.SetName(wheel, Local("ColorPicker_Title"));
-            var lightness = new DaisyColorSlider
-            {
-                Channel = ColorSliderChannel.Lightness, Height = 22, Color = color.Color
-            };
-            AutomationProperties.SetName(lightness, Local("ColorPicker_Lightness"));
-            var alpha = new DaisyColorSlider
-            {
-                Channel = ColorSliderChannel.Alpha, Height = 22, Color = color.Color
-            };
-            AutomationProperties.SetName(alpha, Local("TourEditor_Field_opacity"));
-            AutomationProperties.SetAutomationId(wheel, "DaisyTourEditorColorWheel_" + name);
-            AutomationProperties.SetAutomationId(lightness, "DaisyTourEditorLightness_" + name);
-            AutomationProperties.SetAutomationId(alpha, "DaisyTourEditorAlpha_" + name);
-            ToolTip.SetTip(wheel, Local("ColorPicker_ClickAndDrag"));
-            ToolTip.SetTip(lightness, AutomationProperties.GetName(lightness));
-            ToolTip.SetTip(alpha, AutomationProperties.GetName(alpha));
-            var picker = new StackPanel { Width = 240, Spacing = 8 };
-            picker.Children.Add(wheel);
-            picker.Children.Add(new TextBlock { Text = AutomationProperties.GetName(lightness), FontSize = 12 });
-            picker.Children.Add(lightness);
-            picker.Children.Add(new TextBlock { Text = AutomationProperties.GetName(alpha), FontSize = 12 });
-            picker.Children.Add(alpha);
-            picker.Children.Add(color);
-            var swatch = new Border { Width = 16, Height = 16, CornerRadius = new CornerRadius(3), Background = new SolidColorBrush(color.Color) };
-            var caption = new TextBlock { Text = Describe(value), FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
-            var content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-            content.Children.Add(swatch);
-            content.Children.Add(caption);
-            button.Content = content;
-            var flyout = new Flyout { Content = picker };
-            flyout.Opening += (sender, _) => ApplyPresenterTheme((Flyout)sender!, FlyoutPresenterStyle(typeof(FlyoutPresenter), new Thickness(12)));
-            button.Flyout = flyout;
-            var synchronizing = false;
-            wheel.ColorChanged += (_, args) => { if (!synchronizing) color.Color = args.Color; };
-            lightness.ColorChanged += (_, args) => { if (!synchronizing) color.Color = args.Color; };
-            alpha.ColorChanged += (_, args) => { if (!synchronizing) color.Color = args.Color; };
-            color.ColorChanged += (_, args) =>
-            {
-                synchronizing = true;
-                try
-                {
-                    wheel.Lightness = new HslColor(args.Color).L;
-                    wheel.Color = args.Color;
-                    lightness.Color = args.Color;
-                    alpha.Color = args.Color;
-                }
-                finally { synchronizing = false; }
-                var hex = $"#{args.Color.A:X2}{args.Color.R:X2}{args.Color.G:X2}{args.Color.B:X2}";
-                EditInput(name, hex, button);
-                caption.Text = hex;
-                swatch.Background = new SolidColorBrush(args.Color);
-            };
-            return button;
+            var color = new ColorField(this, name);
+            return (color.Button, color.Show);
         }
-        var textBox = new DaisyInput { Text = value is IEnumerable<double> values ? string.Join(", ", values.Select(item => item.ToString(CultureInfo.InvariantCulture))) : string.Empty };
+        var textBox = new DaisyInput();
         Compact(textBox);
         textBox.LostFocus += (_, _) =>
         {
@@ -1032,7 +1025,8 @@ public sealed partial class DaisyTourEditor : ContentControl
             try { EditInput(name, (textBox.Text ?? string.Empty).Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Select(item => double.Parse(item, CultureInfo.InvariantCulture)).ToArray(), textBox); }
             catch (FormatException error) { ShowError(error); }
         };
-        return textBox;
+        return (textBox, value => textBox.Text =
+            value is IEnumerable<double> values ? string.Join(", ", values.Select(item => item.ToString(CultureInfo.InvariantCulture))) : string.Empty);
     }
 
     private bool IsCurrentInput(string name, Control input) =>
@@ -1043,7 +1037,7 @@ public sealed partial class DaisyTourEditor : ContentControl
         if (_refreshing || !IsCurrentInput(name, input)) return;
         try
         {
-            SetValue(name, value);
+            SetOverride(name, value);
             if (name is "path" or "kind" or "preset") RefreshValue();
         }
         catch (ArgumentException error) { ShowError(error); }
@@ -1055,7 +1049,7 @@ public sealed partial class DaisyTourEditor : ContentControl
         try
         {
             if (mode == "Inherit") InheritValue(name);
-            else if (mode == "Application") SetValue(name, null);
+            else if (mode == "Application") SetOverride(name, null);
             else
             {
                 var value = EffectiveValue(name);
@@ -1064,7 +1058,7 @@ public sealed partial class DaisyTourEditor : ContentControl
                 if (value is DaisyTourDashCollection dash) value = dash.ToArray();
                 if (value is double d && !double.IsFinite(d)) value = null;
                 if (value is null || value is Enum e && e.ToString() == "Default") return;
-                SetValue(name, value);
+                SetOverride(name, value);
             }
             RefreshValue();
         }
@@ -1147,6 +1141,7 @@ public sealed partial class DaisyTourEditor : ContentControl
         ToolTip.SetTip(_dock, Local("TourEditor_MovePanel"));
         AutomationProperties.SetName(_collapse, Local("TourEditor_TogglePanel"));
         ToolTip.SetTip(_collapse, Local("TourEditor_TogglePanel"));
+        ClearFields();
         _refreshing = false;
         RefreshValue();
     }
@@ -1187,8 +1182,165 @@ public sealed partial class DaisyTourEditor : ContentControl
         TextElement.SetForeground(_themeScope, Foreground);
         var sectionBorder = DaisyResourceLookup.GetBrush("DaisyAccentBrush");
         _scopeSection.BorderBrush = sectionBorder;
-        foreach (var section in _fieldsPanel.Children.OfType<DaisyExpander>())
-            section.BorderBrush = sectionBorder;
+        foreach (var (expander, _) in _sections.Values)
+            expander.BorderBrush = sectionBorder;
+    }
+
+    // An inspector field: its row, its input with the value mode button, and how the input shows a value.
+    private sealed record Field(Control Row, Control Input, DaisyButton Mode, Action<object?> Show);
+
+    // A color field: a button with a swatch and the color text that opens a color picker. The picker is built when it
+    // first opens. A drag on its wheel or sliders is one undo action, like a handle drag.
+    private sealed class ColorField
+    {
+        // The color picker's own default, which the picker shows for a field without a color.
+        private static readonly Color NoColor = Colors.Red;
+        private readonly DaisyTourEditor _editor;
+        private readonly string _name;
+        private readonly Border _swatch = new() { Width = 16, Height = 16, CornerRadius = new CornerRadius(3) };
+        private readonly TextBlock _caption = new() { FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
+        private readonly Flyout _flyout = new();
+        private DaisyColorEditor? _color;
+        private DaisyColorWheel? _wheel;
+        private DaisyColorSlider? _lightness;
+        private DaisyColorSlider? _alpha;
+        private Color _value = NoColor;
+        // Whether the field has a color; without one, the red the picker shows can be chosen as well.
+        private bool _hasValue;
+        // The parts report their colors again while their templates are applied, before the picker is loaded.
+        private bool _loaded;
+        private bool _synchronizing;
+        private IPointer? _dragPointer;
+
+        internal ColorField(DaisyTourEditor editor, string name)
+        {
+            _editor = editor;
+            _name = name;
+            Button = new DaisyButton { HorizontalContentAlignment = HorizontalAlignment.Left };
+            Compact(Button);
+            var content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            content.Children.Add(_swatch);
+            content.Children.Add(_caption);
+            Button.Content = content;
+            _flyout.Opening += OnOpening;
+            Button.Flyout = _flyout;
+        }
+
+        internal DaisyButton Button { get; }
+
+        internal void Show(object? value)
+        {
+            Color? color = value switch
+            {
+                ISolidColorBrush brush => brush.Color,
+                string text when text.Length == 9 && uint.TryParse(text.AsSpan(1), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var argb) =>
+                    Color.FromUInt32(argb),
+                _ => null
+            };
+            _hasValue = color is not null;
+            _value = color ?? NoColor;
+            _caption.Text = Describe(value);
+            _swatch.Background = new SolidColorBrush(_value);
+            Synchronize(_value);
+        }
+
+        private void OnOpening(object? sender, EventArgs args)
+        {
+            _flyout.Content ??= BuildPicker();
+            Synchronize(_value);
+            ApplyPresenterTheme(_flyout, FlyoutPresenterStyle(typeof(FlyoutPresenter), new Thickness(12)));
+        }
+
+        private StackPanel BuildPicker()
+        {
+            _color = new DaisyColorEditor { ShowAlphaChannel = true, ShowRgbSliders = false, ShowHslSliders = false, Width = 240 };
+            _wheel = new DaisyColorWheel { Width = 208, Height = 208, HorizontalAlignment = HorizontalAlignment.Center };
+            AutomationProperties.SetName(_wheel, Local("ColorPicker_Title"));
+            _lightness = new DaisyColorSlider { Channel = ColorSliderChannel.Lightness, Height = 22 };
+            AutomationProperties.SetName(_lightness, Local("ColorPicker_Lightness"));
+            _alpha = new DaisyColorSlider { Channel = ColorSliderChannel.Alpha, Height = 22 };
+            AutomationProperties.SetName(_alpha, Local("TourEditor_Field_opacity"));
+            AutomationProperties.SetAutomationId(_wheel, "DaisyTourEditorColorWheel_" + _name);
+            AutomationProperties.SetAutomationId(_lightness, "DaisyTourEditorLightness_" + _name);
+            AutomationProperties.SetAutomationId(_alpha, "DaisyTourEditorAlpha_" + _name);
+            ToolTip.SetTip(_wheel, Local("ColorPicker_ClickAndDrag"));
+            ToolTip.SetTip(_lightness, AutomationProperties.GetName(_lightness));
+            ToolTip.SetTip(_alpha, AutomationProperties.GetName(_alpha));
+            var picker = new StackPanel { Width = 240, Spacing = 8 };
+            picker.Children.Add(_wheel);
+            picker.Children.Add(new TextBlock { Text = AutomationProperties.GetName(_lightness), FontSize = 12 });
+            picker.Children.Add(_lightness);
+            picker.Children.Add(new TextBlock { Text = AutomationProperties.GetName(_alpha), FontSize = 12 });
+            picker.Children.Add(_alpha);
+            picker.Children.Add(_color);
+            picker.Loaded += OnPickerLoaded;
+            _wheel.ColorChanged += OnPartColorChanged;
+            _lightness.ColorChanged += OnPartColorChanged;
+            _alpha.ColorChanged += OnPartColorChanged;
+            _color.ColorChanged += OnColorChanged;
+            foreach (var part in new Control[] { _wheel, _lightness, _alpha })
+            {
+                // The tunnel runs before the part takes its first color from the press.
+                part.AddHandler(PointerPressedEvent, OnDragPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
+                part.AddHandler(PointerReleasedEvent, OnDragReleased, RoutingStrategies.Bubble, handledEventsToo: true);
+                // The parts let go of the capture when the pointer is released; a lost capture also ends the drag.
+                part.AddHandler(PointerCaptureLostEvent, OnDragCaptureLost, RoutingStrategies.Direct, handledEventsToo: true);
+            }
+            return picker;
+        }
+
+        // Shows the color in the picker parts, if they exist, without editing the field.
+        private void Synchronize(Color color)
+        {
+            if (_color is null || _wheel is null || _lightness is null || _alpha is null) return;
+            _synchronizing = true;
+            try
+            {
+                _color.Color = color;
+                _wheel.Lightness = new HslColor(color).L;
+                _wheel.Color = color;
+                _lightness.Color = color;
+                _alpha.Color = color;
+            }
+            finally { _synchronizing = false; }
+        }
+
+        private void OnPickerLoaded(object? sender, RoutedEventArgs args) => _loaded = true;
+
+        // The wheel and the sliders edit the field directly: the editor raises no change for the red it already
+        // shows for a field without a color.
+        private void OnPartColorChanged(object? sender, ColorChangedEventArgs args) => Commit(args.Color);
+        private void OnColorChanged(object? sender, ColorChangedEventArgs args) => Commit(args.Color);
+
+        private void Commit(Color color)
+        {
+            // A color that the field already has is no edit.
+            if (_synchronizing || !_loaded || (_hasValue && color == _value)) return;
+            Synchronize(color);
+            var hex = $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
+            _editor.EditInput(_name, hex, Button);
+            _value = color;
+            _hasValue = true;
+            _caption.Text = hex;
+            _swatch.Background = new SolidColorBrush(color);
+        }
+
+        private void OnDragPressed(object? sender, PointerPressedEventArgs args)
+        {
+            if (_dragPointer is not null || sender is not Visual part || !args.GetCurrentPoint(part).Properties.IsLeftButtonPressed) return;
+            _dragPointer = args.Pointer;
+            _editor.BeginGesture(geometryOnly: false);
+        }
+
+        private void OnDragReleased(object? sender, PointerReleasedEventArgs args) => EndDrag(args.Pointer);
+        private void OnDragCaptureLost(object? sender, PointerCaptureLostEventArgs args) => EndDrag(args.Pointer);
+
+        private void EndDrag(IPointer pointer)
+        {
+            if (!ReferenceEquals(pointer, _dragPointer)) return;
+            _dragPointer = null;
+            _editor.EndGesture();
+        }
     }
 
     private sealed class ResizeGrip : Grid

@@ -22,7 +22,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using Flowery.Composition;
+using Flowery.Helpers;
 using Flowery.Localization;
 using Flowery.Theming;
 
@@ -52,6 +52,8 @@ public sealed partial class DaisyTour : ContentControl
         internal DaisyTourStep? PendingStep;
         internal bool Busy;
         internal bool Editing;
+        // The observed step changed while the session was busy; it is observed again when the transition ends.
+        internal bool StepChanged;
         // The visit of the current step: its number, its failed preparation, the warning it shows, the problems
         // already reported, the reports waiting until the step settles, and whether the hidden step target was
         // scrolled into view once since it was last visible.
@@ -205,6 +207,8 @@ public sealed partial class DaisyTour : ContentControl
     internal ScrollViewer TextScroll => _textScroll;
     internal bool IsTransitioning => _session?.Busy == true;
     internal event EventHandler? GeometryUpdated;
+    /// <summary>Replaces the part of the window that the display shows, for tests that cannot move the window.</summary>
+    internal Rect? VisibleAreaOverride { get; set; }
 
     public static readonly StyledProperty<DaisySize> SizeProperty =
         AvaloniaProperty.Register<DaisyTour, DaisySize>(nameof(Size), DaisySize.Medium);
@@ -242,9 +246,11 @@ public sealed partial class DaisyTour : ContentControl
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property == StyleProfileProperty) OnStyleProfileChanged(this, change);
-        // The session state (IsOpen, CurrentIndex, CurrentStep) is reported, not presented.
-        else if (change.Property.OwnerType == typeof(DaisyTour) && !change.Property.IsDirect) OnPresentationChanged(this, change);
+        // The session state (IsOpen, CurrentIndex, CurrentStep) is reported, not presented; the style profile
+        // refreshes the presentation in its setter.
+        if (change.Property.OwnerType == typeof(DaisyTour) && !change.Property.IsDirect) OnPresentationChanged(this, change);
+        // The card and the annotation texts follow the tour's flow direction, also one it inherits.
+        else if (change.Property == FlowDirectionProperty) RefreshPresentation();
     }
 
     private static void OnPresentationChanged(AvaloniaObject sender, AvaloniaPropertyChangedEventArgs args)
@@ -289,6 +295,8 @@ public sealed partial class DaisyTour : ContentControl
             if (string.IsNullOrWhiteSpace(step.Id) || !ids.Add(step.Id))
                 throw new InvalidOperationException("Tour step IDs must be nonempty and unique.");
         }
+        // The profile can be set before the ID and the steps, such as in XAML; it must match them at the start.
+        if (_activeProfile is { } profile) DaisyTourStyleProfileSerializer.Validate(profile, this);
         Cancel();
         if (steps.Length == 0) return;
         cancellationToken.ThrowIfCancellationRequested();
@@ -363,7 +371,12 @@ public sealed partial class DaisyTour : ContentControl
         _editor?.CancelGesture();
         ClearCardPositionPreview();
         session.Busy = true;
+        // While editing, the focus stays in the inspector, such as on the step list that changed the step. Disabling
+        // the inspector for the transition moves it away, and it returns when the inspector is enabled again unless
+        // something else took it in between. Otherwise the surface holds it while Next and Back are disabled.
+        var inspectorFocus = session.Editing ? InspectorFocus() : null;
         _editor?.SetTransitioning(true);
+        var displacedFocus = inspectorFocus is null ? null : FocusedElement();
         session.PendingStep = session.Steps[index];
         ClearStepObservers(session);
         _annotations.Children.Clear();
@@ -376,11 +389,11 @@ public sealed partial class DaisyTour : ContentControl
         session.HiddenTargetRevealed = false;
         _backdrop.Data = new RectangleGeometry { Rect = new Rect(0, 0, _surface.Width, _surface.Height) };
         _surface.Focusable = true;
-        _surface.Focus();
+        if (inspectorFocus is null) _surface.Focus();
         if (CurrentStep is null)
             _card.IsVisible = false;
         RefreshPresentation();
-        if (_card.IsVisible)
+        if (inspectorFocus is null && _card.IsVisible)
             _skip.Focus();
         var step = session.PendingStep;
         var token = session.Cancellation.Token;
@@ -401,45 +414,66 @@ public sealed partial class DaisyTour : ContentControl
             CurrentStep = step;
             session.PendingStep = null;
             session.PreparationError = preparationError;
-            BuildProgress(session);
+            ShowProgress(session);
             ObserveCurrentStep(session);
             _card.IsVisible = true;
             RefreshPresentation();
             await RevealHiddenTargetAsync(session, step, token);
             if (!ReferenceEquals(_session, session)) return;
-            if (!UpdateGeometry(session)) return;
+            if (!TryUpdateGeometry(session)) return;
             await DaisyTourLayout.SettleAsync(_surface, token);
             if (!ReferenceEquals(_session, session)) return;
             session.Busy = false;
+            // A change of the step while it settled was put off until now.
+            if (session.StepChanged) ObserveCurrentStep(session);
             RefreshPresentation();
             ShowCurrentIndicator();
-            if (_cardCollapsed) _cardToggle.Focus();
-            else _next.Focus();
-            _surface.Focusable = false;
+            // The surface keeps the focus only when no control of the card can take it.
+            _surface.Focusable = inspectorFocus is null && FocusTarget()?.Focus() != true;
             NotifyState();
             // Avalonia raises no automation notifications; the card is a polite live region, and its name
             // (UpdateCardName) carries the step.
             FlushReports(session);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
-        catch (Exception error)
-        {
-            // Target problems keep the step open; this is a failure of the tour itself, such as laying out a step
-            // that throws.
-            if (ReferenceEquals(_session, session))
-                Close(session, DaisyTourCloseReason.Failed, step.Target, error);
-        }
+        catch (Exception error) { Fail(session, error); }
         finally
         {
             session.Busy = false;
-            if (ReferenceEquals(_session, session)) _editor?.SetTransitioning(false);
+            if (ReferenceEquals(_session, session))
+            {
+                _editor?.SetTransitioning(false);
+                if (inspectorFocus is not null && ReferenceEquals(FocusedElement(), displacedFocus) && CanFocus(inspectorFocus))
+                    inspectorFocus.Focus();
+            }
         }
     }
+
+    private IInputElement? FocusedElement() => TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement();
+
+    // The focused element inside the editor's inspector, or null.
+    private InputElement? InspectorFocus() =>
+        _editor is { } editor && FocusedElement() is InputElement focused &&
+        (ReferenceEquals(focused, editor) || editor.IsVisualAncestorOf(focused)) ? focused : null;
+
+    // Next, or the toggle of a folded card; else the first control of the card that can take the focus, such as Back
+    // on the last step of the editor's preview, where Next is disabled.
+    private Control? FocusTarget()
+    {
+        foreach (var control in _cardCollapsed ? new Control[] { _cardToggle, _cardMove } : [_next, _back, _skip, _cardToggle])
+        {
+            if (CanFocus(control)) return control;
+        }
+        return null;
+    }
+
+    private static bool CanFocus(InputElement element) =>
+        element is { Focusable: true, IsEffectivelyEnabled: true, IsEffectivelyVisible: true } && TopLevel.GetTopLevel(element) is not null;
 
     // The highlight frame around each target is revealed together with the target.
     private Task RevealTargetsAsync(DaisyTourStep step, CancellationToken token) =>
         DaisyTourLayout.PrepareTargetsAsync(GetTargets(step), _surface, token,
-            Math.Max(0, double.IsFinite(EffectiveHighlightPadding) ? EffectiveHighlightPadding : 0) + _outline.StrokeThickness);
+            HighlightPaddingValue + _outline.StrokeThickness);
 
     // Another scroll can move the step target out of view after its targets were revealed, such as a page
     // control bringing itself into view. The targets are revealed once more; a target that stays hidden puts
@@ -469,6 +503,7 @@ public sealed partial class DaisyTour : ContentControl
     private void ObserveCurrentStep(Session session)
     {
         ClearStepObservers(session);
+        session.StepChanged = false;
         if (CurrentStep is not { } step) return;
         step.Changed += OnStepChanged;
         session.StepUnsubscribe.Add(() => step.Changed -= OnStepChanged);
@@ -483,10 +518,10 @@ public sealed partial class DaisyTour : ContentControl
             session.StepUnsubscribe.Add(() => style.Changed -= OnAnnotationChanged);
         }
         foreach (var target in GetTargets(step))
-            session.Trackers.Add(new CompositionElementTracker(target, _surface, QueueGeometry));
+            session.Trackers.Add(new ElementBoundsTracker(target, _surface, QueueGeometry));
         // Route limit controls move connectors without being highlighted or scrolled into view.
         foreach (var limit in step.Annotations.Select(annotation => annotation.RouteLimit).OfType<Control>().Distinct())
-            session.Trackers.Add(new CompositionElementTracker(limit, _surface, QueueGeometry));
+            session.Trackers.Add(new ElementBoundsTracker(limit, _surface, QueueGeometry));
     }
 
     private static void ClearStepObservers(Session session)
@@ -499,7 +534,13 @@ public sealed partial class DaisyTour : ContentControl
 
     private void OnStepChanged(object? sender, EventArgs args)
     {
-        if (_session is not { Busy: false } session) return;
+        if (_session is not { } session) return;
+        // A change while the step settles, such as a new target, would otherwise be lost.
+        if (session.Busy)
+        {
+            session.StepChanged = true;
+            return;
+        }
         ObserveCurrentStep(session);
         RefreshPresentation();
     }
@@ -519,9 +560,11 @@ public sealed partial class DaisyTour : ContentControl
                 await DaisyTourLayout.SettleAsync(_surface, token);
                 if (ReferenceEquals(_session, session) && !session.Busy && CurrentStep is { } step)
                     await RevealHiddenTargetAsync(session, step, token);
-                if (ReferenceEquals(_session, session) && !session.Busy) UpdateGeometry(session, revealHidden: false);
+                if (ReferenceEquals(_session, session) && !session.Busy) TryUpdateGeometry(session, revealHidden: false);
             }
             catch (OperationCanceledException) { }
+            // Settling runs the layout of the window, and revealing a target scrolls it.
+            catch (Exception error) { Fail(session, error); }
             finally { _updateQueued = false; }
         }, DispatcherPriority.Normal);
     }
@@ -589,6 +632,26 @@ public sealed partial class DaisyTour : ContentControl
         return layout;
     }
 
+    // Every geometry update goes through here. A step that throws while it is laid out again after it was shown, such
+    // as a template that fails on a resize, closes the session as failed like a failure during the transition,
+    // instead of reaching the dispatcher.
+    private bool TryUpdateGeometry(Session session, bool revealHidden = true)
+    {
+        try { return UpdateGeometry(session, revealHidden); }
+        catch (Exception error)
+        {
+            Fail(session, error);
+            return false;
+        }
+    }
+
+    // Target problems keep the step open; this is a failure of the tour itself, such as laying out a step that throws.
+    private void Fail(Session session, Exception error)
+    {
+        if (ReferenceEquals(_session, session))
+            Close(session, DaisyTourCloseReason.Failed, (session.PendingStep ?? CurrentStep)?.Target, error);
+    }
+
     // A target that cannot be shown never closes the tour: the step stays open in its warning state, without the
     // target's highlight and the connectors that need it, and the card waits at a fixed position.
     private bool UpdateGeometry(Session session, bool revealHidden = true)
@@ -606,8 +669,7 @@ public sealed partial class DaisyTour : ContentControl
         }
         _availability = Availability(step);
         TargetBounds = layout.Visible ?? default;
-        _visibleArea = _overlay is not null && TopLevel.GetTopLevel(this) is { } root ? DaisyTourLayout.VisibleArea(root) : new Rect(0, 0, _surface.Width, _surface.Height);
-        _editor?.ArrangeInspector(new Size(_visibleArea.Width, _visibleArea.Height), new Point(_visibleArea.X, _visibleArea.Y));
+        UpdateVisibleArea();
         DaisyTourTargetProblem? warning = layout.Problems.Count == 0 ? null : layout.Problems.MinBy(problem => problem.Priority).Kind;
         if (warning != session.Warning)
         {
@@ -631,7 +693,8 @@ public sealed partial class DaisyTour : ContentControl
         if (layout.Visible is null && position is (DaisyTourCardPosition.Default or DaisyTourCardPosition.Target))
             position = DaisyTourCardPosition.Center;
         var placement = StepSetting(step, DaisyTourStep.PlacementProperty, step.Placement, DaisyTourPlacement.Auto);
-        var frame = Math.Max(0, double.IsFinite(EffectiveHighlightPadding) ? EffectiveHighlightPadding : 0) + _outline.StrokeThickness;
+        var padding = HighlightPaddingValue;
+        var frame = padding + _outline.StrokeThickness;
         var targets = Shift(allTargets, -_visibleArea.X, -_visibleArea.Y);
         // Without anything highlighted, nothing is in the card's way.
         Rect? highlight = highlighted ? Inflate(targets, frame) : null;
@@ -659,7 +722,6 @@ public sealed partial class DaisyTour : ContentControl
         var expandedHoles = new List<Rect>();
         foreach (var hole in layout.Holes)
         {
-            var padding = Math.Max(0, double.IsFinite(EffectiveHighlightPadding) ? EffectiveHighlightPadding : 0);
             var expanded = new Rect(hole.X - padding, hole.Y - padding, hole.Width + 2 * padding, hole.Height + 2 * padding);
             // Adjacent/overlapping targets share one highlight. Disjoint cutouts must
             // never toggle each other's opacity in the even-odd backdrop geometry.
@@ -675,13 +737,13 @@ public sealed partial class DaisyTour : ContentControl
         }
         foreach (var expanded in expandedHoles)
         {
-            var geometry = RoundedRectangle(expanded, EffectiveHighlightCornerRadius);
+            var geometry = DaisyTourGeometry.RoundedRectangle(expanded, EffectiveHighlightCornerRadius);
             cutout.Children!.Add(geometry);
-            outlines.Children!.Add(RoundedRectangle(expanded, EffectiveHighlightCornerRadius));
+            outlines.Children!.Add(DaisyTourGeometry.RoundedRectangle(expanded, EffectiveHighlightCornerRadius));
         }
         _backdrop.Data = cutout;
         _outline.Data = outlines;
-        UpdateAnnotations(step, layout);
+        UpdateAnnotations(step, layout, padding);
         // A card covering a course between controls, or the area its route limit keeps clear, moves away.
         // Courses from the card itself follow it.
         var courses = CourseBounds(step, layout, -_visibleArea.X, -_visibleArea.Y);
@@ -697,7 +759,7 @@ public sealed partial class DaisyTour : ContentControl
                 CardBounds = Shift(clear, _visibleArea.X, _visibleArea.Y);
                 Canvas.SetLeft(_card, CardBounds.X);
                 Canvas.SetTop(_card, CardBounds.Y);
-                UpdateAnnotations(step, layout);
+                UpdateAnnotations(step, layout, padding);
             }
         }
         GeometryUpdated?.Invoke(this, EventArgs.Empty);
@@ -830,7 +892,7 @@ public sealed partial class DaisyTour : ContentControl
     }
 
     // Annotations that need a target that cannot be shown are hidden. The default pointer ends at the step target.
-    private void UpdateAnnotations(DaisyTourStep step, TargetLayout layout)
+    private void UpdateAnnotations(DaisyTourStep step, TargetLayout layout, double padding)
     {
         var definitions = step.Annotations.Count == 0 ? new[] { _defaultAnnotation } : step.Annotations.ToArray();
         if (_presenters.Count != definitions.Length || _annotations.Children.Count != definitions.Length)
@@ -872,15 +934,15 @@ public sealed partial class DaisyTour : ContentControl
             if (kind != DaisyTourAnnotationKind.Custom)
             {
                 // Connectors and tails start and end at the highlight frame instead of crossing it.
-                var frame = Math.Max(0, double.IsFinite(EffectiveHighlightPadding) ? EffectiveHighlightPadding : 0) + _outline.StrokeThickness / 2;
+                var frame = padding + _outline.StrokeThickness / 2;
                 end = Inflate(end, frame);
                 if (annotation.Source is not null) source = Inflate(source, frame);
             }
             if (kind == DaisyTourAnnotationKind.Custom)
-                source = MarkerBounds(annotation.Source is null ? end : source);
+                source = MarkerBounds(annotation.Source is null ? end : source, padding + _outline.StrokeThickness);
             presenter.WidthLimit = double.PositiveInfinity;
             if (annotation.Source is null && kind is DaisyTourAnnotationKind.Cloud or DaisyTourAnnotationKind.SpeechBubble)
-                source = PlaceSurface(presenter, annotation, step, end, layout.Bounds.Values, foreground, scale);
+                source = PlaceSurface(presenter, annotation, step, end, layout.Bounds.Values, padding + _outline.StrokeThickness, foreground, scale);
             presenter.Update(annotation, source, end,
                 ThemeBrush("DaisyPrimaryBrush"), ThemeBrush("DaisyBase100Brush"),
                 foreground, AnnotationDefaults, step.AnnotationDefaults, scale, _card.FlowDirection, RouteLimitFor(annotation), layers);
@@ -890,9 +952,8 @@ public sealed partial class DaisyTour : ContentControl
     // Surfaces go beside their target in one of eight directions. Without a fitting direction,
     // the surface narrows in steps down to its minimum width before it is clamped into view.
     private Rect PlaceSurface(DaisyTourAnnotationPresenter presenter, DaisyTourAnnotation annotation, DaisyTourStep step,
-        Rect target, IEnumerable<Rect> highlighted, IBrush foreground, double scale)
+        Rect target, IEnumerable<Rect> highlighted, double frame, IBrush foreground, double scale)
     {
-        var frame = Math.Max(0, double.IsFinite(EffectiveHighlightPadding) ? EffectiveHighlightPadding : 0) + _outline.StrokeThickness;
         var highlights = highlighted.Select(rect => Inflate(rect, frame)).ToList();
         if (_editor is { } editor) highlights.Add(editor.InspectorBounds);
         var viewport = new Size(_visibleArea.Width, _visibleArea.Height);
@@ -918,9 +979,8 @@ public sealed partial class DaisyTour : ContentControl
 
     // A custom marker is centered on its anchor. An ellipse inscribed in this box
     // encloses the anchor's complete highlight, including its corners.
-    private Rect MarkerBounds(Rect anchor)
+    private static Rect MarkerBounds(Rect anchor, double margin)
     {
-        var margin = Math.Max(0, double.IsFinite(EffectiveHighlightPadding) ? EffectiveHighlightPadding : 0) + _outline.StrokeThickness;
         var width = (anchor.Width + 2 * margin) * Math.Sqrt(2);
         var height = (anchor.Height + 2 * margin) * Math.Sqrt(2);
         return new Rect(anchor.X + anchor.Width / 2 - width / 2, anchor.Y + anchor.Height / 2 - height / 2, width, height);
@@ -959,10 +1019,15 @@ public sealed partial class DaisyTour : ContentControl
     private static bool Touches(Rect first, Rect second) =>
         first.Left <= second.Right && second.Left <= first.Right && first.Top <= second.Bottom && second.Top <= first.Bottom;
 
+    // The steps of a session are fixed, so their progress items are built once per session; Close removes them.
+    private void ShowProgress(Session session)
+    {
+        if (_progressItems.Count == 0) BuildProgress(session);
+        _progress.SelectedIndex = CurrentIndex;
+    }
+
     private void BuildProgress(Session session)
     {
-        _progressItems.Clear();
-        _progress.Items.Clear();
         for (var index = 0; index < session.Steps.Length; index++)
         {
             var button = new Button
@@ -979,7 +1044,6 @@ public sealed partial class DaisyTour : ContentControl
             _progressItems.Add(item);
             _progress.Items.Add(item);
         }
-        _progress.SelectedIndex = CurrentIndex;
     }
 
     private void RefreshPresentation()
@@ -1105,23 +1169,6 @@ public sealed partial class DaisyTour : ContentControl
             _progressScroll.Offset.Y);
     }
 
-    private static PathGeometry RoundedRectangle(Rect rect, double requestedRadius)
-    {
-        var radius = Math.Clamp(double.IsFinite(requestedRadius) ? requestedRadius : 0, 0, Math.Min(rect.Width, rect.Height) / 2);
-        var figure = new PathFigure { StartPoint = new Point(rect.Left + radius, rect.Top), IsClosed = true, IsFilled = true };
-        figure.Segments!.Add(new LineSegment { Point = new Point(rect.Right - radius, rect.Top) });
-        figure.Segments!.Add(new QuadraticBezierSegment { Point1 = new Point(rect.Right, rect.Top), Point2 = new Point(rect.Right, rect.Top + radius) });
-        figure.Segments!.Add(new LineSegment { Point = new Point(rect.Right, rect.Bottom - radius) });
-        figure.Segments!.Add(new QuadraticBezierSegment { Point1 = new Point(rect.Right, rect.Bottom), Point2 = new Point(rect.Right - radius, rect.Bottom) });
-        figure.Segments!.Add(new LineSegment { Point = new Point(rect.Left + radius, rect.Bottom) });
-        figure.Segments!.Add(new QuadraticBezierSegment { Point1 = new Point(rect.Left, rect.Bottom), Point2 = new Point(rect.Left, rect.Bottom - radius) });
-        figure.Segments!.Add(new LineSegment { Point = new Point(rect.Left, rect.Top + radius) });
-        figure.Segments!.Add(new QuadraticBezierSegment { Point1 = new Point(rect.Left, rect.Top), Point2 = new Point(rect.Left + radius, rect.Top) });
-        var geometry = new PathGeometry();
-        geometry.Figures!.Add(figure);
-        return geometry;
-    }
-
     private void ResizeSurface()
     {
         if (_overlay is not { } root) return;
@@ -1129,7 +1176,16 @@ public sealed partial class DaisyTour : ContentControl
         _surface.Height = root.Bounds.Height;
         _annotations.Width = root.Bounds.Width;
         _annotations.Height = root.Bounds.Height;
-        _editor?.ArrangeInspector(root.Bounds.Size);
+        UpdateVisibleArea();
+    }
+
+    // The part of the window that the display shows. The card, the annotations and the editor's inspector are placed
+    // in it, so the inspector keeps its place between a resize of the surface and the next geometry update.
+    private void UpdateVisibleArea()
+    {
+        _visibleArea = VisibleAreaOverride ??
+            (_overlay is not null && TopLevel.GetTopLevel(this) is { } root ? DaisyTourLayout.VisibleArea(root) : new Rect(0, 0, _surface.Width, _surface.Height));
+        _editor?.ArrangeInspector(new Size(_visibleArea.Width, _visibleArea.Height), new Point(_visibleArea.X, _visibleArea.Y));
     }
 
     private void OnRootChanged(object? sender, AvaloniaPropertyChangedEventArgs args)
@@ -1147,7 +1203,7 @@ public sealed partial class DaisyTour : ContentControl
     {
         if (_session is { PendingStep: null } session && CurrentStep is not null &&
             (Math.Abs(args.NewSize.Height - CardBounds.Height) > 0.5 || Math.Abs(args.NewSize.Width - CardBounds.Width) > 0.5))
-            UpdateGeometry(session);
+            TryUpdateGeometry(session);
     }
 
     private void OnAppWindowChanged(object? sender, PixelPointEventArgs args) => QueueGeometry();
@@ -1166,7 +1222,7 @@ public sealed partial class DaisyTour : ContentControl
         if (_session is not null && args.NewFocusedElement is Visual element &&
             !DaisyTourLayout.IsDescendant(element, _surface) &&
             (_editor is null || !element.GetVisualAncestors().Any(ancestor => ancestor is OverlayPopupHost)))
-            args.TrySetNewFocusedElement(_session.Busy ? _surface : _next);
+            args.TrySetNewFocusedElement(_session.Busy ? _surface : FocusTarget() ?? _surface);
     }
 
     private void OnSurfaceKeyDown(object? sender, KeyEventArgs args)

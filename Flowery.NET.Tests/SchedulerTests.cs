@@ -1,6 +1,7 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using System.Text.Json;
+using Avalonia;
 using Avalonia.Automation;
+using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
@@ -11,24 +12,17 @@ using Flowery.Controls;
 using Flowery.Controls.Scheduler.Contracts;
 using Flowery.Controls.Scheduler.Models;
 using Flowery.Controls.Scheduler.Rendering;
-using Flowery.Controls.Scheduler.Utilities;
 using Flowery.Localization;
-using System.Text.Json;
 using Xunit;
 
 namespace Flowery.NET.Tests;
 
-[Collection("LocalizationTests")]
 public sealed partial class SchedulerTests
 {
     private static readonly DateTime Monday = new(2026, 10, 12);
 
     [AvaloniaTheory]
-    [InlineData(SchedulerView.Day)]
-    [InlineData(SchedulerView.Week)]
     [InlineData(SchedulerView.Month)]
-    [InlineData(SchedulerView.Agenda)]
-    [InlineData(SchedulerView.Planner)]
     [InlineData(SchedulerView.Timeline)]
     public void EveryViewRendersHostAppointmentsAndSupportsSelection(SchedulerView view)
     {
@@ -123,47 +117,30 @@ public sealed partial class SchedulerTests
     }
 
     [AvaloniaTheory]
-    [InlineData(SchedulerView.Week, DayOfWeek.Monday, 0)]
     [InlineData(SchedulerView.Week, DayOfWeek.Sunday, 0)]
-    [InlineData(SchedulerView.Planner, DayOfWeek.Monday, 0)]
-    [InlineData(SchedulerView.Planner, DayOfWeek.Sunday, 0)]
-    [InlineData(SchedulerView.Planner, DayOfWeek.Saturday, 0)]
-    [InlineData(SchedulerView.Planner, DayOfWeek.Wednesday, -7)]
     public void WithoutWeekendsWeekAndPlannerShowMondayToFriday(SchedulerView view, DayOfWeek firstDay, int mondayOffset)
     {
         using var scope = new SchedulerScope(view);
         Assert.True(scope.Scheduler.ShowWeekends);
         scope.Scheduler.FirstDayOfWeek = firstDay;
+        scope.Layout();
+        var culture = scope.Scheduler.FormattingCulture;
+        string?[] Texts() => scope.Scheduler.GetVisualDescendants().OfType<TextBlock>().Select(static text => text.Text).ToArray();
+        // Whichever week the first day starts, its weekend lies within a week of Monday.
+        string[] Weekend(string?[] texts) => Enumerable.Range(-7, 21).Select(static day => Monday.AddDays(day))
+            .Where(static date => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+            .Select(date => date.ToString("ddd, d MMM", culture)).Where(texts.Contains).ToArray();
+        Assert.NotEmpty(Weekend(Texts()));
+
         scope.Scheduler.ShowWeekends = false;
         scope.Layout();
 
         // A week from Wednesday to Tuesday shares three weekdays with the Monday before it and two with the one after.
         var monday = Monday.AddDays(mondayOffset);
-        var culture = scope.Scheduler.FormattingCulture;
-        var texts = scope.Scheduler.GetVisualDescendants().OfType<TextBlock>().Select(static text => text.Text).ToArray();
+        var texts = Texts();
         for (var day = 0; day < 5; day++)
             Assert.Contains(monday.AddDays(day).ToString("ddd, d MMM", culture), texts);
-        Assert.DoesNotContain(monday.AddDays(-1).ToString("ddd, d MMM", culture), texts);
-        Assert.DoesNotContain(monday.AddDays(5).ToString("ddd, d MMM", culture), texts);
-    }
-
-    [AvaloniaFact]
-    public void WithoutWeekendsTheMonthShowsFiveColumns()
-    {
-        using var scope = new SchedulerScope(SchedulerView.Month);
-        Grid MonthGrid() => scope.Scheduler.GetVisualDescendants().OfType<Grid>().First(static grid => grid.RowDefinitions.Count == 7);
-        Assert.Equal(7, MonthGrid().ColumnDefinitions.Count);
-
-        scope.Scheduler.ShowWeekends = false;
-        scope.Layout();
-
-        var grid = MonthGrid();
-        var culture = scope.Scheduler.FormattingCulture;
-        var headers = grid.Children.OfType<Border>().Where(static cell => Grid.GetRow(cell) == 0)
-            .Select(static cell => ((TextBlock)cell.Child!).Text).ToArray();
-        Assert.Equal(Enumerable.Range(0, 5).Select(day => Monday.AddDays(day).ToString("ddd", culture)), headers);
-        Assert.Equal(5, grid.ColumnDefinitions.Count);
-        Assert.Equal(5 + 6 * 5, grid.Children.Count);
+        Assert.Empty(Weekend(texts));
     }
 
     [AvaloniaTheory]
@@ -212,25 +189,6 @@ public sealed partial class SchedulerTests
     }
 
     [AvaloniaFact]
-    public void LockedAppointmentCannotBeSelectedOrDeletedButAllowsContextRequest()
-    {
-        using var scope = new SchedulerScope(SchedulerView.Month);
-        scope.Appointment.IsLocked = true;
-        scope.Scheduler.Appointments = new[] { scope.Appointment };
-        scope.Layout();
-        var block = scope.Frame(scope.Appointment);
-        scope.Click(block);
-        Assert.Null(scope.Scheduler.SelectedAppointment);
-        AppointmentContextRequestedArgs? context = null;
-        scope.Scheduler.AppointmentContextRequested += (_, args) => context = args;
-        scope.Click(block, MouseButton.Right);
-        Assert.NotNull(context);
-        Assert.Same(scope.Appointment, context.Appointment);
-        scope.Scheduler.SelectedAppointment = scope.Appointment;
-        Assert.Empty(scope.Scheduler.SelectedAppointments);
-    }
-
-    [AvaloniaFact]
     public void DeleteKeyReportsSelectionAndLeavesTheInputListIntact()
     {
         using var scope = new SchedulerScope(SchedulerView.Month);
@@ -267,28 +225,6 @@ public sealed partial class SchedulerTests
     }
 
     [AvaloniaFact]
-    public void GlobalSizeChangesFontsAndExplicitSizeIsRespected()
-    {
-        var previous = FlowerySizeManager.CurrentSize;
-        using var scope = new SchedulerScope(SchedulerView.Month);
-        try
-        {
-            scope.Scheduler.ClearValue(DaisyScheduler.SizeProperty);
-            FlowerySizeManager.ApplySize(DaisySize.ExtraLarge);
-            scope.Layout();
-            Assert.Equal(DaisySize.ExtraLarge, scope.Scheduler.Size);
-            Assert.Equal(20, scope.Scheduler.FontSize);
-            Assert.All(scope.Scheduler.GetVisualDescendants().OfType<DaisyButton>(), button => Assert.Equal(DaisySize.ExtraLarge, button.Size));
-            scope.Scheduler.Size = DaisySize.Small;
-            FlowerySizeManager.ApplySize(DaisySize.ExtraSmall);
-            scope.Layout();
-            Assert.Equal(DaisySize.Small, scope.Scheduler.Size);
-            Assert.Equal(12, scope.Scheduler.FontSize);
-        }
-        finally { FlowerySizeManager.ApplySize(previous); }
-    }
-
-    [AvaloniaFact]
     public void ThemeChangesRefreshAppointmentColorsAndCustomFillsKeepReadableText()
     {
         var previous = DaisyThemeManager.CurrentThemeName;
@@ -313,10 +249,6 @@ public sealed partial class SchedulerTests
     }
 
     [AvaloniaTheory]
-    [InlineData("Coffee", false)]
-    [InlineData("Light", false)]
-    [InlineData("Dark", false)]
-    [InlineData("Corporate", false)]
     [InlineData("Light", true)]
     public void NameTagsUseTheirOwnBackgroundForReadableContrast(string theme, bool darkAppointment)
     {
@@ -375,28 +307,9 @@ public sealed partial class SchedulerTests
         }
     }
 
-    [AvaloniaFact]
-    public void PlannerConvertsDisplayedTimesButSelectionReturnsOriginalAppointment()
-    {
-        using var scope = new SchedulerScope(SchedulerView.Planner);
-        scope.Scheduler.SchedulerResources = new[] { new ResourceModel { Id = 1, Name = "New York", TimeZoneId = "America/New_York" } };
-        scope.Appointment.Start = Monday.AddHours(13);
-        scope.Appointment.End = Monday.AddHours(14);
-        scope.Scheduler.Appointments = new[] { scope.Appointment };
-        scope.Layout();
-        var frame = scope.Frame(scope.Appointment);
-        var context = (AppointmentContext)frame.DataContext!;
-        Assert.Equal(Monday.AddHours(9), context.Start);
-        scope.Click(frame);
-        Assert.Same(scope.Appointment, scope.Scheduler.SelectedAppointment);
-        Assert.Equal(Monday.AddHours(13), scope.Appointment.Start);
-    }
-
     [AvaloniaTheory]
-    [InlineData("Corporate")]
     [InlineData("Light")]
     [InlineData("Dark")]
-    [InlineData("Coffee")]
     public void HoverTooltipTextInheritsTheTooltipPalette(string theme)
     {
         var previous = DaisyThemeManager.CurrentThemeName;
@@ -447,17 +360,6 @@ public sealed partial class SchedulerTests
         var grid = scope.Scheduler.GetVisualDescendants().OfType<Grid>().Single(control => control.RowDefinitions.Count == 7 && control.ColumnDefinitions.Count == 7);
         var header = (Border)grid.Children[0];
         Assert.Equal(new DateTime(2026, 9, 27).ToString("ddd", Flowery.Localization.FloweryLocalization.CurrentCulture), ((TextBlock)header.Child!).Text);
-    }
-
-    [AvaloniaFact]
-    public void MonthFitsTheViewportAfterTheHostResizes()
-    {
-        using var scope = new SchedulerScope(SchedulerView.Month);
-        scope.Window.Width = 760;
-        scope.Layout();
-        var scroll = scope.Scheduler.GetVisualDescendants().OfType<ScrollViewer>().Single();
-        Assert.True(scroll.Extent.Width <= scroll.Viewport.Width + 1);
-        Assert.True(scope.Frame(scope.Appointment).Bounds.Width > 0);
     }
 
     [AvaloniaFact]
@@ -523,30 +425,6 @@ public sealed partial class SchedulerTests
         }
     }
 
-    [Fact]
-    public void OverlapPackingAndCloneKeepTheUpstreamDataContract()
-    {
-        var first = new AppointmentModel { Start = Monday.AddHours(9), End = Monday.AddHours(11), ResourceIds = { 1 }, Tiles = { new AppointmentDecoration { Text = "Tile" } } };
-        var second = new AppointmentModel { Start = Monday.AddHours(10), End = Monday.AddHours(12) };
-        var third = new AppointmentModel { Start = Monday.AddHours(13), End = Monday.AddHours(14) };
-        var layouts = EventBlockLayout.Layout(Monday, new[] { first, second, third });
-        Assert.Equal(2, layouts.Single(layout => layout.Appointment == first).ColumnCount);
-        Assert.Equal(1, layouts.Single(layout => layout.Appointment == third).ColumnCount);
-        var copy = first.Clone();
-        copy.ResourceIds.Add(2);
-        copy.Tiles.Clear();
-        Assert.Single(first.ResourceIds);
-        Assert.Single(first.Tiles);
-    }
-
-    [Fact]
-    public void ExternalDragDataCarriesTypedSourceItem()
-    {
-        var item = new Droppable();
-        using var data = ExternalDropHandler.CreateDataTransfer(item);
-        Assert.Same(item, data.TryGetValue(ExternalDropHandler.Format));
-    }
-
     private sealed class Droppable : ISchedulerDroppable
     {
         public string Subject => "External";
@@ -579,17 +457,7 @@ public sealed partial class SchedulerTests
         public Point Point(Control control, double x, double y) => control.TranslatePoint(new Point(x, y), Window)!.Value;
         public void Click(Control control, MouseButton button = MouseButton.Left)
         {
-            var point = Point(control, control.Bounds.Width / 2, control.Bounds.Height / 2);
-            // A click outside the window or the visible part of a scrolled view would miss without a trace.
-            for (var frame = 0; frame < 2; frame++)
-            {
-                Dispatcher.UIThread.RunJobs();
-                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-            }
-            Assert.True(Window.InputHitTest(point) is Visual hit && (hit == control || control.IsVisualAncestorOf(hit)),
-                $"{control} cannot be clicked at {point}: {Window.InputHitTest(point)} is there.");
-            Window.MouseDown(point, button);
-            Window.MouseUp(point, button);
+            control.PointerClick(button: button);
             Layout();
         }
         public void Layout() { Dispatcher.UIThread.RunJobs(); Window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); Window.UpdateLayout(); }

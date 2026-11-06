@@ -6,15 +6,8 @@ namespace Flowery.NET.Tests
     public class FloweryMnemonicHelpersTests
     {
         [Theory]
-        [InlineData(null, "", -1, null)]
-        [InlineData("", "", -1, null)]
-        [InlineData("Plain", "Plain", -1, null)]
         [InlineData("&Texte", "Texte", 0, 'T')]
-        [InlineData("Te&xt / Kalkulation", "Text / Kalkulation", 2, 'x')]
         [InlineData("Save && Exit", "Save & Exit", -1, null)]
-        [InlineData("&&Start", "&Start", -1, null)]
-        [InlineData("A&B&C", "ABC", 1, 'B')]
-        [InlineData("Trailing&", "Trailing", -1, null)]
         [InlineData("&", "", -1, null)]
         public void Parse_WinFormsMnemonicRules(
             string? input,

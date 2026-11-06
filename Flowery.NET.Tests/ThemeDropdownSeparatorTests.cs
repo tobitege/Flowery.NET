@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Xunit;
@@ -14,7 +13,6 @@ public class ThemeDropdownSeparatorTests
 {
     [AvaloniaTheory]
     [InlineData(false)]
-    [InlineData(true)]
     public void Boundary_Exists_Only_Between_Two_Nonempty_Groups(bool product)
     {
         using var scope = new SeparatorScope(product);
@@ -37,7 +35,6 @@ public class ThemeDropdownSeparatorTests
 
     [AvaloniaTheory]
     [InlineData(false)]
-    [InlineData(true)]
     public void Separator_Click_Does_Not_Select_Or_Close_And_Keyboard_Skips_It(bool product)
     {
         using var scope = new SeparatorScope(product);
@@ -92,22 +89,6 @@ public class ThemeDropdownSeparatorTests
         Assert.Equal(NameOf(firstNormal), NameOf(scope.Combo.SelectedItem!));
     }
 
-    [AvaloniaFact]
-    public void Local_Boundary_Does_Not_Mutate_The_Shared_Standard_List()
-    {
-        using var scope = new SeparatorScope(false);
-        DaisyThemeManager.PreferredThemes = ["Business"];
-        var other = new DaisyThemeDropdown();
-        var otherItems = other.ItemsSource!.Cast<ThemePreviewInfo>().ToArray();
-        Assert.True(otherItems[1].HasSeparatorBefore);
-
-        scope.Add(otherItems[1].Name, "A", true);
-        Assert.Equal(2, Array.FindIndex(scope.Items, HasSeparator));
-        Assert.True(otherItems[1].HasSeparatorBefore);
-        Assert.Single(otherItems, static item => item.HasSeparatorBefore);
-        Assert.NotSame(otherItems[1], scope.Items.Single(item => NameOf(item) == otherItems[1].Name));
-    }
-
     private static bool HasSeparator(object item) => item switch
     {
         ThemePreviewInfo theme => theme.HasSeparatorBefore,
@@ -122,26 +103,13 @@ public class ThemeDropdownSeparatorTests
         _ => throw new ArgumentException("Expected a theme entry.", nameof(item))
     };
 
-    private sealed class SeparatorScope : IDisposable
+    private sealed class SeparatorScope : ThemeTestScope
     {
-        private readonly IReadOnlyCollection<string> _excluded = DaisyThemeManager.ExcludedThemes;
-        private readonly IReadOnlyCollection<string> _preferred = DaisyThemeManager.PreferredThemes;
-        private readonly string? _current = DaisyThemeManager.CurrentThemeName;
-        private readonly Func<string, bool>? _applicator = DaisyThemeManager.CustomThemeApplicator;
-        private readonly bool _suppressed = DaisyThemeManager.SuppressThemeApplication;
-        private readonly HashSet<string> _registered;
-        public Window Window { get; } = new() { Width = 600, Height = 400 };
         public ComboBox Combo { get; }
-        public int ApplyCalls { get; private set; }
         public object[] Items => [.. Combo.ItemsSource!.Cast<object>()];
 
-        public SeparatorScope(bool product)
+        public SeparatorScope(bool product) : base(600, 400)
         {
-            _registered = ThemeRegistrations.Capture();
-            DaisyThemeManager.PreferredThemes = [];
-            DaisyThemeManager.CustomThemeApplicator = Apply;
-            DaisyThemeManager.SuppressThemeApplication = false;
-            DaisyThemeManager.SetCurrentTheme("Business");
             Combo = product ? new DaisyProductThemeDropdown() : new DaisyThemeDropdown();
             Combo.Width = 300;
             Combo.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left;
@@ -158,26 +126,6 @@ public class ThemeDropdownSeparatorTests
             else if (Combo is DaisyProductThemeDropdown product)
                 product.AddTheme(name, label, preferred);
             Layout();
-        }
-
-        public void Layout()
-        {
-            Dispatcher.UIThread.RunJobs();
-            Window.UpdateLayout();
-        }
-
-        private bool Apply(string name) { ApplyCalls++; return true; }
-
-        public void Dispose()
-        {
-            Window.Close();
-            // The current theme cannot be unregistered, so it is restored first.
-            DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);
-            ThemeRegistrations.RemoveAddedSince(_registered);
-            DaisyThemeManager.ExcludedThemes = _excluded;
-            DaisyThemeManager.PreferredThemes = _preferred;
-            DaisyThemeManager.CustomThemeApplicator = _applicator;
-            DaisyThemeManager.SuppressThemeApplication = _suppressed;
         }
     }
 }

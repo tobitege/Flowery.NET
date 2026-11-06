@@ -5,26 +5,38 @@ namespace Flowery.NET.Kiosk.Slides;
 
 public partial class PatternsSlide : UserControl
 {
+    // The entrance counts ticks of a 16 ms timer. A row of two cards fades in off screen, then both cards move in from
+    // their side with an ease-out; each row starts RowDelay ticks after the one before and is created CreateLead ticks
+    // before it starts.
+    private const int FadeTicks = 10;
+    private const int MoveTicks = 25;
+    private const int RowDelay = 35;
+    private const int CreateLead = 25;
+    private const double StartOffset = 400;
+
+    // Row by row, the left card first.
+    private static readonly (DaisyCardPattern Pattern, DaisyColor Color, string Title)[] Cards =
+    [
+        (DaisyCardPattern.CarbonFiber, DaisyColor.Neutral, "Carbon Fiber"),
+        (DaisyCardPattern.Honeycomb, DaisyColor.Primary, "Honeycomb"),
+        (DaisyCardPattern.Circuit, DaisyColor.Secondary, "Circuit Board"),
+        (DaisyCardPattern.DiamondPlate, DaisyColor.Neutral, "Diamond Plate"),
+        (DaisyCardPattern.Dots, DaisyColor.Accent, "Subtle Dots"),
+        (DaisyCardPattern.Stripes, DaisyColor.Default, "Dynamic Stripes")
+    ];
+
+    private readonly Border[] _slots;
+    private readonly DaisyPatternedCard?[] _cards = new DaisyPatternedCard?[Cards.Length];
     private DispatcherTimer? _animTimer;
     private int _animTick;
     private TaskCompletionSource _entranceFinished = new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal Task EntranceFinished => _entranceFinished.Task;
     internal bool IsEntranceTimerRunning => _animTimer is not null;
 
-    // Cards and transforms for animation
-    private DaisyPatternedCard? _row0Left, _row0Right;
-    private DaisyPatternedCard? _row1Left, _row1Right;
-    private DaisyPatternedCard? _row2Left, _row2Right;
-    private TranslateTransform? _row0LeftTransform, _row0RightTransform;
-    private TranslateTransform? _row1LeftTransform, _row1RightTransform;
-    private TranslateTransform? _row2LeftTransform, _row2RightTransform;
-
-    // Track which rows have been created
-    private bool _row0Created, _row1Created, _row2Created;
-
     public PatternsSlide()
     {
         InitializeComponent();
+        _slots = [Row0Left, Row0Right, Row1Left, Row1Right, Row2Left, Row2Right];
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
     }
@@ -33,7 +45,7 @@ public partial class PatternsSlide : UserControl
     {
         StopTimer();
         _entranceFinished = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        _row0Created = _row1Created = _row2Created = false;
+        Array.Clear(_cards);
         _animTick = 0;
 
         _animTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(16) };
@@ -59,109 +71,35 @@ public partial class PatternsSlide : UserControl
     private void OnAnimTick(object? sender, EventArgs e)
     {
         _animTick++;
-
-        // Timing constants
-        const int fadeInDuration = 10; // ~160ms fade in
-        const int moveDuration = 25;   // ~400ms movement
-        const int rowDelay = 35;       // ~560ms between row starts
-        const int animDone = fadeInDuration + moveDuration;
-
-        // Row 0: create immediately
-        if (!_row0Created)
+        for (var index = 0; index < Cards.Length; index++)
         {
-            CreateRow0();
-            _row0Created = true;
+            var start = index / 2 * RowDelay;
+            if (_cards[index] is null && _animTick >= start - CreateLead)
+                _slots[index].Child = _cards[index] = CreateCard(Cards[index], index % 2 == 0);
+            if (_cards[index] is { } card)
+                Animate(card, _animTick - start, index % 2 == 0 ? -1 : 1);
         }
-        AnimateRowWithFade(_row0Left, _row0Right, _row0LeftTransform, _row0RightTransform,
-                           _animTick, fadeInDuration, moveDuration);
 
-        // Row 1: create early
-        if (!_row1Created && _animTick >= 10)
-        {
-            CreateRow1();
-            _row1Created = true;
-        }
-        if (_row1Created)
-            AnimateRowWithFade(_row1Left, _row1Right, _row1LeftTransform, _row1RightTransform,
-                               _animTick - rowDelay, fadeInDuration, moveDuration);
-
-        // Row 2: create when row 1 starts
-        if (!_row2Created && _animTick >= rowDelay + 10)
-        {
-            CreateRow2();
-            _row2Created = true;
-        }
-        if (_row2Created)
-            AnimateRowWithFade(_row2Left, _row2Right, _row2LeftTransform, _row2RightTransform,
-                               _animTick - rowDelay * 2, fadeInDuration, moveDuration);
-
-        // Stop when all done
-        if (_animTick >= rowDelay * 2 + animDone)
+        if (_animTick >= (Cards.Length / 2 - 1) * RowDelay + FadeTicks + MoveTicks)
         {
             StopTimer();
             _entranceFinished.TrySetResult();
         }
     }
 
-    private void CreateRow0()
+    private static DaisyPatternedCard CreateCard((DaisyCardPattern Pattern, DaisyColor Color, string Title) card, bool left) => new()
     {
-        (_row0Left, _row0Right, _row0LeftTransform, _row0RightTransform) = CreateCardPair(
-            Row0Left, Row0Right,
-            DaisyCardPattern.CarbonFiber, DaisyCardPattern.Honeycomb,
-            DaisyColor.Neutral, DaisyColor.Primary,
-            "Carbon Fiber", "Honeycomb");
-    }
-
-    private void CreateRow1()
-    {
-        (_row1Left, _row1Right, _row1LeftTransform, _row1RightTransform) = CreateCardPair(
-            Row1Left, Row1Right,
-            DaisyCardPattern.Circuit, DaisyCardPattern.DiamondPlate,
-            DaisyColor.Secondary, DaisyColor.Neutral,
-            "Circuit Board", "Diamond Plate");
-    }
-
-    private void CreateRow2()
-    {
-        (_row2Left, _row2Right, _row2LeftTransform, _row2RightTransform) = CreateCardPair(
-            Row2Left, Row2Right,
-            DaisyCardPattern.Dots, DaisyCardPattern.Stripes,
-            DaisyColor.Accent, DaisyColor.Default,
-            "Subtle Dots", "Dynamic Stripes");
-    }
-
-    private static (DaisyPatternedCard left, DaisyPatternedCard right, TranslateTransform leftT, TranslateTransform rightT) CreateCardPair(
-        Border leftContainer, Border rightContainer,
-        DaisyCardPattern leftPattern, DaisyCardPattern rightPattern,
-        DaisyColor leftColor, DaisyColor rightColor,
-        string leftTitle, string rightTitle)
-    {
-        var leftTransform = new TranslateTransform { X = -400 };
-        var rightTransform = new TranslateTransform { X = 400 };
-
-        var leftCard = CreateCard(leftPattern, leftColor, leftTitle, HorizontalAlignment.Right, leftTransform);
-        var rightCard = CreateCard(rightPattern, rightColor, rightTitle, HorizontalAlignment.Left, rightTransform);
-
-        leftContainer.Child = leftCard;
-        rightContainer.Child = rightCard;
-
-        return (leftCard, rightCard, leftTransform, rightTransform);
-    }
-
-    private static DaisyPatternedCard CreateCard(DaisyCardPattern pattern, DaisyColor color, string title,
-        HorizontalAlignment alignment, TranslateTransform transform) => new()
-    {
-        Pattern = pattern,
-        ColorVariant = color,
+        Pattern = card.Pattern,
+        ColorVariant = card.Color,
         Width = 200,
         Height = 100,
         Margin = new Thickness(10),
-        HorizontalAlignment = alignment,
-        RenderTransform = transform,
-        Opacity = 0, // Start invisible
+        HorizontalAlignment = left ? HorizontalAlignment.Right : HorizontalAlignment.Left,
+        RenderTransform = new TranslateTransform { X = left ? -StartOffset : StartOffset },
+        Opacity = 0,
         Content = new TextBlock
         {
-            Text = title,
+            Text = card.Title,
             FontWeight = FontWeight.Bold,
             FontSize = 14,
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -169,53 +107,19 @@ public partial class PatternsSlide : UserControl
         }
     };
 
-    private static void AnimateRowWithFade(
-        DaisyPatternedCard? leftCard, DaisyPatternedCard? rightCard,
-        TranslateTransform? leftT, TranslateTransform? rightT,
-        int tick, int fadeDuration, int moveDuration)
+    // Before its start a card stays hidden off screen; side is -1 for the left card and 1 for the right one.
+    private static void Animate(DaisyPatternedCard card, int tick, int side)
     {
-        if (leftCard == null || rightCard == null || leftT == null || rightT == null)
-            return;
-
-        if (tick < 0)
+        var transform = (TranslateTransform)card.RenderTransform!;
+        if (tick < FadeTicks)
         {
-            // Not started - stay hidden and off-screen
-            leftCard.Opacity = 0;
-            rightCard.Opacity = 0;
-            leftT.X = -400;
-            rightT.X = 400;
+            card.Opacity = Math.Max(0, tick) / (double)FadeTicks;
+            transform.X = side * StartOffset;
             return;
         }
 
-        // Phase 1: Fade in (still off-screen)
-        if (tick < fadeDuration)
-        {
-            double fadeT = tick / (double)fadeDuration;
-            leftCard.Opacity = fadeT;
-            rightCard.Opacity = fadeT;
-            leftT.X = -400;
-            rightT.X = 400;
-            return;
-        }
-
-        // Ensure fully visible
-        leftCard.Opacity = 1;
-        rightCard.Opacity = 1;
-
-        // Phase 2: Move in
-        int moveTick = tick - fadeDuration;
-        if (moveTick >= moveDuration)
-        {
-            leftT.X = 0;
-            rightT.X = 0;
-            return;
-        }
-
-        // Ease-out cubic
-        double t = moveTick / (double)moveDuration;
-        double eased = 1 - Math.Pow(1 - t, 3);
-
-        leftT.X = -400 * (1 - eased);
-        rightT.X = 400 * (1 - eased);
+        card.Opacity = 1;
+        var moved = Math.Min(1, (tick - FadeTicks) / (double)MoveTicks);
+        transform.X = side * StartOffset * Math.Pow(1 - moved, 3);
     }
 }

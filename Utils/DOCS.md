@@ -173,15 +173,15 @@ Best practices:
 
 ---
 
-## Pull Request Checks
+## Documentation Checks
 
-A pull request that changes only documentation (Markdown files, `llms-static/` and the docs tooling in `Utils/`) skips the CI build and the dependency audit. `.github/workflows/docs.yml` checks it instead:
+A pull request or push that changes only documentation (Markdown files, `llms-static/` and the docs tooling in `Utils/`) skips the CI build and the dependency audit. `.github/workflows/docs.yml` checks it instead, and on a push to `avalonia12` `generate-docs.yml` runs the same checks before it deploys the site:
 
 1) `python Utils/check_characters.py` fails on characters that do not print, such as bidirectional controls, zero-width characters and Unicode tags, except inside emoji. It checks the documentation files that git tracks, so add a new file with `git add` first.
 2) `generate_docs.py` and `generate_site.py` build the docs and the site as `generate-docs.yml` does.
 3) `test_documentation.py` and `test_check_characters.py` run.
 
-`ci.yml`, `dependency-security.yml` and `docs.yml` share the list of documentation paths; keep it in sync.
+`ci.yml`, `dependency-security.yml` and `docs.yml` share the list of documentation paths; keep it in sync. `docs.yml` leaves pushes to `avalonia12` to `generate-docs.yml`, so every push is checked once.
 
 ---
 
@@ -202,7 +202,7 @@ A pull request that changes only documentation (Markdown files, `llms-static/` a
 | `Utils/generate_docs.py` | Optional generator for auto-parsed metadata |
 | `llms-static/README.md` | How to write curated docs |
 | `.github/workflows/generate-docs.yml` | CI entrypoint |
-| `.github/workflows/docs.yml` | Checks pull requests that change the documentation |
+| `.github/workflows/docs.yml` | Checks pull requests and pushes (except to `avalonia12`) that change the documentation |
 | `Utils/check_characters.py` | Fails on hidden characters in the documentation |
 | `docs/llms.txt` | Machine-readable docs for AI assistants (regenerated) |
 

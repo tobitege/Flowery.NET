@@ -48,11 +48,11 @@ public partial class SchedulerExamples : UserControl, ICollapsibleIntroExample
 
     public event EventHandler? IntroVisibilityChanged;
 
-    public SchedulerExamples() : this(OperatingSystem.IsAndroid())
+    public SchedulerExamples() : this(MainView.IsTouchFirst)
     {
     }
 
-    /// <param name="touchHelp">Explain the touch gestures below the scheduler instead of mouse and keyboard, as on Android.</param>
+    /// <param name="touchHelp">Explain the touch gestures below the scheduler instead of mouse and keyboard, as on Android and iOS.</param>
     public SchedulerExamples(bool touchHelp)
     {
         _helpKey = touchHelp ? "TouchHelp" : "Help";

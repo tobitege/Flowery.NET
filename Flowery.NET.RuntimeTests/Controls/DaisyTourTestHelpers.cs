@@ -55,13 +55,11 @@ internal static class DaisyTourTestHelpers
         }
     }
 
-    internal static Task ArrangeAsync(Control root) => SettleAsync(root);
-
     internal static async Task CleanupAsync(Control root, DaisyTour tour)
     {
         tour.Cancel();
         RuntimeTestHelpers.GetHostPanel().Children.Remove(root);
-        await ArrangeAsync(root);
+        await SettleAsync(root);
     }
 
     // Presses the left button in the middle of a control like the mouse does: the element under the pointer takes
@@ -106,5 +104,18 @@ internal static class DaisyTourTestHelpers
         if (pointer.Captured is not Interactive captured) return;
         captured.RaiseEvent(ReleasedArgs(captured, pointer, root, position));
         pointer.Capture(null);
+    }
+}
+
+/// <summary>Measures normally until it gets a failure, then throws it at the next measure, once.</summary>
+internal sealed class BreakableMeasure : Control
+{
+    internal Exception? Failure { get; set; }
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        if (Failure is not { } failure) return new Size(40, 20);
+        Failure = null;
+        throw failure;
     }
 }

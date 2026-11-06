@@ -74,6 +74,51 @@ namespace Flowery.Effects
             ?? throw new InvalidOperationException(string.IsNullOrEmpty(error) ? "Shader compile failed" : error);
 
         /// <summary>
+        /// Returns <paramref name="path"/> when it is a data URI or an http(s) or protocol-relative URL, which
+        /// <see cref="DecodeImageAsync"/> loads (JS <c>resolveAssetPath</c>); the host resolves every other path first.
+        /// </summary>
+        /// <param name="path">The asset as the engine gets it in its configuration.</param>
+        /// <exception cref="InvalidOperationException">The path is none of these.</exception>
+        protected internal static string ResolveAssetPath(string path)
+        {
+            if (path.StartsWith("//", StringComparison.Ordinal)
+                || path.StartsWith("http://", StringComparison.Ordinal)
+                || path.StartsWith("https://", StringComparison.Ordinal)
+                || path.StartsWith("data:", StringComparison.Ordinal))
+            {
+                return path;
+            }
+            throw new InvalidOperationException("Image asset must be resolved by the native host: " + path);
+        }
+
+        /// <summary>
+        /// Returns whether two asset sets have the same keys and values (JS <c>JSON.stringify(assets)</c> compared). A
+        /// host passes the strings of its resolved images again, which compare by reference first, instead of serializing
+        /// megabytes of data URIs on every change.
+        /// </summary>
+        /// <param name="first">An asset set, or null.</param>
+        /// <param name="second">The other asset set, or null.</param>
+        protected internal static bool SameAssets(IReadOnlyDictionary<string, string>? first, IReadOnlyDictionary<string, string>? second)
+        {
+            if (ReferenceEquals(first, second))
+            {
+                return true;
+            }
+            if (first is null || second is null || first.Count != second.Count)
+            {
+                return false;
+            }
+            foreach (var (key, value) in first)
+            {
+                if (!second.TryGetValue(key, out var other) || !string.Equals(value, other, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
         /// Decodes the image of a data URI, or downloads an http(s) or protocol-relative URL (the image loading of
         /// JS <c>loadImage</c>). Throws "Failed to load image: " and <paramref name="source"/> when it is no image.
         /// </summary>

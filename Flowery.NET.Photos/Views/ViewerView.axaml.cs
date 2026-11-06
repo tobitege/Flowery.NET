@@ -62,6 +62,7 @@ public partial class ViewerView : UserControl, IDisposable
     private WindowState _previousState;
     public bool HasChanges => _history.Current.HasChanges;
     public PhotoItem? Current => _item;
+    internal IReadOnlyList<PhotoItem> Items => _items;
     public bool IsBusy => _saving || _load != null;
     public Func<Task<bool>>? ConfirmLeave { get; set; }
     public Func<IReadOnlyList<PhotoItem>, Task>? DeletePhoto { get; set; }

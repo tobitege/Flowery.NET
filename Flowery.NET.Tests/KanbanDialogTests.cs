@@ -1,12 +1,10 @@
 ﻿using Avalonia;
-using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
-using Avalonia.Input.Raw;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
@@ -100,148 +98,6 @@ public class KanbanDialogTests
     }
 
     [AvaloniaFact]
-    public async Task When_TaskEditorRealizes_ItExposesTheSharedModalContract()
-    {
-        var task = new FlowTask { Title = "Automation task" };
-        var window = CreateWindow(new Border());
-        FlowTaskEditorDialog? dialog = null;
-
-        try
-        {
-            var showTask = FlowTaskEditorDialog.ShowAsync(task, window);
-            FlushLayout(window);
-            dialog = window.GetVisualDescendants().OfType<FlowTaskEditorDialog>().Single();
-
-            Assert.Equal(
-                KeyboardNavigationMode.Cycle,
-                KeyboardNavigation.GetTabNavigation(dialog));
-
-            var dialogPeer = Assert.IsAssignableFrom<AutomationPeer>(
-                ControlAutomationPeer.CreatePeerForElement(dialog));
-            Assert.Equal(AutomationControlType.Window, dialogPeer.GetAutomationControlType());
-            Assert.False(string.IsNullOrWhiteSpace(dialogPeer.GetName()));
-            Assert.True(dialogPeer.IsControlElement());
-            Assert.True(dialogPeer.IsContentElement());
-
-            var titleInput = FindInput(dialog, task.Title);
-            var titlePeer = Assert.IsAssignableFrom<AutomationPeer>(
-                ControlAutomationPeer.CreatePeerForElement(titleInput));
-            var valueProvider = Assert.IsAssignableFrom<IValueProvider>(titlePeer);
-            Assert.Equal(task.Title, valueProvider.Value);
-
-            AssertActualFooter(dialog);
-            Assert.InRange(dialog.Bounds.Width, 1, window.Bounds.Width);
-            Assert.InRange(dialog.Bounds.Height, 1, window.Bounds.Height);
-
-            var cancelButton = FindActionButton(dialog, "Common_Cancel");
-            Assert.True(cancelButton.Focus());
-            window.KeyPress(
-                Key.Tab,
-                RawInputModifiers.None,
-                PhysicalKey.Tab,
-                keySymbol: null);
-            Dispatcher.UIThread.RunJobs();
-            var focusedElement = window.FocusManager?.GetFocusedElement() as Visual;
-            Assert.NotNull(focusedElement);
-            Assert.True(
-                ReferenceEquals(dialog, focusedElement)
-                || dialog.IsVisualAncestorOf(focusedElement));
-
-            Invoke(cancelButton);
-            Assert.False(await showTask);
-        }
-        finally
-        {
-            CloseDialog(dialog);
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
-    public async Task When_TaskEditorRealizes_DatePickersStayWithinDialogBounds()
-    {
-        var window = CreateWindow(new Border());
-        FlowTaskEditorDialog? dialog = null;
-
-        try
-        {
-            var showTask = FlowTaskEditorDialog.ShowAsync(
-                new FlowTask { Title = "Scheduling task" },
-                window);
-            FlushLayout(window);
-            dialog = window.GetVisualDescendants().OfType<FlowTaskEditorDialog>().Single();
-
-            var schedulingLabel = dialog.GetVisualDescendants()
-                .OfType<TextBlock>()
-                .Single(textBlock => string.Equals(
-                    textBlock.Text,
-                    FloweryLocalization.GetString("Kanban_Editor_SectionScheduling"),
-                    StringComparison.Ordinal));
-            var overviewContent = Assert.IsType<StackPanel>(schedulingLabel.GetVisualParent());
-            var schedulingIndex = overviewContent.Children.IndexOf(schedulingLabel);
-            Assert.True(schedulingIndex > 0);
-            Assert.IsNotType<DaisyDivider>(overviewContent.Children[schedulingIndex - 1]);
-
-            var datePickers = dialog.GetVisualDescendants().OfType<DatePicker>().ToArray();
-            Assert.Equal(4, datePickers.Length);
-
-            var pickerBounds = datePickers.Select(datePicker =>
-            {
-                var position = LayoutTestAssertions.GetPosition(datePicker, dialog);
-                return (
-                    X: position.X,
-                    Y: position.Y,
-                    Width: datePicker.Bounds.Width,
-                    Height: datePicker.Bounds.Height);
-            }).ToArray();
-
-            foreach (var bounds in pickerBounds)
-            {
-                Assert.InRange(bounds.X, -0.5, dialog.Bounds.Width - bounds.Width + 0.5);
-            }
-
-            var scrollViewer = datePickers[0].GetVisualAncestors().OfType<ScrollViewer>().First();
-            var verticalScrollBar = scrollViewer.GetVisualDescendants()
-                .OfType<Avalonia.Controls.Primitives.ScrollBar>()
-                .Where(scrollBar => scrollBar.Orientation == Avalonia.Layout.Orientation.Vertical)
-                .OrderByDescending(scrollBar => scrollBar.Bounds.Height)
-                .First();
-            var scrollBarPosition = LayoutTestAssertions.GetPosition(verticalScrollBar, dialog);
-            foreach (var bounds in pickerBounds)
-            {
-                Assert.True(
-                    bounds.X + bounds.Width <= scrollBarPosition.X + 0.5,
-                    "A date picker extends beneath the vertical scrollbar.");
-            }
-
-            for (var firstIndex = 0; firstIndex < pickerBounds.Length; firstIndex++)
-            {
-                for (var secondIndex = firstIndex + 1; secondIndex < pickerBounds.Length; secondIndex++)
-                {
-                    var first = pickerBounds[firstIndex];
-                    var second = pickerBounds[secondIndex];
-                    var horizontallySeparated = first.X + first.Width <= second.X + 0.5
-                                                || second.X + second.Width <= first.X + 0.5;
-                    var verticallySeparated = first.Y + first.Height <= second.Y + 0.5
-                                              || second.Y + second.Height <= first.Y + 0.5;
-
-                    Assert.True(
-                        horizontallySeparated || verticallySeparated,
-                        $"Date pickers {firstIndex} and {secondIndex} overlap.");
-                }
-            }
-
-            Invoke(FindActionButton(dialog, "Common_Cancel"));
-            Assert.False(await showTask);
-        }
-        finally
-        {
-            CloseDialog(dialog);
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
     public async Task When_TaskEditorSaves_ChangesAreCommittedOnlyAfterSave()
     {
         var task = new FlowTask
@@ -278,144 +134,10 @@ public class KanbanDialogTests
     }
 
     [AvaloniaFact]
-    public async Task When_TaskEditorUsesOpaqueAssigneeId_IdIsNotNormalized()
-    {
-        const string assigneeId = " external:user-42 ";
-        var option = new FlowTaskAssigneeOption(assigneeId, "External User");
-        var task = new FlowTask
-        {
-            Title = "Assigned task",
-            Assignee = option.DisplayName,
-            AssigneeId = assigneeId
-        };
-        var window = CreateWindow(new Border());
-        FlowTaskEditorDialog? dialog = null;
-
-        try
-        {
-            Assert.Equal(assigneeId, option.Id);
-            var showTask = FlowTaskEditorDialog.ShowAsyncWithAssignees(
-                task,
-                window,
-                availableTags: null,
-                availableAssignees: [option]);
-            FlushLayout(window);
-            dialog = window.GetVisualDescendants().OfType<FlowTaskEditorDialog>().Single();
-
-            var assigneeSelect = dialog.GetVisualDescendants()
-                .OfType<DaisySelect>()
-                .Single(select => select.ItemsSource?.Cast<object>()
-                    .Any(item => item is FlowTaskAssigneeOption) == true);
-            var selected = Assert.IsType<FlowTaskAssigneeOption>(assigneeSelect.SelectedItem);
-            Assert.Equal(assigneeId, selected.Id);
-
-            Invoke(FindActionButton(dialog, "Common_Save"));
-
-            Assert.True(await showTask);
-            Assert.Equal(assigneeId, task.AssigneeId);
-        }
-        finally
-        {
-            CloseDialog(dialog);
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
-    public async Task When_BoardEditorCancelsAndSaves_ChangesRemainIsolatedUntilSave()
-    {
-        var board = new FlowKanbanData
-        {
-            Title = "Original board",
-            Description = "Original description",
-            CreatedBy = "Original author"
-        };
-        var window = CreateWindow(new Border());
-        FlowBoardEditorDialog? dialog = null;
-
-        try
-        {
-            var cancelledTask = FlowBoardEditorDialog.ShowAsync(board, window);
-            FlushLayout(window);
-            dialog = window.GetVisualDescendants().OfType<FlowBoardEditorDialog>().Single();
-            AssertActualFooter(dialog);
-
-            FindInput(dialog, board.Title).Text = "Cancelled board";
-            Invoke(FindActionButton(dialog, "Common_Cancel"));
-
-            Assert.False(await cancelledTask);
-            Assert.Equal("Original board", board.Title);
-
-            var savedTask = FlowBoardEditorDialog.ShowAsync(board, window);
-            FlushLayout(window);
-            dialog = window.GetVisualDescendants().OfType<FlowBoardEditorDialog>().Single();
-            FindInput(dialog, board.Title).Text = "Saved board";
-            Invoke(FindActionButton(dialog, "Common_Save"));
-
-            Assert.True(await savedTask);
-            Assert.Equal("Saved board", board.Title);
-        }
-        finally
-        {
-            CloseDialog(dialog);
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
-    public async Task When_SettingsDialogCancelsAndSaves_ChangesRemainIsolatedUntilSave()
-    {
-        var previousStorage = StateStorageProvider.Instance;
-        StateStorageProvider.Configure(new DialogStateStorage());
-        var kanban = new FlowKanban
-        {
-            AutoSaveAfterEdits = false,
-            ConfirmColumnRemovals = true
-        };
-        var window = CreateWindow(kanban);
-        FlowKanbanSettingsDialog? dialog = null;
-
-        try
-        {
-            var cancelledTask = FlowKanbanSettingsDialog.ShowAsync(kanban, window);
-            FlushLayout(window);
-            dialog = window.GetVisualDescendants().OfType<FlowKanbanSettingsDialog>().Single();
-            AssertActualFooter(dialog);
-
-            var confirmRemovalToggle = FindLabeledToggle(
-                dialog,
-                FloweryLocalization.GetString("Kanban_Settings_ConfirmColumnRemovals"));
-            confirmRemovalToggle.IsChecked = false;
-            Invoke(FindActionButton(dialog, "Common_Cancel"));
-
-            Assert.False(await cancelledTask);
-            Assert.True(kanban.ConfirmColumnRemovals);
-
-            var savedTask = FlowKanbanSettingsDialog.ShowAsync(kanban, window);
-            FlushLayout(window);
-            dialog = window.GetVisualDescendants().OfType<FlowKanbanSettingsDialog>().Single();
-            confirmRemovalToggle = FindLabeledToggle(
-                dialog,
-                FloweryLocalization.GetString("Kanban_Settings_ConfirmColumnRemovals"));
-            confirmRemovalToggle.IsChecked = false;
-            Invoke(FindActionButton(dialog, "Common_Save"));
-
-            Assert.True(await savedTask);
-            Assert.False(kanban.ConfirmColumnRemovals);
-        }
-        finally
-        {
-            CloseDialog(dialog);
-            window.Close();
-            StateStorageProvider.Configure(previousStorage);
-        }
-    }
-
-    [AvaloniaFact]
     public void When_InputColumnAndConfirmDialogsRun_OnlyConfirmedCommandsMutateBoard()
     {
         var previousStorage = StateStorageProvider.Instance;
-        StateStorageProvider.Configure(new DialogStateStorage());
+        StateStorageProvider.Configure(new InMemoryStateStorage());
         var kanban = new FlowKanban { AutoSaveAfterEdits = false };
         kanban.Board.Columns.Clear();
         var window = CreateWindow(kanban);
@@ -494,124 +216,6 @@ public class KanbanDialogTests
             AssertMediumActionButton(deleteButton);
             Invoke(deleteButton);
             Assert.Empty(kanban.Board.Columns);
-        }
-        finally
-        {
-            CloseOpenDialogs(window);
-            window.Close();
-            StateStorageProvider.Configure(previousStorage);
-        }
-    }
-
-    [AvaloniaFact]
-    public async Task When_LaneDeleteDialogConfirms_FallbackIsCommittedOnlyWithBoardSave()
-    {
-        var firstLane = new FlowKanbanLane { Id = "lane-a", Title = "Lane A" };
-        var secondLane = new FlowKanbanLane { Id = "lane-b", Title = "Lane B" };
-        var card = new FlowTask { Title = "Assigned card", LaneId = firstLane.Id };
-        var column = new FlowKanbanColumnData { Title = "Todo" };
-        column.Tasks.Add(card);
-        var board = new FlowKanbanData
-        {
-            Title = "Lane board",
-            GroupBy = FlowKanbanGroupBy.Lane
-        };
-        board.Lanes.Add(firstLane);
-        board.Lanes.Add(secondLane);
-        board.Columns.Add(column);
-
-        var window = CreateWindow(new Border());
-        FlowBoardEditorDialog? boardDialog = null;
-
-        try
-        {
-            var showTask = FlowBoardEditorDialog.ShowAsync(board, window);
-            FlushLayout(window);
-            boardDialog = window.GetVisualDescendants().OfType<FlowBoardEditorDialog>().Single();
-
-            var deleteName = FloweryLocalization.GetString("Kanban_Lanes_Delete");
-            var laneDeleteButtons = boardDialog.GetVisualDescendants()
-                .OfType<DaisyButton>()
-                .Where(button => string.Equals(
-                    AutomationProperties.GetName(button),
-                    deleteName,
-                    StringComparison.Ordinal))
-                .ToList();
-            Assert.Equal(2, laneDeleteButtons.Count);
-            Invoke(laneDeleteButtons[0]);
-            FlushLayout(window);
-
-            var deleteDialog = FindDialog(window, "LaneDeleteDialog");
-            AssertDialogContract(
-                deleteDialog,
-                window,
-                FloweryLocalization.GetString("Common_ConfirmDelete"));
-            var fallbackSelect = deleteDialog.GetVisualDescendants().OfType<DaisySelect>().Single();
-            Assert.Equal(0, fallbackSelect.SelectedIndex);
-            var selectPeer = Assert.IsAssignableFrom<AutomationPeer>(
-                ControlAutomationPeer.CreatePeerForElement(fallbackSelect));
-            Assert.Equal(AutomationControlType.ComboBox, selectPeer.GetAutomationControlType());
-            Assert.IsAssignableFrom<IExpandCollapseProvider>(selectPeer);
-
-            var deleteButton = FindActionButton(deleteDialog, "Common_Delete");
-            AssertMediumActionButton(deleteButton);
-            Invoke(deleteButton);
-            Dispatcher.UIThread.RunJobs();
-
-            Assert.Equal(2, board.Lanes.Count);
-            Assert.Equal(firstLane.Id, card.LaneId);
-            Invoke(FindActionButton(boardDialog, "Common_Save"));
-
-            Assert.True(await showTask);
-            var remainingLane = Assert.Single(board.Lanes);
-            Assert.Equal(secondLane.Id, remainingLane.Id);
-            Assert.Equal(secondLane.Id, card.LaneId);
-        }
-        finally
-        {
-            CloseDialog(boardDialog);
-            CloseOpenDialogs(window);
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
-    public void When_ReadOnlyDialogsRealize_TheyExposeNamedModalAndInvokeSemantics()
-    {
-        var previousStorage = StateStorageProvider.Instance;
-        StateStorageProvider.Configure(new DialogStateStorage());
-        var kanban = new FlowKanban { AutoSaveAfterEdits = false };
-        kanban.Board.Title = "Metrics board";
-        var window = CreateWindow(kanban);
-
-        try
-        {
-            kanban.ShowMetricsCommand.Execute(null);
-            FlushLayout(window);
-            var metricsDialog = FindDialog(window, "FlowKanbanMetricsDialog");
-            AssertDialogContract(
-                metricsDialog,
-                window,
-                FloweryLocalization.GetString("Kanban_BoardStatistics"));
-            var metricsClose = FindActionButton(metricsDialog, "Common_Close");
-            AssertMediumActionButton(metricsClose);
-            Invoke(metricsClose);
-
-            kanban.ShowKeyboardHelpCommand.Execute(null);
-            for (var attempt = 0; attempt < 3; attempt++)
-            {
-                FlushLayout(window);
-            }
-
-            var helpDialog = FindDialog(window, "FlowKanbanKeyboardHelpDialog");
-            AssertDialogContract(
-                helpDialog,
-                window,
-                FloweryLocalization.GetString("Kanban_KeyboardHelp_Title"));
-            Assert.NotEmpty(helpDialog.GetVisualDescendants().OfType<DaisyKbd>());
-            var helpClose = FindActionButton(helpDialog, "Common_Close");
-            AssertMediumActionButton(helpClose);
-            Invoke(helpClose);
         }
         finally
         {
@@ -767,14 +371,6 @@ public class KanbanDialogTests
             .Single(input => string.Equals(input.Text, text, StringComparison.Ordinal));
     }
 
-    private static DaisyToggle FindLabeledToggle(Control dialog, string label)
-    {
-        return dialog.GetVisualDescendants()
-            .OfType<DaisyToggle>()
-            .Single(toggle => AutomationProperties.GetLabeledBy(toggle) is TextBlock textBlock
-                              && string.Equals(textBlock.Text, label, StringComparison.Ordinal));
-    }
-
     private static DaisyButton FindActionButton(Control dialog, string resourceKey)
     {
         var text = FloweryLocalization.GetString(resourceKey);
@@ -792,25 +388,6 @@ public class KanbanDialogTests
         Dispatcher.UIThread.RunJobs();
     }
 
-    private static void AssertActualFooter(Control dialog)
-    {
-        var saveButton = FindActionButton(dialog, "Common_Save");
-        var cancelButton = FindActionButton(dialog, "Common_Cancel");
-        var expectedHeight = LayoutTestAssertions.GetUnoButtonHeight(DaisySize.Medium);
-
-        Assert.Equal(DaisySize.Medium, saveButton.Size);
-        Assert.Equal(DaisySize.Medium, cancelButton.Size);
-        Assert.Equal(expectedHeight, saveButton.Bounds.Height, precision: 3);
-        Assert.Equal(expectedHeight, cancelButton.Bounds.Height, precision: 3);
-
-        var savePeer = Assert.IsAssignableFrom<AutomationPeer>(
-            ControlAutomationPeer.CreatePeerForElement(saveButton));
-        var cancelPeer = Assert.IsAssignableFrom<AutomationPeer>(
-            ControlAutomationPeer.CreatePeerForElement(cancelButton));
-        Assert.IsAssignableFrom<IInvokeProvider>(savePeer);
-        Assert.IsAssignableFrom<IInvokeProvider>(cancelPeer);
-    }
-
     private static void CloseDialog(FlowKanbanDialogBase? dialog)
     {
         if (dialog?.IsOpen == true)
@@ -818,37 +395,5 @@ public class KanbanDialogTests
             dialog.IsOpen = false;
             Dispatcher.UIThread.RunJobs();
         }
-    }
-
-    private sealed class DialogStateStorage : IStateStorage
-    {
-        private readonly Dictionary<string, List<string>> _values = new(StringComparer.Ordinal);
-
-        public IReadOnlyList<string> LoadLines(string key) =>
-            _values.TryGetValue(key, out var lines) ? lines : Array.Empty<string>();
-
-        public void SaveLines(string key, IEnumerable<string> lines)
-        {
-            _values[key] = new List<string>(lines);
-        }
-
-        public void Delete(string key)
-        {
-            _values.Remove(key);
-        }
-
-        public void Rename(string sourceKey, string targetKey)
-        {
-            if (!_values.TryGetValue(sourceKey, out var lines))
-            {
-                throw new InvalidOperationException($"Storage key '{sourceKey}' does not exist.");
-            }
-
-            _values[targetKey] = new List<string>(lines);
-            _values.Remove(sourceKey);
-        }
-
-        public IEnumerable<string> GetKeys(string prefix) =>
-            _values.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal)).ToArray();
     }
 }

@@ -165,9 +165,12 @@ class MarkdownToHtml:
 
         html = re.sub(r'`([^`]+)`', save_inline_code, html)
 
-        html = self._sanitize_html(html)
-        html = self._convert_markdown(html, depth, inline_codes)
+        # The allowed tags wait in placeholders, so no markdown rule runs inside their attributes
+        tags: list[str] = []
+        html = self._sanitize_html(html, tags)
+        html = self._convert_markdown(html, depth, inline_codes, tags)
 
+        html = self._restore(html, '__HTML_TAG_', tags)
         html = self._restore(html, '__INLINE_CODE_', inline_codes)
 
         # Restore code blocks
@@ -176,8 +179,8 @@ class MarkdownToHtml:
 
         return self._restore(html, '__TRUSTED_HTML_', self._trusted_html)
 
-    def _convert_markdown(self, html: str, depth: int, inline_codes: list[str]) -> str:
-        """Convert the markdown rules of sanitized text, with code still in placeholders."""
+    def _convert_markdown(self, html: str, depth: int, inline_codes: list[str], tags: list[str]) -> str:
+        """Convert the markdown rules of sanitized text, with code and allowed tags still in placeholders."""
         path_prefix = '../' * depth  # '' for depth=0, '../' for depth=1
 
         # Images - convert ![alt](src) to <img> and fix paths based on depth
@@ -218,7 +221,8 @@ class MarkdownToHtml:
         # Headers
         def heading(match):
             level, title = len(match.group(1)), match.group(2)
-            text = unescape(re.sub(r'<[^>]+>', '', self._restore(title, '__INLINE_CODE_', inline_codes)))
+            title_html = self._restore(self._restore(title, '__HTML_TAG_', tags), '__INLINE_CODE_', inline_codes)
+            text = unescape(re.sub(r'<[^>]+>', '', title_html))
             slug = re.sub(r'[^\w -]', '', text).strip().lower().replace(' ', '-')
             return f'<h{level} id="{slug}">{title}</h{level}>'
         html = re.sub(r'^(#{1,6}) (.+)$', heading, html, flags=re.MULTILINE)
@@ -235,7 +239,7 @@ class MarkdownToHtml:
             content_lines = [re.sub(r'^> ?', '', line) for line in lines]
             content = '\n'.join(content_lines)
             # Convert internal markdown in alert content
-            content = self._convert_markdown(content, depth, inline_codes)
+            content = self._convert_markdown(content, depth, inline_codes, tags)
             # Remove the <p> tags that the conversion might have added if it's a single paragraph
             content = re.sub(r'^<p>(.*)</p>$', r'\1', content, flags=re.DOTALL)
 
@@ -255,7 +259,7 @@ class MarkdownToHtml:
         result = []
         for line in lines:
             stripped = line.strip()
-            if stripped and not stripped.startswith(('<', '__CODE_BLOCK_', '__TRUSTED_HTML_')):
+            if stripped and not stripped.startswith(('<', '__CODE_BLOCK_', '__TRUSTED_HTML_', '__HTML_TAG_')):
                 result.append(f'<p>{stripped}</p>')
             else:
                 result.append(line)
@@ -274,8 +278,11 @@ class MarkdownToHtml:
             return items[index] if index < len(items) else m.group(0)
         return re.sub(rf'{prefix}(\d+)__', item, html)
 
-    def _sanitize_html(self, text: str) -> str:
-        """Escape HTML outside code, keeping the tags of ALLOWED_TAGS balanced and dropping comments."""
+    def _sanitize_html(self, text: str, tags: list[str]) -> str:
+        """Escape HTML outside code, keeping the tags of ALLOWED_TAGS balanced and dropping comments.
+
+        Each allowed tag goes into tags and leaves a placeholder that convert() restores at the end.
+        """
         result = []
         open_tags: list[str] = []
         position = 0
@@ -283,7 +290,12 @@ class MarkdownToHtml:
             result.append(self._escape_text(text[position:match.start()]))
             tag = match.group(0)
             if not tag.startswith('<!--'):
-                result.append(self._balanced_tag(tag, open_tags) or self._escape_html(tag))
+                rebuilt = self._balanced_tag(tag, open_tags)
+                if rebuilt is None:
+                    result.append(self._defuse_tag_placeholders(self._escape_html(tag)))
+                else:
+                    tags.append(rebuilt)
+                    result.append(f'__HTML_TAG_{len(tags) - 1}__')
             position = match.end()
         result.append(self._escape_text(text[position:]))
         # Tags left open would take in the rest of the page, such as its navigation
@@ -305,11 +317,16 @@ class MarkdownToHtml:
             open_tags.append(name)
         return rebuilt
 
-    @staticmethod
-    def _escape_text(text: str) -> str:
+    @classmethod
+    def _escape_text(cls, text: str) -> str:
         """Escape '&' outside entities and every '<'; '>' stays for blockquotes and alerts."""
         text = re.sub(r'&(?!#\d+;|#[xX][0-9a-fA-F]+;|[A-Za-z][A-Za-z0-9]*;)', '&amp;', text)
-        return text.replace('<', '&lt;')
+        return cls._defuse_tag_placeholders(text.replace('<', '&lt;'))
+
+    @staticmethod
+    def _defuse_tag_placeholders(text: str) -> str:
+        """Give a tag placeholder written in the doc an entity, so it cannot repeat a tag and unbalance it."""
+        return text.replace('__HTML_TAG_', '&#95;_HTML_TAG_')
 
     def _allowed_tag(self, tag: str) -> Optional[str]:
         """Return the tag rebuilt from its checked attributes, or None when it is not allowed."""
@@ -372,8 +389,11 @@ class MarkdownToHtml:
 
     @staticmethod
     def _has_placeholder(value: str) -> bool:
-        """Code or trusted HTML restored into an attribute could end it with a quote, so attributes take none."""
-        return re.search(r'__(?:CODE_BLOCK|INLINE_CODE|TRUSTED_HTML)_', value) is not None
+        """Code, tags or trusted HTML restored into an attribute could end it with a quote, so attributes take none.
+
+        The decoded value counts, as attributes are written decoded: '&#95;_INLINE_CODE_0__' is a placeholder too.
+        """
+        return re.search(r'__(?:CODE_BLOCK|INLINE_CODE|HTML_TAG|TRUSTED_HTML)_', unescape(value)) is not None
 
     @staticmethod
     def _escape_attribute(value: str) -> str:

@@ -23,7 +23,7 @@ See [accessibility preferences](DaisyAccessibility.md#system-contrast-and-reduce
 | -------- | ----------- |
 | `EnableBackdropBlur` (bool) | Enables real capture/blur; simulated layers are always rendered. |
 | `BlurMode` | Chooses blur pipeline (Simulated/BitmapCapture/SkiaSharp). |
-| `EffectiveBlurMode` (read-only) | The mode in use: `SkiaSharp` falls back to `BitmapCapture` when Flowery.NET.Skia is not registered, with a warning in the log once. A glass checks for the renderer when it enters the visual tree; `DaisyGlassLiveRenderer.Register(null)` removes it. |
+| `EffectiveBlurMode` (read-only) | The mode in use: `SkiaSharp` falls back to `BitmapCapture` when Flowery.NET.Skia is not registered, with a warning in the log once. A glass checks for the renderer when it enters the visual tree, and a glass in the tree follows `DaisyGlassLiveRenderer.Register` at once: a new renderer draws it, and `Register(null)` removes the renderer, so it captures its backdrop instead. |
 | `GlassBlur` | Blur radius/strength. |
 | `GlassOpacity` | Base tint opacity (overlay). |
 | `GlassTint` / `GlassTintOpacity` | Tint color and intensity. |

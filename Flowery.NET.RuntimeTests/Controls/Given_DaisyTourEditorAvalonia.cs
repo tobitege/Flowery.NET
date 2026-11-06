@@ -8,6 +8,7 @@ using Avalonia.LogicalTree;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 using Flowery.Controls;
+using Flowery.Controls.ColorPicker;
 using Flowery.Localization;
 using Flowery.Theming;
 using Xunit;
@@ -244,7 +245,7 @@ public class Given_DaisyTourEditorAvalonia
             // Ctrl+Z on Windows and Linux, Cmd+Z on macOS.
             Assert.Contains(hotkeys.Undo, gesture => gesture.Key == Key.Z && gesture.KeyModifiers == hotkeys.CommandModifiers);
             var original = editor.ExportJson();
-            editor.SetValue("opacity", 0.4d);
+            editor.SetOverride("opacity", 0.4d);
             var changed = editor.ExportJson();
             foreach (var undo in hotkeys.Undo)
             {
@@ -264,6 +265,133 @@ public class Given_DaisyTourEditorAvalonia
             return Task.CompletedTask;
         });
     }
+
+    [Fact]
+    public async Task When_The_Step_List_Changes_The_Step_With_The_Keyboard_It_Keeps_The_Focus()
+    {
+        // Regression: every transition moved the focus to the preview card, so arrowing through the step list
+        // stopped after one step, and on the last step the focus stayed on the surface that is not focusable.
+        var (root, tour) = StepsTour(3);
+        await TourEditorTestHelpers.InEditorAsync(root, tour, async editor =>
+        {
+            var steps = Field<DaisySelect>(editor, "DaisyTourEditorSteps");
+            Assert.True(steps.Focus(NavigationMethod.Tab), "The step list takes the focus.");
+            foreach (var index in new[] { 1, 2 })
+            {
+                PressKey(steps, Key.Down);
+                await RuntimeTestHelpers.WaitUntilAsync(() => tour.CurrentIndex == index && !tour.IsTransitioning, $"step {index + 1} is shown");
+                await SettleAsync(root);
+                Assert.Same(steps, FocusedElement(root));
+                Assert.True(steps.IsEffectivelyEnabled, "The step list is enabled again.");
+            }
+        });
+    }
+
+    [Fact]
+    public async Task When_The_Preview_Card_Reaches_The_Last_Step_The_Focus_Goes_To_A_Control_That_Takes_It()
+    {
+        // Regression: on the last step of the preview, Next is disabled, and the focus stayed on the surface; a focus
+        // move out of the tour was redirected to the disabled Next as well.
+        var outside = new Button
+        {
+            Content = "Outside", Margin = new Thickness(400, 24, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top
+        };
+        var (root, tour) = StepsTour(2, outside);
+        await TourEditorTestHelpers.InEditorAsync(root, tour, async editor =>
+        {
+            var next = Find<DaisyButton>(tour, "DaisyTourNext");
+            var back = Find<DaisyButton>(tour, "DaisyTourBack");
+            Assert.True(next.Focus(NavigationMethod.Tab), "Next takes the focus.");
+            await tour.NextAsync().WaitAsync(TestTimeout);
+            await SettleAsync(root);
+            Assert.False(next.IsEffectivelyEnabled, "The preview cannot finish the tour.");
+            Assert.Same(back, FocusedElement(root));
+
+            outside.Focus();
+            Assert.Same(back, FocusedElement(root));
+        });
+    }
+
+    [Fact]
+    public async Task When_The_Kind_Is_Chosen_With_The_Keyboard_The_Inspector_Keeps_Its_Fields_And_The_Focus()
+    {
+        // Regression: every change of the kind built the whole inspector again, so the list that changed it lost the
+        // focus, and every color field built its picker up front.
+        await InEditorAsync(async (tour, editor) =>
+        {
+            var kind = Field<DaisySelect>(editor, "DaisyTourEditorValue_kind");
+            var stroke = Field<DaisyButton>(editor, "DaisyTourEditorValue_stroke");
+            Assert.Null(Assert.IsType<Flyout>(stroke.Flyout).Content);
+            Assert.True(kind.Focus(NavigationMethod.Tab), "The kind list takes the focus.");
+            var before = editor.ExportJson();
+            await ChangeGeometryAsync(tour, () => PressKey(kind, Key.Down));
+            Assert.NotEqual(before, editor.ExportJson());
+            Assert.Same(kind, FocusedElement(editor));
+            Assert.Same(kind, Field<DaisySelect>(editor, "DaisyTourEditorValue_kind"));
+            Assert.Same(stroke, Field<DaisyButton>(editor, "DaisyTourEditorValue_stroke"));
+            Assert.Equal<object?>(editor.ExportProfile().Steps.Single().Annotations.Single().Style!.Values.Kind, kind.SelectedItem);
+        });
+    }
+
+    [Fact]
+    public async Task When_The_Color_Wheel_Is_Dragged_The_Drag_Is_One_Undo_Action()
+    {
+        // Regression: every pointer move on the wheel was an undo action of its own, so a short drag pushed the real
+        // changes out of the history.
+        await InEditorAsync(async (_, editor) =>
+        {
+            var original = editor.ExportJson();
+            var stroke = Field<DaisyButton>(editor, "DaisyTourEditorValue_stroke");
+            var flyout = Assert.IsType<Flyout>(stroke.Flyout);
+            flyout.ShowAt(stroke);
+            try
+            {
+                await RuntimeTestHelpers.WaitForRenderAsync();
+                Assert.Equal(original, editor.ExportJson());
+                var wheel = Assert.IsType<StackPanel>(flyout.Content).Children.OfType<DaisyColorWheel>().Single();
+                // The flyout's own top level may not have rendered for hit testing yet; the press goes to the wheel.
+                var root = TopLevel.GetTopLevel(wheel)!;
+                var start = wheel.TranslatePoint(new Point(wheel.Bounds.Width / 2, wheel.Bounds.Height / 2), root)!.Value;
+                var pointer = new Pointer(Pointer.GetNextFreeId(), PointerType.Mouse, true);
+                wheel.RaiseEvent(new PointerPressedEventArgs(wheel, pointer, root, start, 0,
+                    new PointerPointProperties(RawInputModifiers.LeftMouseButton, PointerUpdateKind.LeftButtonPressed), KeyModifiers.None));
+                Assert.Same(wheel, pointer.Captured);
+                foreach (var (x, y) in new[] { (40d, 0d), (0d, 40d), (-40d, 20d), (30d, -30d) })
+                    MoveCaptured(pointer, root, new Point(start.X + x, start.Y + y));
+                var dragged = editor.ExportJson();
+                ReleaseCaptured(pointer, root, new Point(start.X + 30, start.Y - 30));
+                Assert.Equal(dragged, editor.ExportJson());
+                Assert.NotEqual(original, dragged);
+
+                editor.Undo();
+                Assert.Equal(original, editor.ExportJson());
+                editor.Redo();
+                Assert.Equal(dragged, editor.ExportJson());
+            }
+            finally { flyout.Hide(); }
+        });
+    }
+
+    private static (Grid Root, DaisyTour Tour) StepsTour(int count, params Control[] others)
+    {
+        var root = new Grid { Width = 752, Height = 480 };
+        var target = new Button
+        {
+            Content = "Target", Width = 90, Height = 40, Margin = new Thickness(160, 80, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top
+        };
+        var tour = new DaisyTour { Id = "editor-steps" };
+        for (var index = 0; index < count; index++)
+            tour.Steps.Add(new DaisyTourStep { Id = "step" + index, Target = target, Title = "Step " + index });
+        root.Children.Add(target);
+        foreach (var other in others) root.Children.Add(other);
+        root.Children.Add(tour);
+        return (root, tour);
+    }
+
+    private static T Find<T>(DaisyTour tour, string automationId) where T : Control =>
+        GetSurface(tour).GetVisualDescendants().OfType<T>().Single(control => AutomationProperties.GetAutomationId(control) == automationId);
 
     private static Task InEditorAsync(Func<DaisyTour, DaisyTourEditor, Task> action, ThemeVariant? pageVariant = null)
     {

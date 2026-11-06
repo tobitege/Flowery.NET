@@ -109,11 +109,25 @@ public partial class PhotosShell : UserControl, IDisposable
     {
         if (!await CanLeaveViewerAsync()) return;
         var last = Viewer.Current;
+        var order = Viewer.Items;
         Viewer.Stop(); Viewer.IsVisible = false; TitleViewChanged?.Invoke(false);
         Gallery.IsVisible = _returnToGallery;
         HomeScroll.IsVisible = !_returnToGallery && _page == "Home";
         CollectionsScroll.IsVisible = !_returnToGallery && _page is "Albums" or "Folders";
-        if (_returnToGallery) { Gallery.Refresh(); Gallery.FocusPhoto(last); }
+        if (_returnToGallery)
+        {
+            Gallery.Refresh();
+            // A photo deleted in the viewer is gone; the next one takes its place, at the end the previous one.
+            var at = last == null ? -1 : order.Select(item => item.Path).ToList().IndexOf(last.Path);
+            if (at < 0) Gallery.FocusPhoto(last);
+            else
+            {
+                foreach (var item in order.Skip(at).Concat(order.Take(at).Reverse()))
+                {
+                    if (Gallery.FocusPhoto(item)) break;
+                }
+            }
+        }
         else { BuildHome(); BuildCollections(); }
         UpdateSelection();
     }

@@ -25,7 +25,7 @@ The hosts need no registration: `FlowerySkia.Register()` concerns the glass blur
 ```xml
 xmlns:fx="clr-namespace:Flowery.Effects;assembly=Flowery.NET.Skia"
 
-<fx:CarouselGlEffectHost Effect="Checkerboard"
+<fx:CarouselGlEffectHost EffectKind="Checkerboard"
                          Height="280"
                          TransitionSeconds="0.8"
                          TransitionSliceCount="8" />
@@ -38,7 +38,7 @@ Register application assets for the selected effect before the host loads:
 CarouselGlEffectRegistry.Register(
     new CarouselGlEffectDefinition(
         CarouselGlEffectKind.Checkerboard,
-        "mask",
+        CarouselGlMode.Mask,
         new Dictionary<string, string>
         {
             ["maskA"] = "avares://MyApp/Assets/slide1.jpg",
@@ -62,7 +62,7 @@ The Gallery registers its own presets and assets through `CarouselGlGalleryPrese
 
 | Property | Default | Purpose |
 | --- | --- | --- |
-| Effect | None | Selects the registered preset |
+| EffectKind | None | Selects the registered preset |
 | OverlayEffect | None | Adds a continuous effect over a compatible transition |
 | IntervalSeconds | 0 | Controls the interval supplied to the renderer |
 | TransitionSeconds | 2.4 | Transition duration |
@@ -71,12 +71,12 @@ The Gallery registers its own presets and assets through `CarouselGlGalleryPrese
 | TransitionSliceStaggerMs | 50 | Delay between slices |
 | TransitionPixelateSize | 20 | Pixel block size |
 | TransitionDissolveDensity | 0.5 | Dissolve density |
-| TransitionFlipAngle | 90 | Flip angle in degrees |
+| TransitionFlipAngle | 180 | Flip angle in degrees, from 30 to 180; at 180 a flip ends on the back image |
 
 Property changes refresh the renderer configuration.
 Effect names use CarouselGlEffectKind.
 CarouselGlEffectRegistry.TryGet reads a definition, and Register replaces or adds that definition.
-`Effect` hides `Visual.Effect`, the render effect of Avalonia, on this control.
+A definition names its program family as a `CarouselGlMode` (`Mask`, `Flip`, `Transition`, `Effect` or `Text`), which also gives the asset keys of its images.
 
 ## Gallery Transition Host
 
@@ -113,6 +113,7 @@ Include images as Avalonia resources (`AvaloniaResource`) and name them with `av
 The host also accepts data URIs, HTTP(S) URLs, `ms-appx:///` paths, relative application paths, and rooted file paths.
 Relative paths resolve below `AppContext.BaseDirectory`; for `ms-appx:///` paths, the host removes that prefix and decodes URI characters before it resolves the path.
 The host reads `avares://` resources with `AssetLoader` and local files with `File.ReadAllBytesAsync`, and passes their complete contents to the engine as data URIs.
+It reads each source once while it is loaded, so a property change does not read the images again; a file changed on disk shows after the next load.
 The engine decodes the images with Skia; it does not decode SVG.
 
 Preset asset keys remain unchanged:
@@ -130,9 +131,9 @@ Preset asset keys remain unchanged:
 The host starts its renderer session when it is loaded.
 It pauses the draw loop when it leaves the effective viewport, while it or a parent is hidden (`IsVisible`), and while animations are reduced (`DaisyAccessibility.IsReducedMotion`), and resumes it afterwards.
 A paused host keeps showing its last frame; the WinUI host hid its canvas and showed nothing.
-A paused host also draws a changed setting, such as `IntervalSeconds`, at once.
+A changed setting, such as `IntervalSeconds`, draws its frame at once, also while the host is paused or its window draws no frames, such as a minimized one. Images from `http(s)` URLs load first: their first frame comes with a frame of the window.
 The frames follow the `Opacity` of the host and its parents, as in the slide fade of a `DaisyCarousel`.
-Unload closes the session, cancels pending requests, removes event handlers, and releases the canvas and its images.
+Unload closes the session, cancels a `ReadFrameAsync` that waits for the next frame, removes event handlers, and releases the canvas and its images.
 
 CarouselGlNativeHost exposes these diagnostics:
 

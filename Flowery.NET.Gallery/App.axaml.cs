@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using Avalonia;
@@ -73,6 +73,8 @@ public partial class App : Application
         }
         catch (FormatException)
         {
+            // Forgotten, so that the next start does not try it again.
+            GallerySettings.SaveBackdrop(null);
         }
         DaisyThemeManager.BackdropOverrideChanged += (_, _) => GallerySettings.SaveBackdrop(DaisyThemeManager.BackdropOverride);
 

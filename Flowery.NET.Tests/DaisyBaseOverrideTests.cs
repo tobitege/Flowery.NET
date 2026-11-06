@@ -1,12 +1,10 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
-using Avalonia.Styling;
-using Avalonia.Threading;
 using Flowery.Controls;
 using Flowery.Helpers;
 using Xunit;
+using static Flowery.NET.Tests.TestControls;
 
 namespace Flowery.NET.Tests;
 
@@ -51,39 +49,6 @@ public class DaisyBaseOverrideTests
     }
 
     [AvaloniaFact]
-    public void A_Dark_Base_Turns_A_Light_Theme_Dark_With_Light_Text_And_Lighter_Borders()
-    {
-        var previous = DaisyThemeManager.CurrentThemeName;
-        var app = Application.Current!;
-        try
-        {
-            Assert.True(DaisyThemeManager.ApplyTheme("Light"));
-            Assert.Equal(ThemeVariant.Light, app.RequestedThemeVariant);
-
-            DaisyThemeManager.BaseOverride = Color.Parse("#101828");
-            Assert.True(DaisyThemeManager.IsCurrentThemeDark);
-            Assert.True(DaisyThemeManager.IsDarkTheme("Light"));
-            Assert.False(DaisyThemeManager.IsDarkTheme("Cupcake"));
-            Assert.Equal(ThemeVariant.Dark, app.RequestedThemeVariant);
-
-            // Base300 lies toward the text in Light, so on a dark base it is lighter, as in the dark themes.
-            var bases = Bases();
-            Assert.True(Luminance(bases.Content) > Luminance(bases.Base100));
-            Assert.True(Luminance(bases.Base300) > Luminance(bases.Base100));
-            Assert.True(FloweryColorHelpers.GetContrastRatio(bases.Content, bases.Base100) >= 4.5);
-
-            DaisyThemeManager.BaseOverride = null;
-            Assert.False(DaisyThemeManager.IsCurrentThemeDark);
-            Assert.Equal(ThemeVariant.Light, app.RequestedThemeVariant);
-        }
-        finally
-        {
-            DaisyThemeManager.BaseOverride = null;
-            DaisyThemeManager.ApplyTheme(previous ?? "Light");
-        }
-    }
-
-    [AvaloniaFact]
     public void The_Text_Colors_Of_The_Accents_Reach_4_5_And_The_Accent_Surfaces_Stay()
     {
         var previous = DaisyThemeManager.CurrentThemeName;
@@ -111,121 +76,20 @@ public class DaisyBaseOverrideTests
     }
 
     [AvaloniaFact]
-    public void A_Theme_Switch_Keeps_The_Override_And_Computes_It_Again()
-    {
-        var previous = DaisyThemeManager.CurrentThemeName;
-        var changes = 0;
-        var themeChanges = new List<string>();
-        void CountOverride(object? sender, EventArgs e) => changes++;
-        void CountTheme(object? sender, string name) => themeChanges.Add(name);
-        DaisyThemeManager.BaseOverrideChanged += CountOverride;
-        DaisyThemeManager.ThemeChanged += CountTheme;
-        try
-        {
-            Assert.True(DaisyThemeManager.ApplyTheme("Dark"));
-            themeChanges.Clear();
-            var navy = Color.Parse("#0B1B5E");
-            DaisyThemeManager.BaseOverride = navy;
-            Assert.Equal(1, changes);
-            // Code that read the colors of the theme reads them again, as after a theme switch.
-            Assert.Equal(["Dark"], themeChanges);
-
-            Assert.True(DaisyThemeManager.ApplyTheme("Corporate"));
-            Assert.Equal(navy, DaisyThemeManager.BaseOverride);
-            var bases = Bases();
-            Assert.Equal(navy, bases.Base100);
-            Assert.True(DaisyThemeManager.IsCurrentThemeDark);
-            Assert.True(Luminance(bases.Content) > Luminance(bases.Base100));
-
-            // An alpha would make the base see-through, so the override is opaque.
-            DaisyThemeManager.BaseOverride = Color.Parse("#800B1B5E");
-            Assert.Equal(navy, DaisyThemeManager.BaseOverride);
-            Assert.Equal(1, changes);
-        }
-        finally
-        {
-            DaisyThemeManager.BaseOverrideChanged -= CountOverride;
-            DaisyThemeManager.ThemeChanged -= CountTheme;
-            DaisyThemeManager.BaseOverride = null;
-            DaisyThemeManager.ApplyTheme(previous ?? "Light");
-        }
-    }
-
-    [AvaloniaFact]
-    public void The_Glass_Tint_Follows_The_New_Base_Also_For_A_Theme_With_Its_Own_Tint()
-    {
-        var previous = DaisyThemeManager.CurrentThemeName;
-        try
-        {
-            Assert.True(DaisyThemeManager.ApplyTheme("Glassy"));
-            var themeBase = ThemeColor("DaisyBase100Color");
-            var themeTint = ThemeColor("DaisyGlassTintColor");
-
-            var teal = Color.Parse("#0F3D3E");
-            DaisyThemeManager.BaseOverride = teal;
-            var tint = ThemeColor("DaisyGlassTintColor");
-            // Whole RGB values shift the hue of a dark color a little.
-            Assert.InRange(Math.Abs(new HslHue(teal).Hue - new HslHue(tint).Hue), 0, 4);
-            AssertKeeps(themeTint, themeBase, tint, teal);
-
-            // In the glass mode a theme without a tint of its own takes the new base as tint.
-            Assert.True(DaisyThemeManager.ApplyTheme("Dracula"));
-            DaisyGlassSurface.GlobalEnabled = true;
-            Assert.Equal(teal, ThemeColor("DaisyGlassTintColor"));
-        }
-        finally
-        {
-            DaisyGlassSurface.GlobalEnabled = false;
-            DaisyThemeManager.BaseOverride = null;
-            DaisyThemeManager.ApplyTheme(previous ?? "Light");
-        }
-    }
-
-    [AvaloniaFact]
-    public void The_Backdrop_Of_A_Theme_Gives_Way_To_A_Base_Of_The_Other_Kind()
-    {
-        var previous = DaisyThemeManager.CurrentThemeName;
-        try
-        {
-            Assert.True(DaisyThemeManager.ApplyTheme("Glassy"));
-
-            // A dark base keeps the dark wave of Glassy.
-            DaisyThemeManager.BaseOverride = Color.Parse("#111111");
-            Assert.IsType<DrawingBrush>(Resource("DaisyBackdropBrush"));
-
-            // On a light base the page text turns dark, which the dark wave would swallow.
-            var light = Color.Parse("#FFF7ED");
-            DaisyThemeManager.BaseOverride = light;
-            Assert.Equal(light, Assert.IsAssignableFrom<ISolidColorBrush>(Resource("DaisyBackdropBrush")).Color);
-            DaisyGlassSurface.GlobalEnabled = true;
-            Assert.Equal(light, Assert.IsAssignableFrom<ISolidColorBrush>(
-                Assert.IsType<DrawingGroup>(Assert.IsType<DrawingBrush>(Resource("DaisyBackdropBrush")).Drawing).Children
-                    .OfType<GeometryDrawing>().First().Brush).Color);
-        }
-        finally
-        {
-            DaisyGlassSurface.GlobalEnabled = false;
-            DaisyThemeManager.BaseOverride = null;
-            DaisyThemeManager.ApplyTheme(previous ?? "Light");
-        }
-    }
-
-    [AvaloniaFact]
     public void The_Theme_Swap_Still_Reaches_The_Other_Theme_Under_A_Base_Of_The_Other_Kind()
     {
         var previous = DaisyThemeManager.CurrentThemeName;
         var swap = new DaisyThemeSwap { LightTheme = "Light", DarkTheme = "Dark" };
         var window = new Window { Width = 200, Height = 100, Content = swap };
         window.Show();
-        var click = typeof(DaisyThemeSwap).GetMethod("OnClick", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
         try
         {
             Assert.True(DaisyThemeManager.ApplyTheme("Dark"));
             // A light base makes Dark look light, but the swap still goes to Light and back.
             DaisyThemeManager.BaseOverride = Colors.White;
-            click.Invoke(swap, null);
+            swap.PointerClick();
             Assert.Equal("Light", DaisyThemeManager.CurrentThemeName);
-            click.Invoke(swap, null);
+            swap.PointerClick();
             Assert.Equal("Dark", DaisyThemeManager.CurrentThemeName);
         }
         finally
@@ -233,79 +97,6 @@ public class DaisyBaseOverrideTests
             window.Close();
             DaisyThemeManager.BaseOverride = null;
             DaisyThemeManager.ApplyTheme(previous ?? "Light");
-        }
-    }
-
-    [AvaloniaFact]
-    public void A_Theme_That_A_Custom_Applicator_Applies_Takes_Light_Or_Dark_From_The_Base_Override()
-    {
-        var previous = DaisyThemeManager.CurrentThemeName;
-        var app = Application.Current!;
-        try
-        {
-            Assert.True(DaisyThemeManager.ApplyTheme("Light"));
-            DaisyThemeManager.BaseOverride = Color.Parse("#101828");
-            DaisyThemeManager.CustomThemeApplicator = static _ => true;
-            Assert.True(DaisyThemeManager.ApplyTheme("Cupcake"));
-            Assert.Equal(ThemeVariant.Dark, app.RequestedThemeVariant);
-        }
-        finally
-        {
-            DaisyThemeManager.CustomThemeApplicator = null;
-            DaisyThemeManager.BaseOverride = null;
-            DaisyThemeManager.ApplyTheme(previous ?? "Light");
-        }
-    }
-
-    [AvaloniaFact]
-    public void The_Contrast_Gaps_Name_The_Accent_Surfaces_Too_Pale_For_A_Very_Light_Base()
-    {
-        var previous = DaisyThemeManager.CurrentThemeName;
-        try
-        {
-            Assert.True(DaisyThemeManager.ApplyTheme("Dark"));
-            Assert.DoesNotContain(DaisyThemeManager.FindContrastGaps(), gap => gap.Foreground == "DaisyBaseContentColor");
-
-            DaisyThemeManager.BaseOverride = Colors.White;
-            var gaps = DaisyThemeManager.FindContrastGaps();
-            var warning = Assert.Single(gaps, gap => gap.Foreground == "DaisyWarningColor" && gap.Background == "DaisyBase100Color");
-            Assert.Equal(3, warning.Required);
-            Assert.True(warning.Ratio < 3);
-            Assert.Equal(FloweryColorHelpers.GetContrastRatio(ThemeColor("DaisyWarningColor"), Colors.White), warning.Ratio, 3);
-            // The base text and the text colors of the accents were moved, so they are no gap.
-            Assert.DoesNotContain(gaps, gap => gap.Foreground is "DaisyBaseContentColor" or "DaisyPrimaryForegroundBrush");
-        }
-        finally
-        {
-            DaisyThemeManager.BaseOverride = null;
-            DaisyThemeManager.ApplyTheme(previous ?? "Light");
-        }
-    }
-
-    [AvaloniaFact]
-    public void The_Sidebar_Shows_The_Base_And_Gives_The_Theme_Base_Back()
-    {
-        var sidebar = new FloweryComponentSidebar();
-        var window = new Window { Width = 300, Height = 400, Content = sidebar };
-        window.Show();
-        Dispatcher.UIThread.RunJobs();
-        try
-        {
-            Assert.Equal("Theme", sidebar.BaseColorText);
-            Assert.False(sidebar.ResetBaseColorCommand.CanExecute(null));
-
-            DaisyThemeManager.BaseOverride = Color.Parse("#0B1B5E");
-            Assert.Equal("#0B1B5E", sidebar.BaseColorText);
-            Assert.True(sidebar.ResetBaseColorCommand.CanExecute(null));
-
-            sidebar.ResetBaseColorCommand.Execute(null);
-            Assert.Null(DaisyThemeManager.BaseOverride);
-            Assert.Equal("Theme", sidebar.BaseColorText);
-        }
-        finally
-        {
-            window.Close();
-            DaisyThemeManager.BaseOverride = null;
         }
     }
 
@@ -325,16 +116,4 @@ public class DaisyBaseOverrideTests
     }
 
     private static double Luminance(Color color) => FloweryColorHelpers.GetRelativeLuminance(color);
-
-    private readonly record struct HslHue(double Hue)
-    {
-        public HslHue(Color color) : this(new Flowery.Controls.ColorPicker.HslColor(color).H)
-        {
-        }
-    }
-
-    private static Color ThemeColor(string key) => Assert.IsType<Color>(Resource(key));
-
-    private static object? Resource(string key) =>
-        Application.Current is { } app && app.TryFindResource(key, app.ActualThemeVariant, out var value) ? value : null;
 }

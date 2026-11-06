@@ -43,9 +43,6 @@ public sealed class DaisyTourClosedEventArgs : EventArgs
 
     public DaisyTourCloseReason Reason { get; }
     public string? StepId { get; }
-    /// <summary>Always null: target problems no longer close the tour. <see cref="DaisyTour.StepTargetUnavailable"/>
-    /// reports the affected annotation.</summary>
-    public string? AnnotationId => null;
     public Control? Target { get; }
     public Exception? Error { get; }
 }

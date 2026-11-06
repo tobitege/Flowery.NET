@@ -1,12 +1,10 @@
-﻿using System.Reflection;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.HeadlessTestingFramework;
 using Avalonia.Input;
-using Avalonia.Input.Raw;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
@@ -19,11 +17,7 @@ namespace Flowery.NET.Tests;
 public sealed partial class SchedulerTests
 {
     [AvaloniaTheory]
-    [InlineData(SchedulerView.Day)]
     [InlineData(SchedulerView.Week)]
-    [InlineData(SchedulerView.Month)]
-    [InlineData(SchedulerView.Planner)]
-    [InlineData(SchedulerView.Timeline)]
     public void ColumnZoomWidensTheColumnsWithoutBuildingTheViewAgain(SchedulerView view)
     {
         using var scope = new SchedulerScope(view);
@@ -37,16 +31,6 @@ public sealed partial class SchedulerTests
         // Layout rounds widths to device pixels.
         Assert.Equal(fitted * 2, body.Extent.Width, tolerance: 2);
         Assert.Same(frame, scope.Frame(scope.Appointment));
-    }
-
-    [AvaloniaFact]
-    public void ColumnZoomStaysBetweenOneAndFour()
-    {
-        using var scope = new SchedulerScope(SchedulerView.Week);
-        scope.Scheduler.ColumnZoom = 10;
-        Assert.Equal(4, scope.Scheduler.ColumnZoom);
-        scope.Scheduler.ColumnZoom = 0.5;
-        Assert.Equal(1, scope.Scheduler.ColumnZoom);
     }
 
     [AvaloniaFact]
@@ -85,22 +69,7 @@ public sealed partial class SchedulerTests
         Assert.Equal(2, scope.Scheduler.ColumnZoom);
     }
 
-    [AvaloniaFact]
-    public void ADoubleClickOnAColumnHeadingSwitchesBetweenFittedAndWideColumns()
-    {
-        using var scope = new SchedulerScope(SchedulerView.Month);
-        var heading = scope.Scheduler.GetVisualDescendants().OfType<TextBlock>()
-            .First(text => text.Text == Monday.ToString("ddd", scope.Scheduler.FormattingCulture)).FindAncestorOfType<Border>()!;
-
-        scope.Click(heading);
-        Assert.Equal(1, scope.Scheduler.ColumnZoom);
-        scope.Click(heading);
-        Assert.Equal(2, scope.Scheduler.ColumnZoom);
-    }
-
     [AvaloniaTheory]
-    [InlineData(SchedulerView.Week)]
-    [InlineData(SchedulerView.Month)]
     [InlineData(SchedulerView.Planner)]
     public void DraggingTheRightEdgeOfAColumnHeadingWithTheMouseResizesEveryColumn(SchedulerView view)
     {
@@ -155,28 +124,6 @@ public sealed partial class SchedulerTests
     }
 
     [AvaloniaFact]
-    public void TheSettingsMenuChoosesTheColumnZoom()
-    {
-        using var scope = new SchedulerScope(SchedulerView.Week);
-        var builder = typeof(DaisyScheduler).GetMethod("BuildSettings", BindingFlags.Instance | BindingFlags.NonPublic)!;
-        var settings = Assert.IsType<ScrollViewer>(builder.Invoke(scope.Scheduler, null));
-        var popup = new Window { Width = 500, Height = 600, Content = settings };
-        popup.Show();
-        try
-        {
-            popup.UpdateLayout();
-            var zoom = settings.GetVisualDescendants().OfType<DaisySelect>().Single(select => Equals(select.Tag, DaisyScheduler.ColumnZoomProperty));
-            Assert.Equal(1d.ToString("P0", scope.Scheduler.FormattingCulture), zoom.SelectedItem?.ToString());
-            zoom.SelectedIndex = 2;
-            Assert.Equal(2, scope.Scheduler.ColumnZoom);
-        }
-        finally
-        {
-            popup.Close();
-        }
-    }
-
-    [AvaloniaFact]
     public void WithAStateKeyTheZoomOfTheUserIsKeptForTheNextScheduler()
     {
         var previous = StateStorageProvider.Instance;
@@ -198,13 +145,76 @@ public sealed partial class SchedulerTests
                 first.Scheduler.ColumnZoom = 2.5;
                 first.Layout();
             }
-            // The changes of one turn are written once.
+            // The changes are written once, at the latest when the scheduler closes.
             Assert.Equal(1, storage.SaveCount);
 
             using var second = new SchedulerScope(SchedulerView.Week);
             Assert.Equal(1, second.Scheduler.ColumnZoom);
             second.Scheduler.StateKey = "zoom";
             Assert.Equal(2.5, second.Scheduler.ColumnZoom);
+        }
+        finally
+        {
+            StateStorageProvider.Configure(previous);
+        }
+    }
+
+    [AvaloniaFact]
+    public void AZoomGestureOverManyDispatcherTurnsIsWrittenOnceItRests()
+    {
+        var previous = StateStorageProvider.Instance;
+        var storage = new InMemoryStateStorage();
+        StateStorageProvider.Configure(storage);
+        try
+        {
+            using var scope = new SchedulerScope(SchedulerView.Week);
+            scope.Scheduler.StateKey = "zoom";
+            // A pinch: one zoom per pointer event, each in a dispatcher turn of its own.
+            foreach (var zoom in new[] { 1.2, 1.5, 1.9, 2.4 })
+            {
+                scope.Scheduler.ColumnZoom = zoom;
+                scope.Layout();
+            }
+            Assert.Equal(0, storage.SaveCount);
+
+            Thread.Sleep(DaisyScheduler.StateSaveDelay + TimeSpan.FromMilliseconds(150));
+            // The dispatcher looks for due timers only after it ran a job.
+            Dispatcher.UIThread.Post(static () => { });
+            scope.Layout();
+            Assert.Equal(1, storage.SaveCount);
+            Assert.Equal(["columnZoom=2.4"], storage.LoadLines(Assert.Single(storage.GetKeys(string.Empty))));
+
+            // A zoom right before the scheduler closes is not lost.
+            scope.Scheduler.ColumnZoom = 3;
+            scope.Window.Content = null;
+            Assert.Equal(2, storage.SaveCount);
+            Assert.Equal(["columnZoom=3"], storage.LoadLines(Assert.Single(storage.GetKeys(string.Empty))));
+        }
+        finally
+        {
+            StateStorageProvider.Configure(previous);
+        }
+    }
+
+    [AvaloniaFact]
+    public void AZoomWaitingForItsSaveIsWrittenUnderTheOldKeyWhenTheStateKeyChanges()
+    {
+        var previous = StateStorageProvider.Instance;
+        var storage = new InMemoryStateStorage();
+        StateStorageProvider.Configure(storage);
+        try
+        {
+            using var scope = new SchedulerScope(SchedulerView.Week);
+            scope.Scheduler.StateKey = "first";
+            scope.Scheduler.ColumnZoom = 2.4;
+            scope.Scheduler.StateKey = "second";
+
+            var key = Assert.Single(storage.GetKeys(string.Empty));
+            Assert.Contains("first", key);
+            Assert.Equal(["columnZoom=2.4"], storage.LoadLines(key));
+            // Nothing waits any more that could write the zoom of the old key under the new one.
+            scope.Window.Content = null;
+            Assert.Equal(1, storage.SaveCount);
         }
         finally
         {

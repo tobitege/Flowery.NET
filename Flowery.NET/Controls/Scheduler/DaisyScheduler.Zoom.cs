@@ -25,7 +25,7 @@ public partial class DaisyScheduler
     private double? _zoomFocus;
     private double? _pinchStartZoom;
     private bool _loadingState;
-    private bool _savePending;
+    private DispatcherTimer? _saveTimer;
 
     // Agenda and Calendar have no columns or hours to widen.
     private bool ZoomsColumns => CurrentView is not (SchedulerView.Agenda or SchedulerView.Calendar);
@@ -162,7 +162,10 @@ public partial class DaisyScheduler
             ZoomByUser(ColumnZoom > MinimumColumnZoom ? MinimumColumnZoom : WideColumnZoom, e.GetPosition(scroll).X);
     }
 
-    private string? StorageKey => string.IsNullOrWhiteSpace(StateKey) ? null : StateStorageKeyHelper.BuildScopedKey("scheduler", StateKey);
+    private string? StorageKey => StorageKeyOf(StateKey);
+
+    private static string? StorageKeyOf(string? stateKey) =>
+        string.IsNullOrWhiteSpace(stateKey) ? null : StateStorageKeyHelper.BuildScopedKey("scheduler", stateKey);
 
     // The settings are a convenience: a storage that cannot be read or written keeps the current ones.
     private void LoadState()
@@ -196,25 +199,38 @@ public partial class DaisyScheduler
         }
     }
 
+    // A pinch or an edge drag changes the zoom on every pointer move: the zoom is written once it has rested this long,
+    // or when the scheduler leaves the tree.
+    internal static readonly TimeSpan StateSaveDelay = TimeSpan.FromMilliseconds(500);
+
     private void SaveState()
     {
-        if (_loadingState || _savePending || !_attached || StorageKey is null)
+        if (_loadingState || !_attached || StorageKey is null)
             return;
-        // A pinch changes the zoom many times; one write after it is enough.
-        _savePending = true;
-        Dispatcher.UIThread.Post(() =>
+        if (_saveTimer is null)
         {
-            _savePending = false;
-            if (StorageKey is not { } key)
-                return;
-            try
-            {
-                StateStorageProvider.Instance.SaveLines(key, [ColumnZoomState + ColumnZoom.ToString("R", CultureInfo.InvariantCulture)]);
-            }
-            catch (Exception)
-            {
-                // Kept for this session only.
-            }
-        }, DispatcherPriority.Background);
+            _saveTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = StateSaveDelay };
+            _saveTimer.Tick += (_, _) => FlushState(StateKey);
+        }
+        _saveTimer.Stop();
+        _saveTimer.Start();
+    }
+
+    // Writes a zoom that waits for its save, under the state key it was made with.
+    private void FlushState(string? stateKey)
+    {
+        if (_saveTimer is not { IsEnabled: true } timer)
+            return;
+        timer.Stop();
+        if (StorageKeyOf(stateKey) is not { } key)
+            return;
+        try
+        {
+            StateStorageProvider.Instance.SaveLines(key, [ColumnZoomState + ColumnZoom.ToString("R", CultureInfo.InvariantCulture)]);
+        }
+        catch (Exception)
+        {
+            // Kept for this session only.
+        }
     }
 }

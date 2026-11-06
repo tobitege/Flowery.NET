@@ -1,4 +1,5 @@
-﻿using Avalonia.Media;
+﻿using System;
+using Avalonia.Media;
 
 namespace Flowery.Controls
 {
@@ -16,12 +17,21 @@ namespace Flowery.Controls
 
         /// <summary>
         /// Registers the renderer for every SkiaSharp glass, or removes it with <c>null</c>. Register it at startup; a
-        /// glass picks it up when it enters the visual tree, so one created earlier but shown later still uses it.
+        /// glass picks it up when it enters the visual tree, so one created earlier but shown later still uses it. A glass
+        /// already in the visual tree switches at once: to the new renderer, or to BitmapCapture without one.
         /// </summary>
         public static void Register(DaisyGlassLiveRenderer? renderer)
         {
+            if (ReferenceEquals(Current, renderer))
+                return;
             Current = renderer;
+            RendererChanged?.Invoke(null, EventArgs.Empty);
         }
+
+        /// <summary>
+        /// Raised after <see cref="Register"/> changed the renderer; a glass in the visual tree listens to it.
+        /// </summary>
+        internal static event EventHandler? RendererChanged;
 
         /// <summary>
         /// Draws the backdrop of <paramref name="glass"/> into <paramref name="context"/>, below its content and layers.

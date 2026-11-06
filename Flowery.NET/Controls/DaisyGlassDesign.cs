@@ -427,6 +427,7 @@ namespace Flowery.Controls
                 design.BackgroundFrameRate = background.FrameRate;
             }
 
+            design.ClampToRanges();
             return design;
         }
 
@@ -450,6 +451,37 @@ namespace Flowery.Controls
             return design;
         }
 
+        // The range of every number of a design. FromJson rejects a value outside it and FromControl clamps to it, so a
+        // design read from a control saves as JSON that reads back.
+        private static readonly NumberRange[] Ranges =
+        [
+            new(nameof(Blur), static d => d.Blur, static (d, v) => d.Blur = v, 0, double.MaxValue),
+            new(nameof(Saturation), static d => d.Saturation, static (d, v) => d.Saturation = v, 0, double.MaxValue),
+            new(nameof(BackgroundSpeed), static d => d.BackgroundSpeed, static (d, v) => d.BackgroundSpeed = v, 0, double.MaxValue),
+            new(nameof(BackgroundFrameRate), static d => d.BackgroundFrameRate, static (d, v) => d.BackgroundFrameRate = v, 0, double.MaxValue),
+            new(nameof(RimSaturation), static d => d.RimSaturation, static (d, v) => d.RimSaturation = v, 0, double.MaxValue),
+            new(nameof(Zoom), static d => d.Zoom, static (d, v) => d.Zoom = v, 0.5, 3),
+            new(nameof(Refraction), static d => d.Refraction, static (d, v) => d.Refraction = v, 0, 1),
+            new(nameof(Bezel), static d => d.Bezel, static (d, v) => d.Bezel = v, 0, 1),
+            new(nameof(Opacity), static d => d.Opacity, static (d, v) => d.Opacity = v, 0, 1),
+            new(nameof(TintOpacity), static d => d.TintOpacity, static (d, v) => d.TintOpacity = v, 0, 1),
+            new(nameof(ReflectOpacity), static d => d.ReflectOpacity, static (d, v) => d.ReflectOpacity = v, 0, 1),
+            new(nameof(FillOpacity), static d => d.FillOpacity, static (d, v) => d.FillOpacity = v, 0, 1),
+            new(nameof(PatternOpacity), static d => d.PatternOpacity, static (d, v) => d.PatternOpacity = v, 0, 1),
+            new(nameof(BackgroundOpacity), static d => d.BackgroundOpacity, static (d, v) => d.BackgroundOpacity = v, 0, 1),
+            new(nameof(ColorOpacity), static d => d.ColorOpacity, static (d, v) => d.ColorOpacity = v, 0, 1),
+            new(nameof(TextShadowOpacity), static d => d.TextShadowOpacity, static (d, v) => d.TextShadowOpacity = v, 0, 1),
+            new(nameof(ReflectDegree), static d => d.ReflectDegree, static (d, v) => d.ReflectDegree = v, double.MinValue, double.MaxValue),
+            new(nameof(Depth), static d => d.Depth, static (d, v) => d.Depth = v, double.MinValue, double.MaxValue),
+            new(nameof(Curvature), static d => d.Curvature, static (d, v) => d.Curvature = v, double.MinValue, double.MaxValue),
+            new(nameof(Bend), static d => d.Bend, static (d, v) => d.Bend = v, double.MinValue, double.MaxValue),
+            new(nameof(Dispersion), static d => d.Dispersion, static (d, v) => d.Dispersion = v, double.MinValue, double.MaxValue),
+            new(nameof(FillAngle), static d => d.FillAngle, static (d, v) => d.FillAngle = v, double.MinValue, double.MaxValue)
+        ];
+
+        private sealed record NumberRange(string Name, Func<DaisyGlassDesign, double> Get, Action<DaisyGlassDesign, double> Set,
+            double Minimum, double Maximum);
+
         // JSON can name any enum number and any value; a design that reaches a control holds only values it can apply.
         private void Validate()
         {
@@ -459,35 +491,27 @@ namespace Flowery.Controls
             Defined(Pattern);
             Defined(BackgroundRenderer);
             Defined(BackgroundEffect);
-            foreach (var (name, value) in new[]
-                     {
-                         (nameof(Blur), Blur), (nameof(Saturation), Saturation),
-                         (nameof(BackgroundSpeed), BackgroundSpeed), (nameof(BackgroundFrameRate), BackgroundFrameRate),
-                         (nameof(RimSaturation), RimSaturation)
-                     })
-                InRange(name, value, 0, double.MaxValue);
-            InRange(nameof(Zoom), Zoom, 0.5, 3);
-            foreach (var (name, value) in new[]
-                     {
-                         (nameof(Refraction), Refraction), (nameof(Bezel), Bezel),
-                         (nameof(Opacity), Opacity), (nameof(TintOpacity), TintOpacity),
-                         (nameof(ReflectOpacity), ReflectOpacity), (nameof(FillOpacity), FillOpacity),
-                         (nameof(PatternOpacity), PatternOpacity), (nameof(BackgroundOpacity), BackgroundOpacity),
-                         (nameof(ColorOpacity), ColorOpacity), (nameof(TextShadowOpacity), TextShadowOpacity)
-                     })
-                InRange(name, value, 0, 1);
-            foreach (var (name, value) in new[]
-                     {
-                         (nameof(ReflectDegree), ReflectDegree), (nameof(Depth), Depth),
-                         (nameof(Curvature), Curvature), (nameof(Bend), Bend),
-                         (nameof(Dispersion), Dispersion), (nameof(FillAngle), FillAngle)
-                     })
-                InRange(name, value, double.MinValue, double.MaxValue);
+            foreach (var range in Ranges)
+                InRange(range.Name, range.Get(this), range.Minimum, range.Maximum);
             foreach (var stop in FillStops)
             {
                 if (stop is null)
                     throw new JsonException("A fill stop is empty.");
                 InRange("fill stop offset", stop.Offset, 0, 1);
+            }
+        }
+
+        // A control takes any value, such as a zoom of 4; the design keeps the nearest one it can save, and the default for
+        // a value that is not a number. FromControl reads fill stops outside 0 to 1 as a Keep fill.
+        private void ClampToRanges()
+        {
+            DaisyGlassDesign? defaults = null;
+            foreach (var range in Ranges)
+            {
+                var value = range.Get(this);
+                range.Set(this, double.IsFinite(value)
+                    ? Math.Clamp(value, range.Minimum, range.Maximum)
+                    : range.Get(defaults ??= new DaisyGlassDesign()));
             }
         }
 
@@ -699,7 +723,8 @@ namespace Flowery.Controls
 
         // A gradient brush with nothing a design cannot write: full opacity, no transform, padded ends.
         private static bool IsPlain(GradientBrush brush) =>
-            Math.Abs(brush.Opacity - 1) < Tolerance && brush.Transform is null && brush.SpreadMethod == GradientSpreadMethod.Pad;
+            Math.Abs(brush.Opacity - 1) < Tolerance && brush.Transform is null && brush.SpreadMethod == GradientSpreadMethod.Pad
+            && brush.GradientStops.All(static stop => stop.Offset is >= 0 and <= 1);
 
         // Whether the points are those LinearPoints makes for their angle: centered, half a unit long, relative.
         private static bool IsOwnLinear(RelativePoint start, RelativePoint end)

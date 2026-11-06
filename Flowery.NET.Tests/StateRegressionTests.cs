@@ -4,16 +4,15 @@ using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
-using Avalonia.Input.Raw;
 using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Controls.ColorPicker;
 using Xunit;
+using static Flowery.NET.Tests.RealInput;
 
 namespace Flowery.NET.Tests;
 
@@ -258,13 +257,6 @@ public class StateRegressionTests
     {
         Dispatcher.UIThread.RunJobs();
         window.UpdateLayout();
-        Dispatcher.UIThread.RunJobs();
-    }
-
-    private static void Press(Window window, Key key)
-    {
-        window.KeyPress(key, RawInputModifiers.None, PhysicalKey.None, keySymbol: null);
-        window.KeyRelease(key, RawInputModifiers.None, PhysicalKey.None, keySymbol: null);
         Dispatcher.UIThread.RunJobs();
     }
 }

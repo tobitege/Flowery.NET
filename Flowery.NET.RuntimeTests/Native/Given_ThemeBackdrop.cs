@@ -37,14 +37,14 @@ public class Given_ThemeBackdrop
     }
 
     [Fact]
-    public void When_An_Image_Backdrop_Is_Wider_Than_A_Screen_It_Is_Decoded_At_Screen_Width()
+    public void When_An_Image_Backdrop_Is_Wider_Than_3840_Pixels_It_Is_Decoded_3840_Pixels_Wide()
     {
         try
         {
-            DaisyThemeManager.BackdropOverride = "image:" + Png("flowery-backdrop-wide.png", 4000, 8);
+            DaisyThemeManager.BackdropOverride = "image:" + Png("backdrop-wide.png", 4000, 8);
             Assert.Equal(3840, Decoded().Width);
 
-            DaisyThemeManager.BackdropOverride = "image:" + Png("flowery-backdrop-small.png", 40, 20);
+            DaisyThemeManager.BackdropOverride = "image:" + Png("backdrop-small.png", 40, 20);
             Assert.Equal(new PixelSize(40, 20), Decoded());
         }
         finally
@@ -60,10 +60,10 @@ public class Given_ThemeBackdrop
         return Assert.IsType<Bitmap>(Assert.IsType<ImageBrush>(brush).Source).PixelSize;
     }
 
-    // A PNG of the given size in the temp folder, written again on each run under the same name.
+    // A PNG of the given size in the artifact directory of the run.
     private static string Png(string name, int width, int height)
     {
-        var path = Path.Combine(Path.GetTempPath(), name);
+        var path = RuntimeTestHelpers.GetArtifactPath(name);
         using var bitmap = new SKBitmap(width, height);
         bitmap.Erase(SKColors.SteelBlue);
         using var image = SKImage.FromBitmap(bitmap);

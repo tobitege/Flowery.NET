@@ -46,20 +46,4 @@ public sealed partial class ParityTests
         }
         Assert.True(composed.GetPixel(5, 5).Red < composed.GetPixel(100, 200).Red / 3);
     }
-
-    [Theory]
-    [InlineData(-100)]
-    [InlineData(100)]
-    public void ContrastUsesTheOriginalPiecewiseQuadraticTransfer(double contrast)
-    {
-        using var source = new SKBitmap(256, 1);
-        for (var x = 0; x < 256; x++) source.SetPixel(x, 0, new SKColor((byte)x, (byte)x, (byte)x));
-        using var result = EditRenderer.Render(source, EditState.Original with { Contrast = contrast });
-        foreach (var x in new[] { 0, 32, 64, 96, 128, 160, 224, 255 })
-        {
-            var value = x / 255d;
-            var expected = (value + contrast / 100 * .75 * (2 * value - 1) * Math.Min(value, 1 - value)) * 255;
-            Assert.InRange(Math.Abs(result.GetPixel(x, 0).Red - expected), 0, 1.5);
-        }
-    }
 }

@@ -7,6 +7,7 @@ using Avalonia.Data;
 using Avalonia.Diagnostics;
 using Avalonia.Media;
 using Avalonia.Utilities;
+using Avalonia.VisualTree;
 using Flowery.Enums;
 using Flowery.Helpers;
 
@@ -68,6 +69,7 @@ namespace Flowery.Controls
         private Color _lastColor;
         private IBrush? _lastBrush;
         private bool? _textLight;
+        private bool _watchingAccent;
 
         private GlassTextContrast(TemplatedControl owner, DaisyGlass glass, Border? tint, bool enabled, Action<IBrush?> apply)
         {
@@ -79,6 +81,10 @@ namespace Flowery.Controls
             _glass.PropertyChanged += OnPartChanged;
             if (_tint != null)
                 _tint.PropertyChanged += OnPartChanged;
+            _glass.AttachedToVisualTree += OnGlassAttached;
+            _glass.DetachedFromVisualTree += OnGlassDetached;
+            if (_glass.IsAttachedToVisualTree())
+                WatchAccentColor(true);
             WatchBackground(_glass.GlassBackground);
             Update();
         }
@@ -134,6 +140,9 @@ namespace Flowery.Controls
             _glass.PropertyChanged -= OnPartChanged;
             if (_tint != null)
                 _tint.PropertyChanged -= OnPartChanged;
+            _glass.AttachedToVisualTree -= OnGlassAttached;
+            _glass.DetachedFromVisualTree -= OnGlassDetached;
+            WatchAccentColor(false);
             WatchBackground(null);
             _glass.MeasureBackdropColor = false;
         }
@@ -209,6 +218,29 @@ namespace Flowery.Controls
                 WeakEvents.AvaloniaPropertyChanged.Subscribe(_background, this);
         }
 
+        // A liquid color without a color of its own follows the accent color, which changes the color behind the text. The
+        // event is static, so the contrast listens only while its glass is in the visual tree and can be released.
+        private void WatchAccentColor(bool watch)
+        {
+            if (_watchingAccent == watch)
+                return;
+            _watchingAccent = watch;
+            if (watch)
+                DaisyGlassBackground.AccentColorChanged += OnAccentColorChanged;
+            else
+                DaisyGlassBackground.AccentColorChanged -= OnAccentColorChanged;
+        }
+
+        private void OnGlassAttached(object? sender, VisualTreeAttachmentEventArgs e) => WatchAccentColor(true);
+
+        private void OnGlassDetached(object? sender, VisualTreeAttachmentEventArgs e) => WatchAccentColor(false);
+
+        private void OnAccentColorChanged(object? sender, EventArgs e)
+        {
+            if (_glass.GlassBackground is { Effect: DaisyGlassAnimation.LiquidColor, EffectColor: null })
+                Update();
+        }
+
         void IWeakEventSubscriber<AvaloniaPropertyChangedEventArgs>.OnEvent(object? sender, WeakEvent ev, AvaloniaPropertyChangedEventArgs e)
         {
             if (e.Property == DaisyGlassBackground.EffectProperty || e.Property == DaisyGlassBackground.EffectColorProperty)
@@ -256,7 +288,7 @@ namespace Flowery.Controls
         }
 
         // The average color of each animated effect over its run, drawn as gradients or shaders.
-        private static Color AverageColor(DaisyGlassBackground background) => background.Effect switch
+        internal static Color AverageColor(DaisyGlassBackground background) => background.Effect switch
         {
             DaisyGlassAnimation.Aurora => Color.FromRgb(25, 70, 80),
             DaisyGlassAnimation.LiquidGold => Color.FromRgb(185, 135, 35),

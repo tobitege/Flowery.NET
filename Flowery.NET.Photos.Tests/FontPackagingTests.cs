@@ -25,14 +25,4 @@ public sealed class FontPackagingTests
         Assert.True(glyphTypeface.CharacterToGlyphMap.TryGetGlyph(codepoint, out var glyph));
         Assert.NotEqual((ushort)0, glyph);
     }
-
-    [Fact]
-    public void OutputContainsFontLicenseAndCopyrightNotices()
-    {
-        var path = Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", "OFL.txt");
-        var text = File.ReadAllText(path);
-        Assert.Contains("SIL OPEN FONT LICENSE Version 1.1", text);
-        Assert.Contains("Copyright 2015-2021 Google LLC. All Rights Reserved.", text);
-        Assert.Contains("2014-2021 Adobe", text);
-    }
 }

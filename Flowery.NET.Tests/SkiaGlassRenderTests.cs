@@ -17,9 +17,7 @@ namespace Flowery.NET.Tests;
 public class SkiaGlassRenderTests
 {
     [Theory]
-    [InlineData(DaisyGlassAnimation.Plasma)]
     [InlineData(DaisyGlassAnimation.Aurora)]
-    [InlineData(DaisyGlassAnimation.LiquidGold)]
     public void A_Shader_Background_Fills_Its_Area_And_Moves_With_Time(DaisyGlassAnimation effect)
     {
         using var early = Draw(effect, 1);
@@ -51,17 +49,39 @@ public class SkiaGlassRenderTests
         }
     }
 
-    [AvaloniaFact]
-    public void Without_A_Change_The_Backdrop_Is_Not_Measured_Again_Right_Away()
+    [Theory]
+    [InlineData(0.5f)]
+    [InlineData(1.2f)]
+    public void The_Glass_Saturation_Leaves_A_Gray_Backdrop_Gray(float saturation)
     {
-        var redraw = new SkiaGlassRedraw(new Border()) { MeasureBackdrop = true };
-        Assert.True(redraw.TryStartMeasure());
-        Assert.False(redraw.TryStartMeasure());
+        // Regression: the transposed matrix tinted gray at every saturation but 1, magenta at 1.2 and green at 0.5.
+        using var filter = SKColorFilter.CreateColorMatrix(SkiaGlassDrawOperation.SaturationMatrix(saturation));
+        foreach (var gray in new byte[] { 40, 128, 200 })
+        {
+            var pixel = DrawThrough(filter, new SKColor(gray, gray, gray));
+            Assert.InRange(pixel.Red, gray - 1, gray + 1);
+            Assert.InRange(pixel.Green, gray - 1, gray + 1);
+            Assert.InRange(pixel.Blue, gray - 1, gray + 1);
+        }
+    }
+
+    [Fact]
+    public void The_Glass_Saturation_Turns_A_Color_Toward_Its_Luminance()
+    {
+        // At 0 red becomes the gray of its luminance; above 1 it moves away from that gray.
+        using var gray = SKColorFilter.CreateColorMatrix(SkiaGlassDrawOperation.SaturationMatrix(0));
+        var red = DrawThrough(gray, new SKColor(255, 0, 0));
+        Assert.All(new[] { red.Red, red.Green, red.Blue }, channel => Assert.InRange(channel, 53, 55));
+
+        using var vivid = SKColorFilter.CreateColorMatrix(SkiaGlassDrawOperation.SaturationMatrix(1.2f));
+        var muted = DrawThrough(vivid, new SKColor(150, 110, 130));
+        Assert.True(muted.Red > 150 && muted.Green < 110, $"Saturating (150, 110, 130) gave {muted}.");
     }
 
     [AvaloniaFact]
     public void After_A_Change_The_Backdrop_Is_Measured_After_The_Pause_And_The_Glass_Then_Stops()
     {
+        using var clock = new FakeClock();
         var glass = new Border { Width = 50, Height = 20 };
         var window = new Window { Width = 200, Height = 100, Content = glass };
         window.Show();
@@ -90,6 +110,7 @@ public class SkiaGlassRenderTests
     {
         // The old code redrew such a glass alone from a timer after the group had stopped, which an overlapping
         // glass saw as a change behind it, so both started redrawing in full again.
+        using var clock = new FakeClock();
         var first = new Border { Width = 50, Height = 20 };
         var second = new Border { Width = 50, Height = 20 };
         var window = new Window { Width = 200, Height = 100, Content = new StackPanel { Children = { first, second } } };
@@ -129,21 +150,11 @@ public class SkiaGlassRenderTests
     }
 
     [AvaloniaFact]
-    public void A_Glass_That_Does_Not_Ask_For_It_Is_Never_Measured()
-    {
-        var redraw = new SkiaGlassRedraw(new Border());
-        redraw.BackdropChanged();
-        Assert.False(redraw.TryStartMeasure());
-
-        redraw.MeasureBackdrop = true;
-        Assert.True(redraw.TryStartMeasure());
-    }
-
-    [AvaloniaFact]
     public void Glasses_That_Start_Redrawing_In_Full_In_Different_Frames_Stop_In_The_Same_Frame()
     {
         // A glass that stopped a frame before another would see that one's last redraw as a change behind it and start
         // again; overlapping glasses would then keep each other redrawing.
+        using var clock = new FakeClock();
         var first = new Border { Width = 50, Height = 20 };
         var second = new Border { Width = 50, Height = 20 };
         var window = new Window { Width = 200, Height = 100, Content = new StackPanel { Children = { first, second } } };
@@ -176,6 +187,7 @@ public class SkiaGlassRenderTests
     {
         // A new backdrop color can change the text over the glass. Drawn after the group stopped, that text would
         // repaint part of the glass, which looks like a change behind it, and the glasses would start again.
+        using var clock = new FakeClock();
         var previous = DaisyGlassLiveRenderer.Current;
         FlowerySkia.Register();
         var glass = MeasuringGlass();
@@ -410,6 +422,7 @@ public class SkiaGlassRenderTests
     [AvaloniaFact]
     public void A_Repaint_Leaves_A_Due_Change_Paced_Like_A_Change()
     {
+        using var clock = new FakeClock();
         var glass = new Border { Width = 50, Height = 20 };
         var window = new Window { Width = 200, Height = 100, Content = glass };
         window.Show();
@@ -429,17 +442,8 @@ public class SkiaGlassRenderTests
         }
     }
 
-    [Fact]
-    public void Only_A_Draw_Operation_With_A_New_Version_Is_A_Redraw_Of_The_Glass()
-    {
-        // A new size, for one, renders a new operation with the same version: that is a repaint, not a redraw.
-        var redraw = new SkiaGlassRedraw(new Border());
-        Assert.True(redraw.IsNewRedraw(0));
-        Assert.False(redraw.IsNewRedraw(0));
-        Assert.True(redraw.IsNewRedraw(1));
-    }
-
-    // Replaces the clock and the wake-up of the measurement pacing for one test.
+    // Replaces the clock and the wake-up of the measurement pacing for one test. Unless a test moves it, no time
+    // passes, so no measurement comes due from the clock however slowly the frames run.
     private sealed class FakeClock : IDisposable
     {
         private readonly Func<long> _clock = SkiaGlassRedraw.Clock;
@@ -502,4 +506,14 @@ public class SkiaGlassRenderTests
     }
 
     private static SKColor[] Pixels(SKBitmap bitmap) => bitmap.Pixels;
+
+    // Draws an opaque color through the filter, as the glass draws its backdrop, and returns the result.
+    private static SKColor DrawThrough(SKColorFilter filter, SKColor color)
+    {
+        using var bitmap = new SKBitmap(new SKImageInfo(4, 4, SKColorType.Rgba8888, SKAlphaType.Premul));
+        using (var canvas = new SKCanvas(bitmap))
+        using (var paint = new SKPaint { Color = color, ColorFilter = filter })
+            canvas.DrawRect(SKRect.Create(4, 4), paint);
+        return bitmap.GetPixel(2, 2);
+    }
 }

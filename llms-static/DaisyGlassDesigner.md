@@ -20,7 +20,8 @@ The preview is a `DaisyButton` with `DaisyGlassButtonTheme`. Its text, variant, 
 
 Fill and animated background are layers, not alternatives: the glass draws the blurred backdrop, the tint, the fill at `FillOpacity`, the animated background at `BackgroundOpacity` and the pattern, in this order. The animated background therefore covers the fill at its opacity and hides it at 1. The Fill and Animation tabs sit next to each other and say so.
 
-Open, Save and Reset sit next to the tabs, so they are at hand on every tab. Open and Save use the file dialog of the platform (`TopLevel.StorageProvider`) and read and write the design as a JSON file; a file that is no design shows why below the tabs and leaves the design as it is. The stage offers four backdrops and a disc that drifts behind the preview, so the blur is visible. The disc is off by default and stops when the designer leaves the visual tree. The `Code` button opens the code drawer with the XAML, C# and JSON of the design, a copy button, and an import field for JSON.
+Open, Save and Reset sit next to the tabs, so they are at hand on every tab. Open and Save use the file dialog of the platform (`TopLevel.StorageProvider`) and read and write the design as a JSON file; a file that is no design shows why below the tabs, as an alert on the error color of the theme, and leaves the design as it is. The stage offers four backdrops and a disc that drifts behind the preview, so the blur is visible. The disc is off by default and stops when the designer leaves the visual tree. The `Code` button opens the code drawer with the XAML, C# and JSON of the design, a copy button, and an import field for JSON.
+The designer brings the styles of its parts with it, so they match only the controls inside it; with high contrast, the code drawer, the stage bar, the backdrop swatches and the overlay take the colors of the contrast palette.
 
 ## Key Members
 
@@ -30,6 +31,7 @@ Open, Save and Reset sit next to the tabs, so they are at hand on every tab. Ope
 | `DesignChanged` | Raised when the design changes through the editor, a preset, an import or `Design`. |
 | `PreviewButton` | The button of the preview. |
 | `PreviewText` / `PreviewVariant` / `PreviewButtonStyle` / `PreviewSize` / `PreviewShape` | The preview options. |
+| `Size` | The size of the designer's text, tiles and swatches (default `Medium`): the fonts follow the `DaisySize*FontSize` tokens, the tiles and swatches the same factor. The global size sets it, and inside `FloweryScaleManager.EnableScaling` the scale factor applies too. |
 | `Xaml` / `CSharp` / `Json` | The current design as code. |
 | `LoadFrom(control)` / `ApplyTo(control)` | Reads the glass look of a control, or puts a control on glass with the current look. A `DaisyButton` also sets the preview options. |
 | `ImportJson(json)` | Loads a design written by `Json`; throws `JsonException` for anything else. |
@@ -45,7 +47,7 @@ Open, Save and Reset sit next to the tabs, so they are at hand on every tab. Ope
 | Member | Description |
 | ------ | ----------- |
 | `ApplyTo(control)` | Switches `DaisyGlassSurface.IsEnabled` on and sets the attached glass properties; a fill or background of kind `Keep` stays as it is. |
-| `FromControl(control)` (static) | Reads a control: a setting it does not set comes from its glass. A fill or animated background the design cannot describe (a solid or image brush, a gradient with another geometry, opacity, transform or spread, a custom background) reads as `Keep`, and applying the design leaves it as it is. |
+| `FromControl(control)` (static) | Reads a control: a setting it does not set comes from its glass. A fill or animated background the design cannot describe (a solid or image brush, a gradient with another geometry, opacity, transform or spread, stops outside 0 to 1, a custom background) reads as `Keep`, and applying the design leaves it as it is. A number outside the range that `FromJson` accepts, such as a zoom of 4, is clamped to it, so the design saves as JSON that reads back. |
 | `ToXaml(prefix, element)` / `ToCSharp(target)` | The design as attached properties on an element, or as `DaisyGlassSurface.Set…` calls. Without `element` or `target` the code is a glass `DaisyButton` and holds only the values that differ from its theme, and the tint, which the theme leaves to the color theme; for another element or control it holds every value, since no theme gives that glass the look of the design. |
 | `ToJson()` / `FromJson(json)` (static) | JSON with camel-case names, enum names and `#AARRGGBB` colors; missing values keep their defaults. `FromJson` throws a `JsonException` for an unknown enum value, an empty fill stop or a number that is not finite or out of range. |
 | `CreateFill()` / `CreateBackground()` | The fill brush and the animated background of the design. |

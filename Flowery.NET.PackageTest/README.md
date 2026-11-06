@@ -22,3 +22,4 @@ CI runs it with the packages of every commit, and the release workflow with the 
 
 The app restores its packages into `obj\Flowery.NET.PackageTest\packages`, one folder for packages from a local folder and one for nuget.org, not into the global package folder.
 A package packed locally therefore never stands in for the package of the same version on nuget.org.
+NuGet never replaces a version it extracted once, so `test_packages.ps1 -PackageDir` removes the three Flowery packages from its restore folder under `obj` first; a folder packed again with the same version is tested with its new packages.

@@ -9,118 +9,19 @@ using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Enums;
 using Flowery.Helpers;
+using Flowery.NET.Gallery.Effects;
 
 namespace Flowery.NET.Gallery.Examples
 {
     public sealed partial class CarouselGlTransitionsExamples : UserControl, IScrollableExample
     {
-        private const double TransitionDurationScale = 1.25d;
+        private const decimal DefaultIntervalSeconds = 1m;
         private const double NormalTierThresholdSeconds = 0.4d;
         private const double NormalTierDurationScale = 2.0d;
-        private const double CircleTransitionScale = 2.0d;
+
+        // The catalog of the engine, in its order.
         private static readonly string[] TransitionNames =
-        [
-            "angular",
-            "BookFlip",
-            "Bounce",
-            "BowTieHorizontal",
-            "BowTieVertical",
-            "BowTieWithParameter",
-            "burn",
-            "ButterflyWaveScrawler",
-            "cannabisleaf",
-            "circle",
-            "CircleCrop",
-            "circleopen",
-            "colorphase",
-            "ColourDistance",
-            "coord-from-in",
-            "CrazyParametricFun",
-            "crosshatch",
-            "crosswarp",
-            "CrossZoom",
-            "cube",
-            "Directional",
-            "directional-easing",
-            "DirectionalScaled",
-            "directionalwarp",
-            "directionalwipe",
-            "displacement",
-            "dissolve",
-            "DoomScreenTransition",
-            "doorway",
-            "Dreamy",
-            "DreamyZoom",
-            "EdgeTransition",
-            "fade",
-            "fadecolor",
-            "fadegrayscale",
-            "FilmBurn",
-            "flyeye",
-            "GlitchDisplace",
-            "GlitchMemories",
-            "GridFlip",
-            "heart",
-            "hexagonalize",
-            "HorizontalClose",
-            "HorizontalOpen",
-            "InvertedPageCurl",
-            "kaleidoscope",
-            "LeftRight",
-            "LinearBlur",
-            "luma",
-            "luminance_melt",
-            "morph",
-            "Mosaic",
-            "mosaic_transition",
-            "multiply_blend",
-            "Overexposure",
-            "perlin",
-            "pinwheel",
-            "pixelize",
-            "polar_function",
-            "PolkaDotsCurtain",
-            "powerKaleido",
-            "Radial",
-            "randomNoisex",
-            "randomsquares",
-            "Rectangle",
-            "RectangleCrop",
-            "ripple",
-            "Rolls",
-            "rotate_scale_fade",
-            "RotateScaleVanish",
-            "rotateTransition",
-            "scale-in",
-            "SimpleZoom",
-            "SimpleZoomOut",
-            "Slides",
-            "squareswire",
-            "squeeze",
-            "static_wipe",
-            "StaticFade",
-            "StereoViewer",
-            "swap",
-            "Swirl",
-            "tangentMotionBlur",
-            "TopBottom",
-            "TVStatic",
-            "undulatingBurnOut",
-            "VerticalClose",
-            "VerticalOpen",
-            "WaterDrop",
-            "wind",
-            "windowblinds",
-            "windowslice",
-            "wipeDown",
-            "wipeLeft",
-            "wipeRight",
-            "wipeUp",
-            "x_axis_translation",
-            "ZoomInCircles",
-            "ZoomLeftWipe",
-            "ZoomRigthWipe"
-        ];
+            Array.ConvertAll(FloweryCarouselGLTransitions.GlTransitions, static entry => entry.Name);
 
         private readonly Random _random = new();
         private DispatcherTimer? _glTimer;
@@ -194,22 +95,16 @@ namespace Flowery.NET.Gallery.Examples
                 return;
 
             _hasInitializedControls = true;
-            if (GlIntervalBox != null)
-            {
-                GlIntervalBox.Value = 1m;
-                GlIntervalBox.Minimum = 1m;
-                GlIntervalBox.Maximum = 300m;
-                GlIntervalBox.Increment = 0.5m;
-                GlIntervalBox.ValueChanged += OnGlIntervalValueChanged;
-            }
+            GlIntervalBox.Value = DefaultIntervalSeconds;
+            GlIntervalBox.Minimum = 1m;
+            GlIntervalBox.Maximum = 300m;
+            GlIntervalBox.Increment = 0.5m;
+            GlIntervalBox.ValueChanged += OnGlIntervalValueChanged;
         }
 
         private void EnsureTransitionItems()
         {
             if (_hasInitializedTransitions)
-                return;
-
-            if (GlTransitionSelect == null)
                 return;
 
             _hasInitializedTransitions = true;
@@ -224,28 +119,26 @@ namespace Flowery.NET.Gallery.Examples
             }
         }
 
+        // The page applies the selections right after, so the defaults apply nothing themselves.
         private void EnsureGlDefaults()
         {
-            EnsureGlSelection(GlModeSelect, defaultIndex: 1);
-            EnsureGlSelection(GlTransitionSelect, defaultIndex: 0);
-            EnsureGlSelection(GlDurationSelect, defaultIndex: 2);
+            _isApplyingSettings = true;
+            try
+            {
+                EnsureGlSelection(GlModeSelect, defaultIndex: 1);
+                EnsureGlSelection(GlTransitionSelect, defaultIndex: 0);
+                EnsureGlSelection(GlDurationSelect, defaultIndex: 2);
+            }
+            finally
+            {
+                _isApplyingSettings = false;
+            }
         }
 
-        private static void EnsureGlSelection(DaisySelect? select, int defaultIndex)
+        private static void EnsureGlSelection(DaisySelect select, int defaultIndex)
         {
-            if (select == null || select.Items.Count == 0)
-                return;
-
-            var targetIndex = select.SelectedIndex >= 0
-                ? select.SelectedIndex
-                : Math.Min(defaultIndex, select.Items.Count - 1);
-
-            if (targetIndex < 0)
-                return;
-
-            select.SelectedIndex = -1;
-            select.SelectedIndex = targetIndex;
-            select.SelectedItem = select.Items[targetIndex];
+            if (select.SelectedIndex < 0 && select.Items.Count > 0)
+                select.SelectedIndex = Math.Min(defaultIndex, select.Items.Count - 1);
         }
 
         private void GlPreviewEnabledToggle_Changed(object? sender, RoutedEventArgs e)
@@ -282,30 +175,22 @@ namespace Flowery.NET.Gallery.Examples
 
         private void OnGlIntervalValueChanged(object? sender, NumericUpDownValueChangedEventArgs e)
         {
-            _ = sender;
-            _ = e;
-
             if (_isApplyingSettings)
                 return;
 
-            var intervalBox = GlIntervalBox;
-            if (intervalBox == null)
-                return;
-
-            var normalizedInterval = NormalizeIntervalValue(intervalBox.Value, fallback: 3m);
-            if (intervalBox.Value != normalizedInterval)
+            // An empty box shows the interval the timer and the preview use from now on.
+            var normalizedInterval = NormalizeIntervalValue(GlIntervalBox.Value);
+            if (GlIntervalBox.Value != normalizedInterval)
             {
                 _isApplyingSettings = true;
                 try
                 {
-                    intervalBox.Value = normalizedInterval;
+                    GlIntervalBox.Value = normalizedInterval;
                 }
                 finally
                 {
                     _isApplyingSettings = false;
                 }
-
-                return;
             }
 
             UpdateGlTimerInterval();
@@ -314,10 +199,7 @@ namespace Flowery.NET.Gallery.Examples
 
         private void ApplyGlSettings()
         {
-            if (GlPreviewHost == null)
-                return;
-
-            if (GlPreviewEnabledToggle?.IsChecked != true)
+            if (GlPreviewEnabledToggle.IsChecked != true)
             {
                 StopGlTimer();
                 GlPreviewHost.TransitionName = string.Empty;
@@ -344,25 +226,9 @@ namespace Flowery.NET.Gallery.Examples
             StartGlTimer();
         }
 
-        private FlowerySlideshowMode GetSelectedMode()
-        {
-            if (GlModeSelect?.SelectedItem is ComboBoxItem item)
-            {
-                return FlowerySlideshowModeParser.Parse(item.Tag?.ToString());
-            }
+        private FlowerySlideshowMode GetSelectedMode() => FlowerySlideshowModeParser.Parse(GetSelectedTag(GlModeSelect));
 
-            return FlowerySlideshowMode.Manual;
-        }
-
-        private string GetSelectedTransitionName()
-        {
-            if (GlTransitionSelect?.SelectedItem is ComboBoxItem item)
-            {
-                return item.Tag?.ToString() ?? string.Empty;
-            }
-
-            return string.Empty;
-        }
+        private string GetSelectedTransitionName() => GetSelectedTag(GlTransitionSelect) ?? string.Empty;
 
         private double GetSelectedTransitionSeconds()
         {
@@ -388,28 +254,13 @@ namespace Flowery.NET.Gallery.Examples
             return seconds;
         }
 
-        private static double GetTransitionNameScale(string? transitionName)
+        private static string? GetSelectedTag(DaisySelect select)
         {
-            if (string.IsNullOrWhiteSpace(transitionName))
-            {
-                return 1.0d;
-            }
-
-            return string.Equals(transitionName, "circle", StringComparison.OrdinalIgnoreCase)
-                ? CircleTransitionScale
-                : 1.0d;
-        }
-
-        private static string? GetSelectedTag(DaisySelect? select)
-        {
-            return select?.SelectedItem is ComboBoxItem item ? item.Tag?.ToString() : null;
+            return select.SelectedItem is ComboBoxItem item ? item.Tag?.ToString() : null;
         }
 
         private void SetGlPreview(string? transitionName, bool updateSelection)
         {
-            if (GlPreviewHost == null)
-                return;
-
             GlPreviewHost.TransitionName = transitionName ?? string.Empty;
 
             if (!updateSelection || string.IsNullOrWhiteSpace(transitionName))
@@ -426,9 +277,9 @@ namespace Flowery.NET.Gallery.Examples
             }
         }
 
-        private static void SelectByTag(DaisySelect? select, string tag)
+        private static void SelectByTag(DaisySelect select, string tag)
         {
-            if (select == null || string.IsNullOrWhiteSpace(tag))
+            if (string.IsNullOrWhiteSpace(tag))
                 return;
 
             for (int i = 0; i < select.Items.Count; i++)
@@ -497,7 +348,7 @@ namespace Flowery.NET.Gallery.Examples
             if (sender is not DispatcherTimer timer)
                 return;
 
-            if (GlPreviewEnabledToggle?.IsChecked != true)
+            if (GlPreviewEnabledToggle.IsChecked != true)
             {
                 timer.Stop();
                 return;
@@ -534,46 +385,25 @@ namespace Flowery.NET.Gallery.Examples
             if (_glTimer == null)
                 return;
 
-            var holdSeconds = (double)(GlIntervalBox?.Value ?? 1m);
-            if (holdSeconds < 1)
-                holdSeconds = 1;
-
+            var holdSeconds = (double)NormalizeIntervalValue(GlIntervalBox.Value);
+            // The duration the engine draws: the page's own scale, and the engine's for the shader.
             var transitionSeconds = GetScaledTransitionSeconds()
-                * TransitionDurationScale
-                * GetTransitionNameScale(GetSelectedTransitionName());
+                * FloweryCarouselGLTransitions.GetTransitionDurationScale(GetSelectedTransitionName());
             var cycleSeconds = Math.Max(holdSeconds, (holdSeconds * 2) + transitionSeconds);
             _glTimer.Interval = TimeSpan.FromSeconds(cycleSeconds);
         }
 
         private void UpdateGlPreviewInterval()
         {
-            if (GlPreviewHost == null)
-                return;
-
-            var seconds = (double)(GlIntervalBox?.Value ?? 1m);
-            if (seconds < 1)
-                seconds = 1;
-
-            GlPreviewHost.IntervalSeconds = seconds;
+            GlPreviewHost.IntervalSeconds = (double)NormalizeIntervalValue(GlIntervalBox.Value);
         }
 
         private void UpdateGlPreviewTransitionSeconds()
         {
-            if (GlPreviewHost == null)
-                return;
-
             GlPreviewHost.TransitionSeconds = GetScaledTransitionSeconds();
         }
 
-        private static decimal NormalizeIntervalValue(decimal? value, decimal fallback)
-        {
-            if (!value.HasValue)
-            {
-                return fallback;
-            }
-
-            var interval = value.Value;
-            return interval < 1m ? fallback : interval;
-        }
+        private static decimal NormalizeIntervalValue(decimal? value) =>
+            value is { } interval && interval >= 1m ? interval : DefaultIntervalSeconds;
     }
 }

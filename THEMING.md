@@ -314,7 +314,7 @@ Captions, hints, watermarks, breadcrumb separators and disabled menu items are c
 
 | Brush | Default | Used for |
 | ----- | ------- | -------- |
-| `DaisyBaseContentMutedBrush` | base content color at 70% | stat titles and descriptions, input labels and helper text, breadcrumb hover and last item |
+| `DaisyBaseContentMutedBrush` | base content color at 70%, more where a theme needs it for 4.5:1 on `Base100` and `Base200` | stat titles and descriptions, input labels and helper text, breadcrumb hover and last item |
 | `DaisyBaseContentSubtleBrush` | base content color at 50% | watermarks, breadcrumb separators |
 | `DaisyBaseContentDisabledBrush` | base content color at 50% | disabled menu items |
 

@@ -32,6 +32,15 @@ if ($PSCmdlet.ParameterSetName -eq "Pack") {
 }
 if ($PackageDir) {
     $Properties += "--property:FloweryPackageSource=$((Resolve-Path $PackageDir).Path)"
+    # The packages of a folder are extracted into this folder (RestorePackagesPath in the project). NuGet never replaces
+    # a version it extracted once, so a folder packed again with the same version would test the packages of an earlier
+    # run; the next restore extracts them again.
+    $LocalPackages = "$RepoRoot/obj/Flowery.NET.PackageTest/packages/local"
+    foreach ($Id in "flowery.net", "flowery.net.skia", "flowery.net.kanban") {
+        if (Test-Path -LiteralPath "$LocalPackages/$Id") {
+            Remove-Item -LiteralPath "$LocalPackages/$Id" -Recurse -Force
+        }
+    }
 }
 if ($NuGet) {
     # NuGet caches the nuget.org version lists for half an hour, which can hide a version published minutes ago.

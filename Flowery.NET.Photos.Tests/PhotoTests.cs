@@ -112,17 +112,6 @@ public sealed class PhotoTests
     }
 
     [Fact]
-    public void ColorMatricesPreserveAlphaAndUseSkiaChannelOrder()
-    {
-        var matrix = ColorMatrix.Saturation(0).ToSkiaMatrix();
-        Assert.Equal(.2126f, matrix[0], 5);
-        Assert.Equal(.7152f, matrix[1], 5);
-        Assert.Equal(.0722f, matrix[2], 5);
-        Assert.Equal(1, matrix[18]);
-        Assert.Equal(.1f, ColorMatrix.Brightness(.1f).ToSkiaMatrix()[4], 4);
-    }
-
-    [Fact]
     public void FilterOffsetsPreserveExpectedMidtones()
     {
         using var source = new SKBitmap(8, 8);

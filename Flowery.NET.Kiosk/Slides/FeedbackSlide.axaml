@@ -13,7 +13,7 @@
       </StackPanel>
 
       <!-- Single Chat Bubble -->
-      <daisy:DaisyChatBubble x:Name="Chat1" Header="Flowery.NET" Footer="Just now" Variant="Primary">
+      <daisy:DaisyChatBubble Header="Flowery.NET" Footer="Just now" Variant="Primary">
         <TextBlock Text="Welcome to the Flowery.NET component library! This chat bubble demonstrates themed messaging with headers, footers, and multiple variants." TextWrapping="Wrap" FontSize="13" />
       </daisy:DaisyChatBubble>
 

@@ -1,13 +1,10 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Interactivity;
+﻿using Avalonia.Controls;
 using Avalonia.Layout;
-using Flowery.Controls;
 using Flowery.NET.Gallery;
 using Flowery.NET.Gallery.Examples;
 using Flowery.NET.Kanban.Controls;
 using Xunit;
+using static Flowery.NET.RuntimeTests.Gallery.GalleryTestHelpers;
 
 namespace Flowery.NET.RuntimeTests.Gallery;
 
@@ -19,8 +16,7 @@ public class Given_KanbanPage
         var mainView = await RuntimeTestHelpers.AttachAsync(new MainView(collapsesIntros: true));
         var bar = mainView.FindControl<Border>("CategoryTitleBar")!;
 
-        await NavigateAsync(mainView, "Sidebar_FlowKanban");
-        var page = VisiblePage(mainView);
+        var page = await NavigateAsync(mainView, static item => item.TabHeader == "Sidebar_FlowKanban");
         var description = page.FindControl<Control>("DescriptionText")!;
         var features = page.FindControl<Control>("FeaturesCollapse")!;
         var board = page.FindControl<FlowKanban>("DemoKanban")!;
@@ -59,26 +55,5 @@ public class Given_KanbanPage
 
         var desktop = await RuntimeTestHelpers.AttachAsync(new FlowKanbanExample(touchHelp: false));
         Assert.Contains("Double-click any card", desktop.FindControl<TextBlock>("FeaturesText")!.Text);
-    }
-
-    private static async Task NavigateAsync(MainView mainView, string tabHeader)
-    {
-        var sidebar = mainView.FindControl<FloweryComponentSidebar>("ComponentSidebar")!;
-        var category = sidebar.Categories!.First(category => category.Items.Any(item => item.TabHeader == tabHeader));
-        var item = category.Items.First(item => item.TabHeader == tabHeader);
-        sidebar.SelectedItem = item;
-        sidebar.RaiseEvent(new SidebarItemSelectedEventArgs(FloweryComponentSidebar.ItemSelectedEvent, item, category));
-        await RuntimeTestHelpers.WaitForRenderAsync();
-    }
-
-    private static Control VisiblePage(MainView mainView) =>
-        mainView.FindControl<Panel>("MainContentHost")!.Children.Single(static child => child.IsVisible);
-
-    private static void Tap(Visual root, Interactive target)
-    {
-        var pointer = new Pointer(Pointer.GetNextFreeId(), PointerType.Touch, true);
-        var release = new PointerEventArgs(InputElement.PointerReleasedEvent, target, pointer, root, default, 0,
-            PointerPointProperties.None, KeyModifiers.None);
-        target.RaiseEvent(new TappedEventArgs(InputElement.TappedEvent, release));
     }
 }

@@ -90,7 +90,7 @@ public sealed partial class DaisyTour
         CancelCardDrag();
         _cardCollapsed = !_cardCollapsed;
         RefreshPresentation();
-        UpdateGeometry(session);
+        TryUpdateGeometry(session);
         _cardToggle.Focus();
     }
 
@@ -171,7 +171,7 @@ public sealed partial class DaisyTour
         if (Math.Abs(x - CardBounds.X) < 0.01 && Math.Abs(y - CardBounds.Y) < 0.01) return;
         _temporaryCardPosition = new Point(travel.Width > 0 ? (x - travel.Left) / travel.Width : 0.5,
             travel.Height > 0 ? (y - travel.Top) / travel.Height : 1);
-        UpdateGeometry(session);
+        TryUpdateGeometry(session);
     }
 
     private void OnCardMoveKeyDown(object? sender, KeyEventArgs args)
@@ -219,7 +219,7 @@ public sealed partial class DaisyTour
         if (_cardDrag is not { } drag) return;
         _temporaryCardPosition = drag.PreviousPosition;
         ReleaseCardDrag();
-        if (_session is { Busy: false } session) UpdateGeometry(session);
+        if (_session is { Busy: false } session) TryUpdateGeometry(session);
     }
 
     internal void ClearCardPositionPreview()

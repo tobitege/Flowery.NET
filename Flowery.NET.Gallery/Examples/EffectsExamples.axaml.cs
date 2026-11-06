@@ -21,8 +21,8 @@ public partial class EffectsExamples : UserControl, IScrollableExample
     {
         InitializeComponent();
 
-        // Hide CursorFollow section on Android (touch gestures scroll instead of tracking)
-        if (OperatingSystem.IsAndroid())
+        // Hide CursorFollow section on phones and tablets (touch gestures scroll instead of tracking)
+        if (MainView.IsTouchFirst)
         {
             var cursorSection = this.FindControl<StackPanel>("CursorFollowSection");
             if (cursorSection != null)

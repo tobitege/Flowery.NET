@@ -17,26 +17,26 @@ namespace Flowery.NET.Gallery.Examples
 {
     public sealed partial class CarouselGlExamples : UserControl, IScrollableExample
     {
-        private static readonly Dictionary<CarouselGlEffectKind, GlTransitionDefaults> GlTransitionDefaultsByKind =
-            new()
-            {
-                [CarouselGlEffectKind.MaskTransition] = new GlTransitionDefaults(SliceCount: 8m, Stagger: true, StaggerMs: 50m),
-                [CarouselGlEffectKind.BlindsHorizontal] = new GlTransitionDefaults(SliceCount: 10m, Stagger: true, StaggerMs: 50m),
-                [CarouselGlEffectKind.BlindsVertical] = new GlTransitionDefaults(SliceCount: 10m, Stagger: true, StaggerMs: 50m),
-                [CarouselGlEffectKind.SlicesHorizontal] = new GlTransitionDefaults(SliceCount: 12m, Stagger: true, StaggerMs: 50m),
-                [CarouselGlEffectKind.SlicesVertical] = new GlTransitionDefaults(SliceCount: 12m, Stagger: true, StaggerMs: 50m),
-                [CarouselGlEffectKind.Checkerboard] = new GlTransitionDefaults(SliceCount: 8m, Stagger: true, StaggerMs: 50m),
-                [CarouselGlEffectKind.Spiral] = new GlTransitionDefaults(SliceCount: 8m, Stagger: true, StaggerMs: 50m),
-                [CarouselGlEffectKind.MatrixRain] = new GlTransitionDefaults(SliceCount: 16m, Stagger: true, StaggerMs: 50m),
-                [CarouselGlEffectKind.Wormhole] = new GlTransitionDefaults(SliceCount: 8m, Stagger: true, StaggerMs: 50m),
-                [CarouselGlEffectKind.Dissolve] = new GlTransitionDefaults(SliceCount: 12m, Stagger: true, StaggerMs: 50m, DissolveDensity: 0.5m),
-                [CarouselGlEffectKind.Pixelate] = new GlTransitionDefaults(SliceCount: 10m, Stagger: true, StaggerMs: 50m, PixelateSize: 20m),
-                [CarouselGlEffectKind.FlipPlane] = new GlTransitionDefaults(FlipAngle: 180m),
-                [CarouselGlEffectKind.FlipHorizontal] = new GlTransitionDefaults(FlipAngle: 180m),
-                [CarouselGlEffectKind.FlipVertical] = new GlTransitionDefaults(FlipAngle: 180m),
-                [CarouselGlEffectKind.CubeLeft] = new GlTransitionDefaults(FlipAngle: 180m),
-                [CarouselGlEffectKind.CubeRight] = new GlTransitionDefaults(FlipAngle: 180m)
-            };
+        // The values of a fresh page, which an empty box falls back to. A flip turns half around by default: 180 is the
+        // default of the engine, and at 90 the flip plane stays edge-on while it holds.
+        private const decimal DefaultIntervalSeconds = 3m;
+        private const decimal DefaultSliceCount = 8m;
+        private const decimal DefaultStaggerMs = 50m;
+        private const decimal DefaultPixelateSize = 20m;
+        private const decimal DefaultDissolveDensity = 0.5m;
+        private const decimal DefaultFlipAngle = 180m;
+
+        // The masks with more slices than the default, as their variants in the engine.
+        private static readonly Dictionary<CarouselGlEffectKind, decimal> SliceCountByKind = new()
+        {
+            [CarouselGlEffectKind.BlindsHorizontal] = 10m,
+            [CarouselGlEffectKind.BlindsVertical] = 10m,
+            [CarouselGlEffectKind.SlicesHorizontal] = 12m,
+            [CarouselGlEffectKind.SlicesVertical] = 12m,
+            [CarouselGlEffectKind.MatrixRain] = 16m,
+            [CarouselGlEffectKind.Dissolve] = 12m,
+            [CarouselGlEffectKind.Pixelate] = 10m
+        };
 
         private readonly Random _random = new();
         private DispatcherTimer? _glTimer;
@@ -63,7 +63,7 @@ namespace Flowery.NET.Gallery.Examples
             {
                 _isApplyingSettings = false;
             }
-            SetDebugDefines();
+            DebugDefinesText.Text = "Avalonia / Skia SkSL renderer";
 
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
@@ -121,74 +121,37 @@ namespace Flowery.NET.Gallery.Examples
                 return;
 
             _hasInitializedControls = true;
-            if (GlIntervalBox != null)
-            {
-                GlIntervalBox.Value = 3m;
-                GlIntervalBox.Minimum = 1m;
-                GlIntervalBox.Maximum = 300m;
-                GlIntervalBox.Increment = 1m;
-                GlIntervalBox.ValueChanged += OnGlIntervalValueChanged;
-            }
+            SetGlNumericDefaults(GlIntervalBox, DefaultIntervalSeconds, 1m, 300m, 1m);
+            GlIntervalBox.ValueChanged += OnGlIntervalValueChanged;
 
-            SetGlNumericDefaults(GlSliceCountBox, 8m, 2m, 50m, 1m);
-            SetGlNumericDefaults(GlStaggerMsBox, 50m, 10m, 200m, 1m);
-            SetGlNumericDefaults(GlPixelateSizeBox, 20m, 4m, 100m, 1m);
-            if (GlDissolveDensityBox != null)
-            {
-                GlDissolveDensityBox.Value = 0.5m;
-                GlDissolveDensityBox.Minimum = 0.1m;
-                GlDissolveDensityBox.Maximum = 1.0m;
-                GlDissolveDensityBox.Increment = 0.05m;
-            }
+            SetGlNumericDefaults(GlSliceCountBox, DefaultSliceCount, 2m, 50m, 1m);
+            SetGlNumericDefaults(GlStaggerMsBox, DefaultStaggerMs, 10m, 200m, 1m);
+            SetGlNumericDefaults(GlPixelateSizeBox, DefaultPixelateSize, 4m, 100m, 1m);
+            SetGlNumericDefaults(GlDissolveDensityBox, DefaultDissolveDensity, 0.1m, 1.0m, 0.05m);
+            SetGlNumericDefaults(GlFlipAngleBox, DefaultFlipAngle, 0m, 180m, 5m);
 
-            if (GlFlipAngleBox != null)
-            {
-                GlFlipAngleBox.Value = 90m;
-                GlFlipAngleBox.Minimum = 0m;
-                GlFlipAngleBox.Maximum = 180m;
-                GlFlipAngleBox.Increment = 5m;
-            }
-
-            if (GlSliceCountBox != null)
-                GlSliceCountBox.ValueChanged += OnGlParamValueChanged;
-            if (GlStaggerToggle != null)
-                GlStaggerToggle.IsCheckedChanged += GlStaggerToggle_Changed;
-            if (GlStaggerMsBox != null)
-                GlStaggerMsBox.ValueChanged += OnGlParamValueChanged;
-            if (GlPixelateSizeBox != null)
-                GlPixelateSizeBox.ValueChanged += OnGlParamValueChanged;
-            if (GlDissolveDensityBox != null)
-                GlDissolveDensityBox.ValueChanged += OnGlParamValueChanged;
-            if (GlFlipAngleBox != null)
-                GlFlipAngleBox.ValueChanged += OnGlParamValueChanged;
+            GlSliceCountBox.ValueChanged += OnGlParamValueChanged;
+            GlStaggerToggle.IsCheckedChanged += GlStaggerToggle_Changed;
+            GlStaggerMsBox.ValueChanged += OnGlParamValueChanged;
+            GlPixelateSizeBox.ValueChanged += OnGlParamValueChanged;
+            GlDissolveDensityBox.ValueChanged += OnGlParamValueChanged;
+            GlFlipAngleBox.ValueChanged += OnGlParamValueChanged;
         }
 
         private void OnGlIntervalValueChanged(object? sender, NumericUpDownValueChangedEventArgs e)
         {
-            _ = sender;
-            _ = e;
-
             if (_isApplyingSettings)
                 return;
 
-            var intervalBox = GlIntervalBox;
-            if (intervalBox == null)
-                return;
-
-            var normalizedInterval = NormalizeIntervalValue(intervalBox.Value, fallback: 3m);
-            if (intervalBox.Value != normalizedInterval)
+            // An empty box shows the interval the timer and the preview use from now on.
+            _isApplyingSettings = true;
+            try
             {
-                _isApplyingSettings = true;
-                try
-                {
-                    intervalBox.Value = normalizedInterval;
-                }
-                finally
-                {
-                    _isApplyingSettings = false;
-                }
-
-                return;
+                NormalizeIntervalBox(GlIntervalBox);
+            }
+            finally
+            {
+                _isApplyingSettings = false;
             }
 
             UpdateGlTimerInterval();
@@ -198,21 +161,16 @@ namespace Flowery.NET.Gallery.Examples
 
         private void OnGlParamValueChanged(object? sender, NumericUpDownValueChangedEventArgs e)
         {
-            _ = sender;
-            _ = e;
-
             if (_isApplyingSettings)
                 return;
 
+            NormalizeGlParamBoxes();
             UpdateGlPreviewParameters();
             PersistGlSettings();
         }
 
         private void GlStaggerToggle_Changed(object? sender, RoutedEventArgs e)
         {
-            _ = sender;
-            _ = e;
-
             if (_isApplyingSettings)
                 return;
 
@@ -229,36 +187,26 @@ namespace Flowery.NET.Gallery.Examples
             _isApplyingSettings = true;
             try
             {
-                var settings = GallerySettings.LoadCarouselGlSettings();
-                if (settings != null)
+                if (GallerySettings.LoadCarouselGlSettings() is { } settings)
                 {
-                    if (GlPreviewEnabledToggle != null)
-                        GlPreviewEnabledToggle.IsChecked = settings.Enabled;
+                    GlPreviewEnabledToggle.IsChecked = settings.Enabled;
 
                     SelectByTag(GlModeSelect, settings.ModeTag);
                     SelectByTag(GlTransitionSelect, settings.TransitionTag);
                     SelectByTag(GlDurationSelect, settings.DurationTag);
                     SelectByTag(GlEffectSelect, settings.EffectTag);
 
-                    if (GlIntervalBox != null)
-                        GlIntervalBox.Value = settings.IntervalSeconds;
-                    if (GlInfiniteToggle != null)
-                        GlInfiniteToggle.IsChecked = settings.Infinite;
-                    if (GlSliceCountBox != null)
-                        GlSliceCountBox.Value = settings.SliceCount;
-                    if (GlStaggerToggle != null)
-                        GlStaggerToggle.IsChecked = settings.Stagger;
-                    if (GlStaggerMsBox != null)
-                        GlStaggerMsBox.Value = settings.StaggerMs;
-                    if (GlPixelateSizeBox != null)
-                        GlPixelateSizeBox.Value = settings.PixelateSize;
-                    if (GlDissolveDensityBox != null)
-                        GlDissolveDensityBox.Value = settings.DissolveDensity;
-                    if (GlFlipAngleBox != null)
-                        GlFlipAngleBox.Value = settings.FlipAngle;
+                    GlIntervalBox.Value = settings.IntervalSeconds;
+                    GlInfiniteToggle.IsChecked = settings.Infinite;
+                    GlSliceCountBox.Value = settings.SliceCount;
+                    GlStaggerToggle.IsChecked = settings.Stagger;
+                    GlStaggerMsBox.Value = settings.StaggerMs;
+                    GlPixelateSizeBox.Value = settings.PixelateSize;
+                    GlDissolveDensityBox.Value = settings.DissolveDensity;
+                    GlFlipAngleBox.Value = settings.FlipAngle;
                 }
 
-                NormalizeIntervalBox(GlIntervalBox, fallback: 3m);
+                NormalizeIntervalBox(GlIntervalBox);
             }
             finally
             {
@@ -273,59 +221,43 @@ namespace Flowery.NET.Gallery.Examples
             if (_isApplyingSettings)
                 return;
 
-            var intervalSeconds = NormalizeIntervalValue(GlIntervalBox?.Value, fallback: 3m);
             var settings = new CarouselGlSettings(
-                Enabled: GlPreviewEnabledToggle?.IsChecked ?? true,
+                Enabled: GlPreviewEnabledToggle.IsChecked ?? true,
                 ModeTag: GetSelectedTag(GlModeSelect),
                 TransitionTag: GetSelectedTag(GlTransitionSelect),
                 DurationTag: GetSelectedTag(GlDurationSelect),
                 EffectTag: GetSelectedTag(GlEffectSelect),
-                IntervalSeconds: intervalSeconds,
-                Infinite: GlInfiniteToggle?.IsChecked == true,
-                SliceCount: GlSliceCountBox?.Value ?? 8m,
-                Stagger: GlStaggerToggle?.IsChecked == true,
-                StaggerMs: GlStaggerMsBox?.Value ?? 50m,
-                PixelateSize: GlPixelateSizeBox?.Value ?? 20m,
-                DissolveDensity: GlDissolveDensityBox?.Value ?? 0.5m,
-                FlipAngle: GlFlipAngleBox?.Value ?? 90m);
+                IntervalSeconds: NormalizeIntervalValue(GlIntervalBox.Value),
+                Infinite: GlInfiniteToggle.IsChecked == true,
+                SliceCount: GlSliceCountBox.Value ?? DefaultSliceCount,
+                Stagger: GlStaggerToggle.IsChecked == true,
+                StaggerMs: GlStaggerMsBox.Value ?? DefaultStaggerMs,
+                PixelateSize: GlPixelateSizeBox.Value ?? DefaultPixelateSize,
+                DissolveDensity: GlDissolveDensityBox.Value ?? DefaultDissolveDensity,
+                FlipAngle: GlFlipAngleBox.Value ?? DefaultFlipAngle);
 
             GallerySettings.SaveCarouselGlSettings(settings);
         }
 
-        private static void SetGlNumericDefaults(DaisyNumericUpDown? box, decimal value, decimal min, decimal max, decimal increment)
+        private static void SetGlNumericDefaults(DaisyNumericUpDown box, decimal value, decimal min, decimal max, decimal increment)
         {
-            if (box == null)
-                return;
-
             box.Value = value;
             box.Minimum = min;
             box.Maximum = max;
             box.Increment = increment;
         }
 
-        private static decimal NormalizeIntervalValue(decimal? value, decimal fallback)
+        private static decimal NormalizeIntervalValue(decimal? value) =>
+            value is { } interval && interval >= 1m ? interval : DefaultIntervalSeconds;
+
+        private static void NormalizeIntervalBox(DaisyNumericUpDown box)
         {
-            if (!value.HasValue)
-            {
-                return fallback;
-            }
-
-            var interval = value.Value;
-            return interval < 1m ? fallback : interval;
-        }
-
-        private static void NormalizeIntervalBox(DaisyNumericUpDown? box, decimal fallback)
-        {
-            if (box == null)
-                return;
-
-            var normalized = NormalizeIntervalValue(box.Value, fallback);
+            var normalized = NormalizeIntervalValue(box.Value);
             if (box.Value != normalized)
-            {
                 box.Value = normalized;
-            }
         }
 
+        // Fills an empty or out-of-range box with the default, the slice count with the one of the selected mask.
         private void NormalizeGlParamBoxes()
         {
             if (_isApplyingSettings)
@@ -334,33 +266,12 @@ namespace Flowery.NET.Gallery.Examples
             _isApplyingSettings = true;
             try
             {
-                var transition = GetSelectedTransition();
-                if (!TryGetTransitionDefaults(transition, out var defaults))
-                {
-                    return;
-                }
-
-                if (defaults.SliceCount.HasValue)
-                    NormalizeGlNumericBox(GlSliceCountBox, defaults.SliceCount.Value);
-
-                if (defaults.Stagger.HasValue
-                    && GlStaggerToggle is { } staggerToggle
-                    && staggerToggle.IsChecked is null)
-                {
-                    staggerToggle.IsChecked = defaults.Stagger.Value;
-                }
-
-                if (defaults.StaggerMs.HasValue)
-                    NormalizeGlNumericBox(GlStaggerMsBox, defaults.StaggerMs.Value);
-
-                if (defaults.PixelateSize.HasValue)
-                    NormalizeGlNumericBox(GlPixelateSizeBox, defaults.PixelateSize.Value);
-
-                if (defaults.DissolveDensity.HasValue)
-                    NormalizeGlNumericBox(GlDissolveDensityBox, defaults.DissolveDensity.Value);
-
-                if (defaults.FlipAngle.HasValue)
-                    NormalizeGlNumericBox(GlFlipAngleBox, defaults.FlipAngle.Value);
+                NormalizeGlNumericBox(GlSliceCountBox,
+                    SliceCountByKind.TryGetValue(GetSelectedTransition(), out var sliceCount) ? sliceCount : DefaultSliceCount);
+                NormalizeGlNumericBox(GlStaggerMsBox, DefaultStaggerMs);
+                NormalizeGlNumericBox(GlPixelateSizeBox, DefaultPixelateSize);
+                NormalizeGlNumericBox(GlDissolveDensityBox, DefaultDissolveDensity);
+                NormalizeGlNumericBox(GlFlipAngleBox, DefaultFlipAngle);
             }
             finally
             {
@@ -368,35 +279,10 @@ namespace Flowery.NET.Gallery.Examples
             }
         }
 
-        private static bool TryGetTransitionDefaults(CarouselGlEffectKind kind, out GlTransitionDefaults defaults)
+        private static void NormalizeGlNumericBox(DaisyNumericUpDown box, decimal fallback)
         {
-            return GlTransitionDefaultsByKind.TryGetValue(kind, out defaults);
-        }
-
-        private readonly record struct GlTransitionDefaults(
-            decimal? SliceCount = null,
-            bool? Stagger = null,
-            decimal? StaggerMs = null,
-            decimal? PixelateSize = null,
-            decimal? DissolveDensity = null,
-            decimal? FlipAngle = null);
-
-        private static void NormalizeGlNumericBox(DaisyNumericUpDown? box, decimal fallback)
-        {
-            if (box == null)
-                return;
-
-            var value = box.Value ?? fallback;
-            var min = box.Minimum;
-            var max = box.Maximum;
-            var normalized = value < min || value > max
-                ? Math.Clamp(fallback, min, max)
-                : value;
-
-            if (normalized != value)
-            {
-                box.Value = normalized;
-            }
+            if (box.Value is not { } value || value < box.Minimum || value > box.Maximum)
+                box.Value = Math.Clamp(fallback, box.Minimum, box.Maximum);
         }
 
         private void GlPreviewEnabledToggle_Changed(object? sender, RoutedEventArgs e)
@@ -455,10 +341,7 @@ namespace Flowery.NET.Gallery.Examples
 
         private void ApplyGlSettings()
         {
-            if (GlPreviewHost == null)
-                return;
-
-            if (GlPreviewEnabledToggle?.IsChecked != true)
+            if (GlPreviewEnabledToggle.IsChecked != true)
             {
                 StopGlTimer();
                 SetGlPreview(CarouselGlEffectKind.None, CarouselGlEffectKind.None, updateEffectSelection: false);
@@ -489,15 +372,7 @@ namespace Flowery.NET.Gallery.Examples
             StartGlTimer();
         }
 
-        private FlowerySlideshowMode GetSelectedMode()
-        {
-            if (GlModeSelect?.SelectedItem is ComboBoxItem item)
-            {
-                return FlowerySlideshowModeParser.Parse(item.Tag?.ToString());
-            }
-
-            return FlowerySlideshowMode.Manual;
-        }
+        private FlowerySlideshowMode GetSelectedMode() => FlowerySlideshowModeParser.Parse(GetSelectedTag(GlModeSelect));
 
         private CarouselGlEffectKind GetSelectedTransition()
         {
@@ -524,21 +399,12 @@ namespace Flowery.NET.Gallery.Examples
 
         private double GetGlCycleSeconds()
         {
-            var interval = (double)(GlIntervalBox?.Value ?? 3m);
-            if (interval < 1)
-                interval = 1;
-
+            var interval = (double)NormalizeIntervalValue(GlIntervalBox.Value);
             var transitionSeconds = GetSelectedTransitionSeconds();
             return interval + Math.Max(transitionSeconds, 0.01d);
         }
 
-        private static CarouselGlEffectKind GetSelectedKind(DaisySelect? select)
-        {
-            if (select?.SelectedItem is not ComboBoxItem item)
-                return CarouselGlEffectKind.None;
-
-            return TryParseKind(item.Tag?.ToString());
-        }
+        private static CarouselGlEffectKind GetSelectedKind(DaisySelect select) => TryParseKind(GetSelectedTag(select));
 
         private static CarouselGlEffectKind TryParseKind(string? tag)
         {
@@ -554,9 +420,6 @@ namespace Flowery.NET.Gallery.Examples
         private List<CarouselGlEffectKind> GetEffectCycle()
         {
             var effects = new List<CarouselGlEffectKind>();
-            if (GlEffectSelect == null)
-                return effects;
-
             foreach (var item in GlEffectSelect.Items.OfType<ComboBoxItem>())
             {
                 effects.Add(TryParseKind(item.Tag?.ToString()));
@@ -568,9 +431,6 @@ namespace Flowery.NET.Gallery.Examples
         private List<CarouselGlEffectKind> GetTransitionPool()
         {
             var transitions = new List<CarouselGlEffectKind>();
-            if (GlTransitionSelect == null)
-                return transitions;
-
             foreach (var item in GlTransitionSelect.Items.OfType<ComboBoxItem>())
             {
                 var kind = TryParseKind(item.Tag?.ToString());
@@ -646,9 +506,6 @@ namespace Flowery.NET.Gallery.Examples
 
         private void UpdateGlTransitionSelection(CarouselGlEffectKind transition)
         {
-            if (GlTransitionSelect == null)
-                return;
-
             _isUpdatingGlSelection = true;
             try
             {
@@ -662,22 +519,19 @@ namespace Flowery.NET.Gallery.Examples
 
         private void SetGlPreview(CarouselGlEffectKind transition, CarouselGlEffectKind effect, bool updateEffectSelection)
         {
-            if (GlPreviewHost == null)
-                return;
-
             if (effect == CarouselGlEffectKind.TextFill)
             {
-                GlPreviewHost.Effect = effect;
+                GlPreviewHost.EffectKind = effect;
                 GlPreviewHost.OverlayEffect = CarouselGlEffectKind.None;
             }
             else if (transition != CarouselGlEffectKind.None)
             {
-                GlPreviewHost.Effect = transition;
+                GlPreviewHost.EffectKind = transition;
                 GlPreviewHost.OverlayEffect = IsOverlayEffectKind(effect) ? effect : CarouselGlEffectKind.None;
             }
             else
             {
-                GlPreviewHost.Effect = effect;
+                GlPreviewHost.EffectKind = effect;
                 GlPreviewHost.OverlayEffect = CarouselGlEffectKind.None;
             }
 
@@ -716,14 +570,14 @@ namespace Flowery.NET.Gallery.Examples
             return IsEffectKind(kind) && kind != CarouselGlEffectKind.TextFill;
         }
 
-        private static string? GetSelectedTag(DaisySelect? select)
+        private static string? GetSelectedTag(DaisySelect select)
         {
-            return select?.SelectedItem is ComboBoxItem item ? item.Tag?.ToString() : null;
+            return select.SelectedItem is ComboBoxItem item ? item.Tag?.ToString() : null;
         }
 
-        private static void SelectByTag(DaisySelect? select, string? tag)
+        private static void SelectByTag(DaisySelect select, string? tag)
         {
-            if (select == null || string.IsNullOrWhiteSpace(tag))
+            if (string.IsNullOrWhiteSpace(tag))
                 return;
 
             for (int i = 0; i < select.Items.Count; i++)
@@ -740,11 +594,8 @@ namespace Flowery.NET.Gallery.Examples
             }
         }
 
-        private static void SelectByTag(DaisySelect? select, CarouselGlEffectKind kind)
+        private static void SelectByTag(DaisySelect select, CarouselGlEffectKind kind)
         {
-            if (select == null)
-                return;
-
             string target = kind.ToString();
             for (int i = 0; i < select.Items.Count; i++)
             {
@@ -795,7 +646,7 @@ namespace Flowery.NET.Gallery.Examples
             if (sender is not DispatcherTimer timer)
                 return;
 
-            if (GlPreviewEnabledToggle?.IsChecked != true)
+            if (GlPreviewEnabledToggle.IsChecked != true)
             {
                 timer.Stop();
                 return;
@@ -822,7 +673,7 @@ namespace Flowery.NET.Gallery.Examples
             switch (_glMode)
             {
                 case FlowerySlideshowMode.Slideshow:
-                    if (GlInfiniteToggle?.IsChecked != true && _glCycleIndex >= cycleSet.Count - 1)
+                    if (GlInfiniteToggle.IsChecked != true && _glCycleIndex >= cycleSet.Count - 1)
                     {
                         PauseGlPreviewInterval();
                         timer.Stop();
@@ -834,7 +685,7 @@ namespace Flowery.NET.Gallery.Examples
                     transition = GetSelectedTransition();
                     break;
                 case FlowerySlideshowMode.Kiosk:
-                    if (GlInfiniteToggle?.IsChecked != true && _glCycleIndex >= cycleSet.Count - 1)
+                    if (GlInfiniteToggle.IsChecked != true && _glCycleIndex >= cycleSet.Count - 1)
                     {
                         PauseGlPreviewInterval();
                         timer.Stop();
@@ -851,7 +702,7 @@ namespace Flowery.NET.Gallery.Examples
                     transition = PickRandomTransition(avoidRepeat: true);
                     UpdateGlTransitionSelection(transition);
                     _glCycleIndex++;
-                    if (GlInfiniteToggle?.IsChecked == true)
+                    if (GlInfiniteToggle.IsChecked == true)
                     {
                         if (_glCycleIndex >= cycleSet.Count)
                         {
@@ -890,10 +741,7 @@ namespace Flowery.NET.Gallery.Examples
 
         private void UpdateGlPreviewInterval()
         {
-            if (GlPreviewHost == null)
-                return;
-
-            if (GlPreviewEnabledToggle?.IsChecked != true)
+            if (GlPreviewEnabledToggle.IsChecked != true)
             {
                 GlPreviewHost.IntervalSeconds = 0;
                 return;
@@ -914,43 +762,22 @@ namespace Flowery.NET.Gallery.Examples
 
         private void PauseGlPreviewInterval()
         {
-            if (GlPreviewHost == null)
-                return;
-
             GlPreviewHost.IntervalSeconds = 0;
         }
 
         private void UpdateGlPreviewTransitionSeconds()
         {
-            if (GlPreviewHost == null)
-                return;
-
             GlPreviewHost.TransitionSeconds = GetSelectedTransitionSeconds();
         }
 
         private void UpdateGlPreviewParameters()
         {
-            if (GlPreviewHost == null)
-                return;
-
-            GlPreviewHost.TransitionSliceCount = (int)(GlSliceCountBox?.Value ?? 8m);
-            GlPreviewHost.TransitionStaggerSlices = GlStaggerToggle?.IsChecked == true;
-            GlPreviewHost.TransitionSliceStaggerMs = (double)(GlStaggerMsBox?.Value ?? 50m);
-            GlPreviewHost.TransitionPixelateSize = (int)(GlPixelateSizeBox?.Value ?? 20m);
-            GlPreviewHost.TransitionDissolveDensity = (double)(GlDissolveDensityBox?.Value ?? 0.5m);
-            GlPreviewHost.TransitionFlipAngle = (double)(GlFlipAngleBox?.Value ?? 90m);
+            GlPreviewHost.TransitionSliceCount = (int)(GlSliceCountBox.Value ?? DefaultSliceCount);
+            GlPreviewHost.TransitionStaggerSlices = GlStaggerToggle.IsChecked == true;
+            GlPreviewHost.TransitionSliceStaggerMs = (double)(GlStaggerMsBox.Value ?? DefaultStaggerMs);
+            GlPreviewHost.TransitionPixelateSize = (int)(GlPixelateSizeBox.Value ?? DefaultPixelateSize);
+            GlPreviewHost.TransitionDissolveDensity = (double)(GlDissolveDensityBox.Value ?? DefaultDissolveDensity);
+            GlPreviewHost.TransitionFlipAngle = (double)(GlFlipAngleBox.Value ?? DefaultFlipAngle);
         }
-
-        private void SetDebugDefines()
-        {
-            if (DebugDefinesText == null)
-            {
-                return;
-            }
-
-            DebugDefinesText.Text = BuildDefinesText();
-        }
-
-        private static string BuildDefinesText() => "Avalonia / Skia SkSL renderer";
     }
 }

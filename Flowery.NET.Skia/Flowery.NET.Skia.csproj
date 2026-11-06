@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Flowery.NET.Tests" />
+    <InternalsVisibleTo Include="Flowery.NET.RuntimeTests" />
   </ItemGroup>
 
 </Project>

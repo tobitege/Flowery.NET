@@ -37,6 +37,7 @@ With reduced motion turned on in the system, the slides change only by hand.
 
 The app keeps its state in `Flowery.NET.Kiosk` in the local application data, or in the absolute path of `FLOWERY_STATE_ROOT`.
 A failure ends the app with exit code 1; outside a smoke run it writes the error to `crash.log` in that folder.
+`FLOWERY_KIOSK_POSITION=x,y` opens the window with its top left corner at that point in pixels, for example on a second screen during a smoke run.
 
 ## Assets
 
@@ -48,4 +49,4 @@ The Noto fonts of the Gallery ship in `Assets/Fonts` next to the executable, wit
 - The slides name Flowery.NET and Avalonia where WinUI names itself.
 - Flowery.NET has no `InvoiceStamp` loading animation; the communication slide shows `DocumentStamp` instead.
 - The scalable controls of Flowery.NET scale their fonts by the factor of `FloweryScaleManager`. The scaling slide sets the size tier of its demo controls itself, as WinUI does, so their card does not take part in the scaling.
-- The smoke checks test the Avalonia counterparts of WinUI internals: the text presenter of an input instead of the native TextBox, the window icon instead of Win32 icon messages, and the drawn pattern of each card instead of the count of the SVG pattern files, which Flowery.NET embeds in its assembly.
+- The smoke checks test the Avalonia counterparts of WinUI internals: the text presenter of an input instead of the native TextBox, and the drawn pattern of each card instead of the count of the SVG pattern files, which Flowery.NET embeds in its assembly.

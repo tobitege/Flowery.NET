@@ -159,7 +159,11 @@
                             <PathIcon x:Name="CategoryIntroToggle" Grid.Column="2" IsVisible="False"
                                 Width="12" Height="6" VerticalAlignment="Center"
                                 Data="M7 10l5 5 5-5z"
-                                Foreground="{DynamicResource DaisyBaseContentBrush}" />
+                                Foreground="{DynamicResource DaisyBaseContentBrush}">
+                                <PathIcon.RenderTransform>
+                                    <RotateTransform />
+                                </PathIcon.RenderTransform>
+                            </PathIcon>
                         </Grid>
                     </Border>
 

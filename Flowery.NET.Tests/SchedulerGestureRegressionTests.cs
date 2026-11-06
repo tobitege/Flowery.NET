@@ -6,7 +6,6 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Raw;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls.Scheduler.Contracts;
 using Flowery.Controls.Scheduler.Models;
@@ -440,24 +439,22 @@ public sealed partial class SchedulerTests
 
     private static void WaitForHold(SchedulerScope scope)
     {
-        Thread.Sleep(Application.Current!.PlatformSettings!.HoldWaitDuration + TimeSpan.FromMilliseconds(150));
-        // The dispatcher looks for due timers only after it ran a job.
-        Dispatcher.UIThread.Post(static () => { });
+        RealInput.WaitLongerThanAHold();
         scope.Layout();
         scope.Layout();
     }
 
     // Taps a touch contact on the middle of the target, or on a point of it.
-    private static void TouchTap(SchedulerScope scope, Control target, RawInputModifiers modifiers = RawInputModifiers.None) =>
-        TouchTap(scope, target, target.Bounds.Center - target.Bounds.Position, modifiers);
+    private static void TouchTap(SchedulerScope scope, Control target) =>
+        TouchTap(scope, target, target.Bounds.Center - target.Bounds.Position);
 
-    private static void TouchTap(SchedulerScope scope, Control target, Point point, RawInputModifiers modifiers = RawInputModifiers.None)
+    private static void TouchTap(SchedulerScope scope, Control target, Point point)
     {
         target.BringIntoView(new Rect(point, new Size(1, 1)));
         scope.Layout();
         var origin = scope.Point(target, point.X, point.Y);
-        var touch = scope.Window.TouchBegin(origin, modifiers);
-        scope.Window.TouchEnd(touch, origin, modifiers);
+        var touch = scope.Window.TouchBegin(origin, RawInputModifiers.None);
+        scope.Window.TouchEnd(touch, origin, RawInputModifiers.None);
         scope.Layout();
     }
 

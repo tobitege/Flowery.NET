@@ -10,6 +10,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using static Flowery.Controls.DaisyTourGeometry;
 
 namespace Flowery.Controls;
 
@@ -1034,22 +1035,6 @@ internal sealed class DaisyTourAnnotationPresenter : Canvas
         return geometry;
     }
 
-    private static PathGeometry RoundedRectangle(Rect rect, double radius)
-    {
-        var figure = new PathFigure { StartPoint = new Point(rect.Left + radius, rect.Top), IsClosed = true, IsFilled = true };
-        figure.Segments!.Add(new LineSegment { Point = new Point(rect.Right - radius, rect.Top) });
-        figure.Segments.Add(new QuadraticBezierSegment { Point1 = new Point(rect.Right, rect.Top), Point2 = new Point(rect.Right, rect.Top + radius) });
-        figure.Segments.Add(new LineSegment { Point = new Point(rect.Right, rect.Bottom - radius) });
-        figure.Segments.Add(new QuadraticBezierSegment { Point1 = new Point(rect.Right, rect.Bottom), Point2 = new Point(rect.Right - radius, rect.Bottom) });
-        figure.Segments.Add(new LineSegment { Point = new Point(rect.Left + radius, rect.Bottom) });
-        figure.Segments.Add(new QuadraticBezierSegment { Point1 = new Point(rect.Left, rect.Bottom), Point2 = new Point(rect.Left, rect.Bottom - radius) });
-        figure.Segments.Add(new LineSegment { Point = new Point(rect.Left, rect.Top + radius) });
-        figure.Segments.Add(new QuadraticBezierSegment { Point1 = new Point(rect.Left, rect.Top), Point2 = new Point(rect.Left + radius, rect.Top) });
-        var geometry = new PathGeometry();
-        geometry.Figures!.Add(figure);
-        return geometry;
-    }
-
     private static PathGeometry LineGeometry(IReadOnlyList<Point> points) => FigureGeometry(points, false);
     private static PathGeometry Polygon(IReadOnlyList<Point> points) => FigureGeometry(points, true);
 
@@ -1065,12 +1050,6 @@ internal sealed class DaisyTourAnnotationPresenter : Canvas
 
     private static Point Center(Rect rect) => new(rect.X + rect.Width / 2, rect.Y + rect.Height / 2);
     private static Point Offset(Point point, double x, double y) => new(point.X + x, point.Y + y);
-    private static double Distance(Point start, Point end) => Math.Sqrt(Math.Pow(end.X - start.X, 2) + Math.Pow(end.Y - start.Y, 2));
-    private static Point Unit(Point start, Point end)
-    {
-        var length = Distance(start, end);
-        return length > 0.001 ? new Point((end.X - start.X) / length, (end.Y - start.Y) / length) : new Point(1, 0);
-    }
 
     private sealed class EffectiveStyle(DaisyTourAnnotation annotation, DaisyTourAnnotationStyle? step, DaisyTourAnnotationStyle? host,
         double scale = 1, DaisyTourProfileLayers profile = default,

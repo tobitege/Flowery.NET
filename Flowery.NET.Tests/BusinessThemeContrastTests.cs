@@ -9,9 +9,9 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
-using Avalonia.VisualTree;
 using Flowery.Controls;
 using Xunit;
+using static Flowery.NET.Tests.TestControls;
 
 namespace Flowery.NET.Tests;
 
@@ -138,9 +138,10 @@ public class BusinessThemeContrastTests
         var window = Show(tree);
         try
         {
-            var header = Part<ContentPresenter>(item, "PART_HeaderPresenter");
-            var background = Part<Border>(item, "PART_LayoutRoot");
-            var chevron = Part<Avalonia.Controls.Shapes.Path>(item, "ChevronPath");
+            // The child items have parts of the same names.
+            var header = FirstPart<ContentPresenter>(item, "PART_HeaderPresenter");
+            var background = FirstPart<Border>(item, "PART_LayoutRoot");
+            var chevron = FirstPart<Avalonia.Controls.Shapes.Path>(item, "ChevronPath");
             var originalText = ColorOf(header.Foreground);
             var originalChevron = ColorOf(chevron.Fill);
             var originalBackground = ColorOf(background.Background);
@@ -194,9 +195,6 @@ public class BusinessThemeContrastTests
         window.UpdateLayout();
         return window;
     }
-
-    private static T Part<T>(Control control, string name) where T : Control =>
-        control.GetVisualDescendants().OfType<T>().First(part => part.Name == name);
 
     private static Point Center(Control control, Window window) =>
         control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), window)!.Value;

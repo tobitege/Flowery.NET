@@ -64,6 +64,11 @@ The host app can also set a compact-layout override.
 Compact columns can use an adaptive card count or a fixed card count from 1 through 20.
 The adaptive mode uses the available height and the measured card height.
 
+A board less than 480 high, such as on a phone on its side, uses a short layout that gives its height to the cards.
+The search moves beside the board title, and the status bar shows only status messages.
+The column headers, the add-task control, and the space around the columns are flatter.
+Styles can target this layout through the `:short` pseudo-class of `FlowKanban`, `FlowKanbanColumn`, and `FlowKanbanAddCard`.
+
 ## Board Display Controls
 
 - Users can zoom the complete board through the supported Flowery.NET sizes.
@@ -139,6 +144,9 @@ The stable assignee ID and the last known assignee name are written to the board
 - Date fields use the date order and format from the current region.
 - Users can drag tasks between columns and between swimlanes.
 - Users can reorder tasks inside a column or lane.
+- On Android and iOS, a tap opens the task editor and holding a card selects it.
+- On Android and iOS, the finger drags a held card inside the board. The target column shows the drop position, and the board scrolls at its edges.
+- A swipe through the board neither opens, selects, nor drags a card.
 - Keyboard shortcuts can move the focused task in all four directions.
 - The `CardMoving` event lets the host app cancel a move and provide a reason.
 - The `CardMoved` event reports a completed move.
@@ -180,6 +188,9 @@ Preset names are limited to 50 characters and exclude control characters.
 ## Selection and Bulk Actions
 
 Users can select one or more tasks for a group action.
+With a mouse, a click selects a task, and Control or Shift extends the selection.
+On Android and iOS, holding a card selects it; while tasks are selected, a tap adds a task to the selection or removes it.
+A tap or click on a free place of the board clears the selection.
 
 - Move the selected tasks to another column.
 - Set one priority for all selected tasks.

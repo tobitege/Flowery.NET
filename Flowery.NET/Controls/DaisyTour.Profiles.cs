@@ -18,21 +18,28 @@ public sealed partial class DaisyTour
     public static readonly StyledProperty<string> IdProperty =
         AvaloniaProperty.Register<DaisyTour, string>(nameof(Id), string.Empty);
     public string Id { get => GetValue(IdProperty); set => SetValue(IdProperty, value); }
-    public static readonly StyledProperty<DaisyTourStyleProfile?> StyleProfileProperty =
-        AvaloniaProperty.Register<DaisyTour, DaisyTourStyleProfile?>(nameof(StyleProfile));
+    public static readonly DirectProperty<DaisyTour, DaisyTourStyleProfile?> StyleProfileProperty =
+        AvaloniaProperty.RegisterDirect<DaisyTour, DaisyTourStyleProfile?>(nameof(StyleProfile),
+            tour => tour.StyleProfile, (tour, profile) => tour.StyleProfile = profile);
+
+    /// <summary>The active style profile. A new profile is validated before it is stored, and against <see cref="Id"/>
+    /// when that is set already; a rejected profile throws and leaves the active one in place. Its step and annotation
+    /// IDs are validated against <see cref="Steps"/> when the tour starts, so the steps may be added later. The tour
+    /// keeps its own copy: later changes to the assigned object do not reach the tour, and the returned profile is
+    /// that copy, which callers treat as read-only and replace by assigning a new profile.</summary>
     public DaisyTourStyleProfile? StyleProfile
     {
-        get => _activeProfile is null ? null : DaisyTourStyleProfileSerializer.Clone(_activeProfile);
-        set => SetValue(StyleProfileProperty, value);
-    }
-
-    private static void OnStyleProfileChanged(AvaloniaObject sender, AvaloniaPropertyChangedEventArgs args)
-    {
-        var tour = (DaisyTour)sender;
-        var profile = (DaisyTourStyleProfile?)args.NewValue;
-        if (profile is not null) DaisyTourStyleProfileSerializer.Validate(profile, tour);
-        tour._activeProfile = profile is null ? null : DaisyTourStyleProfileSerializer.Clone(profile);
-        tour.RefreshPresentation();
+        get => _activeProfile;
+        set
+        {
+            if (value is not null)
+            {
+                // Serializing validates the format and the 1 MiB limit, which the editor needs to open the profile.
+                _ = DaisyTourStyleProfileSerializer.Serialize(value);
+                if (!string.IsNullOrEmpty(Id)) DaisyTourStyleProfileSerializer.ValidateTourId(value, Id);
+            }
+            if (SetAndRaise(StyleProfileProperty, ref _activeProfile, value?.Copy())) RefreshPresentation();
+        }
     }
 
     private DaisyTourStyleProfile? EffectiveProfile => _previewProfile ?? _activeProfile;
@@ -101,6 +108,8 @@ public sealed partial class DaisyTour
     }
 
     private double EffectiveHighlightPadding => TourSetting(HighlightPaddingProperty, HighlightPadding, 6d);
+    // The padding the highlight frames use; a geometry update reads it once.
+    private double HighlightPaddingValue => EffectiveHighlightPadding is var padding && double.IsFinite(padding) ? Math.Max(0, padding) : 0;
     private double EffectiveHighlightCornerRadius => TourSetting(HighlightCornerRadiusProperty, HighlightCornerRadius, 8d);
     // A profile that inherits the size uses automatic sizing: the global size where the size manager would supply
     // it to the tour, otherwise the default size.
@@ -154,13 +163,13 @@ public sealed partial class DaisyTour
         _previewProfile = profile;
         // Handle movement changes geometry, not application layout or card content.
         // Keep it on the pointer's UI turn instead of waiting for low-priority layout work.
-        if (geometryOnly && _session is { Busy: false } session) UpdateGeometry(session);
+        if (geometryOnly && _session is { Busy: false } session) TryUpdateGeometry(session);
         else
         {
             RefreshPresentation();
             // Inspector fields read the presenters' resolved values immediately after publication.
             // Refresh those values before Undo/import rebuilds the fields; layout still settles later.
-            if (_session is { Busy: false } activeSession) UpdateGeometry(activeSession);
+            if (_session is { Busy: false } activeSession) TryUpdateGeometry(activeSession);
         }
     }
 
