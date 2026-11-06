@@ -147,6 +147,10 @@ def main():
 
     print(adb("shell", "getprop", "ro.build.version.release").strip(), "/",
           adb("shell", "getprop", "ro.product.cpu.abi").strip(), "/", adb("shell", "wm", "size").strip(), flush=True)
+    # A slow emulator shows "<app> isn't responding" dialogs, also for apps in the background such as the launcher,
+    # and such a dialog takes the next tap of the check. Without the dialogs the system closes such an app quietly.
+    adb("shell", "settings", "put", "global", "hide_error_dialogs", "1")
+    adb("shell", "settings", "put", "secure", "anr_show_background", "0")
     print(adb("install", "-r", str(apk), timeout=300).strip(), flush=True)
     adb("logcat", "-c")
     check = Check(output)
