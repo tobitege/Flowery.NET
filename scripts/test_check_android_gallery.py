@@ -1,4 +1,4 @@
-"""Tests how check_android_gallery.py takes failed and empty UI dumps.
+"""Tests how check_android_gallery.py takes failed and empty UI dumps and dialogs of the system.
 
     python3 -B -m unittest discover -s scripts -p "test_*.py"
 """
@@ -64,6 +64,12 @@ class DumpTests(unittest.TestCase):
         self.assertEqual("HomePage", home.kind)
         self.use(FakeDevice(EMPTY))
         self.assertIsNone(self.check.wait_for("1-home", lambda root: root.find(kind="HomePage"), 0))
+
+    def test_a_not_responding_dialog_of_the_system_is_closed_with_wait(self):
+        device = self.use(FakeDevice(hierarchy(("Button", "android:id/aerr_wait")), hierarchy(("HomePage", ""))))
+        home = self.check.wait_for("1-home", lambda root: root.find(kind="HomePage"), 30)
+        self.assertEqual("HomePage", home.kind)
+        self.assertEqual(1, device.taps)
 
     def test_opening_the_sidebar_waits_out_failed_dumps(self):
         device = self.use(FakeDevice(RuntimeError("uiautomator failed"), EMPTY, b"<hierarchy",

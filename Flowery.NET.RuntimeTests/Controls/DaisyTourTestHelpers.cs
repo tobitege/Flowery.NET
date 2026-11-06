@@ -62,6 +62,16 @@ internal static class DaisyTourTestHelpers
         await SettleAsync(root);
     }
 
+    // Waits until the pointer in the middle of a control hits it. Hit testing reads the rendered scene, and after a
+    // control moved, a slow compositor (Xvfb) can show the old place for more than the frames WaitForRenderAsync waits.
+    internal static Task WaitUntilHitAsync(Control control) => RuntimeTestHelpers.WaitUntilAsync(() =>
+    {
+        var root = TopLevel.GetTopLevel(control)!;
+        var center = control.TranslatePoint(new Point(control.Bounds.Width / 2, control.Bounds.Height / 2), root);
+        return center is { } point && root.InputHitTest(point) is Visual hit
+            && (ReferenceEquals(hit, control) || control.IsVisualAncestorOf(hit));
+    }, $"the pointer hits the moved {control.GetType().Name}");
+
     // Presses the left button in the middle of a control like the mouse does: the element under the pointer takes
     // the capture and receives the press, which bubbles to the control. The control must be what the pointer hits.
     internal static (TopLevel Root, Point Start, Pointer Pointer) PressAtCenter(Control control, PointerType type = PointerType.Mouse)

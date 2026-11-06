@@ -98,7 +98,14 @@ class Check:
         root = ElementTree.fromstring(data).find("node")
         if root is None:
             raise RuntimeError("uiautomator dumped an empty hierarchy")
-        return Node(root)
+        node = Node(root)
+        # A slow emulator can show "<system app> isn't responding" over the Gallery. Wait closes the dialog, and the
+        # dump counts as failed, so the next one sees the Gallery.
+        wait = node.find(name="android:id/aerr_wait")
+        if wait is not None:
+            self.tap(wait)
+            raise RuntimeError("a not-responding dialog of the system covered the screen")
+        return node
 
     def shot(self, name):
         data = adb("exec-out", "screencap", "-p", binary=True)
