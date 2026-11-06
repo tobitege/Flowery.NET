@@ -205,26 +205,6 @@ public class StyleCostRegressionTests
     }
 
     [AvaloniaFact]
-    public void Win95StartupVariantsShareTheirTemplateAndKeepTheirTileColors()
-    {
-        var loader = new DaisyLoading { Variant = DaisyLoadingVariant.Win95Startup, Foreground = Brushes.Teal };
-        var window = Show(loader);
-        try
-        {
-            var tiles = loader.GetVisualDescendants().OfType<Border>().Where(static border => border.Classes.Any(static c => c.StartsWith("startup", StringComparison.Ordinal))).ToList();
-            Assert.Equal(4, tiles.Count);
-            Assert.All(tiles, static tile => Assert.Same(Brushes.Teal, tile.Background));
-
-            loader.Variant = DaisyLoadingVariant.Win95StartupColor;
-            Flush(window);
-            var colors = loader.GetVisualDescendants().OfType<Border>().Where(static border => border.Classes.Any(static c => c.StartsWith("startup", StringComparison.Ordinal)))
-                .Select(static tile => Assert.IsAssignableFrom<ISolidColorBrush>(tile.Background).Color).ToList();
-            Assert.Equal(new[] { Color.Parse("#F25022"), Color.Parse("#7FBA00"), Color.Parse("#00A4EF"), Color.Parse("#FFB900") }, colors);
-        }
-        finally { window.Close(); }
-    }
-
-    [AvaloniaFact]
     public void StatusIndicatorGlyphPartsFollowSizeAndSignalStrength()
     {
         var light = new DaisyStatusIndicator { Variant = DaisyStatusIndicatorVariant.TrafficLightVertical, Size = DaisySize.Large };

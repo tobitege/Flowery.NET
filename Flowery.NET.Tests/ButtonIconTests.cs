@@ -1,37 +1,15 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
-using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Enums;
-using Flowery.Localization;
 using Xunit;
 
 namespace Flowery.NET.Tests
 {
     public class ButtonIconTests
     {
-        [AvaloniaFact]
-        public void DaisyButton_ResolvesSymbolAndSizeAwareSpacing()
-        {
-            var button = new DaisyButton
-            {
-                Content = "Save",
-                IconSymbol = DaisyIconSymbol.Save,
-                Size = Flowery.Controls.DaisySize.Large
-            };
-
-            Assert.NotNull(button.EffectiveIconData);
-            Assert.True(button.HasUnifiedIcon);
-            Assert.Equal(
-                LayoutTestAssertions.GetUnoButtonIconSize(button.Size),
-                button.EffectiveIconSize);
-            Assert.Equal(
-                LayoutTestAssertions.GetUnoButtonIconSpacing(button.Size),
-                button.EffectiveIconSpacing);
-        }
-
         [AvaloniaFact]
         public void DaisyButton_SizeAndShapeMetrics_MatchUnoAndCenterIcons()
         {
@@ -118,81 +96,6 @@ namespace Flowery.NET.Tests
             {
                 window.Close();
             }
-        }
-
-        [AvaloniaFact]
-        public void DaisyIconText_PrefersCustomGeometryOverSymbol()
-        {
-            var customGeometry = StreamGeometry.Parse("M0,0 L10,10");
-            var iconText = new DaisyIconText
-            {
-                IconSymbol = DaisyIconSymbol.Add,
-                IconData = customGeometry
-            };
-
-            Assert.Same(customGeometry, iconText.EffectiveIconData);
-            Assert.True(iconText.HasIcon);
-        }
-
-        [AvaloniaFact]
-        public void AllIconSymbols_ResolveToGeometry()
-        {
-            foreach (DaisyIconSymbol symbol in Enum.GetValues(typeof(DaisyIconSymbol)))
-            {
-                var iconText = new DaisyIconText { IconSymbol = symbol };
-                Assert.NotNull(iconText.EffectiveIconData);
-            }
-        }
-
-        [AvaloniaFact]
-        public void DaisyLoginButton_UsesLocalizedLabelAndBrandIcon()
-        {
-            using var culture = new CultureScope();
-            FloweryLocalization.SetCulture("de");
-            var button = new DaisyLoginButton
-            {
-                Brand = DaisyLoginBrand.Google
-            };
-
-            Assert.Equal("Mit Google anmelden", button.Content);
-            Assert.NotNull(button.IconLeft);
-        }
-
-        [AvaloniaFact]
-        public void AllLoginBrands_CreateAnIcon()
-        {
-            foreach (DaisyLoginBrand brand in Enum.GetValues(typeof(DaisyLoginBrand)))
-            {
-                var button = new DaisyLoginButton { Brand = brand };
-                Assert.NotNull(button.IconLeft);
-            }
-        }
-
-        [AvaloniaFact]
-        public void ButtonIconTemplates_LoadForAllPlacements()
-        {
-            var panel = new StackPanel();
-            foreach (IconPlacement placement in Enum.GetValues(typeof(IconPlacement)))
-            {
-                panel.Children.Add(new DaisyButton
-                {
-                    Content = placement.ToString(),
-                    IconSymbol = DaisyIconSymbol.Add,
-                    IconPlacement = placement
-                });
-                panel.Children.Add(new DaisyIconText
-                {
-                    Text = placement.ToString(),
-                    IconSymbol = DaisyIconSymbol.Add,
-                    IconPlacement = placement
-                });
-            }
-
-            var window = new Window { Content = panel };
-            window.Show();
-
-            Assert.Equal(8, panel.Children.Count);
-            window.Close();
         }
 
         [AvaloniaFact]

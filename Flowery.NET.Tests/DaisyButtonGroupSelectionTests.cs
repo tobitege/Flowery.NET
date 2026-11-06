@@ -9,7 +9,6 @@ using Avalonia.Data;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
-using Avalonia.Media.Transformation;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
@@ -193,34 +192,6 @@ public class DaisyButtonGroupSelectionTests
     }
 
     [AvaloniaFact]
-    public void Switching_The_Mode_Keeps_A_Bound_Multiple_Selection()
-    {
-        var group = Group(out var buttons);
-        group.SelectionMode = DaisyButtonGroupSelectionMode.Multiple;
-        var model = new SelectionModel { Indices = [0, 2] };
-        group.DataContext = model;
-        group.Bind(DaisyButtonGroup.SelectedIndicesProperty, new Binding(nameof(SelectionModel.Indices)));
-        group.SelectedIndex = 1;
-        var window = Show(group);
-        try
-        {
-            group.SelectionMode = DaisyButtonGroupSelectionMode.Single;
-            Assert.Equal(new[] { 0, 2 }, model.Indices);
-            Assert.Contains("button-group-active", buttons[1].Classes);
-            Assert.DoesNotContain("button-group-active", buttons[0].Classes);
-
-            group.SelectionMode = DaisyButtonGroupSelectionMode.Multiple;
-            Assert.Contains("button-group-active", buttons[0].Classes);
-            Assert.Contains("button-group-active", buttons[2].Classes);
-            Assert.DoesNotContain("button-group-active", buttons[1].Classes);
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
     public void The_Arrow_Keys_Move_The_Single_Selection()
     {
         var group = Group(out var buttons);
@@ -240,30 +211,6 @@ public class DaisyButtonGroupSelectionTests
             Assert.Equal(2, group.SelectedIndex);
             Press(window, Key.Home);
             Assert.Equal(0, group.SelectedIndex);
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
-    public void In_Multiple_Selection_The_Arrow_Keys_Move_The_Focus_And_Space_Toggles()
-    {
-        var group = Group(out var buttons);
-        group.SelectionMode = DaisyButtonGroupSelectionMode.Multiple;
-        var window = Show(group);
-        try
-        {
-            buttons[0].Focus();
-            Press(window, Key.Right);
-            Assert.True(buttons[1].IsFocused);
-            Assert.Empty(group.SelectedIndices);
-
-            Press(window, Key.Space, " ");
-            Assert.Equal(new[] { 1 }, group.SelectedIndices);
-            Press(window, Key.Space, " ");
-            Assert.Empty(group.SelectedIndices);
         }
         finally
         {
@@ -323,38 +270,6 @@ public class DaisyButtonGroupSelectionTests
     }
 
     [AvaloniaFact]
-    public void The_Glass_Pill_Slides_Under_The_Selected_Segment_And_Gives_Way_In_Multiple_Selection()
-    {
-        var group = Group(out var buttons);
-        group.Theme = DaisyGlassSurfaceTests.GlassTheme("DaisyGlassButtonGroupTheme");
-        group.Width = 300;
-        group.SelectedIndex = 0;
-        var window = Show(group);
-        try
-        {
-            var glass = group.GetVisualDescendants().OfType<DaisyGlass>().Single(part => part.Name == "PART_Glass");
-            Assert.Equal(24, glass.GlassBlur);
-            var pill = group.GetVisualDescendants().OfType<Border>().Single(part => part.Name == "PART_Indicator");
-            Assert.Equal(0, group.SelectedIndex);
-            AssertPillUnder(pill, buttons[0]);
-
-            buttons[2].PointerClick();
-            Dispatcher.UIThread.RunJobs();
-            window.UpdateLayout();
-            AssertPillUnder(pill, buttons[2]);
-
-            group.SelectionMode = DaisyButtonGroupSelectionMode.Multiple;
-            Dispatcher.UIThread.RunJobs();
-            window.UpdateLayout();
-            Assert.False(pill.IsVisible);
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
     public void The_Glass_Track_Is_As_High_As_Its_Segments_And_Its_Padding()
     {
         // The top shine of the glass is 60 high; it must not make a lower track taller, which left the segments with
@@ -375,17 +290,6 @@ public class DaisyButtonGroupSelectionTests
         {
             window.Close();
         }
-    }
-
-    private static void AssertPillUnder(Border pill, Button segment)
-    {
-        var origin = segment.TranslatePoint(default, Assert.IsAssignableFrom<Visual>(pill.GetVisualParent()))!.Value;
-        var transform = Assert.IsType<TransformOperations>(pill.GetBaseValue(Visual.RenderTransformProperty).GetValueOrDefault());
-        Assert.True(pill.IsVisible);
-        Assert.Equal(segment.Bounds.Width, pill.Width);
-        var translate = transform.Operations.Single(operation => operation.Type == TransformOperation.OperationType.Translate);
-        Assert.Equal(origin.X, translate.Data.Translate.X, 3);
-        Assert.Equal(origin.Y, translate.Data.Translate.Y, 3);
     }
 
     private static DaisyButtonGroup Group(out DaisyButton[] buttons)

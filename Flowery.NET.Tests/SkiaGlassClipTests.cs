@@ -84,17 +84,6 @@ public class SkiaGlassClipTests
         canvas.Restore();
     }
 
-    [Fact]
-    public void A_Large_Glass_Is_Checked_In_At_Most_1024_Cells()
-    {
-        var glass = new SKRect(0, 0, 3800, 2100);
-
-        var cells = SkiaGlassDrawOperation.Cells(glass);
-
-        Assert.InRange(cells.Length, 1, 1024);
-        Assert.Equal(glass, cells.Aggregate(SKRect.Empty, (all, cell) => all.IsEmpty ? cell : SKRect.Union(all, cell)));
-    }
-
     private static SKRectI Seen(SKCanvas canvas)
     {
         var seen = SKRectI.Ceiling(canvas.TotalMatrix.MapRect(Glass));

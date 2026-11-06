@@ -31,10 +31,7 @@ internal static class RealInput
         topLevel.MouseUp(center, button, modifiers);
     }
 
-    /// <summary>
-    /// Runs the pending jobs and renders two frames, so the layout is done and hit testing finds the current scene
-    /// rather than the one a previous test left.
-    /// </summary>
+    /// <summary>Runs the pending jobs and renders two frames, so hit testing finds the current scene.</summary>
     public static void RenderFrames()
     {
         for (var frame = 0; frame < 2; frame++)
@@ -53,10 +50,7 @@ internal static class RealInput
         topLevel.KeyReleaseQwerty(key, modifiers);
     }
 
-    /// <summary>
-    /// Presses and releases the logical <paramref name="key"/> on whatever has the focus in <paramref name="window"/>,
-    /// then runs the jobs it started. <paramref name="keySymbol"/> is the text the key types, if any.
-    /// </summary>
+    /// <summary>Presses and releases the logical key, typing <paramref name="keySymbol"/>, and runs the jobs it started.</summary>
     public static void Press(Window window, Key key, string? keySymbol = null)
     {
         window.KeyPress(key, RawInputModifiers.None, PhysicalKey.None, keySymbol);

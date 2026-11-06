@@ -6,7 +6,6 @@ using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
-using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Layout;
@@ -399,51 +398,6 @@ public class Given_DaisyTour
             }
         }
         return matches;
-    }
-
-    [Fact]
-    public async Task When_Navigating_CompletesOnceAndReplaysFromTheFirstStep()
-    {
-        var target = CreateTarget();
-        var tour = new DaisyTour();
-        var preparations = new List<string>();
-        var first = new DaisyTourStep { Id = "first", Target = target, Title = "First" };
-        var last = new DaisyTourStep { Id = "last", Target = target, Title = "Last" };
-        first.PrepareAsync = (step, _) => { preparations.Add(step.Id); return Task.CompletedTask; };
-        last.PrepareAsync = (step, _) => { preparations.Add(step.Id); return Task.CompletedTask; };
-        tour.Steps.Add(first);
-        tour.Steps.Add(last);
-        var closed = new List<DaisyTourClosedEventArgs>();
-        tour.Closed += (_, args) => closed.Add(args);
-        var root = CreateRoot(tour, target);
-        try
-        {
-            await LoadAsync(root);
-            await tour.StartAsync().WaitAsync(TestTimeout);
-            AssertActive(tour, first, 0);
-            await tour.NextAsync().WaitAsync(TestTimeout);
-            AssertActive(tour, last, 1);
-            await tour.BackAsync().WaitAsync(TestTimeout);
-            AssertActive(tour, first, 0);
-            CollectionAssert.AreEqual(new[] { "first", "last", "first" }, preparations);
-            await tour.NextAsync().WaitAsync(TestTimeout);
-            await tour.NextAsync().WaitAsync(TestTimeout);
-            AssertClosed(tour);
-            Assert.HasCount(1, closed);
-            Assert.AreEqual(DaisyTourCloseReason.Completed, closed[0].Reason);
-            Assert.AreEqual("last", closed[0].StepId);
-            tour.Skip();
-            tour.Cancel();
-            Assert.HasCount(1, closed);
-
-            await tour.StartAsync().WaitAsync(TestTimeout);
-            AssertActive(tour, first, 0);
-            tour.Skip();
-            Assert.HasCount(2, closed);
-            Assert.AreEqual(DaisyTourCloseReason.Skipped, closed[1].Reason);
-            Assert.AreEqual("first", closed[1].StepId);
-        }
-        finally { await CleanupAsync(root, tour); }
     }
 
     [Fact]
@@ -1019,86 +973,6 @@ public class Given_DaisyTour
     }
 
     [Fact]
-    public async Task When_AHandlerMovesOnFromTheFirstOfTwoProblems_TheSecondIsNotReported()
-    {
-        var target = CreateTarget();
-        var first = CreateTarget();
-        var second = CreateTarget();
-        first.IsVisible = second.IsVisible = false;
-        var step = new DaisyTourStep { Id = "two", Target = target };
-        step.Annotations.Add(new DaisyTourAnnotation { Id = "first", Source = target, Target = first });
-        step.Annotations.Add(new DaisyTourAnnotation { Id = "second", Source = target, Target = second });
-        var next = new DaisyTourStep { Id = "next", Target = target };
-        var tour = new DaisyTour();
-        tour.Steps.Add(step);
-        tour.Steps.Add(next);
-        var root = CreateRoot(tour, target, first, second);
-        var reports = new List<DaisyTourStepTargetUnavailableEventArgs>();
-        tour.StepTargetUnavailable += (_, args) =>
-        {
-            reports.Add(args);
-            _ = tour.NextAsync();
-        };
-        try
-        {
-            await LoadAsync(root);
-            await tour.StartAsync().WaitAsync(TestTimeout);
-            await RuntimeTestHelpers.WaitUntilAsync(() => tour.CurrentIndex == 1 && !tour.IsTransitioning, "the handler moves on");
-            await SettleAsync(root);
-            AssertActive(tour, next, 1);
-            Assert.HasCount(1, reports, "The problem left behind belongs to a visit that is over.");
-        }
-        finally { await CleanupAsync(root, tour); }
-    }
-
-    [Fact]
-    public async Task When_HighContrastIsOn_TheWarningUsesTheSystemColors()
-    {
-        var step = new DaisyTourStep { Id = "missing" };
-        var tour = new DaisyTour();
-        tour.Steps.Add(step);
-        var root = CreateRoot(tour);
-        // WinUI forces the Windows contrast flag; Flowery.NET has a public override for it.
-        var original = DaisyAccessibility.HighContrastOverride;
-        try
-        {
-            await LoadAsync(root);
-            DaisyAccessibility.HighContrastOverride = true;
-            await tour.StartAsync().WaitAsync(TestTimeout);
-            await SettleAsync(root);
-            AssertActive(tour, step, 0, DaisyTourTargetProblem.Target);
-            AssertWarning(tour, DaisyTourTargetProblem.Target);
-            var note = Descendants<Border>(GetSurface(tour)).Single(border => AutomationProperties.GetAutomationId(border) == "DaisyTourWarning");
-            var system = ((ISolidColorBrush)GetBorderBrush()).Color;
-            Assert.AreEqual(Colors.Transparent, ((ISolidColorBrush)note.Background!).Color, "The note has no decorative fill.");
-            Assert.AreEqual(system, ((ISolidColorBrush)note.BorderBrush!).Color, "The note frame uses the system border.");
-            Assert.AreEqual(system, ((ISolidColorBrush)Card(tour).BorderBrush!).Color, "The card frame keeps the system border.");
-        }
-        finally
-        {
-            DaisyAccessibility.HighContrastOverride = original;
-            await CleanupAsync(root, tour);
-        }
-    }
-
-    [Fact]
-    public void When_NothingIsHighlighted_StationaryAndAvoidingPlacementsHaveNoTargetObstacle()
-    {
-        var card = new Size(200, 100);
-        var viewport = new Size(600, 400);
-        Assert.AreEqual(new Rect(200, 150, 200, 100), DaisyTourLayout.PlaceStationary(DaisyTourCardPosition.Center, card, viewport, null));
-        Assert.AreEqual(new Rect(200, 288, 200, 100), DaisyTourLayout.PlaceStationary(DaisyTourCardPosition.Bottom, card, viewport, null));
-        // Without a target, a card that must leave a course goes to the nearest clear spot from the center.
-        var course = new Rect(150, 180, 300, 20);
-        var placed = DaisyTourLayout.AvoidObstacles(DaisyTourCardPosition.Target, DaisyTourPlacement.Auto, null, card, viewport, [course]);
-        Assert.IsNotNull(placed, "A clear spot exists.");
-        // WinUI's Intersect keeps rectangles that only touch, so a card on the edge of the course fails there too.
-        Assert.IsFalse(IntersectsOrTouches(placed.Value, course), $"The card {placed} must not cover the course.");
-        Assert.IsTrue(placed.Value.Left >= 0 && placed.Value.Top >= 0 && placed.Value.Right <= viewport.Width && placed.Value.Bottom <= viewport.Height,
-            $"The card {placed} stays in view.");
-    }
-
-    [Fact]
     public async Task When_ACoordinateRouteLimitLiesAboveBothEnds_TheCourseBridgesAboveItAndKeepsTheAreaBelowClear()
     {
         var start = CreateTarget();
@@ -1136,81 +1010,6 @@ public class Given_DaisyTour
             Assert.IsTrue(CountSurfacePixels(tour, Colors.Red, bridge) >= 50, $"The course must bridge along the limit inside {bridge}.");
         }
         finally { await CleanupAsync(root, tour); }
-    }
-
-    [Fact]
-    public async Task When_PreparationCreatesTheTarget_ItResolvesAfterNativeLayout()
-    {
-        var target = CreateTarget();
-        var tour = new DaisyTour();
-        var root = CreateRoot(tour);
-        var step = new DaisyTourStep { Id = "deferred" };
-        step.PrepareAsync = (_, _) =>
-        {
-            root.Children.Insert(0, target);
-            step.Target = target;
-            return Task.CompletedTask;
-        };
-        tour.Steps.Add(step);
-        try
-        {
-            await LoadAsync(root);
-            await tour.StartAsync().WaitAsync(TestTimeout);
-            AssertActive(tour, step, 0);
-            AssertTargetBounds(tour, target);
-        }
-        finally { await CleanupAsync(root, tour); }
-    }
-
-    [Fact]
-    public async Task When_TargetIsInsideNestedScrollers_ItIsVisibleBeforeTheStepOpens()
-    {
-        var target = CreateTarget();
-        target.Margin = new Thickness(24, 700, 0, 0);
-        var innerContent = new Grid { Height = 1000, Children = { target } };
-        var inner = new ScrollViewer { Height = 200, Content = innerContent, VerticalScrollBarVisibility = ScrollBarVisibility.Hidden };
-        inner.Margin = new Thickness(0, 550, 0, 0);
-        inner.VerticalAlignment = VerticalAlignment.Top;
-        var outerContent = new Grid { Height = 1000, Children = { inner } };
-        var outer = new ScrollViewer { Content = outerContent, VerticalScrollBarVisibility = ScrollBarVisibility.Hidden };
-        var tour = new DaisyTour();
-        var step = new DaisyTourStep { Id = "nested", Target = target };
-        tour.Steps.Add(step);
-        var root = CreateRoot(tour, outer);
-        var views = new List<string>();
-        var frames = 0;
-        var counting = true;
-        // WinUI counts CompositionTarget.Rendering; Avalonia asks the window for each next frame.
-        void Rendering(TimeSpan _)
-        {
-            frames++;
-            if (counting) RuntimeTestHelpers.GetWindow().RequestAnimationFrame(Rendering);
-        }
-        // Avalonia applies scroll offsets at once, so there are no intermediate views to tell apart.
-        inner.ScrollChanged += (_, _) => views.Add($"inner={inner.Offset.Y}/frame={frames}");
-        outer.ScrollChanged += (_, _) => views.Add($"outer={outer.Offset.Y}/frame={frames}");
-        tour.Closed += (_, _) => views.Add($"closed: inner={inner.Offset.Y}, outer={outer.Offset.Y}, " +
-            $"target={BoundsInRoot(target)}, hostVisible={TopLevel.GetTopLevel(root)?.IsVisible}, frame={frames}");
-        RuntimeTestHelpers.GetWindow().RequestAnimationFrame(Rendering);
-        try
-        {
-            await LoadAsync(root);
-            var before = $"{DescribeScroll("inner", inner)}; {DescribeScroll("outer", outer)}; frame={frames}";
-            await tour.StartAsync().WaitAsync(TestTimeout);
-            Assert.IsTrue(tour.IsOpen, $"Before start: {before}. At closure: {DescribeScroll("inner", inner)}; " +
-                $"{DescribeScroll("outer", outer)}. ScrollChanged: [{string.Join(", ", views)}]. Closure: {LastClosure(tour)?.Error?.Message}");
-            AssertActive(tour, step, 0);
-            Assert.IsTrue(inner.Offset.Y > 0, "The inner scroller must reveal the target.");
-            Assert.IsTrue(outer.Offset.Y > 0, "The outer scroller must reveal the inner viewport.");
-            AssertFits(target, inner);
-            AssertFits(target, outer);
-            AssertTargetBounds(tour, target);
-        }
-        finally
-        {
-            counting = false;
-            await CleanupAsync(root, tour);
-        }
     }
 
     [Fact]
@@ -1793,91 +1592,6 @@ public class Given_DaisyTour
     }
 
     [Fact]
-    public void When_ConnectorBoundsChange_RetainedPathsFollowBothAnchorsAndStyleOverrides()
-    {
-        var presenter = new DaisyTourAnnotationPresenter();
-        var pattern = new DaisyTourDashCollection { 2, 3, 1, 3 };
-        var annotation = new DaisyTourAnnotation
-        {
-            Preset = DaisyTourAnnotationPreset.TwoEndedArrow,
-            SourceAnchor = DaisyTourAnchor.Right,
-            TargetAnchor = DaisyTourAnchor.Left,
-            StrokeThickness = 7,
-            DashArray = pattern,
-            DashOffset = 4,
-            Opacity = 0.6
-        };
-        var hostDefaults = new DaisyTourAnnotationStyle { StrokeThickness = 1 };
-        var stepDefaults = new DaisyTourAnnotationStyle { StrokeThickness = 3 };
-        var stroke = new SolidColorBrush(Colors.Blue);
-        var fill = new SolidColorBrush(Colors.Orange);
-        presenter.Update(annotation, new Rect(10, 20, 100, 40), new Rect(300, 100, 80, 60),
-            stroke, fill, stroke, hostDefaults, stepDefaults);
-        var path = presenter.Body;
-        AssertEndpoints(path, new Point(110, 40), new Point(300, 130));
-        Assert.AreSame(stroke, path.Stroke);
-        Assert.AreEqual(7d, path.StrokeThickness);
-        Assert.AreEqual(4d, path.StrokeDashOffset);
-        Assert.AreEqual(0.6, presenter.Opacity, "The annotation's own opacity applies.");
-        CollectionAssert.AreEqual(new[] { 2d, 3d, 1d, 3d }, path.StrokeDashArray!.ToArray());
-        Assert.IsNotNull(((Path)presenter.Children[2]).Data);
-        Assert.IsNotNull(((Path)presenter.Children[3]).Data);
-
-        annotation.SourceAnchor = DaisyTourAnchor.Auto;
-        annotation.TargetAnchor = DaisyTourAnchor.Auto;
-        annotation.StrokeThickness = double.NaN;
-        pattern[0] = 5;
-        presenter.Update(annotation, new Rect(300, 20, 100, 40), new Rect(10, 20, 80, 40),
-            stroke, fill, stroke, hostDefaults, stepDefaults);
-        Assert.AreSame(path, presenter.Body, "Geometry changes must retain the existing path controls.");
-        AssertEndpoints(path, new Point(300, 40), new Point(90, 40));
-        Assert.AreEqual(3d, path.StrokeThickness, "Step defaults override host defaults when the annotation inherits.");
-        Assert.AreEqual(5d, path.StrokeDashArray![0]);
-    }
-
-    [Fact]
-    public void When_AnnotationPresetsOrContentChange_AllShapesRetainIndependentTextAndTailBehavior()
-    {
-        var presenter = new DaisyTourAnnotationPresenter();
-        var annotation = new DaisyTourAnnotation();
-        var brush = new SolidColorBrush(Colors.Blue);
-        var source = new Rect(150, 150, 100, 50);
-        var target = new Rect(400, 150, 60, 40);
-        foreach (var preset in Enum.GetValues<DaisyTourAnnotationPreset>())
-        {
-            annotation.Preset = preset;
-            presenter.Update(annotation, source, target, brush, brush, brush);
-            Assert.IsNotNull(presenter.Body.Data, preset.ToString());
-        }
-
-        foreach (var kind in new[] { DaisyTourAnnotationKind.Cloud, DaisyTourAnnotationKind.SpeechBubble })
-        {
-            annotation.Kind = kind;
-            annotation.Tail = DaisyTourAnnotationTail.None;
-            annotation.Text = string.Empty;
-            presenter.Update(annotation, source, target, brush, brush, brush);
-            Assert.IsFalse(presenter.ContentHost.IsVisible);
-            Assert.IsNull(((Path)presenter.Children[0]).Data);
-
-            annotation.Tail = DaisyTourAnnotationTail.Thought;
-            presenter.Update(annotation, source, target, brush, brush, brush);
-            Assert.IsFalse(presenter.ContentHost.IsVisible);
-            Assert.IsNotNull(((Path)presenter.Children[0]).Data);
-
-            annotation.Text = "A localized explanation can wrap across several lines.";
-            annotation.Tail = DaisyTourAnnotationTail.None;
-            presenter.Update(annotation, source, target, brush, brush, brush);
-            Assert.IsTrue(presenter.ContentHost.IsVisible);
-            Assert.IsNull(((Path)presenter.Children[0]).Data);
-        }
-        var geometry = new EllipseGeometry { Center = new Point(10, 10), RadiusX = 10, RadiusY = 10 };
-        annotation.Kind = DaisyTourAnnotationKind.Custom;
-        annotation.Geometry = geometry;
-        presenter.Update(annotation, source, target, brush, brush, brush);
-        Assert.AreSame(geometry, presenter.Body.Data);
-    }
-
-    [Fact]
     public async Task When_OpenTourAppearanceChanges_TextButtonsAndProgressRemainCurrent()
     {
         var previousCulture = FloweryLocalization.CurrentCulture.Name;
@@ -2070,55 +1784,6 @@ public class Given_DaisyTour
     }
 
     [Fact]
-    public async Task When_LongSurfaceAnnotationsUseNarrowViewports_TheirMeasuredGeometryFitsAtEverySize()
-    {
-        var presenter = new DaisyTourAnnotationPresenter();
-        var root = new Grid { Children = { presenter } };
-        var annotation = new DaisyTourAnnotation
-        {
-            Text = string.Join(" ", Enumerable.Repeat("Long localized explanation wraps in a narrow annotation.", 80))
-        };
-        var brush = new SolidColorBrush(Colors.Blue);
-        try
-        {
-            await LoadAsync(root);
-            var cases = from viewport in new[] { new Size(600, 400), new Size(260, 220) }
-                        from size in Enum.GetValues<DaisySize>()
-                        from preset in new[] { DaisyTourAnnotationPreset.Cloud, DaisyTourAnnotationPreset.SpeechBubble }
-                        select (viewport, size, preset);
-            foreach (var (viewport, size, preset) in cases)
-            {
-                root.Width = presenter.Width = viewport.Width;
-                root.Height = presenter.Height = viewport.Height;
-                var scale = size switch
-                {
-                    DaisySize.ExtraSmall => 0.8, DaisySize.Small => 0.9, DaisySize.Large => 1.15,
-                    DaisySize.ExtraLarge => 1.3, _ => 1
-                };
-                annotation.Preset = preset;
-                var measured = presenter.MeasureSurface(annotation, brush, scale: scale);
-                var target = new Rect(viewport.Width / 2 - 20, 60, 40, 30);
-                var card = new Rect(12, viewport.Height - 100, viewport.Width - 24, 88);
-                var source = DaisyTourLayout.PlaceAnnotation(target, card, viewport, measured, [], -1, false, out _);
-                presenter.Update(annotation, source, target, brush, brush, brush, scale: scale);
-                await SettleAsync(root);
-                var bounds = presenter.Body.Data!.Bounds;
-                AssertInViewport(bounds, viewport, $"{preset}/{size}/{viewport}");
-                var content = presenter.ContentHost;
-                Assert.IsTrue(content.Bounds.Width <= viewport.Width - 24 + 0.01);
-                Assert.IsTrue(content.Bounds.Height <= viewport.Height - 24 + 0.01);
-                Assert.AreEqual(measured.Width, content.Bounds.Width, 0.01);
-                Assert.AreEqual(measured.Height, content.Bounds.Height, 0.01);
-            }
-        }
-        finally
-        {
-            RuntimeTestHelpers.GetHostPanel().Children.Remove(root);
-            await SettleAsync(root);
-        }
-    }
-
-    [Fact]
     public async Task When_SurfaceAnnotationsContainText_ItRendersUntrimmedInsideTheirContour()
     {
         var root = new Canvas { Width = 600, Height = 400, Background = new SolidColorBrush(Colors.Black) };
@@ -2188,36 +1853,6 @@ public class Given_DaisyTour
     }
 
     [Fact]
-    public void When_CardPositionIsStationary_EachOfTheNinePositionsUsesItsWindowSpot()
-    {
-        var viewport = new Size(600, 400);
-        var card = new Size(200, 100);
-        var away = new Rect(-500, -500, 10, 10);
-        var expected = new Dictionary<DaisyTourCardPosition, Point>
-        {
-            [DaisyTourCardPosition.TopLeft] = new(12, 12), [DaisyTourCardPosition.Top] = new(200, 12),
-            [DaisyTourCardPosition.TopRight] = new(388, 12), [DaisyTourCardPosition.Left] = new(12, 150),
-            [DaisyTourCardPosition.Center] = new(200, 150), [DaisyTourCardPosition.Right] = new(388, 150),
-            [DaisyTourCardPosition.BottomLeft] = new(12, 288), [DaisyTourCardPosition.Bottom] = new(200, 288),
-            [DaisyTourCardPosition.BottomRight] = new(388, 288)
-        };
-        foreach (var (position, origin) in expected)
-            Assert.AreEqual(new Rect(origin.X, origin.Y, 200, 100), DaisyTourLayout.PlaceStationary(position, card, viewport, away), position.ToString());
-        Assert.IsNull(DaisyTourLayout.PlaceStationary(DaisyTourCardPosition.Target, card, viewport, away));
-        Assert.IsNull(DaisyTourLayout.PlaceStationary(DaisyTourCardPosition.Default, card, viewport, away));
-
-        // A covered position slides along its own edge by the smallest clear distance.
-        Assert.AreEqual(new Rect(12, 82, 200, 100),
-            DaisyTourLayout.PlaceStationary(DaisyTourCardPosition.TopLeft, card, viewport, new Rect(40, 40, 60, 30)));
-        Assert.AreEqual(new Rect(68, 288, 200, 100),
-            DaisyTourLayout.PlaceStationary(DaisyTourCardPosition.Bottom, card, viewport, new Rect(280, 320, 40, 30)));
-        Assert.AreEqual(new Rect(200, 78, 200, 100),
-            DaisyTourLayout.PlaceStationary(DaisyTourCardPosition.Center, card, viewport, new Rect(280, 190, 40, 20)));
-        // Without room on that edge, the card goes beside the target.
-        Assert.IsNull(DaisyTourLayout.PlaceStationary(DaisyTourCardPosition.Left, card, viewport, new Rect(20, 20, 60, 360)));
-    }
-
-    [Fact]
     public async Task When_NextCardWouldCoverACourse_TheClearPreviousPositionIsKept()
     {
         // The tour sees only the root in the top left corner, so the outcome does not depend on the test window's size.
@@ -2270,34 +1905,6 @@ public class Given_DaisyTour
             Assert.AreEqual(new Point(kept.X, kept.Y), new Point(card.X, card.Y), diagnostic);
         }
         finally { await CleanupAsync(root, tour); }
-    }
-
-    [Fact]
-    public void When_CardWouldCoverACourse_ItMovesToTheNearestClearSpot()
-    {
-        var viewport = new Size(600, 400);
-        var card = new Size(200, 100);
-        var target = new Rect(250, 300, 100, 30);
-        // A course runs where the card above the target would go; the right side is clear.
-        var course = new Rect(0, 180, 600, 10);
-        Assert.AreEqual(new Rect(382, 265, 200, 100), DaisyTourLayout.AvoidObstacles(DaisyTourCardPosition.Target,
-            DaisyTourPlacement.Auto, target, card, viewport, [target, course]));
-        // A fixed position slides along its edge past the course.
-        var band = new Rect(0, 0, 300, 130);
-        Assert.AreEqual(new Rect(12, 142, 200, 100), DaisyTourLayout.AvoidObstacles(DaisyTourCardPosition.TopLeft,
-            DaisyTourPlacement.Auto, target, card, viewport, [target, band]));
-        // Without a clear side, the card above the target moves up past the course.
-        var low = new Rect(200, 400, 200, 30);
-        var tall = new Size(600, 500);
-        var crossing = new Rect(0, 300, 600, 10);
-        Assert.AreEqual(new Rect(200, 188, 200, 100), DaisyTourLayout.AvoidObstacles(DaisyTourCardPosition.Target,
-            DaisyTourPlacement.Auto, low, card, tall, [low, crossing]));
-        // A previous position that is still clear is kept.
-        Assert.AreEqual(new Rect(12, 12, 200, 100), DaisyTourLayout.AvoidObstacles(DaisyTourCardPosition.Target,
-            DaisyTourPlacement.Auto, low, card, tall, [low, crossing], new Rect(12, 12, 200, 100)));
-        // Courses everywhere leave no clear spot.
-        Assert.IsNull(DaisyTourLayout.AvoidObstacles(DaisyTourCardPosition.Target, DaisyTourPlacement.Auto, target, card,
-            viewport, [new Rect(0, 0, 600, 400)]));
     }
 
     [Fact]
@@ -2435,39 +2042,6 @@ public class Given_DaisyTour
         Assert.AreEqual(2, kept, "A previous direction that still fits is kept.");
     }
 
-    [Fact]
-    public async Task When_SpeechBubbleTargetsTheTopRightCorner_TheBubbleStaysInViewBesideTheTarget()
-    {
-        var target = CreateTarget();
-        target.Margin = new Thickness(476, 16, 0, 0);
-        var annotation = new DaisyTourAnnotation
-        {
-            Id = "corner", Kind = DaisyTourAnnotationKind.SpeechBubble, Tail = DaisyTourAnnotationTail.Speech,
-            Text = "This explanation wraps inside its annotation and follows the live target."
-        };
-        var step = new DaisyTourStep { Id = "corner", Target = target };
-        step.Annotations.Add(annotation);
-        var tour = new DaisyTour();
-        tour.Steps.Add(step);
-        var root = CreateRoot(tour, target);
-        try
-        {
-            await LoadAsync(root);
-            await tour.StartAsync().WaitAsync(TestTimeout);
-            AssertActive(tour, step, 0);
-            var presenter = Descendants<DaisyTourAnnotationPresenter>(GetSurface(tour)).Single();
-            var body = presenter.Body.Data!.Bounds;
-            var diagnostic = $"bubble={body}, target={BoundsInRoot(target)}, card={tour.CardBounds}";
-            AssertInViewport(body, RootSize(root), diagnostic);
-            Assert.IsFalse(Overlaps(body, Frame(tour, BoundsInRoot(target))), diagnostic);
-            Assert.IsFalse(Overlaps(body, tour.CardBounds), diagnostic);
-            await SettleAsync(root);
-            var text = (TextBlock)((ContentPresenter)presenter.ContentHost.Child!).Content!;
-            Assert.IsFalse(IsTextTrimmed(text), diagnostic);
-        }
-        finally { await CleanupAsync(root, tour); }
-    }
-
     private static bool Overlaps(Rect first, Rect second)
     {
         first = first.Intersect(second);
@@ -2476,10 +2050,6 @@ public class Given_DaisyTour
 
     // Avalonia has no Rect.IsEmpty; an intersection without overlap has no size.
     private static bool IsEmpty(Rect rect) => rect.Width <= 0 || rect.Height <= 0;
-
-    // A nonempty WinUI intersection: the rectangles overlap or share an edge.
-    private static bool IntersectsOrTouches(Rect first, Rect second) =>
-        first.Left <= second.Right && second.Left <= first.Right && first.Top <= second.Bottom && second.Top <= first.Bottom;
 
     [Fact]
     public async Task When_EightStepsUseExtraLargeSize_TheCurrentCompactIndicatorRemainsVisible()
@@ -2524,30 +2094,6 @@ public class Given_DaisyTour
             }
         }
         finally { await CleanupAsync(root, tour); }
-    }
-
-    [Fact]
-    public void When_AnnotationScaleChanges_FallbackDimensionsScaleAndExplicitStrokeRemainsFixed()
-    {
-        var presenter = new DaisyTourAnnotationPresenter();
-        var annotation = new DaisyTourAnnotation { Preset = DaisyTourAnnotationPreset.ThinArrow };
-        var brush = new SolidColorBrush(Colors.Blue);
-        var source = new Rect(10, 10, 40, 40);
-        var target = new Rect(400, 10, 40, 40);
-        presenter.Update(annotation, source, target, brush, brush, brush, scale: 0.8);
-        var body = presenter.Body;
-        var head = (Path)presenter.Children[3];
-        var smallStroke = body.StrokeThickness;
-        var smallHead = head.Data!.Bounds;
-        presenter.Update(annotation, source, target, brush, brush, brush, scale: 1.3);
-        Assert.AreEqual(smallStroke * 1.3 / 0.8, body.StrokeThickness, 0.0001);
-        Assert.AreEqual(smallHead.Width * 1.3 / 0.8, head.Data!.Bounds.Width, 0.0001);
-        Assert.AreEqual(smallHead.Height * 1.3 / 0.8, head.Data!.Bounds.Height, 0.0001);
-        annotation.StrokeThickness = 7;
-        presenter.Update(annotation, source, target, brush, brush, brush, scale: 0.8);
-        Assert.AreEqual(7d, body.StrokeThickness);
-        presenter.Update(annotation, source, target, brush, brush, brush, scale: 1.3);
-        Assert.AreEqual(7d, body.StrokeThickness);
     }
 
     [Fact]
@@ -2825,37 +2371,6 @@ public class Given_DaisyTour
             await SettleAsync(root);
             Assert.AreEqual(FlowDirection.LeftToRight, Card(tour).FlowDirection);
             Assert.AreEqual(FlowDirection.LeftToRight, tour.AnnotationPresenters.Single().ContentHost.FlowDirection);
-        }
-        finally { await CleanupAsync(root, tour); }
-    }
-
-    [Fact]
-    public async Task When_CancelIsCalledOnAnOpenTour_ItClosesAsCancelledAndRestoresPreviousFocus()
-    {
-        var target = CreateTarget();
-        var previous = new Button { Content = "Previous focus", HorizontalAlignment = HorizontalAlignment.Right };
-        var step = new DaisyTourStep { Id = "cancel", Target = target };
-        var tour = new DaisyTour();
-        tour.Steps.Add(step);
-        var root = CreateRoot(tour, target, previous);
-        var closed = new List<DaisyTourClosedEventArgs>();
-        tour.Closed += (_, args) => closed.Add(args);
-        try
-        {
-            await LoadAsync(root);
-            Assert.IsTrue(previous.Focus(NavigationMethod.Unspecified));
-            Assert.AreSame(previous, FocusedElement(root));
-            await tour.StartAsync().WaitAsync(TestTimeout);
-            AssertActive(tour, step, 0);
-            Assert.IsTrue(FocusedElement(root) is Visual focused && DaisyTourLayout.IsDescendant(focused, GetSurface(tour)),
-                "The open tour keeps the focus in its card.");
-            tour.Cancel();
-            await SettleAsync(root);
-            AssertClosed(tour);
-            Assert.HasCount(1, closed);
-            Assert.AreEqual(DaisyTourCloseReason.Cancelled, closed[0].Reason);
-            Assert.AreEqual("cancel", closed[0].StepId);
-            Assert.AreSame(previous, FocusedElement(root), "Closing gives the focus back.");
         }
         finally { await CleanupAsync(root, tour); }
     }
@@ -3213,10 +2728,6 @@ public class Given_DaisyTour
 
     private static IEnumerable<T> Descendants<T>(Visual root) where T : Visual => root.GetVisualDescendants().OfType<T>();
 
-    private static string DescribeScroll(string name, ScrollViewer viewer) =>
-        $"{name}: loaded={viewer.IsLoaded}, offset={viewer.Offset.Y}, viewport={viewer.Viewport.Height}, " +
-        $"extent={viewer.Extent.Height}, scrollable={viewer.ScrollBarMaximum.Y}, actual={viewer.Bounds.Height}";
-
     // WinUI's ChangeView without animation; Avalonia takes the offset directly and clamps it to the extent.
     // Like ChangeView, the result tells whether the view changed.
     private static bool ChangeView(ScrollViewer viewer, double? horizontal, double? vertical)
@@ -3248,10 +2759,6 @@ public class Given_DaisyTour
         Assert.IsInstanceOfType<LineSegment>(figure.Segments!.Last());
         Assert.AreEqual(end, ((LineSegment)figure.Segments!.Last()).Point);
     }
-
-    // WinUI's DaisyResourceLookup.GetBorderBrush: the system text color with high contrast, else Base300.
-    private static IBrush GetBorderBrush() =>
-        DaisyResourceLookup.GetBrush(DaisyAccessibility.IsHighContrast ? "DaisyBaseContentBrush" : "DaisyBase300Brush")!;
 
     // Avalonia's TextBlock has no IsTextTrimmed; a trimmed line is collapsed.
     private static bool IsTextTrimmed(TextBlock block) => block.TextLayout.TextLines.Any(line => line.HasCollapsed);

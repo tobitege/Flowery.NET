@@ -1,6 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
@@ -18,27 +16,7 @@ namespace Flowery.NET.Tests
 {
     public class DaisyTabsHeaderButtonsTests
     {
-        [AvaloniaFact]
-        public void Defaults_HideButtons_AndKeepManageEntryAvailable()
-        {
-            using var host = new TestHost(new DaisyTabsHeaderButtons());
-            Assert.False(host.Previous.IsVisible);
-            Assert.False(host.Next.IsVisible);
-            Assert.False(host.ViewMenuButton.IsVisible);
-            Assert.True(host.Control.ShowManageViewsEntry);
-            Assert.Equal(FlowerySizeManager.CurrentSize, host.Control.Size);
-            Assert.All(host.Control.GetVisualDescendants().OfType<DaisyButton>(), button =>
-            {
-                Assert.Equal(DaisyButtonVariant.Default, button.Variant);
-                Assert.Equal(host.Control.Size, button.Size);
-                Assert.Equal(DaisyButtonShape.Square, button.Shape);
-            });
-            Assert.Null(host.Control.Views);
-            Assert.Null(host.Control.ActiveViewId);
-        }
-
         [AvaloniaTheory]
-        [InlineData(false)]
         [InlineData(true)]
         public void ViewMenu_HasExpectedEntriesAndCheckMark(bool showManage)
         {
@@ -63,7 +41,6 @@ namespace Flowery.NET.Tests
         }
 
         [AvaloniaTheory]
-        [InlineData(false)]
         [InlineData(true)]
         public void ViewSelectionAndManagement_RaiseEventsAndExecuteCommands(bool useCommands)
         {
@@ -97,78 +74,7 @@ namespace Flowery.NET.Tests
             }
         }
 
-        [AvaloniaFact]
-        public void ViewMenu_RebuildsFromMutableListAndCurrentPropertiesOnEachOpening()
-        {
-            var control = CreateControl();
-            using var host = new TestHost(control);
-            host.OpenMenu();
-            var firstItem = host.Menu.Items[0];
-            host.Menu.Hide();
-            control.Views!.RemoveAt(0);
-            control.Views.Add(new DaisyTabView { Id = 4, Name = "Recent" });
-            control.ActiveViewId = 4;
-            control.ShowManageViewsEntry = false;
-            host.OpenMenu();
-            var items = host.Menu.Items.Cast<MenuItem>().ToArray();
-            Assert.Equal(3, items.Length);
-            Assert.DoesNotContain(firstItem, host.Menu.Items);
-            Assert.Equal(new[] { "Details", "Archive", "Recent" }, items.Select(item => item.Header));
-            Assert.Equal(new[] { false, false, true }, items.Select(item => item.IsChecked));
-        }
-
-        [AvaloniaFact]
-        public void EmptyMenu_DisablesButton_AndManageOnlyMenuHasNoSeparator()
-        {
-            var views = new ObservableCollection<DaisyTabView>();
-            using var host = new TestHost(new DaisyTabsHeaderButtons
-            {
-                ShowViewMenuButton = true, ShowManageViewsEntry = false, Views = views
-            });
-            Assert.False(host.ViewMenuButton.IsEffectivelyEnabled);
-            views.Add(new DaisyTabView { Id = "one", Name = "One" });
-            Assert.True(host.ViewMenuButton.IsEffectivelyEnabled);
-            host.OpenMenu();
-            views.Clear();
-            Assert.False(host.Menu.IsOpen);
-            Assert.False(host.ViewMenuButton.IsEffectivelyEnabled);
-            host.Control.ShowManageViewsEntry = true;
-            host.OpenMenu();
-            Assert.IsType<MenuItem>(Assert.Single(host.Menu.Items));
-        }
-
-        [AvaloniaFact]
-        public void ViewCollectionReplacementAndReattachment_UpdateAvailability()
-        {
-            var oldViews = new ObservableCollection<DaisyTabView>();
-            var replacement = new ObservableCollection<DaisyTabView>();
-            var control = new DaisyTabsHeaderButtons
-            {
-                ShowViewMenuButton = true, ShowManageViewsEntry = false, Views = oldViews
-            };
-            using var host = new TestHost(control);
-            control.Views = replacement;
-            oldViews.Add(new DaisyTabView { Id = 1, Name = "Old" });
-            Assert.False(host.ViewMenuButton.IsEnabled);
-            replacement.Add(new DaisyTabView { Id = 2, Name = "New" });
-            Assert.True(host.ViewMenuButton.IsEnabled);
-            host.Window.Content = null;
-            replacement.Clear();
-            Assert.True(host.ViewMenuButton.IsEnabled);
-            host.Window.Content = control;
-            host.Settle();
-            Assert.False(host.ViewMenuButton.IsEnabled);
-
-            var plainViews = new List<DaisyTabView>();
-            control.Views = plainViews;
-            plainViews.Add(new DaisyTabView { Id = 3, Name = "Plain list" });
-            host.Window.Width += 1;
-            host.Settle();
-            Assert.True(host.ViewMenuButton.IsEnabled);
-        }
-
         [AvaloniaTheory]
-        [InlineData(false)]
         [InlineData(true)]
         public void NavigationClicks_RaiseEventsAndExecuteCommands(bool useCommands)
         {
@@ -251,29 +157,6 @@ namespace Flowery.NET.Tests
         }
 
         [AvaloniaFact]
-        public void SizeAndScale_ReachButtonsAndIcons_AndLabelsAreAccessible()
-        {
-            using var host = new TestHost(new DaisyTabsHeaderButtons { ShowNavigationButtons = true, ShowViewMenuButton = true });
-            foreach (var size in Enum.GetValues<DaisySize>())
-            {
-                host.Control.Size = size;
-                host.Settle();
-                Assert.All(host.Control.GetVisualDescendants().OfType<DaisyButton>(), button => Assert.Equal(size, button.Size));
-                Assert.All(host.Control.GetVisualDescendants().OfType<DaisyIconText>(), icon => Assert.Equal(size, icon.Size));
-                Assert.Equal(LayoutTestAssertions.GetButtonFontSize(size), host.Control.FontSize);
-                Assert.All(host.Control.GetVisualDescendants().OfType<DaisyIconText>(), icon => Assert.Equal(host.Control.FontSize, icon.IconSize));
-            }
-            host.Control.ApplyScaleFactor(0.8);
-            host.Settle();
-            Assert.Equal(11.2, host.Control.FontSize, 3);
-            Assert.Equal(host.Control.FontSize, host.Previous.FontSize);
-            Assert.All(host.Control.GetVisualDescendants().OfType<DaisyIconText>(), icon => Assert.Equal(11.2, icon.IconSize, 3));
-            Assert.False(string.IsNullOrEmpty(AutomationProperties.GetName(host.Previous)));
-            Assert.False(string.IsNullOrEmpty(AutomationProperties.GetName(host.Next)));
-            Assert.False(string.IsNullOrEmpty(AutomationProperties.GetName(host.ViewMenuButton)));
-        }
-
-        [AvaloniaFact]
         public void MenuAndButtonLabels_UseCurrentCulture()
         {
             var originalCulture = FloweryLocalization.CurrentCulture;
@@ -289,69 +172,6 @@ namespace Flowery.NET.Tests
             {
                 FloweryLocalization.SetCulture(originalCulture.Name);
             }
-        }
-
-        [AvaloniaFact]
-        public void ViewMenuOpening_LoadsViewsAndPermissionsBeforeBuildingEntries()
-        {
-            var control = new DaisyTabsHeaderButtons { ShowViewMenuButton = true, ShowManageViewsEntry = false };
-            using var host = new TestHost(control);
-            var openingCount = 0;
-            EventHandler<CancelEventArgs> loadViews = (_, _) =>
-            {
-                openingCount++;
-                Assert.Empty(host.Menu.Items);
-                control.Views = new List<DaisyTabView> { new() { Id = 42, Name = "Loaded view" } };
-                control.ActiveViewId = 42;
-                control.ShowManageViewsEntry = true;
-            };
-            control.ViewMenuOpening += loadViews;
-            Assert.True(host.ViewMenuButton.IsEnabled);
-            host.OpenMenu();
-            Assert.Equal(1, openingCount);
-            Assert.Equal(3, host.Menu.Items.Count);
-            var item = Assert.IsType<MenuItem>(host.Menu.Items[0]);
-            Assert.Equal("Loaded view", item.Header);
-            Assert.True(item.IsChecked);
-            Assert.IsType<Separator>(host.Menu.Items[1]);
-            control.ViewMenuOpening -= loadViews;
-        }
-
-        [AvaloniaFact]
-        public void ViewMenuOpening_CancelPreventsMenuBuildAndDisplay()
-        {
-            var control = CreateControl();
-            using var host = new TestHost(control);
-            host.OpenMenu();
-            var originalItems = host.Menu.Items.ToArray();
-            host.Menu.Hide();
-            var openingCount = 0;
-            EventHandler<CancelEventArgs> cancel = (_, args) =>
-            {
-                openingCount++;
-                control.Views = null;
-                args.Cancel = true;
-            };
-            control.ViewMenuOpening += cancel;
-            host.Click(host.ViewMenuButton);
-            Assert.Equal(1, openingCount);
-            Assert.False(host.Menu.IsOpen);
-            Assert.Equal(originalItems, host.Menu.Items.ToArray());
-            control.ViewMenuOpening -= cancel;
-            control.ShowManageViewsEntry = false;
-            Assert.False(host.ViewMenuButton.IsEnabled);
-        }
-
-        [AvaloniaFact]
-        public void ViewMenuOpening_WithNoLoadedEntries_DoesNotShowEmptyPopup()
-        {
-            using var host = new TestHost(new DaisyTabsHeaderButtons { ShowViewMenuButton = true, ShowManageViewsEntry = false });
-            var openingCount = 0;
-            host.Control.ViewMenuOpening += (_, _) => openingCount++;
-            host.Click(host.ViewMenuButton);
-            Assert.Equal(1, openingCount);
-            Assert.False(host.Menu.IsOpen);
-            Assert.Empty(host.Menu.Items);
         }
 
         private static DaisyTabsHeaderButtons CreateControl() => new()

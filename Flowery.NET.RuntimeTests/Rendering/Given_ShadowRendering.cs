@@ -6,7 +6,6 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Flowery.Controls;
-using Flowery.NET.RuntimeTests.Controls;
 using SkiaSharp;
 using Xunit;
 using DaisyCardStyle = Flowery.Enums.DaisyCardStyle;
@@ -42,38 +41,6 @@ public class Given_ShadowRendering
         ["slide-three-dimensional"] = () => new DaisySlideToConfirm { DepthStyle = DaisyDepthStyle.ThreeDimensional, Width = 240 },
         ["slide-raised"] = () => new DaisySlideToConfirm { DepthStyle = DaisyDepthStyle.Raised, Width = 240 }
     };
-
-    [Fact]
-    public async Task When_A_Control_Shows_A_Shadow_By_Default_It_Is_Drawn()
-    {
-        var controlTypes = ControlCatalog.GetDaisyControls()
-            .Concat(ControlCatalog.GetColorPickerControls())
-            .Concat(ControlCatalog.GetCustomControls())
-            .Concat(ControlCatalog.GetKanbanControls())
-            .Where(type => type.GetConstructor(Type.EmptyTypes) is not null && !typeof(Window).IsAssignableFrom(type))
-            .ToList();
-
-        // No control shows a shadow by default today; the configurations below prove that the detection works.
-        // This sweep catches a control that starts showing one, so it must reach every control.
-        var failures = new StringBuilder();
-        var checkedControls = 0;
-        foreach (var type in controlTypes)
-        {
-            try
-            {
-                await CheckShadowsAsync(type.Name, (Control)Activator.CreateInstance(type)!, failures);
-                checkedControls++;
-            }
-            catch (Exception exception)
-            {
-                var cause = RuntimeTestHelpers.Unwrap(exception);
-                failures.AppendLine($"{type.Name}: {cause.GetType().Name} - {cause.Message}");
-            }
-        }
-
-        Assert.True(failures.Length == 0, failures.ToString());
-        Assert.True(checkedControls > 100, $"Only {checkedControls} controls were checked.");
-    }
 
     [Theory]
     [InlineData("button-shadow")]

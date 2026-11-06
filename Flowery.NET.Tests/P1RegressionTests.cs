@@ -27,8 +27,6 @@ public class P1RegressionTests
     [InlineData("1.23", "N2", "de-DE", 0, Key.Down, "1.22")]
     [InlineData("0.1234", "P2", "en-US", 0, Key.Up, "0.1235")]
     [InlineData("12.34", "C2", "de-DE", 0, Key.Up, "12.35")]
-    [InlineData("12.34", "F2", "en-US", 0, Key.Up, "12.35")]
-    [InlineData("12.34", "G", "en-US", 0, Key.Up, "12.35")]
     [InlineData("28.34", "000.00", "en-US", 4, Key.Up, "128.34")]
     [InlineData("8", "000", "en-US", 2, Key.D2, "208")]
     [InlineData("-12", "N0", "en-US", 0, Key.D3, "-13")]

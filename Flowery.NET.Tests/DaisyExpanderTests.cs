@@ -14,9 +14,7 @@ using Xunit;
 
 namespace Flowery.NET.Tests;
 
-/// <summary>
-/// DaisyExpander: the header colors, a bound IsExpanded and what screen readers hear.
-/// </summary>
+/// <summary>DaisyExpander: the header colors, a bound IsExpanded and what screen readers hear.</summary>
 public class DaisyExpanderTests
 {
     [AvaloniaFact]
@@ -118,17 +116,7 @@ public class DaisyExpanderTests
 
     private sealed class ExpanderModel : INotifyPropertyChanged
     {
-        private bool _isOpen;
-
-        public bool IsOpen
-        {
-            get => _isOpen;
-            set
-            {
-                _isOpen = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsOpen)));
-            }
-        }
+        public bool IsOpen { get; set { field = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsOpen))); } }
 
         public event PropertyChangedEventHandler? PropertyChanged;
     }

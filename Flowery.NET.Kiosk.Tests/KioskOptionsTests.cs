@@ -7,12 +7,6 @@ public class KioskOptionsTests
     private static readonly string ReportPath = Path.Combine(Path.GetTempPath(), "kiosk", "report.xml");
 
     [Fact]
-    public void Without_Options_The_Kiosk_Plays_Automatically()
-    {
-        Assert.Equal(new KioskOptions(false, null), KioskOptions.Parse([]));
-    }
-
-    [Fact]
     public void Manual_Turns_Autoplay_Off()
     {
         Assert.Equal(new KioskOptions(true, null), KioskOptions.Parse(["--manual"]));

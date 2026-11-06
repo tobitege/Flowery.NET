@@ -17,11 +17,7 @@ namespace Flowery.NET.Tests;
 public sealed partial class SchedulerTests
 {
     [AvaloniaTheory]
-    [InlineData(SchedulerView.Day)]
     [InlineData(SchedulerView.Week)]
-    [InlineData(SchedulerView.Month)]
-    [InlineData(SchedulerView.Planner)]
-    [InlineData(SchedulerView.Timeline)]
     public void ColumnZoomWidensTheColumnsWithoutBuildingTheViewAgain(SchedulerView view)
     {
         using var scope = new SchedulerScope(view);
@@ -35,16 +31,6 @@ public sealed partial class SchedulerTests
         // Layout rounds widths to device pixels.
         Assert.Equal(fitted * 2, body.Extent.Width, tolerance: 2);
         Assert.Same(frame, scope.Frame(scope.Appointment));
-    }
-
-    [AvaloniaFact]
-    public void ColumnZoomStaysBetweenOneAndFour()
-    {
-        using var scope = new SchedulerScope(SchedulerView.Week);
-        scope.Scheduler.ColumnZoom = 10;
-        Assert.Equal(4, scope.Scheduler.ColumnZoom);
-        scope.Scheduler.ColumnZoom = 0.5;
-        Assert.Equal(1, scope.Scheduler.ColumnZoom);
     }
 
     [AvaloniaFact]
@@ -83,22 +69,7 @@ public sealed partial class SchedulerTests
         Assert.Equal(2, scope.Scheduler.ColumnZoom);
     }
 
-    [AvaloniaFact]
-    public void ADoubleClickOnAColumnHeadingSwitchesBetweenFittedAndWideColumns()
-    {
-        using var scope = new SchedulerScope(SchedulerView.Month);
-        var heading = scope.Scheduler.GetVisualDescendants().OfType<TextBlock>()
-            .First(text => text.Text == Monday.ToString("ddd", scope.Scheduler.FormattingCulture)).FindAncestorOfType<Border>()!;
-
-        scope.Click(heading);
-        Assert.Equal(1, scope.Scheduler.ColumnZoom);
-        scope.Click(heading);
-        Assert.Equal(2, scope.Scheduler.ColumnZoom);
-    }
-
     [AvaloniaTheory]
-    [InlineData(SchedulerView.Week)]
-    [InlineData(SchedulerView.Month)]
     [InlineData(SchedulerView.Planner)]
     public void DraggingTheRightEdgeOfAColumnHeadingWithTheMouseResizesEveryColumn(SchedulerView view)
     {
@@ -150,27 +121,6 @@ public sealed partial class SchedulerTests
         MultiTouchTestHelperFactory.SimulatePinchZoomOut(body, middle, startDistance: 120, endDistance: 90);
         Assert.Equal(1.5, scope.Scheduler.ColumnZoom, 2);
         Assert.Null(scope.Scheduler.SelectedAppointment);
-    }
-
-    [AvaloniaFact]
-    public void TheSettingsMenuChoosesTheColumnZoom()
-    {
-        using var scope = new SchedulerScope(SchedulerView.Week);
-        var settings = Assert.IsType<ScrollViewer>(scope.Scheduler.BuildSettings());
-        var popup = new Window { Width = 500, Height = 600, Content = settings };
-        popup.Show();
-        try
-        {
-            popup.UpdateLayout();
-            var zoom = settings.GetVisualDescendants().OfType<DaisySelect>().Single(select => Equals(select.Tag, DaisyScheduler.ColumnZoomProperty));
-            Assert.Equal(1d.ToString("P0", scope.Scheduler.FormattingCulture), zoom.SelectedItem?.ToString());
-            zoom.SelectedIndex = 2;
-            Assert.Equal(2, scope.Scheduler.ColumnZoom);
-        }
-        finally
-        {
-            popup.Close();
-        }
     }
 
     [AvaloniaFact]

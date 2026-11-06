@@ -9,10 +9,7 @@ using static Flowery.NET.Tests.TestControls;
 
 namespace Flowery.NET.Tests;
 
-/// <summary>
-/// The muted text that DaisyThemeManager derives where a palette leaves it below 4.5:1, and the text colors on the accent
-/// colors, which every palette keeps as it has them.
-/// </summary>
+/// <summary>The muted text DaisyThemeManager derives where a palette is below 4.5:1, and the accent text colors kept as given.</summary>
 public class PaletteTextContrastTests
 {
     private const double TextContrast = 4.5;
@@ -20,9 +17,10 @@ public class PaletteTextContrastTests
     private static readonly string[] AccentNames = ["Primary", "Secondary", "Accent", "Neutral", "Info", "Success", "Warning", "Error"];
 
     [AvaloniaFact]
-    public void Every_Palette_Keeps_Its_Text_Colors_On_Its_Accent_Colors()
+    public void Every_Palette_Keeps_Its_Accent_Text_Colors_And_Its_Muted_Text_Is_Readable_At_Seventy_Percent_Where_That_Is_Enough()
     {
         var previous = DaisyThemeManager.CurrentThemeName;
+        var raised = new List<string>();
         try
         {
             var themes = BuiltInThemes();
@@ -33,40 +31,22 @@ public class PaletteTextContrastTests
                 Assert.True(DaisyThemeManager.ApplyTheme(theme));
                 foreach (var name in AccentNames)
                 {
-                    var content = ThemeColor($"Daisy{name}ContentColor");
-                    Assert.Equal(PaletteColor(palette, $"Daisy{name}ContentColor"), content);
-                    Assert.Equal(content, Assert.IsAssignableFrom<ISolidColorBrush>(Resource($"Daisy{name}ContentBrush")).Color);
+                    var accentContent = ThemeColor($"Daisy{name}ContentColor");
+                    Assert.Equal(PaletteColor(palette, $"Daisy{name}ContentColor"), accentContent);
+                    Assert.Equal(accentContent, Assert.IsAssignableFrom<ISolidColorBrush>(Resource($"Daisy{name}ContentBrush")).Color);
                 }
-            }
-        }
-        finally
-        {
-            DaisyThemeManager.ApplyTheme(previous ?? "Light");
-        }
-    }
 
-    [AvaloniaFact]
-    public void The_Muted_Text_Of_Every_Palette_Is_Readable_And_Stays_At_Seventy_Percent_Where_That_Is_Enough()
-    {
-        var previous = DaisyThemeManager.CurrentThemeName;
-        var raised = new List<string>();
-        try
-        {
-            foreach (var theme in BuiltInThemes())
-            {
-                var palette = DaisyThemeManager.GetPaletteFactory(theme)!();
-                Assert.True(DaisyThemeManager.ApplyTheme(theme));
                 var content = PaletteColor(palette, "DaisyBaseContentColor");
                 Color[] surfaces = [PaletteColor(palette, "DaisyBase100Color"), PaletteColor(palette, "DaisyBase200Color")];
                 var muted = MutedBrush();
                 Assert.Equal(content, muted.Color);
                 if (surfaces.All(surface => Readable(content, DaisyThemeManager.MutedTextOpacity, surface)))
-                {
                     Assert.Equal(DaisyThemeManager.MutedTextOpacity, muted.Opacity);
-                    continue;
+                else
+                {
+                    AssertJustReadable(theme, muted, surfaces);
+                    raised.Add($"{theme} {muted.Opacity:0.00}");
                 }
-                AssertJustReadable(theme, muted, surfaces);
-                raised.Add($"{theme} {muted.Opacity:0.00}");
             }
             Assert.NotEmpty(raised);
         }

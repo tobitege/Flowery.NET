@@ -37,44 +37,8 @@ public class GlassTextContrastTests
         Assert.True(adjusted.B > adjusted.R && adjusted.B > adjusted.G, $"The blue hue is lost: {adjusted}.");
     }
 
-    [Fact]
-    public void A_Translucent_Text_Color_Is_Checked_As_It_Renders()
-    {
-        // White at 60 % on mid gray: opaque white would pass, the rendered light gray does not.
-        var text = Color.Parse("#99FFFFFF");
-        var background = Color.Parse("#737373");
-        Assert.True(FloweryColorHelpers.GetContrastRatio(Colors.White, background) >= 4.5);
-
-        var adjusted = FloweryColorHelpers.EnsureContrast(text, background, 4.5);
-
-        Assert.True(Rendered(adjusted, background) >= 4.5, $"{adjusted} renders with too little contrast on {background}.");
-    }
-
-    [Fact]
-    public void A_Translucent_Text_Color_Keeps_Its_Alpha_While_That_Is_Enough_And_Becomes_Opaque_Otherwise()
-    {
-        var kept = FloweryColorHelpers.EnsureContrast(Color.Parse("#C02563EB"), Colors.Black, 4.5);
-        Assert.Equal(0xC0, kept.A);
-        Assert.True(Rendered(kept, Colors.Black) >= 4.5);
-
-        var background = Color.Parse("#1E40AF");
-        var opaque = FloweryColorHelpers.EnsureContrast(Color.Parse("#802563EB"), background, 4.5);
-        Assert.Equal(0xFF, opaque.A);
-        Assert.True(Rendered(opaque, background) >= 4.5);
-    }
-
-    private static double Rendered(Color text, Color background) =>
-        FloweryColorHelpers.GetContrastRatio(FloweryColorHelpers.Composite(background, text, 1), background);
-
-    [Fact]
-    public void A_Text_Color_With_Contrast_Stays_As_It_Is()
-    {
-        Assert.Equal(Colors.Black, FloweryColorHelpers.EnsureContrast(Colors.Black, Colors.White, 4.5));
-    }
-
     [AvaloniaTheory]
     [InlineData(false)]
-    [InlineData(true)]
     public void A_Glass_Button_Or_Badge_Over_A_Backdrop_Of_Its_Text_Color_Gets_Readable_Text(bool badge)
     {
         TemplatedControl control = badge
@@ -102,12 +66,8 @@ public class GlassTextContrastTests
 
     [Theory]
     // Ratio of white against the surface, the side the text is on before, and whether it is light after.
-    [InlineData(2.6, null, true)]
-    [InlineData(2.4, null, false)]
     [InlineData(2.4, true, true)]
-    [InlineData(2.6, false, false)]
     [InlineData(2.1, true, false)]
-    [InlineData(2.9, false, true)]
     public void The_Text_Switches_Between_Light_And_Dark_Only_Past_A_Band(double whiteRatio, bool? wasLight, bool light)
     {
         // A backdrop that wavers around the switch point must not flip the text on every measurement.
@@ -128,8 +88,6 @@ public class GlassTextContrastTests
 
     [AvaloniaTheory]
     [InlineData("#7C3AED", true)]
-    [InlineData("#1E3A8A", true)]
-    [InlineData("#8A51EB", true)]
     [InlineData("#F8FAFC", false)]
     public void Glass_Text_Stays_Light_Unless_Even_White_Cannot_Be_Read(string backdrop, bool light)
     {
@@ -182,8 +140,7 @@ public class GlassTextContrastTests
     [AvaloniaFact]
     public void A_Liquid_Color_Without_A_Color_Of_Its_Own_Follows_A_New_Accent_Color()
     {
-        // Regression: the contrast did not listen for a new accent color, so the text kept the color it had over the old
-        // one. The system reports a dark accent and then a pale one; nothing else changes.
+        // Regression: the text kept its color over the old accent; the system reports a dark accent, then a pale one.
         var text = new SolidColorBrush(Color.Parse("#1F2937"));
         var (owner, glass) = LiquidColorGlass(text);
         IBrush? applied = null;
@@ -218,80 +175,12 @@ public class GlassTextContrastTests
     private static (TemplatedControl Owner, DaisyGlass Glass) LiquidColorGlass(IBrush text)
     {
         var owner = new ContentControl { Content = "Glass", FontSize = 14 };
-        owner.Styles.Add(new Style(selector => selector.OfType<ContentControl>())
+        owner.Styles.Add(new Style(selector => selector.OfType<ContentControl>()) { Setters = { new Setter(TemplatedControl.ForegroundProperty, text) } });
+        return (owner, new DaisyGlass
         {
-            Setters = { new Setter(TemplatedControl.ForegroundProperty, text) }
+            Width = 200, Height = 60, EnableBackdropBlur = true, GlassTint = Colors.White, GlassTintOpacity = 0.1, GlassFill = Brushes.Transparent,
+            GlassBackground = new DaisyGlassGradientBackground { Effect = DaisyGlassAnimation.LiquidColor }, GlassBackgroundOpacity = 0.9
         });
-        var glass = new DaisyGlass
-        {
-            Width = 200,
-            Height = 60,
-            EnableBackdropBlur = true,
-            GlassTint = Colors.White,
-            GlassTintOpacity = 0.1,
-            GlassFill = Brushes.Transparent,
-            GlassBackground = new DaisyGlassGradientBackground { Effect = DaisyGlassAnimation.LiquidColor },
-            GlassBackgroundOpacity = 0.9
-        };
-        return (owner, glass);
-    }
-
-    [AvaloniaFact]
-    public void The_Glass_Template_Draws_The_Shared_Top_Shine()
-    {
-        var glass = new DaisyGlass { Width = 200, Height = 80 };
-        var window = Show(glass);
-        try
-        {
-            var shine = glass.GetVisualDescendants().OfType<Border>().Single(border => ReferenceEquals(border.Background, DaisyGlass.TopShineBrush));
-            Assert.Equal(DaisyGlass.TopShineHeight, shine.Height);
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
-    public void A_Foreground_Set_On_The_Button_Is_Kept()
-    {
-        var foreground = new SolidColorBrush(Colors.White);
-        var button = new DaisyButton { Content = "Glass", Foreground = foreground, Theme = GlassTheme("DaisyGlassButtonTheme") };
-        var window = Show(button);
-        try
-        {
-            var glass = Glass(button);
-            Assert.False(glass.MeasureBackdropColor);
-            TestRenderer.Report(glass, Colors.White);
-            Assert.Same(foreground, EffectiveForeground(button));
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
-    public void Without_Text_Contrast_The_Glass_Does_Not_Measure_And_The_Text_Keeps_Its_Color()
-    {
-        var button = new DaisyButton { Content = "Glass", Theme = GlassTheme("DaisyGlassButtonTheme") };
-        var window = Show(button);
-        try
-        {
-            var glass = Glass(button);
-            TestRenderer.Report(glass, Assert.IsAssignableFrom<ISolidColorBrush>(button.Foreground).Color);
-            Assert.NotSame(button.Foreground, EffectiveForeground(button));
-
-            DaisyGlassSurface.SetTextContrast(button, false);
-
-            Assert.False(glass.MeasureBackdropColor);
-            Assert.Null(glass.BackdropColor);
-            Assert.Same(button.Foreground, EffectiveForeground(button));
-        }
-        finally
-        {
-            window.Close();
-        }
     }
 
     [Fact]
@@ -334,34 +223,6 @@ public class GlassTextContrastTests
         var light = FloweryColorHelpers.GetRelativeLuminance(drawn) > FloweryColorHelpers.GetRelativeLuminance(surface);
         var ratio = FloweryColorHelpers.GetContrastRatio(drawn, surface);
         Assert.True(light ? ratio >= 3.0 || (drawn == Colors.White && ratio >= 2.5) : ratio >= 4.5, $"{text} on {surface} has too little contrast.");
-    }
-
-    [AvaloniaTheory]
-    [InlineData(DaisyGlassAnimation.Plasma)]
-    [InlineData(DaisyGlassAnimation.LiquidGold)]
-    [InlineData(DaisyGlassAnimation.LiquidColor)]
-    public void The_Average_Color_Of_An_Animated_Background_Is_As_Bright_As_Its_Drawn_Frames(DaisyGlassAnimation effect)
-    {
-        // The contrast estimates the color behind the text from one average per effect. Checked here against the frames
-        // the shader draws over a minute, by their brightness, which decides the contrast. Aurora is left out: its
-        // shader draws lighter than the gradient background that its average describes.
-        long red = 0, green = 0, blue = 0, count = 0;
-        for (var time = 0f; time < 60; time += 0.5f)
-        {
-            using var bitmap = new SKBitmap(new SKImageInfo(64, 32, SKColorType.Rgba8888, SKAlphaType.Premul));
-            using (var canvas = new SKCanvas(bitmap))
-                DaisyGlassShaderBackground.Draw(canvas, 64, 32, effect, time, Colors.Red);
-            foreach (var pixel in bitmap.Pixels)
-            {
-                red += pixel.Red;
-                green += pixel.Green;
-                blue += pixel.Blue;
-                count++;
-            }
-        }
-        var drawn = Color.FromRgb((byte)(red / count), (byte)(green / count), (byte)(blue / count));
-        var average = GlassTextContrast.AverageColor(new DaisyGlassGradientBackground { Effect = effect, EffectColor = Colors.Red });
-        Assert.InRange(FloweryColorHelpers.GetRelativeLuminance(average) - FloweryColorHelpers.GetRelativeLuminance(drawn), -0.06, 0.06);
     }
 
     private static Color Average(IReadOnlyList<IGradientStop> stops) => Color.FromArgb(

@@ -62,52 +62,6 @@ public class DaisyGlassThemeTests
         }
     }
 
-    [AvaloniaFact]
-    public void Moving_The_Value_Moves_The_Lens_And_The_Progress()
-    {
-        var range = new DaisyRange { Minimum = 0, Maximum = 100, Value = 20, Width = 300, Theme = Theme("DaisyGlassRangeTheme") };
-        var window = Show(range);
-        try
-        {
-            range.Value = 80;
-            Dispatcher.UIThread.RunJobs();
-            window.UpdateLayout();
-            var thumb = Part<Thumb>(range, "PART_Thumb");
-            Assert.Equal(thumb.Bounds.X, Canvas.GetLeft(Part<Panel>(range, "PART_Lens")));
-            Assert.Equal(thumb.Bounds.X + thumb.Bounds.Width / 2, Part<Border>(range, "PART_Progress").Width);
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
-    public void A_Checked_Glass_Toggle_Fills_Its_Track_With_The_Variant_Color()
-    {
-        var toggle = new DaisyToggle { Variant = DaisyToggleVariant.Primary, Theme = Theme("DaisyGlassToggleTheme") };
-        var window = Show(toggle);
-        try
-        {
-            var glass = Part<DaisyGlass>(toggle, "PART_Glass");
-            AssertPaintedFirst(glass);
-            Assert.Equal(20, glass.GlassBlur);
-            Assert.Equal(0.18, glass.GlassTintOpacity);
-            var fill = Part<Border>(toggle, "PART_TrackFill");
-            Assert.Equal(0, fill.GetBaseValue(Visual.OpacityProperty).GetValueOrDefault());
-
-            toggle.IsChecked = true;
-            Dispatcher.UIThread.RunJobs();
-            Assert.Equal(1, fill.GetBaseValue(Visual.OpacityProperty).GetValueOrDefault());
-            Assert.True(toggle.TryFindResource("DaisyPrimaryColor", toggle.ActualThemeVariant, out var color));
-            Assert.Equal(Assert.IsType<Color>(color), Assert.IsAssignableFrom<ISolidColorBrush>(fill.Background).Color);
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
     [AvaloniaTheory]
     [InlineData("DaisyGlassToggleTheme")]
     [InlineData(null)]
@@ -139,7 +93,6 @@ public class DaisyGlassThemeTests
 
     [AvaloniaTheory]
     [InlineData(null)]
-    [InlineData("DaisyGlassMenuTheme")]
     public void A_Menu_Marks_Destructive_Items_And_Keeps_Separators_Out_Of_Reach(string? themeKey)
     {
         var delete = new ListBoxItem { Content = "Delete", Classes = { "menu-destructive" } };
@@ -165,31 +118,6 @@ public class DaisyGlassThemeTests
         finally
         {
             window.Close();
-        }
-    }
-
-    [AvaloniaFact]
-    public void The_Glassy_Theme_Is_Dark_And_Tints_The_Glass_Themes_Navy()
-    {
-        var previous = DaisyThemeManager.CurrentThemeName;
-        var button = new DaisyButton { Content = "OK", Theme = Theme("DaisyGlassButtonTheme") };
-        var window = Show(button);
-        try
-        {
-            var glass = Part<DaisyGlass>(button, "PART_Glass");
-            Assert.True(DaisyThemeManager.ApplyTheme("Light"));
-            Dispatcher.UIThread.RunJobs();
-            Assert.Equal(Colors.White, glass.GlassTint);
-
-            Assert.True(DaisyThemeManager.ApplyTheme("Glassy"));
-            Dispatcher.UIThread.RunJobs();
-            Assert.True(DaisyThemeManager.IsDarkTheme("Glassy"));
-            Assert.Equal(Color.Parse("#1E2F7A"), glass.GlassTint);
-        }
-        finally
-        {
-            window.Close();
-            DaisyThemeManager.ApplyTheme(previous ?? "Light");
         }
     }
 

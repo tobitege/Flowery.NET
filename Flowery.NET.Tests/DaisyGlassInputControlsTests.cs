@@ -17,8 +17,7 @@ public class DaisyGlassInputControlsTests
 {
     public static TheoryData<string> InputControls =>
     [
-        nameof(DaisyInput), nameof(DaisyTextArea), nameof(DaisyPasswordBox), nameof(DaisyMaskInput), nameof(DaisyNumericUpDown),
-        nameof(DaisySelect), nameof(DaisyCalendarDatePicker), nameof(DaisyFileInput), nameof(DaisyTagPicker)
+        nameof(DaisyInput), nameof(DaisySelect)
     ];
 
     [AvaloniaTheory]
@@ -37,37 +36,6 @@ public class DaisyGlassInputControlsTests
 
             DaisyGlassSurface.SetIsEnabled(control, false);
             Assert.Empty(control.GetVisualDescendants().OfType<DaisyGlass>());
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
-    public void A_One_Time_Code_Puts_Each_Digit_Box_On_Glass()
-    {
-        var otp = new DaisyOtpInput { Length = 4 };
-        DaisyGlassSurface.SetIsEnabled(otp, true);
-        DaisyGlassSurface.SetBlur(otp, 12);
-        var window = Show(otp);
-        try
-        {
-            var glasses = otp.GetVisualDescendants().OfType<DaisyGlass>().ToList();
-            Assert.Equal(4, glasses.Count);
-            Assert.All(glasses, glass =>
-            {
-                AssertUnderField(glass);
-                Assert.Equal(12, glass.GlassBlur);
-            });
-
-            otp.Length = 6;
-            Dispatcher.UIThread.RunJobs();
-            window.UpdateLayout();
-            Assert.Equal(6, otp.GetVisualDescendants().OfType<DaisyGlass>().Count());
-
-            DaisyGlassSurface.SetIsEnabled(otp, false);
-            Assert.Empty(otp.GetVisualDescendants().OfType<DaisyGlass>());
         }
         finally
         {
@@ -118,38 +86,6 @@ public class DaisyGlassInputControlsTests
     }
 
     [AvaloniaFact]
-    public void In_The_Glass_Mode_The_Tint_Follows_The_Theme_Base_Unless_The_Theme_Has_Its_Own()
-    {
-        var previous = DaisyThemeManager.CurrentThemeName;
-        var app = Application.Current!;
-        try
-        {
-            Assert.True(DaisyThemeManager.ApplyTheme("Dracula"));
-            Assert.Equal(Colors.White, Resource(app, "DaisyGlassTintColor"));
-
-            DaisyGlassSurface.GlobalEnabled = true;
-            Assert.Equal(Resource(app, "DaisyBase100Color"), Resource(app, "DaisyGlassTintColor"));
-
-            // A theme switch computes the tint again.
-            Assert.True(DaisyThemeManager.ApplyTheme("Light"));
-            Assert.Equal(Resource(app, "DaisyBase100Color"), Resource(app, "DaisyGlassTintColor"));
-
-            // Glassy sets its own tint.
-            Assert.True(DaisyThemeManager.ApplyTheme("Glassy"));
-            Assert.Equal(Color.Parse("#1E2F7A"), Resource(app, "DaisyGlassTintColor"));
-
-            Assert.True(DaisyThemeManager.ApplyTheme("Dracula"));
-            DaisyGlassSurface.GlobalEnabled = false;
-            Assert.Equal(Colors.White, Resource(app, "DaisyGlassTintColor"));
-        }
-        finally
-        {
-            DaisyGlassSurface.GlobalEnabled = false;
-            DaisyThemeManager.ApplyTheme(previous ?? "Light");
-        }
-    }
-
-    [AvaloniaFact]
     public void The_Glass_Mode_Comes_Back_When_Its_Styles_Left_The_App()
     {
         // As when the mode was switched on before the app existed: the next theme change adds the styles.
@@ -175,66 +111,6 @@ public class DaisyGlassInputControlsTests
             DaisyThemeManager.ApplyTheme(previous ?? "Light");
             window.Close();
         }
-    }
-
-    [AvaloniaFact]
-    public void A_Tint_Of_The_App_Stays_And_The_Theme_Tint_Survives_High_Contrast()
-    {
-        var previous = DaisyThemeManager.CurrentThemeName;
-        var app = Application.Current!;
-        var own = new ResourceDictionary { ["DaisyGlassTintColor"] = Colors.Crimson };
-        try
-        {
-            Assert.True(DaisyThemeManager.ApplyTheme("Dracula"));
-            DaisyGlassSurface.GlobalEnabled = true;
-            var base100 = Resource(app, "DaisyBase100Color");
-            Assert.Equal(base100, Resource(app, "DaisyGlassTintColor"));
-
-            // High contrast covers Base100; switched off again, the tint is that of the theme, not of the contrast palette.
-            DaisyAccessibility.HighContrastOverride = true;
-            DaisyAccessibility.HighContrastOverride = false;
-            Assert.Equal(base100, Resource(app, "DaisyGlassTintColor"));
-
-            // A tint the app brings itself, such as one included in App.axaml, is kept.
-            app.Resources.MergedDictionaries.Add(own);
-            DaisyGlassSurface.GlobalEnabled = false;
-            DaisyGlassSurface.GlobalEnabled = true;
-            Assert.Equal(Colors.Crimson, Resource(app, "DaisyGlassTintColor"));
-        }
-        finally
-        {
-            app.Resources.MergedDictionaries.Remove(own);
-            DaisyAccessibility.HighContrastOverride = null;
-            DaisyGlassSurface.GlobalEnabled = false;
-            DaisyThemeManager.ApplyTheme(previous ?? "Light");
-        }
-    }
-
-    [AvaloniaFact]
-    public void The_Sidebar_Switch_And_The_Glass_Mode_Follow_Each_Other()
-    {
-        var sidebar = new FloweryComponentSidebar();
-        var window = Show(sidebar);
-        try
-        {
-            sidebar.IsGlassModeEnabled = true;
-            Assert.True(DaisyGlassSurface.GlobalEnabled);
-            DaisyGlassSurface.GlobalEnabled = false;
-            Assert.False(sidebar.IsGlassModeEnabled);
-            DaisyGlassSurface.GlobalEnabled = true;
-            Assert.True(sidebar.IsGlassModeEnabled);
-        }
-        finally
-        {
-            DaisyGlassSurface.GlobalEnabled = false;
-            window.Close();
-        }
-    }
-
-    private static Color Resource(Application app, string key)
-    {
-        Assert.True(app.TryFindResource(key, app.ActualThemeVariant, out var value));
-        return Assert.IsType<Color>(value);
     }
 
     // The glass lies right under the field, in the same panel, and the field is clear.

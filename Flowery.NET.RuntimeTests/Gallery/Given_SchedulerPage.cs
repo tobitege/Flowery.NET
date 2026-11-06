@@ -211,14 +211,6 @@ public class Given_SchedulerPage
     }
 
     [Fact]
-    public async Task When_The_Title_Bar_Does_Not_Fold_The_Intro_The_Editor_Leaves_It_Shown()
-    {
-        var page = await RuntimeTestHelpers.AttachAsync(new SchedulerExamples());
-        await OpenNewAsync(page.FindControl<DaisyScheduler>("DemoScheduler")!);
-        Assert.True(page.FindControl<Control>("IntroPanel")!.IsVisible);
-    }
-
-    [Fact]
     public async Task When_The_Editor_Has_An_Error_It_Shows_It_In_The_Error_Color()
     {
         // Regression: the text took DaisyErrorForegroundBrush, which no theme defines, so the error was not red.

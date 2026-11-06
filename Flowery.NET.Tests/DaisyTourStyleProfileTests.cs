@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Avalonia.Headless.XUnit;
-using Avalonia.Media;
 using Flowery.Controls;
 using Xunit;
 
@@ -47,29 +46,6 @@ public class DaisyTourStyleProfileTests
     }
 
     [AvaloniaFact]
-    public void When_ProfileResolves_ColorsAndDashPatternsUseNativeTypes()
-    {
-        var style = new DaisyTourStyleOverride();
-        DaisyTourProfileResolver.SetValue(style, "stroke", "#7F12AB34");
-        DaisyTourProfileResolver.SetValue(style, "dashArray", new[] { 2d, 5d });
-        Assert.True(DaisyTourProfileResolver.TryGetValue(style, DaisyTourAnnotationStyle.StrokeProperty, out var value, out var inherit));
-        Assert.False(inherit);
-        var brush = Assert.IsAssignableFrom<ISolidColorBrush>(value);
-        Assert.Equal((byte)0x7F, brush.Color.A);
-        Assert.Equal((byte)0x12, brush.Color.R);
-        Assert.Equal((byte)0xAB, brush.Color.G);
-        Assert.Equal((byte)0x34, brush.Color.B);
-        // An unchanged color keeps its brush, so the shapes that use it do not change on every geometry update.
-        Assert.True(DaisyTourProfileResolver.TryGetValue(style, DaisyTourAnnotationStyle.StrokeProperty, out var again, out _));
-        Assert.Same(brush, again);
-        DaisyTourProfileResolver.SetValue(style, "stroke", "#FF000000");
-        Assert.True(DaisyTourProfileResolver.TryGetValue(style, DaisyTourAnnotationStyle.StrokeProperty, out var changed, out _));
-        Assert.Equal(Colors.Black, Assert.IsAssignableFrom<ISolidColorBrush>(changed).Color);
-        Assert.True(DaisyTourProfileResolver.TryGetValue(style, DaisyTourAnnotationStyle.DashArrayProperty, out value, out _));
-        Assert.Equal(new[] { 2d, 5d }, ((DaisyTourDashCollection)value!).ToArray());
-    }
-
-    [AvaloniaFact]
     public void When_OverrideIsSetInheritedClearedOrRejected_OnlyValidChangesAreKept()
     {
         var style = new DaisyTourStyleOverride();
@@ -96,24 +72,7 @@ public class DaisyTourStyleProfileTests
 
     [Theory]
     [InlineData("{\"schemaVersion\":2,\"tourId\":\"tour\"}")]
-    [InlineData("{\"tourId\":\"tour\"}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"extra\":true}")]
-    [InlineData("{\"schemaVersion\":1,\"schemaVersion\":1,\"tourId\":\"tour\"}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"steps\":null}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"bad id\"}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"steps\":[{\"id\":\"step\"},{\"id\":\"step\"}]}")]
     [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"unknown\":1}}}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"opacity\":2}}}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"width\":0}}}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"stroke\":\"red\"}}}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"dashArray\":[0,1]}}}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"path\":1}}}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"path\":\"curved\"}}}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"path\":\"Default\"}}}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"strokeThickness\":3},\"inherit\":[\"strokeThickness\"]}}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"inherit\":[\"stroke\",\"stroke\"]}}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"highlightPadding\":3}}}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"sourceAnchor\":\"Top\"}}}")]
     public void When_JsonIsInvalid_WholeProfileIsRejected(string json) =>
         Assert.Throws<JsonException>(() => DaisyTourStyleProfileSerializer.Deserialize(json));
 

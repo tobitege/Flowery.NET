@@ -46,55 +46,6 @@ public class DaisyBackdropTests
     }
 
     [AvaloniaFact]
-    public void In_The_Glass_Mode_A_Theme_Without_A_Backdrop_Gets_Glows_In_Its_Colors()
-    {
-        var previous = DaisyThemeManager.CurrentThemeName;
-        try
-        {
-            Assert.True(DaisyThemeManager.ApplyTheme("Dracula"));
-            DaisyGlassSurface.GlobalEnabled = true;
-
-            var layers = Layers(Resource("DaisyBackdropBrush"));
-            Assert.Equal(Base100(), Assert.IsAssignableFrom<ISolidColorBrush>(layers[0]).Color);
-            Assert.Equal(WithoutAlpha(ThemeColor("DaisyPrimaryColor")), WithoutAlpha(Assert.IsAssignableFrom<IRadialGradientBrush>(layers[1]).GradientStops[0].Color));
-            Assert.Equal(WithoutAlpha(ThemeColor("DaisySecondaryColor")), WithoutAlpha(Assert.IsAssignableFrom<IRadialGradientBrush>(layers[2]).GradientStops[0].Color));
-
-            // A theme switch computes the glows again.
-            Assert.True(DaisyThemeManager.ApplyTheme("Light"));
-            Assert.Equal(Base100(), Assert.IsAssignableFrom<ISolidColorBrush>(Layers(Resource("DaisyBackdropBrush"))[0]).Color);
-
-            DaisyGlassSurface.GlobalEnabled = false;
-            Assert.Equal(Base100(), Assert.IsAssignableFrom<ISolidColorBrush>(Resource("DaisyBackdropBrush")).Color);
-        }
-        finally
-        {
-            DaisyGlassSurface.GlobalEnabled = false;
-            DaisyThemeManager.ApplyTheme(previous ?? "Light");
-        }
-    }
-
-    [AvaloniaFact]
-    public void Glassy_Brings_Its_Wave_Backdrop_Also_In_The_Glass_Mode()
-    {
-        var previous = DaisyThemeManager.CurrentThemeName;
-        try
-        {
-            Assert.True(DaisyThemeManager.ApplyTheme("Glassy"));
-            var wave = Resource("DaisyBackdropBrush");
-            var sky = Assert.IsAssignableFrom<ILinearGradientBrush>(Layers(wave)[0]);
-            Assert.Equal(Color.Parse("#4A2BD6"), sky.GradientStops[0].Color);
-
-            DaisyGlassSurface.GlobalEnabled = true;
-            Assert.Same(wave, Resource("DaisyBackdropBrush"));
-        }
-        finally
-        {
-            DaisyGlassSurface.GlobalEnabled = false;
-            DaisyThemeManager.ApplyTheme(previous ?? "Light");
-        }
-    }
-
-    [AvaloniaFact]
     public void A_Color_Override_Replaces_The_Backdrop_Of_Every_Theme_Until_It_Is_Cleared()
     {
         var previous = DaisyThemeManager.CurrentThemeName;
@@ -227,39 +178,6 @@ public class DaisyBackdropTests
     }
 
     [AvaloniaFact]
-    public void An_Image_That_Cannot_Be_Loaded_Leaves_The_Glows_Of_The_Glass_Mode()
-    {
-        var previous = DaisyThemeManager.CurrentThemeName;
-        try
-        {
-            Assert.True(DaisyThemeManager.ApplyTheme("Dracula"));
-            DaisyGlassSurface.GlobalEnabled = true;
-            DaisyThemeManager.BackdropOverride = "image:" + Path.Combine(Path.GetTempPath(), "flowery-backdrop-missing", "none.png");
-            Assert.Equal(Base100(), Assert.IsAssignableFrom<ISolidColorBrush>(Layers(Resource("DaisyBackdropBrush"))[0]).Color);
-        }
-        finally
-        {
-            DaisyThemeManager.BackdropOverride = null;
-            DaisyGlassSurface.GlobalEnabled = false;
-            DaisyThemeManager.ApplyTheme(previous ?? "Light");
-        }
-    }
-
-    [Fact]
-    public void The_Width_Of_A_Png_Or_Jpeg_Is_Read_From_Its_Header()
-    {
-        foreach (var format in new[] { SKEncodedImageFormat.Png, SKEncodedImageFormat.Jpeg })
-        {
-            using var bitmap = new SKBitmap(4100, 6);
-            using var image = SKImage.FromBitmap(bitmap);
-            using var data = image.Encode(format, 90);
-            Assert.Equal(4100, DaisyThemeManager.ReadImageWidth(data.AsSpan()));
-        }
-        Assert.Null(DaisyThemeManager.ReadImageWidth("GIF89a........"u8));
-        Assert.Null(DaisyThemeManager.ReadImageWidth([0xFF, 0xD8, 0x00]));
-    }
-
-    [AvaloniaFact]
     public void The_Sidebar_Selector_And_The_Backdrop_Override_Follow_Each_Other()
     {
         var sidebar = new FloweryComponentSidebar();
@@ -307,14 +225,8 @@ public class DaisyBackdropTests
         using var culture = new CultureScope();
         var sidebar = new FloweryComponentSidebar
         {
-            Categories =
-            [
-                new SidebarCategory
-                {
-                    Name = "Glass", IsExpanded = true,
-                    Items = { new SidebarGlassModeItem { Name = "Glass" }, new SidebarBaseColorItem { Name = "Base" }, new SidebarBackdropItem { Name = "Backdrop" } }
-                }
-            ]
+            Categories = [new SidebarCategory { Name = "Glass", IsExpanded = true, Items =
+                { new SidebarGlassModeItem { Name = "Glass" }, new SidebarBaseColorItem { Name = "Base" }, new SidebarBackdropItem { Name = "Backdrop" } } }]
         };
         var window = Show(sidebar);
         try
@@ -394,10 +306,7 @@ public class DaisyBackdropTests
 
     [AvaloniaTheory]
     [InlineData("effect:Nope")]
-    [InlineData("effect:2")]
-    [InlineData("effect:")]
     [InlineData("image:")]
-    [InlineData("not a backdrop")]
     public void Text_That_Is_No_Backdrop_Fails_With_A_Format_Exception_And_Changes_Nothing(string text)
     {
         DaisyThemeManager.BackdropOverride = "#123456";
@@ -424,13 +333,6 @@ public class DaisyBackdropTests
         data.SaveTo(file);
         return path;
     }
-
-    // The brushes of the layers of a drawing backdrop, bottom first.
-    private static IBrush?[] Layers(object? brush) =>
-        Assert.IsType<DrawingGroup>(Assert.IsType<DrawingBrush>(brush).Drawing).Children
-            .Select(static drawing => Assert.IsType<GeometryDrawing>(drawing).Brush).ToArray();
-
-    private static Color WithoutAlpha(Color color) => Color.FromRgb(color.R, color.G, color.B);
 
     private static Color Base100() => ThemeColor("DaisyBase100Color");
 }

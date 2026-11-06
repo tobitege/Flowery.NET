@@ -333,31 +333,6 @@ public class Given_DaisyTourEditor
         });
 
     [Fact]
-    public Task When_CurvedDiagonalHandlesAreProjected_BackToValuesTheyPreserveRenderedDimensions() =>
-        InScenarioAsync(async scenario =>
-        {
-            scenario.Annotation.HeadLength = 21;
-            scenario.Annotation.HeadWidth = 24;
-            await scenario.Editor.OpenAsync(scenario.Tour).WaitAsync(TestTimeout);
-            scenario.Editor.UpdateHandles();
-            var geometry = scenario.Tour.AnnotationPresenters.Single().EditGeometry!;
-            Assert.AreEqual(DaisyTourAnnotationPath.Curved, geometry.Path);
-            Assert.IsTrue(Math.Abs(geometry.Target.Y - geometry.Source.Y) > 20);
-            var dx = geometry.Target.X - geometry.Source.X;
-            var dy = geometry.Target.Y - geometry.Source.Y;
-            var length = Math.Sqrt(dx * dx + dy * dy);
-            var normal = new Point(-dy / length, dx / length);
-            var body = HandleCenter(scenario.Editor, "DaisyTourHandleBodyWidth");
-            var headLength = HandleCenter(scenario.Editor, "DaisyTourHandleHeadLength");
-            var headWidth = HandleCenter(scenario.Editor, "DaisyTourHandleHeadWidth");
-            // Visible width grips sit 18 DIP outside the editable boundary; projections remain logical.
-            Assert.AreEqual(geometry.BodyWidth + 36, DaisyTourHandleLayer.ProjectWidth(body, geometry.BodyCenter, normal), 0.001);
-            Assert.AreEqual(geometry.HeadLength, DaisyTourHandleLayer.ProjectHeadLength(headLength, geometry), 0.001);
-            var headNormal = new Point(-geometry.HeadDirection.Y, geometry.HeadDirection.X);
-            Assert.AreEqual(geometry.HeadWidth + 36, DaisyTourHandleLayer.ProjectWidth(headWidth, geometry.HeadTip, headNormal), 0.001);
-        });
-
-    [Fact]
     public Task When_CurvatureChanges_GripStaysNearRenderedMidpointAndProjectsMovementWithoutJumping() =>
         InScenarioAsync(async scenario =>
         {

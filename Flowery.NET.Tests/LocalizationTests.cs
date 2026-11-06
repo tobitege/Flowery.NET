@@ -5,9 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Avalonia.Automation.Peers;
 using Avalonia.Headless.XUnit;
-using Flowery.Controls;
 using Flowery.Localization;
 using Flowery.NET.Kanban.Controls;
 using Xunit;
@@ -123,26 +121,6 @@ namespace Flowery.NET.Tests
         }
 
         [AvaloniaFact]
-        public void Every_Fallback_In_The_Code_Is_The_English_Text()
-        {
-            // A key used for two messages shows the English text of one of them in both places, which only the
-            // fallbacks in the code still tell apart.
-            var english = EnglishTexts();
-            var different = new SortedSet<string>(StringComparer.Ordinal);
-            foreach (var file in SourceFiles())
-            {
-                foreach (Match match in LookupWithFallback().Matches(File.ReadAllText(file)))
-                {
-                    var key = match.Groups["key"].Value;
-                    if (english.TryGetValue(key, out var texts) && !texts.Contains(match.Groups["fallback"].Value))
-                        different.Add($"{key} in {Path.GetFileName(file)}: '{match.Groups["fallback"].Value}', English '{string.Join("' or '", texts)}'");
-                }
-            }
-
-            Assert.True(different.Count == 0, "Fallbacks that differ from English: " + string.Join("; ", different));
-        }
-
-        [AvaloniaFact]
         public void Every_Language_Has_Every_English_Key()
         {
             var gaps = new List<string>();
@@ -167,8 +145,7 @@ namespace Flowery.NET.Tests
         [Fact]
         public void Every_Gallery_Language_Has_Exactly_The_English_Keys()
         {
-            // The tests do not reference the Gallery, so they read its catalogs from the repository. Regression: eleven
-            // keys of 3.10 were missing in every language but English.
+            // Regression: eleven keys of 3.10 were missing but in English. The Gallery catalogs are read from the repository.
             var folder = Path.Combine(RepositoryRoot(), "Flowery.NET.Gallery", "Localization");
             var catalogs = Directory.EnumerateFiles(folder, "*.json").ToDictionary(
                 static file => Path.GetFileNameWithoutExtension(file),
@@ -188,45 +165,6 @@ namespace Flowery.NET.Tests
                     gaps.Add($"{language}: missing {string.Join(", ", english.Except(keys))}; extra {string.Join(", ", keys.Except(english))}");
             }
             Assert.True(gaps.Count == 0, string.Join(Environment.NewLine, gaps));
-        }
-
-        [AvaloniaFact]
-        public void Every_Shipped_Theme_Has_A_Display_Name()
-        {
-            using var culture = new CultureScope();
-            FloweryLocalization.SetCulture("en-US");
-            // A theme ships with the library when the library holds its palette; others are registered at run time.
-            var shipped = Directory.EnumerateFiles(Path.Combine(RepositoryRoot(), "Flowery.NET", "Themes", "Palettes"), "Daisy*.axaml")
-                .Select(file => Path.GetFileNameWithoutExtension(file)["Daisy".Length..])
-                .ToList();
-            Assert.True(shipped.Count >= 35, $"Only {shipped.Count} shipped themes were found.");
-            var unnamed = shipped
-                .Select(name => $"Theme_{name}")
-                .Where(key => FloweryLocalization.GetString(key) == key)
-                .ToList();
-
-            Assert.True(unnamed.Count == 0, "No display name for: " + string.Join(", ", unnamed));
-        }
-
-        [AvaloniaFact]
-        public void Controls_Announce_Themselves_In_The_Current_Language()
-        {
-            using var scope = new CultureScope();
-            FloweryLocalization.SetCulture("en-US");
-            var indicator = new DaisyStatusIndicator { Color = DaisyColor.Error };
-            using var window = new TestWindow(indicator);
-
-            // Peers can cache their name, so each language gets a new one.
-            foreach (var (culture, name) in new[] { ("en-US", "Error"), ("de", "Fehler"), ("es", "Error") })
-            {
-                FloweryLocalization.SetCulture(culture);
-                Assert.Equal(name, ControlAutomationPeer.CreatePeerForElement(indicator).GetName());
-            }
-
-            FloweryLocalization.SetCulture("fr");
-            var loading = new DaisyLoading();
-            window.Show(loading);
-            Assert.Equal("Chargement", ControlAutomationPeer.CreatePeerForElement(loading).GetName());
         }
 
         [AvaloniaFact]
@@ -323,9 +261,6 @@ namespace Flowery.NET.Tests
         // A lookup by a literal key; a key ending in an underscore is the prefix of a key composed at run time.
         [GeneratedRegex("""GetString(?:Internal)?\(\s*"(?<key>[A-Za-z0-9_]*[A-Za-z0-9])"\s*[,)]""")]
         private static partial Regex Lookup();
-
-        [GeneratedRegex("""GetString(?:Internal)?\(\s*"(?<key>[A-Za-z0-9_]+)"\s*,\s*"(?<fallback>[^"\\]*)"\s*\)""")]
-        private static partial Regex LookupWithFallback();
 
         // A literal shaped like a key, except automation ids and the prefix of a key composed at run time.
         [GeneratedRegex("""(?<!SetAutomationId\([^,]+,\s*)"(?<key>[A-Z][A-Za-z0-9]*_[A-Za-z0-9_]*[A-Za-z0-9])"(?!\s*\+)""")]

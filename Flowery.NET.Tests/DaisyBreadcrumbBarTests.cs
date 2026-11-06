@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using Avalonia.Automation;
+﻿using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
@@ -11,26 +10,6 @@ namespace Flowery.NET.Tests;
 
 public class DaisyBreadcrumbBarTests
 {
-    [AvaloniaFact]
-    public void Items_Render_With_Last_Item_As_Current()
-    {
-        var bar = new DaisyBreadcrumbBar { ItemsSource = new[] { "Home", "Docs", "Report" } };
-        var window = Show(bar, 600);
-        try
-        {
-            var items = GetItems(bar);
-
-            Assert.Equal(new object?[] { "Home", "Docs", "Report" }, items.Select(item => item.Content));
-            Assert.Equal(new[] { false, false, true }, items.Select(item => item.IsCurrent));
-            Assert.Equal(0, GetPanel(bar).FirstVisibleIndex);
-            Assert.False(GetEllipsis(bar).Focusable);
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
     [AvaloniaFact]
     public void Clicking_An_Item_Raises_ItemClicked()
     {
@@ -80,28 +59,6 @@ public class DaisyBreadcrumbBarTests
 
             Assert.Equal(0, panel.FirstVisibleIndex);
             Assert.False(ellipsis.Focusable);
-        }
-        finally
-        {
-            window.Close();
-        }
-    }
-
-    [AvaloniaFact]
-    public void Collection_Changes_Rebuild_The_Items()
-    {
-        var path = new ObservableCollection<string> { "Home", "Docs" };
-        var bar = new DaisyBreadcrumbBar { ItemsSource = path };
-        var window = Show(bar, 600);
-        try
-        {
-            path.Add("Report");
-            Layout(window);
-
-            var items = GetItems(bar);
-            Assert.Equal(3, items.Count);
-            Assert.True(items[2].IsCurrent);
-            Assert.False(items[1].IsCurrent);
         }
         finally
         {

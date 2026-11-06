@@ -24,10 +24,7 @@ internal static class TestControls
     public static T Part<T>(Control control, string name) where T : Control =>
         control.GetVisualDescendants().OfType<T>().Single(part => part.Name == name);
 
-    /// <summary>
-    /// The first template part of <paramref name="control"/> with this name, for a control whose nested items have parts
-    /// of the same name, such as the child items of a tree item: its own part comes first.
-    /// </summary>
+    /// <summary>The first template part with this name, for a control whose nested items have parts of that name too.</summary>
     public static T FirstPart<T>(Control control, string name) where T : Control =>
         control.GetVisualDescendants().OfType<T>().First(part => part.Name == name);
 

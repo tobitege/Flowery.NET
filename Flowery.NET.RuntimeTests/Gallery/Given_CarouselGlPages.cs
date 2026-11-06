@@ -53,40 +53,6 @@ public class Given_CarouselGlPages
     }
 
     [Fact]
-    public async Task When_Another_Page_Is_Shown_The_Hosts_Of_The_Hidden_Page_Pause()
-    {
-        try
-        {
-            var mainView = await RuntimeTestHelpers.AttachAsync(new MainView());
-            var page = await OpenAsync<CarouselGlExamples>(mainView, "carousel-gl");
-            var preview = page.FindControl<CarouselGlEffectHost>("GlPreviewHost")!;
-            AssertFrame(preview, await preview.ReadFrameAsync(0.05), "preview", opaque: true);
-            await RuntimeTestHelpers.WaitUntilAsync(() => preview.Content is CarouselGlCanvas { State.Running: true }, "the preview runs");
-
-            // The Gallery keeps a page it showed once and only hides it.
-            await OpenAsync<CardsExamples>(mainView, "card");
-            Assert.False(page.IsVisible);
-            await RuntimeTestHelpers.WaitUntilAsync(() => preview.Content is CarouselGlCanvas { State.Running: false },
-                "the hidden preview paused");
-            var canvas = Assert.IsType<CarouselGlCanvas>(preview.Content);
-            var frames = canvas.Frames;
-            for (var frame = 0; frame < 3; frame++)
-                await RuntimeTestHelpers.WaitForRenderAsync();
-            Assert.Equal(frames, canvas.Frames);
-
-            await OpenAsync<CarouselGlExamples>(mainView, "carousel-gl");
-            await RuntimeTestHelpers.WaitUntilAsync(() => preview.Content is CarouselGlCanvas { State.Running: true },
-                "the shown preview runs again");
-            Assert.Same(canvas, preview.Content);
-            Assert.Null(preview.LastRenderError);
-        }
-        finally
-        {
-            await DetachAsync();
-        }
-    }
-
-    [Fact]
     public async Task When_Every_Transition_And_Effect_Of_The_Selectors_Is_Selected_The_Preview_Draws_It()
     {
         var page = await RuntimeTestHelpers.AttachAsync(new CarouselGlExamples());

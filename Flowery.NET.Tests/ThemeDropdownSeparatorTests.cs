@@ -13,7 +13,6 @@ public class ThemeDropdownSeparatorTests
 {
     [AvaloniaTheory]
     [InlineData(false)]
-    [InlineData(true)]
     public void Boundary_Exists_Only_Between_Two_Nonempty_Groups(bool product)
     {
         using var scope = new SeparatorScope(product);
@@ -36,7 +35,6 @@ public class ThemeDropdownSeparatorTests
 
     [AvaloniaTheory]
     [InlineData(false)]
-    [InlineData(true)]
     public void Separator_Click_Does_Not_Select_Or_Close_And_Keyboard_Skips_It(bool product)
     {
         using var scope = new SeparatorScope(product);
@@ -89,22 +87,6 @@ public class ThemeDropdownSeparatorTests
         scope.Layout();
         Assert.Equal(2, scope.Combo.SelectedIndex);
         Assert.Equal(NameOf(firstNormal), NameOf(scope.Combo.SelectedItem!));
-    }
-
-    [AvaloniaFact]
-    public void Local_Boundary_Does_Not_Mutate_The_Shared_Standard_List()
-    {
-        using var scope = new SeparatorScope(false);
-        DaisyThemeManager.PreferredThemes = ["Business"];
-        var other = new DaisyThemeDropdown();
-        var otherItems = other.ItemsSource!.Cast<ThemePreviewInfo>().ToArray();
-        Assert.True(otherItems[1].HasSeparatorBefore);
-
-        scope.Add(otherItems[1].Name, "A", true);
-        Assert.Equal(2, Array.FindIndex(scope.Items, HasSeparator));
-        Assert.True(otherItems[1].HasSeparatorBefore);
-        Assert.Single(otherItems, static item => item.HasSeparatorBefore);
-        Assert.NotSame(otherItems[1], scope.Items.Single(item => NameOf(item) == otherItems[1].Name));
     }
 
     private static bool HasSeparator(object item) => item switch

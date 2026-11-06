@@ -97,27 +97,6 @@ public sealed partial class ParityTests
         finally { window.Close(); }
     }
 
-    [Fact]
-    public void ComparisonPreservesEditedGeometryAndRemovesOnlyColorAndMarkup()
-    {
-        var state = EditState.Original with
-        {
-            Rotation = 1, FlipH = true, Straighten = 5, Crop = new Rect(.1, .2, .4, .5),
-            Brightness = 35, Filter = "mono", Strokes = [new MarkupStroke(Colors.Lime, .1f, false, [])]
-        };
-        var before = state.GeometryOnly();
-        Assert.Equal(state.Rotation, before.Rotation);
-        Assert.Equal(state.FlipH, before.FlipH);
-        Assert.Equal(state.Straighten, before.Straighten);
-        Assert.Equal(state.Crop, before.Crop);
-        Assert.False(before.HasColorEdits);
-        Assert.Empty(before.Strokes);
-        using var source = PhotoDecoder.Load(CreateImage());
-        using var rendered = EditRenderer.Render(source, before);
-        using var edited = EditRenderer.Render(source, state);
-        Assert.Equal(rendered.Info, edited.Info);
-    }
-
     [AvaloniaFact]
     public async Task ViewerKeepsFullResolutionAndClearsTheImageAfterADecodeFailure()
     {

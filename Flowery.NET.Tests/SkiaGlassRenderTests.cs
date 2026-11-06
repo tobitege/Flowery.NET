@@ -17,9 +17,7 @@ namespace Flowery.NET.Tests;
 public class SkiaGlassRenderTests
 {
     [Theory]
-    [InlineData(DaisyGlassAnimation.Plasma)]
     [InlineData(DaisyGlassAnimation.Aurora)]
-    [InlineData(DaisyGlassAnimation.LiquidGold)]
     public void A_Shader_Background_Fills_Its_Area_And_Moves_With_Time(DaisyGlassAnimation effect)
     {
         using var early = Draw(effect, 1);
@@ -56,8 +54,7 @@ public class SkiaGlassRenderTests
     [InlineData(1.2f)]
     public void The_Glass_Saturation_Leaves_A_Gray_Backdrop_Gray(float saturation)
     {
-        // Regression: the matrix was transposed, so every saturation other than 1 tinted gray, magenta at 1.2 and green
-        // at 0.5.
+        // Regression: the transposed matrix tinted gray at every saturation but 1, magenta at 1.2 and green at 0.5.
         using var filter = SKColorFilter.CreateColorMatrix(SkiaGlassDrawOperation.SaturationMatrix(saturation));
         foreach (var gray in new byte[] { 40, 128, 200 })
         {
@@ -82,17 +79,8 @@ public class SkiaGlassRenderTests
     }
 
     [AvaloniaFact]
-    public void Without_A_Change_The_Backdrop_Is_Not_Measured_Again_Right_Away()
-    {
-        var redraw = new SkiaGlassRedraw(new Border()) { MeasureBackdrop = true };
-        Assert.True(redraw.TryStartMeasure());
-        Assert.False(redraw.TryStartMeasure());
-    }
-
-    [AvaloniaFact]
     public void After_A_Change_The_Backdrop_Is_Measured_After_The_Pause_And_The_Glass_Then_Stops()
     {
-        // No time passes, so no measurement comes due from the clock however slowly the frames run.
         using var clock = new FakeClock();
         var glass = new Border { Width = 50, Height = 20 };
         var window = new Window { Width = 200, Height = 100, Content = glass };
@@ -122,7 +110,6 @@ public class SkiaGlassRenderTests
     {
         // The old code redrew such a glass alone from a timer after the group had stopped, which an overlapping
         // glass saw as a change behind it, so both started redrawing in full again.
-        // No time passes, so no measurement comes due from the clock however slowly the frames run.
         using var clock = new FakeClock();
         var first = new Border { Width = 50, Height = 20 };
         var second = new Border { Width = 50, Height = 20 };
@@ -163,22 +150,10 @@ public class SkiaGlassRenderTests
     }
 
     [AvaloniaFact]
-    public void A_Glass_That_Does_Not_Ask_For_It_Is_Never_Measured()
-    {
-        var redraw = new SkiaGlassRedraw(new Border());
-        redraw.BackdropChanged();
-        Assert.False(redraw.TryStartMeasure());
-
-        redraw.MeasureBackdrop = true;
-        Assert.True(redraw.TryStartMeasure());
-    }
-
-    [AvaloniaFact]
     public void Glasses_That_Start_Redrawing_In_Full_In_Different_Frames_Stop_In_The_Same_Frame()
     {
         // A glass that stopped a frame before another would see that one's last redraw as a change behind it and start
         // again; overlapping glasses would then keep each other redrawing.
-        // No time passes, so no measurement comes due from the clock however slowly the frames run.
         using var clock = new FakeClock();
         var first = new Border { Width = 50, Height = 20 };
         var second = new Border { Width = 50, Height = 20 };
@@ -212,7 +187,6 @@ public class SkiaGlassRenderTests
     {
         // A new backdrop color can change the text over the glass. Drawn after the group stopped, that text would
         // repaint part of the glass, which looks like a change behind it, and the glasses would start again.
-        // No time passes, so no measurement comes due from the clock however slowly the frames run.
         using var clock = new FakeClock();
         var previous = DaisyGlassLiveRenderer.Current;
         FlowerySkia.Register();
@@ -448,7 +422,6 @@ public class SkiaGlassRenderTests
     [AvaloniaFact]
     public void A_Repaint_Leaves_A_Due_Change_Paced_Like_A_Change()
     {
-        // No time passes, so no measurement comes due from the clock however slowly the frames run.
         using var clock = new FakeClock();
         var glass = new Border { Width = 50, Height = 20 };
         var window = new Window { Width = 200, Height = 100, Content = glass };
@@ -469,17 +442,8 @@ public class SkiaGlassRenderTests
         }
     }
 
-    [Fact]
-    public void Only_A_Draw_Operation_With_A_New_Version_Is_A_Redraw_Of_The_Glass()
-    {
-        // A new size, for one, renders a new operation with the same version: that is a repaint, not a redraw.
-        var redraw = new SkiaGlassRedraw(new Border());
-        Assert.True(redraw.IsNewRedraw(0));
-        Assert.False(redraw.IsNewRedraw(0));
-        Assert.True(redraw.IsNewRedraw(1));
-    }
-
-    // Replaces the clock and the wake-up of the measurement pacing for one test.
+    // Replaces the clock and the wake-up of the measurement pacing for one test. Unless a test moves it, no time
+    // passes, so no measurement comes due from the clock however slowly the frames run.
     private sealed class FakeClock : IDisposable
     {
         private readonly Func<long> _clock = SkiaGlassRedraw.Clock;

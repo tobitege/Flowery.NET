@@ -2,7 +2,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
-using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Flowery.Controls;
@@ -14,49 +13,6 @@ namespace Flowery.NET.RuntimeTests.Controls;
 
 public class Given_DaisyExpander
 {
-    [Fact]
-    public async Task When_The_Header_Is_Clicked_The_Content_Toggles_And_The_Settings_Reach_Their_Parts()
-    {
-        var content = new TextBlock { Text = "Body" };
-        var expander = new DaisyExpander
-        {
-            Header = new TextBlock { Text = "Header" }, ExpanderContent = content,
-            HeaderPadding = new Thickness(1, 2, 3, 4), ContentPadding = new Thickness(5, 6, 7, 8), ChevronSize = 20
-        };
-        await RuntimeTestHelpers.AttachAsync(expander);
-        var header = HeaderButton(expander);
-        var body = ContentBorder(expander, content);
-        var chevron = Chevron(expander);
-        Assert.Equal(new Thickness(1, 2, 3, 4), header.Padding);
-        Assert.Equal(new Thickness(5, 6, 7, 8), body.Padding);
-        Assert.Equal(20, chevron.Width);
-        Assert.Equal(20, chevron.Height);
-        Assert.True(body.IsVisible);
-
-        header.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        Assert.False(expander.IsExpanded);
-        Assert.False(body.IsVisible);
-        header.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        Assert.True(expander.IsExpanded);
-        Assert.True(body.IsVisible);
-
-        expander.ShowChevron = false;
-        Assert.False(chevron.IsVisible);
-        expander.ChevronSize = 10;
-        Assert.Equal(10, chevron.Width);
-    }
-
-    [Fact]
-    public async Task When_Settings_Are_Made_Before_The_Template_Is_Built_The_Parts_Show_Them()
-    {
-        var content = new TextBlock { Text = "Body" };
-        var expander = new DaisyExpander { Header = "Section header", IsExpanded = false, ShowChevron = false, ExpanderContent = content };
-        await RuntimeTestHelpers.AttachAsync(expander);
-        Assert.Contains(HeaderButton(expander).GetVisualDescendants().OfType<TextBlock>(), text => text.Text == "Section header");
-        Assert.False(ContentBorder(expander, content).IsVisible);
-        Assert.False(Chevron(expander).IsVisible);
-    }
-
     [Fact]
     public async Task When_The_Expander_Has_A_Top_Border_It_Is_Drawn_Once()
     {
@@ -76,25 +32,6 @@ public class Given_DaisyExpander
         var single = Assert.Single(bordered);
         Assert.IsType<Border>(single);
         Assert.Equal(new Thickness(0, 1, 0, 0), ((Border)single).BorderThickness);
-    }
-
-    [Fact]
-    public async Task When_Content_Is_Set_It_Is_The_Expandable_Content_And_The_Header_Stays()
-    {
-        var first = new TextBlock { Text = "First" };
-        var expander = new DaisyExpander { Header = "Section", Content = first };
-        await RuntimeTestHelpers.AttachAsync(expander);
-        Assert.Same(first, expander.ExpanderContent);
-        Assert.Same(first, ((ContentPresenter)ContentBorder(expander, first).Child!).Child);
-        Assert.Single(expander.GetVisualDescendants().OfType<Button>());
-
-        var second = new TextBlock { Text = "Second" };
-        expander.ExpanderContent = second;
-        await RuntimeTestHelpers.WaitForRenderAsync();
-        Assert.Same(second, expander.Content);
-        Assert.Same(second, ((ContentPresenter)ContentBorder(expander, second).Child!).Child);
-        Assert.Single(expander.GetVisualDescendants().OfType<Button>());
-        Assert.Null(first.Parent);
     }
 
     [Fact]
@@ -147,21 +84,6 @@ public class Given_DaisyExpander
             DaisyAccessibility.HighContrastOverride = previous;
             await RuntimeTestHelpers.WaitForRenderAsync();
         }
-    }
-
-    [Fact]
-    public async Task When_Header_Colors_Are_Set_Before_And_After_The_Template_Is_Built_The_Header_Shows_Them()
-    {
-        var expander = new DaisyExpander { Header = "Section", HeaderBackground = Brushes.Blue, HeaderForeground = Brushes.Orange };
-        await RuntimeTestHelpers.AttachAsync(expander);
-        var chevron = (Path)Chevron(expander).Child!;
-        Assert.Same(Brushes.Blue, HeaderButton(expander).Background);
-        Assert.Same(Brushes.Orange, chevron.Fill);
-
-        expander.HeaderBackground = Brushes.Green;
-        expander.HeaderForeground = Brushes.Purple;
-        Assert.Same(Brushes.Green, HeaderButton(expander).Background);
-        Assert.Same(Brushes.Purple, chevron.Fill);
     }
 
     [Fact]

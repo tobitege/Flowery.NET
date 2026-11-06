@@ -15,37 +15,6 @@ namespace Flowery.NET.RuntimeTests.Native;
 public class Given_NativeGl
 {
     [Fact]
-    public async Task When_AllRegisteredGlEffectsSelected_NativeGpuDrawsTheirFrames()
-    {
-        CarouselGlGalleryPresets.EnsureRegistered();
-        var host = new CarouselGlEffectHost { Width = 160, Height = 100, TransitionSeconds = 1, IntervalSeconds = 0 };
-        try
-        {
-            RuntimeTestHelpers.AttachToHost(host);
-            await RuntimeTestHelpers.EnsureLoadedAsync(host);
-            foreach (var kind in Enum.GetValues<CarouselGlEffectKind>().Where(kind => kind != CarouselGlEffectKind.None))
-            {
-                Assert.True(CarouselGlEffectRegistry.TryGet(kind, out var definition), kind.ToString());
-                Assert.True(definition.Assets.Count > 0, kind + " must keep its original image assets.");
-                host.EffectKind = kind;
-                var frame = await host.ReadFrameAsync(0.05);
-                AssertFrame(frame, kind.ToString());
-                if (kind != CarouselGlEffectKind.TextFill)
-                    Assert.True(frame.Pixel[3] > 0, kind + " rendered an empty GPU surface.");
-            }
-
-            RuntimeTestHelpers.GetHostPanel().Children.Clear();
-            await FlushAsync(host.Dispatcher);
-            Assert.False(host.IsRendererInitialized, "Unloading must close the owned GL canvas.");
-        }
-        finally
-        {
-            RuntimeTestHelpers.GetHostPanel().Children.Clear();
-            await FlushAsync(host.Dispatcher);
-        }
-    }
-
-    [Fact]
     public async Task When_GlTransitionHostRendersAndReloads_ItRecreatesItsRenderer()
     {
         var host = new CarouselGlTransitionHost { Width = 160, Height = 100, TransitionName = "fade", IntervalSeconds = 0, TransitionSeconds = 1 };

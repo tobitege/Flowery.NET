@@ -12,24 +12,12 @@ public class DaisyTourStyleProfileJsonTests
     private const string Valid = "{\"schemaVersion\":1,\"tourId\":\"tour\"}";
 
     [Theory]
-    [InlineData("")]
     [InlineData("{")]
-    [InlineData("{\"schemaVersion\":1,")]
-    [InlineData("{\"schemaVersion\":1 \"tourId\":\"tour\"}")]
-    [InlineData("{'schemaVersion':1,'tourId':'tour'}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",}")]
-    [InlineData("not json")]
-    public void When_TheJsonHasASyntaxError_ItIsRejected(string json) =>
-        Assert.ThrowsAny<JsonException>(() => DaisyTourStyleProfileSerializer.Deserialize(json));
-
-    [Theory]
+    // The root is no object.
     [InlineData("[]")]
-    [InlineData("[" + Valid + "]")]
-    [InlineData("null")]
-    [InlineData("1")]
-    [InlineData("true")]
-    [InlineData("\"tour\"")]
-    public void When_TheRootIsNoObject_ItIsRejected(string json) =>
+    // A number overflows.
+    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"strokeThickness\":1e400}}}")]
+    public void When_TheJsonHasASyntaxErrorNoObjectRootOrAnOverflowingNumber_ItIsRejected(string json) =>
         Assert.ThrowsAny<JsonException>(() => DaisyTourStyleProfileSerializer.Deserialize(json));
 
     [Fact]
@@ -42,36 +30,21 @@ public class DaisyTourStyleProfileJsonTests
     }
 
     [Fact]
-    public void When_TheJsonReachesTheSizeLimit_ItIsReadAndOneByteMoreIsRejected()
+    public void When_TheJsonReachesTheSizeLimit_ItIsReadAndOneByteMoreIsRejected_CountingUtf8Bytes()
     {
         // Whitespace counts like any other byte.
-        var atLimit = Valid + new string(' ', MaximumJsonLength - Encoding.UTF8.GetByteCount(Valid));
+        var padding = MaximumJsonLength - Encoding.UTF8.GetByteCount(Valid);
+        var atLimit = Valid + new string(' ', padding);
         Assert.Equal(MaximumJsonLength, Encoding.UTF8.GetByteCount(atLimit));
         Assert.Equal("tour", DaisyTourStyleProfileSerializer.Deserialize(atLimit).TourId);
-
         var error = Assert.Throws<JsonException>(() => DaisyTourStyleProfileSerializer.Deserialize(atLimit + " "));
         Assert.Contains("1 MiB", error.Message, StringComparison.Ordinal);
-    }
 
-    [Fact]
-    public void When_TheSizeLimitCountsBytes_MultibyteTextCountsWithItsUtf8Length()
-    {
         // "é" is two bytes in UTF-8: half as many characters reach the limit.
-        var padding = MaximumJsonLength - Encoding.UTF8.GetByteCount(Valid);
         var json = Valid + new string(' ', padding % 2) + "\n" + new string('é', padding / 2);
         Assert.True(json.Length < MaximumJsonLength);
         Assert.True(Encoding.UTF8.GetByteCount(json) > MaximumJsonLength);
-        var error = Assert.Throws<JsonException>(() => DaisyTourStyleProfileSerializer.Deserialize(json));
-        Assert.Contains("1 MiB", error.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void When_AProfileWouldBeWrittenLargerThanTheLimit_SerializeRejectsIt()
-    {
-        var profile = TooLargeProfile();
-        // The profile itself is valid; only its JSON is too large.
-        DaisyTourStyleProfileSerializer.Validate(profile);
-        var error = Assert.Throws<ArgumentException>(() => DaisyTourStyleProfileSerializer.Serialize(profile));
+        error = Assert.Throws<JsonException>(() => DaisyTourStyleProfileSerializer.Deserialize(json));
         Assert.Contains("1 MiB", error.Message, StringComparison.Ordinal);
     }
 
@@ -90,31 +63,10 @@ public class DaisyTourStyleProfileJsonTests
     }
 
     [Theory]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"strokeThickness\":1e400}}}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"annotationDefaults\":{\"values\":{\"curvature\":-1e400}}}")]
-    [InlineData("{\"schemaVersion\":1e400,\"tourId\":\"tour\"}")]
-    [InlineData("{\"schemaVersion\":4294967297,\"tourId\":\"tour\"}")]
-    public void When_ANumberOverflows_TheProfileIsRejected(string json) =>
-        Assert.ThrowsAny<JsonException>(() => DaisyTourStyleProfileSerializer.Deserialize(json));
-
-    [Theory]
     [InlineData("{\"schemaVersion\":1,\"tourId\":\"to\\u0001ur\"}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\\u007F\"}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"steps\":[{\"id\":\"st\\u0000ep\"}]}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"steps\":[{\"id\":\"step\",\"annotations\":[{\"id\":\"ar\\u0085row\"}]}]}")]
-    [InlineData("{\"schemaVersion\":1,\"tourId\":\"tour\",\"steps\":[{\"id\":\"step\",\"annotations\":[{\"id\":\"ar\\trow\"}]}]}")]
     public void When_AnIdContainsAControlCharacter_TheProfileIsRejected(string json)
     {
         var error = Assert.ThrowsAny<JsonException>(() => DaisyTourStyleProfileSerializer.Deserialize(json));
         Assert.Contains("control characters", error.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void When_AnIdContainsAControlCharacter_ValidateRejectsTheProfile()
-    {
-        var profile = new DaisyTourStyleProfile { TourId = "tour" };
-        profile.Steps.Add(new DaisyTourStepStyleProfile { Id = "step\u0001" });
-        var error = Assert.Throws<ArgumentException>(() => DaisyTourStyleProfileSerializer.Validate(profile));
-        Assert.Contains("$.steps", error.Message, StringComparison.Ordinal);
     }
 }

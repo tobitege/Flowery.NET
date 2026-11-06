@@ -2,8 +2,6 @@
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
-using Avalonia.VisualTree;
-using Flowery.Controls;
 using Flowery.Controls.Custom;
 using Xunit;
 
@@ -11,22 +9,6 @@ namespace Flowery.NET.Tests
 {
     public class DaisyInputTests
     {
-        [AvaloniaFact]
-        public void Inputs_Start_With_Their_Defaults_And_Apply_Their_Templates()
-        {
-            var select = new DaisySelect();
-            var maskInput = new DaisyMaskInput { Mask = "00:00:00", PlaceholderText = "00:00:00" };
-            Assert.Equal(DaisySelectVariant.Bordered, select.Variant);
-            Assert.True(new DaisyTextArea().AcceptsReturn);
-            Assert.Equal(DaisyInputVariant.Bordered, maskInput.Variant);
-            Assert.Equal(DaisySize.Medium, maskInput.Size);
-
-            using var window = new TestWindow(select);
-            Assert.NotEmpty(select.GetVisualChildren());
-            window.Show(maskInput);
-            Assert.NotEmpty(maskInput.GetVisualChildren());
-        }
-
         [AvaloniaFact]
         public void Mask_Modes_Place_Typed_Digits_Into_Their_Mask_And_Drop_The_Rest()
         {

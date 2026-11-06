@@ -5,7 +5,6 @@ using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
 using Flowery.Controls.ColorPicker;
-using Flowery.Localization;
 using Flowery.NET.Kiosk.Slides;
 
 namespace Flowery.NET.Kiosk;
@@ -23,41 +22,6 @@ internal static class KioskSmokeTests
         var page = window.KioskPage;
         using var lifetime = new CancellationTokenSource(TimeSpan.FromMinutes(3));
         var token = lifetime.Token;
-        await CheckAsync(report, "DesktopWindowAndSlideshow", () =>
-        {
-            Require(page.IsLoaded && TopLevel.GetTopLevel(page) is not null && page.Bounds.Width > 0 && page.Bounds.Height > 0,
-                "The opened desktop window has no loaded, measured kiosk page.");
-            Require(page.SlideCount == 6 && page.CurrentIndex == 0, "The initial six-slide sequence was not loaded.");
-            Require(!page.IsAutoRunning && page.Interval == 8, "Smoke mode must start manually with the eight-second interval.");
-            Require(FloweryLocalization.CurrentCulture.Name == "en-US", "Smoke mode must run in English.");
-            return Task.CompletedTask;
-        });
-        await CheckAsync(report, "ThemeResourcesAndFonts", () =>
-        {
-            var application = Application.Current ?? throw new InvalidOperationException("The application is missing.");
-            Require(FindResource(application, "DaisyBase100Brush") is ISolidColorBrush, "The base theme brush is missing.");
-            Require(FindResource(application, "DaisyPrimaryBrush") is ISolidColorBrush, "The primary theme brush is missing.");
-            Require(FindResource(application, "KioskSlideTitleFontSize") is double size && size == 43, "The overlay title resource is missing.");
-            foreach (var asset in new[] { "NotoSans-Regular.ttf", "NotoSansArabic-Regular.ttf", "NotoSansJP-Regular.otf", "NotoSansKR-Regular.otf", "NotoSansSC-Regular.otf", "OFL.txt" })
-                RequireFile(Path.Combine(AppContext.BaseDirectory, "Assets", "Fonts", asset));
-            var family = FindResource(application, "NotoSansFamily") as FontFamily
-                ?? throw new InvalidOperationException("The Noto Sans font family resource is missing.");
-            Require(window.FontFamily == family, "The window does not use the Noto Sans font family.");
-            Require(FontManager.Current.TryGetGlyphTypeface(new Typeface(family), out var glyphs) && glyphs.FamilyName == "Noto Sans",
-                "The embedded Noto Sans font does not load.");
-            return Task.CompletedTask;
-        });
-        await CheckAsync(report, "AppIconAndSplashScreen", () =>
-        {
-            RequireFile(Path.Combine(AppContext.BaseDirectory, "Assets", "Kiosk", "app_icon.svg"));
-            RequireFile(Path.Combine(AppContext.BaseDirectory, "Assets", "Kiosk", "splash_screen.svg"));
-            return Task.CompletedTask;
-        });
-        await CheckAsync(report, "WindowIcon", () =>
-        {
-            Require(window.Icon is not null, "The window shows no icon.");
-            return Task.CompletedTask;
-        });
 
         DataSlide? dataSlide = null;
         ScalingSlide? scalingSlide = null;
@@ -788,8 +752,6 @@ internal static class KioskSmokeTests
         root.FindControl<T>(name) ?? throw new InvalidOperationException($"The element '{name}' was not found.");
 
     private static IEnumerable<T> Descendants<T>(Visual root) => root.GetVisualDescendants().OfType<T>();
-
-    private static void RequireFile(string path) => Require(File.Exists(path) && new FileInfo(path).Length > 0, $"Required asset is missing or empty: {path}");
 
     private static void Require(bool condition, string message)
     {

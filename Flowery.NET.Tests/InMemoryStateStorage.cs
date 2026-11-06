@@ -22,11 +22,6 @@ namespace Flowery.NET.Tests
             _store[key] = new List<string>(lines);
         }
 
-        public void ResetSaveCount()
-        {
-            SaveCount = 0;
-        }
-
         /// <summary>Forgets everything saved, and the count of saves.</summary>
         public void Clear()
         {
