@@ -140,7 +140,7 @@ public class Given_DaisyTourEditorAvalonia
 
             // A second finger on the grip neither moves the origin of the drag nor resizes, and its release does not
             // end the resize of the first finger. Hit testing sees the moved grip once it has been rendered.
-            await RuntimeTestHelpers.WaitForRenderAsync();
+            await WaitUntilHitAsync(thumb);
             var (_, otherStart, second) = PressAtCenter(thumb, PointerType.Touch);
             var otherEnd = new Point(otherStart.X - 90, otherStart.Y);
             MoveCaptured(second, root, otherEnd);
@@ -155,7 +155,7 @@ public class Given_DaisyTourEditorAvalonia
 
             // Once the first finger has finished, a third one resizes on its own, and its release away from its last
             // move sets the width.
-            await RuntimeTestHelpers.WaitForRenderAsync();
+            await WaitUntilHitAsync(thumb);
             var before = editor.InspectorBounds.Width;
             var (_, thirdStart, third) = PressAtCenter(thumb, PointerType.Touch);
             await ChangeGeometryAsync(tour, () => MoveCaptured(third, root, new Point(thirdStart.X - 20, thirdStart.Y)));

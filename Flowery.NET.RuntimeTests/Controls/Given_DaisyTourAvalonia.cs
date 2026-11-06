@@ -549,7 +549,7 @@ public class Given_DaisyTourAvalonia
             MoveCaptured(first, top, new Point(start.X - 60, start.Y - 40));
             await SettleAsync(root);
             // Hit testing sees the moved grip once it has been rendered.
-            await RuntimeTestHelpers.WaitForRenderAsync();
+            await WaitUntilHitAsync(grip);
 
             // The second finger presses, moves and lifts while the first one still holds the grip. It moves sideways,
             // where the card text cannot scroll, so the scroll gesture does not take it before its release.
