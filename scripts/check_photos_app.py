@@ -22,6 +22,7 @@ import argparse
 import math
 import os
 from pathlib import Path
+import shutil
 import struct
 import subprocess
 import sys
@@ -173,7 +174,17 @@ class LinuxDriver:
         run(["wmctrl", "-i", "-c", hex(int(window))])
 
     def screenshot(self, path):
+        # ImageMagick's import is not on every runner; a missing tool must not hide the error that asked for the shot.
+        if shutil.which("import") is None:
+            print("No screenshot: ImageMagick's import is not installed", flush=True)
+            return
         run(["import", "-window", "root", str(path)], check=False)
+
+
+def new_photos(folder, before):
+    """The files that appeared in folder since before. Photos writes a save to a temporary .tmp file first and renames
+    it, so a .tmp file is never the saved copy."""
+    return [path for path in set(folder.iterdir()) - before if path.suffix != ".tmp"]
 
 
 class MacDriver:
@@ -251,7 +262,7 @@ class Check:
         self.driver.key(window, "s", control=True)
         deadline = time.monotonic() + 30
         while True:
-            for path in set(self.photos.iterdir()) - before:
+            for path in new_photos(self.photos, before):
                 try:
                     copy = ci_png.read(path.read_bytes())
                 except (OSError, ValueError, struct.error, zlib.error):

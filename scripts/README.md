@@ -403,7 +403,7 @@ CI uploads the run folder and the console log as the artifact `kiosk-smoke-<OS>-
 ## CI start checks
 
 The CI workflow (`.github/workflows/ci.yml`) starts the published apps with these Python scripts.
-`ci_png.py` reads the pixels of their PNG screenshots with the Python standard library; `test_ci_png.py` tests it, `test_check_android_gallery.py` tests how the Android check takes failed and empty UI dumps, and CI runs both with `python3 -B -m unittest discover -s scripts -p 'test_*.py'`.
+`ci_png.py` reads the pixels of their PNG screenshots with the Python standard library; `test_ci_png.py` tests it, `test_check_android_gallery.py` tests how the Android check takes failed and empty UI dumps, `test_check_photos_app.py` that the Photos check does not take the temporary file of a save for the saved copy, and CI runs them with `python3 -B -m unittest discover -s scripts -p 'test_*.py'`.
 
 | Script | App | What it checks |
 | --- | --- | --- |
