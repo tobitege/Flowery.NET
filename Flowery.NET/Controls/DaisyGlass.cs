@@ -61,6 +61,7 @@ namespace Flowery.Controls
         private IImage? _capturedBitmap;
         private Image? _blurImage;
         private Canvas? _patternLayer;
+        private (int Columns, int Rows) _patternTiles;
         private Panel? _backgroundHost;
         private bool _needsUpdate = true;
         private bool _captureScheduled;
@@ -630,6 +631,16 @@ namespace Flowery.Controls
             EffectiveGlassFill = GlassFill ?? DaisyGlassGradients.CreateBrush(GlassGradient);
         }
 
+        // A new size rebuilds the tiles only when it needs more or fewer of them; the root border clips them to the glass.
+        // A rebuild in every arrange pass during a resize would also make the layout measure again.
+        private void OnPatternSizeChanged()
+        {
+            if (_patternLayer is { Children.Count: > 0 }
+                && FloweryPatternTileGenerator.TileCount(Bounds.Width, Bounds.Height) == _patternTiles)
+                return;
+            RebuildPatternLayer();
+        }
+
         private void RebuildPatternLayer()
         {
             if (_patternLayer == null) return;
@@ -641,6 +652,7 @@ namespace Flowery.Controls
             var pattern = FloweryPatternTileGenerator.CreateTiledPatternCanvas(
                 GlassPattern, new SolidColorBrush(GlassPatternColor), size.Width, size.Height);
             if (pattern == null) return;
+            _patternTiles = FloweryPatternTileGenerator.TileCount(size.Width, size.Height);
 
             // The tiles carry the faint opacities of card patterns, mostly 0.15. Scale them so that
             // GlassPatternOpacity is the opacity of a typical stroke, keeping each pattern's own shading.
@@ -673,6 +685,7 @@ namespace Flowery.Controls
         {
             base.OnAttachedToVisualTree(e);
             DaisyAccessibility.PreferencesChanged += OnAccessibilityChanged;
+            DaisyGlassLiveRenderer.RendererChanged += OnLiveRendererChanged;
             PseudoClasses.Set(":highcontrast", DaisyAccessibility.IsHighContrast);
             UpdateEffectiveBlurMode();
             UpdateBackdropColorState();
@@ -685,8 +698,32 @@ namespace Flowery.Controls
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
             DaisyAccessibility.PreferencesChanged -= OnAccessibilityChanged;
+            DaisyGlassLiveRenderer.RendererChanged -= OnLiveRendererChanged;
             base.OnDetachedFromVisualTree(e);
             ClearCapturedBackdrop();
+        }
+
+        // A renderer registered or removed while the glass is shown: SkiaSharp mode switches between the live renderer
+        // and BitmapCapture at once. Register may run on another thread.
+        private void OnLiveRendererChanged(object? sender, EventArgs e)
+        {
+            if (Dispatcher.CheckAccess())
+                ApplyLiveRenderer();
+            else
+                Dispatcher.Post(ApplyLiveRenderer);
+        }
+
+        private void ApplyLiveRenderer()
+        {
+            if (BlurMode != GlassBlurMode.SkiaSharp)
+                return;
+            UpdateEffectiveBlurMode();
+            if (ShouldCaptureBackdrop && TopLevel.GetTopLevel(this) != null)
+                RequestBackdropCapture();
+            else
+                ClearCapturedBackdrop();
+            UpdateBackdropColorState();
+            InvalidateVisual();
         }
 
         private void OnAccessibilityChanged(object? sender, EventArgs e)
@@ -715,10 +752,13 @@ namespace Flowery.Controls
             }
 
             if (change.Property == GlassPatternProperty || change.Property == GlassPatternColorProperty
-                || change.Property == GlassPatternOpacityProperty
-                || (change.Property == BoundsProperty && change.GetOldValue<Rect>().Size != change.GetNewValue<Rect>().Size))
+                || change.Property == GlassPatternOpacityProperty)
             {
                 RebuildPatternLayer();
+            }
+            else if (change.Property == BoundsProperty && change.GetOldValue<Rect>().Size != change.GetNewValue<Rect>().Size)
+            {
+                OnPatternSizeChanged();
             }
 
             if (change.Property == EnableBackdropBlurProperty)

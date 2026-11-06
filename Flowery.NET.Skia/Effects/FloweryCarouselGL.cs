@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.Json;
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -17,34 +15,12 @@ namespace Flowery.Effects
     /// </summary>
     internal sealed class FloweryCarouselGL : CarouselGlEngine
     {
-        // The overlay key of the native bridge.
-        private const string Key = "native-host";
-
         // DEFAULT_OVERLAY_Z_INDEX and getOverlayZIndex: no counterpart; the canvas fills its host instead of lying over the page.
 
-        internal static double NormalizeTransitionSeconds(double value, double fallback)
-        {
-            var seconds = value;
-            if (double.IsFinite(seconds) && seconds > 0)
-            {
-                return seconds;
-            }
-            return fallback;
-        }
+        internal static double NormalizeTransitionSeconds(double value, double fallback) =>
+            double.IsFinite(value) && value > 0 ? value : fallback;
 
-        internal static string ResolveAssetPath(string path)
-        {
-            if (path.StartsWith("//", StringComparison.Ordinal)
-                || path.StartsWith("http://", StringComparison.Ordinal)
-                || path.StartsWith("https://", StringComparison.Ordinal)
-                || path.StartsWith("data:", StringComparison.Ordinal))
-            {
-                return path;
-            }
-            throw new InvalidOperationException("Image asset must be resolved by the native host: " + path);
-        }
-
-        private static readonly IReadOnlyDictionary<string, string> DefaultImages = new Dictionary<string, string>();
+        // resolveAssetPath: CarouselGlEngine.ResolveAssetPath.
 
         internal static readonly IReadOnlyDictionary<string, MaskSettings> MaskVariants = new Dictionary<string, MaskSettings>
         {
@@ -112,88 +88,50 @@ namespace Flowery.Effects
             ["throw"] = new("throw")
         };
 
-        internal static IReadOnlyDictionary<string, string?> ResolveImages(string? mode, IReadOnlyDictionary<string, string>? assets)
-        {
-            var merged = new Dictionary<string, string?>(StringComparer.Ordinal);
-            foreach (var (key, value) in DefaultImages) merged[key] = value;
-            if (assets is not null) foreach (var (key, value) in assets) merged[key] = value;
-            if (mode == "mask")
-            {
-                return new Dictionary<string, string?> { ["maskA"] = merged.GetValueOrDefault("maskA"), ["maskB"] = merged.GetValueOrDefault("maskB") };
-            }
-            if (mode == "flip")
-            {
-                return new Dictionary<string, string?> { ["flipA"] = merged.GetValueOrDefault("flipA"), ["flipB"] = merged.GetValueOrDefault("flipB") };
-            }
-            if (mode == "transition")
-            {
-                return new Dictionary<string, string?> { ["transitionA"] = merged.GetValueOrDefault("transitionA"), ["transitionB"] = merged.GetValueOrDefault("transitionB") };
-            }
-            if (mode == "effect")
-            {
-                return new Dictionary<string, string?> { ["effect"] = merged.GetValueOrDefault("effect") };
-            }
-            if (mode == "text")
-            {
-                return new Dictionary<string, string?> { ["text"] = merged.GetValueOrDefault("text") };
-            }
-            return merged;
-        }
+        private static readonly string[] MaskKeys = ["maskA", "maskB"];
+        private static readonly string[] FlipKeys = ["flipA", "flipB"];
+        private static readonly string[] TransitionKeys = ["transitionA", "transitionB"];
+        private static readonly string[] EffectKeys = ["effect"];
+        private static readonly string[] TextKeys = ["text"];
 
-        internal static (string A, string B)? GetPairKeys(string? mode)
+        // The asset keys of the images of a mode, in the order its program takes them (JS resolveImages and getPairKeys).
+        internal static string[] AssetKeys(CarouselGlMode mode) => mode switch
         {
-            if (mode == "mask")
-            {
-                return ("maskA", "maskB");
-            }
-            if (mode == "flip")
-            {
-                return ("flipA", "flipB");
-            }
-            if (mode == "transition")
-            {
-                return ("transitionA", "transitionB");
-            }
-            return null;
-        }
+            CarouselGlMode.Mask => MaskKeys,
+            CarouselGlMode.Flip => FlipKeys,
+            CarouselGlMode.Transition => TransitionKeys,
+            CarouselGlMode.Effect => EffectKeys,
+            _ => TextKeys
+        };
 
-        internal static IReadOnlyDictionary<string, string>? ResolveAssetsForCurrentImage(string? mode, IReadOnlyDictionary<string, string>? assets, State? state)
+        internal static IReadOnlyDictionary<string, string>? ResolveAssetsForCurrentImage(CarouselGlMode mode, IReadOnlyDictionary<string, string>? assets, State? state)
         {
-            var pair = GetPairKeys(mode);
-            if (pair is not { } keys || assets is null || state is null)
+            if (AssetKeys(mode) is not [var keyA, var keyB] || assets is null || state is null)
             {
                 return assets;
             }
 
-            var assetA = assets.GetValueOrDefault(keys.A);
-            var assetB = assets.GetValueOrDefault(keys.B);
+            var assetA = assets.GetValueOrDefault(keyA);
+            var assetB = assets.GetValueOrDefault(keyB);
             if (string.IsNullOrEmpty(assetA) || string.IsNullOrEmpty(assetB) || assetA == assetB)
             {
                 return assets;
             }
 
-            var currentImage = state.currentImage;
-            var shouldSwap = false;
-            if (!string.IsNullOrEmpty(currentImage))
-            {
-                if (currentImage == assetB && currentImage != assetA)
-                {
-                    shouldSwap = true;
-                }
-            }
-            else if (state.currentSwap)
-            {
-                shouldSwap = true;
-            }
-
+            var currentImage = state.CurrentImage;
+            var shouldSwap = !string.IsNullOrEmpty(currentImage)
+                ? currentImage == assetB && currentImage != assetA
+                : state.CurrentSwap;
             if (!shouldSwap)
             {
                 return assets;
             }
 
-            var swapped = new Dictionary<string, string>(assets);
-            swapped[keys.A] = assetB;
-            swapped[keys.B] = assetA;
+            var swapped = new Dictionary<string, string>(assets)
+            {
+                [keyA] = assetB,
+                [keyB] = assetA
+            };
             return swapped;
         }
 
@@ -242,7 +180,7 @@ namespace Flowery.Effects
         {
             double offsetX = 0;
             double offsetY = 0;
-            double scale = 1;
+            double scale;
             double rotation = 0;
             double alpha = 1;
             var t = timeSec;
@@ -305,7 +243,6 @@ namespace Flowery.Effects
                     rotation = -0.12 + 0.24 * ease;
                     break;
                 }
-                case "pan-zoom":
                 default:
                     scale = 1.12 + 0.06 * Math.Sin(t * 0.35);
                     offsetX = 0.08 * Math.Sin(t * 0.25);
@@ -319,35 +256,20 @@ namespace Flowery.Effects
             return new EffectParams(offsetX, offsetY, scale, rotation, alpha);
         }
 
-        // Throws at once for an unresolved path, as the JS throws before its Promise.
-        private static Task<SKImage> LoadImage(string src)
-        {
-            var resolved = ResolveAssetPath(src);
-            return DecodeImageAsync(resolved);
-        }
+        // The identity of the effect uniforms: no continuous effect moves the images.
+        private static readonly EffectParams NoEffect = new(0, 0, 1, 0, 1);
 
         // createShader and createProgram: CarouselGlEngine.CreateProgram compiles each SkSL program once per process.
-
         // createTexture: the decoded image is the texture; the state, as its GL context, releases it in stop. Each frame
         // samples it through a child shader (CarouselGlEngine.CreateTextureShader).
-        private static SKImage CreateTexture(State state, SKImage image)
-        {
-            state.resources.Add(image);
-            return image;
-        }
-
         // createQuad: no counterpart; a frame shader covers the canvas, and the flip program interpolates its quad itself.
-
         // getCanvasDisplaySize, resizeCanvasToDisplaySize and drawFallback: CarouselGlCanvas.
 
         private static void StartLoop(State state, Action<double> render)
         {
-            state._render = render;
-            if (state._frame is null)
-            {
-                state._frame = state.Frame;
-            }
-            ResumeState(state);
+            state.Draw = render;
+            state.FrameCallback ??= state.Frame;
+            state.Resume();
         }
 
         internal static double ComputeTransitionProgress(double elapsedSec, double transitionSec, double intervalSec)
@@ -355,10 +277,6 @@ namespace Flowery.Effects
             var holdSec = intervalSec > 0 ? intervalSec : 0;
             var transition = Math.Max(0.001, transitionSec);
             var cycle = holdSec + transition + holdSec + transition;
-            if (cycle <= 0)
-            {
-                return 0;
-            }
             var t = elapsedSec % cycle;
             if (t < holdSec)
             {
@@ -375,53 +293,25 @@ namespace Flowery.Effects
             return 1 - (t - (holdSec + transition + holdSec)) / transition;
         }
 
-        internal static double ResolvePixelateSize(double value)
-        {
-            var size = value;
-            return double.IsFinite(size) && size > 0 ? size : 20;
-        }
+        internal static double ResolvePixelateSize(double value) => double.IsFinite(value) && value > 0 ? value : 20;
 
         internal static double ResolveSliceCount(double value)
         {
-            var count = value;
-            if (!double.IsFinite(count))
+            if (!double.IsFinite(value))
             {
                 return 0;
             }
-            var rounded = Math.Floor(count);
+            var rounded = Math.Floor(value);
             return rounded >= 2 ? rounded : 0;
         }
 
-        internal static bool ResolveStaggerFlag(object? value)
-        {
-            return value is true or "true" or 1 or 1d;
-        }
+        internal static double ResolveStaggerMs(double value) => double.IsFinite(value) && value > 0 ? value : 0;
 
-        internal static double ResolveStaggerMs(double value)
-        {
-            var ms = value;
-            return double.IsFinite(ms) && ms > 0 ? ms : 0;
-        }
+        internal static double ResolveDissolveDensity(double value) =>
+            double.IsFinite(value) ? Math.Min(1, Math.Max(0, value)) : 0.5;
 
-        internal static double ResolveDissolveDensity(double value)
-        {
-            var density = value;
-            if (!double.IsFinite(density))
-            {
-                return 0.5;
-            }
-            return Math.Min(1, Math.Max(0, density));
-        }
-
-        internal static double ResolveFlipAngle(double value)
-        {
-            var angle = value;
-            if (!double.IsFinite(angle))
-            {
-                return 180;
-            }
-            return Math.Min(180, Math.Max(30, angle));
-        }
+        internal static double ResolveFlipAngle(double value) =>
+            double.IsFinite(value) ? Math.Min(180, Math.Max(30, value)) : 180;
 
         internal static (double minBlocks, double maxBlocks) GetPixelateBlocks(CarouselGlCanvas canvas, double pixelateSize)
         {
@@ -437,7 +327,7 @@ namespace Flowery.Effects
 
         internal static double GetPixelateTransitionSeconds(State state, double minBlocks)
         {
-            var @base = NormalizeTransitionSeconds(state.baseTransitionSec, state.defaultTransitionSec);
+            var @base = NormalizeTransitionSeconds(state.BaseTransitionSec, state.DefaultTransitionSec);
             const double referenceBlocks = 12;
             var scale = Math.Min(5.0, Math.Max(1.6, minBlocks / referenceBlocks));
             return @base * scale;
@@ -445,36 +335,8 @@ namespace Flowery.Effects
 
         internal static double GetSpiralWormholeTransitionSeconds(State state)
         {
-            var @base = NormalizeTransitionSeconds(state.baseTransitionSec, state.defaultTransitionSec);
+            var @base = NormalizeTransitionSeconds(state.BaseTransitionSec, state.DefaultTransitionSec);
             return @base * 1.25;
-        }
-
-        private static void PauseState(State state)
-        {
-            if (!state.running)
-            {
-                return;
-            }
-            state.running = false;
-            if (state.raf != 0)
-            {
-                state.canvas.CancelAnimationFrame(state.raf);
-                state.raf = 0;
-            }
-        }
-
-        private static void ResumeState(State state)
-        {
-            if (state.running && state.raf != 0)
-            {
-                return;
-            }
-            if (!state.alive) return;
-            state.running = true;
-            if (state._frame is not null)
-            {
-                state.raf = state.canvas.RequestAnimationFrame(state._frame);
-            }
         }
 
         // The GLSL vertex shaders have no counterpart: a frame shader covers the canvas, and SkSL derives v_texCoord from
@@ -917,228 +779,206 @@ namespace Flowery.Effects
         internal static readonly Lazy<SKRuntimeEffect> EffectProgram = new(() => CreateProgram(EffectFragmentShader));
         internal static readonly Lazy<SKRuntimeEffect> TextFillProgram = new(() => CreateProgram(TextFillFragmentShader));
 
-        private static State? InitMask(
-            CarouselGlCanvas canvas,
-            IReadOnlyDictionary<string, string>? assets,
-            string? variant,
-            string? effectVariant,
-            double transitionSec,
-            double sliceCount,
-            object? stagger,
-            double staggerMs,
-            double pixelateSize,
-            double dissolveDensity)
+        // The scaffolding of every init (JS initMask, initFlip, initTransition, initEffect and initTextFill): it loads the
+        // images of the mode's asset keys, makes them the textures of the state and starts the draw loop. createDraw gets
+        // the textures and returns the drawing of one frame at a time and the seconds since the start; every frame first
+        // fits the drawing buffer to the canvas and then counts as drawn.
+        private static State Start(CarouselGlCanvas canvas, CarouselGlMode mode, IReadOnlyDictionary<string, string>? assets,
+            State state, Func<SKImage[], Action<double, double>> createDraw)
         {
             // FloweryNativeBridge.createContext: Skia needs no context of its own, so "WebGL unavailable" cannot occur.
-
-            var program = MaskProgram.Value;
-
-            const double defaultTransitionSec = 2.2;
-            var state = new State(canvas)
+            var keys = AssetKeys(mode);
+            var sources = new string[keys.Length];
+            for (var i = 0; i < keys.Length; i++)
             {
-                intervalSec = 0,
-                baseTransitionSec = transitionSec,
-                transitionSec = NormalizeTransitionSeconds(transitionSec, defaultTransitionSec),
-                sliceCount = ResolveSliceCount(sliceCount),
-                stagger = ResolveStaggerFlag(stagger),
-                staggerMs = ResolveStaggerMs(staggerMs),
-                pixelateSize = ResolvePixelateSize(pixelateSize),
-                dissolveDensity = ResolveDissolveDensity(dissolveDensity),
-                assetA = null,
-                assetB = null,
-                currentImage = null,
-                currentSwap = false,
-                defaultTransitionSec = defaultTransitionSec,
-                seed = Random.Shared.NextDouble() * 1000,
-                seedPhase = -1,
-                wormholeStart = 0,
-                wormholeSwap = false
-            };
-
-            var images = ResolveImages("mask", assets);
-            if (string.IsNullOrEmpty(images["maskA"]) || string.IsNullOrEmpty(images["maskB"]))
-            {
-                canvas.DrawFallback("Not supported (assets missing)");
-                return state;
+                if (assets?.GetValueOrDefault(keys[i]) is not { Length: > 0 } source)
+                {
+                    canvas.DrawFallback("Not supported (assets missing)");
+                    return state;
+                }
+                sources[i] = source;
             }
-            state.assetA = images["maskA"];
-            state.assetB = images["maskB"];
-            state.currentImage = images["maskA"];
-            state.currentSwap = false;
-            var settings = GetMaskSettings(variant);
-            var effectSettings = !string.IsNullOrEmpty(effectVariant) ? GetEffectSettings(effectVariant) : null;
-            var loadA = LoadImage(images["maskA"]!);
-            var loadB = LoadImage(images["maskB"]!);
-            _ = ThenAsync();
+            // Throws at once for an unresolved path, as the JS throws before its Promise; no image loads then.
+            foreach (var source in sources)
+                ResolveAssetPath(source);
+            if (sources is [var assetA, var assetB])
+            {
+                state.AssetA = assetA;
+                state.AssetB = assetB;
+                state.CurrentImage = assetA;
+            }
+            var loads = Array.ConvertAll(sources, DecodeImageAsync);
+            _ = LoadAsync();
             return state;
 
             // Promise.all([...]).then(...).catch(...)
-            async Task ThenAsync()
+            async Task LoadAsync()
             {
                 try
                 {
-                    var loaded = await Task.WhenAll(loadA, loadB);
-                    if (!state.alive)
+                    var images = await Task.WhenAll(loads);
+                    if (!state.Alive)
                     {
-                        ReleaseUnused(state, loadA, loadB);
+                        ReleaseUnused(state, loads);
                         return;
                     }
-                    var texA = CreateTexture(state, loaded[0]);
-                    var texB = CreateTexture(state, loaded[1]);
+                    state.Resources.AddRange(images);
 
                     // gl.clearColor, gl.useProgram and the uniforms set once: every frame shader gets all its uniforms.
-
                     var start = CarouselGlCanvas.Now;
-                    state.nativeStart = start;
-                    state.wormholeStart = start;
-                    state.wormholeSwap = false;
-
-                    StartLoop(state, (time) =>
+                    state.NativeStart = start;
+                    var draw = createDraw(images);
+                    StartLoop(state, time =>
                     {
-                        canvas.ResizeCanvasToDisplaySize();
                         // gl.clear: the frame shader replaces the whole frame.
-
-                        var elapsedSec = (time - start) * 0.001;
-                        var transitionSeconds = state.transitionSec;
-                        var tiles = state.sliceCount > 1 ? state.sliceCount : settings.Tiles;
-                        var staggerFactor = state.stagger && transitionSeconds > 0
-                            ? Math.Min(0.9, Math.Max(0, state.staggerMs / (transitionSeconds * 1000)))
-                            : 0;
-                        double blockMin = 0;
-                        double blockMax = 0;
-                        if (settings.Pattern > 4.5 && settings.Pattern < 5.5)
-                        {
-                            transitionSeconds = GetSpiralWormholeTransitionSeconds(state);
-                        }
-                        else if (settings.Pattern > 6.5 && settings.Pattern < 7.5)
-                        {
-                            transitionSeconds = GetSpiralWormholeTransitionSeconds(state);
-                        }
-                        else if (settings.Pattern > 8.5)
-                        {
-                            var blocks = GetPixelateBlocks(canvas, ResolvePixelateSize(state.pixelateSize));
-                            blockMin = blocks.minBlocks;
-                            blockMax = blocks.maxBlocks;
-                            transitionSeconds = GetPixelateTransitionSeconds(state, blockMin);
-                        }
-                        var isSpiral = settings.Pattern > 4.5 && settings.Pattern < 5.5;
-                        var isWormhole = settings.Pattern > 6.5 && settings.Pattern < 7.5;
-                        var progress = ComputeTransitionProgress(elapsedSec, transitionSeconds, state.intervalSec);
-                        var useSwap = false;
-                        if (isSpiral || isWormhole)
-                        {
-                            // Renamed from holdSec, transitionSec and cycleSec: C# locals cannot shadow the outer ones.
-                            var swapHoldSec = state.intervalSec > 0 ? state.intervalSec : 0;
-                            var swapTransitionSec = Math.Max(0.001, transitionSeconds);
-                            var swapCycleSec = swapHoldSec + swapTransitionSec;
-                            if (swapCycleSec > 0)
-                            {
-                                var elapsedMs = time - state.wormholeStart;
-                                var elapsedCycleSec = elapsedMs * 0.001;
-                                if (elapsedCycleSec >= swapCycleSec)
-                                {
-                                    var cycles = Math.Floor(elapsedCycleSec / swapCycleSec);
-                                    state.wormholeStart += cycles * swapCycleSec * 1000;
-                                    if (cycles % 2 == 1)
-                                    {
-                                        state.wormholeSwap = !state.wormholeSwap;
-                                    }
-                                }
-                                var localSec = Math.Max(0, (time - state.wormholeStart) * 0.001);
-                                if (localSec < swapHoldSec)
-                                {
-                                    progress = 0;
-                                }
-                                else
-                                {
-                                    progress = (localSec - swapHoldSec) / swapTransitionSec;
-                                }
-                                progress = Math.Min(1, Math.Max(0, progress));
-                                useSwap = state.wormholeSwap;
-                            }
-                        }
-                        var holdSec = state.intervalSec > 0 ? state.intervalSec : 0;
-                        // Renamed from transitionSec, the parameter of initMask.
-                        var phaseTransitionSec = Math.Max(0.001, transitionSeconds);
-                        var cycleSec = holdSec + phaseTransitionSec + holdSec + phaseTransitionSec;
-                        var phase = 0;
-                        if (cycleSec > 0)
-                        {
-                            var t = elapsedSec % cycleSec;
-                            if (t < holdSec)
-                            {
-                                phase = 0;
-                            }
-                            else if (t < holdSec + phaseTransitionSec)
-                            {
-                                phase = 1;
-                            }
-                            else if (t < holdSec + phaseTransitionSec + holdSec)
-                            {
-                                phase = 2;
-                            }
-                            else
-                            {
-                                phase = 3;
-                            }
-                        }
-                        if (phase != state.seedPhase)
-                        {
-                            state.seedPhase = phase;
-                            if (phase == 1 || phase == 3)
-                            {
-                                state.seed = Random.Shared.NextDouble() * 1000;
-                            }
-                        }
-                        if (!string.IsNullOrEmpty(state.assetA) && !string.IsNullOrEmpty(state.assetB))
-                        {
-                            var isCurrentB = useSwap ? progress < 0.5 : progress >= 0.5;
-                            state.currentSwap = isCurrentB;
-                            state.currentImage = isCurrentB ? state.assetB : state.assetA;
-                        }
-                        EffectParams? effectParams = effectSettings is not null ? GetEffectParams(effectSettings.Type, elapsedSec) : null;
-                        var effectOffsetX = effectParams?.OffsetX ?? 0;
-                        var effectOffsetY = effectParams?.OffsetY ?? 0;
-                        var effectScale = effectParams?.Scale ?? 1;
-                        var effectRotation = effectParams?.Rotation ?? 0;
-                        var effectAlpha = effectParams?.Alpha ?? 1;
-
-                        // gl.activeTexture and gl.bindTexture: the textures are the children u_tex1 and u_tex2.
-                        using var uniforms = new SKRuntimeEffectUniforms(program)
-                        {
-                            ["u_resolution"] = Vec2(canvas.Resolution.Width, canvas.Resolution.Height),
-                            ["u_pattern"] = (float)settings.Pattern,
-                            ["u_progress"] = (float)progress,
-                            ["u_seed"] = (float)state.seed,
-                            ["u_tiles"] = (float)tiles,
-                            ["u_effectOffset"] = Vec2(effectOffsetX, effectOffsetY),
-                            ["u_effectScale"] = (float)effectScale,
-                            ["u_effectRotation"] = (float)effectRotation,
-                            ["u_effectAlpha"] = (float)effectAlpha
-                        };
-                        if (settings.Pattern > 8.5)
-                        {
-                            uniforms["u_blockMin"] = (float)blockMin;
-                            uniforms["u_blockMax"] = (float)blockMax;
-                        }
-                        else
-                        {
-                            uniforms["u_blockMin"] = 1.0f;
-                            uniforms["u_blockMax"] = 1.0f;
-                        }
-                        uniforms["u_stagger"] = (float)staggerFactor;
-                        uniforms["u_dissolveDensity"] = (float)state.dissolveDensity;
-                        DrawArrays(canvas, program, uniforms, ("u_tex1", useSwap ? texB : texA), ("u_tex2", useSwap ? texA : texB));
+                        state.Resize();
+                        draw(time, (time - start) * 0.001);
                         canvas.Frame();
                     });
                 }
                 catch (Exception err)
                 {
-                    ReleaseUnused(state, loadA, loadB);
-                    Debug.WriteLine("[CarouselGL] mask init failed " + err);
+                    ReleaseUnused(state, loads);
+                    Debug.WriteLine("[CarouselGL] " + mode.ToString().ToLowerInvariant() + " init failed " + err);
                     canvas.DrawFallback("Not supported (asset load failed)");
                 }
             }
+        }
+
+        // The uniforms of the continuous effect over a mask, flip or transition; without one the images stay in place.
+        private static void SetEffectUniforms(SKRuntimeEffectUniforms uniforms, EffectSettings? effect, double elapsedSec)
+        {
+            var effectParams = effect is not null ? GetEffectParams(effect.Type, elapsedSec) : NoEffect;
+            uniforms["u_effectOffset"] = Vec2(effectParams.OffsetX, effectParams.OffsetY);
+            uniforms["u_effectScale"] = (float)effectParams.Scale;
+            uniforms["u_effectRotation"] = (float)effectParams.Rotation;
+            uniforms["u_effectAlpha"] = (float)effectParams.Alpha;
+        }
+
+        // The image the effect shows now, which a later attach with new settings keeps showing (JS state.currentImage).
+        private static void TrackCurrentImage(State state, bool isCurrentB)
+        {
+            if (string.IsNullOrEmpty(state.AssetA) || string.IsNullOrEmpty(state.AssetB))
+            {
+                return;
+            }
+            state.CurrentSwap = isCurrentB;
+            state.CurrentImage = isCurrentB ? state.AssetB : state.AssetA;
+        }
+
+        private static State InitMask(CarouselGlCanvas canvas, IReadOnlyDictionary<string, string>? assets, string? variant,
+            string? effectVariant, TransitionParameters parameters)
+        {
+            var program = MaskProgram.Value;
+            const double defaultTransitionSec = 2.2;
+            var state = new State(canvas)
+            {
+                BaseTransitionSec = parameters.TransitionSec,
+                TransitionSec = NormalizeTransitionSeconds(parameters.TransitionSec, defaultTransitionSec),
+                SliceCount = parameters.SliceCount,
+                Stagger = parameters.Stagger,
+                StaggerMs = parameters.StaggerMs,
+                PixelateSize = parameters.PixelateSize,
+                DissolveDensity = parameters.DissolveDensity,
+                DefaultTransitionSec = defaultTransitionSec,
+                Seed = Random.Shared.NextDouble() * 1000
+            };
+            var settings = GetMaskSettings(variant);
+            var effectSettings = !string.IsNullOrEmpty(effectVariant) ? GetEffectSettings(effectVariant) : null;
+            var isSpiral = settings.Pattern > 4.5 && settings.Pattern < 5.5;
+            var isWormhole = settings.Pattern > 6.5 && settings.Pattern < 7.5;
+            var isPixelate = settings.Pattern > 8.5;
+            return Start(canvas, CarouselGlMode.Mask, assets, state, textures =>
+            {
+                state.WormholeStart = state.NativeStart!.Value;
+                state.WormholeSwap = false;
+                return (time, elapsedSec) =>
+                {
+                    var transitionSeconds = state.TransitionSec;
+                    var tiles = state.SliceCount > 1 ? state.SliceCount : settings.Tiles;
+                    var staggerFactor = state.Stagger && transitionSeconds > 0
+                        ? Math.Min(0.9, Math.Max(0, state.StaggerMs / (transitionSeconds * 1000)))
+                        : 0;
+                    double blockMin = 1;
+                    double blockMax = 1;
+                    if (isSpiral || isWormhole)
+                    {
+                        transitionSeconds = GetSpiralWormholeTransitionSeconds(state);
+                    }
+                    else if (isPixelate)
+                    {
+                        (blockMin, blockMax) = GetPixelateBlocks(canvas, ResolvePixelateSize(state.PixelateSize));
+                        transitionSeconds = GetPixelateTransitionSeconds(state, blockMin);
+                    }
+                    var progress = ComputeTransitionProgress(elapsedSec, transitionSeconds, state.IntervalSec);
+                    var useSwap = false;
+                    if (isSpiral || isWormhole)
+                    {
+                        // Renamed from holdSec, transitionSec and cycleSec: C# locals cannot shadow the outer ones.
+                        var swapHoldSec = state.IntervalSec > 0 ? state.IntervalSec : 0;
+                        var swapTransitionSec = Math.Max(0.001, transitionSeconds);
+                        var swapCycleSec = swapHoldSec + swapTransitionSec;
+                        var elapsedCycleSec = (time - state.WormholeStart) * 0.001;
+                        if (elapsedCycleSec >= swapCycleSec)
+                        {
+                            var cycles = Math.Floor(elapsedCycleSec / swapCycleSec);
+                            state.WormholeStart += cycles * swapCycleSec * 1000;
+                            if (cycles % 2 == 1)
+                            {
+                                state.WormholeSwap = !state.WormholeSwap;
+                            }
+                        }
+                        var localSec = Math.Max(0, (time - state.WormholeStart) * 0.001);
+                        progress = localSec < swapHoldSec ? 0 : (localSec - swapHoldSec) / swapTransitionSec;
+                        progress = Math.Min(1, Math.Max(0, progress));
+                        useSwap = state.WormholeSwap;
+                    }
+                    var phase = TransitionPhase(elapsedSec, transitionSeconds, state.IntervalSec);
+                    if (phase != state.SeedPhase)
+                    {
+                        state.SeedPhase = phase;
+                        if (phase == 1 || phase == 3)
+                        {
+                            state.Seed = Random.Shared.NextDouble() * 1000;
+                        }
+                    }
+                    TrackCurrentImage(state, useSwap ? progress < 0.5 : progress >= 0.5);
+
+                    // gl.activeTexture and gl.bindTexture: the textures are the children u_tex1 and u_tex2.
+                    using var uniforms = new SKRuntimeEffectUniforms(program)
+                    {
+                        ["u_resolution"] = Vec2(canvas.Resolution.Width, canvas.Resolution.Height),
+                        ["u_pattern"] = (float)settings.Pattern,
+                        ["u_progress"] = (float)progress,
+                        ["u_seed"] = (float)state.Seed,
+                        ["u_tiles"] = (float)tiles,
+                        ["u_blockMin"] = (float)blockMin,
+                        ["u_blockMax"] = (float)blockMax,
+                        ["u_stagger"] = (float)staggerFactor,
+                        ["u_dissolveDensity"] = (float)state.DissolveDensity
+                    };
+                    SetEffectUniforms(uniforms, effectSettings, elapsedSec);
+                    var (first, second) = useSwap ? (textures[1], textures[0]) : (textures[0], textures[1]);
+                    DrawArrays(canvas, program, uniforms, ("u_tex1", first), ("u_tex2", second));
+                };
+            });
+        }
+
+        // The phase of the mask cycle: 0 holds the first image, 1 moves to the second, 2 holds it and 3 moves back.
+        private static int TransitionPhase(double elapsedSec, double transitionSec, double intervalSec)
+        {
+            var holdSec = intervalSec > 0 ? intervalSec : 0;
+            var phaseTransitionSec = Math.Max(0.001, transitionSec);
+            var t = elapsedSec % (holdSec + phaseTransitionSec + holdSec + phaseTransitionSec);
+            if (t < holdSec)
+            {
+                return 0;
+            }
+            if (t < holdSec + phaseTransitionSec)
+            {
+                return 1;
+            }
+            return t < holdSec + phaseTransitionSec + holdSec ? 2 : 3;
         }
 
         // The flip vertex shader for one corner of the strip, in single precision as on the GPU.
@@ -1168,311 +1008,122 @@ namespace Flowery.Effects
             return [rotX / z, rotY / z];
         }
 
-        private static State? InitFlip(CarouselGlCanvas canvas, IReadOnlyDictionary<string, string>? assets, string? variant, string? effectVariant, double transitionSec, double flipAngle)
+        private static State InitFlip(CarouselGlCanvas canvas, IReadOnlyDictionary<string, string>? assets, string? variant,
+            string? effectVariant, TransitionParameters parameters)
         {
-            // FloweryNativeBridge.createContext: Skia needs no context of its own, so "WebGL unavailable" cannot occur.
-
             var program = FlipProgram.Value;
-
             const double defaultTransitionSec = 2.6;
             var state = new State(canvas)
             {
-                intervalSec = 0,
-                transitionSec = NormalizeTransitionSeconds(transitionSec, defaultTransitionSec),
-                flipAngle = ResolveFlipAngle(flipAngle),
-                assetA = null,
-                assetB = null,
-                currentImage = null,
-                currentSwap = false,
-                defaultTransitionSec = defaultTransitionSec
+                TransitionSec = NormalizeTransitionSeconds(parameters.TransitionSec, defaultTransitionSec),
+                FlipAngle = parameters.FlipAngle,
+                DefaultTransitionSec = defaultTransitionSec
             };
-
-            var images = ResolveImages("flip", assets);
-            if (string.IsNullOrEmpty(images["flipA"]) || string.IsNullOrEmpty(images["flipB"]))
-            {
-                canvas.DrawFallback("Not supported (assets missing)");
-                return state;
-            }
-            state.assetA = images["flipA"];
-            state.assetB = images["flipB"];
-            state.currentImage = images["flipA"];
-            state.currentSwap = false;
             var settings = GetFlipSettings(variant);
             var effectSettings = !string.IsNullOrEmpty(effectVariant) ? GetEffectSettings(effectVariant) : null;
-            var loadA = LoadImage(images["flipA"]!);
-            var loadB = LoadImage(images["flipB"]!);
-            _ = ThenAsync();
-            return state;
-
-            // Promise.all([...]).then(...).catch(...)
-            async Task ThenAsync()
+            return Start(canvas, CarouselGlMode.Flip, assets, state, textures => (_, elapsedSec) =>
             {
-                try
+                var progress = ComputeTransitionProgress(elapsedSec, state.TransitionSec, state.IntervalSec);
+                TrackCurrentImage(state, progress >= 0.5);
+                var angleDegrees = Math.Max(state.FlipAngle, settings.MinAngle);
+                // The vertex shader for the strip v0 (-1, -1), v1 (1, -1), v2 (-1, 1), v3 (1, 1), and its
+                // v_facing = step(0.0, cos(u_angle)).
+                var glAngle = (float)(progress * (angleDegrees * Math.PI / 180));
+                using var uniforms = new SKRuntimeEffectUniforms(program)
                 {
-                    var loaded = await Task.WhenAll(loadA, loadB);
-                    if (!state.alive)
-                    {
-                        ReleaseUnused(state, loadA, loadB);
-                        return;
-                    }
-                    var texA = CreateTexture(state, loaded[0]);
-                    var texB = CreateTexture(state, loaded[1]);
-
-                    // gl.clearColor, gl.useProgram and the uniforms set once: every frame shader gets all its uniforms.
-
-                    var start = CarouselGlCanvas.Now;
-                    state.nativeStart = start;
-
-                    StartLoop(state, (time) =>
-                    {
-                        canvas.ResizeCanvasToDisplaySize();
-                        // gl.clear: the frame shader replaces the whole frame.
-
-                        var elapsedSec = (time - start) * 0.001;
-                        var progress = ComputeTransitionProgress(elapsedSec, state.transitionSec, state.intervalSec);
-                        if (!string.IsNullOrEmpty(state.assetA) && !string.IsNullOrEmpty(state.assetB))
-                        {
-                            var isCurrentB = progress >= 0.5;
-                            state.currentSwap = isCurrentB;
-                            state.currentImage = isCurrentB ? state.assetB : state.assetA;
-                        }
-                        var minAngle = settings.MinAngle;
-                        var angleDegrees = Math.Max(state.flipAngle, minAngle);
-                        var angle = progress * (angleDegrees * Math.PI / 180);
-                        EffectParams? effectParams = effectSettings is not null ? GetEffectParams(effectSettings.Type, elapsedSec) : null;
-                        var effectOffsetX = effectParams?.OffsetX ?? 0;
-                        var effectOffsetY = effectParams?.OffsetY ?? 0;
-                        var effectScale = effectParams?.Scale ?? 1;
-                        var effectRotation = effectParams?.Rotation ?? 0;
-                        var effectAlpha = effectParams?.Alpha ?? 1;
-
-                        // The vertex shader for the strip v0 (-1, -1), v1 (1, -1), v2 (-1, 1), v3 (1, 1), and its
-                        // v_facing = step(0.0, cos(u_angle)).
-                        var glAngle = (float)angle;
-                        using var uniforms = new SKRuntimeEffectUniforms(program)
-                        {
-                            ["u_resolution"] = Vec2(canvas.Resolution.Width, canvas.Resolution.Height),
-                            ["u_position0"] = ProjectFlipVertex(-1, -1, glAngle, settings),
-                            ["u_position1"] = ProjectFlipVertex(1, -1, glAngle, settings),
-                            ["u_position2"] = ProjectFlipVertex(-1, 1, glAngle, settings),
-                            ["u_position3"] = ProjectFlipVertex(1, 1, glAngle, settings),
-                            ["u_facing"] = MathF.Cos(glAngle) >= 0 ? 1f : 0f,
-                            ["u_flipAxis"] = (float)settings.FlipAxis,
-                            ["u_angle"] = glAngle,
-                            ["u_effectOffset"] = Vec2(effectOffsetX, effectOffsetY),
-                            ["u_effectScale"] = (float)effectScale,
-                            ["u_effectRotation"] = (float)effectRotation,
-                            ["u_effectAlpha"] = (float)effectAlpha
-                        };
-                        DrawArrays(canvas, program, uniforms, ("u_tex1", texA), ("u_tex2", texB));
-                        canvas.Frame();
-                    });
-                }
-                catch (Exception err)
-                {
-                    ReleaseUnused(state, loadA, loadB);
-                    Debug.WriteLine("[CarouselGL] flip init failed " + err);
-                    canvas.DrawFallback("Not supported (asset load failed)");
-                }
-            }
+                    ["u_resolution"] = Vec2(canvas.Resolution.Width, canvas.Resolution.Height),
+                    ["u_position0"] = ProjectFlipVertex(-1, -1, glAngle, settings),
+                    ["u_position1"] = ProjectFlipVertex(1, -1, glAngle, settings),
+                    ["u_position2"] = ProjectFlipVertex(-1, 1, glAngle, settings),
+                    ["u_position3"] = ProjectFlipVertex(1, 1, glAngle, settings),
+                    ["u_facing"] = MathF.Cos(glAngle) >= 0 ? 1f : 0f,
+                    ["u_flipAxis"] = (float)settings.FlipAxis,
+                    ["u_angle"] = glAngle
+                };
+                SetEffectUniforms(uniforms, effectSettings, elapsedSec);
+                DrawArrays(canvas, program, uniforms, ("u_tex1", textures[0]), ("u_tex2", textures[1]));
+            });
         }
 
-        private static State? InitTransition(CarouselGlCanvas canvas, IReadOnlyDictionary<string, string>? assets, string? variant, string? effectVariant, double transitionSec)
+        private static State InitTransition(CarouselGlCanvas canvas, IReadOnlyDictionary<string, string>? assets, string? variant,
+            string? effectVariant, TransitionParameters parameters)
         {
-            // FloweryNativeBridge.createContext: Skia needs no context of its own, so "WebGL unavailable" cannot occur.
-
             var program = TransitionProgram.Value;
-
             const double defaultTransitionSec = 2.4;
             var state = new State(canvas)
             {
-                intervalSec = 0,
-                transitionSec = NormalizeTransitionSeconds(transitionSec, defaultTransitionSec),
-                assetA = null,
-                assetB = null,
-                currentImage = null,
-                currentSwap = false,
-                defaultTransitionSec = defaultTransitionSec
+                TransitionSec = NormalizeTransitionSeconds(parameters.TransitionSec, defaultTransitionSec),
+                DefaultTransitionSec = defaultTransitionSec
             };
-
-            var images = ResolveImages("transition", assets);
-            if (string.IsNullOrEmpty(images["transitionA"]) || string.IsNullOrEmpty(images["transitionB"]))
-            {
-                canvas.DrawFallback("Not supported (assets missing)");
-                return state;
-            }
-            state.assetA = images["transitionA"];
-            state.assetB = images["transitionB"];
-            state.currentImage = images["transitionA"];
-            state.currentSwap = false;
             var settings = GetTransitionSettings(variant);
             var effectSettings = !string.IsNullOrEmpty(effectVariant) ? GetEffectSettings(effectVariant) : null;
-            var loadA = LoadImage(images["transitionA"]!);
-            var loadB = LoadImage(images["transitionB"]!);
-            _ = ThenAsync();
-            return state;
-
-            // Promise.all([...]).then(...).catch(...)
-            async Task ThenAsync()
+            // settings.dir || [0, 0]: every variant has its direction.
+            var dir = settings.Dir;
+            return Start(canvas, CarouselGlMode.Transition, assets, state, textures => (_, elapsedSec) =>
             {
-                try
+                var progress = ComputeTransitionProgress(elapsedSec, state.TransitionSec, state.IntervalSec);
+                TrackCurrentImage(state, progress >= 0.5);
+                // gl.activeTexture and gl.bindTexture: the textures are the children u_tex1 and u_tex2.
+                using var uniforms = new SKRuntimeEffectUniforms(program)
                 {
-                    var loaded = await Task.WhenAll(loadA, loadB);
-                    if (!state.alive)
-                    {
-                        ReleaseUnused(state, loadA, loadB);
-                        return;
-                    }
-                    var texA = CreateTexture(state, loaded[0]);
-                    var texB = CreateTexture(state, loaded[1]);
-
-                    // gl.clearColor, gl.useProgram and the uniforms set once: every frame shader gets all its uniforms.
-                    // settings.dir || [0, 0]: every variant has its direction.
-                    var dir = settings.Dir;
-
-                    var start = CarouselGlCanvas.Now;
-                    state.nativeStart = start;
-
-                    StartLoop(state, (time) =>
-                    {
-                        canvas.ResizeCanvasToDisplaySize();
-                        // gl.clear: the frame shader replaces the whole frame.
-
-                        var elapsedSec = (time - start) * 0.001;
-                        var progress = ComputeTransitionProgress(elapsedSec, state.transitionSec, state.intervalSec);
-                        if (!string.IsNullOrEmpty(state.assetA) && !string.IsNullOrEmpty(state.assetB))
-                        {
-                            var isCurrentB = progress >= 0.5;
-                            state.currentSwap = isCurrentB;
-                            state.currentImage = isCurrentB ? state.assetB : state.assetA;
-                        }
-                        EffectParams? effectParams = effectSettings is not null ? GetEffectParams(effectSettings.Type, elapsedSec) : null;
-                        var effectOffsetX = effectParams?.OffsetX ?? 0;
-                        var effectOffsetY = effectParams?.OffsetY ?? 0;
-                        var effectScale = effectParams?.Scale ?? 1;
-                        var effectRotation = effectParams?.Rotation ?? 0;
-                        var effectAlpha = effectParams?.Alpha ?? 1;
-
-                        // gl.activeTexture and gl.bindTexture: the textures are the children u_tex1 and u_tex2.
-                        using var uniforms = new SKRuntimeEffectUniforms(program)
-                        {
-                            ["u_resolution"] = Vec2(canvas.Resolution.Width, canvas.Resolution.Height),
-                            ["u_variant"] = (float)settings.Type,
-                            ["u_direction"] = Vec2(dir[0], dir[1]),
-                            ["u_progress"] = (float)progress,
-                            ["u_effectOffset"] = Vec2(effectOffsetX, effectOffsetY),
-                            ["u_effectScale"] = (float)effectScale,
-                            ["u_effectRotation"] = (float)effectRotation,
-                            ["u_effectAlpha"] = (float)effectAlpha
-                        };
-                        DrawArrays(canvas, program, uniforms, ("u_tex1", texA), ("u_tex2", texB));
-                        canvas.Frame();
-                    });
-                }
-                catch (Exception err)
-                {
-                    ReleaseUnused(state, loadA, loadB);
-                    Debug.WriteLine("[CarouselGL] transition init failed " + err);
-                    canvas.DrawFallback("Not supported (asset load failed)");
-                }
-            }
+                    ["u_resolution"] = Vec2(canvas.Resolution.Width, canvas.Resolution.Height),
+                    ["u_variant"] = (float)settings.Type,
+                    ["u_direction"] = Vec2(dir[0], dir[1]),
+                    ["u_progress"] = (float)progress
+                };
+                SetEffectUniforms(uniforms, effectSettings, elapsedSec);
+                DrawArrays(canvas, program, uniforms, ("u_tex1", textures[0]), ("u_tex2", textures[1]));
+            });
         }
 
-        private static State? InitEffect(CarouselGlCanvas canvas, IReadOnlyDictionary<string, string>? assets, string? variant)
+        private static State InitEffect(CarouselGlCanvas canvas, IReadOnlyDictionary<string, string>? assets, string? variant)
         {
-            // FloweryNativeBridge.createContext: Skia needs no context of its own, so "WebGL unavailable" cannot occur.
-
             var program = EffectProgram.Value;
-
-            var state = new State(canvas)
-            {
-                intervalSec = 0
-            };
-
-            var images = ResolveImages("effect", assets);
-            if (string.IsNullOrEmpty(images["effect"]))
-            {
-                canvas.DrawFallback("Not supported (assets missing)");
-                return state;
-            }
+            var state = new State(canvas);
             var settings = GetEffectSettings(variant);
-            var load = LoadImage(images["effect"]!);
-            _ = ThenAsync();
-            return state;
-
-            // loadImage(...).then(...).catch(...)
-            async Task ThenAsync()
+            return Start(canvas, CarouselGlMode.Effect, assets, state, textures => (_, elapsedSec) =>
             {
-                try
+                var effectParams = GetEffectParams(settings.Type, elapsedSec);
+                // gl.activeTexture and gl.bindTexture: the texture is the child u_image.
+                using var uniforms = new SKRuntimeEffectUniforms(program)
                 {
-                    var img = await load;
-                    if (!state.alive)
-                    {
-                        ReleaseUnused(state, load);
-                        return;
-                    }
-                    var imageTexture = CreateTexture(state, img);
-
-                    // gl.clearColor, gl.useProgram and the uniforms set once: every frame shader gets all its uniforms.
-
-                    var start = CarouselGlCanvas.Now;
-                    state.nativeStart = start;
-
-                    StartLoop(state, (time) =>
-                    {
-                        canvas.ResizeCanvasToDisplaySize();
-                        // gl.clear: the frame shader replaces the whole frame.
-
-                        var elapsed = (time - start) * 0.001;
-                        var @params = GetEffectParams(settings.Type, elapsed);
-
-                        // gl.activeTexture and gl.bindTexture: the texture is the child u_image.
-                        using var uniforms = new SKRuntimeEffectUniforms(program)
-                        {
-                            ["u_resolution"] = Vec2(canvas.Resolution.Width, canvas.Resolution.Height),
-                            ["u_offset"] = Vec2(@params.OffsetX, @params.OffsetY),
-                            ["u_scale"] = (float)@params.Scale,
-                            ["u_rotation"] = (float)@params.Rotation,
-                            ["u_alpha"] = (float)@params.Alpha
-                        };
-                        DrawArrays(canvas, program, uniforms, ("u_image", imageTexture));
-                        canvas.Frame();
-                    });
-                }
-                catch (Exception err)
-                {
-                    ReleaseUnused(state, load);
-                    Debug.WriteLine("[CarouselGL] effect init failed " + err);
-                    canvas.DrawFallback("Not supported (asset load failed)");
-                }
-            }
+                    ["u_resolution"] = Vec2(canvas.Resolution.Width, canvas.Resolution.Height),
+                    ["u_offset"] = Vec2(effectParams.OffsetX, effectParams.OffsetY),
+                    ["u_scale"] = (float)effectParams.Scale,
+                    ["u_rotation"] = (float)effectParams.Rotation,
+                    ["u_alpha"] = (float)effectParams.Alpha
+                };
+                DrawArrays(canvas, program, uniforms, ("u_image", textures[0]));
+            });
         }
 
-        private static State? InitTextFill(CarouselGlCanvas canvas, IReadOnlyDictionary<string, string>? assets, string? variant)
+        private static State InitTextFill(CarouselGlCanvas canvas, IReadOnlyDictionary<string, string>? assets)
         {
-            // FloweryNativeBridge.createContext: Skia needs no context of its own, so "WebGL unavailable" cannot occur.
-
             var program = TextFillProgram.Value;
+            const double scale = 1.2;
 
             // maskCanvas and maskCtx: Avalonia draws the mask text (CreateTextMask); maskTexture is the image it made.
             SKImage? maskTexture = null;
-
-            var state = new State(canvas)
-            {
-                intervalSec = 0
-            };
+            var state = new State(canvas);
             // resize: if (resizeCanvasToDisplaySize(canvas, gl)) updateMask();
-            state.updateMask = UpdateMask;
-
-            var images = ResolveImages("text", assets);
-            if (string.IsNullOrEmpty(images["text"]))
+            state.UpdateMask = UpdateMask;
+            return Start(canvas, CarouselGlMode.Text, assets, state, textures =>
             {
-                canvas.DrawFallback("Not supported (assets missing)");
-                return state;
-            }
-            var load = LoadImage(images["text"]!);
-            _ = ThenAsync();
-            return state;
+                UpdateMask();
+                return (_, elapsedSec) =>
+                {
+                    var offsetX = Math.Sin(elapsedSec * 0.6) * 0.08;
+                    var offsetY = Math.Cos(elapsedSec * 0.4) * 0.06;
+                    // gl.activeTexture and gl.bindTexture: the textures are the children u_image and u_mask.
+                    using var uniforms = new SKRuntimeEffectUniforms(program)
+                    {
+                        ["u_resolution"] = Vec2(canvas.Resolution.Width, canvas.Resolution.Height),
+                        ["u_offset"] = Vec2(offsetX, offsetY),
+                        ["u_scale"] = (float)scale
+                    };
+                    DrawArrays(canvas, program, uniforms, ("u_image", textures[0]), ("u_mask", maskTexture!));
+                };
+            });
 
             void UpdateMask()
             {
@@ -1487,59 +1138,12 @@ namespace Flowery.Effects
 
                 // gl.texImage2D: the new mask replaces the old one in the texture.
                 var previous = maskTexture;
-                maskTexture = CreateTexture(state, mask);
+                maskTexture = mask;
+                state.Resources.Add(mask);
                 if (previous is not null)
                 {
-                    state.resources.Remove(previous);
+                    state.Resources.Remove(previous);
                     previous.Dispose();
-                }
-            }
-
-            // loadImage(...).then(...).catch(...)
-            async Task ThenAsync()
-            {
-                try
-                {
-                    var img = await load;
-                    if (!state.alive)
-                    {
-                        ReleaseUnused(state, load);
-                        return;
-                    }
-                    var imageTexture = CreateTexture(state, img);
-
-                    // gl.clearColor, gl.useProgram and the uniforms set once: every frame shader gets all its uniforms.
-
-                    var start = CarouselGlCanvas.Now;
-                    state.nativeStart = start;
-                    const double scale = 1.2;
-                    UpdateMask();
-
-                    StartLoop(state, (time) =>
-                    {
-                        if (canvas.ResizeCanvasToDisplaySize()) UpdateMask();
-                        // gl.clear: the frame shader replaces the whole frame.
-
-                        var elapsed = (time - start) * 0.001;
-                        var offsetX = Math.Sin(elapsed * 0.6) * 0.08;
-                        var offsetY = Math.Cos(elapsed * 0.4) * 0.06;
-
-                        // gl.activeTexture and gl.bindTexture: the textures are the children u_image and u_mask.
-                        using var uniforms = new SKRuntimeEffectUniforms(program)
-                        {
-                            ["u_resolution"] = Vec2(canvas.Resolution.Width, canvas.Resolution.Height),
-                            ["u_offset"] = Vec2(offsetX, offsetY),
-                            ["u_scale"] = (float)scale
-                        };
-                        DrawArrays(canvas, program, uniforms, ("u_image", imageTexture), ("u_mask", maskTexture!));
-                        canvas.Frame();
-                    });
-                }
-                catch (Exception err)
-                {
-                    ReleaseUnused(state, load);
-                    Debug.WriteLine("[CarouselGL] text init failed " + err);
-                    canvas.DrawFallback("Not supported (asset load failed)");
                 }
             }
         }
@@ -1580,21 +1184,13 @@ namespace Flowery.Effects
 
         // An image that loaded after stop, or with a failed sibling, never became a texture: the JS leaves it to the
         // garbage collector, the native image is released here.
-        private static void ReleaseUnused(State state, params Task<SKImage>[] loads)
+        private static void ReleaseUnused(State state, Task<SKImage>[] loads)
         {
             foreach (var load in loads)
             {
-                if (load.IsCompletedSuccessfully && !state.resources.Contains(load.Result))
+                if (load.IsCompletedSuccessfully && !state.Resources.Contains(load.Result))
                     load.Result.Dispose();
             }
-        }
-
-        // releaseContext: deletes what the context of the state created, its textures.
-        private static void ReleaseContext(State state)
-        {
-            foreach (var resource in state.resources)
-                resource.Dispose();
-            state.resources.Clear();
         }
 
         private static void Stop(CarouselGlCanvas canvas)
@@ -1609,66 +1205,29 @@ namespace Flowery.Effects
 
         protected internal override void Resize(CarouselGlCanvas canvas)
         {
-            if (canvas.State is not State state)
+            if (canvas.State is State state)
             {
-                return;
+                state.Resize();
             }
-            state.Resize();
         }
 
-        private static void Init(
-            CarouselGlCanvas canvas,
-            string? mode,
-            IReadOnlyDictionary<string, string>? assets,
-            string? variant,
-            string? effectVariant,
-            double transitionSec,
-            double sliceCount,
-            object? stagger,
-            double staggerMs,
-            double pixelateSize,
-            double dissolveDensity,
-            double flipAngle)
+        private static void Init(CarouselGlCanvas canvas, CarouselGlMode mode, IReadOnlyDictionary<string, string>? assets,
+            string? variant, string? effectVariant, TransitionParameters parameters)
         {
             Stop(canvas);
 
             State? state = null;
             try
             {
-                if (mode == "mask")
+                state = mode switch
                 {
-                    state = InitMask(
-                        canvas,
-                        assets,
-                        variant,
-                        effectVariant,
-                        transitionSec,
-                        sliceCount,
-                        stagger,
-                        staggerMs,
-                        pixelateSize,
-                        dissolveDensity);
-                }
-                else if (mode == "flip")
-                {
-                    state = InitFlip(canvas, assets, variant, effectVariant, transitionSec, flipAngle);
-                }
-                else if (mode == "transition")
-                {
-                    state = InitTransition(canvas, assets, variant, effectVariant, transitionSec);
-                }
-                else if (mode == "effect")
-                {
-                    state = InitEffect(canvas, assets, variant);
-                }
-                else if (mode == "text")
-                {
-                    state = InitTextFill(canvas, assets, variant);
-                }
-                else
-                {
-                    Debug.WriteLine("[CarouselGL] unknown mode " + mode);
-                }
+                    CarouselGlMode.Mask => InitMask(canvas, assets, variant, effectVariant, parameters),
+                    CarouselGlMode.Flip => InitFlip(canvas, assets, variant, effectVariant, parameters),
+                    CarouselGlMode.Transition => InitTransition(canvas, assets, variant, effectVariant, parameters),
+                    CarouselGlMode.Effect => InitEffect(canvas, assets, variant),
+                    CarouselGlMode.Text => InitTextFill(canvas, assets),
+                    _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unknown GL mode.")
+                };
             }
             catch (Exception err)
             {
@@ -1683,243 +1242,120 @@ namespace Flowery.Effects
 
         // ensureDebugHost, createDebugCanvas, debugStart and debugStop: no counterpart; the debug panel is a page element.
 
-        private readonly Dictionary<string, OverlayEntry> _overlayMap = new();
-
-        private OverlayEntry EnsureOverlayCanvas(string key, CarouselGlCanvas canvas)
-        {
-            if (_overlayMap.TryGetValue(key, out var entry))
-            {
-                return entry;
-            }
-
-            // The session's canvas takes the place of the page canvas; its fixed position, z-index, rounded corners and
-            // transparent background have no counterpart, since it fills its host.
-            entry = new OverlayEntry(canvas);
-            _overlayMap[key] = entry;
-            return entry;
-        }
+        // The overlay entry of the JS overlay map. A session has one canvas, the bridge's key "native-host", so the engine
+        // keeps a single entry; the session's canvas takes the place of the page canvas, and its fixed position, z-index,
+        // rounded corners and transparent background have no counterpart, since it fills its host.
+        private OverlayEntry? _overlay;
 
         // updateOverlayRect: no counterpart; the canvas fills its host, so attachOverlay only resizes it.
 
-        protected internal override void AttachOverlay(CarouselGlCanvas canvas, CarouselGlConfiguration configuration) =>
-            AttachOverlay(Key, canvas, configuration.Mode, configuration.Assets, configuration.Variant,
-                configuration.OverlayVariant, configuration.TransitionSeconds, configuration.SliceCount, configuration.Stagger,
-                configuration.StaggerMs, configuration.PixelateSize, configuration.DissolveDensity, configuration.FlipAngle);
-
-        private void AttachOverlay(
-            string key,
-            CarouselGlCanvas canvas,
-            string? mode,
-            IReadOnlyDictionary<string, string>? assets,
-            string? variant,
-            string? effectVariant,
-            double transitionSec,
-            double sliceCount,
-            object? stagger,
-            double staggerMs,
-            double pixelateSize,
-            double dissolveDensity,
-            double flipAngle)
+        protected internal override void AttachOverlay(CarouselGlCanvas canvas, CarouselGlConfiguration configuration)
         {
-            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(mode))
+            var entry = _overlay ??= new OverlayEntry(canvas);
+            var mode = configuration.Mode;
+            var assets = configuration.Assets;
+            var variant = string.IsNullOrEmpty(configuration.Variant) ? null : configuration.Variant;
+            var effectVariant = string.IsNullOrEmpty(configuration.OverlayVariant) ? null : configuration.OverlayVariant;
+            var parameters = TransitionParameters.From(configuration);
+            if (entry.Mode != mode || !SameAssets(entry.Assets, assets) || entry.Variant != variant || entry.EffectVariant != effectVariant)
             {
-                return;
+                var resolvedAssets = ResolveAssetsForCurrentImage(mode, assets, entry.Canvas.State as State);
+                entry.Mode = mode;
+                entry.Assets = assets;
+                entry.Variant = variant;
+                entry.EffectVariant = effectVariant;
+                entry.Parameters = parameters;
+                Init(entry.Canvas, mode, resolvedAssets, variant, effectVariant, parameters);
             }
-
-            var entry = EnsureOverlayCanvas(key, canvas);
-            var assetsKey = assets is not null ? Stringify(assets) : "";
-            var variantKey = variant ?? "";
-            var effectKey = effectVariant ?? "";
-            var transitionValue = transitionSec;
-            var nextTransitionSec = double.IsFinite(transitionValue) ? transitionValue : 0;
-            var nextSliceCount = ResolveSliceCount(sliceCount);
-            var nextStagger = ResolveStaggerFlag(stagger);
-            var nextStaggerMs = ResolveStaggerMs(staggerMs);
-            var pixelValue = ResolvePixelateSize(pixelateSize);
-            var nextDissolveDensity = ResolveDissolveDensity(dissolveDensity);
-            var nextFlipAngle = ResolveFlipAngle(flipAngle);
-            var previousState = entry.canvas.State as State;
-            var resolvedAssets = ResolveAssetsForCurrentImage(mode, assets, previousState);
-            if (entry.mode != mode || entry.assetsKey != assetsKey || entry.variant != variantKey || entry.effectVariant != effectKey)
+            else if (entry.Parameters != parameters)
             {
-                entry.mode = mode;
-                entry.assetsKey = assetsKey;
-                entry.variant = variantKey;
-                entry.effectVariant = effectKey;
-                entry.transitionSec = nextTransitionSec;
-                entry.sliceCount = nextSliceCount;
-                entry.stagger = nextStagger;
-                entry.staggerMs = nextStaggerMs;
-                entry.pixelateSize = pixelValue;
-                entry.dissolveDensity = nextDissolveDensity;
-                entry.flipAngle = nextFlipAngle;
-                Init(
-                    entry.canvas,
-                    mode,
-                    resolvedAssets,
-                    string.IsNullOrEmpty(variant) ? null : variant,
-                    string.IsNullOrEmpty(effectVariant) ? null : effectVariant,
-                    nextTransitionSec,
-                    nextSliceCount,
-                    nextStagger,
-                    nextStaggerMs,
-                    pixelValue,
-                    nextDissolveDensity,
-                    nextFlipAngle);
-            }
-            else if (entry.transitionSec != nextTransitionSec
-                || entry.sliceCount != nextSliceCount
-                || entry.stagger != nextStagger
-                || entry.staggerMs != nextStaggerMs
-                || entry.pixelateSize != pixelValue
-                || entry.dissolveDensity != nextDissolveDensity
-                || entry.flipAngle != nextFlipAngle)
-            {
-                entry.transitionSec = nextTransitionSec;
-                entry.sliceCount = nextSliceCount;
-                entry.stagger = nextStagger;
-                entry.staggerMs = nextStaggerMs;
-                entry.pixelateSize = pixelValue;
-                entry.dissolveDensity = nextDissolveDensity;
-                entry.flipAngle = nextFlipAngle;
-                SetOverlayTransitionDuration(key, nextTransitionSec);
-                SetOverlayTransitionParams(key, nextSliceCount, nextStagger, nextStaggerMs, pixelValue, nextDissolveDensity, nextFlipAngle);
+                SetOverlayTransitionDuration(parameters.TransitionSec);
+                SetOverlayTransitionParams(entry, parameters);
             }
             // updateOverlayRect(entry.canvas, left, top, width, height)
-            Resize(entry.canvas);
-        }
-
-        // JSON.stringify(assets), written without reflection.
-        private static string Stringify(IReadOnlyDictionary<string, string> assets)
-        {
-            using var stream = new MemoryStream();
-            using (var writer = new Utf8JsonWriter(stream))
-            {
-                writer.WriteStartObject();
-                foreach (var (name, value) in assets)
-                    writer.WriteString(name, value);
-                writer.WriteEndObject();
-            }
-            return Encoding.UTF8.GetString(stream.ToArray());
-        }
-
-        private void DetachOverlay(string key)
-        {
-            if (!_overlayMap.TryGetValue(key, out var entry))
-            {
-                return;
-            }
-
-            Stop(entry.canvas);
-            // entry.canvas.remove(): the session owns its canvas.
-            _overlayMap.Remove(key);
+            Resize(entry.Canvas);
         }
 
         protected internal override void DetachAllOverlays()
         {
-            foreach (var key in _overlayMap.Keys.ToArray()) DetachOverlay(key);
-        }
-
-        protected internal override void SetOverlayTiming(double intervalSec) => SetOverlayTiming(Key, intervalSec);
-
-        private void SetOverlayTiming(string key, double intervalSec)
-        {
-            if (!_overlayMap.TryGetValue(key, out var entry))
+            if (_overlay is not { } entry)
             {
                 return;
             }
 
-            var seconds = intervalSec;
-            entry.intervalSec = double.IsFinite(seconds) && seconds > 0 ? seconds : 0;
-            if (entry.canvas.State is State state)
-            {
-                state.intervalSec = entry.intervalSec;
-            }
+            Stop(entry.Canvas);
+            // entry.canvas.remove(): the session owns its canvas.
+            _overlay = null;
         }
 
-        protected internal override void SetOverlayTransitionDuration(double transitionSec) => SetOverlayTransitionDuration(Key, transitionSec);
-
-        private void SetOverlayTransitionDuration(string key, double transitionSec)
+        protected internal override void SetOverlayTiming(double intervalSec)
         {
-            if (!_overlayMap.TryGetValue(key, out var entry))
+            if (_overlay is not { } entry)
             {
                 return;
             }
 
-            var seconds = transitionSec;
-            entry.transitionSec = double.IsFinite(seconds) ? seconds : 0;
-            if (entry.canvas.State is State state)
+            entry.IntervalSec = double.IsFinite(intervalSec) && intervalSec > 0 ? intervalSec : 0;
+            if (entry.Canvas.State is State state)
             {
-                var fallback = double.IsFinite(state.defaultTransitionSec) ? state.defaultTransitionSec : 0;
-                state.baseTransitionSec = entry.transitionSec;
-                state.transitionSec = NormalizeTransitionSeconds(entry.transitionSec, fallback);
+                state.IntervalSec = entry.IntervalSec;
             }
         }
 
-        private void SetOverlayTransitionParams(
-            string key,
-            double sliceCount,
-            object? stagger,
-            double staggerMs,
-            double pixelateSize,
-            double dissolveDensity,
-            double flipAngle)
+        protected internal override void SetOverlayTransitionDuration(double transitionSec)
         {
-            if (!_overlayMap.TryGetValue(key, out var entry))
+            if (_overlay is not { } entry)
             {
                 return;
             }
 
-            var nextSliceCount = ResolveSliceCount(sliceCount);
-            var nextStagger = ResolveStaggerFlag(stagger);
-            var nextStaggerMs = ResolveStaggerMs(staggerMs);
-            var nextPixelateSize = ResolvePixelateSize(pixelateSize);
-            var nextDissolveDensity = ResolveDissolveDensity(dissolveDensity);
-            var nextFlipAngle = ResolveFlipAngle(flipAngle);
-
-            entry.sliceCount = nextSliceCount;
-            entry.stagger = nextStagger;
-            entry.staggerMs = nextStaggerMs;
-            entry.pixelateSize = nextPixelateSize;
-            entry.dissolveDensity = nextDissolveDensity;
-            entry.flipAngle = nextFlipAngle;
-
-            if (entry.canvas.State is State state)
+            var seconds = double.IsFinite(transitionSec) ? transitionSec : 0;
+            entry.Parameters = entry.Parameters with { TransitionSec = seconds };
+            if (entry.Canvas.State is State state)
             {
-                state.sliceCount = nextSliceCount;
-                state.stagger = nextStagger;
-                state.staggerMs = nextStaggerMs;
-                state.pixelateSize = nextPixelateSize;
-                state.dissolveDensity = nextDissolveDensity;
-                state.flipAngle = nextFlipAngle;
+                var fallback = double.IsFinite(state.DefaultTransitionSec) ? state.DefaultTransitionSec : 0;
+                state.BaseTransitionSec = seconds;
+                state.TransitionSec = NormalizeTransitionSeconds(seconds, fallback);
             }
         }
 
-        protected internal override void SetOverlayActive(bool isActive) => SetOverlayActive(Key, isActive);
-
-        private void SetOverlayActive(string key, bool isActive)
+        private static void SetOverlayTransitionParams(OverlayEntry entry, TransitionParameters parameters)
         {
-            if (!_overlayMap.TryGetValue(key, out var entry))
+            entry.Parameters = parameters;
+            if (entry.Canvas.State is State state)
+            {
+                state.SliceCount = parameters.SliceCount;
+                state.Stagger = parameters.Stagger;
+                state.StaggerMs = parameters.StaggerMs;
+                state.PixelateSize = parameters.PixelateSize;
+                state.DissolveDensity = parameters.DissolveDensity;
+                state.FlipAngle = parameters.FlipAngle;
+            }
+        }
+
+        protected internal override void SetOverlayActive(bool isActive)
+        {
+            if (_overlay is not { } entry)
             {
                 return;
             }
 
             // canvas.style.display: not ported. WinUI hid its overlay canvas while paused; this canvas fills its host,
             // so a hidden canvas would leave the host blank. Paused, it keeps its last frame as a still image.
-            if (isActive)
+            if (entry.Canvas.State is State state)
             {
-                if (entry.canvas.State is State state)
+                if (isActive)
                 {
                     state.Resume();
                 }
-                Resize(entry.canvas);
-            }
-            else
-            {
-                if (entry.canvas.State is State state)
+                else
                 {
                     state.Pause();
                 }
+            }
+            if (isActive)
+            {
+                Resize(entry.Canvas);
             }
         }
 
@@ -1940,23 +1376,24 @@ namespace Flowery.Effects
             var assets = new Dictionary<string, string> { ["maskA"] = RedImage.Value };
             assets["maskB"] = assets["flipB"] = assets["transitionB"] = BlueImage.Value;
             assets["flipA"] = assets["transitionA"] = assets["effect"] = assets["text"] = assets["maskA"];
-            (string mode, string variant)[] definitions =
+            (CarouselGlMode Mode, string Variant)[] definitions =
             [
-                .. MaskVariants.Keys.Select(variant => ("mask", variant)),
-                .. FlipVariants.Keys.Select(variant => ("flip", variant)),
-                .. TransitionVariants.Keys.Select(variant => ("transition", variant)),
-                .. EffectVariants.Keys.Select(variant => ("effect", variant)),
-                ("text", "text-fill")
+                .. MaskVariants.Keys.Select(static variant => (CarouselGlMode.Mask, variant)),
+                .. FlipVariants.Keys.Select(static variant => (CarouselGlMode.Flip, variant)),
+                .. TransitionVariants.Keys.Select(static variant => (CarouselGlMode.Transition, variant)),
+                .. EffectVariants.Keys.Select(static variant => (CarouselGlMode.Effect, variant)),
+                (CarouselGlMode.Text, "text-fill")
             ];
+            var parameters = new TransitionParameters(1, 8, true, 50, 20, 0.5, 180);
             var result = new List<string>();
-            foreach (var definition in definitions)
+            foreach (var (mode, variant) in definitions)
             {
                 var canvas = new CarouselGlCanvas { Width = 64, Height = 64 };
                 try
                 {
-                    Init(canvas, definition.mode, assets, definition.variant, null, 1, 8, true, 50, 20, 0.5, 180);
+                    Init(canvas, mode, assets, variant, null, parameters);
                     await canvas.WaitFrameAsync();
-                    result.Add(definition.mode + ":" + definition.variant);
+                    result.Add(mode.ToString().ToLowerInvariant() + ":" + variant);
                 }
                 finally
                 {
@@ -1978,111 +1415,131 @@ namespace Flowery.Effects
 
         internal readonly record struct EffectParams(double OffsetX, double OffsetY, double Scale, double Rotation, double Alpha);
 
-        private sealed class OverlayEntry
+        // The transition settings of a configuration as the engine uses them (JS entry.transitionSec, entry.sliceCount
+        // and so on): resolved to the values the programs take.
+        internal readonly record struct TransitionParameters(double TransitionSec, double SliceCount, bool Stagger, double StaggerMs,
+            double PixelateSize, double DissolveDensity, double FlipAngle)
         {
-            public OverlayEntry(CarouselGlCanvas canvas)
-            {
-                this.canvas = canvas;
-            }
-
-            public readonly CarouselGlCanvas canvas;
-            public string? mode;
-            public string? assetsKey;
-            public string? variant;
-            public string? effectVariant;
-            public double intervalSec;
-            public double transitionSec;
-            public double sliceCount;
-            public bool stagger = true;
-            public double staggerMs = 50;
-            public double pixelateSize = 20;
-            public double dissolveDensity = 0.5;
-            public double flipAngle = 180;
+            public static TransitionParameters From(CarouselGlConfiguration configuration) => new(
+                double.IsFinite(configuration.TransitionSeconds) ? configuration.TransitionSeconds : 0,
+                ResolveSliceCount(configuration.SliceCount),
+                configuration.Stagger,
+                ResolveStaggerMs(configuration.StaggerMs),
+                ResolvePixelateSize(configuration.PixelateSize),
+                ResolveDissolveDensity(configuration.DissolveDensity),
+                ResolveFlipAngle(configuration.FlipAngle));
         }
 
-        // The state of an effect on a canvas, with the field names of the JS object. Fields a mode does not set keep
-        // their defaults, as the JS reads them as undefined.
-        internal sealed class State : ICarouselGlState
+        private sealed class OverlayEntry(CarouselGlCanvas canvas)
         {
-            public State(CarouselGlCanvas canvas)
-            {
-                this.canvas = canvas;
-            }
+            public CarouselGlCanvas Canvas { get; } = canvas;
+            public CarouselGlMode? Mode { get; set; }
+            public IReadOnlyDictionary<string, string>? Assets { get; set; }
+            public string? Variant { get; set; }
+            public string? EffectVariant { get; set; }
+            public double IntervalSec { get; set; }
+            public TransitionParameters Parameters { get; set; }
+        }
 
-            public readonly CarouselGlCanvas canvas;
+        // The state of an effect on a canvas, the JS object of initMask and the other inits. Values a mode does not set
+        // keep their defaults, as the JS reads them as undefined.
+        internal sealed class State(CarouselGlCanvas canvas) : ICarouselGlState
+        {
+            public CarouselGlCanvas Canvas { get; } = canvas;
             // gl: no counterpart; the resources its context tracked for releaseContext are the textures.
-            public readonly List<IDisposable> resources = [];
-            public bool alive = true;
-            public bool running;
-            public int raf;
-            public double intervalSec;
-            public double baseTransitionSec;
-            public double transitionSec;
-            public double sliceCount;
-            public bool stagger;
-            public double staggerMs;
-            public double pixelateSize;
-            public double dissolveDensity;
-            public double flipAngle;
-            public string? assetA;
-            public string? assetB;
-            public string? currentImage;
-            public bool currentSwap;
-            public double defaultTransitionSec = double.NaN;
-            public double seed;
-            public double seedPhase = -1;
-            public double wormholeStart;
-            public bool wormholeSwap;
-            public double? nativeStart;
-            public Action<double>? _render;
-            public Action<double>? _frame;
+            public List<IDisposable> Resources { get; } = [];
+            public bool Alive { get; private set; } = true;
+            public bool Running { get; private set; }
+            public int FrameHandle { get; private set; }
+            public double IntervalSec { get; set; }
+            public double BaseTransitionSec { get; set; }
+            public double TransitionSec { get; set; }
+            public double SliceCount { get; set; }
+            public bool Stagger { get; set; }
+            public double StaggerMs { get; set; }
+            public double PixelateSize { get; set; }
+            public double DissolveDensity { get; set; }
+            public double FlipAngle { get; set; }
+            public string? AssetA { get; set; }
+            public string? AssetB { get; set; }
+            public string? CurrentImage { get; set; }
+            public bool CurrentSwap { get; set; }
+            public double DefaultTransitionSec { get; init; } = double.NaN;
+            public double Seed { get; set; }
+            public int SeedPhase { get; set; } = -1;
+            public double WormholeStart { get; set; }
+            public bool WormholeSwap { get; set; }
+            public double? NativeStart { get; set; }
+            // state._render: draws one frame at a time.
+            public Action<double>? Draw { get; set; }
+            // startLoop's frame function, which draws and asks for the next frame.
+            public Action<double>? FrameCallback { get; set; }
             // The text mode's resize also redraws its mask.
-            public Action? updateMask;
+            public Action? UpdateMask { get; set; }
 
             public void Pause()
             {
-                PauseState(this);
+                if (!Running)
+                {
+                    return;
+                }
+                Running = false;
+                if (FrameHandle != 0)
+                {
+                    Canvas.CancelAnimationFrame(FrameHandle);
+                    FrameHandle = 0;
+                }
             }
 
             public void Resume()
             {
-                ResumeState(this);
+                if ((Running && FrameHandle != 0) || !Alive)
+                {
+                    return;
+                }
+                Running = true;
+                if (FrameCallback is not null)
+                {
+                    FrameHandle = Canvas.RequestAnimationFrame(FrameCallback);
+                }
             }
 
+            // releaseContext: deletes what the context of the state created, its textures.
             public void Stop()
             {
-                alive = false;
-                PauseState(this);
-                ReleaseContext(this);
-                _frame = null;
-                _render = null;
+                Alive = false;
+                Pause();
+                foreach (var resource in Resources)
+                    resource.Dispose();
+                Resources.Clear();
+                FrameCallback = null;
+                Draw = null;
             }
 
             public void Resize()
             {
-                if (canvas.ResizeCanvasToDisplaySize())
+                if (Canvas.ResizeCanvasToDisplaySize())
                 {
-                    updateMask?.Invoke();
+                    UpdateMask?.Invoke();
                 }
             }
 
-            // startLoop's frame function.
             public void Frame(double time)
             {
-                if (!running)
+                if (!Running)
                 {
                     return;
                 }
-                try { _render!(time); }
-                catch (Exception error) { canvas.Fail(error); PauseState(this); return; }
-                raf = canvas.RequestAnimationFrame(_frame!);
+                try { Draw!(time); }
+                catch (Exception error) { Canvas.Fail(error); Pause(); return; }
+                FrameHandle = Canvas.RequestAnimationFrame(FrameCallback!);
             }
 
-            Action<double>? ICarouselGlState.Render => _render;
+            Action<double>? ICarouselGlState.Render => Draw;
 
-            bool ICarouselGlState.Running => running;
+            bool ICarouselGlState.Running => Running;
 
-            double? ICarouselGlState.NativeStart => nativeStart;
+            double? ICarouselGlState.NativeStart => NativeStart;
 
             double? ICarouselGlState.StartTime => null;
         }

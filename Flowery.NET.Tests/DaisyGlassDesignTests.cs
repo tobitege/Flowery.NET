@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+﻿using System.Globalization;
 using System.Text.Json;
 using Avalonia;
 using Avalonia.Automation;
@@ -15,8 +15,11 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Enums;
+using Flowery.Helpers;
+using Flowery.Localization;
 using Flowery.Skia;
 using Xunit;
+using static Flowery.NET.Tests.TestControls;
 using DaisyBadgeVariant = Flowery.Controls.DaisyBadgeVariant;
 using DaisySize = Flowery.Controls.DaisySize;
 
@@ -25,8 +28,6 @@ namespace Flowery.NET.Tests;
 /// <summary>
 /// DaisyGlassDesign and DaisyGlassDesigner, which describe a glass look for every control on glass.
 /// </summary>
-// Some tests change the language, which the localization tests must not see.
-[Collection("LocalizationTests")]
 public class DaisyGlassDesignTests
 {
     [AvaloniaFact]
@@ -226,7 +227,7 @@ public class DaisyGlassDesignTests
         try
         {
             designer.GetVisualDescendants().OfType<RadioButton>()
-                .Single(tab => Avalonia.Automation.AutomationProperties.GetAutomationId(tab) == "GlassDesigner_TabMotion").IsChecked = true;
+                .Single(tab => AutomationProperties.GetAutomationId(tab) == "GlassDesigner_TabMotion").IsChecked = true;
             window.UpdateLayout();
             var accent = designer.GetVisualDescendants().OfType<RadioButton>().Single(chip => chip.GroupName?.StartsWith("gbd-effect-color-") == true);
             Assert.True(accent.IsChecked);
@@ -285,7 +286,7 @@ public class DaisyGlassDesignTests
         {
             var help = designer.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.IconSymbol == DaisyIconSymbol.Help);
             Assert.True(help.Focus());
-            help.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent, help));
+            help.PointerClick();
             Dispatcher.UIThread.RunJobs();
 
             var overlay = OverlayLayer.GetOverlayLayer(designer)!;
@@ -315,10 +316,10 @@ public class DaisyGlassDesignTests
         try
         {
             designer.GetVisualDescendants().OfType<RadioButton>()
-                .Single(tab => Avalonia.Automation.AutomationProperties.GetAutomationId(tab) == "GlassDesigner_TabFill").IsChecked = true;
+                .Single(tab => AutomationProperties.GetAutomationId(tab) == "GlassDesigner_TabFill").IsChecked = true;
             window.UpdateLayout();
             var ember = designer.GetVisualDescendants().OfType<Button>().Single(tile => ToolTip.GetTip(tile) as string == "Ember");
-            ember.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent, ember));
+            ember.PointerClick();
             window.UpdateLayout();
 
             var design = designer.Design;
@@ -354,7 +355,7 @@ public class DaisyGlassDesignTests
             var sunset = designer.GetVisualDescendants().OfType<Button>()
                 .Single(tile => tile.Classes.Contains("gbd-tile") && ToolTip.GetTip(tile) as string == "Sunset");
             Assert.Equal(DaisyButtonShape.Wide, sunset.GetVisualDescendants().OfType<DaisyButton>().Single().Shape);
-            neon.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent, neon));
+            neon.PointerClick();
 
             Assert.Equal(DaisyButtonVariant.Accent, designer.PreviewVariant);
             Assert.Equal(DaisyButtonStyle.Outline, designer.PreviewButtonStyle);
@@ -435,6 +436,16 @@ public class DaisyGlassDesignTests
 
         DaisyGlassSurface.SetBackground(button, background);
         DaisyGlassDesign.FromControl(button).ApplyTo(button);
+        Assert.Same(fill, DaisyGlassSurface.GetFill(button));
+
+        var own = new OwnBackground();
+        DaisyGlassSurface.SetBackground(button, own);
+        design = DaisyGlassDesign.FromControl(button);
+        Assert.Equal(DaisyGlassBackgroundRenderer.Keep, design.BackgroundRenderer);
+        design.Blur = 20;
+        design.ApplyTo(button);
+        Assert.Equal(20, DaisyGlassSurface.GetBlur(button));
+        Assert.Same(own, DaisyGlassSurface.GetBackground(button));
         Assert.Same(fill, DaisyGlassSurface.GetFill(button));
     }
 
@@ -764,6 +775,10 @@ public class DaisyGlassDesignTests
             DaisyAccessibility.HighContrastOverride = true;
             Dispatcher.UIThread.RunJobs();
             Assert.Equal(Colors.Transparent, card.BoxShadow[0].Color);
+            // The dimming becomes the solid contrast base, and the card gets an outline instead.
+            Assert.Same(window.FindResource("DaisyBase100Brush"), backdrop.Background);
+            Assert.Same(window.FindResource("DaisyBaseContentBrush"), card.BorderBrush);
+            Assert.Equal(new Thickness(2), card.BorderThickness);
 
             OverlayButton(overlay, "GlassDesigner_Cancel").PointerClick();
             Assert.Null(await open);
@@ -882,6 +897,284 @@ public class DaisyGlassDesignTests
     }
 
     [AvaloniaFact]
+    public void The_Styles_Of_The_Parts_Belong_To_The_Designer_And_Not_To_The_App()
+    {
+        // Regression: about 45 styles of the form "DaisyGlassDesigner Border.gbd-root" were app styles, so every app
+        // matched them against each of its borders, texts and buttons, also without a designer.
+        Assert.DoesNotContain(Selectors(Application.Current!.Styles), static selector => selector.Contains("gbd-", StringComparison.Ordinal));
+
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            Assert.Contains(Selectors(designer.Styles), static selector => selector.Contains("gbd-root", StringComparison.Ordinal));
+            var root = designer.GetVisualDescendants().OfType<Border>().First(static border => border.Classes.Contains("gbd-root"));
+            Assert.Same(window.FindResource("DaisyBase100Brush"), root.Background);
+            Assert.Equal(new CornerRadius(24), root.CornerRadius);
+        }
+        finally
+        {
+            window.Close();
+        }
+
+        static List<string> Selectors(IEnumerable<IStyle> styles)
+        {
+            var result = new List<string>();
+            foreach (var style in styles)
+            {
+                switch (style)
+                {
+                    case Style { Selector: { } selector } plain:
+                        result.Add(selector.ToString());
+                        result.AddRange(Selectors(plain.Children));
+                        break;
+                    case Avalonia.Markup.Xaml.Styling.StyleInclude include when include.Loaded is { } loaded:
+                        result.AddRange(Selectors([loaded]));
+                        break;
+                    case Styles nested:
+                        result.AddRange(Selectors(nested));
+                        break;
+                }
+            }
+            return result;
+        }
+    }
+
+    [AvaloniaFact]
+    public void Muted_Texts_Use_The_Muted_Brush_And_The_Gradient_Names_Sit_On_A_Dark_Pill()
+    {
+        // Regression: muted texts were dimmed with an opacity of 0.55 to 0.7, which dropped the hints below 4.5:1 in most
+        // palettes and stayed dim with high contrast; the names on the gradient tiles were white on the bare gradient.
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            var muted = window.FindResource("DaisyBaseContentMutedBrush");
+            var texts = designer.GetVisualDescendants().OfType<TextBlock>()
+                .Where(static text => text.Classes.Contains("gbd-label") || text.Classes.Contains("gbd-hint") || text.Classes.Contains("gbd-subtitle"))
+                .ToList();
+            Assert.NotEmpty(texts);
+            Assert.All(texts, text => Assert.Same(muted, text.Foreground));
+            Assert.All(texts, static text => Assert.Equal(1, text.Opacity));
+
+            SelectTab(designer, "Fill");
+            Chip(designer, "Preset").IsChecked = true;
+            designer.UpdateLayout();
+            var gradient = Tiles(designer, "gbd-gradient").First();
+            var pill = gradient.GetVisualDescendants().OfType<Border>().Single(static border => border.Name == "PART_Name");
+            Assert.Equal(Color.Parse("#99000000"), Assert.IsAssignableFrom<ISolidColorBrush>(pill.Background).Color);
+            Assert.Equal(Colors.White, Assert.IsAssignableFrom<ISolidColorBrush>(pill.GetVisualDescendants().OfType<TextBlock>().Single().Foreground).Color);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void With_High_Contrast_The_Code_Drawer_Stage_Bar_And_Swatches_Take_The_Contrast_Palette()
+    {
+        // Regression: the code drawer, the stage bar, the swatch borders and the overlay kept their fixed colors.
+        var previousContrast = DaisyAccessibility.HighContrastOverride;
+        DaisyAccessibility.HighContrastOverride = false;
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            var code = designer.GetVisualDescendants().OfType<Border>().First(static border => border.Classes.Contains("gbd-code"));
+            var bar = designer.GetVisualDescendants().OfType<Border>().First(static border => border.Classes.Contains("gbd-stage-bar"));
+            var swatch = Tiles(designer, "gbd-swatch").First(static swatch => swatch.IsChecked != true)
+                .GetVisualDescendants().OfType<Border>().Single(static border => border.Name == "PART_Swatch");
+            Assert.Equal(Color.Parse("#0B1020"), Assert.IsAssignableFrom<ISolidColorBrush>(code.Background).Color);
+
+            DaisyAccessibility.HighContrastOverride = true;
+            Dispatcher.UIThread.RunJobs();
+            var background = Assert.IsAssignableFrom<ISolidColorBrush>(window.FindResource("DaisyBase100Brush")).Color;
+            var text = Assert.IsAssignableFrom<ISolidColorBrush>(window.FindResource("DaisyBaseContentBrush")).Color;
+            Assert.Equal(background, Assert.IsAssignableFrom<ISolidColorBrush>(code.Background).Color);
+            Assert.Equal(text, Assert.IsAssignableFrom<ISolidColorBrush>(code.BorderBrush).Color);
+            Assert.Equal(background, Assert.IsAssignableFrom<ISolidColorBrush>(bar.Background).Color);
+            Assert.Equal(text, Assert.IsAssignableFrom<ISolidColorBrush>(swatch.BorderBrush).Color);
+            var codeText = code.GetLogicalDescendants().OfType<SelectableTextBlock>().First();
+            Assert.Equal(text, Assert.IsAssignableFrom<ISolidColorBrush>(codeText.Foreground).Color);
+        }
+        finally
+        {
+            window.Close();
+            DaisyAccessibility.HighContrastOverride = previousContrast;
+        }
+    }
+
+    [AvaloniaFact]
+    public void An_Error_Is_An_Alert_On_The_Error_Surface_Also_With_High_Contrast()
+    {
+        // Regression: the error text was a fixed light red on the base of the theme, below 4.5:1 on most light themes.
+        var previousContrast = DaisyAccessibility.HighContrastOverride;
+        DaisyAccessibility.HighContrastOverride = false;
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            // The file error under the tabs and the import error in the code drawer.
+            var alerts = designer.GetLogicalDescendants().OfType<Border>().Where(static border => border.Classes.Contains("gbd-error")).ToList();
+            Assert.Equal(2, alerts.Count);
+            foreach (var alert in alerts)
+            {
+                Assert.Same(window.FindResource("DaisyErrorBrush"), alert.Background);
+                Assert.Same(window.FindResource("DaisyErrorContentBrush"), Assert.IsType<TextBlock>(alert.Child).Foreground);
+                Assert.Equal(new CornerRadius(14), alert.CornerRadius);
+                Assert.Equal(new Thickness(12, 8), alert.Padding);
+            }
+
+            DaisyAccessibility.HighContrastOverride = true;
+            Dispatcher.UIThread.RunJobs();
+            foreach (var alert in alerts)
+            {
+                var background = Assert.IsAssignableFrom<ISolidColorBrush>(alert.Background).Color;
+                var text = Assert.IsAssignableFrom<ISolidColorBrush>(Assert.IsType<TextBlock>(alert.Child).Foreground).Color;
+                Assert.True(FloweryColorHelpers.GetContrastRatio(text, background) >= 4.5, $"{text} on {background}.");
+            }
+        }
+        finally
+        {
+            window.Close();
+            DaisyAccessibility.HighContrastOverride = previousContrast;
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Fonts_Tiles_And_Swatches_Follow_The_Size_The_Global_Size_And_The_Scale_Factor()
+    {
+        // Regression: every font and tile size was fixed, so the designer ignored the global size and FloweryScaleManager.
+        using var scope = new FlowerySizeManagerPropagationTests.SizeScope();
+        var designer = new DaisyGlassDesigner();
+        scope.Show(designer);
+        scope.Window.Width = 1100;
+        scope.Window.Height = 1300;
+        scope.Layout();
+
+        double Token(string key) => (double)scope.Window.FindResource(key)!;
+        TextBlock Label() => designer.GetVisualDescendants().OfType<TextBlock>().First(static text => text.Classes.Contains("gbd-label"));
+        Border Swatch() => designer.GetVisualDescendants().OfType<Border>().First(static border => border.Name == "PART_Swatch");
+        Border PresetTile() => designer.GetVisualDescendants().OfType<Border>().First(static border => border.Classes.Contains("gbd-tile-stage"));
+
+        Assert.Equal(DaisySize.Medium, designer.Size);
+        Assert.Equal(11, Label().FontSize);
+        Assert.Equal(22, Swatch().Width);
+        Assert.Equal(150, PresetTile().Width);
+
+        designer.Size = DaisySize.Large;
+        scope.Layout();
+        var large = Token("DaisySizeLargeFontSize") / Token("DaisySizeMediumFontSize");
+        Assert.Equal(11 * Token("DaisySizeLargeTertiaryFontSize") / Token("DaisySizeMediumTertiaryFontSize"), Label().FontSize, 6);
+        Assert.Equal(Math.Round(22 * large), Swatch().Width);
+        Assert.Equal(Math.Round(150 * large), PresetTile().Width);
+        // The stage, the disc behind the preview and the help, which set their sizes in code, follow too.
+        var stage = designer.GetVisualDescendants().OfType<Border>().First(static border => border.Classes.Contains("gbd-stage"));
+        Assert.Equal(Math.Round(240 * large), stage.Height);
+        Assert.Contains(stage.GetVisualDescendants().OfType<Border>(), border => border.RenderTransform is TranslateTransform
+            && border.Width == Math.Round(120 * large));
+        var help = designer.ShowHelp()!;
+        var title = help.GetLogicalDescendants().OfType<TextBlock>().First();
+        Assert.Equal(20 * Token("DaisySizeLargeHeaderFontSize") / Token("DaisySizeMediumHeaderFontSize"), title.FontSize, 6);
+        help.GetLogicalDescendants().OfType<DaisyButton>().Single(static button => AutomationProperties.GetAutomationId(button) == "GlassDesigner_HelpClose")
+            .RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        scope.Layout();
+
+        // The global size sets the size of a designer that has none of its own.
+        designer.ClearValue(DaisyGlassDesigner.SizeProperty);
+        FlowerySizeManager.ApplySize(DaisySize.Small);
+        scope.Layout();
+        Assert.Equal(DaisySize.Small, designer.Size);
+        var small = Token("DaisySizeSmallFontSize") / Token("DaisySizeMediumFontSize");
+        Assert.Equal(Math.Round(22 * small), Swatch().Width);
+
+        // The scale factor of FloweryScaleManager shrinks the tiles and swatches.
+        designer.ApplyScaleFactor(0.5);
+        scope.Layout();
+        Assert.Equal(Math.Round(22 * small * 0.5), Swatch().Width);
+        Assert.Equal(Math.Round(150 * small * 0.5), PresetTile().Width);
+
+        // A size given before the designer is shown applies once it is.
+        designer = new DaisyGlassDesigner { Size = DaisySize.Large };
+        scope.Window.Content = designer;
+        scope.Layout();
+        Assert.Equal(Math.Round(22 * large), Swatch().Width);
+    }
+
+    [AvaloniaFact]
+    public void The_Backdrop_Swatches_Are_Named_In_The_Language_Of_The_App()
+    {
+        // Regression: the tooltips showed the names of an internal enum, in English in every language.
+        using var culture = new CultureScope();
+        FloweryLocalization.SetCulture(new CultureInfo("de"));
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            var names = Tiles(designer, "gbd-swatch").Select(static swatch => ToolTip.GetTip(swatch)).ToArray();
+            Assert.Equal(["Polarlicht", "Sonnenuntergang", "Nacht", "Papier"], names);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_Slider_Writes_Only_Its_Own_Value_And_Keeps_The_Fill_And_Background()
+    {
+        // Regression: every slider tick applied the whole design, which made a new fill brush, a new effective fill and
+        // a new contrast calculation, although the fill never changed.
+        var designer = new DaisyGlassDesigner();
+        var window = Show(designer, 1100, 1300);
+        try
+        {
+            var preview = designer.PreviewButton;
+            SelectTab(designer, "Fill");
+            Chip(designer, "Linear").IsChecked = true;
+            var fill = DaisyGlassSurface.GetFill(preview);
+            var effective = DaisyGlassSurface.GetGlass(preview)!.EffectiveGlassFill;
+            Assert.IsType<LinearGradientBrush>(fill);
+
+            SelectTab(designer, "Glass");
+            SetSlider(designer, "GlassDesigner_Blur", 50);
+            SetSlider(designer, "GlassDesigner_Blur", 51);
+
+            Assert.Equal(51, DaisyGlassSurface.GetGlass(preview)!.GlassBlur);
+            Assert.Same(fill, DaisyGlassSurface.GetFill(preview));
+            Assert.Same(effective, DaisyGlassSurface.GetGlass(preview)!.EffectiveGlassFill);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [Fact]
+    public void A_Design_Read_From_A_Control_With_Values_Out_Of_Range_Saves_As_Json_That_Reads_Back()
+    {
+        // Regression: FromControl took any value, and FromJson rejected the file the designer then saved.
+        var button = new DaisyButton();
+        DaisyGlassSurface.SetZoom(button, 4);
+        DaisyGlassSurface.SetBlur(button, -5);
+        DaisyGlassSurface.SetTintOpacity(button, 2);
+        DaisyGlassSurface.SetSaturation(button, double.NaN);
+        DaisyGlassSurface.SetFill(button, new LinearGradientBrush
+        {
+            GradientStops = { new GradientStop(Colors.Red, 0), new GradientStop(Colors.Blue, 1.5) }
+        });
+
+        var design = DaisyGlassDesign.FromControl(button);
+        var read = DaisyGlassDesign.FromJson(design.ToJson());
+
+        Assert.Equal((3, 0, 1, 1), (read.Zoom, read.Blur, read.TintOpacity, read.Saturation));
+        // A stop past the end is no fill the design can describe, so it stays on the control.
+        Assert.Equal(DaisyGlassFillKind.Keep, design.FillKind);
+        Assert.Equal(design.ToJson(), read.ToJson());
+    }
+
+    [AvaloniaFact]
     public void The_Preview_Of_A_Kept_Fill_Or_Background_Shows_That_Of_The_Control()
     {
         var designer = new DaisyGlassDesigner { Design = Custom(DaisyGlassFillKind.Linear) };
@@ -933,22 +1226,21 @@ public class DaisyGlassDesignTests
         var previous = Flowery.Localization.FloweryLocalization.CurrentCulture;
         var designer = new DaisyGlassDesigner();
         var window = Show(designer, 1100, 1300);
-        var motion = typeof(DaisyGlassDesigner).GetField("_motion", BindingFlags.NonPublic | BindingFlags.Instance)!;
         try
         {
             Flowery.Localization.FloweryLocalization.SetCulture("en");
             Dispatcher.UIThread.RunJobs();
             designer.GetVisualDescendants().OfType<DaisyToggle>().Single(toggle => (string?)toggle.Content == "Move").IsChecked = true;
-            Assert.NotNull(motion.GetValue(designer));
+            Assert.True(designer.IsDiscMoving);
 
             window.Content = null;
-            Assert.Null(motion.GetValue(designer));
+            Assert.False(designer.IsDiscMoving);
             Flowery.Localization.FloweryLocalization.SetCulture("de");
             window.Content = designer;
             Dispatcher.UIThread.RunJobs();
             window.UpdateLayout();
 
-            Assert.NotNull(motion.GetValue(designer));
+            Assert.True(designer.IsDiscMoving);
             var tab = Tiles(designer, "gbd-tab").Single(button => AutomationProperties.GetAutomationId(button) == "GlassDesigner_TabGlass");
             Assert.Equal("Glas", tab.Content);
         }
@@ -1131,15 +1423,6 @@ public class DaisyGlassDesignTests
         TextContrast = false
     };
 
-    private static Window Show(Control content, double width = 400, double height = 300)
-    {
-        var window = new Window { Width = width, Height = height, Content = content };
-        window.Show();
-        Dispatcher.UIThread.RunJobs();
-        window.UpdateLayout();
-        return window;
-    }
-
     private static Button OverlayButton(OverlayLayer overlay, string key) =>
-        overlay.GetVisualDescendants().OfType<Button>().Single(button => Avalonia.Automation.AutomationProperties.GetAutomationId(button) == key);
+        overlay.GetVisualDescendants().OfType<Button>().Single(button => AutomationProperties.GetAutomationId(button) == key);
 }

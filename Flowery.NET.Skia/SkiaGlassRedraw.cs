@@ -153,11 +153,12 @@ namespace Flowery.Skia
             Volatile.Write(ref _measureDue, ChangeDue);
             if (Interlocked.Exchange(ref _changeQueued, 1) == 1)
                 return;
-            Dispatcher.UIThread.Post(() =>
+            Dispatcher.UIThread.Post(static state =>
             {
-                _changeQueued = 0;
-                Group()?.Join(this, extend: true);
-            }, DispatcherPriority.Render);
+                var redraw = (SkiaGlassRedraw)state!;
+                redraw._changeQueued = 0;
+                redraw.Group()?.Join(redraw, extend: true);
+            }, this, DispatcherPriority.Render);
         }
 
         /// <summary>
@@ -239,11 +240,12 @@ namespace Flowery.Skia
         {
             if (Interlocked.Exchange(ref _holdQueued, 1) == 1)
                 return;
-            Dispatcher.UIThread.Post(() =>
+            Dispatcher.UIThread.Post(static state =>
             {
-                _holdQueued = 0;
-                Group()?.Join(this, extend: false);
-            }, DispatcherPriority.Render);
+                var redraw = (SkiaGlassRedraw)state!;
+                redraw._holdQueued = 0;
+                redraw.Group()?.Join(redraw, extend: false);
+            }, this, DispatcherPriority.Render);
         }
 
         private void Redraw()

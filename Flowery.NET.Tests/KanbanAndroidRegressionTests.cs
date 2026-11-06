@@ -4,7 +4,6 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
-using Avalonia.Input.Raw;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -236,12 +235,7 @@ public partial class KanbanAndroidRegressionTests
             var point = tile.TranslatePoint(new Point(24, 24), window)!.Value;
             var touch = window.TouchBegin(point, RawInputModifiers.None);
             window.TouchEnd(touch, point, RawInputModifiers.None);
-            // The board loads on a worker thread and comes back through the dispatcher.
-            for (var attempt = 0; attempt < 50 && board.CurrentView != FlowKanbanView.Board; attempt++)
-            {
-                Thread.Sleep(20);
-                Flush(window);
-            }
+            WaitForBoardView(window, board);
 
             Assert.Equal(FlowKanbanView.Board, board.CurrentView);
             Assert.Equal(saved.Id, board.Board.Id);
@@ -311,8 +305,7 @@ public partial class KanbanAndroidRegressionTests
 
             var collapsed = !column.IsCollapsed;
             column.IsCollapsed = collapsed;
-            timer = (DispatcherTimer?)typeof(FlowKanban).GetField("_autoSaveTimer",
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(board);
+            timer = board.AutoSaveTimer;
             Assert.True(timer?.IsEnabled, "the edit did not start an auto-save");
 
             // Home and back to the same board before the auto-save came; the tile loads the board on a worker thread.
@@ -322,11 +315,7 @@ public partial class KanbanAndroidRegressionTests
             var point = tile.TranslatePoint(new Point(24, 24), window)!.Value;
             var touch = window.TouchBegin(point, RawInputModifiers.None);
             window.TouchEnd(touch, point, RawInputModifiers.None);
-            for (var attempt = 0; attempt < 50 && board.CurrentView != FlowKanbanView.Board; attempt++)
-            {
-                Thread.Sleep(20);
-                Flush(window);
-            }
+            WaitForBoardView(window, board);
 
             Assert.Equal(FlowKanbanView.Board, board.CurrentView);
             Assert.NotSame(data, board.Board);
@@ -366,14 +355,23 @@ public partial class KanbanAndroidRegressionTests
             Assert.True(Top(search) < Top(title) + title.Bounds.Height, "the search is beside the title");
             Assert.True(search.TranslatePoint(default, window)!.Value.X > title.TranslatePoint(new Point(title.Bounds.Width, 0), window)!.Value.X);
             Assert.False(board.IsBoardStatusBarVisible);
-            // The columns keep their Add Card flat.
+            // The columns keep their Add Card flat, the one above the cards and the one below.
             Assert.True(AddButton().Bounds.Height < tallAddHeight, $"Add Card {AddButton().Bounds.Height} is not lower than {tallAddHeight}");
+            Assert.All(AddCards(), static card => Assert.Contains(":short", card.Classes));
 
             window.Height = 800;
             Flush(window);
             Assert.True(Top(search) > Top(title) + title.Bounds.Height / 2);
             Assert.True(board.IsBoardStatusBarVisible);
             Assert.Equal(tallAddHeight, AddButton().Bounds.Height, 1);
+            Assert.All(AddCards(), static card => Assert.DoesNotContain(":short", card.Classes));
+
+            List<FlowKanbanAddCard> AddCards()
+            {
+                var cards = window.GetVisualDescendants().OfType<FlowKanbanAddCard>().ToList();
+                Assert.Equal(2, cards.Count);
+                return cards;
+            }
         }
         finally
         {
@@ -533,6 +531,50 @@ public partial class KanbanAndroidRegressionTests
         }
     }
 
+    [AvaloniaFact]
+    public void A_Finger_Dragging_A_Card_To_The_Edge_Of_The_Board_Scrolls_It_Along()
+    {
+        var task = new FlowTask { Title = "Moving" };
+        var data = new FlowKanbanData();
+        for (var index = 0; index < 8; index++)
+            data.Columns.Add(new FlowKanbanColumnData { Title = $"Column {index}" });
+        data.Columns[0].Tasks.Add(task);
+        var board = new FlowKanban { AutoSaveAfterEdits = false, Board = data };
+        var window = CreateWindow(board, 600);
+        try
+        {
+            board.CurrentView = FlowKanbanView.Board;
+            Flush(window);
+            var card = Card(window, task);
+            var viewer = card.GetVisualAncestors().OfType<ScrollViewer>().First(static viewer => viewer.Extent.Width > viewer.Viewport.Width);
+            Assert.Equal(0, viewer.Offset.X);
+
+            var start = Spot(window, card);
+            var edge = viewer.TranslatePoint(new Point(viewer.Bounds.Width - 10, viewer.Bounds.Height / 2), window)!.Value;
+            var touch = HoldStart(window, card);
+            for (var step = 1; step <= 10; step++)
+            {
+                window.TouchMove(touch, start + (edge - start) * (step / 10.0));
+                Flush(window);
+            }
+
+            // The finger rests at the right edge; the board keeps scrolling while it stays there.
+            var reached = viewer.Offset.X;
+            Thread.Sleep(200);
+            Dispatcher.UIThread.Post(static () => { });
+            Flush(window);
+            Assert.True(viewer.Offset.X > reached, $"the board did not scroll along: {reached} -> {viewer.Offset.X}");
+
+            window.TouchEnd(touch, edge, RawInputModifiers.None);
+            Flush(window);
+            Assert.Empty(Ghosts(board));
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
     // The copies of dragged cards in the overlay.
     private static IEnumerable<Border> Ghosts(Visual board) =>
         OverlayLayer.GetOverlayLayer(board)!.Children.OfType<Border>().Where(static border => border.Background is VisualBrush);
@@ -614,12 +656,7 @@ public partial class KanbanAndroidRegressionTests
     {
         card.UsesTouchSelection = true;
         var touch = window.TouchBegin(Spot(window, card), RawInputModifiers.None);
-        var hold = Application.Current!.PlatformSettings!.HoldWaitDuration;
-        Thread.Sleep(hold + TimeSpan.FromMilliseconds(150));
-        // The dispatcher looks for due timers only after it ran a job.
-        Dispatcher.UIThread.Post(static () => { });
-        Flush(window);
-        Flush(window);
+        WaitLongerThanAHold(window);
         return touch;
     }
 
@@ -629,6 +666,17 @@ public partial class KanbanAndroidRegressionTests
         var touch = HoldStart(window, card);
         window.TouchEnd(touch, point, RawInputModifiers.None);
         Flush(window);
+    }
+
+    // The board loads on a worker thread and comes back through the dispatcher, which takes a while on a busy machine.
+    private static void WaitForBoardView(Window window, FlowKanban board)
+    {
+        var end = Environment.TickCount64 + 10_000;
+        while (board.CurrentView != FlowKanbanView.Board && Environment.TickCount64 < end)
+        {
+            Thread.Sleep(20);
+            Flush(window);
+        }
     }
 
     private static void TouchTap(Window window, FlowTaskCard card)

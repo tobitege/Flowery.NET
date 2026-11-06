@@ -4,13 +4,13 @@ using System.Xml.Linq;
 
 namespace Flowery.NET.Kiosk;
 
-public enum SmokeOutcome { Passed, Failed, Inconclusive }
+internal enum SmokeOutcome { Passed, Failed, Inconclusive }
 
 /// <summary>
 /// The XML report of a smoke run (<c>--smoke-test</c>), as scripts/test_kiosk.ps1 reads it: one entry per check with
 /// its outcome and message.
 /// </summary>
-public sealed class KioskSmokeReport(string path)
+internal sealed class KioskSmokeReport(string path)
 {
     private readonly List<SmokeResult> _results = [];
     public string Path { get; } = System.IO.Path.GetFullPath(path);

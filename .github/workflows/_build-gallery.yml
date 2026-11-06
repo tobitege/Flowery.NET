@@ -2,6 +2,8 @@ name: Build Gallery (Reusable)
 
 # Internal reusable workflow - called by release.yml and release-gallery.yml
 # Not meant to be triggered directly
+# The Browser job runs the local action .github/actions/publish-browser-gallery from the checked-out ref, so a branch
+# released from must contain it (main and alpha only after the 4.0.0 changes are merged into them).
 
 on:
   workflow_call:
@@ -108,7 +110,7 @@ jobs:
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: '10.0.x'
+          global-json-file: global.json
 
       - name: Install Android workload
         run: dotnet workload install android
@@ -168,23 +170,14 @@ jobs:
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: '10.0.x'
-
-      # WasmBuildNative links the SkiaSharp and HarfBuzz native libraries into dotnet.native.wasm.
-      - name: Install WebAssembly build tools
-        run: dotnet workload install wasm-tools
+          global-json-file: global.json
 
       - name: Publish Browser Gallery
-        run: |
-          dotnet publish Flowery.NET.Gallery.Browser/Flowery.NET.Gallery.Browser.csproj \
-            -c Release \
-            -o ./browser-publish
+        uses: ./.github/actions/publish-browser-gallery
 
       - name: Zip Browser artifact
         shell: bash
         run: |
-          test -f ./browser-publish/wwwroot/index.html
-          test -d ./browser-publish/wwwroot/_framework
           cd ./browser-publish/wwwroot
           zip -r -q ../../Flowery.Gallery-Browser.zip .
 

@@ -9,12 +9,13 @@ using Avalonia.Data;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Media.Transformation;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Xunit;
+using static Flowery.NET.Tests.RealInput;
+using static Flowery.NET.Tests.TestControls;
 
 namespace Flowery.NET.Tests;
 
@@ -33,7 +34,7 @@ public class DaisyButtonGroupSelectionTests
         var window = Show(group);
         try
         {
-            Click(buttons[2]);
+            buttons[2].PointerClick();
             Assert.Equal(2, model.Index);
 
             model.Index = 1;
@@ -58,10 +59,10 @@ public class DaisyButtonGroupSelectionTests
         var window = Show(group);
         try
         {
-            Click(buttons[1]);
+            buttons[1].PointerClick();
             group.SelectedIndex = 2;
             // A click on the selected segment is still a click, but no selection change.
-            Click(buttons[2]);
+            buttons[2].PointerClick();
 
             Assert.Equal(2, clicks);
             Assert.Equal(2, changes.Count);
@@ -92,7 +93,7 @@ public class DaisyButtonGroupSelectionTests
             Assert.Same(model.Indices, group.SelectedIndices);
             Assert.Contains("button-group-active", buttons[1].Classes);
 
-            Click(buttons[0]);
+            buttons[0].PointerClick();
             Assert.Equal(new[] { 1, 0 }, model.Indices);
             Assert.Contains("button-group-active", buttons[0].Classes);
 
@@ -106,6 +107,89 @@ public class DaisyButtonGroupSelectionTests
         {
             window.Close();
         }
+    }
+
+    [AvaloniaFact]
+    public void A_Bound_Collection_Of_A_Long_Lived_Model_Does_Not_Keep_A_Closed_Group_Alive()
+    {
+        var model = new SelectionModel { Indices = [1] };
+        var group = ShowAndCloseBoundGroup(model);
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        Assert.False(group.TryGetTarget(out _), "The collection of the model keeps the group alive.");
+        GC.KeepAlive(model);
+    }
+
+    [AvaloniaFact]
+    public void A_Group_Attached_Again_Shows_And_Follows_The_Bound_Collection()
+    {
+        var group = Group(out var buttons);
+        group.SelectionMode = DaisyButtonGroupSelectionMode.Multiple;
+        var model = new SelectionModel { Indices = [1] };
+        group.DataContext = model;
+        group.Bind(DaisyButtonGroup.SelectedIndicesProperty, new Binding(nameof(SelectionModel.Indices)));
+        var window = Show(group);
+        try
+        {
+            window.Content = null;
+            Dispatcher.UIThread.RunJobs();
+            var changes = new List<int[]>();
+            group.SelectionChanged += (_, e) => changes.Add([.. e.AddedIndices]);
+            model.Indices.Add(2);
+
+            window.Content = group;
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            Assert.Contains("button-group-active", buttons[2].Classes);
+            Assert.Equal([2], Assert.Single(changes));
+            model.Indices.Remove(1);
+            Assert.DoesNotContain("button-group-active", buttons[1].Classes);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void Screen_Readers_Hear_The_Selection_Of_Plain_Button_Segments()
+    {
+        var buttons = new[] { new Button { Content = "Day" }, new Button { Content = "Week" } };
+        var group = new DaisyButtonGroup { AutoSelect = true, SelectedIndex = 1 };
+        foreach (var button in buttons)
+            group.Items.Add(button);
+        var window = Show(group);
+        try
+        {
+            var selection = Assert.IsAssignableFrom<ISelectionProvider>(
+                ControlAutomationPeer.CreatePeerForElement(group).GetProvider<ISelectionProvider>());
+            Assert.Same(ControlAutomationPeer.CreatePeerForElement(buttons[1]), Assert.Single(selection.GetSelection()));
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    // Not inlined, so no local of the test keeps the group.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference<DaisyButtonGroup> ShowAndCloseBoundGroup(SelectionModel model)
+    {
+        var group = Group(out _);
+        group.SelectionMode = DaisyButtonGroupSelectionMode.Multiple;
+        group.DataContext = model;
+        group.Bind(DaisyButtonGroup.SelectedIndicesProperty, new Binding(nameof(SelectionModel.Indices)));
+        var window = Show(group);
+        Assert.Same(model.Indices, group.SelectedIndices);
+        window.Content = null;
+        Dispatcher.UIThread.RunJobs();
+        window.Close();
+        Dispatcher.UIThread.RunJobs();
+        // Release the closed window's pending composition batch before the GC assertion.
+        AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+        return new WeakReference<DaisyButtonGroup>(group);
     }
 
     [AvaloniaFact]
@@ -176,9 +260,9 @@ public class DaisyButtonGroupSelectionTests
             Assert.True(buttons[1].IsFocused);
             Assert.Empty(group.SelectedIndices);
 
-            Press(window, Key.Space);
+            Press(window, Key.Space, " ");
             Assert.Equal(new[] { 1 }, group.SelectedIndices);
-            Press(window, Key.Space);
+            Press(window, Key.Space, " ");
             Assert.Empty(group.SelectedIndices);
         }
         finally
@@ -201,6 +285,8 @@ public class DaisyButtonGroupSelectionTests
             Assert.Same(ControlAutomationPeer.CreatePeerForElement(buttons[1]), Assert.Single(selection.GetSelection()));
 
             var peer = ControlAutomationPeer.CreatePeerForElement(buttons[0]);
+            Assert.Equal(AutomationControlType.Group, groupPeer.GetAutomationControlType());
+            Assert.Equal(AutomationControlType.RadioButton, peer.GetAutomationControlType());
             var item = Assert.IsAssignableFrom<ISelectionItemProvider>(peer.GetProvider<ISelectionItemProvider>());
             Assert.Null(peer.GetProvider<IToggleProvider>());
             Assert.False(item.IsSelected);
@@ -211,6 +297,7 @@ public class DaisyButtonGroupSelectionTests
             group.SelectionMode = DaisyButtonGroupSelectionMode.Multiple;
             Assert.Null(groupPeer.GetProvider<ISelectionProvider>());
             Assert.Null(peer.GetProvider<ISelectionItemProvider>());
+            Assert.Equal(AutomationControlType.Button, peer.GetAutomationControlType());
             var toggle = Assert.IsAssignableFrom<IToggleProvider>(peer.GetProvider<IToggleProvider>());
             Assert.Equal(ToggleState.Off, toggle.ToggleState);
             toggle.Toggle();
@@ -221,6 +308,13 @@ public class DaisyButtonGroupSelectionTests
             group.AutoSelect = false;
             Assert.Null(peer.GetProvider<IToggleProvider>());
             Assert.Null(groupPeer.GetProvider<ISelectionProvider>());
+            Assert.Equal(AutomationControlType.Button, peer.GetAutomationControlType());
+
+            // A button outside a group is a plain button.
+            var lone = ControlAutomationPeer.CreatePeerForElement(new DaisyButton { Content = "Alone" });
+            Assert.Equal(AutomationControlType.Button, lone.GetAutomationControlType());
+            Assert.Null(lone.GetProvider<ISelectionItemProvider>());
+            Assert.Null(lone.GetProvider<IToggleProvider>());
         }
         finally
         {
@@ -244,7 +338,7 @@ public class DaisyButtonGroupSelectionTests
             Assert.Equal(0, group.SelectedIndex);
             AssertPillUnder(pill, buttons[0]);
 
-            Click(buttons[2]);
+            buttons[2].PointerClick();
             Dispatcher.UIThread.RunJobs();
             window.UpdateLayout();
             AssertPillUnder(pill, buttons[2]);
@@ -301,24 +395,6 @@ public class DaisyButtonGroupSelectionTests
         foreach (var button in buttons)
             group.Items.Add(button);
         return group;
-    }
-
-    private static void Click(Button button) => button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent, button));
-
-    private static void Press(Window window, Key key)
-    {
-        window.KeyPress(key, RawInputModifiers.None, PhysicalKey.None, keySymbol: key == Key.Space ? " " : null);
-        window.KeyRelease(key, RawInputModifiers.None, PhysicalKey.None, keySymbol: null);
-        Dispatcher.UIThread.RunJobs();
-    }
-
-    private static Window Show(Control content)
-    {
-        var window = new Window { Width = 400, Height = 300, Content = content };
-        window.Show();
-        Dispatcher.UIThread.RunJobs();
-        window.UpdateLayout();
-        return window;
     }
 
     private sealed class SelectionModel : INotifyPropertyChanged

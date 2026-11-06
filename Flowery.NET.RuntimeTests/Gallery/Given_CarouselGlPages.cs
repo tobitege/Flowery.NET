@@ -8,6 +8,7 @@ using Flowery.Localization;
 using Flowery.NET.Gallery;
 using Flowery.NET.Gallery.Effects;
 using Flowery.NET.Gallery.Examples;
+using Flowery.Services;
 using Xunit;
 
 namespace Flowery.NET.RuntimeTests.Gallery;
@@ -27,11 +28,11 @@ public class Given_CarouselGlPages
             var hosts = effects.GetVisualDescendants().OfType<CarouselGlEffectHost>().ToList();
             Assert.Equal(
                 new[] { CarouselGlEffectKind.Fade, CarouselGlEffectKind.MaskTransition, CarouselGlEffectKind.FlipPlane, CarouselGlEffectKind.TextFill },
-                hosts.Select(static host => host.Effect));
+                hosts.Select(static host => host.EffectKind));
             foreach (var host in hosts)
             {
                 var frame = await host.ReadFrameAsync(0.05);
-                AssertFrame(host, frame, host.Effect.ToString(), opaque: host.Effect != CarouselGlEffectKind.TextFill);
+                AssertFrame(host, frame, host.EffectKind.ToString(), opaque: host.EffectKind != CarouselGlEffectKind.TextFill);
             }
             await RuntimeTestHelpers.WaitForRenderAsync();
             RuntimeTestHelpers.Render(mainView, "carousel-gl-page").Dispose();
@@ -107,7 +108,7 @@ public class Given_CarouselGlPages
                 await RuntimeTestHelpers.RunCaseAsync("transition " + kind, async () =>
                 {
                     transitions.SelectedIndex = index;
-                    Assert.Equal(kind, preview.Effect);
+                    Assert.Equal(kind, preview.EffectKind);
                     Assert.Equal(CarouselGlEffectKind.None, preview.OverlayEffect);
                     if (kind == CarouselGlEffectKind.None)
                     {
@@ -127,7 +128,7 @@ public class Given_CarouselGlPages
                 await RuntimeTestHelpers.RunCaseAsync("effect " + kind, async () =>
                 {
                     effects.SelectedIndex = index;
-                    Assert.Equal(kind, preview.Effect);
+                    Assert.Equal(kind, preview.EffectKind);
                     Assert.Equal(CarouselGlEffectKind.None, preview.OverlayEffect);
                     AssertFrame(preview, await preview.ReadFrameAsync(0.05), kind.ToString(), opaque: kind != CarouselGlEffectKind.TextFill);
                 });
@@ -141,7 +142,7 @@ public class Given_CarouselGlPages
                 {
                     effects.SelectedIndex = index;
                     var textFill = kind == CarouselGlEffectKind.TextFill;
-                    Assert.Equal(textFill ? kind : CarouselGlEffectKind.Fade, preview.Effect);
+                    Assert.Equal(textFill ? kind : CarouselGlEffectKind.Fade, preview.EffectKind);
                     Assert.Equal(textFill ? CarouselGlEffectKind.None : kind, preview.OverlayEffect);
                     AssertFrame(preview, await preview.ReadFrameAsync(0.05), "Fade with " + kind, opaque: !textFill);
                 });
@@ -261,7 +262,7 @@ public class Given_CarouselGlPages
             Assert.Equal("EffectPulse", SelectedTag(page, "GlEffectSelect"));
             Assert.Equal(7m, page.FindControl<DaisyNumericUpDown>("GlIntervalBox")!.Value);
             Assert.True(page.FindControl<DaisyToggle>("GlInfiniteToggle")!.IsChecked);
-            Assert.Equal(CarouselGlEffectKind.Checkerboard, preview.Effect);
+            Assert.Equal(CarouselGlEffectKind.Checkerboard, preview.EffectKind);
             Assert.Equal(CarouselGlEffectKind.EffectPulse, preview.OverlayEffect);
             Assert.Equal(1.0, preview.TransitionSeconds);
             Assert.Equal(0, preview.IntervalSeconds);
@@ -330,11 +331,123 @@ public class Given_CarouselGlPages
     }
 
     [Fact]
+    public async Task When_The_Page_Starts_Without_Settings_A_Flip_Turns_Half_Around()
+    {
+        // Regression: the page and its settings started at 90 degrees, where the flip plane stays edge-on while it holds,
+        // while the host and the engine default to 180.
+        var page = await RuntimeTestHelpers.AttachAsync(new CarouselGlExamples());
+        try
+        {
+            await RuntimeTestHelpers.EnsureLoadedAsync(page);
+            Assert.Equal(180m, page.FindControl<DaisyNumericUpDown>("GlFlipAngleBox")!.Value);
+            Assert.Equal(180, page.FindControl<CarouselGlEffectHost>("GlPreviewHost")!.TransitionFlipAngle);
+
+            // Saved settings without an angle take the default too.
+            StateStorageProvider.Instance.SaveLines("carousel.gl", ["Enabled=1"]);
+            Assert.Equal(180m, GallerySettings.LoadCarouselGlSettings()!.FlipAngle);
+        }
+        finally
+        {
+            await DetachAsync();
+        }
+    }
+
+    [Fact]
+    public async Task When_A_Number_Box_Is_Emptied_It_Takes_Its_Default_And_The_Preview_Follows()
+    {
+        var page = await RuntimeTestHelpers.AttachAsync(new CarouselGlExamples());
+        try
+        {
+            await RuntimeTestHelpers.EnsureLoadedAsync(page);
+            var preview = page.FindControl<CarouselGlEffectHost>("GlPreviewHost")!;
+            var slices = page.FindControl<DaisyNumericUpDown>("GlSliceCountBox")!;
+            var flip = page.FindControl<DaisyNumericUpDown>("GlFlipAngleBox")!;
+            var interval = page.FindControl<DaisyNumericUpDown>("GlIntervalBox")!;
+            page.FindControl<DaisySelect>("GlModeSelect")!.SelectedIndex = 1;
+            SelectTag(page, "GlTransitionSelect", "BlindsHorizontal");
+            slices.Value = 20m;
+            flip.Value = 120m;
+            interval.Value = 7m;
+            Assert.Equal(7.4, preview.IntervalSeconds, 9);
+
+            // Regression: an empty box stayed empty, and the defaults of the masks only replaced values out of range.
+            slices.Value = null;
+            Assert.Equal(10m, slices.Value);
+            Assert.Equal(10, preview.TransitionSliceCount);
+            SelectTag(page, "GlTransitionSelect", "Fade");
+            slices.Value = null;
+            Assert.Equal(8m, slices.Value);
+            flip.Value = null;
+            Assert.Equal(180m, flip.Value);
+            Assert.Equal(180, preview.TransitionFlipAngle);
+
+            // Regression: the emptied interval showed its default while the preview and the settings kept the old one.
+            interval.Value = null;
+            Assert.Equal(3m, interval.Value);
+            Assert.Equal(3.4, preview.IntervalSeconds, 9);
+            var saved = GallerySettings.LoadCarouselGlSettings()!;
+            Assert.Equal(3m, saved.IntervalSeconds);
+            Assert.Equal(8m, saved.SliceCount);
+            Assert.Equal(180m, saved.FlipAngle);
+        }
+        finally
+        {
+            await DetachAsync();
+        }
+    }
+
+    [Fact]
+    public async Task When_The_Interval_Of_The_Transitions_Page_Is_Emptied_It_Takes_Its_Default_Of_One_Second()
+    {
+        var page = await RuntimeTestHelpers.AttachAsync(new CarouselGlTransitionsExamples());
+        try
+        {
+            await RuntimeTestHelpers.EnsureLoadedAsync(page);
+            var interval = page.FindControl<DaisyNumericUpDown>("GlIntervalBox")!;
+            var preview = page.FindControl<CarouselGlTransitionHost>("GlPreviewHost")!;
+            interval.Value = 4.5m;
+
+            // Regression: the box fell back to 3 seconds, and the preview kept 4.5.
+            interval.Value = null;
+            Assert.Equal(1m, interval.Value);
+            Assert.Equal(1, preview.IntervalSeconds);
+        }
+        finally
+        {
+            await DetachAsync();
+        }
+    }
+
+    [Fact]
+    public async Task When_The_Transitions_Page_Loads_It_Offers_The_Catalog_Of_The_Engine_And_Applies_It_Once()
+    {
+        var page = new CarouselGlTransitionsExamples();
+        var changes = 0;
+        page.FindControl<DaisySelect>("GlModeSelect")!.SelectionChanged += (_, _) => changes++;
+        page.FindControl<DaisySelect>("GlDurationSelect")!.SelectionChanged += (_, _) => changes++;
+        await RuntimeTestHelpers.AttachAsync(page);
+        try
+        {
+            await RuntimeTestHelpers.EnsureLoadedAsync(page);
+            Assert.Equal(FloweryCarouselGLTransitions.GlTransitions.Select(static entry => entry.Name),
+                page.FindControl<DaisySelect>("GlTransitionSelect")!.Items.OfType<ComboBoxItem>().Select(static item => (string)item.Tag!));
+            // Regression: the selections of the XAML were written again three times each, and each write applied the
+            // page, the first one with nothing selected.
+            Assert.Equal(0, changes);
+            Assert.Equal("angular", page.FindControl<CarouselGlTransitionHost>("GlPreviewHost")!.TransitionName);
+        }
+        finally
+        {
+            await DetachAsync();
+        }
+    }
+
+    [Fact]
     public async Task When_An_Effect_Fails_To_Render_The_Page_Shows_The_Error_In_Its_Host()
     {
         CarouselGlGalleryPresets.EnsureRegistered();
         Assert.True(CarouselGlEffectRegistry.TryGet(CarouselGlEffectKind.TextFill, out var original));
-        CarouselGlEffectRegistry.Register(new CarouselGlEffectDefinition(CarouselGlEffectKind.TextFill, original!.Mode,
+        CarouselGlEffectRegistry.Register(new CarouselGlEffectDefinition(CarouselGlEffectKind.TextFill, original.Mode,
             new Dictionary<string, string> { ["text"] = "avares://Flowery.NET.Gallery/Assets/missing.jpg" }, original.Variant));
         try
         {
@@ -351,21 +464,14 @@ public class Given_CarouselGlPages
         }
         finally
         {
-            CarouselGlEffectRegistry.Register(original!);
+            CarouselGlEffectRegistry.Register(original);
             await DetachAsync();
         }
     }
 
     private static async Task<T> OpenAsync<T>(MainView mainView, string itemId) where T : Control
     {
-        var sidebar = mainView.FindControl<FloweryComponentSidebar>("ComponentSidebar")!;
-        var category = sidebar.Categories!.First(category => category.Items.Any(item => item.Id == itemId));
-        var item = category.Items.First(entry => entry.Id == itemId);
-        // The sidebar raises this event when an item is clicked; MainView navigates in its handler.
-        sidebar.SelectedItem = item;
-        sidebar.RaiseEvent(new SidebarItemSelectedEventArgs(FloweryComponentSidebar.ItemSelectedEvent, item, category));
-        await RuntimeTestHelpers.WaitForRenderAsync();
-        var page = Assert.IsType<T>(mainView.FindControl<Panel>("MainContentHost")!.Children.Single(static child => child.IsVisible));
+        var page = Assert.IsType<T>(await GalleryTestHelpers.NavigateAsync(mainView, item => item.Id == itemId));
         await RuntimeTestHelpers.EnsureLoadedAsync(page);
         return page;
     }
@@ -374,6 +480,12 @@ public class Given_CarouselGlPages
         select.Items.OfType<ComboBoxItem>()
             .Select(static (item, index) => (index, Enum.Parse<CarouselGlEffectKind>((string)item.Tag!)))
             .ToList();
+
+    private static void SelectTag(Control page, string name, string tag)
+    {
+        var select = page.FindControl<DaisySelect>(name)!;
+        select.SelectedItem = select.Items.OfType<ComboBoxItem>().Single(item => (string?)item.Tag == tag);
+    }
 
     private static string? SelectedTag(Control page, string name) =>
         (page.FindControl<DaisySelect>(name)!.SelectedItem as ComboBoxItem)?.Tag?.ToString();

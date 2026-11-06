@@ -107,36 +107,22 @@ namespace Flowery.Controls
                 var x = 0.5 + 0.35 * Math.Sin(t * 0.35 + phase);
                 var y = height + 0.08 * Math.Sin(t * 0.9 + phase * 1.7);
                 var pulse = 0.7 + 0.3 * Math.Sin(t * 1.3 + phase);
-                var brush = new RadialGradientBrush
-                {
-                    Center = new RelativePoint(x, y, RelativeUnit.Relative),
-                    GradientOrigin = new RelativePoint(x, y, RelativeUnit.Relative),
-                    RadiusX = new RelativeScalar(0.9, RelativeUnit.Relative),
-                    RadiusY = new RelativeScalar(0.22, RelativeUnit.Relative),
-                    GradientStops =
-                    {
-                        new GradientStop(Color.FromArgb((byte)(color.A * pulse), color.R, color.G, color.B), 0),
-                        new GradientStop(Color.FromArgb(0, color.R, color.G, color.B), 1)
-                    }
-                };
-                context.DrawRectangle(brush.ToImmutable(), null, area);
+                context.DrawRectangle(Glow(x, y, 0.9, 0.22, Color.FromArgb((byte)(color.A * pulse), color.R, color.G, color.B)), null, area);
             }
 
-            private static void Blob(DrawingContext context, Rect area, double x, double y, double radius, Color color)
+            private static void Blob(DrawingContext context, Rect area, double x, double y, double radius, Color color) =>
+                context.DrawRectangle(Glow(x, y, radius, radius, color), null, area);
+
+            // The color at (x, y), fading out toward the radii, all relative to the area. Built immutable like Linear; the
+            // conversion of a mutable radial brush also gave it its horizontal radius vertically, so the curtains were round.
+            private static ImmutableRadialGradientBrush Glow(double x, double y, double radiusX, double radiusY, Color color)
             {
-                var brush = new RadialGradientBrush
-                {
-                    Center = new RelativePoint(x, y, RelativeUnit.Relative),
-                    GradientOrigin = new RelativePoint(x, y, RelativeUnit.Relative),
-                    RadiusX = new RelativeScalar(radius, RelativeUnit.Relative),
-                    RadiusY = new RelativeScalar(radius, RelativeUnit.Relative),
-                    GradientStops =
-                    {
-                        new GradientStop(color, 0),
-                        new GradientStop(Color.FromArgb(0, color.R, color.G, color.B), 1)
-                    }
-                };
-                context.DrawRectangle(brush.ToImmutable(), null, area);
+                var center = new RelativePoint(x, y, RelativeUnit.Relative);
+                return new ImmutableRadialGradientBrush(
+                    [new ImmutableGradientStop(0, color), new ImmutableGradientStop(1, Color.FromArgb(0, color.R, color.G, color.B))],
+                    center: center, gradientOrigin: center,
+                    radiusX: new RelativeScalar(radiusX, RelativeUnit.Relative),
+                    radiusY: new RelativeScalar(radiusY, RelativeUnit.Relative));
             }
 
             // The angle runs clockwise from the left edge, so 0 is left to right and 90 is top to bottom. The brushes of a

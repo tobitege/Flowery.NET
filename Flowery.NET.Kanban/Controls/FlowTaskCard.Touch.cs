@@ -39,11 +39,13 @@
             CancelTouchDrag();
             _tapPointer = e.Pointer;
             _tapStart = e.GetPosition(this);
-            _holdTimer ??= new DispatcherTimer();
+            if (_holdTimer is null)
+            {
+                _holdTimer = new DispatcherTimer();
+                _holdTimer.Tick += OnHoldTimerTick;
+            }
             _holdTimer.Stop();
             _holdTimer.Interval = Application.Current?.PlatformSettings?.HoldWaitDuration ?? TimeSpan.FromMilliseconds(500);
-            _holdTimer.Tick -= OnHoldTimerTick;
-            _holdTimer.Tick += OnHoldTimerTick;
             _holdTimer.Start();
         }
 

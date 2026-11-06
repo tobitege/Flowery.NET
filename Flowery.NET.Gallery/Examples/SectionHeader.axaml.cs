@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -112,7 +112,6 @@ public partial class SectionHeader : UserControl
         ["hovergallery"] = "DaisyHoverGallery",
         ["glass"] = "DaisyGlass",
         ["daisyglassliquid"] = "DaisyGlass",
-        ["daisyglasssimulated"] = "DaisyGlass",
         ["daisyglassbitmapcapture"] = "DaisyGlass",
         ["daisyglassskiamatrix"] = "DaisyGlass",
         ["daisyglassfullwidth"] = "DaisyGlass",

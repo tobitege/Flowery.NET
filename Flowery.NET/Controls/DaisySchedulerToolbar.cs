@@ -87,6 +87,9 @@ public class DaisySchedulerToolbar : UserControl
 
     private void Attach(DaisyScheduler? scheduler)
     {
+        // Only while the toolbar is in the tree: the scheduler would keep a toolbar alive that is never or no longer shown.
+        if (!this.IsAttachedToVisualTree())
+            scheduler = null;
         if (!ReferenceEquals(_attached, scheduler) && _attached is not null)
             _attached.ToolbarChanged -= OnToolbarChanged;
         if (scheduler is not null && !ReferenceEquals(_attached, scheduler))
@@ -143,7 +146,9 @@ public class DaisySchedulerToolbar : UserControl
         _iconSize = scheduler.ToolbarIconSize;
         FontSize = scheduler.FontSize;
         _primary = new TextBlock { FontWeight = FontWeight.Bold, FontSize = scheduler.ToolbarTitleFontSize };
-        _secondary = new TextBlock { FontSize = scheduler.ToolbarTitleFontSize, Foreground = scheduler.Brush("DaisyBaseContentMutedBrush") };
+        _secondary = new TextBlock { FontSize = scheduler.ToolbarTitleFontSize };
+        // Resource references: a base override or the contrast mode brings new brushes without a new theme name.
+        BindResource(_secondary, TextBlock.ForegroundProperty, "DaisyBaseContentMutedBrush");
         var title = new StackPanel { Orientation = Orientation.Horizontal, Spacing = scheduler.SpacingXS * 1.5, Children = { _primary, _secondary } };
         var date = Action(scheduler, "Date", title, "ChooseDate");
         date.Click += (_, _) => scheduler.ShowDatePicker(date);
@@ -197,26 +202,30 @@ public class DaisySchedulerToolbar : UserControl
         var views = new Border
         {
             Classes = { "daisy-scheduler-views" },
-            Background = scheduler.Brush("DaisyBase200Brush"),
             CornerRadius = new CornerRadius(scheduler.ToolbarCornerRadius + 2),
             Padding = new Thickness(2),
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, scheduler.SpacingXS * 2, 0, 0),
             Child = segments
         };
+        BindResource(views, Border.BackgroundProperty, "DaisyBase200Brush");
         Grid.SetRow(views, 1);
 
         var rows = new Grid { RowDefinitions = new RowDefinitions("Auto,Auto") };
         rows.Children.Add(top);
         rows.Children.Add(views);
-        Content = new Border
+        var frame = new Border
         {
             Child = rows,
             Padding = new Thickness(0, 0, 0, scheduler.SpacingXS * 2),
-            BorderBrush = scheduler.Brush("DaisyBase300Brush"),
             BorderThickness = new Thickness(0, 0, 0, scheduler.LineThickness)
         };
+        BindResource(frame, Border.BorderBrushProperty, "DaisyBase300Brush");
+        Content = frame;
     }
+
+    private static void BindResource(Control control, AvaloniaProperty property, string key) =>
+        control.Bind(property, control.GetResourceObservable(key));
 
     private Button Action(DaisyScheduler scheduler, string tag, Control content, string nameKey)
     {

@@ -5,10 +5,8 @@ using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
-using Avalonia.Input.Raw;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
@@ -20,6 +18,7 @@ using Flowery.Helpers;
 using Flowery.Localization;
 using Flowery.NET.Kanban.Controls;
 using Xunit;
+using static Flowery.NET.Tests.RealInput;
 
 namespace Flowery.NET.Tests;
 
@@ -260,13 +259,6 @@ public class AccessibilityRegressionTests
         timer.Start();
         try { await completion.Task.WaitAsync(TimeSpan.FromSeconds(5)); }
         finally { timer.Stop(); }
-    }
-
-    private static void Press(Window window, Key key)
-    {
-        window.KeyPress(key, RawInputModifiers.None, PhysicalKey.None, keySymbol: null);
-        window.KeyRelease(key, RawInputModifiers.None, PhysicalKey.None, keySymbol: null);
-        Dispatcher.UIThread.RunJobs();
     }
 
     private sealed class Scope : IDisposable

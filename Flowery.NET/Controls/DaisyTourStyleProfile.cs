@@ -13,6 +13,13 @@ public sealed class DaisyTourStyleProfile
     public DaisyTourStyleOverride? Style { get; set; }
     public DaisyTourStyleOverride? AnnotationDefaults { get; set; }
     public List<DaisyTourStepStyleProfile> Steps { get; set; } = [];
+
+    // Deep copies keep the nulls of a profile that was not validated; validation rejects them.
+    internal DaisyTourStyleProfile Copy() => new()
+    {
+        SchemaVersion = SchemaVersion, TourId = TourId, Style = Style?.Copy(), AnnotationDefaults = AnnotationDefaults?.Copy(),
+        Steps = Steps?.ConvertAll(step => step?.Copy()!)!
+    };
 }
 
 public sealed class DaisyTourStepStyleProfile
@@ -22,6 +29,12 @@ public sealed class DaisyTourStepStyleProfile
     public DaisyTourStyleOverride? Style { get; set; }
     public DaisyTourStyleOverride? AnnotationDefaults { get; set; }
     public List<DaisyTourAnnotationStyleProfile> Annotations { get; set; } = [];
+
+    internal DaisyTourStepStyleProfile Copy() => new()
+    {
+        Id = Id, Style = Style?.Copy(), AnnotationDefaults = AnnotationDefaults?.Copy(),
+        Annotations = Annotations?.ConvertAll(annotation => annotation?.Copy()!)!
+    };
 }
 
 public sealed class DaisyTourAnnotationStyleProfile
@@ -29,6 +42,8 @@ public sealed class DaisyTourAnnotationStyleProfile
     [JsonRequired]
     public string Id { get; set; } = string.Empty;
     public DaisyTourStyleOverride? Style { get; set; }
+
+    internal DaisyTourAnnotationStyleProfile Copy() => new() { Id = Id, Style = Style?.Copy() };
 }
 
 /// <summary>Values override application settings; Inherit skips settings at this scope.</summary>
@@ -36,6 +51,8 @@ public sealed class DaisyTourStyleOverride
 {
     public DaisyTourStyleValues Values { get; set; } = new();
     public List<string> Inherit { get; set; } = [];
+
+    internal DaisyTourStyleOverride Copy() => new() { Values = Values?.Copy()!, Inherit = Inherit is null ? null! : [.. Inherit] };
 }
 
 /// <summary>Supported JSON values. Null means no override. Colors use #AARRGGBB.</summary>
@@ -91,4 +108,12 @@ public sealed class DaisyTourStyleValues
     public string? CardBorderBrush { get; set; }
     public double? HighlightPadding { get; set; }
     public double? HighlightCornerRadius { get; set; }
+
+    // All values are immutable except the dash array.
+    internal DaisyTourStyleValues Copy()
+    {
+        var copy = (DaisyTourStyleValues)MemberwiseClone();
+        copy.DashArray = DashArray is null ? null : [.. DashArray];
+        return copy;
+    }
 }

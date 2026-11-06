@@ -43,7 +43,13 @@ public static class DaisyTourStyleProfileSerializer
         return profile;
     }
 
-    public static DaisyTourStyleProfile Clone(DaisyTourStyleProfile profile) => Deserialize(Serialize(profile));
+    /// <summary>Validates the portable data and returns an independent deep copy. It does not apply the 1 MiB limit of
+    /// the JSON, which <see cref="Serialize"/>, <see cref="DaisyTour.StyleProfile"/> and the editor check.</summary>
+    public static DaisyTourStyleProfile Clone(DaisyTourStyleProfile profile)
+    {
+        Validate(profile);
+        return profile.Copy();
+    }
 
     /// <summary>Validates the portable data and, optionally, all references against its application tour.</summary>
     public static void Validate(DaisyTourStyleProfile profile, DaisyTour? tour = null)
@@ -51,8 +57,7 @@ public static class DaisyTourStyleProfileSerializer
         ArgumentNullException.ThrowIfNull(profile);
         if (profile.SchemaVersion != 1) throw new ArgumentException("$.schemaVersion: only version 1 is supported.");
         ValidateId(profile.TourId, "$.tourId");
-        if (tour is not null && tour.Id != profile.TourId)
-            throw new ArgumentException("$.tourId: the profile belongs to a different tour.");
+        if (tour is not null) ValidateTourId(profile, tour.Id);
         ValidateScope(profile.Style, "$.style", TourProperties);
         ValidateScope(profile.AnnotationDefaults, "$.annotationDefaults", null);
         if (profile.Steps is null) throw new ArgumentException("$.steps: an array is required.");
@@ -84,6 +89,11 @@ public static class DaisyTourStyleProfileSerializer
             }
         }
         if (tour is not null) ValidateTourIds(tour);
+    }
+
+    internal static void ValidateTourId(DaisyTourStyleProfile profile, string tourId)
+    {
+        if (tourId != profile.TourId) throw new ArgumentException("$.tourId: the profile belongs to a different tour.");
     }
 
     private static void ValidateTourIds(DaisyTour tour)

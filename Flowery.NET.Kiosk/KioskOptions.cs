@@ -1,7 +1,7 @@
 namespace Flowery.NET.Kiosk;
 
 /// <summary>The command line of the kiosk: <c>--manual</c> and <c>--smoke-test &lt;absolute XML path&gt;</c>.</summary>
-public sealed record KioskOptions(bool Manual, string? SmokeReport)
+internal sealed record KioskOptions(bool Manual, string? SmokeReport)
 {
     public static KioskOptions Parse(IReadOnlyList<string> arguments)
     {

@@ -82,8 +82,7 @@ Keep step definitions in the application; the library does not discover targets 
 The `Closed` event supplies `DaisyTourClosedEventArgs`.
 Its `Reason` is `Completed`, `Skipped`, `Cancelled`, `TargetUnavailable`, or `Failed`.
 `TargetUnavailable` means the tour could not open because it belongs to no window or view with an overlay layer.
-`Failed` means the tour itself could not continue, such as when laying out a step throws; `Error` tells why.
-`AnnotationId` is always null, because target problems no longer close the tour.
+`Failed` means the tour itself could not continue, such as when laying out a step throws, also after the step was shown; `Error` tells why.
 
 A target that cannot be shown never closes a running tour.
 The step stays open in a warning state:
@@ -349,7 +348,7 @@ The application owns file dialogs and storage.
 | --- | --- |
 | `OpenAsync(tour, token)` | Open a draft for an existing tour. |
 | `DraftProfile` | Read the current draft. |
-| `ImportJson(json)`, `ImportProfile(profile)` | Validate the complete profile, then replace the draft as one undo action. |
+| `ImportJson(json)`, `ImportProfile(profile)` | Validate the complete profile, then replace the draft as one undo action. `ImportJson` throws `JsonException` for any invalid input, also for a profile of another tour; `ImportProfile` throws `ArgumentException`. |
 | `ExportJson()`, `ExportProfile()` | Obtain the draft for storage. |
 | `Apply()`, `Discard()` | Keep the draft as the active profile, or close without applying it. |
 | `Undo()`, `Redo()` | Move through draft changes. |
@@ -426,6 +425,11 @@ DaisyTourStyleProfileSerializer.Validate(profile, Tour);
 Tour.StyleProfile = profile;
 await Tour.StartAsync();
 ```
+
+Setting `StyleProfile` validates the profile, and its tour ID when `Id` is set already; a rejected profile throws `ArgumentException` and leaves the active profile in place.
+`StartAsync` and the editor validate the step and annotation IDs against `Steps`, so the profile can be set before `Id` and the steps, such as in XAML.
+The tour keeps its own copy: later changes to the assigned object do not reach the tour.
+Assign a new profile to change it.
 
 ### Gallery designer example
 

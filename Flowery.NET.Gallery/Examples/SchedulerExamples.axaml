@@ -69,7 +69,7 @@
                                        controls:FlowerySizeManager.ResponsiveFont="Primary" />
                             <controls:DaisySelect x:Name="ColorInput" AutomationProperties.Name="{loc:Localize Scheduler_Color}" />
                         </StackPanel>
-                        <TextBlock x:Name="EditorError" TextWrapping="Wrap" IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Foreground="{DynamicResource DaisyErrorForegroundBrush}"
+                        <TextBlock x:Name="EditorError" TextWrapping="Wrap" IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Foreground="{DynamicResource DaisyErrorBrush}"
                                    controls:FlowerySizeManager.ResponsiveFont="Secondary" />
                         <TextBlock x:Name="OverlapWarning" TextWrapping="Wrap" IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Foreground="{DynamicResource DaisyBaseContentBrush}"
                                    controls:FlowerySizeManager.ResponsiveFont="Primary" />

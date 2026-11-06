@@ -60,20 +60,29 @@ $startInfo.ArgumentList.Add('--smoke-test')
 $startInfo.ArgumentList.Add($reportPath)
 $startInfo.Environment['FLOWERY_STATE_ROOT'] = Join-Path $resultsRoot 'state'
 $process = [Diagnostics.Process]::Start($startInfo)
-Write-Host ('Kiosk process: {0}; report: {1}' -f $process.Id, $reportPath)
+$processId = $process.Id
+Write-Host ('Kiosk process: {0}; report: {1}' -f $processId, $reportPath)
 try {
     $stdoutTask = $process.StandardOutput.ReadToEndAsync()
     $stderrTask = $process.StandardError.ReadToEndAsync()
     # The run takes about two minutes: six slides, the scaling checkpoints and one automatic cycle of 48 seconds.
-    if (-not $process.WaitForExit(240000)) {
+    $timedOut = -not $process.WaitForExit(240000)
+    if ($timedOut) {
         $process.Kill($true)
-        throw ('Kiosk smoke test timed out; process {0} was stopped.' -f $process.Id)
+        $process.WaitForExit()
     }
-    $exitCode = $process.ExitCode
-    $output = $stdoutTask.GetAwaiter().GetResult() + $stderrTask.GetAwaiter().GetResult()
+    else {
+        $exitCode = $process.ExitCode
+    }
+    # The output goes to the log also after a timeout, as far as the app wrote it; its pipes close when it exits.
+    [void][Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($stdoutTask, $stderrTask), 10000)
+    $output = @($stdoutTask, $stderrTask | Where-Object IsCompletedSuccessfully | ForEach-Object Result) -join ''
     $output | Set-Content -LiteralPath $logPath -Encoding utf8
 }
 finally { $process.Dispose() }
+if ($timedOut) {
+    throw ('Kiosk smoke test timed out; process {0} was stopped. Log: {1}' -f $processId, $logPath)
+}
 
 if (-not (Test-Path -LiteralPath $reportPath -PathType Leaf)) {
     throw ('Kiosk did not write its report; exit code {0}. Log: {1}' -f $exitCode, $logPath)

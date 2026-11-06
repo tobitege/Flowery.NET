@@ -528,7 +528,7 @@ The `scripts/` folder contains PowerShell helpers for common build and run workf
   - `scripts/run-browser.ps1`: Runs the Browser (WASM) gallery host
   - `scripts/run-android.ps1`: Runs/builds the Android gallery host (requires Android SDK and running emulator!)
 - **Test scripts**:
-  - `scripts/test_runtime.ps1`: Runs the runtime UI tests on Windows. They render every control and Gallery page in a real desktop window and check the pixels, for example that shadows and theme colors reach the screen. **Photosensitivity warning:** the test window flashes rapidly while the tests run; see `scripts/README.md`.
+  - `scripts/test_runtime.ps1`: Runs the runtime UI tests on Windows, Linux or macOS (Linux needs a display, such as `xvfb-run`). They render every control and Gallery page in a real desktop window and check the pixels, for example that shadows and theme colors reach the screen. **Photosensitivity warning:** the test window flashes rapidly while the tests run; see `scripts/README.md`.
   - `scripts/test_kiosk.ps1`: Runs the smoke run of the Kiosk app in its desktop window on Windows, Linux or macOS and checks its report.
 
 For details and parameters, see `scripts/README.md`.

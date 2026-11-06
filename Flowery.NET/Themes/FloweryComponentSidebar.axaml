@@ -1,6 +1,7 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET">
+        xmlns:controls="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
+        xmlns:loc="clr-namespace:Flowery.Localization;assembly=Flowery.NET">
 
     <Design.PreviewWith>
         <Border Padding="0" Background="{DynamicResource DaisyBase200Brush}" Width="260" Height="500">
@@ -139,7 +140,7 @@
                                                                     <Border Height="1" Margin="0,2,8,8"
                                                                         Background="{DynamicResource DaisyBase300Brush}" />
                                                                     <controls:DaisyToggle
-                                                                        Content="Glass Mode"
+                                                                        Content="{Binding [ComponentSidebar_GlassMode], Source={x:Static loc:FloweryLocalization.Instance}}"
                                                                         Margin="10,0,16,0"
                                                                         Variant="Primary"
                                                                         IsChecked="{Binding IsGlassModeEnabled, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}, Mode=TwoWay}" />
@@ -150,28 +151,34 @@
                                                                 x:DataType="controls:SidebarBaseColorItem">
                                                                 <StackPanel Margin="8,6,0,8"
                                                                     Spacing="6">
-                                                                    <TextBlock Text="Base Color"
+                                                                    <TextBlock Text="{Binding [ComponentSidebar_BaseColor], Source={x:Static loc:FloweryLocalization.Instance}}"
                                                                         Opacity="0.7"
                                                                         Margin="10,0,0,0" />
                                                                     <Grid ColumnDefinitions="*,Auto" Margin="0,0,8,0">
                                                                         <controls:DaisyButton Size="Small"
                                                                             HorizontalAlignment="Stretch"
                                                                             HorizontalContentAlignment="Left"
-                                                                            AutomationProperties.Name="Pick a base color"
+                                                                            AutomationProperties.Name="{Binding [ComponentSidebar_PickBaseColor], Source={x:Static loc:FloweryLocalization.Instance}}"
                                                                             Command="{Binding PickBaseColorCommand, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}}">
                                                                             <StackPanel Orientation="Horizontal" Spacing="8">
                                                                                 <Border Width="14" Height="14" CornerRadius="4"
                                                                                     BorderThickness="1"
                                                                                     BorderBrush="{DynamicResource DaisyBase300Brush}"
                                                                                     Background="{DynamicResource DaisyBase100Brush}" />
-                                                                                <TextBlock VerticalAlignment="Center"
-                                                                                    Text="{Binding BaseColorText, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}}" />
+                                                                                <TextBlock VerticalAlignment="Center">
+                                                                                    <TextBlock.Text>
+                                                                                        <MultiBinding Converter="{x:Static controls:SidebarChoiceLabelConverter.Instance}">
+                                                                                            <Binding Path="BaseColorText" RelativeSource="{RelativeSource AncestorType=controls:FloweryComponentSidebar}" />
+                                                                                            <Binding Path="[ComponentSidebar_ThemeChoice]" Source="{x:Static loc:FloweryLocalization.Instance}" />
+                                                                                        </MultiBinding>
+                                                                                    </TextBlock.Text>
+                                                                                </TextBlock>
                                                                             </StackPanel>
                                                                         </controls:DaisyButton>
                                                                         <controls:DaisyButton Grid.Column="1" Size="Small"
                                                                             Variant="Ghost" Margin="4,0,0,0"
-                                                                            Content="Reset"
-                                                                            AutomationProperties.Name="Base color of the theme"
+                                                                            Content="{Binding [ComponentSidebar_Reset], Source={x:Static loc:FloweryLocalization.Instance}}"
+                                                                            AutomationProperties.Name="{Binding [ComponentSidebar_ResetBaseColor], Source={x:Static loc:FloweryLocalization.Instance}}"
                                                                             Command="{Binding ResetBaseColorCommand, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}}" />
                                                                     </Grid>
                                                                 </StackPanel>
@@ -181,14 +188,28 @@
                                                                 x:DataType="controls:SidebarBackdropItem">
                                                                 <StackPanel Margin="8,6,0,8"
                                                                     Spacing="6">
-                                                                    <TextBlock Text="Backdrop"
+                                                                    <TextBlock Text="{Binding [ComponentSidebar_Backdrop], Source={x:Static loc:FloweryLocalization.Instance}}"
                                                                         Opacity="0.7"
                                                                         Margin="10,0,0,0" />
                                                                     <controls:DaisySelect
                                                                         Margin="0,0,8,0"
-                                                                        AutomationProperties.Name="Backdrop"
+                                                                        AutomationProperties.Name="{Binding [ComponentSidebar_Backdrop], Source={x:Static loc:FloweryLocalization.Instance}}"
                                                                         ItemsSource="{Binding AvailableBackdrops, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}}"
-                                                                        SelectedItem="{Binding Backdrop, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}, Mode=TwoWay}" />
+                                                                        SelectedItem="{Binding Backdrop, RelativeSource={RelativeSource AncestorType=controls:FloweryComponentSidebar}, Mode=TwoWay}">
+                                                                        <!-- The choices stay the same texts in every language; only what the selector shows is translated. -->
+                                                                        <controls:DaisySelect.ItemTemplate>
+                                                                            <DataTemplate x:DataType="x:String">
+                                                                                <TextBlock>
+                                                                                    <TextBlock.Text>
+                                                                                        <MultiBinding Converter="{x:Static controls:SidebarChoiceLabelConverter.Instance}">
+                                                                                            <Binding />
+                                                                                            <Binding Path="[ComponentSidebar_ThemeChoice]" Source="{x:Static loc:FloweryLocalization.Instance}" />
+                                                                                        </MultiBinding>
+                                                                                    </TextBlock.Text>
+                                                                                </TextBlock>
+                                                                            </DataTemplate>
+                                                                        </controls:DaisySelect.ItemTemplate>
+                                                                    </controls:DaisySelect>
                                                                 </StackPanel>
                                                             </DataTemplate>
 

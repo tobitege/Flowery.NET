@@ -18,8 +18,6 @@ namespace Flowery.NET.RuntimeTests.Controls;
 
 public class Given_DaisyTourEditorNavigation
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
-
     [Fact]
     public async Task When_PreviewNavigatesNextAndBack_InspectorAndHandlesFollowTheActiveStep()
     {
@@ -55,20 +53,15 @@ public class Given_DaisyTourEditorNavigation
         root.Children.Add(source);
         root.Children.Add(target);
         root.Children.Add(tour);
-        var editor = new DaisyTourEditor();
-        try
+        await InEditorAsync(root, tour, async editor =>
         {
-            RuntimeTestHelpers.AttachToHost(root);
-            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(Timeout);
-            await SettleAsync(root);
-            await editor.OpenAsync(tour).WaitAsync(Timeout);
             Assert.AreSame(first, editor.SelectedStep);
             Assert.AreSame(firstAnnotation, editor.SelectedAnnotation);
             AssertHandleVisibility(editor, "Curvature", true);
             AssertHandleVisibility(editor, "FirstControl", false);
 
             // These are the same entry points used by the preview card's Next and Back buttons.
-            await tour.NextAsync().WaitAsync(Timeout);
+            await tour.NextAsync().WaitAsync(TestTimeout);
             await SettleAsync(root);
             Assert.AreSame(second, tour.CurrentStep);
             Assert.AreSame(second, editor.SelectedStep);
@@ -76,13 +69,13 @@ public class Given_DaisyTourEditorNavigation
             AssertHandleVisibility(editor, "Curvature", false);
             AssertHandleVisibility(editor, "FirstControl", true);
             AssertHandleVisibility(editor, "SecondControl", true);
-            editor.SetValue("bodyWidth", 23d);
+            editor.SetOverride("bodyWidth", 23d);
             var profile = editor.ExportProfile();
             Assert.AreEqual("second", profile.Steps.Single().Id);
             Assert.AreEqual("second-arrow", profile.Steps.Single().Annotations.Single().Id);
             Assert.AreEqual(23d, profile.Steps.Single().Annotations.Single().Style!.Values.BodyWidth);
 
-            await tour.BackAsync().WaitAsync(Timeout);
+            await tour.BackAsync().WaitAsync(TestTimeout);
             await SettleAsync(root);
             Assert.AreSame(first, tour.CurrentStep);
             Assert.AreSame(first, editor.SelectedStep);
@@ -90,14 +83,7 @@ public class Given_DaisyTourEditorNavigation
             AssertHandleVisibility(editor, "Curvature", true);
             AssertHandleVisibility(editor, "FirstControl", false);
             Assert.AreEqual(5d, tour.AnnotationPresenters.Single().EditGeometry!.BodyWidth, 0.001);
-        }
-        finally
-        {
-            editor.Discard();
-            tour.Cancel();
-            RuntimeTestHelpers.GetHostPanel().Children.Remove(root);
-            await SettleAsync(root);
-        }
+        });
     }
 
     [Fact]
@@ -121,19 +107,14 @@ public class Given_DaisyTourEditorNavigation
         tour.Steps.Add(step);
         root.Children.Add(target);
         root.Children.Add(tour);
-        var editor = new DaisyTourEditor();
-        try
+        await InEditorAsync(root, tour, editor =>
         {
-            RuntimeTestHelpers.AttachToHost(root);
-            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(Timeout);
-            await SettleAsync(root);
-            await editor.OpenAsync(tour).WaitAsync(Timeout);
             var presenter = tour.AnnotationPresenters[1];
             Assert.HasCount(0, presenter.Course);
             Assert.IsNotNull(presenter.SelectionBounds);
             var bounds = presenter.SelectionBounds.Value;
             Assert.IsTrue(bounds.Width > 0 && bounds.Height > 0);
-            var hitArea = editor.HandleLayer.Children.OfType<Path>().Single(path => path.Tag is int index && index == 1);
+            var hitArea = editor.HandleLayer.Children.OfType<Path>().Single(path => path.Tag is 1);
             Assert.IsInstanceOfType<RectangleGeometry>(hitArea.Data);
             Assert.AreEqual(bounds, ((RectangleGeometry)hitArea.Data).Rect);
             Assert.IsNotNull(hitArea.Fill, "The interior of the surface must receive pointer input.");
@@ -144,18 +125,12 @@ public class Given_DaisyTourEditorNavigation
             // This is the selection method used by the area's PointerPressed handler.
             editor.SelectAnnotation((int)hitArea.Tag!);
             Assert.AreSame(bubble, editor.SelectedAnnotation);
-            editor.SetValue("width", 175d);
+            editor.SetOverride("width", 175d);
             Assert.AreEqual("bubble", editor.ExportProfile().Steps.Single().Annotations.Single().Id);
             AssertHandleVisibility(editor, "Source", false);
             AssertHandleVisibility(editor, "Target", false);
-        }
-        finally
-        {
-            editor.Discard();
-            tour.Cancel();
-            RuntimeTestHelpers.GetHostPanel().Children.Remove(root);
-            await SettleAsync(root);
-        }
+            return Task.CompletedTask;
+        });
     }
 
     // WinUI compares Visibility values; Avalonia controls are visible or not.
@@ -183,13 +158,8 @@ public class Given_DaisyTourEditorNavigation
         tour.Steps.Add(step);
         root.Children.Add(target);
         root.Children.Add(tour);
-        var editor = new DaisyTourEditor();
-        try
+        await InEditorAsync(root, tour, async editor =>
         {
-            RuntimeTestHelpers.AttachToHost(root);
-            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(Timeout);
-            await SettleAsync(root);
-            await editor.OpenAsync(tour).WaitAsync(Timeout);
             var originalProfile = editor.ExportJson();
             var viewport = DaisyTourLayout.VisibleArea(TopLevel.GetTopLevel(root)!);
             var cardWidth = tour.CardBounds.Width;
@@ -210,16 +180,9 @@ public class Given_DaisyTourEditorNavigation
             Assert.AreEqual(DaisyTourCardPosition.TopRight, step.CardPosition);
 
             editor.Discard();
-            await tour.StartAsync().WaitAsync(Timeout);
+            await tour.StartAsync().WaitAsync(TestTimeout);
             Assert.AreEqual(viewport.Top + 12, tour.CardBounds.Top, 0.01);
-        }
-        finally
-        {
-            editor.Discard();
-            tour.Cancel();
-            RuntimeTestHelpers.GetHostPanel().Children.Remove(root);
-            await SettleAsync(root);
-        }
+        });
     }
 
     [Fact]
@@ -235,13 +198,8 @@ public class Given_DaisyTourEditorNavigation
         tour.Steps.Add(new DaisyTourStep { Id = "resize", Target = target, Title = "Resize" });
         root.Children.Add(target);
         root.Children.Add(tour);
-        var editor = new DaisyTourEditor();
-        try
+        await InEditorAsync(root, tour, async editor =>
         {
-            RuntimeTestHelpers.AttachToHost(root);
-            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(Timeout);
-            await SettleAsync(root);
-            await editor.OpenAsync(tour).WaitAsync(Timeout);
             var original = editor.ExportJson();
             var initialWidth = editor.InspectorBounds.Width;
             var cardWidth = tour.CardBounds.Width;
@@ -281,21 +239,14 @@ public class Given_DaisyTourEditorNavigation
             Assert.AreEqual<object?>(AutomationProperties.GetName(redo), ToolTip.GetTip(redo));
             Assert.IsFalse(undo.IsEnabled);
             Assert.IsFalse(redo.IsEnabled);
-            editor.SetValue("opacity", 0.4d);
+            editor.SetOverride("opacity", 0.4d);
             await InvokeEditorButtonAsync(editor, tour, "DaisyTourEditorUndo");
             Assert.AreEqual(original, editor.ExportJson());
             Assert.IsTrue(redo.IsEnabled);
             await InvokeEditorButtonAsync(editor, tour, "DaisyTourEditorRedo");
             Assert.IsTrue(editor.HasChanges);
             Assert.AreEqual(240d, editor.InspectorBounds.Width, 0.01);
-        }
-        finally
-        {
-            editor.Discard();
-            tour.Cancel();
-            RuntimeTestHelpers.GetHostPanel().Children.Remove(root);
-            await SettleAsync(root);
-        }
+        });
     }
 
     private static void AssertCardAvoidance(DaisyTour tour, DaisyTourEditor editor)

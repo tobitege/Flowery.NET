@@ -16,7 +16,7 @@ public class Given_GlassShaderBackground
     public async Task When_The_Background_Or_A_Parent_Is_Half_Transparent_The_Shader_Is_Drawn_Half_Transparent()
     {
         // Regression: Avalonia multiplies opacity into each paint instead of drawing a layer, and the shader paint
-        // ignored it, so a shader background drew at full strength instead of at GlassBackgroundOpacity (0.6).
+        // ignored it, so a shader background drew at full strength although it or a parent was half transparent.
         var layer = new DaisyGlassShaderBackground { Effect = DaisyGlassAnimation.Plasma, Speed = 0 }.CreateLayer();
         layer.Width = 160;
         layer.Height = 80;

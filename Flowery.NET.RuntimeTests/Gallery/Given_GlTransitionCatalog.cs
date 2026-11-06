@@ -200,16 +200,111 @@ public class Given_GlTransitionCatalog
 
         Assert.Equal(["a", "b"], FloweryCarouselGLTransitions.ResolveImages(new Dictionary<string, string> { ["from"] = "a", ["to"] = "b" }));
         Assert.Equal(["a", "b"], FloweryCarouselGLTransitions.ResolveImages(new Dictionary<string, string> { ["from"] = "", ["transitionA"] = "a", ["transitionB"] = "b" }));
-        // One image is not a transition: the JS falls back to its default images, which the host never resolves.
-        string[] defaults = ["Assets/wallpaper_blue.jpg", "Assets/wallpaper_green.jpg", "Assets/wallpaper_red.jpg", "Assets/wallpaper_yellow.jpg"];
-        Assert.Equal(defaults, FloweryCarouselGLTransitions.ResolveImages(new Dictionary<string, string> { ["from"] = "a", ["to"] = "a" }));
-        Assert.Equal(defaults, FloweryCarouselGLTransitions.ResolveImages(null));
+        // One image is not a transition: the engine shows "assets missing" instead of the JS default images, paths that
+        // only a page could load.
+        Assert.Equal(new[] { "a" }, FloweryCarouselGLTransitions.ResolveImages(new Dictionary<string, string> { ["from"] = "a", ["to"] = "a" }));
+        Assert.Empty(FloweryCarouselGLTransitions.ResolveImages(null));
+    }
 
-        Assert.Equal("data:x", FloweryCarouselGLTransitions.ResolveAssetPath("data:x"));
-        Assert.Equal("//host/a.png", FloweryCarouselGLTransitions.ResolveAssetPath("//host/a.png"));
-        Assert.Equal("https://host/a.png", FloweryCarouselGLTransitions.ResolveAssetPath("https://host/a.png"));
-        var error = Assert.Throws<InvalidOperationException>(() => FloweryCarouselGLTransitions.ResolveAssetPath("Assets/a.jpg"));
-        Assert.Equal("Image asset must be resolved by the native host: Assets/a.jpg", error.Message);
+    [Fact]
+    public async Task When_A_Transition_Has_One_Image_The_Host_Shows_That_Assets_Are_Missing()
+    {
+        var host = new OneImageHost { Width = 160, Height = 100 };
+        try
+        {
+            RuntimeTestHelpers.AttachToHost(host);
+            await RuntimeTestHelpers.EnsureLoadedAsync(host);
+            await RuntimeTestHelpers.WaitUntilAsync(() => host.LastRenderError is not null, "the renderer failed");
+            Assert.Equal("Not supported (assets missing)", host.LastRenderError!.Message);
+        }
+        finally
+        {
+            RuntimeTestHelpers.GetHostPanel().Children.Clear();
+            await FlushAsync(host.Dispatcher);
+        }
+    }
+
+    [Fact]
+    public async Task When_Only_The_Transition_Changes_The_Images_Stay_Loaded()
+    {
+        // The host passes its cached images again with every change; equal assets keep the state and its textures.
+        var host = new CarouselGlTransitionHost { Width = 160, Height = 100, TransitionName = "fade", IntervalSeconds = 1, TransitionSeconds = 1 };
+        try
+        {
+            RuntimeTestHelpers.AttachToHost(host);
+            await RuntimeTestHelpers.EnsureLoadedAsync(host);
+            await host.ReadFrameAsync(0.5);
+            var canvas = Assert.IsType<CarouselGlCanvas>(host.Content);
+            var state = Assert.IsType<FloweryCarouselGLTransitions.State>(canvas.State);
+            var textures = state.textures;
+
+            host.TransitionName = "luma";
+            await host.ReadFrameAsync(0.5);
+            host.TransitionSeconds = 2;
+            await host.ReadFrameAsync(0.5);
+
+            Assert.Same(state, canvas.State);
+            Assert.Same(textures, state.textures);
+            Assert.Equal("luma", state.transitionName);
+            Assert.Null(host.LastRenderError);
+        }
+        finally
+        {
+            RuntimeTestHelpers.GetHostPanel().Children.Clear();
+            await FlushAsync(host.Dispatcher);
+        }
+    }
+
+    [Fact]
+    public async Task When_The_Images_Change_Or_The_Host_Goes_The_Old_Images_Are_Released()
+    {
+        var host = new SwitchingImagesHost { Width = 160, Height = 100 };
+        try
+        {
+            RuntimeTestHelpers.AttachToHost(host);
+            await RuntimeTestHelpers.EnsureLoadedAsync(host);
+            await host.ReadFrameAsync(0.5);
+            var canvas = Assert.IsType<CarouselGlCanvas>(host.Content);
+            var first = Assert.IsType<FloweryCarouselGLTransitions.State>(canvas.State).textures.ToList();
+
+            // Regression: the engine cached every image it loaded by its data URI until the host went, so each other image
+            // set stayed in memory next to the shown one.
+            host.ShowSecondImages();
+            await host.ReadFrameAsync(0.5);
+            var second = Assert.IsType<FloweryCarouselGLTransitions.State>(canvas.State).textures.ToList();
+            Assert.All(first, static image => Assert.Equal(IntPtr.Zero, image.Handle));
+            Assert.All(second, static image => Assert.NotEqual(IntPtr.Zero, image.Handle));
+
+            RuntimeTestHelpers.GetHostPanel().Children.Clear();
+            await RuntimeTestHelpers.WaitForIdleAsync();
+            Assert.All(second, static image => Assert.Equal(IntPtr.Zero, image.Handle));
+        }
+        finally
+        {
+            RuntimeTestHelpers.GetHostPanel().Children.Clear();
+            await FlushAsync(host.Dispatcher);
+        }
+    }
+
+    [Fact]
+    public void When_A_Uniform_Default_Is_Parsed_It_Is_Converted_Once_For_The_Frames()
+    {
+        var parsed = FloweryCarouselGLTransitions.ParseUniforms("""
+            uniform float a; // = 0.5
+            uniform int count; // = 3
+            uniform int reverse; // = true
+            uniform vec2 center; // = vec2(0.25, 0.75)
+            uniform ivec2 size; // = ivec2(10, 20)
+            """);
+        var byName = parsed.Uniforms.ToDictionary(static uniform => uniform.Name);
+
+        Assert.Equal(0.5f, byName["a"].FrameValue);
+        Assert.Equal(3, byName["count"].FrameValue);
+        Assert.Equal(1, byName["reverse"].FrameValue);
+        Assert.Equal(new[] { 0.25f, 0.75f }, Assert.IsType<float[]>(byName["center"].FrameValue));
+        Assert.Equal(new[] { 10, 20 }, Assert.IsType<int[]>(byName["size"].FrameValue));
+        // The same value every frame.
+        Assert.Same(byName["center"].FrameValue, byName["center"].FrameValue);
     }
 
     [Fact]
@@ -270,10 +365,46 @@ public class Given_GlTransitionCatalog
         protected override CarouselGlEngine CreateEngine() => new FloweryCarouselGLTransitions();
 
         protected override CarouselGlConfiguration? CreateConfiguration() =>
-            new("transitions", "transition", "fade", null, new Dictionary<string, string>
+            new(CarouselGlMode.Transition, "fade", null, new Dictionary<string, string>
             {
                 ["from"] = "avares://Flowery.NET.Gallery/Assets/wallpaper_blue.jpg",
                 ["to"] = "avares://Flowery.NET.Gallery/Assets/wallpaper_green.jpg"
+            }, 0, 1);
+    }
+
+    // A transition host that switches to two other images.
+    private sealed class SwitchingImagesHost : CarouselGlNativeHost
+    {
+        private string _from = "avares://Flowery.NET.Gallery/Assets/wallpaper_blue.jpg";
+        private string _to = "avares://Flowery.NET.Gallery/Assets/wallpaper_green.jpg";
+
+        public void ShowSecondImages()
+        {
+            _from = "avares://Flowery.NET.Gallery/Assets/wallpaper_red.jpg";
+            _to = "avares://Flowery.NET.Gallery/Assets/wallpaper_yellow.jpg";
+            RefreshRenderer();
+        }
+
+        protected override CarouselGlEngine CreateEngine() => new FloweryCarouselGLTransitions();
+
+        protected override IReadOnlyDictionary<string, string> ShaderSources => CarouselGlTransitionHost.AvailableShaders;
+
+        protected override CarouselGlConfiguration? CreateConfiguration() =>
+            new(CarouselGlMode.Transition, "fade", null, new Dictionary<string, string> { ["from"] = _from, ["to"] = _to }, 1, 1);
+    }
+
+    // A transition host whose two images are the same, so the transition has one image.
+    private sealed class OneImageHost : CarouselGlNativeHost
+    {
+        protected override CarouselGlEngine CreateEngine() => new FloweryCarouselGLTransitions();
+
+        protected override IReadOnlyDictionary<string, string> ShaderSources => CarouselGlTransitionHost.AvailableShaders;
+
+        protected override CarouselGlConfiguration? CreateConfiguration() =>
+            new(CarouselGlMode.Transition, "fade", null, new Dictionary<string, string>
+            {
+                ["from"] = "avares://Flowery.NET.Gallery/Assets/wallpaper_blue.jpg",
+                ["to"] = "avares://Flowery.NET.Gallery/Assets/wallpaper_blue.jpg"
             }, 0, 1);
     }
 

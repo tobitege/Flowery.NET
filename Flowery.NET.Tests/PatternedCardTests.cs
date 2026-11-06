@@ -8,7 +8,6 @@ using Flowery.Enums;
 using Xunit;
 #if FLOWERY_SVG_PATTERNS
 using Avalonia;
-using Avalonia.Media.Imaging;
 using Flowery.Helpers;
 using SkiaSharp;
 #endif
@@ -23,13 +22,9 @@ namespace Flowery.NET.Tests;
 /// </summary>
 public class PatternedCardTests
 {
+    // Every pattern, so one added later is checked too.
     private static readonly DaisyCardPattern[] Patterns =
-    [
-        DaisyCardPattern.CarbonFiber, DaisyCardPattern.Dots, DaisyCardPattern.Grid, DaisyCardPattern.Stripes,
-        DaisyCardPattern.Noise, DaisyCardPattern.Honeycomb, DaisyCardPattern.Circuit, DaisyCardPattern.Twill,
-        DaisyCardPattern.DiamondPlate, DaisyCardPattern.Mesh, DaisyCardPattern.Perforated, DaisyCardPattern.Bumps,
-        DaisyCardPattern.Scales
-    ];
+        [.. Enum.GetValues<DaisyCardPattern>().Where(static pattern => pattern != DaisyCardPattern.None)];
 
 #if FLOWERY_SVG_PATTERNS
     [AvaloniaFact]

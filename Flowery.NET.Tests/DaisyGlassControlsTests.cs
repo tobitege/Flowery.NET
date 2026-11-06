@@ -1,6 +1,6 @@
-﻿using Avalonia.Headless;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Layout;
@@ -10,6 +10,7 @@ using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Enums;
 using Xunit;
+using static Flowery.NET.Tests.TestControls;
 using DaisyBadgeVariant = Flowery.Controls.DaisyBadgeVariant;
 
 namespace Flowery.NET.Tests;
@@ -78,11 +79,7 @@ public class DaisyGlassControlsTests
             // Hit testing uses the rendered scene, which holds the button only after a frame was rendered.
             // A batch left by an earlier window is rendered first and holds back the button's commit,
             // so commit and render twice.
-            for (var frame = 0; frame < 2; frame++)
-            {
-                Dispatcher.UIThread.RunJobs();
-                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-            }
+            RealInput.RenderFrames();
             var hit = button.InputHitTest(new Point(6, 24));
             Assert.True(hit is Visual visual && (ReferenceEquals(visual, button) || button.IsVisualAncestorOf(visual)),
                 $"The edge of the button was not hit-testable: {hit}.");
@@ -105,7 +102,7 @@ public class DaisyGlassControlsTests
         try
         {
             // The pointer is hit tested against the rendered scene.
-            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            RealInput.RenderFrames();
             window.MouseMove(button.TranslatePoint(new Point(60, 20), window)!.Value);
             Dispatcher.UIThread.RunJobs();
 
@@ -227,16 +224,4 @@ public class DaisyGlassControlsTests
         var parent = Assert.IsAssignableFrom<Panel>(glass.GetVisualParent());
         Assert.Equal(0, parent.Children.IndexOf(glass));
     }
-
-    private static Window Show(Control content)
-    {
-        var window = new Window { Width = 400, Height = 300, Content = content };
-        window.Show();
-        Dispatcher.UIThread.RunJobs();
-        window.UpdateLayout();
-        return window;
-    }
-
-    private static T Part<T>(Control control, string name) where T : Control =>
-        control.GetVisualDescendants().OfType<T>().Single(part => part.Name == name);
 }

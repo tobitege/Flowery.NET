@@ -1,6 +1,6 @@
 """Installs the Android Gallery on a running emulator and checks that it works.
 
-Called by the android-gallery job of .github/workflows/ci.yml inside reactivecircus/android-emulator-runner, after
+Called by the build-android job of .github/workflows/ci.yml inside reactivecircus/android-emulator-runner, after
 `dotnet publish` of Flowery.NET.Gallery.Android for android-x64. Installs the APK, starts the Gallery and checks that
 the home page shows, that the Button page opens from the sidebar, that the Cupcake theme applies, and that the app
 neither stops nor logs a crash. Screenshots, the UI dumps and logcat go to --output.
@@ -95,7 +95,10 @@ class Check:
         adb("shell", "uiautomator", "dump", "/sdcard/flowery-ui.xml", timeout=60)
         data = adb("exec-out", "cat", "/sdcard/flowery-ui.xml", binary=True)
         (self.output / f"{name}.xml").write_bytes(data)
-        return Node(ElementTree.fromstring(data).find("node"))
+        root = ElementTree.fromstring(data).find("node")
+        if root is None:
+            raise RuntimeError("uiautomator dumped an empty hierarchy")
+        return Node(root)
 
     def shot(self, name):
         data = adb("exec-out", "screencap", "-p", binary=True)
@@ -103,15 +106,18 @@ class Check:
         return ci_png.read(data)
 
     def wait_for(self, name, find, seconds):
-        """Dumps the UI until find returns a node; returns that node or None."""
+        """Dumps the UI until find returns a node; returns that node or None.
+
+        Every dump goes through here: uiautomator fails or dumps an empty hierarchy while the window changes, and the
+        next dump succeeds. With 0 seconds it dumps once.
+        """
         deadline = time.monotonic() + seconds
         while True:
             try:
                 node = find(self.dump(name))
             except (RuntimeError, ElementTree.ParseError, subprocess.TimeoutExpired):
-                # uiautomator fails while the window changes; the next dump succeeds.
                 node = None
-            if node is not None or time.monotonic() > deadline:
+            if node is not None or time.monotonic() >= deadline:
                 return node
             time.sleep(1)
 
@@ -168,8 +174,7 @@ def run(check):
 
     if not open_sidebar(check, "2-sidebar"):
         return
-    root = check.dump("2-sidebar")
-    item = root.find(kind="Button", text="Button")
+    item = check.wait_for("2-sidebar", lambda root: root.find(kind="Button", text="Button"), 10)
     if item is None:
         check.fail("The sidebar has no Button item")
         return
@@ -184,7 +189,7 @@ def run(check):
 
     if not open_sidebar(check, "4-sidebar"):
         return
-    dropdown = check.dump("4-sidebar").find(kind="DaisyThemeDropdown")
+    dropdown = check.wait_for("4-sidebar", lambda root: root.find(kind="DaisyThemeDropdown"), 10)
     if dropdown is None:
         check.fail("The sidebar has no theme dropdown")
         return
@@ -202,7 +207,7 @@ def run(check):
     after = check.shot("6-cupcake")
     share = after.changed_share(before, (0, after.height // 3, after.width, after.height // 2))
     if selected is None or share < 0.5:
-        check.fail(f"The Cupcake theme did not apply: the dropdown shows {theme_name(check.dump('6-cupcake'))}, "
+        check.fail(f"The Cupcake theme did not apply: the dropdown shows {check.wait_for('6-cupcake', theme_name, 0)}, "
                    f"{share:.0%} of the page changed")
         return
     print(f"The Cupcake theme applied: {share:.0%} of the page changed", flush=True)
@@ -213,8 +218,8 @@ def run(check):
 
 def open_sidebar(check, name):
     """Taps the menu button of the header or the title bar and waits for the sidebar."""
-    root = check.dump(name)
-    button = root.find(name="HamburgerButton") or root.find(name="CategoryMenuButton")
+    button = check.wait_for(name, lambda root: root.find(name="HamburgerButton") or root.find(name="CategoryMenuButton"),
+                            10)
     if button is None:
         check.fail("The Gallery shows no menu button")
         return False

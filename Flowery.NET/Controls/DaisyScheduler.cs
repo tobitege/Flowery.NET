@@ -376,6 +376,7 @@ public partial class DaisyScheduler : TemplatedControl
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         _attached = false;
+        FlushState(StateKey);
         FloweryLocalization.CultureChanged -= OnCultureChanged;
         CancelGesture();
         CancelHold();
@@ -419,6 +420,8 @@ public partial class DaisyScheduler : TemplatedControl
         }
         if (change.Property == StateKeyProperty)
         {
+            // A zoom that waits for its save belongs to the old key.
+            FlushState(change.GetOldValue<string?>());
             LoadState();
             return;
         }

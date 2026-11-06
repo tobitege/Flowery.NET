@@ -4,7 +4,6 @@ using Avalonia.Controls.Presenters;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
-using Avalonia.Input.Raw;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
@@ -28,7 +27,8 @@ public partial class KanbanAndroidRegressionTests
             var middle = card.TranslatePoint(new Point(card.Bounds.Width + 200, card.Bounds.Height), window)!.Value;
 
             var (first, second) = PinchBegin(window, middle, 100);
-            // One size per quarter of the distance, truncated: 130 is one, 160 two, and the sizes end at ExtraLarge.
+            // One size each time the distance grows by a factor of 1.25, truncated: 130 is one, 160 two (1.25 squared is
+            // about 1.56), and the sizes end at ExtraLarge.
             PinchMove(window, first, second, middle, 120);
             Assert.Equal(DaisySize.Medium, board.BoardSize);
             PinchMove(window, first, second, middle, 130);
@@ -52,6 +52,34 @@ public partial class KanbanAndroidRegressionTests
             Assert.Equal(DaisySize.ExtraSmall, board.BoardSize);
             PinchMove(window, first, second, middle, 130);
             Assert.Equal(DaisySize.Small, board.BoardSize);
+            PinchEnd(window, first, second, middle, 130);
+        }
+        finally
+        {
+            window.Close();
+        }
+    }
+
+    [AvaloniaFact]
+    public void Two_Fingers_That_Land_On_One_Spot_Leave_The_Size_Until_They_Have_A_Distance()
+    {
+        var (window, card) = CreateBoard(new FlowTask { Title = "Task" });
+        try
+        {
+            var board = (FlowKanban)window.Content!;
+            board.BoardSize = DaisySize.Medium;
+            var middle = card.TranslatePoint(new Point(card.Bounds.Width + 200, card.Bounds.Height), window)!.Value;
+
+            // Without a distance to start from, the scale is infinite, which would overflow the size steps.
+            var (first, second) = PinchBegin(window, middle, 0);
+            PinchMove(window, first, second, middle, 120);
+            Assert.Equal(DaisySize.Medium, board.BoardSize);
+            PinchEnd(window, first, second, middle, 120);
+
+            // The next pinch zooms as usual.
+            (first, second) = PinchBegin(window, middle, 100);
+            PinchMove(window, first, second, middle, 130);
+            Assert.Equal(DaisySize.Large, board.BoardSize);
             PinchEnd(window, first, second, middle, 130);
         }
         finally
@@ -274,9 +302,7 @@ public partial class KanbanAndroidRegressionTests
 
     private static void WaitLongerThanAHold(Window window)
     {
-        Thread.Sleep(Application.Current!.PlatformSettings!.HoldWaitDuration + TimeSpan.FromMilliseconds(150));
-        // The dispatcher looks for due timers only after it ran a job.
-        Dispatcher.UIThread.Post(static () => { });
+        RealInput.WaitLongerThanAHold();
         Flush(window);
         Flush(window);
     }

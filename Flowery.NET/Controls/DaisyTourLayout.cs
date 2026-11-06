@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 
@@ -109,11 +110,16 @@ internal static class DaisyTourLayout
     {
         var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         // Layout is forced explicitly; low-priority queue work can starve during active rendering.
-        // Avalonia's UpdateLayout runs the layout pass of the host's whole top level.
+        // Avalonia's UpdateLayout runs the layout pass of the host's whole top level. A layout that throws fails the
+        // wait instead of leaving it pending forever.
         Dispatcher.UIThread.Post(() =>
         {
-            host.UpdateLayout();
-            completion.TrySetResult();
+            try
+            {
+                host.UpdateLayout();
+                completion.TrySetResult();
+            }
+            catch (Exception error) { completion.TrySetException(error); }
         }, DispatcherPriority.Normal);
         await completion.Task.WaitAsync(token);
     }
@@ -367,9 +373,6 @@ internal static class DaisyTourLayout
     // Directions clockwise from east in 45° steps; positions above the target come first.
     private static readonly int[] AnnotationOrder = [6, 7, 5, 0, 4, 2, 1, 3];
 
-    internal static Rect PlaceAnnotation(Rect target, Rect card, Size viewport, Size surface) =>
-        PlaceAnnotation(target, card, viewport, surface, [], -1, false, out _);
-
     /// <summary>
     /// Places a surface beside the target in one of eight directions. A direction is valid when the
     /// surface stays inside the viewport and covers neither the target, the card, nor another highlight.
@@ -421,5 +424,37 @@ internal static class DaisyTourLayout
     {
         first = first.Intersect(second);
         return first is not { Width: > 0, Height: > 0 } ? 0 : first.Width * first.Height;
+    }
+}
+
+/// <summary>Geometry that the highlights, the annotations and the editor's handles share.</summary>
+internal static class DaisyTourGeometry
+{
+    /// <summary>A rectangle with quadratic corners; the radius is clamped to half the shorter side.</summary>
+    internal static PathGeometry RoundedRectangle(Rect rect, double radius)
+    {
+        radius = Math.Clamp(double.IsFinite(radius) ? radius : 0, 0, Math.Max(0, Math.Min(rect.Width, rect.Height) / 2));
+        var figure = new PathFigure { StartPoint = new Point(rect.Left + radius, rect.Top), IsClosed = true, IsFilled = true };
+        figure.Segments!.Add(new LineSegment { Point = new Point(rect.Right - radius, rect.Top) });
+        figure.Segments.Add(new QuadraticBezierSegment { Point1 = new Point(rect.Right, rect.Top), Point2 = new Point(rect.Right, rect.Top + radius) });
+        figure.Segments.Add(new LineSegment { Point = new Point(rect.Right, rect.Bottom - radius) });
+        figure.Segments.Add(new QuadraticBezierSegment { Point1 = new Point(rect.Right, rect.Bottom), Point2 = new Point(rect.Right - radius, rect.Bottom) });
+        figure.Segments.Add(new LineSegment { Point = new Point(rect.Left + radius, rect.Bottom) });
+        figure.Segments.Add(new QuadraticBezierSegment { Point1 = new Point(rect.Left, rect.Bottom), Point2 = new Point(rect.Left, rect.Bottom - radius) });
+        figure.Segments.Add(new LineSegment { Point = new Point(rect.Left, rect.Top + radius) });
+        figure.Segments.Add(new QuadraticBezierSegment { Point1 = new Point(rect.Left, rect.Top), Point2 = new Point(rect.Left + radius, rect.Top) });
+        var geometry = new PathGeometry();
+        geometry.Figures!.Add(figure);
+        return geometry;
+    }
+
+    internal static double Distance(Point start, Point end) =>
+        Math.Sqrt((end.X - start.X) * (end.X - start.X) + (end.Y - start.Y) * (end.Y - start.Y));
+
+    /// <summary>The direction from start to end, or east for points that coincide.</summary>
+    internal static Point Unit(Point start, Point end)
+    {
+        var length = Distance(start, end);
+        return length > 0.001 ? new Point((end.X - start.X) / length, (end.Y - start.Y) / length) : new Point(1, 0);
     }
 }

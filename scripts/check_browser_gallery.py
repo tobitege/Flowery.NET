@@ -1,6 +1,6 @@
 """Starts the published Browser Gallery in headless Chromium and checks that it works.
 
-Called by the browser-gallery job of .github/workflows/ci.yml after `dotnet publish` of
+Called by the build-browser job of .github/workflows/ci.yml after `dotnet publish` of
 Flowery.NET.Gallery.Browser. Serves the published wwwroot on 127.0.0.1, opens it with Playwright and checks that the
 home page renders, that a page opens through the sidebar, that a theme change and a size change apply, and that the
 browser logs no errors. Screenshots and the console log go to --output.

@@ -1,12 +1,11 @@
 ﻿using System.Globalization;
-using System.Reflection;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -358,6 +357,60 @@ public sealed partial class SchedulerTests
     }
 
     [AvaloniaFact]
+    public void TheToolbarColorsFollowABaseOverrideAndHighContrast()
+    {
+        var previousTheme = DaisyThemeManager.CurrentThemeName;
+        var previousContrast = DaisyAccessibility.HighContrastOverride;
+        try
+        {
+            Assert.True(DaisyThemeManager.ApplyTheme("Dark"));
+            using var scope = new SchedulerScope(SchedulerView.Week);
+            var toolbar = scope.Scheduler.GetVisualDescendants().OfType<DaisySchedulerToolbar>().Single();
+            AssertToolbarThemeBrushes(scope, toolbar);
+            // A dark base on a dark theme keeps the theme name and the variant, but brings new base brushes.
+            var base200 = toolbar.FindResource("DaisyBase200Brush");
+            DaisyThemeManager.BaseOverride = Color.Parse("#0B1B5E");
+            Assert.NotSame(base200, toolbar.FindResource("DaisyBase200Brush"));
+            AssertToolbarThemeBrushes(scope, toolbar);
+
+            DaisyAccessibility.HighContrastOverride = true;
+            AssertToolbarThemeBrushes(scope, toolbar);
+        }
+        finally
+        {
+            DaisyAccessibility.HighContrastOverride = previousContrast;
+            DaisyThemeManager.BaseOverride = null;
+            DaisyThemeManager.ApplyTheme(previousTheme ?? "Light");
+        }
+    }
+
+    private static void AssertToolbarThemeBrushes(SchedulerScope scope, DaisySchedulerToolbar toolbar)
+    {
+        scope.Layout();
+        var secondary = ToolbarButton(toolbar, "Date").GetVisualDescendants().OfType<TextBlock>().ElementAt(1);
+        var views = toolbar.GetVisualDescendants().OfType<Border>().Single(static border => border.Classes.Contains("daisy-scheduler-views"));
+        Assert.Same(toolbar.FindResource("DaisyBaseContentMutedBrush"), secondary.Foreground);
+        Assert.Same(toolbar.FindResource("DaisyBase200Brush"), views.Background);
+        Assert.Same(toolbar.FindResource("DaisyBase300Brush"), Assert.IsType<Border>(toolbar.Content).BorderBrush);
+    }
+
+    [AvaloniaFact]
+    public void AToolbarThatIsNotShownIsNotKeptAliveByItsScheduler()
+    {
+        using var scope = new SchedulerScope(SchedulerView.Week);
+        var toolbar = CreateUnshownToolbar(scope.Scheduler);
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+        Assert.False(toolbar.IsAlive, "The scheduler keeps a toolbar alive that was never shown.");
+    }
+
+    // Not inlined, so no local of the test keeps the toolbar.
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private static WeakReference CreateUnshownToolbar(DaisyScheduler scheduler) =>
+        new(new DaisySchedulerToolbar { Scheduler = scheduler });
+
+    [AvaloniaFact]
     public void HostButtonsRaiseTheirEventsAndShowAnImageWithItsLabel()
     {
         using var scope = new SchedulerScope(SchedulerView.Week);
@@ -379,6 +432,35 @@ public sealed partial class SchedulerTests
         Assert.Contains("checked", Host("flag").Classes);
         Assert.IsType<Viewbox>(Host("new").Content);
         Assert.Contains(Host("map").GetVisualDescendants().OfType<TextBlock>(), static text => text.Text == "Map");
+        Assert.IsAssignableFrom<Avalonia.Media.Imaging.Bitmap>(Assert.Single(Host("map").GetVisualDescendants().OfType<Image>()).Source);
+    }
+
+    [AvaloniaTheory]
+    [InlineData(SchedulerView.Day)]
+    [InlineData(SchedulerView.Planner)]
+    public void VisibleResourceIdsShowOnlyTheirColumnsOrLanesAndAnEmptyListShowsAll(SchedulerView view)
+    {
+        using var scope = new SchedulerScope(view);
+        var other = new AppointmentModel { Id = 2, Subject = "Other", Start = Monday.AddHours(11), End = Monday.AddHours(12), ResourceIds = { 2 } };
+        scope.Scheduler.SchedulerResources = new[] { new ResourceModel { Id = 1, Name = "Alex" }, new ResourceModel { Id = 2, Name = "Sam" } };
+        scope.Scheduler.Appointments = new[] { scope.Appointment, other };
+        // Day heads a column with each resource; the Planner names the resource on each appointment of its lane.
+        void AssertShown(bool alex, bool sam)
+        {
+            scope.Layout();
+            var texts = scope.Scheduler.GetVisualDescendants().OfType<TextBlock>().Select(static text => text.Text).ToArray();
+            var (alexText, samText) = view == SchedulerView.Day ? ("Alex", "Sam") : ("Alex · Install", "Sam · Other");
+            Assert.Equal(alex, texts.Contains(alexText));
+            Assert.Equal(sam, texts.Contains(samText));
+            Assert.Equal(alex, scope.Frames(scope.Appointment).Any());
+            Assert.Equal(sam, scope.Frames(other).Any());
+        }
+
+        AssertShown(alex: true, sam: true);
+        scope.Scheduler.VisibleResourceIds = new object[] { 2 };
+        AssertShown(alex: false, sam: true);
+        scope.Scheduler.VisibleResourceIds = Array.Empty<object>();
+        AssertShown(alex: true, sam: true);
     }
 
     [AvaloniaFact]
@@ -669,7 +751,7 @@ public sealed partial class SchedulerTests
     {
         var days = scope.Scheduler.GetVisualDescendants().OfType<Grid>().Single(grid => grid.Name == "PART_CalendarDays");
         var label = date.ToString("D", scope.Scheduler.FormattingCulture);
-        return days.Children.OfType<DaisyButton>().Single(button => Avalonia.Automation.AutomationProperties.GetName(button) == label);
+        return days.Children.OfType<DaisyButton>().Single(button => AutomationProperties.GetName(button) == label);
     }
 
     [AvaloniaFact]
@@ -683,8 +765,7 @@ public sealed partial class SchedulerTests
             FloweryLocalization.SetCulture("de");
             scope.Scheduler.Size = DaisySize.ExtraLarge;
             scope.Layout();
-            var builder = typeof(DaisyScheduler).GetMethod("BuildSettings", BindingFlags.Instance | BindingFlags.NonPublic)!;
-            var scroll = Assert.IsType<ScrollViewer>(builder.Invoke(scope.Scheduler, null));
+            var scroll = Assert.IsType<ScrollViewer>(scope.Scheduler.BuildSettings());
             popup = new Window { Width = 500, Height = 320, Content = scroll };
             popup.Show();
             scope.Layout();

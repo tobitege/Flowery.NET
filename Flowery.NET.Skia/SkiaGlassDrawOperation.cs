@@ -143,33 +143,13 @@ namespace Flowery.Skia
             }
             canvas.ClipRoundRect(roundedRect, SKClipOperation.Intersect, true);
 
+            // Each filter is disposed when the render ends, also when drawing throws.
             using var blurFilter = SKImageFilter.CreateBlur(_blurSigma, _blurSigma, SKShaderTileMode.Clamp);
-
-            SKImageFilter? backdropFilter = blurFilter;
-            SKColorFilter? colorFilter = null;
-
-            if (Math.Abs(_saturation - 1.0f) > 0.01f)
-            {
-                // A saturation matrix with the Rec. 709 luminance weights.
-                float r = 0.2126f;
-                float g = 0.7152f;
-                float b = 0.0722f;
-
-                float sr = (1 - _saturation) * r;
-                float sg = (1 - _saturation) * g;
-                float sb = (1 - _saturation) * b;
-
-                float[] matrix = new float[]
-                {
-                    sr + _saturation, sr,              sr,              0, 0,
-                    sg,               sg + _saturation, sg,              0, 0,
-                    sb,               sb,              sb + _saturation, 0, 0,
-                    0,                0,               0,                1, 0
-                };
-
-                colorFilter = SKColorFilter.CreateColorMatrix(matrix);
-                backdropFilter = SKImageFilter.CreateColorFilter(colorFilter, blurFilter);
-            }
+            using var colorFilter = Math.Abs(_saturation - 1.0f) > 0.01f
+                ? SKColorFilter.CreateColorMatrix(SaturationMatrix(_saturation))
+                : null;
+            using var saturatedFilter = colorFilter != null ? SKImageFilter.CreateColorFilter(colorFilter, blurFilter) : null;
+            var backdropFilter = saturatedFilter ?? blurFilter;
 
             // The backdrop blur from the frame snapshot, through the lens when the glass bends it. Skia makes no blur
             // filter for a blur it cannot draw, such as a negative one, and the lens needs one.
@@ -189,12 +169,6 @@ namespace Flowery.Skia
                 canvas.DrawImage(snapshot.Image, snapshot.Bounds.Left, snapshot.Bounds.Top, paint);
                 canvas.Restore();
             }
-
-            if (backdropFilter != blurFilter)
-            {
-                backdropFilter?.Dispose();
-            }
-            colorFilter?.Dispose();
 
             using var tintPaint = new SKPaint
             {
@@ -231,6 +205,25 @@ namespace Flowery.Skia
 
             canvas.DrawRoundRect(roundedRect, highlightPaint);
             canvas.RestoreToCount(saveCount);
+        }
+
+        /// <summary>
+        /// Returns the color matrix that scales the saturation by <paramref name="saturation"/> (1 keeps the colors, 0
+        /// makes them gray), with the Rec. 709 luminance weights. Skia reads it row by row, one row per output channel,
+        /// so every row weights red, green and blue by their luminance: a gray stays the same gray.
+        /// </summary>
+        internal static float[] SaturationMatrix(float saturation)
+        {
+            var sr = (1 - saturation) * 0.2126f;
+            var sg = (1 - saturation) * 0.7152f;
+            var sb = (1 - saturation) * 0.0722f;
+            return
+            [
+                sr + saturation, sg, sb, 0, 0,
+                sr, sg + saturation, sb, 0, 0,
+                sr, sg, sb + saturation, 0, 0,
+                0, 0, 0, 1, 0
+            ];
         }
 
         // The blur goes onto the snapshot first, into an image of its own; a runtime shader then samples that image with

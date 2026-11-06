@@ -6,7 +6,6 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
-using Avalonia.Input.Raw;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
@@ -366,7 +365,7 @@ public class KanbanDialogTests
     public async Task When_SettingsDialogCancelsAndSaves_ChangesRemainIsolatedUntilSave()
     {
         var previousStorage = StateStorageProvider.Instance;
-        StateStorageProvider.Configure(new DialogStateStorage());
+        StateStorageProvider.Configure(new InMemoryStateStorage());
         var kanban = new FlowKanban
         {
             AutoSaveAfterEdits = false,
@@ -415,7 +414,7 @@ public class KanbanDialogTests
     public void When_InputColumnAndConfirmDialogsRun_OnlyConfirmedCommandsMutateBoard()
     {
         var previousStorage = StateStorageProvider.Instance;
-        StateStorageProvider.Configure(new DialogStateStorage());
+        StateStorageProvider.Configure(new InMemoryStateStorage());
         var kanban = new FlowKanban { AutoSaveAfterEdits = false };
         kanban.Board.Columns.Clear();
         var window = CreateWindow(kanban);
@@ -579,7 +578,7 @@ public class KanbanDialogTests
     public void When_ReadOnlyDialogsRealize_TheyExposeNamedModalAndInvokeSemantics()
     {
         var previousStorage = StateStorageProvider.Instance;
-        StateStorageProvider.Configure(new DialogStateStorage());
+        StateStorageProvider.Configure(new InMemoryStateStorage());
         var kanban = new FlowKanban { AutoSaveAfterEdits = false };
         kanban.Board.Title = "Metrics board";
         var window = CreateWindow(kanban);
@@ -818,37 +817,5 @@ public class KanbanDialogTests
             dialog.IsOpen = false;
             Dispatcher.UIThread.RunJobs();
         }
-    }
-
-    private sealed class DialogStateStorage : IStateStorage
-    {
-        private readonly Dictionary<string, List<string>> _values = new(StringComparer.Ordinal);
-
-        public IReadOnlyList<string> LoadLines(string key) =>
-            _values.TryGetValue(key, out var lines) ? lines : Array.Empty<string>();
-
-        public void SaveLines(string key, IEnumerable<string> lines)
-        {
-            _values[key] = new List<string>(lines);
-        }
-
-        public void Delete(string key)
-        {
-            _values.Remove(key);
-        }
-
-        public void Rename(string sourceKey, string targetKey)
-        {
-            if (!_values.TryGetValue(sourceKey, out var lines))
-            {
-                throw new InvalidOperationException($"Storage key '{sourceKey}' does not exist.");
-            }
-
-            _values[targetKey] = new List<string>(lines);
-            _values.Remove(sourceKey);
-        }
-
-        public IEnumerable<string> GetKeys(string prefix) =>
-            _values.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal)).ToArray();
     }
 }

@@ -38,7 +38,7 @@ public class Given_DaisyTourAvalonia
             AssertProgressSize(tour, DaisySize.ExtraLarge, circle);
             // A later change of the global size leaves the steps at the tour's size.
             FlowerySizeManager.ApplySize(DaisySize.Medium);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             AssertProgressSize(tour, DaisySize.ExtraLarge, circle);
         }
         finally
@@ -64,7 +64,7 @@ public class Given_DaisyTourAvalonia
             first.Template = new FuncControlTemplate<DaisyStepItem>((_, scope) =>
                 new Panel { Name = "PART_Root", Children = { new Grid { Name = "PART_HorizontalLayout" }.RegisterInNameScope(scope) } }
                     .RegisterInNameScope(scope));
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             var button = ProgressButton(tour, 1);
             var templateRoot = (Panel)first.GetVisualChildren().Single();
             Assert.AreSame(button, templateRoot.Children[0], "The button lies under the indicator of the new template.");
@@ -83,7 +83,7 @@ public class Given_DaisyTourAvalonia
         {
             await StartAsync(root, tour);
             await InvokeAsync(tour, ProgressButton(tour, 12), 11);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             var item = tour.Progress.Items.OfType<DaisyStepItem>().ElementAt(11);
             var viewer = tour.Progress.FindAncestorOfType<ScrollViewer>()!;
             Assert.IsTrue(viewer.Extent.Width > viewer.Viewport.Width + 1, "The progress scrolls.");
@@ -107,12 +107,12 @@ public class Given_DaisyTourAvalonia
             Assert.IsTrue(viewer.Extent.Width > viewer.Viewport.Width + 1, "The progress scrolls.");
             AssertStepInView(tour, viewer, 0, "The first step");
             await InvokeAsync(tour, ProgressButton(tour, 12), 11);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             var middle = tour.Progress.Items.OfType<DaisyStepItem>().ElementAt(11);
             Assert.AreEqual(viewer.Viewport.Width / 2, middle.TranslatePoint(new Point(middle.Bounds.Width / 2, 0), viewer)!.Value.X, 1,
                 "The middle step is centered.");
             await InvokeAsync(tour, ProgressButton(tour, 24), 23);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             AssertStepInView(tour, viewer, 23, "The last step");
         }
         finally { await CleanupAsync(root, tour); }
@@ -146,7 +146,7 @@ public class Given_DaisyTourAvalonia
 
             var other = variant == ThemeVariant.Dark ? ThemeVariant.Light : ThemeVariant.Dark;
             scope.RequestedThemeVariant = other;
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.AreEqual(other, surface.ActualThemeVariant, "An open tour follows a variant change of its ancestors.");
         }
         finally { await CleanupAsync(root, tour); }
@@ -163,16 +163,16 @@ public class Given_DaisyTourAvalonia
         try
         {
             RuntimeTestHelpers.AttachToHost(root);
-            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(TestTimeout);
-            await ArrangeAsync(root);
+            await RuntimeTestHelpers.EnsureLoadedAsync(root);
+            await SettleAsync(root);
             outside.Focus();
             Assert.AreSame(outside, FocusedElement(root), "The outside button has the focus before the tour.");
             await tour.StartAsync().WaitAsync(TestTimeout);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
 
             var overlay = OverlayLayer.GetOverlayLayer(tour)!;
             overlay.Children.Remove(overlay.Children.OfType<ThemeVariantScope>().Single(scope => scope.Child == GetSurface(tour)));
-            await ArrangeAsync(root);
+            await SettleAsync(root);
 
             Assert.IsFalse(tour.IsOpen, "The tour closes when its surface leaves the overlay.");
             Assert.HasCount(1, closed);
@@ -188,26 +188,15 @@ public class Given_DaisyTourAvalonia
         // Regression: the editor left the surface with an explicit Local tab navigation, which is not Avalonia's default.
         var (tour, root) = CreateTour(2);
         tour.Id = "tab-navigation";
-        var editor = new DaisyTourEditor();
-        try
+        await TourEditorTestHelpers.InEditorAsync(root, tour, async editor =>
         {
-            RuntimeTestHelpers.AttachToHost(root);
-            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(TestTimeout);
-            await ArrangeAsync(root);
-            await editor.OpenAsync(tour).WaitAsync(TestTimeout);
-            await ArrangeAsync(root);
             var surface = GetSurface(tour);
             Assert.AreEqual(KeyboardNavigationMode.Cycle, KeyboardNavigation.GetTabNavigation(surface), "The editor cycles through the surface.");
 
             editor.Discard();
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.IsFalse(surface.IsSet(KeyboardNavigation.TabNavigationProperty), "The surface has no tab navigation of its own after editing.");
-        }
-        finally
-        {
-            editor.Discard();
-            await CleanupAsync(root, tour);
-        }
+        });
     }
 
     [Fact]
@@ -250,16 +239,16 @@ public class Given_DaisyTourAvalonia
         {
             await StartAsync(root, tour);
             popup.IsOpen = true;
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             field.Focus();
             Assert.AreSame(Find<DaisyButton>(tour, "DaisyTourNext"), FocusedElement(root), "Playback keeps the focus in the tour.");
 
             popup.IsOpen = false;
             tour.Cancel();
             await editor.OpenAsync(tour).WaitAsync(TestTimeout);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             popup.IsOpen = true;
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             field.Focus();
             Assert.AreSame(field, FocusedElement(root), "The editor's overlay popup keeps the focus.");
         }
@@ -365,14 +354,14 @@ public class Given_DaisyTourAvalonia
         var window = RuntimeTestHelpers.GetWindow();
         Assert.AreEqual(DaisyTourLayout.VisibleArea(content, window, default), DaisyTourLayout.VisibleArea(content, window, insets),
             "A window uses the working area of its screen, not safe-area insets.");
-        // That a window as top level takes the window path shows when it reaches past its working area; see
-        // When_TheWindowMovesAcrossTheEdgeOfItsWorkingArea_TheCardStaysInTheVisiblePart.
     }
 
     [Fact]
-    public async Task When_TheWindowMovesAcrossTheEdgeOfItsWorkingArea_TheCardStaysInTheVisiblePart()
+    public async Task When_TheWindowMovesWhileOnlyPartOfItIsVisible_TheCardMovesIntoTheVisiblePart()
     {
         // Regression: moving the window changes no layout, so without its position the card stayed below the taskbar.
+        // Clipping a real window to the working area of its screen is covered by the tests of the pure VisibleArea
+        // overloads in Given_DaisyTour; this test only checks that a move of the window places the card again.
         var window = RuntimeTestHelpers.GetWindow();
         var (tour, root) = CreateTour(1);
         tour.CardPosition = DaisyTourCardPosition.Bottom;
@@ -381,27 +370,16 @@ public class Given_DaisyTourAvalonia
         {
             await StartAsync(root, tour);
             var before = tour.CardBounds;
-            var screen = window.Screens.ScreenFromWindow(window);
-            Assert.IsNotNull(screen, "The window is on a screen.");
-            // Half of the content reaches below the working area.
-            var clientTop = window.PointToScreen(new Point(0, 0)).Y;
-            var half = (int)(window.ClientSize.Height * window.DesktopScaling / 2);
-            window.Position = new PixelPoint(original.X, original.Y + screen.WorkingArea.Bottom - half - clientTop);
-            // Whether the window may reach past its working area is up to the window manager; its real position tells.
-            try
-            {
-                await WaitUntilAsync(() => window.PointToScreen(new Point(0, window.ClientSize.Height)).Y > screen.WorkingArea.Bottom + 1,
-                    "the window reaches past its working area");
-            }
-            catch (TimeoutException)
-            {
-                Assert.Inconclusive("The window manager kept the window inside its working area.");
-            }
-            // A window takes the working area of its screen, which a view without a window would not know.
-            var visible = DaisyTourLayout.VisibleArea(window);
-            Assert.IsTrue(visible.Height < window.ClientSize.Height - 1, $"The visible part {visible} leaves out the content below the working area.");
+            // The lower half of the window is outside the working area. The visible part is replaced instead of moving
+            // the window past the edge, which depends on the window manager and on the screens around this one.
+            var visible = new Rect(0, 0, window.ClientSize.Width, window.ClientSize.Height / 2);
+            Assert.IsTrue(before.Bottom > visible.Bottom, $"The card {before} starts in the lower half of the window.");
+            tour.VisibleAreaOverride = visible;
+            await SettleAsync(root);
+            Assert.AreEqual(before, tour.CardBounds, "Nothing but the move updates the geometry.");
+            // One pixel keeps the window on its screen.
+            window.Position = new PixelPoint(original.X + 1, original.Y);
             await WaitUntilAsync(() => tour.CardBounds.Bottom <= visible.Bottom + 0.5, "the card moves into the visible part");
-            Assert.IsTrue(tour.CardBounds.Bottom < before.Bottom, "The card left the part below the working area.");
             Assert.IsTrue(tour.CardBounds.Top >= visible.Top - 0.5, $"The card {tour.CardBounds} stays in the visible part {visible}.");
         }
         finally
@@ -409,6 +387,55 @@ public class Given_DaisyTourAvalonia
             window.Position = original;
             await CleanupAsync(root, tour);
         }
+    }
+
+    [Fact]
+    public async Task When_TheTourMovesToAnotherStep_ItKeepsItsProgressSteps()
+    {
+        // Regression: every transition created all progress steps and their buttons again.
+        var (tour, root) = CreateTour(3);
+        try
+        {
+            await StartAsync(root, tour);
+            var items = tour.Progress.Items.OfType<DaisyStepItem>().ToArray();
+            Assert.HasCount(3, items);
+            await tour.NextAsync().WaitAsync(TestTimeout);
+            await SettleAsync(root);
+            Assert.IsTrue(items.SequenceEqual(tour.Progress.Items.OfType<DaisyStepItem>()), "The progress steps are the same.");
+            Assert.AreEqual(1, tour.Progress.SelectedIndex);
+            await InvokeAsync(tour, ProgressButton(tour, 3), 2);
+            Assert.AreEqual(2, tour.Progress.SelectedIndex);
+            Assert.IsTrue(items.SequenceEqual(tour.Progress.Items.OfType<DaisyStepItem>()), "The progress steps are the same.");
+        }
+        finally { await CleanupAsync(root, tour); }
+    }
+
+    [Fact]
+    public async Task When_OnlyPartOfTheWindowIsVisible_TheInspectorKeepsItsPlaceWhenItIsResized()
+    {
+        // Regression: a resize of the surface placed the inspector in the whole window, the next geometry update in
+        // its visible part, so the inspector jumped on every resize, dock or collapse. The visible part is replaced
+        // instead of moving the window past its working area.
+        await InEditorAsync(async (tour, _) =>
+        {
+            var editor = GetSurface(tour).GetVisualDescendants().OfType<DaisyTourEditor>().Single();
+            var window = RuntimeTestHelpers.GetWindow();
+            var visible = new Rect(0, 40, window.ClientSize.Width, window.ClientSize.Height / 2);
+            await TourEditorTestHelpers.ChangeGeometryAsync(tour, () =>
+            {
+                tour.VisibleAreaOverride = visible;
+                editor.ResizeInspectorBy(0);
+            });
+            var placed = editor.InspectorBounds;
+            Assert.AreEqual(visible.Top + 12, placed.Top, 0.5, "The geometry update places the inspector in the visible part.");
+            Assert.AreEqual(visible.Bottom - 12, placed.Bottom, 0.5);
+
+            // The resize places the inspector at once, before the next geometry update, from the same origin.
+            editor.ResizeInspectorBy(-20);
+            Assert.AreEqual(placed.Top, editor.InspectorBounds.Top, 0.5, "The inspector keeps its top.");
+            Assert.AreEqual(placed.Bottom, editor.InspectorBounds.Bottom, 0.5, "The inspector stays in the visible part.");
+            Assert.AreEqual(placed.Width + 20, editor.InspectorBounds.Width, 0.5);
+        });
     }
 
     [Fact]
@@ -430,7 +457,7 @@ public class Given_DaisyTourAvalonia
             Assert.AreEqual(warning, ((ISolidColorBrush)note.Background!).Color, "Without contrast the note has the warning fill.");
 
             DaisyAccessibility.HighContrastOverride = true;
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             var system = ((ISolidColorBrush)DaisyResourceLookup.GetBrush("DaisyBaseContentBrush")!).Color;
             Assert.AreEqual(Colors.Transparent, ((ISolidColorBrush)note.Background!).Color, "The note drops its decorative fill.");
             Assert.AreEqual(system, ((ISolidColorBrush)note.BorderBrush!).Color, "The note frame takes the contrast border.");
@@ -454,7 +481,7 @@ public class Given_DaisyTourAvalonia
             await StartAsync(root, tour);
             var small = AssertCompactWidth(tour, "Small");
             tour.Size = DaisySize.ExtraLarge;
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.IsTrue(AssertCompactWidth(tour, "ExtraLarge") > small, "The larger size has a larger indicator.");
         }
         finally { await CleanupAsync(root, tour); }
@@ -475,12 +502,12 @@ public class Given_DaisyTourAvalonia
             Assert.IsTrue(tour.IsCardDragging);
 
             MoveCaptured(pointer, top, new Point(start.X - 60, start.Y - 40));
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.AreEqual(before.X - 60, tour.CardBounds.X, 1, "The card follows the pointer horizontally.");
             Assert.AreEqual(before.Y - 40, tour.CardBounds.Y, 1, "The card follows the pointer vertically.");
 
             ReleaseCaptured(pointer, top, new Point(start.X - 60, start.Y - 40));
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.IsFalse(tour.IsCardDragging, "The release ends the drag.");
             Assert.AreEqual(before.Y - 40, tour.CardBounds.Y, 1, "The card stays where it was released.");
             Assert.IsTrue(save.IsEnabled, "A moved card can be saved for the step.");
@@ -498,11 +525,11 @@ public class Given_DaisyTourAvalonia
             var grip = Find<DaisyButton>(tour, "DaisyTourMoveCard");
             var (top, start, pointer) = PressAtCenter(grip);
             MoveCaptured(pointer, top, new Point(start.X - 60, start.Y - 40));
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.AreEqual(before.Y - 40, tour.CardBounds.Y, 1, "The card follows the pointer before the capture is lost.");
 
             pointer.Capture(null);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.IsFalse(tour.IsCardDragging, "A lost capture ends the drag.");
             Assert.AreEqual(before.X - 60, tour.CardBounds.X, 1, "The card keeps its last horizontal position.");
             Assert.AreEqual(before.Y - 40, tour.CardBounds.Y, 1, "The card keeps its last vertical position.");
@@ -520,7 +547,7 @@ public class Given_DaisyTourAvalonia
             var grip = Find<DaisyButton>(tour, "DaisyTourMoveCard");
             var (top, start, first) = PressAtCenter(grip, PointerType.Touch);
             MoveCaptured(first, top, new Point(start.X - 60, start.Y - 40));
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             // Hit testing sees the moved grip once it has been rendered.
             await RuntimeTestHelpers.WaitForRenderAsync();
 
@@ -531,17 +558,17 @@ public class Given_DaisyTourAvalonia
             MoveCaptured(second, top, otherEnd);
             Assert.IsNotNull(second.Captured, "The second finger's release reaches the grip.");
             ReleaseCaptured(second, top, otherEnd);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.IsTrue(tour.IsCardDragging, "The second finger does not end the first finger's drag.");
             Assert.AreEqual(before.X - 60, tour.CardBounds.X, 1, "The card stays with the first finger horizontally.");
             Assert.AreEqual(before.Y - 40, tour.CardBounds.Y, 1, "The card stays with the first finger vertically.");
 
             MoveCaptured(first, top, new Point(start.X - 80, start.Y - 50));
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.AreEqual(before.X - 80, tour.CardBounds.X, 1, "The first finger keeps dragging from its own origin.");
             Assert.AreEqual(before.Y - 50, tour.CardBounds.Y, 1, "The first finger keeps dragging from its own origin.");
             ReleaseCaptured(first, top, new Point(start.X - 80, start.Y - 50));
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.IsFalse(tour.IsCardDragging, "The first finger's release ends the drag.");
         });
     }
@@ -562,13 +589,13 @@ public class Given_DaisyTourAvalonia
                 MoveCaptured(pointer, top, new Point(start.X, start.Y - 10 * step));
                 Assert.AreSame(grip, pointer.Captured, $"The grip keeps the finger after {10 * step} DIP.");
             }
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.AreSame(grip, pointer.Captured, "The grip keeps the finger.");
             Assert.IsTrue(tour.IsCardDragging, "The drag is still running.");
             Assert.AreEqual(before.Y - 60, tour.CardBounds.Y, 1, "The card follows the finger upward.");
             Assert.AreEqual(0, text.Offset.Y, 0.01, "The card text does not scroll.");
             ReleaseCaptured(pointer, top, new Point(start.X, start.Y - 60));
-            await ArrangeAsync(root);
+            await SettleAsync(root);
         }, tour => tour.Steps[0].Description = string.Join(" ",
             Enumerable.Repeat("This description is longer than the card text area can show at once.", 60)));
     }
@@ -583,10 +610,10 @@ public class Given_DaisyTourAvalonia
             Assert.IsTrue(grip.Focus(), "The grip takes the keyboard focus.");
             var before = tour.CardBounds;
             PressKey(grip, Key.Left);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.AreEqual(before.X - 1, tour.CardBounds.X, 0.01, "Left moves the card by one.");
             PressKey(grip, Key.Up, KeyModifiers.Shift);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.AreEqual(before.Y - 10, tour.CardBounds.Y, 0.01, "Shift+Up moves the card by ten.");
             Assert.IsTrue(Find<DaisyButton>(tour, "DaisyTourSaveCard").IsEnabled, "A card moved with the keyboard can be saved.");
         });
@@ -605,16 +632,16 @@ public class Given_DaisyTourAvalonia
             var foldIcon = icon.Data;
 
             Invoke(toggle);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.IsTrue(card.Bounds.Height < expandedHeight, "The collapsed card shows only its title.");
             var unfoldIcon = icon.Data;
             Assert.AreNotSame(foldIcon, unfoldIcon, "The collapsed card offers to expand.");
             tour.HighlightPadding += 1;
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.AreSame(unfoldIcon, icon.Data, "A refresh keeps the icon of the same state.");
 
             Invoke(toggle);
-            await ArrangeAsync(root);
+            await SettleAsync(root);
             Assert.AreEqual(expandedHeight, card.Bounds.Height, 1, "The expanded card returns to its height.");
             Assert.AreSame(foldIcon, icon.Data, "The expanded card offers to collapse with the same icon.");
         });
@@ -634,10 +661,10 @@ public class Given_DaisyTourAvalonia
     private static async Task StartAsync(Grid root, DaisyTour tour)
     {
         RuntimeTestHelpers.AttachToHost(root);
-        await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(TestTimeout);
-        await ArrangeAsync(root);
+        await RuntimeTestHelpers.EnsureLoadedAsync(root);
+        await SettleAsync(root);
         await tour.StartAsync().WaitAsync(TestTimeout);
-        await ArrangeAsync(root);
+        await SettleAsync(root);
         Assert.IsTrue(tour.IsOpen && !tour.IsTransitioning, "The tour is open.");
     }
 

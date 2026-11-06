@@ -65,26 +65,28 @@ public partial class MainView : UserControl
     private bool _isCapturing;
     private bool _stopCapture;
     private bool _isHeaderCollapsed;
-    private readonly bool _isMobilePlatform;
     private readonly bool _collapsesIntros;
     private ICollapsibleIntroExample? _collapsibleIntro;
     private IInputPane? _inputPane;
     private Thickness _categoryTitleBarPadding = new(24, 4, 24, 20);
 
-    public MainView() : this(OperatingSystem.IsAndroid())
+    /// <summary>
+    /// Whether the Gallery runs on a phone or tablet system, where touch comes first: the pages explain touch instead
+    /// of mouse and keyboard, and the intros fold.
+    /// </summary>
+    internal static bool IsTouchFirst => OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
+
+    public MainView() : this(IsTouchFirst)
     {
     }
 
     /// <param name="collapsesIntros">Hide the header and let the category title bar fold the intro of a page that has one
-    /// (<see cref="ICollapsibleIntroExample"/>), as on Android.</param>
+    /// (<see cref="ICollapsibleIntroExample"/>), as on Android and iOS.</param>
     public MainView(bool collapsesIntros)
     {
         _collapsesIntros = collapsesIntros;
         InitializeComponent();
         DaisyNeumorphic.GlobalIntensity = 0.25;
-
-        // Detect mobile platform early (before any navigation)
-        _isMobilePlatform = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
 
         // Handle FlowDirection changes; the culture subscription follows the visual tree (see OnAttachedToVisualTree).
         UpdateFlowDirection();
@@ -249,13 +251,13 @@ public partial class MainView : UserControl
     {
         // Hide screenshot button on mobile (desktop-only feature)
         if (ScreenshotButton != null)
-            ScreenshotButton.IsVisible = !_isMobilePlatform;
+            ScreenshotButton.IsVisible = !IsTouchFirst;
 
         // Apply responsive layout on initial load
         UpdateResponsiveLayout(this.Bounds.Size);
 
         // A phone on its side has little height: the header stays thin there.
-        if (_isMobilePlatform)
+        if (IsTouchFirst)
         {
             _isLandscape = this.Bounds.Width > this.Bounds.Height;
             SetHeaderCollapsed(_isLandscape);
@@ -269,7 +271,7 @@ public partial class MainView : UserControl
         UpdateResponsiveLayout(e.NewSize);
 
         // A phone on its side has little height: the header stays thin there, and full upright.
-        if (_isMobilePlatform)
+        if (IsTouchFirst)
         {
             _isLandscape = e.NewSize.Width > e.NewSize.Height;
             if (_isLandscape != _isHeaderCollapsed)
@@ -290,14 +292,14 @@ public partial class MainView : UserControl
         var sidebarPercent = SidebarWidth / size.Width;
 
         bool shouldCollapse = contentWidthIfInline < MinContentWidth || sidebarPercent > MaxSidebarWidthPercent ||
-            _isMobilePlatform && size.Height < MinInlineSidebarHeight;
+            IsTouchFirst && size.Height < MinInlineSidebarHeight;
 
         // Compact: overlay sidebar with hamburger toggle
         // Wide: inline sidebar, always visible on the desktop. Phones and tablets keep the hamburger button there too, so
         // the user can hide the sidebar, and a resize (a turn) keeps that choice until the mode changes.
         var mode = shouldCollapse ? SplitViewDisplayMode.Overlay : SplitViewDisplayMode.Inline;
-        HamburgerButton.IsVisible = shouldCollapse || _isMobilePlatform;
-        if (!_isMobilePlatform || MainSplitView.DisplayMode != mode)
+        HamburgerButton.IsVisible = shouldCollapse || IsTouchFirst;
+        if (!IsTouchFirst || MainSplitView.DisplayMode != mode)
         {
             MainSplitView.DisplayMode = mode;
             MainSplitView.IsPaneOpen = !shouldCollapse;
@@ -325,7 +327,7 @@ public partial class MainView : UserControl
         NavigateToCategory("Sidebar_Actions", "button");
     }
 
-    private void NavigateToCategory(string tabHeader, string? sectionId = null)
+    internal void NavigateToCategory(string tabHeader, string? sectionId = null)
     {
         if (MainContentHost == null)
             return;
@@ -444,7 +446,7 @@ public partial class MainView : UserControl
         HeaderBorder.IsVisible = intro == null;
         CategoryMenuButton.IsVisible = intro != null && HamburgerButton.IsVisible;
         CategoryIntroToggle.IsVisible = intro != null;
-        CategoryIntroToggle.RenderTransform = new RotateTransform(intro?.IsIntroVisible == true ? 180 : 0);
+        ((RotateTransform)CategoryIntroToggle.RenderTransform!).Angle = intro?.IsIntroVisible == true ? 180 : 0;
         SetCategoryTitleBarPadding(_categoryTitleBarPadding);
     }
 

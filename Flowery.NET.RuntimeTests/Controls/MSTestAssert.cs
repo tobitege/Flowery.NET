@@ -98,14 +98,6 @@ internal static class MSTestAssert
     [DoesNotReturn]
     public static void Fail(string? message = null) => throw new AssertFailedException(message ?? "Assert.Fail failed.");
 
-    /// <summary>MSTest's inconclusive result is a skipped test in xunit.</summary>
-    [DoesNotReturn]
-    public static void Inconclusive(string? message = null)
-    {
-        Xunit.Assert.Skip(message ?? "Inconclusive.");
-        throw new InvalidOperationException("Unreachable.");
-    }
-
     public static T Throws<T>(Action action, string? message = null) where T : Exception
     {
         try { action(); }

@@ -17,7 +17,7 @@ internal static class TourEditorTestHelpers
         try
         {
             RuntimeTestHelpers.AttachToHost(root);
-            await RuntimeTestHelpers.EnsureLoadedAsync(root).WaitAsync(TestTimeout);
+            await RuntimeTestHelpers.EnsureLoadedAsync(root);
             await SettleAsync(root);
             await editor.OpenAsync(tour).WaitAsync(TestTimeout);
             if (ready is not null) await RuntimeTestHelpers.WaitUntilAsync(ready, "the preview is laid out");

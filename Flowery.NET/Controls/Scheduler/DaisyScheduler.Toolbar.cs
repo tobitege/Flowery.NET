@@ -124,7 +124,7 @@ public partial class DaisyScheduler
         }
     }
 
-    private Control BuildSettings()
+    internal Control BuildSettings()
     {
         var settings = new StackPanel { Spacing = SpacingXS, MinWidth = Token<double>("DaisySchedulerSettingsMinimumWidth") };
         settings.Children.Add(SettingCheckBox("ShowTiles", ShowTiles));

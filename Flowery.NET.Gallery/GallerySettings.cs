@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -24,7 +24,12 @@ public static class GallerySettings
         StaggerMs: 50m,
         PixelateSize: 20m,
         DissolveDensity: 0.5m,
-        FlipAngle: 90m);
+        FlipAngle: 180m);
+
+    // The backdrop and the base color go through the state storage like the carousel settings, so that the browser keeps
+    // them in its local storage; its files only last until the page reloads.
+    private const string BackdropKey = "gallery.backdrop";
+    private const string BaseColorKey = "gallery.base-color";
 
     private static readonly string SettingsPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -40,16 +45,6 @@ public static class GallerySettings
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Flowery.NET.Gallery",
         "size.txt");
-
-    private static readonly string BackdropPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "Flowery.NET.Gallery",
-        "backdrop.txt");
-
-    private static readonly string BaseColorPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "Flowery.NET.Gallery",
-        "base-color.txt");
 
     private static readonly string WindowPlacementPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -110,50 +105,17 @@ public static class GallerySettings
     /// <summary>
     /// The backdrop chosen in the sidebar, as the text of <see cref="DaisyThemeManager.BackdropOverride"/>.
     /// </summary>
-    public static string? LoadBackdrop()
-    {
-        try
-        {
-            if (File.Exists(BackdropPath))
-                return File.ReadAllText(BackdropPath).Trim();
-        }
-        catch { }
-        return null;
-    }
+    public static string? LoadBackdrop() => LoadLine(BackdropKey);
 
-    public static void SaveBackdrop(string? backdrop)
-    {
-        try
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(BackdropPath)!);
-            File.WriteAllText(BackdropPath, backdrop ?? string.Empty);
-        }
-        catch { /* ignore */ }
-    }
+    public static void SaveBackdrop(string? backdrop) => SaveLine(BackdropKey, backdrop);
 
     /// <summary>
     /// The base color chosen in the sidebar for <see cref="DaisyThemeManager.BaseOverride"/>.
     /// </summary>
-    public static Avalonia.Media.Color? LoadBaseColor()
-    {
-        try
-        {
-            if (File.Exists(BaseColorPath) && Avalonia.Media.Color.TryParse(File.ReadAllText(BaseColorPath).Trim(), out var color))
-                return color;
-        }
-        catch { }
-        return null;
-    }
+    public static Avalonia.Media.Color? LoadBaseColor() =>
+        LoadLine(BaseColorKey) is { } text && Avalonia.Media.Color.TryParse(text, out var color) ? color : null;
 
-    public static void SaveBaseColor(Avalonia.Media.Color? color)
-    {
-        try
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(BaseColorPath)!);
-            File.WriteAllText(BaseColorPath, color?.ToString() ?? string.Empty);
-        }
-        catch { /* ignore */ }
-    }
+    public static void SaveBaseColor(Avalonia.Media.Color? color) => SaveLine(BaseColorKey, color?.ToString());
 
     public static DaisySize? LoadGlobalSize()
     {
@@ -282,6 +244,15 @@ public static class GallerySettings
             new("DissolveDensity", settings.DissolveDensity.ToString(CultureInfo.InvariantCulture)),
             new("FlipAngle", settings.FlipAngle.ToString(CultureInfo.InvariantCulture))
         ]);
+    }
+
+    private static string? LoadLine(string key) =>
+        StateStorageProvider.Instance.LoadLines(key) is [var line, ..] && !string.IsNullOrWhiteSpace(line) ? line.Trim() : null;
+
+    private static void SaveLine(string key, string? value)
+    {
+        try { StateStorageProvider.Instance.SaveLines(key, value is null ? [] : [value]); }
+        catch { /* ignore */ }
     }
 
     private static Dictionary<string, string> LoadKeyValueLines(string key)

@@ -7,7 +7,6 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
-using Avalonia.Input.Raw;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
@@ -16,6 +15,7 @@ using Flowery.Controls.Custom.Weather.Models;
 using Flowery.NET.Kanban.Controls;
 using Flowery.Services;
 using Xunit;
+using static Flowery.NET.Tests.RealInput;
 
 namespace Flowery.NET.Tests;
 
@@ -278,31 +278,18 @@ public class ReviewRegressionTests
         finally { DaisyThemeManager.SetCurrentTheme(previous ?? string.Empty); }
     }
 
-    private static void Press(Window window, Key key)
-    {
-        window.KeyPress(key, RawInputModifiers.None, PhysicalKey.None, keySymbol: null);
-        window.KeyRelease(key, RawInputModifiers.None, PhysicalKey.None, keySymbol: null);
-        Dispatcher.UIThread.RunJobs();
-    }
-
-    private sealed class Scope : IDisposable, IStateStorage
+    private sealed class Scope : IDisposable
     {
         private readonly IStateStorage _previous = StateStorageProvider.Instance;
-        private readonly Dictionary<string, List<string>> _values = new(StringComparer.Ordinal);
         public Window Window { get; }
         public Scope(Control content)
         {
-            StateStorageProvider.Configure(this);
+            StateStorageProvider.Configure(new InMemoryStateStorage());
             Window = new Window { Width = 1200, Height = 900, Content = content };
             Window.Show();
             Flush();
         }
         public void Flush() { Dispatcher.UIThread.RunJobs(); Window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); }
         public void Dispose() { Window.Close(); StateStorageProvider.Configure(_previous); }
-        public IReadOnlyList<string> LoadLines(string key) => _values.TryGetValue(key, out var value) ? value : [];
-        public void SaveLines(string key, IEnumerable<string> lines) => _values[key] = [.. lines];
-        public void Delete(string key) => _values.Remove(key);
-        public void Rename(string sourceKey, string targetKey) { _values[targetKey] = _values[sourceKey]; _values.Remove(sourceKey); }
-        public IEnumerable<string> GetKeys(string prefix) => _values.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal)).ToArray();
     }
 }

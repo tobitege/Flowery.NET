@@ -13,12 +13,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <AndroidResource Include="Icon.png">
-            <Link>Resources\drawable\Icon.png</Link>
-        </AndroidResource>
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="Avalonia.Android" Version="12.1.4" />
         <!-- Match the AppCompatResources version required by SplashScreen. -->
         <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.8.0" />

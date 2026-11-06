@@ -83,7 +83,7 @@ jobs:
               -p:IncludeNativeLibrariesForSelfExtract=true \
               -p:EnableCompressionInSingleFile=true \
               -o ./publish
-            python Utils/photos_release.py verify --rid "$rid"
+            ${{ matrix.python }} Utils/photos_release.py verify --rid "$rid"
           done
 
       # Opens a photo, rotates it, saves a copy, and opens the copy after a restart, which must keep the window size.
@@ -165,6 +165,21 @@ jobs:
 
       - name: Run the tests of the CI check scripts
         run: python3 -B -m unittest discover -s scripts -p 'test_*.py'
+
+  build-library-without-svg-patterns:
+    # A build with -p:FlowerySvgPatterns=false leaves out Svg.Skia and the SVG pattern assets; the pattern cards then
+    # draw the generated tiles. The headless tests run against that build, which dotnet test makes.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      - name: Run Tests without the SVG patterns
+        run: dotnet test Flowery.NET.Tests/Flowery.NET.Tests.csproj -p:FlowerySvgPatterns=false
 
   runtime-tests:
     # Renders the controls and Gallery pages in a real desktop window; see scripts/README.md. Linux draws on Xvfb.
@@ -320,7 +335,8 @@ jobs:
     steps: *gallery-steps
 
   build-browser:
-    # Publishes the Browser Gallery as the releases do (_build-gallery.yml) and starts it in headless Chromium.
+    # Publishes the Browser Gallery with the action the releases use (_build-gallery.yml) and starts it in headless
+    # Chromium.
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
@@ -329,17 +345,10 @@ jobs:
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: '10.0.x'
-
-      # WasmBuildNative links the SkiaSharp and HarfBuzz native libraries into dotnet.native.wasm.
-      - name: Install WebAssembly build tools
-        run: dotnet workload install wasm-tools
+          global-json-file: global.json
 
       - name: Publish Browser Gallery
-        run: |
-          dotnet publish Flowery.NET.Gallery.Browser/Flowery.NET.Gallery.Browser.csproj \
-            -c Release \
-            -o ./browser-publish
+        uses: ./.github/actions/publish-browser-gallery
 
       # Playwright and its dependencies come with pinned versions and hashes.
       - name: Install Playwright and headless Chromium
@@ -373,7 +382,7 @@ jobs:
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
-          dotnet-version: '10.0.x'
+          global-json-file: global.json
 
       - name: Install Android workload
         run: dotnet workload install android

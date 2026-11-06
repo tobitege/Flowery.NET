@@ -1,7 +1,6 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Rendering.SceneGraph;
 using Flowery.Skia;
 using Xunit;
 
@@ -9,24 +8,33 @@ namespace Flowery.NET.RuntimeTests.Native;
 
 public class Given_SkiaGlassCache
 {
+    private static readonly SkiaGlassLens Lens = new(Refraction: 0, Bezel: .5, Zoom: 1, RimSaturation: 1);
+
     [Fact]
     public void When_Tint_Radius_Lighting_Or_Lens_Change_The_Skia_Operation_Is_Not_Equal()
     {
-        var assembly = typeof(FlowerySkia).Assembly;
-        var type = assembly.GetType("Flowery.Skia.SkiaGlassDrawOperation", throwOnError: true)!;
-        var redrawType = assembly.GetType("Flowery.Skia.SkiaGlassRedraw", throwOnError: true)!;
-        var lensType = assembly.GetType("Flowery.Skia.SkiaGlassLens", throwOnError: true)!;
-        var redraw = Activator.CreateInstance(redrawType, new Border())!;
-        var lens = Activator.CreateInstance(lensType, 0d, .5d, 1d, 1d)!;
-        var bentLens = Activator.CreateInstance(lensType, .6d, .5d, 1d, 1d)!;
-        object[] values = [redraw, new Rect(0, 0, 100, 100), 10d, Colors.Red, .5d, 5d, 1d, 45d, .2d, .6d, .6d, .3d, .2d, lens];
-        using var original = (ICustomDrawOperation)Activator.CreateInstance(type, values)!;
-        foreach (var (index, value) in new (int, object)[] { (3, Colors.Blue), (5, 12d), (7, 90d), (13, bentLens) })
+        var redraw = new SkiaGlassRedraw(new Border());
+        using var original = Operation(redraw);
+        // The same values give an equal operation, so an unequal one below comes from the changed value.
+        using (var same = Operation(redraw))
+            Assert.True(original.Equals(same), "Equal values must give an equal operation.");
+
+        foreach (var (name, changed) in new (string, SkiaGlassDrawOperation)[]
         {
-            var changed = (object[])values.Clone();
-            changed[index] = value;
-            using var operation = (ICustomDrawOperation)Activator.CreateInstance(type, changed)!;
-            Assert.False(original.Equals(operation), $"Skia operation ignored visual parameter {index}.");
+            ("tint", Operation(redraw, tint: Colors.Blue)),
+            ("corner radius", Operation(redraw, cornerRadius: 12)),
+            ("sheen angle", Operation(redraw, sheenAngle: 90)),
+            ("lens", Operation(redraw, lens: Lens with { Refraction = .6 }))
+        })
+        {
+            using (changed)
+                Assert.False(original.Equals(changed), $"The Skia operation ignored a change of the {name}.");
         }
     }
+
+    private static SkiaGlassDrawOperation Operation(SkiaGlassRedraw redraw, Color? tint = null, double cornerRadius = 5,
+        double sheenAngle = 45, SkiaGlassLens? lens = null) =>
+        new(redraw, new Rect(0, 0, 100, 100), blurRadius: 10, tintColor: tint ?? Colors.Red, tintOpacity: .5,
+            cornerRadius: cornerRadius, saturation: 1, sheenAngle: sheenAngle, reflectOpacity: .2, depth: .6, curvature: .6,
+            bend: .3, dispersion: .2, lens: lens ?? Lens);
 }

@@ -37,6 +37,7 @@ With reduced motion turned on in the system, the slides change only by hand.
 
 The app keeps its state in `Flowery.NET.Kiosk` in the local application data, or in the absolute path of `FLOWERY_STATE_ROOT`.
 A failure ends the app with exit code 1; outside a smoke run it writes the error to `crash.log` in that folder.
+`FLOWERY_KIOSK_POSITION=x,y` opens the window with its top left corner at that point in pixels, for example on a second screen during a smoke run.
 
 ## Assets
 

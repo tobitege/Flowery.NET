@@ -1,6 +1,7 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using System.Text.Json;
+using Avalonia;
 using Avalonia.Automation;
+using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
@@ -13,12 +14,10 @@ using Flowery.Controls.Scheduler.Models;
 using Flowery.Controls.Scheduler.Rendering;
 using Flowery.Controls.Scheduler.Utilities;
 using Flowery.Localization;
-using System.Text.Json;
 using Xunit;
 
 namespace Flowery.NET.Tests;
 
-[Collection("LocalizationTests")]
 public sealed partial class SchedulerTests
 {
     private static readonly DateTime Monday = new(2026, 10, 12);
@@ -134,17 +133,24 @@ public sealed partial class SchedulerTests
         using var scope = new SchedulerScope(view);
         Assert.True(scope.Scheduler.ShowWeekends);
         scope.Scheduler.FirstDayOfWeek = firstDay;
+        scope.Layout();
+        var culture = scope.Scheduler.FormattingCulture;
+        string?[] Texts() => scope.Scheduler.GetVisualDescendants().OfType<TextBlock>().Select(static text => text.Text).ToArray();
+        // Whichever week the first day starts, its weekend lies within a week of Monday.
+        string[] Weekend(string?[] texts) => Enumerable.Range(-7, 21).Select(static day => Monday.AddDays(day))
+            .Where(static date => date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+            .Select(date => date.ToString("ddd, d MMM", culture)).Where(texts.Contains).ToArray();
+        Assert.NotEmpty(Weekend(Texts()));
+
         scope.Scheduler.ShowWeekends = false;
         scope.Layout();
 
         // A week from Wednesday to Tuesday shares three weekdays with the Monday before it and two with the one after.
         var monday = Monday.AddDays(mondayOffset);
-        var culture = scope.Scheduler.FormattingCulture;
-        var texts = scope.Scheduler.GetVisualDescendants().OfType<TextBlock>().Select(static text => text.Text).ToArray();
+        var texts = Texts();
         for (var day = 0; day < 5; day++)
             Assert.Contains(monday.AddDays(day).ToString("ddd, d MMM", culture), texts);
-        Assert.DoesNotContain(monday.AddDays(-1).ToString("ddd, d MMM", culture), texts);
-        Assert.DoesNotContain(monday.AddDays(5).ToString("ddd, d MMM", culture), texts);
+        Assert.Empty(Weekend(texts));
     }
 
     [AvaloniaFact]
@@ -579,17 +585,7 @@ public sealed partial class SchedulerTests
         public Point Point(Control control, double x, double y) => control.TranslatePoint(new Point(x, y), Window)!.Value;
         public void Click(Control control, MouseButton button = MouseButton.Left)
         {
-            var point = Point(control, control.Bounds.Width / 2, control.Bounds.Height / 2);
-            // A click outside the window or the visible part of a scrolled view would miss without a trace.
-            for (var frame = 0; frame < 2; frame++)
-            {
-                Dispatcher.UIThread.RunJobs();
-                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-            }
-            Assert.True(Window.InputHitTest(point) is Visual hit && (hit == control || control.IsVisualAncestorOf(hit)),
-                $"{control} cannot be clicked at {point}: {Window.InputHitTest(point)} is there.");
-            Window.MouseDown(point, button);
-            Window.MouseUp(point, button);
+            control.PointerClick(button: button);
             Layout();
         }
         public void Layout() { Dispatcher.UIThread.RunJobs(); Window.UpdateLayout(); Dispatcher.UIThread.RunJobs(); Window.UpdateLayout(); }

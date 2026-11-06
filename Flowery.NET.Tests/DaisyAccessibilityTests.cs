@@ -1,11 +1,8 @@
-﻿﻿using System;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
-using Avalonia.HeadlessTestingFramework;
 using Avalonia.HeadlessTestingFramework.Appium;
 using Flowery.Controls;
 using Flowery.Localization;
@@ -13,8 +10,6 @@ using Xunit;
 
 namespace Flowery.NET.Tests
 {
-    // Run sequentially to minimize interference
-    [Collection("LocalizationTests")]
     public class DaisyAccessibilityTests : IDisposable
     {
         private readonly CultureInfo _originalCulture;
@@ -88,26 +83,32 @@ namespace Flowery.NET.Tests
 
             var progress = new DaisyProgress { Value = 50, Minimum = 0, Maximum = 100 };
             var peer = Peer(window, progress);
-            Assert.Contains("50%", peer.GetName());
+            Assert.Equal("Progress, 50%", peer.GetName());
             progress.Value = 75;
             DaisyAccessibility.SetAccessibleText(progress, "Uploading file");
-            Assert.Contains("Uploading file", peer.GetName());
-            Assert.Contains("75%", peer.GetName());
+            Assert.Equal("Uploading file, 75%", peer.GetName());
 
-            Assert.Contains("70%", Peer(window, new DaisyRadialProgress { Value = 70 }).GetName());
-            Assert.Contains("30", Peer(window, new DaisyCountdown { Value = 30 }).GetName());
-            Assert.Contains("seconds", Peer(window, new DaisyCountdown { ClockUnit = CountdownClockUnit.Seconds }).GetName());
+            Assert.Equal("Progress, 70%", Peer(window, new DaisyRadialProgress { Value = 70 }).GetName());
+            Assert.Equal("Countdown: 30", Peer(window, new DaisyCountdown { Value = 30 }).GetName());
+            // A clock unit shows the seconds of the current time.
+            Assert.Matches("^Countdown: [0-9]{1,2} seconds$", Peer(window, new DaisyCountdown { ClockUnit = CountdownClockUnit.Seconds }).GetName());
 
             var rating = new DaisyRating { Value = 3, Maximum = 5 };
             peer = Peer(window, rating);
             Assert.Equal(AutomationControlType.Slider, peer.GetAutomationControlType());
-            Assert.Contains("3", peer.GetName());
-            Assert.Contains("5", peer.GetName());
-            Assert.Contains("stars", peer.GetName());
+            Assert.Equal("Rating: 3 of 5 stars", peer.GetName());
             rating.Value = 4;
             DaisyAccessibility.SetAccessibleText(rating, "Product rating");
-            Assert.Contains("Product rating", peer.GetName());
-            Assert.Contains("4", peer.GetName());
+            Assert.Equal("Product rating: 4 of 5 stars", peer.GetName());
+        }
+
+        [AvaloniaFact]
+        public void A_Rating_Announces_Its_Stars_In_The_Current_Language()
+        {
+            using var culture = new CultureScope();
+            FloweryLocalization.SetCulture("de-DE");
+            using var window = new TestWindow(new Border());
+            Assert.Equal("Bewertung: 3 von 5 Sternen", Peer(window, new DaisyRating { Value = 3, Maximum = 5 }).GetName());
         }
 
         [AvaloniaFact]

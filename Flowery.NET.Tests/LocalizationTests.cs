@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -16,13 +14,6 @@ using Xunit;
 
 namespace Flowery.NET.Tests
 {
-    [CollectionDefinition("LocalizationTests", DisableParallelization = true)]
-    public sealed class LocalizationTestCollection
-    {
-    }
-
-    // Run sequentially to avoid culture interference
-    [Collection("LocalizationTests")]
     public partial class LocalizationTests
     {
         // These login buttons show the provider's own wording in every language.
@@ -171,6 +162,32 @@ namespace Flowery.NET.Tests
             }
 
             Assert.True(gaps.Count == 0, "Untranslated keys:" + Environment.NewLine + string.Join(Environment.NewLine, gaps));
+        }
+
+        [Fact]
+        public void Every_Gallery_Language_Has_Exactly_The_English_Keys()
+        {
+            // The tests do not reference the Gallery, so they read its catalogs from the repository. Regression: eleven
+            // keys of 3.10 were missing in every language but English.
+            var folder = Path.Combine(RepositoryRoot(), "Flowery.NET.Gallery", "Localization");
+            var catalogs = Directory.EnumerateFiles(folder, "*.json").ToDictionary(
+                static file => Path.GetFileNameWithoutExtension(file),
+                static file =>
+                {
+                    using var document = JsonDocument.Parse(File.ReadAllText(file));
+                    return document.RootElement.EnumerateObject().Select(static property => property.Name).ToHashSet(StringComparer.Ordinal);
+                },
+                StringComparer.Ordinal);
+            Assert.Equal(12, catalogs.Count);
+
+            var english = catalogs["en"];
+            var gaps = new List<string>();
+            foreach (var (language, keys) in catalogs)
+            {
+                if (!keys.SetEquals(english))
+                    gaps.Add($"{language}: missing {string.Join(", ", english.Except(keys))}; extra {string.Join(", ", keys.Except(english))}");
+            }
+            Assert.True(gaps.Count == 0, string.Join(Environment.NewLine, gaps));
         }
 
         [AvaloniaFact]

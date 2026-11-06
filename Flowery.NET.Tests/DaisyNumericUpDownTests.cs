@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using System.Globalization;
+using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.HeadlessTestingFramework;
 using Flowery.Controls;
@@ -54,8 +55,16 @@ namespace Flowery.NET.Tests
             using var window = new TestWindow(control);
             var textBox = control.GetByName<TextBox>("PART_DaisyTextBox");
 
-            // The separator depends on the culture.
-            Assert.Matches("[,. ]", textBox.Text);
+            // The separator is that of the culture.
+            using (new CultureScope())
+            {
+                CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
+                control.Value = 7654321;
+                Assert.Equal("7.654.321", textBox.Text);
+                CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
+                control.Value = 1234567;
+                Assert.Equal("1,234,567", textBox.Text);
+            }
             control.ShowThousandSeparators = false;
 
             // One control walks through every case, so each row also checks that a change updates the text.
@@ -109,15 +118,15 @@ namespace Flowery.NET.Tests
             var expected = new Dictionary<DaisyNumberBase, string>
             {
                 [DaisyNumberBase.Decimal] = "255",
-                [DaisyNumberBase.Hexadecimal] = "FF",
-                [DaisyNumberBase.Binary] = "11111111",
-                [DaisyNumberBase.Octal] = "377",
-                [DaisyNumberBase.ColorHex] = "0000FF"
+                [DaisyNumberBase.Hexadecimal] = "0xFF",
+                [DaisyNumberBase.Binary] = "0b11111111",
+                [DaisyNumberBase.Octal] = "0o377",
+                [DaisyNumberBase.ColorHex] = "#0000FF"
             };
-            foreach (var (numberBase, digits) in expected)
+            foreach (var (numberBase, text) in expected)
             {
                 control.NumberBase = numberBase;
-                Assert.Contains(digits, control.ToFormattedString()?.ToUpperInvariant());
+                Assert.Equal(text, control.ToFormattedString());
             }
 
             control.Value = 10;

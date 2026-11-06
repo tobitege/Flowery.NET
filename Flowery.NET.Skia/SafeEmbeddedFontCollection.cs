@@ -28,7 +28,7 @@ namespace Flowery.Skia
         private static readonly Uri InterKey = new("fonts:Inter");
         private static readonly Uri InterSource = new("avares://Avalonia.Fonts.Inter/Assets");
 
-        private static int s_reportedMissingMembers;
+        private static int _reportedMissingMembers;
 
         /// <summary>
         /// Creates a collection of the fonts at <paramref name="source"/>.
@@ -75,7 +75,7 @@ namespace Flowery.Skia
                     return base.TryCreateSyntheticGlyphTypeface(glyphTypeface, style, weight, stretch, out syntheticGlyphTypeface);
 
                 // Avalonia.Skia changed: the regular face stands in, rather than the unsafe read.
-                if (Interlocked.Exchange(ref s_reportedMissingMembers, 1) == 0)
+                if (Interlocked.Exchange(ref _reportedMissingMembers, 1) == 0)
                     Logger.TryGet(LogEventLevel.Warning, LogArea.Fonts)?.Log(this,
                         "{Type} lacks its SKTypeface property or its (SKTypeface, FontSimulations) constructor, so fonts get no bold or oblique stand-ins.",
                         SkiaTypefaceName);

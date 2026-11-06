@@ -9,7 +9,6 @@ using Xunit;
 
 namespace Flowery.NET.Tests
 {
-    [Collection("LocalizationTests")]
     public class DaisyInputTests
     {
         [AvaloniaFact]

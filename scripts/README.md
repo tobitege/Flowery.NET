@@ -386,6 +386,8 @@ pwsh ./scripts/test_kiosk.ps1 -ExecutablePath ./publish-kiosk/Flowery.NET.Kiosk.
 | `-SkipBuild` | switch | off | Use the existing build output |
 | `-ExecutablePath` | string | none | Run this Kiosk executable instead of the build output |
 
+The app opens its window centered on the primary screen. To run it elsewhere, such as on a second screen, set `FLOWERY_KIOSK_POSITION` to the top left corner of the window in pixels before the run, for example `$env:FLOWERY_KIOSK_POSITION = '-1440,100'`; the app inherits it.
+
 ### Kiosk Tests: Output
 
 - `TestResults/Kiosk/<Configuration>/<run>/kiosk-smoke.xml`: the report with `total`, `passed`, `failed` and `inconclusive` counts and one entry per check
@@ -401,7 +403,7 @@ CI uploads the run folder and the console log as the artifact `kiosk-smoke-<OS>-
 ## CI start checks
 
 The CI workflow (`.github/workflows/ci.yml`) starts the published apps with these Python scripts.
-`ci_png.py` reads the pixels of their PNG screenshots with the Python standard library; `test_ci_png.py` tests it, and CI runs it with `python3 -B -m unittest discover -s scripts -p 'test_*.py'`.
+`ci_png.py` reads the pixels of their PNG screenshots with the Python standard library; `test_ci_png.py` tests it, `test_check_android_gallery.py` tests how the Android check takes failed and empty UI dumps, and CI runs both with `python3 -B -m unittest discover -s scripts -p 'test_*.py'`.
 
 | Script | App | What it checks |
 | --- | --- | --- |

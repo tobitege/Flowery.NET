@@ -6,24 +6,24 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 
-namespace Flowery.Composition;
+namespace Flowery.Helpers;
 
 // The bounds are compared to report only changes; the tour asks for the new layout itself.
-internal readonly record struct CompositionElementBounds(Rect Bounds, double RasterizationScale, TopLevel Root);
+internal readonly record struct ElementBounds(Rect Bounds, double RasterizationScale, TopLevel Root);
 
 /// <summary>Reports changed bounds in a host's DIP coordinates after layout or scrolling.</summary>
-internal sealed class CompositionElementTracker : IDisposable
+internal sealed class ElementBoundsTracker : IDisposable
 {
     private readonly Control _target;
     private readonly Control _host;
     private readonly Action _changed;
     private readonly HashSet<ScrollViewer> _scrollViewers = [];
     private TopLevel? _root;
-    private CompositionElementBounds? _bounds;
+    private ElementBounds? _bounds;
     private bool _queued;
     private bool _disposed;
 
-    internal CompositionElementTracker(Control target, Control host, Action changed)
+    internal ElementBoundsTracker(Control target, Control host, Action changed)
     {
         _target = target;
         _host = host;
@@ -87,7 +87,7 @@ internal sealed class CompositionElementTracker : IDisposable
             return;
         }
         var bounds = new Rect(0, 0, _target.Bounds.Width, _target.Bounds.Height).TransformToAABB(transform);
-        Publish(new CompositionElementBounds(bounds, root.RenderScaling, root));
+        Publish(new ElementBounds(bounds, root.RenderScaling, root));
     }
 
     private void ObserveScrollViewers(Visual element)
@@ -99,7 +99,7 @@ internal sealed class CompositionElementTracker : IDisposable
         }
     }
 
-    private void Publish(CompositionElementBounds? bounds)
+    private void Publish(ElementBounds? bounds)
     {
         if (_bounds == bounds)
             return;

@@ -8,12 +8,14 @@ namespace Flowery.NET.Tests;
 /// </summary>
 internal static class ThemeRegistrations
 {
-    /// <summary>The names of all registered themes. Clears the exclusions, which hide themes from the list.</summary>
-    public static HashSet<string> Capture()
-    {
-        DaisyThemeManager.ExcludedThemes = Array.Empty<string>();
-        return DaisyThemeManager.AvailableThemes.Select(static theme => theme.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-    }
+    /// <summary>The names of all registered themes, the excluded ones included.</summary>
+    public static HashSet<string> Capture() =>
+        DaisyThemeManager.AvailableThemes.Select(static theme => theme.Name)
+            .Concat(DaisyThemeManager.ExcludedThemes.Where(static name => DaisyThemeManager.GetThemeInfo(name) is not null))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Shows every registered theme in the lists again.</summary>
+    public static void ClearExclusions() => DaisyThemeManager.ExcludedThemes = [];
 
     /// <summary>Unregisters the themes registered since <paramref name="before"/> was captured.</summary>
     public static void RemoveAddedSince(HashSet<string> before)

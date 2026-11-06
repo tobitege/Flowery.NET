@@ -1,5 +1,6 @@
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.VisualTree;
 using Flowery.Enums;
 using Flowery.Helpers;
 
@@ -130,7 +131,9 @@ public partial class KioskMainPage : UserControl
 
     private void OnKeyDown(object? sender, KeyEventArgs args)
     {
-        if (!_ready.Task.IsCompletedSuccessfully || _shutdown)
+        // Letters, space and the arrows typed into a field of a slide belong to the field.
+        if (!_ready.Task.IsCompletedSuccessfully || _shutdown ||
+            (args.Source as Visual)?.FindAncestorOfType<TextBox>(includeSelf: true) is not null)
             return;
         switch (args.Key)
         {

@@ -20,8 +20,12 @@ public partial class GalleryView : UserControl
     private bool _updating;
     private double _layoutWidth;
     private int _layoutVersion;
-    private PhotoItem? _resizeAnchor;
-    private double _resizeDelta;
+    // The topmost visible photo before the rows were rebuilt, followed by the photos after it, and its top in the
+    // scroller. A rescan creates new items, so they go by path.
+    private List<string>? _anchorPaths;
+    private double _anchorTop;
+    // The query of the rows shown; another source, search or filter starts at the top instead of keeping the place.
+    private PhotoQuery? _shownQuery;
     public IReadOnlyList<PhotoItem> Items => _items;
     public PhotoQuery Query => _query;
     public IReadOnlyList<PhotoItem> Selected => _items.Where(item => item.IsSelected).ToList();
@@ -50,8 +54,8 @@ public partial class GalleryView : UserControl
         Rows.AddHandler(ScrollViewer.ScrollChangedEvent, OnScroll);
         Timeline.ScrollRequested += offset =>
         {
-            _resizeAnchor = null; _layoutVersion++;
-            if (Scroller is { } scroller) scroller.Offset = new Avalonia.Vector(0, offset);
+            _anchorPaths = null; _layoutVersion++;
+            if (Scroller is { } scroller) ScrollToLayoutOffset(scroller, offset);
         };
         AttachedToVisualTree += (_, _) => FlowerySizeManager.SizeChanged += OnGlobalSizeChanged;
         DetachedFromVisualTree += (_, _) => FlowerySizeManager.SizeChanged -= OnGlobalSizeChanged;
@@ -90,7 +94,7 @@ public partial class GalleryView : UserControl
     public void Show(PhotoQuery query, string title)
     {
         ClearSelection();
-        _query = query; _title = title;
+        _query = query; _title = title; _shownQuery = null;
         RefreshLabels();
         Refresh();
     }
@@ -119,7 +123,9 @@ public partial class GalleryView : UserControl
         EmptyTitle.Text = PhotosLocalization.GetString("Photos_Empty_" + emptyKind + "Title");
         EmptyText.Text = PhotosLocalization.GetString("Photos_Empty_" + (emptyKind == "Folder" ? "Library" : emptyKind) + "Text");
         ResetFilters.IsVisible = emptyKind == "NoResults";
-        RebuildRows();
+        var newSet = _query != _shownQuery;
+        _shownQuery = _query;
+        RebuildRows(newSet);
     }
     private void ApplyOptions()
     {
@@ -133,17 +139,17 @@ public partial class GalleryView : UserControl
         PhotosSettings.SaveOptions();
         Refresh();
     }
-    private void RebuildRows()
+    // A change in place (removal, rescan, resize, grouping) keeps the topmost photo where it is; a new set starts at the top.
+    private void RebuildRows(bool fromTop = false)
     {
         var scroller = Scroller;
-        var offset = scroller?.Offset.Y ?? 0;
-        var oldIndex = GalleryLayout.FindRowAt(_rows, offset);
-        var oldRow = oldIndex >= 0 ? _rows[oldIndex] : null;
-        if (_resizeAnchor == null)
+        if (fromTop)
         {
-            _resizeAnchor = oldRow is GalleryPhotoRow photos ? photos.Tiles[0].Item : (oldRow as GalleryHeaderRow)?.Items.FirstOrDefault();
-            _resizeDelta = offset - (oldRow?.Top ?? 0);
+            _anchorPaths = null;
+            if (scroller != null) scroller.Offset = default;
         }
+        else if (_anchorPaths == null && scroller != null) RememberTopPhoto(scroller);
+        var offset = scroller?.Offset.Y ?? 0;
         _layoutWidth = Bounds.Width;
         var factor = FlowerySizeManager.CurrentSize switch
         {
@@ -159,12 +165,56 @@ public partial class GalleryView : UserControl
         Dispatcher.UIThread.Post(() =>
         {
             if (version != _layoutVersion || Scroller is not { } current) return;
-            var row = _rows.OfType<GalleryPhotoRow>().FirstOrDefault(row => row.Tiles.Any(tile => tile.Item == _resizeAnchor));
-            if (row != null) current.Offset = new Avalonia.Vector(0, row.Top + Math.Clamp(_resizeDelta, 0, row.Height));
-            _resizeAnchor = null;
+            if (_anchorPaths is { } paths) KeepPhotoInPlace(current, paths, _anchorTop);
+            _anchorPaths = null;
             Timeline.Update(_rows, current.Offset.Y, current.Viewport.Height);
         }, DispatcherPriority.Loaded);
         DateChip.Text = _rows.Count == 0 ? "" : GalleryLayout.FormatLongDate(_rows[0].Date, PhotosLocalization.CurrentCulture);
+    }
+    // Of the tiles in view, the topmost row and its first photo; the photos after it stand in if it goes.
+    private void RememberTopPhoto(ScrollViewer scroller)
+    {
+        GalleryPhotoRow? top = null;
+        foreach (var tile in Rows.GetVisualDescendants().OfType<PhotoTile>())
+        {
+            if (!tile.IsEffectivelyVisible || tile.DataContext is not GalleryPhotoRow row || tile.TranslatePoint(default, scroller) is not { } point ||
+                point.Y + tile.Bounds.Height <= 0 || (top != null && point.Y >= _anchorTop)) continue;
+            top = row; _anchorTop = point.Y;
+        }
+        _anchorPaths = top == null ? null
+            : [.. _rows.SkipWhile(row => row != top).OfType<GalleryPhotoRow>().SelectMany(row => row.Tiles).Select(tile => tile.Item.Path)];
+    }
+    // After an items reset the panel only estimates where rows lie, so the measured place of the photo corrects the
+    // offset.
+    private void KeepPhotoInPlace(ScrollViewer scroller, List<string> paths, double top)
+    {
+        var rowOf = new Dictionary<string, int>(PhotoLibrary.PathComparer);
+        for (var index = 0; index < _rows.Count; index++)
+            if (_rows[index] is GalleryPhotoRow photos)
+                foreach (var (item, _) in photos.Tiles) rowOf[item.Path] = index;
+        var path = paths.FirstOrDefault(rowOf.ContainsKey);
+        if (path == null) return;
+        var tile = BringRowIntoView(rowOf[path])?.GetVisualDescendants().OfType<PhotoTile>()
+            .FirstOrDefault(candidate => PhotoLibrary.PathComparer.Equals(candidate.Item.Path, path));
+        if (tile != null) MoveTo(scroller, tile, top);
+    }
+    // The timeline names an offset in the rows' own layout; the row there takes the same place in the view.
+    private void ScrollToLayoutOffset(ScrollViewer scroller, double offset)
+    {
+        var index = GalleryLayout.FindRowAt(_rows, offset);
+        if (index >= 0 && BringRowIntoView(index) is { } row) MoveTo(scroller, row, _rows[index].Top - offset);
+    }
+    private Control? BringRowIntoView(int index)
+    {
+        Rows.ScrollIntoView(index);
+        Rows.UpdateLayout();
+        return Rows.ContainerFromIndex(index);
+    }
+    // Scrolls until the element's top lies at top in the scroller.
+    private static void MoveTo(ScrollViewer scroller, Control element, double top)
+    {
+        if (element.TranslatePoint(default, scroller) is { } point)
+            scroller.Offset = new Avalonia.Vector(0, scroller.Offset.Y + point.Y - top);
     }
     private ScrollViewer? Scroller => Rows.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
     private void OnGlobalSizeChanged(object? sender, DaisySize size) => RebuildRows();
@@ -221,15 +271,17 @@ public partial class GalleryView : UserControl
     }
     public IReadOnlyList<PhotoItem> ContextItems(PhotoItem item) => item.IsSelected ? Selected : [item];
     private bool DateSorted => PhotosSettings.SortMode is PhotoSortMode.DateTakenNewest or PhotoSortMode.DateTakenOldest;
-    public void FocusPhoto(PhotoItem? item)
+    /// <summary>Scrolls to the photo and focuses it; false when the gallery does not show it.</summary>
+    public bool FocusPhoto(PhotoItem? item)
     {
-        if (item == null) return;
+        if (item == null) return false;
         var row = _rows.OfType<GalleryPhotoRow>().FirstOrDefault(row => row.Tiles.Any(tile => tile.Item.Path == item.Path));
-        if (row == null) return;
-        _resizeAnchor = null; _layoutVersion++;
+        if (row == null) return false;
+        _anchorPaths = null; _layoutVersion++;
         Rows.ScrollIntoView(row);
         Rows.UpdateLayout();
         Rows.GetVisualDescendants().OfType<PhotoTile>().FirstOrDefault(tile => tile.Item.Path == item.Path)?.Focus();
+        return true;
     }
     private void OnScroll(object? sender, ScrollChangedEventArgs e)
     {

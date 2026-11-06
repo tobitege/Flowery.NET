@@ -6,7 +6,6 @@ namespace Flowery.NET.Kiosk;
 
 public partial class App : Application
 {
-    private KioskOptions _options = new(false, null);
     private KioskSmokeReport? _report;
     private IClassicDesktopStyleApplicationLifetime? _desktop;
     private MainWindow? _window;
@@ -20,8 +19,8 @@ public partial class App : Application
         _desktop = ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
         try
         {
-            _options = KioskOptions.Parse(_desktop?.Args ?? []);
-            _report = _options.SmokeReport is { } path ? new KioskSmokeReport(path) : null;
+            var options = KioskOptions.Parse(_desktop?.Args ?? []);
+            _report = options.SmokeReport is { } path ? new KioskSmokeReport(path) : null;
             if (_report is not null)
                 FloweryLocalization.SetCulture("en-US");
             ConfigureStateStorage();
@@ -30,7 +29,8 @@ public partial class App : Application
                 throw new InvalidOperationException("Unable to apply the Dark theme.");
             if (_desktop is not null)
             {
-                _window = new MainWindow(_options.Manual);
+                // A smoke run leaves the focus with whoever works on the machine.
+                _window = new MainWindow(options.Manual) { ShowActivated = _report is null };
                 _window.KioskPage.NavigationFailed += OnNavigationFailed;
                 _window.Opened += OnWindowOpened;
                 _desktop.MainWindow = _window;

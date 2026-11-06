@@ -175,6 +175,28 @@ class SiteEscapingTests(unittest.TestCase):
                 self.assertNotIn('img', [tag for tag, _ in elements])
                 self.assertEqual([], [name for _, attributes in elements for name, _ in attributes if name.startswith('on')])
 
+    def test_markdown_inside_allowed_attributes_stays_text(self):
+        markdown = {'link': '[t](x onerror=alert(1) y)', 'image': '![t](x.png)', 'bold': '**t**', 'heading': 'x\n## t'}
+        sources = [(f'{attribute}, {rule}', attribute, value)
+                   for attribute in ('alt', 'title') for rule, value in markdown.items()]
+        sources.append(('style, heading', 'style', 'width:\n## 1px'))
+        for label, attribute, value in sources:
+            with self.subTest(label):
+                elements = parsed_elements(self.converter.convert(f'<img src="a.png" {attribute}="{value}">'))
+                self.assertEqual([('img', [('src', 'a.png'), (attribute, value)])], elements)
+
+    def test_placeholders_written_as_entities_stay_text(self):
+        code = '`" onmouseover="alert(1)` '
+        sources = ('[a](&#95;_INLINE_CODE_0__)', '![a](&#95;_INLINE_CODE_0__)', '![&#95;_INLINE_CODE_0__](a.png)',
+                   '<img src="a.png" alt="&#95;_INLINE_CODE_0__">', '<img src="a.png" title="&#95;_HTML_TAG_0__">')
+        for source in sources:
+            with self.subTest(source=source):
+                elements = parsed_elements(self.converter.convert(code + source))
+                self.assertEqual([], [name for _, attributes in elements for name, _ in attributes if name.startswith('on')])
+                self.assertEqual(['p', 'code'], [tag for tag, _ in elements])
+        html = self.converter.convert('<details>__HTML_TAG_0__ <b __HTML_TAG_0__></details>')
+        self.assertEqual(1, html.count('<details>'))
+
     def test_headings_alerts_and_trusted_html(self):
         self.assertIn('<h2 id="tips--best-practices">Tips &amp; Best Practices</h2>',
                       self.converter.convert('## Tips & Best Practices'))
@@ -225,6 +247,17 @@ class SiteGenerationTests(unittest.TestCase):
             text = (ROOT / '.github' / 'workflows' / workflow).read_text(encoding='utf-8')
             self.assertEqual(1, text.count('paths-ignore: &documentation'))
             self.assertEqual(1, text.count('paths-ignore: *documentation'))
+        # Pushes skip ci.yml as pull requests do. docs.yml checks pull requests and pushes, except pushes to the
+        # branch generate-docs.yml deploys from, which it checks before the deployment: every push once.
+        docs = (ROOT / '.github' / 'workflows' / 'docs.yml').read_text(encoding='utf-8')
+        self.assertRegex(docs, r'\n  push:\n(?:    .*\n)*    paths: &documentation\n')
+        self.assertRegex(docs, r'\n  pull_request:\n(?:    .*\n)*    paths: \*documentation\n')
+        self.assertEqual(['main', 'alpha'], workflow_list('docs.yml', 'branches'))
+        deploy = (ROOT / '.github' / 'workflows' / 'generate-docs.yml').read_text(encoding='utf-8')
+        self.assertIn('    branches: ["avalonia12"]', deploy)
+        for check in ('Utils/check_characters.py', '-p test_documentation.py', '-p test_check_characters.py'):
+            self.assertIn(check, deploy)
+            self.assertLess(deploy.index(check), deploy.index('upload-pages-artifact'))
 
 
 if __name__ == '__main__':

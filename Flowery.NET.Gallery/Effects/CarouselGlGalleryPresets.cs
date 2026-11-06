@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using Flowery.Effects;
 
 namespace Flowery.NET.Gallery.Effects
 {
-    public static class CarouselGlGalleryPresets
+    internal static class CarouselGlGalleryPresets
     {
         private static bool _registered;
 
@@ -106,76 +107,34 @@ namespace Flowery.NET.Gallery.Effects
             }
 
             _registered = true;
-            RegisterGroupWithWallpaperPairs(MaskKinds, "maskA", "maskB");
-            RegisterGroup(FlipAssets, FlipKinds);
-            RegisterGroup(TextAssets, TextKinds);
-            RegisterGroupWithWallpaperPairs(TransitionKinds, "transitionA", "transitionB");
-            RegisterGroupWithWallpaperSingles(EffectKinds, "effect");
+            // A pair or a single wallpaper per effect, each effect starting one wallpaper further.
+            Register(MaskKinds, static i => WallpaperPair("maskA", "maskB", i));
+            Register(FlipKinds, static _ => FlipAssets);
+            Register(TextKinds, static _ => TextAssets);
+            Register(TransitionKinds, static i => WallpaperPair("transitionA", "transitionB", i));
+            Register(EffectKinds, static i => new Dictionary<string, string> { ["effect"] = Wallpaper(i) });
         }
 
-        private static void RegisterGroup(IReadOnlyDictionary<string, string> assets, CarouselGlEffectKind[] kinds)
-        {
-            foreach (var kind in kinds)
-            {
-                if (!CarouselGlEffectRegistry.TryGet(kind, out var definition) || definition is null)
-                {
-                    continue;
-                }
-
-                CarouselGlEffectRegistry.Register(
-                    new CarouselGlEffectDefinition(kind, definition.Mode, assets, definition.Variant));
-            }
-        }
-
-        private static void RegisterGroupWithWallpaperPairs(CarouselGlEffectKind[] kinds, string keyA, string keyB)
+        // Registers the effects again with the images of the Gallery.
+        private static void Register(CarouselGlEffectKind[] kinds, Func<int, IReadOnlyDictionary<string, string>> assets)
         {
             for (int i = 0; i < kinds.Length; i++)
             {
-                var kind = kinds[i];
-                if (!CarouselGlEffectRegistry.TryGet(kind, out var definition) || definition is null)
+                if (CarouselGlEffectRegistry.TryGet(kinds[i], out var definition))
                 {
-                    continue;
+                    CarouselGlEffectRegistry.Register(
+                        new CarouselGlEffectDefinition(kinds[i], definition.Mode, assets(i), definition.Variant));
                 }
-
-                var assets = CreateWallpaperPair(keyA, keyB, i);
-                CarouselGlEffectRegistry.Register(
-                    new CarouselGlEffectDefinition(kind, definition.Mode, assets, definition.Variant));
             }
         }
 
-        private static void RegisterGroupWithWallpaperSingles(CarouselGlEffectKind[] kinds, string key)
-        {
-            for (int i = 0; i < kinds.Length; i++)
+        private static IReadOnlyDictionary<string, string> WallpaperPair(string keyA, string keyB, int offset) =>
+            new Dictionary<string, string>
             {
-                var kind = kinds[i];
-                if (!CarouselGlEffectRegistry.TryGet(kind, out var definition) || definition is null)
-                {
-                    continue;
-                }
-
-                var assets = CreateWallpaperSingle(key, i);
-                CarouselGlEffectRegistry.Register(
-                    new CarouselGlEffectDefinition(kind, definition.Mode, assets, definition.Variant));
-            }
-        }
-
-        private static IReadOnlyDictionary<string, string> CreateWallpaperPair(string keyA, string keyB, int offset = 0)
-        {
-            var first = WallpaperAssets[offset % WallpaperAssets.Length];
-            var second = WallpaperAssets[(offset + 1) % WallpaperAssets.Length];
-            return new Dictionary<string, string>
-            {
-                [keyA] = first,
-                [keyB] = second
+                [keyA] = Wallpaper(offset),
+                [keyB] = Wallpaper(offset + 1)
             };
-        }
 
-        private static IReadOnlyDictionary<string, string> CreateWallpaperSingle(string key, int offset = 0)
-        {
-            return new Dictionary<string, string>
-            {
-                [key] = WallpaperAssets[offset % WallpaperAssets.Length]
-            };
-        }
+        private static string Wallpaper(int index) => WallpaperAssets[index % WallpaperAssets.Length];
     }
 }

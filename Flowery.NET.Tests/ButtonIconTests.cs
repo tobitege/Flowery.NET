@@ -1,5 +1,4 @@
-﻿using System;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -11,7 +10,6 @@ using Xunit;
 
 namespace Flowery.NET.Tests
 {
-    [Collection("LocalizationTests")]
     public class ButtonIconTests
     {
         [AvaloniaFact]

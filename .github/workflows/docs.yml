@@ -1,18 +1,18 @@
 name: Docs
 
-# Checks pull requests that change the documentation: no hidden characters, and the docs, the site and
-# the documentation tests build as in generate-docs.yml. Changes to the documentation alone skip ci.yml
-# and dependency-security.yml; keep the documentation paths of the three workflows in sync.
-# It runs the code of the pull request with a read-only token and no secrets.
+# Checks pull requests and pushes that change the documentation: no hidden characters, and the docs, the
+# site and the documentation tests build as in generate-docs.yml. Changes to the documentation alone skip
+# ci.yml and dependency-security.yml; keep the documentation paths of the three workflows in sync.
+# It runs the code it checks with a read-only token and no secrets.
 
 on:
   workflow_dispatch:
-  pull_request:
+  # Pushes to avalonia12 are checked by generate-docs.yml before it deploys the site.
+  push:
     branches:
       - main
       - alpha
-      - avalonia12
-    paths:
+    paths: &documentation
       - .github/workflows/docs.yml
       - '**/*.md'
       - llms-static/**
@@ -23,6 +23,12 @@ on:
       - Utils/site_*
       - Utils/test_check_characters.py
       - Utils/test_documentation.py
+  pull_request:
+    branches:
+      - main
+      - alpha
+      - avalonia12
+    paths: *documentation
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

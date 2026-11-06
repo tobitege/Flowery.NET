@@ -38,6 +38,7 @@ namespace Flowery.NET.Tests
             DaisyThemeManager.ApplyTheme("Light");
             CultureInfo.DefaultThreadCurrentUICulture = FloweryLocalization.CurrentCulture;
             StateStorageProvider.Configure(new InMemoryStateStorage());
+            GlobalState.CaptureStartup();
         }
     }
 }

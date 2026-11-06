@@ -57,7 +57,11 @@ public partial class LoginSlide : UserControl
         }
     }
 
-    private void OnUnloaded(object? sender, RoutedEventArgs args) => StopEntrance();
+    private void OnUnloaded(object? sender, RoutedEventArgs args)
+    {
+        StopEntrance();
+        _featuresShown.TrySetCanceled();
+    }
 
     private void StopTimer()
     {

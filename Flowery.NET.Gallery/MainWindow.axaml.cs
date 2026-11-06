@@ -33,10 +33,7 @@ public partial class MainWindow : Window
         if (placement == null)
             return;
 
-        if (placement.Width >= 300)
-            Width = placement.Width;
-        if (placement.Height >= 300)
-            Height = placement.Height;
+        ApplySavedSize(placement);
 
         Position = new PixelPoint(placement.X, placement.Y);
 
@@ -56,8 +53,13 @@ public partial class MainWindow : Window
     private void OnOpenedRestoreSize(object? sender, EventArgs e)
     {
         Opened -= OnOpenedRestoreSize;
-        if (_restoredPlacement is not { } placement || WindowState != WindowState.Normal)
-            return;
+        if (_restoredPlacement is { } placement && WindowState == WindowState.Normal)
+            ApplySavedSize(placement);
+    }
+
+    // A size below 300 DIPs is no saved size: SaveWindowPlacement never writes one.
+    private void ApplySavedSize(GallerySettings.WindowPlacement placement)
+    {
         if (placement.Width >= 300)
             Width = placement.Width;
         if (placement.Height >= 300)

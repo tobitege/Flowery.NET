@@ -11,8 +11,7 @@ internal static class Program
         if (args.Contains("--check"))
             return PackageCheck.Run();
 
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
-        return 0;
+        return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
     // The setup of the README quick start; also used by the headless check and the visual designer.

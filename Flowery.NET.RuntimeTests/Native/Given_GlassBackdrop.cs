@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
@@ -274,6 +275,7 @@ public partial class Given_GlassBackdrop
             await RuntimeTestHelpers.WaitForRenderAsync();
             quiet = RedrawVersion(button) == version ? quiet + 1 : 0;
         }
+        Assert.True(quiet >= 10, "The glass kept redrawing in full before the block moved.");
 
         var before = RedrawVersion(button);
         var moved = System.Diagnostics.Stopwatch.StartNew();
@@ -291,8 +293,50 @@ public partial class Given_GlassBackdrop
         Assert.True(IsNear(glass.BackdropColor, Colors.Blue),
             $"The glass measured {glass.BackdropColor} {measuredAfter} ms after the block moved away, with {redraws} full " +
             "redraws of its own.\n" + string.Join("\n", log));
-        // A frame or two of its own, never a run of full redraws, which lasts 18 frames.
-        Assert.True(redraws < 9, $"{redraws} full redraws.\n" + string.Join("\n", log));
+        // A run of full redraws lasts LiveFrames (18) frames; a frame or two of its own stays well below half of it.
+        Assert.True(redraws < SkiaGlassRedraw.LiveFrames / 2, $"{redraws} full redraws.\n" + string.Join("\n", log));
+    }
+
+    [Theory]
+    [InlineData(0.5)]
+    [InlineData(1.2)]
+    public async Task When_A_Live_Glass_Changes_The_Saturation_Of_A_Gray_Backdrop_It_Stays_Gray(double saturation)
+    {
+        // Regression: the saturation matrix was transposed, so a gray backdrop turned magenta at 1.2 and green at 0.5.
+        // A black tint without shine, rim or bend darkens the glass, so it differs from the bare backdrop beside it.
+        var glass = new DaisyGlass
+        {
+            Width = 160,
+            Height = 120,
+            CornerRadius = new CornerRadius(0),
+            EnableBackdropBlur = true,
+            BlurMode = GlassBlurMode.SkiaSharp,
+            GlassBlur = 2,
+            GlassSaturation = saturation,
+            GlassTint = Colors.Black,
+            GlassTintOpacity = 0.3,
+            GlassReflectOpacity = 0,
+            GlassCurvature = 0,
+            GlassBend = 0,
+            GlassDispersion = 0
+        };
+        Canvas.SetLeft(glass, 120);
+        Canvas.SetTop(glass, 70);
+        var gray = Color.FromRgb(128, 128, 128);
+        var canvas = new Canvas { Width = 400, Height = 260, Background = new SolidColorBrush(gray), Children = { glass } };
+        await RuntimeTestHelpers.AttachAsync(canvas);
+        await RuntimeTestHelpers.WaitForRenderAsync();
+        // The live renderer draws it, not the bitmap capture.
+        Assert.Equal(GlassBlurMode.SkiaSharp, glass.EffectiveBlurMode);
+
+        using var pixels = RuntimeTestHelpers.Render(canvas, $"glass-saturation-{saturation}");
+        // Inside the glass below its top shine, and beside it on the bare backdrop.
+        var inside = pixels.GetPixel(200, 170);
+        var outside = pixels.GetPixel(60, 170);
+        Assert.True(RuntimeTestHelpers.IsClose(outside, gray, 2), $"The backdrop beside the glass is {outside}.");
+        Assert.True(inside.Red < outside.Red - 20, $"The glass {inside} did not draw over its backdrop {outside}.");
+        Assert.True(Math.Abs(inside.Red - inside.Green) <= 3 && Math.Abs(inside.Green - inside.Blue) <= 3,
+            $"At saturation {saturation} the gray backdrop shows as {inside}.");
     }
 
     private static string Snapshot(string step, Control button, Control badge) =>
@@ -322,15 +366,13 @@ public partial class Given_GlassBackdrop
     {
         var glass = Glass(control);
         var renderer = DaisyGlassLiveRenderer.Current!;
-        var redraws = renderer.GetType().GetField("_redraws", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(renderer)!;
-        var arguments = new object?[] { glass, null };
-        if (!(bool)redraws.GetType().GetMethod("TryGetValue")!.Invoke(redraws, arguments)!)
-            return 0;
-        return (int)arguments[1]!.GetType().GetProperty("Version")!.GetValue(arguments[1])!;
+        var redraws = (ConditionalWeakTable<DaisyGlass, SkiaGlassRedraw>)renderer.GetType()
+            .GetField("_redraws", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(renderer)!;
+        return redraws.TryGetValue(glass, out var redraw) ? redraw.Version : 0;
     }
 
-    // A repaint is measured within a second, which is a matter of time, not of frames: frames come much faster than
-    // 60 a second where nothing is drawn, such as in a remote desktop session.
+    // A repaint is measured within about a second, so three seconds are allowed. That is a matter of time, not of
+    // frames: frames come much faster than 60 a second where nothing is drawn, such as in a remote desktop session.
     private static async Task WaitForBackdropAsync(DaisyGlass glass, Color expected)
     {
         var waited = System.Diagnostics.Stopwatch.StartNew();

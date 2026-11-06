@@ -1,0 +1,21 @@
+name: Publish Browser Gallery
+description: >-
+  Publishes the Browser (WebAssembly) Gallery to ./browser-publish as the Gallery releases ship it, and checks that its
+  wwwroot holds the site. ci.yml and _build-gallery.yml run it after the checkout and setup-dotnet.
+
+runs:
+  using: composite
+  steps:
+    # WasmBuildNative links the SkiaSharp and HarfBuzz native libraries into dotnet.native.wasm.
+    - name: Install WebAssembly build tools
+      shell: bash
+      run: dotnet workload install wasm-tools
+
+    - name: Publish Browser Gallery
+      shell: bash
+      run: |
+        dotnet publish Flowery.NET.Gallery.Browser/Flowery.NET.Gallery.Browser.csproj \
+          -c Release \
+          -o ./browser-publish
+        test -f ./browser-publish/wwwroot/index.html && test -d ./browser-publish/wwwroot/_framework \
+          || { echo "::error::The published wwwroot has no index.html or _framework folder."; exit 1; }

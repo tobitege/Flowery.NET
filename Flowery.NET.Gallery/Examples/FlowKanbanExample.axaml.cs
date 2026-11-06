@@ -48,11 +48,11 @@ public partial class FlowKanbanExample : UserControl, ICollapsibleIntroExample
 
     public event EventHandler? IntroVisibilityChanged;
 
-    public FlowKanbanExample() : this(OperatingSystem.IsAndroid())
+    public FlowKanbanExample() : this(MainView.IsTouchFirst)
     {
     }
 
-    /// <param name="touchHelp">List the touch gestures in the features instead of mouse and keyboard, as on Android.</param>
+    /// <param name="touchHelp">List the touch gestures in the features instead of mouse and keyboard, as on Android and iOS.</param>
     public FlowKanbanExample(bool touchHelp)
     {
         InitializeComponent();
@@ -71,7 +71,7 @@ public partial class FlowKanbanExample : UserControl, ICollapsibleIntroExample
     protected override void OnSizeChanged(SizeChangedEventArgs e)
     {
         base.OnSizeChanged(e);
-        var isLow = (OperatingSystem.IsAndroid() || OperatingSystem.IsIOS()) && e.NewSize.Height < CompactHeight;
+        var isLow = MainView.IsTouchFirst && e.NewSize.Height < CompactHeight;
         PageGrid.Margin = e.NewSize.Width < CompactWidth || isLow ? new Thickness(8, 0, 8, 8) : new Thickness(24, 0, 24, 24);
     }
 

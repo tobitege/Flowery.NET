@@ -2,10 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Flowery.Effects;
@@ -20,9 +17,6 @@ namespace Flowery.NET.Gallery.Effects
     /// </summary>
     internal sealed class FloweryCarouselGLTransitions : CarouselGlEngine
     {
-        // The overlay key of the native bridge.
-        private const string Key = "native-host";
-
         // DEFAULT_OVERLAY_Z_INDEX and getOverlayZIndex: no counterpart; the canvas fills its host instead of lying over the page.
         internal const double DefaultTransitionSec = 0.6;
         internal const double TransitionDurationScale = 1.25;
@@ -55,29 +49,9 @@ namespace Flowery.NET.Gallery.Effects
             return fallback * scale;
         }
 
-        internal static string ResolveAssetPath(string path)
-        {
-            if (string.IsNullOrEmpty(path))
-            {
-                return path;
-            }
-            if (path.StartsWith("//", StringComparison.Ordinal)
-                || path.StartsWith("http://", StringComparison.Ordinal)
-                || path.StartsWith("https://", StringComparison.Ordinal)
-                || path.StartsWith("data:", StringComparison.Ordinal))
-            {
-                return path;
-            }
-            throw new InvalidOperationException("Image asset must be resolved by the native host: " + path);
-        }
-
-        private static readonly string[] DefaultImages =
-        [
-            "Assets/wallpaper_blue.jpg",
-            "Assets/wallpaper_green.jpg",
-            "Assets/wallpaper_red.jpg",
-            "Assets/wallpaper_yellow.jpg"
-        ];
+        // resolveAssetPath: CarouselGlEngine.ResolveAssetPath.
+        // DEFAULT_IMAGES: no counterpart; the host always passes the two images of a transition, and the JS defaults are
+        // paths that only a page could load.
 
         // The catalog in the order of the JS table. The sources are the flat GL/Shaders/<name>.sksl files; the path is
         // the key of the shader cache, as in the JS, and the cache-busting "?v=" suffixes of the JS paths are dropped.
@@ -121,9 +95,9 @@ namespace Flowery.NET.Gallery.Effects
             return map;
         }
 
-        // shaderCache and imageCache: the JS module of a page holds them, so they are fields of the engine of a session.
+        // shaderCache: the JS module of a page holds it, so it is a field of the engine of a session. imageCache: no
+        // counterpart; a state loads its two images once and keeps them for every transition it switches to.
         private readonly Dictionary<string, Task<TransitionDefinition>> _shaderCache = new(StringComparer.Ordinal);
-        private readonly Dictionary<string, Task<SKImage>> _imageCache = new(StringComparer.Ordinal);
 
         internal static TransitionEntry? ResolveTransitionEntry(string? name)
         {
@@ -176,11 +150,6 @@ namespace Flowery.NET.Gallery.Effects
                 list.Add(to);
             }
 
-            if (list.Count < 2)
-            {
-                return [.. DefaultImages];
-            }
-
             return list;
         }
 
@@ -194,33 +163,14 @@ namespace Flowery.NET.Gallery.Effects
             return merged.TryGetValue(second, out value) ? value : null;
         }
 
-        // Throws at once for an unresolved path, as the JS throws before its Promise.
-        private Task<SKImage> LoadImage(string src)
-        {
-            var resolved = ResolveAssetPath(src);
-            if (_imageCache.TryGetValue(resolved, out var cached))
-            {
-                return cached;
-            }
-
-            var promise = DecodeImageAsync(resolved);
-
-            _imageCache[resolved] = promise;
-            return promise;
-        }
-
         // createShader and createProgram: CarouselGlEngine.CreateProgram compiles each wrapped source once per process.
         private static readonly ConcurrentDictionary<string, Lazy<SKRuntimeEffect>> Programs = new(StringComparer.Ordinal);
 
         private static SKRuntimeEffect CreateCachedProgram(string fragmentSource) =>
             Programs.GetOrAdd(fragmentSource, static source => new Lazy<SKRuntimeEffect>(() => CreateProgram(source))).Value;
 
-        // createTexture: the decoded image is the texture. The image cache owns it, as the page holds its Image
-        // elements; each frame samples it through a child shader (CarouselGlEngine.CreateTextureShader).
-        private static SKImage CreateTexture(SKImage image)
-        {
-            return image;
-        }
+        // createTexture: the decoded image is the texture; the state, as its GL context, releases it in stop. Each frame
+        // samples it through a child shader (CarouselGlEngine.CreateTextureShader).
 
         // createSolidTexture: one pixel, not premultiplied, as the data of texImage2D. The state, as its GL context,
         // releases it in stop.
@@ -629,52 +579,23 @@ namespace Flowery.NET.Gallery.Effects
                     continue;
                 }
 
-                var value = def.Value;
-                switch (def.Type)
+                // SkSL has no bool uniforms; a GLSL bool uniform is declared int (ParseDefaultValue).
+                switch (def.FrameValue)
                 {
-                    case "float":
-                        target[def.Name] = (float)(double)value;
+                    case float value:
+                        target[def.Name] = value;
                         break;
-                    case "int":
-                        target[def.Name] = (int)(double)value;
+                    case int value:
+                        target[def.Name] = value;
                         break;
-                    case "bool":
-                        target[def.Name] = (bool)value ? 1 : 0;
+                    case float[] values:
+                        target[def.Name] = values;
                         break;
-                    case "vec2":
-                    case "vec3":
-                    case "vec4":
-                        target[def.Name] = ToFloats((double[])value);
-                        break;
-                    case "ivec2":
-                    case "ivec3":
-                    case "ivec4":
-                        target[def.Name] = ToInts((double[])value);
-                        break;
-                    default:
+                    case int[] values:
+                        target[def.Name] = values;
                         break;
                 }
             }
-        }
-
-        private static float[] ToFloats(double[] values)
-        {
-            var result = new float[values.Length];
-            for (var i = 0; i < values.Length; i++)
-            {
-                result[i] = (float)values[i];
-            }
-            return result;
-        }
-
-        private static int[] ToInts(double[] values)
-        {
-            var result = new int[values.Length];
-            for (var i = 0; i < values.Length; i++)
-            {
-                result[i] = (int)values[i];
-            }
-            return result;
         }
 
         // SkSL has no texture units: each extra sampler is a child that every frame binds to the texture (DrawArrays).
@@ -744,8 +665,6 @@ namespace Flowery.NET.Gallery.Effects
         private State? InitTransition(CarouselGlCanvas canvas, IReadOnlyDictionary<string, string>? assets, string? transitionName, double transitionSec, double intervalSec, int initialIndex)
         {
             // FloweryNativeBridge.createContext: Skia needs no context of its own, so "WebGL unavailable" cannot occur.
-
-            var assetsKey = assets is not null ? Stringify(assets) : "";
             // vsSource: no counterpart; a frame shader covers the canvas.
 
             var state = new State(canvas)
@@ -754,7 +673,7 @@ namespace Flowery.NET.Gallery.Effects
                 baseTransitionSec = double.IsFinite(transitionSec) ? transitionSec : 0,
                 transitionSec = NormalizeTransitionSeconds(transitionSec, DefaultTransitionSec, transitionName),
                 defaultTransitionSec = DefaultTransitionSec,
-                assetsKey = assetsKey
+                assets = assets
             };
 
             var images = ResolveImages(assets);
@@ -777,7 +696,12 @@ namespace Flowery.NET.Gallery.Effects
 
             state.updateTransition = UpdateTransition;
 
-            var imagePromises = images.Select(LoadImage).ToArray();
+            // Throws at once for an unresolved path, as the JS throws before its Promise; no image loads then.
+            foreach (var image in images)
+            {
+                ResolveAssetPath(image);
+            }
+            var imagePromises = images.Select(DecodeImageAsync).ToArray();
             var definitionPromise = LoadTransitionDefinition(entry);
             _ = ThenAsync();
             return state;
@@ -904,14 +828,15 @@ namespace Flowery.NET.Gallery.Effects
                     await Task.WhenAll(new Task[] { definitionPromise }.Concat(imagePromises));
                     if (!state.alive)
                     {
+                        ReleaseImages(state, imagePromises);
                         return;
                     }
 
                     var definition = definitionPromise.Result;
-                    var loadedImages = imagePromises.Select(promise => promise.Result);
 
                     // gl.clearColor: the frame shader replaces the whole frame.
-                    state.textures = loadedImages.Select(CreateTexture).ToList();
+                    state.textures = imagePromises.Select(static promise => promise.Result).ToList();
+                    state.resources.AddRange(state.textures);
 
                     try
                     {
@@ -1013,13 +938,24 @@ namespace Flowery.NET.Gallery.Effects
                 }
                 catch (Exception err)
                 {
+                    ReleaseImages(state, imagePromises);
                     canvas.Fail(err);
                     canvas.DrawFallback("Not supported (shader load failed)");
                 }
             }
         }
 
-        // releaseContext: deletes what the context of the state created, its solid texture.
+        // The images that loaded for a state that stopped or failed meanwhile and so never became its textures.
+        private static void ReleaseImages(State state, Task<SKImage>[] loads)
+        {
+            foreach (var load in loads)
+            {
+                if (load.IsCompletedSuccessfully && !state.resources.Contains(load.Result))
+                    load.Result.Dispose();
+            }
+        }
+
+        // releaseContext: deletes what the context of the state created, its textures.
         private static void ReleaseContext(State state)
         {
             foreach (var resource in state.resources)
@@ -1048,11 +984,10 @@ namespace Flowery.NET.Gallery.Effects
 
         private void Init(CarouselGlCanvas canvas, IReadOnlyDictionary<string, string>? assets, string? transitionName, double transitionSec, double intervalSec)
         {
-            var assetsKey = assets is not null ? Stringify(assets) : "";
             var previousState = canvas.State as State;
             if (previousState is not null
                 && previousState.alive
-                && previousState.assetsKey == assetsKey
+                && SameAssets(previousState.assets, assets)
                 && previousState.updateTransition is not null)
             {
                 previousState.updateTransition(transitionName, transitionSec, intervalSec);
@@ -1079,46 +1014,25 @@ namespace Flowery.NET.Gallery.Effects
             }
         }
 
-        private readonly Dictionary<string, OverlayEntry> _overlayMap = new(StringComparer.Ordinal);
-
-        private OverlayEntry EnsureOverlayCanvas(string key, CarouselGlCanvas canvas)
-        {
-            if (_overlayMap.TryGetValue(key, out var entry))
-            {
-                return entry;
-            }
-
-            // The session's canvas takes the place of the page canvas; its fixed position, z-index, rounded corners and
-            // transparent background have no counterpart, since it fills its host.
-            entry = new OverlayEntry(canvas);
-            _overlayMap[key] = entry;
-            return entry;
-        }
+        // The overlay entry of the JS overlay map. A session has one canvas, the bridge's key "native-host", so the engine
+        // keeps a single entry; the session's canvas takes the place of the page canvas, and its fixed position, z-index,
+        // rounded corners and transparent background have no counterpart, since it fills its host.
+        private OverlayEntry? _overlay;
 
         // updateOverlayRect: no counterpart; the canvas fills its host, so attachOverlay only resizes it.
 
-        protected override void AttachOverlay(CarouselGlCanvas canvas, CarouselGlConfiguration configuration) =>
-            AttachOverlay(Key, canvas, configuration.Assets, configuration.Variant, configuration.TransitionSeconds,
-                configuration.IntervalSeconds);
-
-        private void AttachOverlay(string key, CarouselGlCanvas canvas, IReadOnlyDictionary<string, string>? assets, string? transitionName, double transitionSec, double intervalSec)
+        protected override void AttachOverlay(CarouselGlCanvas canvas, CarouselGlConfiguration configuration)
         {
-            if (string.IsNullOrEmpty(key))
-            {
-                return;
-            }
-
-            var entry = EnsureOverlayCanvas(key, canvas);
-            var assetsKey = assets is not null ? Stringify(assets) : "";
+            var entry = _overlay ??= new OverlayEntry(canvas);
+            var assets = configuration.Assets;
+            var transitionName = configuration.Variant;
             var transitionKey = transitionName ?? "";
-            var transitionValue = transitionSec;
-            var nextTransitionSec = double.IsFinite(transitionValue) ? transitionValue : 0;
-            var intervalValue = intervalSec;
-            var nextIntervalSec = double.IsFinite(intervalValue) ? intervalValue : 0;
+            var nextTransitionSec = double.IsFinite(configuration.TransitionSeconds) ? configuration.TransitionSeconds : 0;
+            var nextIntervalSec = double.IsFinite(configuration.IntervalSeconds) ? configuration.IntervalSeconds : 0;
 
-            if (entry.assetsKey != assetsKey || entry.transitionName != transitionKey)
+            if (!SameAssets(entry.assets, assets) || entry.transitionName != transitionKey)
             {
-                entry.assetsKey = assetsKey;
+                entry.assets = assets;
                 entry.transitionName = transitionKey;
                 entry.transitionSec = nextTransitionSec;
                 entry.intervalSec = nextIntervalSec;
@@ -1126,82 +1040,48 @@ namespace Flowery.NET.Gallery.Effects
             }
             else if (entry.transitionSec != nextTransitionSec || entry.intervalSec != nextIntervalSec)
             {
-                entry.transitionSec = nextTransitionSec;
-                entry.intervalSec = nextIntervalSec;
-                SetOverlayTransitionDuration(key, nextTransitionSec);
-                SetOverlayTiming(key, nextIntervalSec);
+                SetOverlayTransitionDuration(nextTransitionSec);
+                SetOverlayTiming(nextIntervalSec);
             }
 
             // updateOverlayRect(entry.canvas, left, top, width, height)
             Resize(entry.canvas);
         }
 
-        // JSON.stringify(assets), written without reflection.
-        private static string Stringify(IReadOnlyDictionary<string, string> assets)
+        protected override void DetachAllOverlays()
         {
-            using var stream = new MemoryStream();
-            using (var writer = new Utf8JsonWriter(stream))
-            {
-                writer.WriteStartObject();
-                foreach (var (name, value) in assets)
-                    writer.WriteString(name, value);
-                writer.WriteEndObject();
-            }
-            return Encoding.UTF8.GetString(stream.ToArray());
-        }
-
-        private void DetachOverlay(string key)
-        {
-            if (!_overlayMap.TryGetValue(key, out var entry))
+            if (_overlay is not { } entry)
             {
                 return;
             }
 
             Stop(entry.canvas);
             // entry.canvas.remove(): the session owns its canvas.
-            _overlayMap.Remove(key);
+            _overlay = null;
         }
 
-        protected override void DetachAllOverlays()
+        protected override void SetOverlayTiming(double intervalSec)
         {
-            foreach (var key in _overlayMap.Keys.ToArray()) DetachOverlay(key);
-            // The page goes away after pagehide and its Image elements with it: the cached images are released.
-            foreach (var image in _imageCache.Values)
-            {
-                if (image.IsCompletedSuccessfully)
-                    image.Result.Dispose();
-            }
-            _imageCache.Clear();
-        }
-
-        protected override void SetOverlayTiming(double intervalSec) => SetOverlayTiming(Key, intervalSec);
-
-        private void SetOverlayTiming(string key, double intervalSec)
-        {
-            if (!_overlayMap.TryGetValue(key, out var entry))
+            if (_overlay is not { } entry)
             {
                 return;
             }
 
-            var seconds = intervalSec;
-            entry.intervalSec = double.IsFinite(seconds) && seconds > 0 ? seconds : 0;
+            entry.intervalSec = double.IsFinite(intervalSec) && intervalSec > 0 ? intervalSec : 0;
             if (entry.canvas.State is State state)
             {
                 state.intervalSec = entry.intervalSec;
             }
         }
 
-        protected override void SetOverlayTransitionDuration(double transitionSec) => SetOverlayTransitionDuration(Key, transitionSec);
-
-        private void SetOverlayTransitionDuration(string key, double transitionSec)
+        protected override void SetOverlayTransitionDuration(double transitionSec)
         {
-            if (!_overlayMap.TryGetValue(key, out var entry))
+            if (_overlay is not { } entry)
             {
                 return;
             }
 
-            var seconds = transitionSec;
-            entry.transitionSec = double.IsFinite(seconds) ? seconds : 0;
+            entry.transitionSec = double.IsFinite(transitionSec) ? transitionSec : 0;
             if (entry.canvas.State is State state)
             {
                 var fallback = double.IsFinite(state.defaultTransitionSec) ? state.defaultTransitionSec : DefaultTransitionSec;
@@ -1210,31 +1090,29 @@ namespace Flowery.NET.Gallery.Effects
             }
         }
 
-        protected override void SetOverlayActive(bool isActive) => SetOverlayActive(Key, isActive);
-
-        private void SetOverlayActive(string key, bool isActive)
+        protected override void SetOverlayActive(bool isActive)
         {
-            if (!_overlayMap.TryGetValue(key, out var entry))
+            if (_overlay is not { } entry)
             {
                 return;
             }
 
             // canvas.style.display: not ported. WinUI hid its overlay canvas while paused; this canvas fills its host,
             // so a hidden canvas would leave the host blank. Paused, it keeps its last frame as a still image.
-            if (isActive)
+            if (entry.canvas.State is State state)
             {
-                if (entry.canvas.State is State state)
+                if (isActive)
                 {
                     state.Resume();
                 }
-                Resize(entry.canvas);
-            }
-            else
-            {
-                if (entry.canvas.State is State state)
+                else
                 {
                     state.Pause();
                 }
+            }
+            if (isActive)
+            {
+                Resize(entry.canvas);
             }
         }
 
@@ -1256,8 +1134,19 @@ namespace Flowery.NET.Gallery.Effects
         internal sealed record TransitionEntry(string Name, string Path);
 
         // A parsed uniform default (the JS { name, type, value }): the value is a double (float, int), a bool or a
-        // double array (vectors).
-        internal sealed record UniformDefinition(string Name, string Type, object Value);
+        // double array (vectors). FrameValue holds it as every frame sets it, converted once: a float or an int, or a float
+        // or int array for the vectors; null for a type SkSL has no uniform of.
+        internal sealed record UniformDefinition(string Name, string Type, object Value)
+        {
+            public object? FrameValue { get; } = Type switch
+            {
+                "float" => (float)(double)Value,
+                "int" => (int)(double)Value,
+                "vec2" or "vec3" or "vec4" => Array.ConvertAll((double[])Value, static value => (float)value),
+                "ivec2" or "ivec3" or "ivec4" => Array.ConvertAll((double[])Value, static value => (int)value),
+                _ => null
+            };
+        }
 
         // The result of parseUniforms (the JS { uniforms, samplers }).
         internal sealed record ParsedUniforms(List<UniformDefinition> Uniforms, List<string> Samplers);
@@ -1273,7 +1162,7 @@ namespace Flowery.NET.Gallery.Effects
             }
 
             public readonly CarouselGlCanvas canvas;
-            public string? assetsKey;
+            public IReadOnlyDictionary<string, string>? assets;
             public string? transitionName;
             public double intervalSec;
             public double transitionSec;
@@ -1288,7 +1177,7 @@ namespace Flowery.NET.Gallery.Effects
             }
 
             public readonly CarouselGlCanvas canvas;
-            // gl: no counterpart; the resources its context tracked for releaseContext are the textures it created.
+            // gl: no counterpart; the resources its context tracked for releaseContext are its textures.
             public readonly List<IDisposable> resources = [];
             public bool alive = true;
             public bool running;
@@ -1297,7 +1186,7 @@ namespace Flowery.NET.Gallery.Effects
             public double baseTransitionSec;
             public double transitionSec;
             public double defaultTransitionSec;
-            public string assetsKey = "";
+            public IReadOnlyDictionary<string, string>? assets;
             public string transitionName = "";
             public TransitionEntry? transitionEntry;
             public SKRuntimeEffect? program;
@@ -1337,7 +1226,6 @@ namespace Flowery.NET.Gallery.Effects
                 ReleaseContext(this);
                 _frame = null;
                 _render = null;
-                alive = false;
             }
 
             public void Resize()

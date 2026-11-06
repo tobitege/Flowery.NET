@@ -1,5 +1,8 @@
 ﻿using System;
 using Avalonia;
+using Avalonia.Automation;
+using Avalonia.Automation.Peers;
+using Avalonia.Automation.Provider;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Shapes;
@@ -13,9 +16,9 @@ using Flowery.Theming;
 namespace Flowery.Controls
 {
     /// <summary>
-    /// A custom expander control that works reliably on all platforms including Skia/WASM.
-    /// Unlike the built-in Expander which has known issues on non-Windows platforms,
-    /// this control uses simple visibility toggling with a clickable header.
+    /// A section with a clickable header and a chevron that shows or hides its content, with its own header and content
+    /// padding, header colors and chevron size. The header is a button: Tab reaches it, Enter or Space toggles the
+    /// section, and screen readers hear whether it is expanded.
     /// </summary>
     public partial class DaisyExpander : ContentControl
     {
@@ -134,9 +137,8 @@ namespace Flowery.Controls
                 HorizontalAlignment = HorizontalAlignment.Stretch
             };
 
-            // Use a Button for the header to ensure click events work on all platforms
-            // Button.Click is more reliably supported than Border.Tapped on Skia/WASM
-            _headerButton = new Button
+            // A button for the header: it takes the focus and the keyboard, and tells screen readers the state.
+            _headerButton = new HeaderButton(this)
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 HorizontalContentAlignment = HorizontalAlignment.Stretch,
@@ -224,7 +226,6 @@ namespace Flowery.Controls
             DaisyThemeManager.ThemeChanged += OnThemeChanged;
             // Contrast changes replace the palette without a theme change in Flowery.NET.
             DaisyAccessibility.PreferencesChanged += OnPreferencesChanged;
-            // LogContentState("Loaded");
             OnThemeChanged(this, DaisyThemeManager.CurrentThemeName ?? string.Empty);
         }
 
@@ -247,95 +248,40 @@ namespace Flowery.Controls
         {
             base.OnPropertyChanged(change);
 
-            if (change.Property == HeaderProperty) OnHeaderChanged(this, change);
-            else if (change.Property == IsExpandedProperty) OnIsExpandedChanged(this, change);
-            else if (change.Property == HeaderBackgroundProperty) OnHeaderBackgroundChanged(this, change);
-            else if (change.Property == HeaderForegroundProperty) OnHeaderForegroundChanged(this, change);
-            else if (change.Property == HeaderPaddingProperty) OnHeaderPaddingChanged(this, change);
-            else if (change.Property == ContentPaddingProperty) OnContentPaddingChanged(this, change);
-            else if (change.Property == ChevronSizeProperty) OnChevronSizeChanged(this, change);
-            else if (change.Property == ShowChevronProperty) OnShowChevronChanged(this, change);
+            if (change.Property == HeaderProperty)
+            {
+                if (_headerContent != null)
+                    _headerContent.Content = Header;
+            }
+            else if (change.Property == IsExpandedProperty)
+            {
+                UpdateChevron();
+                UpdateContentVisibility();
+                // Only a peer that exists has a screen reader listening.
+                if (_headerButton != null && ControlAutomationPeer.FromElement(_headerButton) is DaisyExpanderHeaderAutomationPeer peer)
+                    peer.RaiseExpandCollapseChanged(change.GetOldValue<bool>(), change.GetNewValue<bool>());
+            }
+            else if (change.Property == HeaderBackgroundProperty) UpdateColors();
+            else if (change.Property == HeaderForegroundProperty) UpdateHeaderForeground();
+            else if (change.Property == HeaderPaddingProperty) UpdateHeaderPadding();
+            else if (change.Property == ContentPaddingProperty) UpdateContentPadding();
+            else if (change.Property == ChevronSizeProperty || change.Property == ShowChevronProperty) UpdateChevronBox();
             // A disabled ancestor changes only the effective state of the expander.
             else if (change.Property == IsEffectivelyEnabledProperty) UpdateColors();
             // Register for BorderBrush/BorderThickness changes (inherited from Control)
             else if (change.Property == BorderBrushProperty || change.Property == BorderThicknessProperty) UpdateBorder();
         }
 
-        private void OnHeaderClick(object? sender, RoutedEventArgs e)
-        {
-            ToggleExpanded();
-        }
+        // A user change, like the selection of DaisyButtonGroup: SetCurrentValue, so a binding on IsExpanded stays.
+        private void OnHeaderClick(object? sender, RoutedEventArgs e) => SetCurrentValue(IsExpandedProperty, !IsExpanded);
 
-        private void ToggleExpanded()
+        private void UpdateChevronBox()
         {
-            IsExpanded = !IsExpanded;
-        }
-
-        private static void OnHeaderChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
-        {
-            if (d is DaisyExpander expander && expander._headerContent != null)
-            {
-                expander._headerContent.Content = e.NewValue;
-            }
-        }
-
-        private static void OnIsExpandedChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
-        {
-            if (d is DaisyExpander expander)
-            {
-                expander.UpdateChevron();
-                expander.UpdateContentVisibility();
-            }
-        }
-
-        private static void OnHeaderBackgroundChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
-        {
-            if (d is DaisyExpander expander && expander._headerButton != null)
-            {
-                expander.UpdateColors();
-            }
-        }
-
-        private static void OnHeaderForegroundChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
-        {
-            if (d is DaisyExpander expander)
-            {
-                expander.UpdateChevronColor();
-            }
-        }
-
-        private static void OnHeaderPaddingChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
-        {
-            if (d is DaisyExpander expander)
-            {
-                expander.UpdateHeaderPadding();
-            }
-        }
-
-        private static void OnContentPaddingChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
-        {
-            if (d is DaisyExpander expander)
-            {
-                expander.UpdateContentPadding();
-            }
-        }
-
-        private static void OnChevronSizeChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
-        {
-            if (d is DaisyExpander expander && expander._chevron?.Parent is Viewbox viewbox)
-            {
-                var size = (double)e.NewValue!;
-                viewbox.Width = size;
-                viewbox.Height = size;
-            }
-        }
-
-        private static void OnShowChevronChanged(AvaloniaObject d, AvaloniaPropertyChangedEventArgs e)
-        {
-            if (d is DaisyExpander expander && expander._chevron?.Parent is Viewbox viewbox)
-            {
-                viewbox.IsVisible = (bool)e.NewValue!;
-            }
+            if (_chevron?.Parent is not Viewbox viewbox)
+                return;
+            viewbox.Width = ChevronSize;
+            viewbox.Height = ChevronSize;
+            viewbox.IsVisible = ShowChevron;
         }
 
         private void UpdateChevron()
@@ -353,11 +299,20 @@ namespace Flowery.Controls
                 // Fallback if path parsing fails
             }
 
-            UpdateChevronColor();
+            UpdateHeaderForeground();
         }
 
-        private void UpdateChevronColor()
+        private void UpdateHeaderForeground()
         {
+            // In contrast mode and while disabled, the header text keeps the colors of the button, and the chevron
+            // follows it.
+            if (_headerContent != null)
+            {
+                if (HeaderForeground is { } headerForeground && !DaisyAccessibility.IsHighContrast && IsEffectivelyEnabled)
+                    _headerContent.Foreground = headerForeground;
+                else
+                    _headerContent.ClearValue(ContentPresenter.ForegroundProperty);
+            }
             if (_chevron == null)
                 return;
 
@@ -366,7 +321,7 @@ namespace Flowery.Controls
             _chevronFillBinding?.Dispose();
             _chevronFillBinding = null;
             _chevron.Fill = foreground;
-            if (DaisyAccessibility.IsHighContrast && _headerContent != null)
+            if ((DaisyAccessibility.IsHighContrast || !IsEffectivelyEnabled) && _headerContent != null)
                 _chevronFillBinding = _chevron.Bind(Shape.FillProperty, _headerContent.GetObservable(ContentPresenter.ForegroundProperty));
         }
 
@@ -396,7 +351,7 @@ namespace Flowery.Controls
 
         private void UpdateColors()
         {
-            UpdateChevronColor();
+            UpdateHeaderForeground();
 
             if (_headerButton != null)
             {
@@ -422,34 +377,6 @@ namespace Flowery.Controls
             }
         }
 
-        // private void LogContentState(string context)
-        // {
-        //     if (_loggedContent)
-        //     {
-        //         return;
-        //     }
-
-        //     _loggedContent = true;
-        //     var content = ExpanderContent;
-        //     var typeName = content?.GetType().FullName ?? "<null>";
-        //     var countInfo = "<n/a>";
-
-        //     if (content is Panel panel)
-        //     {
-        //         countInfo = panel.Children.Count.ToString();
-        //     }
-        //     else if (content is ItemsControl itemsControl)
-        //     {
-        //         countInfo = itemsControl.Items?.Count.ToString() ?? "0";
-        //     }
-        //     else if (content is System.Collections.ICollection collection)
-        //     {
-        //         countInfo = collection.Count.ToString();
-        //     }
-
-        //     FloweryDiagnostics.Log($"{DateTimeOffset.Now:O} [DaisyExpander] {context}: contentType={typeName}, count={countInfo}");
-        // }
-
         /// <summary>
         /// Sets the actual expandable content. In Avalonia the layout is the template, so this is the same as
         /// <see cref="ContentControl.Content"/>, which XAML child content sets and which can be bound or styled.
@@ -460,5 +387,49 @@ namespace Flowery.Controls
             set => Content = value;
         }
 
+        // The header button with the expand and collapse pattern; it looks like any button.
+        private sealed class HeaderButton(DaisyExpander owner) : Button
+        {
+            internal DaisyExpander Expander => owner;
+
+            protected override Type StyleKeyOverride => typeof(Button);
+
+            protected override AutomationPeer OnCreateAutomationPeer() => new DaisyExpanderHeaderAutomationPeer(this);
+        }
+
+        /// <summary>
+        /// Exposes the header of a <see cref="DaisyExpander"/> to screen readers as a button that expands and collapses
+        /// the section and tells whether it is expanded, named after the header text.
+        /// </summary>
+        private sealed class DaisyExpanderHeaderAutomationPeer(HeaderButton owner) : ButtonAutomationPeer(owner), IExpandCollapseProvider
+        {
+            private DaisyExpander Expander => owner.Expander;
+
+            public ExpandCollapseState ExpandCollapseState =>
+                Expander.IsExpanded ? ExpandCollapseState.Expanded : ExpandCollapseState.Collapsed;
+
+            public bool ShowsMenu => false;
+
+            public void Expand() => Expander.SetCurrentValue(IsExpandedProperty, true);
+
+            public void Collapse() => Expander.SetCurrentValue(IsExpandedProperty, false);
+
+            internal void RaiseExpandCollapseChanged(bool wasExpanded, bool isExpanded) =>
+                RaisePropertyChangedEvent(ExpandCollapsePatternIdentifiers.ExpandCollapseStateProperty,
+                    wasExpanded ? ExpandCollapseState.Expanded : ExpandCollapseState.Collapsed,
+                    isExpanded ? ExpandCollapseState.Expanded : ExpandCollapseState.Collapsed);
+
+            // The content of the button is the layout grid, so the name comes from the header.
+            protected override string? GetNameCore() =>
+                AutomationProperties.GetName(Owner) is { Length: > 0 } name
+                    ? name
+                    : Expander.Header switch
+                    {
+                        string text => text,
+                        Control control when AutomationProperties.GetName(control) is { Length: > 0 } controlName => controlName,
+                        TextBlock block => block.Text,
+                        _ => base.GetNameCore()
+                    };
+        }
     }
 }

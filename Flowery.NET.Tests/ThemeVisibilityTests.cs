@@ -212,27 +212,14 @@ public class ThemeVisibilityTests
     private static string[] ProductNames(DaisyProductThemeDropdown dropdown) =>
         ProductItems(dropdown).Select(static info => info.Name).ToArray();
 
-    private sealed class ThemeScope : IDisposable
+    private sealed class ThemeScope : ThemeTestScope
     {
-        private readonly IReadOnlyCollection<string> _excluded = DaisyThemeManager.ExcludedThemes;
-        private readonly IReadOnlyCollection<string> _preferred = DaisyThemeManager.PreferredThemes;
-        private readonly string? _current = DaisyThemeManager.CurrentThemeName;
-        private readonly Func<string, bool>? _applicator = DaisyThemeManager.CustomThemeApplicator;
-        private readonly bool _suppressed = DaisyThemeManager.SuppressThemeApplication;
-        private readonly HashSet<string> _registered;
-        public Window Window { get; } = new() { Width = 500, Height = 300 };
-        public int ApplyCalls { get; private set; }
         public int ThemeChanges { get; private set; }
         public int ListChanges { get; private set; }
         public int ProductSelections { get; private set; }
 
-        public ThemeScope()
+        public ThemeScope() : base(500, 300)
         {
-            _registered = ThemeRegistrations.Capture();
-            DaisyThemeManager.PreferredThemes = [];
-            DaisyThemeManager.CustomThemeApplicator = Apply;
-            DaisyThemeManager.SuppressThemeApplication = false;
-            DaisyThemeManager.SetCurrentTheme("Business");
             DaisyThemeManager.ThemeChanged += OnThemeChanged;
             DaisyThemeManager.AvailableThemesChanged += OnListChanged;
         }
@@ -246,23 +233,15 @@ public class ThemeVisibilityTests
             Dispatcher.UIThread.RunJobs();
         }
 
-        private bool Apply(string name) { ApplyCalls++; return true; }
         private void OnThemeChanged(object? sender, string name) => ThemeChanges++;
         private void OnListChanged(object? sender, EventArgs e) => ListChanges++;
         public void OnProductSelected(object? sender, string name) => ProductSelections++;
 
-        public void Dispose()
+        public override void Dispose()
         {
-            Window.Close();
             DaisyThemeManager.ThemeChanged -= OnThemeChanged;
             DaisyThemeManager.AvailableThemesChanged -= OnListChanged;
-            // The current theme cannot be unregistered, so it is restored first.
-            DaisyThemeManager.SetCurrentTheme(_current ?? string.Empty);
-            ThemeRegistrations.RemoveAddedSince(_registered);
-            DaisyThemeManager.ExcludedThemes = _excluded;
-            DaisyThemeManager.PreferredThemes = _preferred;
-            DaisyThemeManager.CustomThemeApplicator = _applicator;
-            DaisyThemeManager.SuppressThemeApplication = _suppressed;
+            base.Dispose();
         }
     }
 }

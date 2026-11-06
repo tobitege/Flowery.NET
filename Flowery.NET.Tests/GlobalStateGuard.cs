@@ -2,10 +2,12 @@
 using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Styling;
 using Flowery.Controls;
 using Flowery.Controls.Scheduler.Utilities;
 using Flowery.Localization;
+using Flowery.NET.Kanban.Controls;
 using Flowery.Services;
 using Xunit.v3;
 
@@ -16,6 +18,9 @@ namespace Flowery.NET.Tests;
 /// <summary>
 /// The tests share one application. A test that leaves global state changed would break whichever test runs after
 /// it, depending on the order, so this fails the test that left it changed and puts the state back.
+/// The test class is constructed before <see cref="Before"/> and disposed after <see cref="After"/>, so what its
+/// constructor changes cannot be told from a leak. After each test the state goes back to the one at startup, so that
+/// it cannot escape into the next test either.
 /// </summary>
 [AttributeUsage(AttributeTargets.Assembly)]
 internal sealed class GlobalStateGuardAttribute : BeforeAfterTestAttribute
@@ -23,28 +28,42 @@ internal sealed class GlobalStateGuardAttribute : BeforeAfterTestAttribute
     // Tests run one at a time on the UI thread, so one snapshot at a time is enough.
     private GlobalState? _before;
 
-    public override void Before(MethodInfo methodUnderTest, IXunitTest test) => _before = GlobalState.Capture();
+    public override void Before(MethodInfo methodUnderTest, IXunitTest test)
+    {
+        // Controls save their settings, such as the size of a board, to the shared storage and load them when they are
+        // created, so each test starts without the settings an earlier one saved.
+        if (StateStorageProvider.Instance is InMemoryStateStorage storage)
+            storage.Clear();
+        _before = GlobalState.Capture();
+    }
 
     public override void After(MethodInfo methodUnderTest, IXunitTest test)
     {
         if (_before is not { } before)
             return;
         _before = null;
-        var changes = before.ChangesTo(GlobalState.Capture());
-        if (changes.Count == 0)
-            return;
-        before.Restore();
-        throw new InvalidOperationException("The test left global state changed: " + string.Join("; ", changes));
+        var after = GlobalState.Capture();
+        var changes = before.ChangesTo(after);
+        var startup = GlobalState.Startup ?? before;
+        if (startup.ChangesTo(after).Count > 0)
+            startup.Restore();
+        if (changes.Count > 0)
+            throw new InvalidOperationException("The test left global state changed: " + string.Join("; ", changes));
     }
 }
 
 internal sealed class GlobalState
 {
+    /// <summary>The state when the application was set up, before any test class was constructed.</summary>
+    public static GlobalState? Startup { get; private set; }
+
+    public static void CaptureStartup() => Startup = Capture();
+
     private Application App { get; } = Application.Current!;
     private string? Theme { get; init; }
     private string[] Excluded { get; init; } = [];
     private string[] Preferred { get; init; } = [];
-    private string[] Registered { get; init; } = [];
+    private Dictionary<string, (DaisyThemeInfo Info, Func<ResourceDictionary> Palette)> Registered { get; init; } = [];
     private IReadOnlyDictionary<string, DaisyAddedTheme> Added { get; init; } = new Dictionary<string, DaisyAddedTheme>();
     private bool SuppressThemes { get; init; }
     private bool NotifyInternalThemes { get; init; }
@@ -74,20 +93,23 @@ internal sealed class GlobalState
     private GlassBlurMode GlassModeBlur { get; init; }
     private string? BackdropOverride { get; init; }
     private Avalonia.Media.Color? BaseOverride { get; init; }
+    private Func<IActivatableLifetime?>? KanbanLifetime { get; init; }
 
     public static GlobalState Capture() => new()
     {
         Theme = DaisyThemeManager.CurrentThemeName,
         Excluded = [.. DaisyThemeManager.ExcludedThemes.Order(StringComparer.OrdinalIgnoreCase)],
         Preferred = [.. DaisyThemeManager.PreferredThemes.Order(StringComparer.OrdinalIgnoreCase)],
-        Registered = [.. DaisyThemeManager.AvailableThemes.Select(static theme => theme.Name).Order(StringComparer.OrdinalIgnoreCase)],
+        // The excluded themes too, with the palette each one was registered with.
+        Registered = ThemeRegistrations.Capture().ToDictionary(static name => name,
+            static name => (DaisyThemeManager.GetThemeInfo(name)!, DaisyThemeManager.GetPaletteFactory(name)!), StringComparer.OrdinalIgnoreCase),
         Added = DaisyThemeManager.AddedThemes,
         SuppressThemes = DaisyThemeManager.SuppressThemeApplication,
         NotifyInternalThemes = DaisyThemeManager.NotifyForInternalThemesChanged,
         ThemeApplicator = DaisyThemeManager.CustomThemeApplicator,
         Variant = Application.Current!.RequestedThemeVariant,
         // Another palette can be left behind under the same theme name, so two of its colors count as well.
-        Palette = (Resource("DaisyBase100Color"), Resource("DaisyPrimaryColor")),
+        Palette = (TestControls.Resource("DaisyBase100Color"), TestControls.Resource("DaisyPrimaryColor")),
         Dictionaries = [.. Application.Current.Resources.MergedDictionaries],
         Styles = [.. Application.Current.Styles],
         Localization = FloweryLocalization.CurrentCulture,
@@ -111,11 +133,13 @@ internal sealed class GlobalState
         GlassMode = DaisyGlassSurface.GlobalEnabled,
         GlassModeBlur = DaisyGlassSurface.GlobalBlurMode,
         BackdropOverride = DaisyThemeManager.BackdropOverride,
-        BaseOverride = DaisyThemeManager.BaseOverride
+        BaseOverride = DaisyThemeManager.BaseOverride,
+        KanbanLifetime = FlowKanban.ActivatableLifetimeSource
     };
 
-    private static object? Resource(string key) =>
-        Application.Current is { } app && app.TryFindResource(key, app.ActualThemeVariant, out var value) ? value : null;
+    private static bool SameRegistration((DaisyThemeInfo Info, Func<ResourceDictionary> Palette) before,
+        (DaisyThemeInfo Info, Func<ResourceDictionary> Palette) after) =>
+        before.Info.Name == after.Info.Name && before.Info.IsDark == after.Info.IsDark && before.Palette == after.Palette;
 
     public List<string> ChangesTo(GlobalState after)
     {
@@ -129,8 +153,13 @@ internal sealed class GlobalState
         Check("current theme", string.Equals(Theme, after.Theme, StringComparison.OrdinalIgnoreCase), Theme, after.Theme);
         Check("excluded themes", Excluded.SequenceEqual(after.Excluded, StringComparer.OrdinalIgnoreCase), string.Join(",", Excluded), string.Join(",", after.Excluded));
         Check("preferred themes", Preferred.SequenceEqual(after.Preferred, StringComparer.OrdinalIgnoreCase), string.Join(",", Preferred), string.Join(",", after.Preferred));
-        Check("registered themes", Registered.SequenceEqual(after.Registered, StringComparer.OrdinalIgnoreCase),
-            string.Join(",", Registered.Except(after.Registered)), string.Join(",", after.Registered.Except(Registered)));
+        var removed = Registered.Keys.Except(after.Registered.Keys, StringComparer.OrdinalIgnoreCase).ToList();
+        var registered = after.Registered.Keys.Except(Registered.Keys, StringComparer.OrdinalIgnoreCase).ToList();
+        Check("registered themes", removed.Count == 0 && registered.Count == 0, string.Join(",", removed), string.Join(",", registered));
+        // A theme registered again under the same name can bring another palette.
+        var replaced = Registered.Where(pair => after.Registered.TryGetValue(pair.Key, out var now) && !SameRegistration(pair.Value, now))
+            .Select(static pair => pair.Key).ToList();
+        Check("theme registrations", replaced.Count == 0, null, "replaced " + string.Join(",", replaced));
         Check("added themes", Added.Count == after.Added.Count && Added.All(pair => after.Added.TryGetValue(pair.Key, out var entry) && entry == pair.Value),
             string.Join(",", Added.Values.Select(static entry => entry.Name)), string.Join(",", after.Added.Values.Select(static entry => entry.Name)));
         Check("SuppressThemeApplication", SuppressThemes == after.SuppressThemes, SuppressThemes, after.SuppressThemes);
@@ -162,6 +191,7 @@ internal sealed class GlobalState
         Check("DaisyGlassSurface.GlobalBlurMode", GlassModeBlur == after.GlassModeBlur, GlassModeBlur, after.GlassModeBlur);
         Check("DaisyThemeManager.BackdropOverride", BackdropOverride == after.BackdropOverride, BackdropOverride, after.BackdropOverride);
         Check("DaisyThemeManager.BaseOverride", BaseOverride == after.BaseOverride, BaseOverride, after.BaseOverride);
+        Check("FlowKanban.ActivatableLifetimeSource", KanbanLifetime == after.KanbanLifetime, KanbanLifetime, after.KanbanLifetime);
         return changes;
     }
 
@@ -180,13 +210,17 @@ internal sealed class GlobalState
         DaisyGlassSurface.GlobalEnabled = GlassMode;
         DaisyThemeManager.BackdropOverride = BackdropOverride;
         DaisyThemeManager.BaseOverride = BaseOverride;
+        // Themes the test unregistered or registered again come back first, so the theme is applied with its palette.
+        foreach (var (name, (info, palette)) in Registered)
+        {
+            if (DaisyThemeManager.GetThemeInfo(name) != info || DaisyThemeManager.GetPaletteFactory(name) != palette)
+                DaisyThemeManager.RegisterTheme(info, palette);
+        }
         DaisyThemeManager.SetCurrentTheme(string.Empty);
         if (Theme is not null)
             DaisyThemeManager.ApplyTheme(Theme);
         App.RequestedThemeVariant = Variant;
-        var added = ThemeRegistrations.Capture().Except(Registered, StringComparer.OrdinalIgnoreCase).ToList();
-        foreach (var name in added)
-            DaisyThemeManager.UnregisterTheme(name);
+        ThemeRegistrations.RemoveAddedSince([.. Registered.Keys]);
         foreach (var name in DaisyThemeManager.AddedThemes.Keys.Except(Added.Keys, StringComparer.OrdinalIgnoreCase).ToList())
             DaisyThemeManager.RemoveAddedTheme(name);
         foreach (var entry in Added.Values)
@@ -216,5 +250,6 @@ internal sealed class GlobalState
         if (Storage is not null)
             StateStorageProvider.Configure(Storage);
         DaisyGlassLiveRenderer.Register(GlassRenderer);
+        FlowKanban.ActivatableLifetimeSource = KanbanLifetime!;
     }
 }

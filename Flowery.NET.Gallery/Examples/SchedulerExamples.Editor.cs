@@ -37,7 +37,7 @@ public partial class SchedulerExamples
     private bool _fillingEditor;
     private IReadOnlyList<AppointmentModel> _conflicts = Array.Empty<AppointmentModel>();
 
-    private void OpenEditor(AppointmentModel appointment, bool isNew)
+    internal void OpenEditor(AppointmentModel appointment, bool isNew)
     {
         _fillingEditor = true;
         _editing = appointment;

@@ -11,6 +11,7 @@ using Flowery.Controls;
 using Flowery.Helpers;
 using Flowery.Services;
 using Xunit;
+using static Flowery.NET.Tests.TestControls;
 
 namespace Flowery.NET.Tests;
 
@@ -320,9 +321,6 @@ public class DaisySelectionControlSizingTests
         var info = Assert.IsAssignableFrom<ISolidColorBrush>(resource).Color;
         Assert.Equal(info, Assert.IsAssignableFrom<ISolidColorBrush>(Part<Border>(toggle, "SwitchArea").BorderBrush).Color);
     }
-
-    private static T Part<T>(Control control, string name) where T : Control =>
-        control.GetVisualDescendants().OfType<T>().Single(part => part.Name == name);
 
     private sealed class SizeScope : IDisposable
     {

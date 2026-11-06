@@ -10,6 +10,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
 using Xunit;
+using static Flowery.NET.Tests.TestControls;
 
 namespace Flowery.NET.Tests;
 
@@ -41,7 +42,7 @@ public class DaisyGlassThemeTests
             Assert.Equal(thumb.Bounds.Width, lens.Width);
             Assert.Equal(thumb.Bounds.X + thumb.Bounds.Width / 2, Part<Border>(range, "PART_Progress").Width);
 
-            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            RealInput.RenderFrames();
             var center = thumb.TranslatePoint(new Point(thumb.Bounds.Width / 2, thumb.Bounds.Height / 2), window)!.Value;
             window.MouseDown(center, MouseButton.Left, RawInputModifiers.None);
             Dispatcher.UIThread.RunJobs();
@@ -118,12 +119,14 @@ public class DaisyGlassThemeTests
         var window = Show(toggle);
         try
         {
-            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            RealInput.RenderFrames();
             var knobs = Part<Canvas>(toggle, "PART_MovingKnobs");
             var start = knobs.TranslatePoint(new Point(8, knobs.Bounds.Height / 2), window)!.Value;
             window.MouseDown(start, MouseButton.Left, RawInputModifiers.None);
             window.MouseMove(start + new Vector(10, 0), RawInputModifiers.LeftMouseButton);
             window.MouseMove(start + new Vector(30, 0), RawInputModifiers.LeftMouseButton);
+            // A click switches it too, so the knob has to be dragged, not only pressed.
+            Assert.Contains(":dragging", toggle.Classes);
             window.MouseUp(start + new Vector(30, 0), MouseButton.Left, RawInputModifiers.None);
             Dispatcher.UIThread.RunJobs();
             Assert.True(toggle.IsChecked);
@@ -198,16 +201,4 @@ public class DaisyGlassThemeTests
         var parent = Assert.IsAssignableFrom<Panel>(glass.GetVisualParent());
         Assert.Equal(0, parent.Children.IndexOf(glass));
     }
-
-    private static Window Show(Control content)
-    {
-        var window = new Window { Width = 400, Height = 300, Content = content };
-        window.Show();
-        Dispatcher.UIThread.RunJobs();
-        window.UpdateLayout();
-        return window;
-    }
-
-    private static T Part<T>(Control control, string name) where T : Control =>
-        control.GetVisualDescendants().OfType<T>().Single(part => part.Name == name);
 }

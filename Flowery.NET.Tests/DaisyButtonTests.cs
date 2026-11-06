@@ -25,6 +25,8 @@ namespace Flowery.NET.Tests
             var background = button.GetByName<Border>("PART_Background");
             // The hover colour fades in; the test checks the colour, not the fade.
             background.Transitions = null;
+            // The pointer is hit tested against the rendered scene.
+            RealInput.RenderFrames();
             var center = button.TranslatePoint(new Point(button.Bounds.Width / 2, button.Bounds.Height / 2), window.Window)!.Value;
             window.Window.MouseMove(center);
             Assert.Same(Brush(button, "DaisyPrimaryFocusBrush"), background.Background);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Avalonia;
 using Avalonia.Automation;
@@ -10,7 +11,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Flowery.Localization;
-using Flowery.Theming;
+using static Flowery.Controls.DaisyTourGeometry;
 
 namespace Flowery.Controls;
 
@@ -45,6 +46,8 @@ internal sealed class DaisyTourHandleLayer : Canvas
             marker.Height = 14;
             marker.Fill = new SolidColorBrush(Colors.DarkOrange);
             marker.StrokeThickness = 1.5;
+            // The frame follows the theme and high contrast through the resource.
+            marker.Bind(Shape.StrokeProperty, marker.GetResourceObservable("DaisyBaseContentBrush"));
             marker.IsHitTestVisible = false;
             var transparent = new SolidColorBrush(Colors.Transparent);
             var button = new Button
@@ -161,13 +164,35 @@ internal sealed class DaisyTourHandleLayer : Canvas
         if (_drag == kind) displayOffset = _dragDisplayOffset;
         SetLeft(button, point.X + displayOffset.X - button.Width / 2);
         SetTop(button, point.Y + displayOffset.Y - button.Height / 2);
-        if (button.Content is Shape marker)
+    }
+
+    // The names change only with the culture, not with every update of a gesture.
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        FloweryLocalization.CultureChanged += OnCultureChanged;
+        RefreshLabels();
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        FloweryLocalization.CultureChanged -= OnCultureChanged;
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    private void OnCultureChanged(object? sender, CultureInfo culture)
+    {
+        if (Dispatcher.CheckAccess()) RefreshLabels(); else Dispatcher.Post(RefreshLabels);
+    }
+
+    private void RefreshLabels()
+    {
+        foreach (var (kind, button) in _handles)
         {
-            marker.Stroke = DaisyResourceLookup.GetBrush("DaisyBaseContentBrush");
+            var name = FloweryLocalization.GetStringInternal("TourEditor_Handle_" + kind);
+            AutomationProperties.SetName(button, name);
+            ToolTip.SetTip(button, name);
         }
-        var name = FloweryLocalization.GetStringInternal("TourEditor_Handle_" + kind);
-        AutomationProperties.SetName(button, name);
-        ToolTip.SetTip(button, name);
     }
 
     private void OnSelect(object? sender, PointerPressedEventArgs args)
@@ -338,12 +363,6 @@ internal sealed class DaisyTourHandleLayer : Canvas
         if (length <= 0.001) return geometry.Curvature;
         var along = Unit(geometry.Source, geometry.Target);
         return geometry.Curvature + 2 * (-(point.X - origin.X) * along.Y + (point.Y - origin.Y) * along.X) / length;
-    }
-    private static double Distance(Point a, Point b) => Math.Sqrt((b.X - a.X) * (b.X - a.X) + (b.Y - a.Y) * (b.Y - a.Y));
-    private static Point Unit(Point a, Point b)
-    {
-        var length = Distance(a, b);
-        return length > 0.001 ? new((b.X - a.X) / length, (b.Y - a.Y) / length) : new(1, 0);
     }
     private static DaisyTourAnchor NearestAnchor(Rect bounds, Point point)
     {

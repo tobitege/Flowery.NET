@@ -40,7 +40,7 @@
                         Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"
                         BorderThickness="1" CornerRadius="12" Height="220" MaxWidth="520" ClipToBounds="True"
                         HorizontalAlignment="Stretch">
-                    <effects:CarouselGlEffectHost x:Name="GlPreviewHost" Effect="Fade"
+                    <effects:CarouselGlEffectHost x:Name="GlPreviewHost" EffectKind="Fade"
                                                   HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
                 </Border>
 
@@ -200,28 +200,34 @@
 
                         <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:Localize Gallery_Carousel_Guide_GridLabel}"
-                                       FontWeight="SemiBold" Width="100" />
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_GridDesc}" Opacity="0.8" />
+                                       FontWeight="SemiBold" Width="100" TextWrapping="Wrap" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_GridDesc}" Opacity="0.8"
+                                       TextWrapping="Wrap" />
 
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="{loc:Localize Gallery_Carousel_Guide_StaggerMsLabel}"
-                                       FontWeight="SemiBold" Width="100" />
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_StaggerMsDesc}" Opacity="0.8" />
+                                       FontWeight="SemiBold" Width="100" TextWrapping="Wrap" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_StaggerMsDesc}" Opacity="0.8"
+                                       TextWrapping="Wrap" />
 
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="{loc:Localize Gallery_Carousel_Guide_StaggerToggleLabel}"
-                                       FontWeight="SemiBold" Width="100" />
-                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_StaggerToggleDesc}" Opacity="0.8" />
+                                       FontWeight="SemiBold" Width="100" TextWrapping="Wrap" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_StaggerToggleDesc}" Opacity="0.8"
+                                       TextWrapping="Wrap" />
 
                             <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:Localize Gallery_Carousel_Guide_PixelSizeLabel}"
-                                       FontWeight="SemiBold" Width="100" />
-                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_PixelSizeDesc}" Opacity="0.8" />
+                                       FontWeight="SemiBold" Width="100" TextWrapping="Wrap" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_PixelSizeDesc}" Opacity="0.8"
+                                       TextWrapping="Wrap" />
 
                             <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:Localize Gallery_Carousel_Guide_DissolveDensityLabel}"
-                                       FontWeight="SemiBold" Width="100" />
-                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_DissolveDensityDesc}" Opacity="0.8" />
+                                       FontWeight="SemiBold" Width="100" TextWrapping="Wrap" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_DissolveDensityDesc}" Opacity="0.8"
+                                       TextWrapping="Wrap" />
 
                             <TextBlock Grid.Row="5" Grid.Column="0" Text="{loc:Localize Gallery_Carousel_Guide_FlipAngleLabel}"
-                                       FontWeight="SemiBold" Width="100" />
-                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_FlipAngleDesc}" Opacity="0.8" />
+                                       FontWeight="SemiBold" Width="100" TextWrapping="Wrap" />
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{loc:Localize Gallery_Carousel_Guide_FlipAngleDesc}" Opacity="0.8"
+                                       TextWrapping="Wrap" />
                         </Grid>
                     </StackPanel>
                 </controls:DaisyCard>
@@ -238,7 +244,7 @@
                         Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"
                         BorderThickness="1" CornerRadius="12" Height="220" MaxWidth="480" ClipToBounds="True"
                         HorizontalAlignment="Stretch">
-                    <effects:CarouselGlEffectHost x:Name="GlMaskHost" Effect="MaskTransition"
+                    <effects:CarouselGlEffectHost x:Name="GlMaskHost" EffectKind="MaskTransition"
                                                   HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
                 </Border>
             </StackPanel>
@@ -254,7 +260,7 @@
                         Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"
                         BorderThickness="1" CornerRadius="12" Height="220" MaxWidth="520" ClipToBounds="True"
                         HorizontalAlignment="Stretch">
-                    <effects:CarouselGlEffectHost x:Name="GlFlipHost" Effect="FlipPlane"
+                    <effects:CarouselGlEffectHost x:Name="GlFlipHost" EffectKind="FlipPlane"
                                                   HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
                 </Border>
             </StackPanel>
@@ -270,7 +276,7 @@
                         Background="{DynamicResource DaisyBase200Brush}" BorderBrush="{DynamicResource DaisyBase300Brush}"
                         BorderThickness="1" CornerRadius="12" Height="200" MaxWidth="520" ClipToBounds="True"
                         HorizontalAlignment="Stretch">
-                    <effects:CarouselGlEffectHost x:Name="GlTextHost" Effect="TextFill"
+                    <effects:CarouselGlEffectHost x:Name="GlTextHost" EffectKind="TextFill"
                                                   HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
                 </Border>
             </StackPanel>

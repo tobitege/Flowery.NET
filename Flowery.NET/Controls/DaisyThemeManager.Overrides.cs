@@ -50,6 +50,10 @@ namespace Flowery.Controls
         private const double TextContrast = 4.5;
         private const double SurfaceContrast = 3;
 
+        // The muted text of Themes/Colors.axaml: the base text at this opacity, raised where a palette needs it.
+        private const string MutedTextKey = "DaisyBaseContentMutedBrush";
+        internal const double MutedTextOpacity = 0.7;
+
         private static readonly string[] AccentNames = ["Primary", "Secondary", "Accent", "Neutral", "Info", "Success", "Warning", "Error"];
 
         // The text colors of the accents, for text in an accent color on the base, and the accent each falls back to.
@@ -126,30 +130,35 @@ namespace Flowery.Controls
             if (Application.Current is not { } app)
                 return gaps;
             var variant = app.ActualThemeVariant;
-            Color? Find(string key) => app.TryFindResource(key, variant, out var value)
-                ? value switch { Color color => color, ISolidColorBrush brush => brush.Color, _ => null }
-                : null;
-            void Check(string foreground, string background, double required)
-            {
-                if (Find(foreground) is not { } front || Find(background) is not { } back)
-                    return;
-                // A translucent color counts as it is drawn on its background.
-                var ratio = FloweryColorHelpers.GetContrastRatio(FloweryColorHelpers.Composite(back, front, 1), back);
-                if (ratio < required - 0.005)
-                    gaps.Add(new DaisyContrastGap(foreground, background, ratio, required));
-            }
-
             foreach (var surface in new[] { "DaisyBase100Color", "DaisyBase200Color", "DaisyBase300Color" })
-                Check("DaisyBaseContentColor", surface, TextContrast);
+                CheckContrast(app, variant, gaps, "DaisyBaseContentColor", surface, TextContrast);
             foreach (var (key, _) in AccentTextBrushes)
-                Check(key, "DaisyBase100Color", TextContrast);
+                CheckContrast(app, variant, gaps, key, "DaisyBase100Color", TextContrast);
             foreach (var name in AccentNames)
             {
-                Check($"Daisy{name}Color", "DaisyBase100Color", SurfaceContrast);
-                Check($"Daisy{name}ContentColor", $"Daisy{name}Color", TextContrast);
+                CheckContrast(app, variant, gaps, $"Daisy{name}Color", "DaisyBase100Color", SurfaceContrast);
+                CheckContrast(app, variant, gaps, $"Daisy{name}ContentColor", $"Daisy{name}Color", TextContrast);
             }
             return gaps;
         }
+
+        // Adds the pair to the gaps when it stays below the required ratio; a pair the theme lacks is no gap.
+        private static void CheckContrast(Application app, ThemeVariant variant, List<DaisyContrastGap> gaps, string foreground,
+            string background, double required)
+        {
+            if (FindColor(app, variant, foreground) is not { } front || FindColor(app, variant, background) is not { } back)
+                return;
+            // A translucent color counts as it is drawn on its background.
+            var ratio = FloweryColorHelpers.GetContrastRatio(FloweryColorHelpers.Composite(back, front, 1), back);
+            if (ratio < required - 0.005)
+                gaps.Add(new DaisyContrastGap(foreground, background, ratio, required));
+        }
+
+        // A color or the color of a solid brush, as the app finds it now.
+        private static Color? FindColor(Application app, ThemeVariant variant, string key) =>
+            app.TryFindResource(key, variant, out var value)
+                ? value switch { Color color => color, ISolidColorBrush brush => brush.Color, _ => null }
+                : null;
 
         /// <summary>
         /// Gets or sets a backdrop chosen at run time, which replaces <c>DaisyBackdropBrush</c> and
@@ -174,11 +183,14 @@ namespace Flowery.Controls
             set
             {
                 var text = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+                // The normal form first: the same backdrop written differently must not load an image again.
+                if (text != null)
+                    text = ParseBackdrop(text, create: false).Text;
                 if (string.Equals(text, _backdropOverride, StringComparison.Ordinal))
                     return;
                 var previous = _backdropOverrideBrush;
                 (_backdropOverride, _backdropOverrideBrush, _backdropOverrideEffect) =
-                    text == null ? (null, null, null) : ParseBackdrop(text);
+                    text == null ? (null, null, null) : ParseBackdrop(text, create: true);
                 RefreshDerivedResources();
                 // A decoded photo holds tens of megabytes. The backdrops let go of it with the swap; the frames already
                 // on their way that still draw it are done well within a second.
@@ -193,7 +205,8 @@ namespace Flowery.Controls
         /// </summary>
         public static event EventHandler? BackdropOverrideChanged;
 
-        private static (string Text, IBrush? Brush, DaisyGlassBackground? Effect) ParseBackdrop(string text)
+        // The normal form of the text, and without create only that: no image is loaded and no effect made.
+        private static (string Text, IBrush? Brush, DaisyGlassBackground? Effect) ParseBackdrop(string text, bool create)
         {
             if (text.StartsWith(EffectPrefix, StringComparison.OrdinalIgnoreCase))
             {
@@ -205,6 +218,8 @@ namespace Flowery.Controls
                     throw new FormatException(
                         $"'{name}' is no backdrop effect; use one of {string.Join(", ", Enum.GetNames<DaisyGlassAnimation>())}.");
                 }
+                if (!create)
+                    return (EffectPrefix + animation, null, null);
                 // A calm effect behind the whole window: slower than on a glass and redrawn less often, which costs less.
                 var effect = DaisyGlassLiveRenderer.Current?.CreateShaderBackground() ?? new DaisyGlassGradientBackground();
                 effect.Effect = animation;
@@ -217,7 +232,7 @@ namespace Flowery.Controls
                 var source = text[ImagePrefix.Length..].Trim();
                 if (source.Length == 0)
                     throw new FormatException("An image backdrop needs a file path or an avares:// URI after 'image:'.");
-                return (ImagePrefix + source, LoadBackdropImage(source), null);
+                return (ImagePrefix + source, create ? LoadBackdropImage(source) : null, null);
             }
             if (Color.TryParse(text, out var color))
                 return (color.A == 255 ? $"#{color.R:X2}{color.G:X2}{color.B:X2}" : $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}",
@@ -299,6 +314,8 @@ namespace Flowery.Controls
         /// Puts what the library derives from the palette right after it, and in any case before the contrast palette:
         /// <list type="bullet">
         /// <item>the base colors of <see cref="BaseOverride"/>;</item>
+        /// <item><c>DaisyBaseContentMutedBrush</c> gets more than its 70 percent opacity where a palette leaves it below
+        /// 4.5:1 on <c>Base100</c> or <c>Base200</c>, only as far as needed;</item>
         /// <item>while <see cref="DaisyGlassSurface.GlobalEnabled"/> is on, <c>DaisyGlassTintColor</c> is <c>Base100</c>
         /// of the active theme, so the glass takes the hue of the theme and the text on it keeps its contrast. A palette
         /// that sets its own tint, such as Glassy, keeps it, moved to the hue of a base override;</item>
@@ -326,6 +343,20 @@ namespace Flowery.Controls
             {
                 AddBaseOverride(app, variant, derived, base100, baseOverride);
                 base100 = baseOverride;
+            }
+
+            // The muted text, the base text at 70 percent, gets more opacity only where a palette leaves it below the
+            // text contrast on Base100 or Base200. A palette with a muted brush of its own, and the contrast palette,
+            // keep theirs.
+            if (hasBase && !app.Resources.TryGetResource(MutedTextKey, variant, out _)
+                && TryGetDerivedColor(app, variant, derived, "DaisyBaseContentColor", out var mutedText))
+            {
+                var hasBase200 = TryGetDerivedColor(app, variant, derived, "DaisyBase200Color", out var base200);
+                var opacity = MutedTextOpacity;
+                while (opacity < 1 && (!IsReadable(mutedText, opacity, base100) || hasBase200 && !IsReadable(mutedText, opacity, base200)))
+                    opacity = Math.Round(opacity + 0.01, 2);
+                if (opacity > MutedTextOpacity)
+                    derived[MutedTextKey] = new SolidColorBrush(mutedText, opacity);
             }
 
             // A tint of the app or its palette stays, also one applied by a CustomThemeApplicator or included in the app
@@ -420,6 +451,20 @@ namespace Flowery.Controls
         {
             derived[$"Daisy{name}Color"] = color;
             derived[$"Daisy{name}Brush"] = new SolidColorBrush(color);
+        }
+
+        private static bool IsReadable(Color text, double opacity, Color background) =>
+            FloweryColorHelpers.GetContrastRatio(FloweryColorHelpers.Composite(background, text, opacity), background) >= TextContrast;
+
+        // A color as the derived palette sets it, such as a base of BaseOverride, else as the palette has it.
+        private static bool TryGetDerivedColor(Application app, ThemeVariant variant, ResourceDictionary derived, string key, out Color color)
+        {
+            if (derived.TryGetValue(key, out var value) && value is Color found)
+            {
+                color = found;
+                return true;
+            }
+            return TryGetPaletteColor(app, key, variant, out color);
         }
 
         // The color that keeps the contrast ratio of color to the old base, and its side: toward the text of the theme or

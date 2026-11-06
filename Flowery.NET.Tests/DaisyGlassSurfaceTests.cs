@@ -10,6 +10,7 @@ using Avalonia.VisualTree;
 using Flowery.Controls;
 using Flowery.Enums;
 using Xunit;
+using static Flowery.NET.Tests.TestControls;
 using DaisyBadgeVariant = Flowery.Controls.DaisyBadgeVariant;
 using DaisyInputVariant = Flowery.Controls.DaisyInputVariant;
 using DaisyLabelPosition = Flowery.Controls.DaisyLabelPosition;
@@ -93,24 +94,23 @@ public class DaisyGlassSurfaceTests
     [AvaloniaFact]
     public void The_Text_Follows_The_Foreground_While_The_Backdrop_Is_Not_Measured()
     {
-        // Headless rendering measures no backdrop, so the contrast keeps the foreground as it is.
+        // Without a measured backdrop the contrast keeps the foreground as it is. A captured backdrop would be measured,
+        // and the headless platform leaves its pixels undefined, so the glass does not capture here.
         var button = new DaisyButton { Content = "Glass", Theme = GlassTheme("DaisyGlassButtonTheme") };
+        DaisyGlassSurface.SetBlurMode(button, GlassBlurMode.Simulated);
         var window = Show(button);
         try
         {
             var glass = Part<DaisyGlass>(button, "PART_Glass");
+            Assert.Null(glass.BackdropColor);
             var theme = button.Foreground;
             var themeEffective = DaisyGlassSurface.GetEffectiveForeground(button);
             button.Foreground = Brushes.Orange;
             var effective = DaisyGlassSurface.GetEffectiveForeground(button);
             // The content draws with the brush in use, adjusted or not.
             Assert.Same(effective, Part<StackPanel>(button, "PART_ContentPanel").GetValue(TextElement.ForegroundProperty));
-
-            // Now and then a full run ends with the text adjusted by the contrast anyway, and it could not be
-            // reproduced. Such a run is inconclusive rather than failed; the message keeps what the glass saw.
-            if (!ReferenceEquals(theme, themeEffective) || !ReferenceEquals(Brushes.Orange, effective))
-                Assert.Skip($"Inconclusive: backdrop {glass.BackdropColor?.ToString() ?? "not measured"}, blur mode "
-                    + $"{glass.EffectiveBlurMode}, theme text {theme} became {themeEffective}, orange became {effective}.");
+            Assert.Same(theme, themeEffective);
+            Assert.Same(Brushes.Orange, effective);
         }
         finally
         {
@@ -332,7 +332,4 @@ public class DaisyGlassSurfaceTests
         window.UpdateLayout();
         return window;
     }
-
-    private static T Part<T>(Control control, string name) where T : Control =>
-        control.GetVisualDescendants().OfType<T>().First(part => part.Name == name);
 }

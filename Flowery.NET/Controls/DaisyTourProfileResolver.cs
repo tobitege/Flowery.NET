@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 
 namespace Flowery.Controls;
 
@@ -68,6 +70,14 @@ internal static class DaisyTourProfileResolver
     ];
 
     internal static IReadOnlyList<string> PropertyNames { get; } = Array.AsReadOnly(Properties.Select(property => property.Name).ToArray());
+    // Geometry updates read the values of every layer and annotation, so lookups do not search the table.
+    private static readonly Dictionary<string, Property> ByName = Properties.ToDictionary(property => property.Name, StringComparer.Ordinal);
+    private static readonly Dictionary<AvaloniaProperty, Property> ByProperty = Properties
+        .SelectMany(property => property.Properties, (property, avaloniaProperty) => (property, avaloniaProperty))
+        .ToDictionary(entry => entry.avaloniaProperty, entry => entry.property);
+    // The brushes of the colors of each override; an unchanged color keeps its brush, so the shapes that use it do
+    // not change. The tour reads them on the UI thread only; the inner dictionaries are not thread-safe.
+    private static readonly ConditionalWeakTable<DaisyTourStyleOverride, Dictionary<string, (string Text, IBrush Brush)>> Brushes = new();
     internal static AvaloniaProperty? FindProperty(string name) => Find(name)?.Properties[0];
     internal static Type? ValueType(string name) => Find(name)?.Type;
     internal static object? GetValue(DaisyTourStyleOverride? scope, string name) => scope is null ? null : Required(name).Read(scope.Values);
@@ -98,15 +108,13 @@ internal static class DaisyTourProfileResolver
     {
         value = null;
         inherit = false;
-        if (scope is null) return false;
-        var entry = Properties.FirstOrDefault(entry => entry.Properties.Contains(property));
-        if (entry is null) return false;
+        if (scope is null || !ByProperty.TryGetValue(property, out var entry)) return false;
         inherit = scope.Inherit.Contains(entry.Name, StringComparer.Ordinal);
         if (inherit) return true;
         value = entry.Read(scope.Values);
         if (value is null) return false;
         if (value is string color)
-            value = new SolidColorBrush(ParseColor(color));
+            value = Brush(scope, entry.Name, color);
         else if (value is double[] numbers)
         {
             var dashes = new DaisyTourDashCollection();
@@ -156,7 +164,16 @@ internal static class DaisyTourProfileResolver
         "width", "height", "maxWidth", "maxHeight", "fontSize"
     };
 
-    private static Property? Find(string name) => Properties.FirstOrDefault(property => property.Name == name);
+    private static Property? Find(string name) => ByName.GetValueOrDefault(name);
+
+    private static IBrush Brush(DaisyTourStyleOverride scope, string name, string text)
+    {
+        var brushes = Brushes.GetOrCreateValue(scope);
+        if (brushes.TryGetValue(name, out var cached) && cached.Text == text) return cached.Brush;
+        var brush = new ImmutableSolidColorBrush(ParseColor(text));
+        brushes[name] = (text, brush);
+        return brush;
+    }
     private static Property Required(string name) => Find(name) ?? throw new ArgumentException($"Unknown style property '{name}'.");
 
     private static Color ParseColor(string text)

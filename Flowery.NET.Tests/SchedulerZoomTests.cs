@@ -1,12 +1,10 @@
-﻿using System.Reflection;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.HeadlessTestingFramework;
 using Avalonia.Input;
-using Avalonia.Input.Raw;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
@@ -158,8 +156,7 @@ public sealed partial class SchedulerTests
     public void TheSettingsMenuChoosesTheColumnZoom()
     {
         using var scope = new SchedulerScope(SchedulerView.Week);
-        var builder = typeof(DaisyScheduler).GetMethod("BuildSettings", BindingFlags.Instance | BindingFlags.NonPublic)!;
-        var settings = Assert.IsType<ScrollViewer>(builder.Invoke(scope.Scheduler, null));
+        var settings = Assert.IsType<ScrollViewer>(scope.Scheduler.BuildSettings());
         var popup = new Window { Width = 500, Height = 600, Content = settings };
         popup.Show();
         try
@@ -198,13 +195,76 @@ public sealed partial class SchedulerTests
                 first.Scheduler.ColumnZoom = 2.5;
                 first.Layout();
             }
-            // The changes of one turn are written once.
+            // The changes are written once, at the latest when the scheduler closes.
             Assert.Equal(1, storage.SaveCount);
 
             using var second = new SchedulerScope(SchedulerView.Week);
             Assert.Equal(1, second.Scheduler.ColumnZoom);
             second.Scheduler.StateKey = "zoom";
             Assert.Equal(2.5, second.Scheduler.ColumnZoom);
+        }
+        finally
+        {
+            StateStorageProvider.Configure(previous);
+        }
+    }
+
+    [AvaloniaFact]
+    public void AZoomGestureOverManyDispatcherTurnsIsWrittenOnceItRests()
+    {
+        var previous = StateStorageProvider.Instance;
+        var storage = new InMemoryStateStorage();
+        StateStorageProvider.Configure(storage);
+        try
+        {
+            using var scope = new SchedulerScope(SchedulerView.Week);
+            scope.Scheduler.StateKey = "zoom";
+            // A pinch: one zoom per pointer event, each in a dispatcher turn of its own.
+            foreach (var zoom in new[] { 1.2, 1.5, 1.9, 2.4 })
+            {
+                scope.Scheduler.ColumnZoom = zoom;
+                scope.Layout();
+            }
+            Assert.Equal(0, storage.SaveCount);
+
+            Thread.Sleep(DaisyScheduler.StateSaveDelay + TimeSpan.FromMilliseconds(150));
+            // The dispatcher looks for due timers only after it ran a job.
+            Dispatcher.UIThread.Post(static () => { });
+            scope.Layout();
+            Assert.Equal(1, storage.SaveCount);
+            Assert.Equal(["columnZoom=2.4"], storage.LoadLines(Assert.Single(storage.GetKeys(string.Empty))));
+
+            // A zoom right before the scheduler closes is not lost.
+            scope.Scheduler.ColumnZoom = 3;
+            scope.Window.Content = null;
+            Assert.Equal(2, storage.SaveCount);
+            Assert.Equal(["columnZoom=3"], storage.LoadLines(Assert.Single(storage.GetKeys(string.Empty))));
+        }
+        finally
+        {
+            StateStorageProvider.Configure(previous);
+        }
+    }
+
+    [AvaloniaFact]
+    public void AZoomWaitingForItsSaveIsWrittenUnderTheOldKeyWhenTheStateKeyChanges()
+    {
+        var previous = StateStorageProvider.Instance;
+        var storage = new InMemoryStateStorage();
+        StateStorageProvider.Configure(storage);
+        try
+        {
+            using var scope = new SchedulerScope(SchedulerView.Week);
+            scope.Scheduler.StateKey = "first";
+            scope.Scheduler.ColumnZoom = 2.4;
+            scope.Scheduler.StateKey = "second";
+
+            var key = Assert.Single(storage.GetKeys(string.Empty));
+            Assert.Contains("first", key);
+            Assert.Equal(["columnZoom=2.4"], storage.LoadLines(key));
+            // Nothing waits any more that could write the zoom of the old key under the new one.
+            scope.Window.Content = null;
+            Assert.Equal(1, storage.SaveCount);
         }
         finally
         {
