@@ -30,6 +30,7 @@ public partial class GalleryView : UserControl
     public PhotoQuery Query => _query;
     public IReadOnlyList<PhotoItem> Selected => _items.Where(item => item.IsSelected).ToList();
     public event Action<PhotoItem>? OpenRequested;
+    public event Action<PhotoItem>? FullScreenRequested;
     public event Action? SelectionChanged;
     public event Action<PhotoTile>? ConfigureTile;
     public event Action? ImportRequested;
@@ -59,6 +60,8 @@ public partial class GalleryView : UserControl
         };
         AttachedToVisualTree += (_, _) => FlowerySizeManager.SizeChanged += OnGlobalSizeChanged;
         DetachedFromVisualTree += (_, _) => FlowerySizeManager.SizeChanged -= OnGlobalSizeChanged;
+        // A saved size above the default maximum stays until the window height is known.
+        TileSize.Maximum = Math.Max(TileSize.Maximum, PhotosSettings.TileHeight);
         TileSize.Value = PhotosSettings.TileHeight;
         Square.IsChecked = PhotosSettings.SquareTiles;
         Names.IsChecked = PhotosSettings.ShowFileNames;
@@ -70,11 +73,12 @@ public partial class GalleryView : UserControl
         Square.IsCheckedChanged += (_, _) => ApplyOptions();
         Names.IsCheckedChanged += (_, _) => ApplyOptions();
         TileSize.PropertyChanged += (_, e) => { if (e.Property == Slider.ValueProperty) ApplyOptions(); };
-        PointerWheelChanged += (_, e) =>
+        // A video playing in a thumbnail stops when the gallery hides, for the viewer or another page.
+        PropertyChanged += (_, e) => { if (e.Property == IsVisibleProperty && !IsVisible) PhotoTile.StopPlayback(); };
+        // The thumbnail size reaches up to the window height.
+        SizeChanged += (_, _) =>
         {
-            if (!e.KeyModifiers.HasFlag(KeyModifiers.Control)) return;
-            ZoomTiles(e.Delta.Y > 0);
-            e.Handled = true;
+            if (TopLevel.GetTopLevel(this) is { } top) TileSize.Maximum = Math.Max(TileSize.Minimum, top.ClientSize.Height);
         };
     }
     public void RefreshLabels()
@@ -83,14 +87,35 @@ public partial class GalleryView : UserControl
         string L(string key) => PhotosLocalization.GetString(key);
         Sort.ItemsSource = new[] { "DateNewest", "DateOldest", "Modified", "NameAsc", "NameDesc", "Size" }.Select(k => L("Photos_Sort_" + k));
         Group.ItemsSource = new[] { "Day", "Month", "Year", "None" }.Select(k => L("Photos_Group_" + k));
-        Type.ItemsSource = new[] { "AllTypes", "Jpeg", "Png", "OtherTypes" }.Select(k => L("Photos_Filter_" + k));
+        Type.ItemsSource = new[] { "AllTypes", "Jpeg", "Png", "OtherTypes", "Videos" }.Select(k => L("Photos_Filter_" + k));
         Orientation.ItemsSource = new[] { "AnyOrientation", "Landscape", "Portrait", "Square" }.Select(k => L("Photos_Filter_" + k));
         Sort.SelectedIndex = (int)PhotosSettings.SortMode;
         Group.SelectedIndex = (int)PhotosSettings.GroupMode;
         Type.SelectedIndex = (int)_query.TypeFilter;
         Orientation.SelectedIndex = (int)_query.OrientationFilter;
         _updating = false;
+        RefreshMuteVideos();
     }
+
+    // The mute button silences every video that plays in a thumbnail, and the ones that start later.
+    private void RefreshMuteVideos()
+    {
+        var muted = PhotosSettings.MuteGalleryVideos;
+        MuteVideos.IconSymbol = muted ? Flowery.Enums.DaisyIconSymbol.Mute : Flowery.Enums.DaisyIconSymbol.Volume;
+        MuteVideos.IsActive = muted;
+        var name = PhotosLocalization.GetString(muted ? "Photos_UnmuteVideos" : "Photos_MuteVideos");
+        Avalonia.Automation.AutomationProperties.SetName(MuteVideos, name);
+        ToolTip.SetTip(MuteVideos, name);
+    }
+
+    private void MuteVideosClick(object? sender, RoutedEventArgs e)
+    {
+        PhotosSettings.MuteGalleryVideos = !PhotosSettings.MuteGalleryVideos;
+        PhotosSettings.SaveOptions();
+        PhotoTile.MuteAll(PhotosSettings.MuteGalleryVideos);
+        RefreshMuteVideos();
+    }
+
     public void Show(PhotoQuery query, string title)
     {
         ClearSelection();
@@ -110,14 +135,16 @@ public partial class GalleryView : UserControl
         PageTitle.Text = _title;
         CountLabel.Text = PhotosLocalization.Format(_items.Count == 1 ? "Photos_ItemCountOne" : "Photos_ItemCount", _items.Count);
         Empty.IsVisible = _items.Count == 0;
+        // Only where videos play in their thumbnails.
+        MuteVideos.IsVisible = VideoPlayer.CanPlay && _items.Any(item => item.IsVideo);
         DateChipFrame.IsVisible = _items.Count > 0 && DateSorted;
-        Back.IsVisible = _query.Source is PhotoSourceKind.Album or PhotoSourceKind.Folder;
+        Back.IsVisible = _query.Source is PhotoSourceKind.Album or PhotoSourceKind.Folder or PhotoSourceKind.Browsed;
         var emptyKind = !string.IsNullOrWhiteSpace(_query.SearchText) || _query.TypeFilter != PhotoTypeFilter.All ||
             _query.OrientationFilter != PhotoOrientationFilter.Any ? "NoResults" : _query.Source switch
             {
                 PhotoSourceKind.Favorites => "Favorites",
                 PhotoSourceKind.Album => "Album",
-                PhotoSourceKind.Folder => "Folder",
+                PhotoSourceKind.Folder or PhotoSourceKind.Browsed => "Folder",
                 _ => "Library"
             };
         EmptyTitle.Text = PhotosLocalization.GetString("Photos_Empty_" + emptyKind + "Title");
@@ -218,7 +245,12 @@ public partial class GalleryView : UserControl
     }
     private ScrollViewer? Scroller => Rows.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
     private void OnGlobalSizeChanged(object? sender, DaisySize size) => RebuildRows();
-    public void ZoomTiles(bool larger) => TileSize.Value = Math.Clamp(TileSize.Value * (larger ? 1.12 : 1 / 1.12), 90, 420);
+    /// <summary>Sets the thumbnail size through the size slider, which saves it and lays the rows out again.</summary>
+    public void SetTileHeight(double height)
+    {
+        TileSize.Maximum = Math.Max(TileSize.Maximum, height);
+        TileSize.Value = height;
+    }
     private Control? BuildRow(GalleryRow? row)
     {
         if (row == null) return null;
@@ -238,14 +270,15 @@ public partial class GalleryView : UserControl
         foreach (var (item, width) in photos.Tiles)
         {
             var tile = new PhotoTile(item, width, photos.TileHeight, PhotosSettings.ShowFileNames);
-            tile.Activated += Activate;
+            tile.Activated += (photo, modifiers, checkbox) => Activate(tile, photo, modifiers, checkbox);
+            tile.OpenRequested += (photo, fullScreen) => (fullScreen ? FullScreenRequested : OpenRequested)?.Invoke(photo);
             tile.SelectionChanged += () => SelectionChanged?.Invoke();
             ConfigureTile?.Invoke(tile);
             panel.Children.Add(tile);
         }
         return panel;
     }
-    private void Activate(PhotoItem item, KeyModifiers modifiers, bool checkbox)
+    private void Activate(PhotoTile tile, PhotoItem item, KeyModifiers modifiers, bool checkbox)
     {
         if (modifiers.HasFlag(KeyModifiers.Shift) && _anchor != null)
         {
@@ -255,6 +288,8 @@ public partial class GalleryView : UserControl
                     photo.IsSelected = true;
         }
         else if (checkbox || modifiers.HasFlag(KeyModifiers.Control) || _items.Any(photo => photo.IsSelected)) item.IsSelected = !item.IsSelected;
+        // A click plays a video in place where the system can play it.
+        else if (item.IsVideo && VideoPlayer.CanPlay) { tile.TogglePlayback(); return; }
         else { OpenRequested?.Invoke(item); return; }
         _anchor = item;
         SelectionChanged?.Invoke();

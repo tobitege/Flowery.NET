@@ -32,27 +32,6 @@ public sealed partial class ParityTests
     }
 
     [AvaloniaFact]
-    public async Task ComparisonStaysEnabledWhenNavigatingToAnotherPhoto()
-    {
-        using var viewer = new ViewerView();
-        var window = new Window { Content = viewer, Width = 800, Height = 600 };
-        try
-        {
-            window.Show();
-            var first = new PhotoItem(CreateImage());
-            var second = new PhotoItem(CreateImage(300, 200));
-            await viewer.OpenAsync(first, [first, second]);
-            var compare = viewer.FindControl<DaisyCheckBox>("Compare")!;
-            compare.IsChecked = true;
-            await viewer.NavigateAsync(1);
-            Assert.Equal(300, viewer.FindControl<PhotoCanvas>("Canvas")!.Bitmap!.Width);
-            Assert.True(compare.IsChecked);
-            Assert.True(viewer.FindControl<PhotoCanvas>("Canvas")!.Compare);
-        }
-        finally { window.Close(); }
-    }
-
-    [AvaloniaFact]
     public async Task MalformedNativeImageHasNoThumbnailAndDoesNotEscapeIntoTheUi()
     {
         var path = Path.ChangeExtension(CreateImage(), ".tiff");

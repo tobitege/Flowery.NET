@@ -10,7 +10,8 @@
     <Grid x:Name="Toolbar" ColumnDefinitions="Auto,*" Margin="8,4,8,10" ZIndex="10" VerticalAlignment="Top">
       <StackPanel Orientation="Horizontal" Spacing="2">
         <c:DaisyButton AutomationProperties.AutomationId="ViewerView.back" AutomationProperties.Name="{Binding [Photos_Back]}" ToolTip.Tip="{Binding [Photos_Back]}" Classes="toolbar-icon" IconSymbol="Back" Tag="back" Click="ActionClick"  />
-        <c:DaisyButton AutomationProperties.AutomationId="ViewerView.rotate" AutomationProperties.Name="{Binding [Photos_RotateRight]}" ToolTip.Tip="{Binding [Photos_RotateRight]}" Classes="toolbar-icon" IconSymbol="Redo" Tag="right" Click="ActionClick" />
+        <c:DaisyButton AutomationProperties.AutomationId="ViewerView.rotateLeft" AutomationProperties.Name="{Binding [Photos_RotateLeft]}" ToolTip.Tip="{Binding [Photos_RotateLeft]}" x:Name="RotateLeftButton" Classes="toolbar-icon" Tag="left" Click="ActionClick" />
+        <c:DaisyButton AutomationProperties.AutomationId="ViewerView.rotate" AutomationProperties.Name="{Binding [Photos_RotateRight]}" ToolTip.Tip="{Binding [Photos_RotateRight]}" x:Name="RotateRightButton" Classes="toolbar-icon" Tag="right" Click="ActionClick" />
         <local:PhotoFavoriteButton x:Name="FavoriteButton" AutomationProperties.AutomationId="ViewerView.favorite" Classes="toolbar-icon" IconSymbol="Favorite" Tag="favorite" Click="ActionClick" />
         <c:DaisyButton AutomationProperties.AutomationId="ViewerView.delete" AutomationProperties.Name="{Binding [Photos_Delete]}" ToolTip.Tip="{Binding [Photos_Delete]}" Classes="toolbar-icon" IconSymbol="Delete" Tag="delete" Click="ActionClick"  />
       </StackPanel>
@@ -37,6 +38,7 @@
       <Border x:Name="CanvasFrame" CornerRadius="12" ClipToBounds="True" Margin="8,0" Background="{DynamicResource DaisyBase100Brush}">
         <Grid x:Name="CanvasHost">
           <local:PhotoCanvas AutomationProperties.AutomationId="ViewerView.Canvas" AutomationProperties.Name="{Binding [Photos_View]}" x:Name="Canvas" />
+          <local:VideoPlayer x:Name="Video" />
           <TextBlock x:Name="ErrorText" AutomationProperties.AutomationId="ViewerView.LoadError" AutomationProperties.LiveSetting="Assertive" IsVisible="False" TextWrapping="Wrap" Margin="48" HorizontalAlignment="Center" VerticalAlignment="Center" />
           <c:DaisyButton x:Name="PreviousButton" AutomationProperties.AutomationId="ViewerView.previous" AutomationProperties.Name="{Binding [Photos_Previous]}" ToolTip.Tip="{Binding [Photos_Previous]}" IconSymbol="Previous" Tag="previous" Click="ActionClick" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="16,0" Shape="Circle" Variant="Neutral" Opacity="0.7" />
           <c:DaisyButton x:Name="NextButton" AutomationProperties.AutomationId="ViewerView.next" AutomationProperties.Name="{Binding [Photos_Next]}" ToolTip.Tip="{Binding [Photos_Next]}" IconSymbol="Next" Tag="next" Click="ActionClick" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="16,0" Shape="Circle" Variant="Neutral" Opacity="0.7" />
@@ -136,8 +138,8 @@
         </ScrollViewer>
       </Border>
     </Grid>
-    <WrapPanel Grid.Row="2" x:Name="StatusPanel" Margin="0,8,0,0" ZIndex="10" VerticalAlignment="Bottom">
-      <TextBlock x:Name="FileName" VerticalAlignment="Center" Margin="12,0,16,0" MaxWidth="260" TextTrimming="CharacterEllipsis" />
+    <local:StatusLine Grid.Row="2" x:Name="StatusPanel" Margin="0,8,0,0" ZIndex="10" VerticalAlignment="Bottom">
+      <TextBlock x:Name="FileName" VerticalAlignment="Center" Margin="12,0,16,0" TextTrimming="CharacterEllipsis" />
       <TextBlock x:Name="ImageMetadata" VerticalAlignment="Center" Margin="0,0,16,0" Opacity="0.65" />
       <TextBlock x:Name="ZoomText" VerticalAlignment="Center" Margin="0,0,10,0" />
       <c:DaisyButton AutomationProperties.AutomationId="ViewerView.zoomOut" AutomationProperties.Name="{Binding [Photos_ZoomOut]}" ToolTip.Tip="{Binding [Photos_ZoomOut]}" Content="−" Tag="zoomOut" Click="ActionClick" Variant="Ghost" />
@@ -145,6 +147,6 @@
       <c:DaisyButton AutomationProperties.AutomationId="ViewerView.fit" AutomationProperties.Name="{Binding [Photos_ZoomFitShort]}" Content="{Binding [Photos_ZoomFitShort]}" Tag="fit" Click="ActionClick" Variant="Ghost" />
       <c:DaisyButton AutomationProperties.AutomationId="ViewerView.actual" Content="100%" Tag="actual" Click="ActionClick" Variant="Ghost" />
       <c:DaisyRange AutomationProperties.AutomationId="ViewerView.ZoomSlider" AutomationProperties.Name="{Binding [Photos_View_Zoom]}" x:Name="ZoomSlider" Width="150" Minimum="2" Maximum="1600" Value="100" />
-    </WrapPanel>
+    </local:StatusLine>
   </Grid>
 </UserControl>

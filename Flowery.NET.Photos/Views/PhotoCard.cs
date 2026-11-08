@@ -59,10 +59,12 @@ public sealed class PhotoThumbnail : Image
     private readonly PhotoItem _item;
     private CancellationTokenSource? _load;
     private Bitmap? _bitmap;
+    private readonly double _height;
 
-    public PhotoThumbnail(PhotoItem item)
+    /// <summary>A thumbnail loaded for the height it is shown at.</summary>
+    public PhotoThumbnail(PhotoItem item, double height)
     {
-        _item = item;
+        _item = item; _height = height;
         Stretch = Stretch.UniformToFill;
         AttachedToVisualTree += Load;
         DetachedFromVisualTree += (_, _) =>
@@ -81,7 +83,7 @@ public sealed class PhotoThumbnail : Image
         _load = load;
         try
         {
-            var bitmap = await ThumbnailLoader.LoadAsync(_item, 240, load.Token);
+            var bitmap = await ThumbnailLoader.LoadAsync(_item, _height, load.Token, this);
             if (_load != load) { bitmap?.Dispose(); return; }
             _bitmap = bitmap;
             Source = bitmap;

@@ -14,7 +14,9 @@ namespace Flowery.NET.Photos.Services
         All,
         Favorites,
         Album,
-        Folder
+        Folder,
+        /// <summary>A folder outside the library, viewed without adding it.</summary>
+        Browsed
     }
 
     public enum PhotoTypeFilter
@@ -22,7 +24,8 @@ namespace Flowery.NET.Photos.Services
         All,
         Jpeg,
         Png,
-        Other
+        Other,
+        Video
     }
 
     public enum PhotoOrientationFilter
@@ -63,6 +66,11 @@ namespace Flowery.NET.Photos.Services
         private HashSet<string> _favorites = new(PathComparer);
         private List<PhotoItem> _items = [];
         private Dictionary<string, PhotoItem> _byPath = new(PathComparer);
+        // The photos of a browsed folder that the library does not read; a folder it reads shows its library photos.
+        private List<PhotoItem> _browsed = [];
+        private bool _browseRecurse;
+        private bool _browseInLibrary;
+        private int _browseVersion;
         private readonly List<FileSystemWatcher> _watchers = [];
         private Dispatcher? _dispatcher;
         private DispatcherTimer? _rescanTimer;
@@ -176,7 +184,9 @@ namespace Flowery.NET.Photos.Services
             ScanningChanged?.Invoke(this, value);
         }
 
-        private List<PhotoItem> ScanCore(List<string> folders, bool recurse, HashSet<string> favorites, CancellationToken token)
+        // A browsed folder is read without being remembered: its files stay out of the metadata cache on disk.
+        private List<PhotoItem> ScanCore(List<string> folders, bool recurse, HashSet<string> favorites, CancellationToken token,
+            bool remember = true)
         {
             var options = new EnumerationOptions
             {
@@ -213,7 +223,7 @@ namespace Flowery.NET.Photos.Services
 
             Parallel.For(0, total, new ParallelOptions { MaxDegreeOfParallelism = Math.Max(2, Environment.ProcessorCount / 2), CancellationToken = token }, i =>
             {
-                results[i] = CreateItem(list[i], favorites);
+                results[i] = CreateItem(list[i], favorites, remember);
                 var current = Interlocked.Increment(ref done);
                 var now = Environment.TickCount64;
                 if (now - Interlocked.Read(ref lastReport) > 150)
@@ -227,7 +237,7 @@ namespace Flowery.NET.Photos.Services
             return [.. results.Where(r => r != null).Cast<PhotoItem>()];
         }
 
-        private PhotoItem? CreateItem(string path, HashSet<string> favorites)
+        private PhotoItem? CreateItem(string path, HashSet<string> favorites, bool remember = true)
         {
             try
             {
@@ -242,7 +252,8 @@ namespace Flowery.NET.Photos.Services
                     IsFavorite = favorites.Contains(path)
                 };
 
-                if (_cache.TryGetValue(path, out var cached) && cached.Size == info.Length && cached.Ticks == info.LastWriteTimeUtc.Ticks)
+                if (_cache.TryGetValue(path, out var cached) && cached.Size == info.Length && cached.Ticks == info.LastWriteTimeUtc.Ticks
+                    && cached.Version == MetadataCacheEntry.CurrentVersion)
                 {
                     item.PixelWidth = cached.Width;
                     item.PixelHeight = cached.Height;
@@ -262,8 +273,10 @@ namespace Flowery.NET.Photos.Services
                     item.Details = p.Details;
                 }
 
+                if (!remember) return item;
                 _cache[path] = new MetadataCacheEntry
                 {
+                    Version = MetadataCacheEntry.CurrentVersion,
                     Size = info.Length,
                     Ticks = info.LastWriteTimeUtc.Ticks,
                     Width = item.PixelWidth,
@@ -302,7 +315,7 @@ namespace Flowery.NET.Photos.Services
             if (fresh == null)
                 return null;
 
-            if (_byPath.TryGetValue(path, out var existing))
+            if ((_byPath.GetValueOrDefault(path) ?? _browsed.Find(item => PathComparer.Equals(item.Path, path))) is { } existing)
             {
                 existing.FileSize = fresh.FileSize;
                 existing.DateModified = fresh.DateModified;
@@ -322,10 +335,23 @@ namespace Flowery.NET.Photos.Services
                 _byPath[path] = fresh;
                 Changed?.Invoke(this, EventArgs.Empty);
             }
+            // A copy saved next to a browsed photo shows in the browsed folder.
+            else if (IsBrowsed(path))
+            {
+                _browsed.Add(fresh);
+                Changed?.Invoke(this, EventArgs.Empty);
+            }
             return fresh;
         }
 
         public bool IsInLibrary(string path) => _folders.Any(folder => IsWithin(folder, path));
+
+        /// <summary>True when the library reads a folder's photos: a source folder, or one inside it while subfolders count.</summary>
+        public bool ScansFolder(string folder)
+        {
+            folder = Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder));
+            return _folders.Any(root => PathComparer.Equals(root, folder) || PhotosSettings.IncludeSubfolders && IsWithin(root, folder));
+        }
 
         public static bool IsWithin(string folder, string path)
         {
@@ -351,6 +377,34 @@ namespace Flowery.NET.Photos.Services
             _ = RescanAsync();
             return true;
         }
+
+        /// <summary>The folder the gallery shows as <see cref="PhotoSourceKind.Browsed"/>.</summary>
+        public string? BrowsedFolder { get; private set; }
+
+        /// <summary>
+        /// Prepares a folder for viewing without adding it to the library: its photos and videos, with those of its
+        /// subfolders when the library includes subfolders. A folder the library reads shows its library photos; any other
+        /// is read here but neither saved nor watched. The next folder browsed replaces it.
+        /// </summary>
+        public async Task BrowseAsync(string folder, CancellationToken token = default)
+        {
+            folder = Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder));
+            var version = ++_browseVersion;
+            var recurse = PhotosSettings.IncludeSubfolders;
+            var inLibrary = ScansFolder(folder);
+            var favorites = new HashSet<string>(_favorites, PathComparer);
+            var items = inLibrary ? [] : await Task.Run(() => ScanCore([folder], recurse, favorites, token, remember: false), token).ConfigureAwait(true);
+            token.ThrowIfCancellationRequested();
+            // A folder browsed later wins over this one if it is read faster.
+            if (version != _browseVersion) return;
+            (_browsed, _browseRecurse, _browseInLibrary, BrowsedFolder) = (items, recurse, inLibrary, folder);
+        }
+
+        private bool IsBrowsed(string path) => BrowsedFolder != null && Path.GetDirectoryName(path) is { } directory
+            && (_browseRecurse ? IsWithin(BrowsedFolder, directory) : PathComparer.Equals(directory, BrowsedFolder));
+
+        private IEnumerable<PhotoItem> BrowsedItems(string? folder) => !PathComparer.Equals(folder, BrowsedFolder) ? []
+            : _browseInLibrary ? _items.Where(item => IsBrowsed(item.Path)) : _browsed;
 
         public void RemoveFolder(string folder)
         {
@@ -576,6 +630,7 @@ namespace Flowery.NET.Photos.Services
 
             var set = new HashSet<string>(deleted, PathComparer);
             _items = [.. _items.Where(i => !set.Contains(i.Path))];
+            _browsed = [.. _browsed.Where(i => !set.Contains(i.Path))];
             foreach (var path in deleted)
             {
                 _byPath.Remove(path);
@@ -648,6 +703,7 @@ namespace Flowery.NET.Photos.Services
                 PhotoSourceKind.Favorites => _items.Where(i => i.IsFavorite),
                 PhotoSourceKind.Album => FindAlbum(query.SourceKey) is { } album ? GetAlbumItems(album) : [],
                 PhotoSourceKind.Folder => _items.Where(i => string.Equals(i.FolderPath, query.SourceKey, PathComparison)),
+                PhotoSourceKind.Browsed => BrowsedItems(query.SourceKey),
                 _ => _items
             };
 
@@ -661,7 +717,8 @@ namespace Flowery.NET.Photos.Services
             {
                 PhotoTypeFilter.Jpeg => source.Where(i => i.Extension is "JPG" or "JPEG" or "JPE" or "JFIF"),
                 PhotoTypeFilter.Png => source.Where(i => i.Extension == "PNG"),
-                PhotoTypeFilter.Other => source.Where(i => i.Extension is not ("JPG" or "JPEG" or "JPE" or "JFIF" or "PNG")),
+                PhotoTypeFilter.Other => source.Where(i => !i.IsVideo && i.Extension is not ("JPG" or "JPEG" or "JPE" or "JFIF" or "PNG")),
+                PhotoTypeFilter.Video => source.Where(i => i.IsVideo),
                 _ => source
             };
 
@@ -772,6 +829,9 @@ namespace Flowery.NET.Photos.Services
 
     public sealed class MetadataCacheEntry
     {
+        // Version 2 reads EXIF from PNG, WebP, HEIC and AVIF and adds videos; older entries are read again once.
+        public const int CurrentVersion = 2;
+        public int Version { get; set; }
         public long Size { get; set; }
         public long Ticks { get; set; }
         public int Width { get; set; }

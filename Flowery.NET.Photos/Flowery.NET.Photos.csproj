@@ -30,4 +30,7 @@
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Flowery.NET.Photos.Tests" />
+  </ItemGroup>
 </Project>

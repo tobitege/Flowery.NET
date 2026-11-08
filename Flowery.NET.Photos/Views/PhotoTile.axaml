@@ -1,10 +1,15 @@
 ﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:Flowery.Controls;assembly=Flowery.NET"
              x:Class="Flowery.NET.Photos.Views.PhotoTile">
   <Border x:Name="Frame" CornerRadius="8" ClipToBounds="True" BorderThickness="2"
           BorderBrush="Transparent" Background="{DynamicResource DaisyBase200Brush}">
     <Grid>
       <Image x:Name="Photo" Stretch="UniformToFill" />
+      <c:DaisyLoading x:Name="Loading" HorizontalAlignment="Center" VerticalAlignment="Center"
+                      IsVisible="False" IsHitTestVisible="False" />
+      <TextBlock x:Name="Queued" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12" Opacity="0.6"
+                 IsVisible="False" IsHitTestVisible="False" />
       <Border VerticalAlignment="Bottom" Background="#99000000" Padding="8,5">
         <TextBlock x:Name="NameLabel" Foreground="White" TextTrimming="CharacterEllipsis" />
       </Border>

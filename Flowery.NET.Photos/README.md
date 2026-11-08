@@ -1,6 +1,6 @@
 # Flowery Photos
 
-Flowery Photos is a desktop photo viewer and editor for Windows, macOS, and Linux.
+Flowery Photos is a desktop photo viewer and editor for Windows, macOS, and Linux. It also shows videos.
 It uses Avalonia 12, Flowery Daisy controls, and SkiaSharp.
 The app ports the [Flowery.WinUI Photos demo](https://github.com/tobitege/Flowery.WinUI/tree/main/Flowery.WinUI.Photos).
 
@@ -54,7 +54,7 @@ dotnet build Flowery.NET.Photos.Desktop/Flowery.NET.Photos.Desktop.csproj -c Deb
 dotnet run --project Flowery.NET.Photos.Desktop -c Debug --no-build
 ```
 
-Pass an image path to open that image.
+Pass an image or video path to open that file.
 
 The solution and the repository's desktop and full build scripts include Photos.
 Run the Photos tests with this command:
@@ -92,23 +92,38 @@ An empty library shows introductory actions and feature descriptions.
 
 The app starts with the Pictures folder.
 Add other folders or import image files with the navigation buttons.
+Browse… opens the gallery with one folder without adding it to the library.
+The gallery shows the photos and videos of that folder, and of its subfolders when the library includes subfolders.
+A browsed folder outside the library is not saved or watched.
 Imports create copies inside the first source folder.
-Drag an image onto the window to open it.
+Drag an image or video onto the window to open it.
 Drag a folder onto the window to add it as a source.
 Removing a source folder preserves its files.
 
-The scanner reads image headers and stores metadata in a JSON cache.
+The scanner reads file headers and stores metadata in a JSON cache.
 File watchers refresh changed folders.
-JPEG metadata includes EXIF orientation, dates, camera, lens, exposure, ISO, focal length, and GPS coordinates when available.
+JPEG, PNG, WebP, HEIC, and AVIF metadata includes EXIF dates, camera, lens, exposure, ISO, focal length, and GPS coordinates when available.
+JPEG metadata also includes the EXIF orientation.
 Windows also supplies image codecs and metadata for formats such as TIFF and JPEG XR.
-Other platforms use the SkiaSharp codecs and the JPEG metadata reader.
+Other platforms use the SkiaSharp codecs and the metadata readers.
+
+The library also contains MP4, MOV, MKV, and WebM videos.
+Their headers supply the size, length, frame rate, codec, recording date, camera, and GPS coordinates when available.
+Phone videos recorded upright keep their orientation.
+On Windows, the Windows media player takes video stills from a second into the video.
+On other platforms, they come from ffmpeg when it is installed.
 
 The gallery supports these operations:
 
 - Justified, virtualized rows or square tiles.
+- On Windows, a click plays a video in its thumbnail; a double click or Enter opens it in full screen.
+  Up to ten thumbnails play at once, each with its own player and a small bar for stop, play, position, time, and sound; starting one more stops the one that started first.
+  When the gallery has videos, a button in its header mutes every video that plays in a thumbnail.
+  Deleting a playing video stops it first.
+- Buttons over a video thumbnail open it in the viewer or in full screen; the file name shows next to them while the pointer is over a thumbnail.
 - Groups by day, month, or year, plus an ungrouped view.
 - Search by name, folder, camera, year, or month.
-- File type and orientation filters.
+- File type filters, including videos, and orientation filters.
 - Sort by capture date, modified date, name, or size.
 - A visible-date indicator and a draggable timeline with proportional month and year positions.
 - Selection with checkboxes, Ctrl-click, Shift-click, or Select all.
@@ -118,6 +133,10 @@ The gallery supports these operations:
 Date groups and the timeline appear only with capture-date sorting.
 Search retains the current folder, album, or favorites source.
 Album and folder cards load their covers only in the visible part of the collection list.
+Thumbnails on the screen load first, from the top, and videos load their stills alongside the photos.
+A thumbnail that takes a moment says "Waiting…" until its turn comes and shows a loading spinner while its file is read.
+Thumbnails are cached in the app's data folder, up to 512 MB, so they appear at once after the first time.
+A cached thumbnail that no longer decodes is made again from its file.
 
 Albums reference the original paths.
 They do not copy or move the images.
@@ -125,8 +144,22 @@ They do not copy or move the images.
 ## Viewer and editor
 
 The viewer supports zoom, pan, fit, slideshow, full screen, and file information.
+Animated GIF and WebP files play with their frame times and repeat count.
+
+On Windows, the viewer plays videos with the Windows media player, which supplies the installed codecs and the sound.
+The playback bar offers play and pause, the position, the time, loop, and mute.
+On Linux and macOS, the viewer shows the video still and opens the video in the default player.
+Videos zoom, pan, and turn like photos while they play; a click on a video plays or pauses it, and a double click zooms in.
+Videos cannot be edited or used as wallpaper.
+Outside the editor, turning changes only the view and asks for nothing to be saved.
+Opening the editor takes the turn over as an edit.
+Slideshows skip videos.
 View options include rulers, gridlines, a navigator, a status bar, and an automatically hidden toolbar.
 Move the pointer to the top edge to show a hidden toolbar.
+In full screen, the toolbar, the status bar, the arrows, and the video controls hide after three seconds without a pointer move.
+Any move shows them again, and they stay while the pointer is on one of them.
+The file name in the status bar uses the room that the other entries leave.
+In a narrow window, the other entries move below the file name and wrap.
 
 Edits remain separate from the source image until you save:
 
@@ -153,7 +186,7 @@ All platforms export JPEG and PNG.
 Windows also exports BMP, GIF, TIFF, and JPEG XR through its native codecs.
 Other input formats use a JPEG copy. Saved copies appear next to their originals in the viewer list.
 Exports do not preserve EXIF metadata.
-Animated images show their first frame.
+Editing an animated image changes and saves its first frame.
 
 Failed exports send their temporary image to the Recycle Bin or Trash.
 Linux uses `gio trash`; macOS uses the Foundation trash API through `osascript`.
@@ -181,7 +214,7 @@ Editor sliders expose RangeValue, and the tests exercise these patterns against 
 | Ctrl+F | Search |
 | Ctrl+, | Settings |
 | Ctrl+A | Select all gallery photos |
-| Ctrl+wheel / Ctrl+Plus / Ctrl+Minus | Change gallery thumbnail size |
+| Ctrl+wheel / Ctrl+Plus / Ctrl+Minus | Change the thumbnail size on every page (50 pixels up to the window height) |
 | Left / Right or PageUp / PageDown | Previous / next photo |
 | Home / End | First / last photo |
 | Ctrl+E | Edit |
@@ -197,6 +230,7 @@ Editor sliders expose RangeValue, and the tests exercise these patterns against 
 | R / Shift+R | Rotate right / left |
 | X | Swap markup colors |
 | F5 | Start or stop slideshow |
+| Space / M | Play or pause / mute a video |
 | Space | Advance during slideshow |
 | F11 | Full screen |
 | Esc | Clear gallery selection, stop slideshow, exit full screen, close comparison or the side panel, then return to the previous page |

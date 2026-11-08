@@ -16,6 +16,8 @@ public partial class PhotosShell : UserControl, IDisposable
 {
     private string _page = "Home";
     private bool _returnToGallery;
+    private bool _browsing;
+    private CancellationTokenSource? _browse;
     private readonly DispatcherTimer _toastTimer = new() { Interval = TimeSpan.FromSeconds(4) };
     private readonly PhotoLibrary _library;
     public event Action<bool>? TitleViewChanged;
@@ -35,6 +37,7 @@ public partial class PhotosShell : UserControl, IDisposable
         Gallery.Library = Viewer.Library = library;
         DataContext = PhotosLocalization.Instance;
         Gallery.OpenRequested += item => _ = OpenAsync(item, Gallery.Items);
+        Gallery.FullScreenRequested += item => _ = OpenFullScreenAsync(item);
         Gallery.SelectionChanged += UpdateSelection;
         Gallery.ResetSearchRequested += () => Search.Text = "";
         Gallery.ConfigureTile += ConfigureTile;
@@ -42,7 +45,10 @@ public partial class PhotosShell : UserControl, IDisposable
         Gallery.ImportFolderRequested += () => _ = AddFolderAsync();
         Gallery.RescanRequested += () => _ = RescanAsync();
         Gallery.SlideshowRequested += () => _ = StartSlideshowAsync(Gallery.Items);
-        Gallery.BackRequested += () => _ = NavigateAsync(Gallery.Query.Source == PhotoSourceKind.Album ? "Albums" : "Folders");
+        Gallery.BackRequested += () => _ = NavigateAsync(Gallery.Query.Source switch
+        {
+            PhotoSourceKind.Album => "Albums", PhotoSourceKind.Browsed => "Home", _ => "Folders"
+        });
         Viewer.BackRequested += () => _ = ReturnFromViewerAsync();
         Viewer.ConfirmLeave = CanLeaveViewerAsync;
         Viewer.SettingsRequested += () => _ = ShowSettingsAsync();
@@ -56,6 +62,8 @@ public partial class PhotosShell : UserControl, IDisposable
             AppHeader.IsVisible = NavigationRail.IsVisible = AppStatus.IsVisible = !immersive;
             Margin = immersive ? new Thickness(0) : new Thickness(0, 42, 0, 0);
         };
+        // The search box searches the pages; with one photo or video open it has nothing to search, so it steps aside.
+        Viewer.PropertyChanged += (_, e) => { if (e.Property == IsVisibleProperty) Search.IsVisible = !Viewer.IsVisible; };
         Search.TextChanged += (_, _) =>
         {
             if (Viewer.IsVisible) return;
@@ -71,6 +79,13 @@ public partial class PhotosShell : UserControl, IDisposable
         PhotosLocalization.CultureChanged += OnCultureChanged;
         AddHandler(DragDrop.DragOverEvent, DragOver);
         AddHandler(DragDrop.DropEvent, Drop);
+        // Before a scroll viewer scrolls, so Ctrl+wheel sizes the thumbnails on every page.
+        AddHandler(PointerWheelChangedEvent, (_, e) =>
+        {
+            if (Viewer.IsVisible || !e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.Delta.Y == 0) return;
+            ResizeThumbnails(e.Delta.Y > 0);
+            e.Handled = true;
+        }, RoutingStrategies.Tunnel);
         DragDrop.SetAllowDrop(this, true);
         KeyDown += OnKeyDown;
         ShowPage();
@@ -78,7 +93,7 @@ public partial class PhotosShell : UserControl, IDisposable
     private void OnScanning(object? sender, bool value) { if (value) Status.Text = L("Empty_ScanningTitle"); else UpdateSelection(); }
     private void OnScanProgress(object? sender, (int Done, int Total) progress)
     {
-        if (_library.IsScanning) Status.Text = $"{L("Empty_ScanningTitle")} {progress.Done} / {progress.Total}";
+        if (_library.IsScanning || _browsing) Status.Text = $"{L("Empty_ScanningTitle")} {progress.Done} / {progress.Total}";
     }
     private void ShowToast(string message, bool error = false)
     {
@@ -103,6 +118,7 @@ public partial class PhotosShell : UserControl, IDisposable
     private async Task NavigateAsync(string page)
     {
         if (!await CanLeaveViewerAsync()) return;
+        _browse?.Cancel();
         Viewer.Stop(); Gallery.ClearSelection(); _page = page; ShowPage();
     }
     private async Task ReturnFromViewerAsync()
@@ -151,17 +167,18 @@ public partial class PhotosShell : UserControl, IDisposable
             button.ButtonStyle = selected ? DaisyButtonStyle.Soft : DaisyButtonStyle.Default;
         }
     }
-    private DaisyButton ActionButton(string key, Func<Task> action, bool localize = true)
+    private DaisyButton ActionButton(string key, Func<Task> action, Flowery.Enums.DaisyIconSymbol? icon = null)
     {
-        var button = new DaisyButton { Content = localize ? L(key) : key, Margin = new Thickness(0, 0, 8, 8) };
+        var button = new DaisyButton { Content = L(key), IconSymbol = icon, Margin = new Thickness(0, 0, 8, 8) };
         AutomationProperties.SetAutomationId(button, "Photos.Action." + key);
-        AutomationProperties.SetName(button, localize ? L(key) : key);
+        AutomationProperties.SetName(button, L(key));
         button.Click += async (_, _) => { try { await action(); } catch (Exception ex) { ShowToast(ex.Message, true); } };
         return button;
     }
     private Task OpenCollectionAsync(PhotoSourceKind kind, string key, string title)
     {
-        _page = kind == PhotoSourceKind.Folder ? "Folders" : "Albums";
+        _browse?.Cancel();
+        _page = kind switch { PhotoSourceKind.Album => "Albums", PhotoSourceKind.Browsed => "Gallery", _ => "Folders" };
         UpdateNavigationSelection();
         HomeScroll.IsVisible = false; CollectionsScroll.IsVisible = false; Gallery.IsVisible = true;
         Gallery.Show(new PhotoQuery { Source = kind, SourceKey = key }, title);
@@ -186,9 +203,15 @@ public partial class PhotosShell : UserControl, IDisposable
         }
         await OpenAsync(first, items);
     }
+    private async Task OpenFullScreenAsync(PhotoItem item)
+    {
+        await OpenAsync(item, Gallery.Items);
+        if (Viewer.IsVisible) Viewer.ShowFullScreen();
+    }
     private async Task OpenAsync(PhotoItem item, IReadOnlyList<PhotoItem> items)
     {
         if (!await CanLeaveViewerAsync()) return;
+        _browse?.Cancel();
         if (!Viewer.IsVisible) _returnToGallery = Gallery.IsVisible;
         HomeScroll.IsVisible = CollectionsScroll.IsVisible = Gallery.IsVisible = false;
         Viewer.IsVisible = true;
@@ -222,7 +245,7 @@ public partial class PhotosShell : UserControl, IDisposable
             menu.Items.Add(item);
         }
         Add("Open", () => OpenAsync(photo, Gallery.IsVisible ? Gallery.Items : _library.Items));
-        Add("Edit", async () => { await OpenAsync(photo, Gallery.IsVisible ? Gallery.Items : _library.Items); Viewer.BeginEditing(); });
+        if (!photo.IsVideo) Add("Edit", async () => { await OpenAsync(photo, Gallery.IsVisible ? Gallery.Items : _library.Items); Viewer.BeginEditing(); });
         var favorite = !targets.All(item => item.IsFavorite);
         Add(favorite ? "Favorite" : "Unfavorite", () => { _library.SetFavorite(targets, favorite); return Task.CompletedTask; });
         menu.Items.Add(CreateAlbumMenu(targets));
@@ -242,7 +265,7 @@ public partial class PhotosShell : UserControl, IDisposable
         if (OperatingSystem.IsWindows())
         {
             Add("OpenWith", () => { FileOperations.OpenWith(photo.Path); return Task.CompletedTask; });
-            Add("SetAsBackground", () =>
+            if (!photo.IsVideo) Add("SetAsBackground", () =>
             {
                 var success = FileOperations.SetAsWallpaper(photo.Path);
                 ShowToast(L(success ? "BackgroundSet" : "ActionFailed"), !success);
@@ -291,6 +314,8 @@ public partial class PhotosShell : UserControl, IDisposable
         if (PhotosSettings.ConfirmDelete && await new PromptDialog(L("DeleteTitle"),
             items.Count == 1 ? L("DeleteConfirmOne") : PhotosLocalization.Format("Photos_DeleteConfirmMany", items.Count),
             accept: L("Delete"), destructive: true).ShowDialog<int>(Owner) != 1) return;
+        // A video that plays in its thumbnail holds its file open, and the file would stay.
+        await PhotoTile.StopPlaybackAsync(items.Select(item => item.Path));
         var deleted = await _library.DeleteAsync(items);
         ShowToast(PhotosLocalization.Format("Photos_DeletedCount", deleted), deleted != items.Count);
     }
@@ -315,6 +340,36 @@ public partial class PhotosShell : UserControl, IDisposable
                 if (folder.TryGetLocalPath() is { } path) AddFolder(path);
         }
     }
+    private async Task BrowseAsync()
+    {
+        var folders = await Owner.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = L("Browse") });
+        var path = folders.Select(folder => folder.TryGetLocalPath()).FirstOrDefault();
+        foreach (var folder in folders) folder.Dispose();
+        // A place such as a Windows library is not one folder on disk.
+        if (path != null) await BrowseFolderAsync(path);
+        else if (folders.Count > 0) ShowToast(L("FolderNotOnDisk"), true);
+    }
+    /// <summary>Shows a folder, with its subfolders when the library includes them, in the gallery without adding it.</summary>
+    internal async Task BrowseFolderAsync(string path)
+    {
+        var folder = Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
+        var title = Path.GetFileName(folder) is { Length: > 0 } name ? name : folder;
+        // A folder chosen later, another page or a photo opened meanwhile cancels this one, so it cannot push the
+        // gallery over what the user went on to.
+        _browse?.Cancel();
+        var browse = _browse = new CancellationTokenSource();
+        _browsing = true; Status.Text = L("Empty_ScanningTitle");
+        try { await _library.BrowseAsync(folder, browse.Token); }
+        catch (OperationCanceledException) { return; }
+        finally
+        {
+            if (_browse == browse) { _browse = null; _browsing = false; UpdateSelection(); }
+            browse.Dispose();
+        }
+        if (Viewer.IsVisible || !PhotoLibrary.PathComparer.Equals(_library.BrowsedFolder, folder)) return;
+        await OpenCollectionAsync(PhotoSourceKind.Browsed, folder, title);
+        UpdateSelection();
+    }
     private void AddFolder(string path)
     {
         var added = _library.AddFolder(path);
@@ -327,7 +382,14 @@ public partial class PhotosShell : UserControl, IDisposable
     }
     private async Task ImportAsync()
     {
-        var files = await Owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = L("Import"), AllowMultiple = true, FileTypeFilter = [FilePickerFileTypes.ImageAll] });
+        var media = new FilePickerFileType(L("PhotosAndVideos"))
+        {
+            Patterns = [.. ImageMetadataReader.SupportedExtensions.Select(extension => "*" + extension)]
+        };
+        var files = await Owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = L("Import"), AllowMultiple = true, FileTypeFilter = [media]
+        });
         try
         {
             if (files.Count == 0) return;
@@ -390,6 +452,12 @@ public partial class PhotosShell : UserControl, IDisposable
         }
         try { await OpenFilesAsync(images); } catch (Exception ex) { ShowToast(ex.Message, true); }
     }
+    // One thumbnail size for the gallery rows, the home page and the album and folder cards.
+    private void ResizeThumbnails(bool larger)
+    {
+        Gallery.SetTileHeight(PhotosSettings.StepTileHeight(larger, TopLevel.GetTopLevel(this)?.ClientSize.Height ?? Bounds.Height));
+        BuildHome(); BuildCollections();
+    }
     private async void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Handled) return;
@@ -399,8 +467,8 @@ public partial class PhotosShell : UserControl, IDisposable
         else if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Key == Key.A && Gallery.IsVisible) { Gallery.SelectAll(); e.Handled = true; }
         else if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Key == Key.C && Gallery.IsVisible)
         { await CopyPhotosAsync(Selected); e.Handled = true; }
-        else if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Key is Key.Add or Key.OemPlus or Key.Subtract or Key.OemMinus && Gallery.IsVisible)
-        { Gallery.ZoomTiles(e.Key is Key.Add or Key.OemPlus); e.Handled = true; }
+        else if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Key is Key.Add or Key.OemPlus or Key.Subtract or Key.OemMinus && !Viewer.IsVisible)
+        { ResizeThumbnails(e.Key is Key.Add or Key.OemPlus); e.Handled = true; }
         else if (e.Key == Key.Escape && Gallery.IsVisible) { Gallery.ClearSelection(); e.Handled = true; }
         else if (e.Key == Key.Delete && Gallery.IsVisible) { await DeleteAsync(Selected); e.Handled = true; }
         else if (e.Key == Key.F5 && !Viewer.IsVisible)

@@ -107,12 +107,31 @@ public sealed partial class PhotoCanvas : Control, IDisposable
         _previousBitmap = _preview ?? _bitmap; _previousRect = ImageRect; _previousState = DisplayState;
         if (_bitmap != _previousBitmap) _bitmap?.Dispose();
         _bitmap = bitmap; _bitmap.SetImmutable(); _originalSize = originalSize;
-        var scale = Math.Min(1d, 2560d / Math.Max(bitmap.Width, bitmap.Height));
-        _preview = scale < 1 ? bitmap.Resize(new SKImageInfo(Math.Max(1, (int)(bitmap.Width * scale)),
-            Math.Max(1, (int)(bitmap.Height * scale))), new SKSamplingOptions(SKFilterMode.Linear)) : null;
-        _preview?.SetImmutable();
+        _preview = CreatePreview(bitmap);
         _state = EditState.Original; Fit();
         if (_previousBitmap != null) { _fade.Restart(); _fadeTimer.Start(); }
+    }
+
+    /// <summary>Shows the next frame of an animation in place of the current one; zoom, pan and edits stay.</summary>
+    public void ReplaceFrame(SKBitmap frame)
+    {
+        if (_bitmap == null || frame.Width != _bitmap.Width || frame.Height != _bitmap.Height)
+            throw new ArgumentException("A frame must have the size of the photo it replaces.", nameof(frame));
+        _bitmap.Dispose(); _preview?.Dispose();
+        _bitmap = frame; _bitmap.SetImmutable();
+        _preview = CreatePreview(frame);
+        InvalidateVisual();
+    }
+
+    // Drawing a large photo uses a copy of at most 2560 pixels until the zoom needs more.
+    private static SKBitmap? CreatePreview(SKBitmap bitmap)
+    {
+        var scale = Math.Min(1d, 2560d / Math.Max(bitmap.Width, bitmap.Height));
+        if (scale >= 1) return null;
+        var preview = bitmap.Resize(new SKImageInfo(Math.Max(1, (int)(bitmap.Width * scale)),
+            Math.Max(1, (int)(bitmap.Height * scale))), new SKSamplingOptions(SKFilterMode.Linear));
+        preview?.SetImmutable();
+        return preview;
     }
     public void Fit() { _zoom = 0; _pan = default; InvalidateVisual(); ViewChanged?.Invoke(); }
     private double RasterScale => TopLevel.GetTopLevel(this)?.RenderScaling ?? 1;
@@ -155,6 +174,8 @@ public sealed partial class PhotoCanvas : Control, IDisposable
         }
         SetZoom(next, anchor);
     }
+    /// <summary>Where the picture shows at the current zoom and pan, in this control's coordinates.</summary>
+    internal Rect ImageBounds => ImageRect;
     private EditState DisplayState => IsCropping ? State with { Crop = EditState.FullCrop } : State;
     private Rect ImageRect
     {

@@ -79,6 +79,14 @@ namespace Flowery.NET.Photos.Editing
             };
         }
 
+        /// <summary>Turns by a number of quarter turns, clockwise for positive ones.</summary>
+        public EditState Rotate(int quarterTurns)
+        {
+            var state = this;
+            for (var turn = 0; turn < (quarterTurns % 4 + 4) % 4; turn++) state = state.Rotate(true);
+            return state;
+        }
+
         public EditState Mirror(bool horizontal) => horizontal
             ? this with { FlipH = !FlipH, Crop = new Rect(1 - Crop.Right, Crop.Y, Crop.Width, Crop.Height) }
             : this with { FlipV = !FlipV, Crop = new Rect(Crop.X, 1 - Crop.Bottom, Crop.Width, Crop.Height) };

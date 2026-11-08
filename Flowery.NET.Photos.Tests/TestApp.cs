@@ -21,6 +21,8 @@ public sealed class TestApp : App
     {
         PhotosSettings.Initialize(Path.Combine(Path.GetTempPath(),
             "flowery-photos-tests", Guid.NewGuid().ToString("N")));
+        // Videos play silently while the tests run.
+        Views.VideoPlayer.Volume = 0;
         base.Initialize();
     }
 

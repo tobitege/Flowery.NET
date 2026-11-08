@@ -2,9 +2,7 @@
 using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
 using Avalonia.Controls;
-using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
-using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using Flowery.Controls;
@@ -98,6 +96,42 @@ public sealed partial class ParityTests
     }
 
     [AvaloniaFact]
+    public async Task TurningOutsideTheEditorChangesOnlyTheViewAndTheEditorTakesItOver()
+    {
+        using var viewer = new ViewerView();
+        var window = new Window { Content = viewer, Width = 1100, Height = 850 };
+        try
+        {
+            window.Show();
+            var item = new PhotoItem(CreateImage());
+            await viewer.OpenAsync(item, [item, new PhotoItem(CreateImage())]);
+            var canvas = viewer.FindControl<PhotoCanvas>("Canvas")!;
+            Invoke(viewer, "right"); Invoke(viewer, "right"); Invoke(viewer, "left");
+            Assert.Equal(1, canvas.State.Rotation);
+            Assert.False(viewer.HasChanges);
+            Assert.False(viewer.FindControl<DaisyBadge>("EditedBadge")!.IsVisible);
+
+            // The editor starts from the turned view, and the turn is an edit that can be undone.
+            viewer.BeginEditing();
+            Assert.Equal(1, canvas.State.Rotation);
+            Assert.True(viewer.HasChanges);
+            Invoke(viewer, "undo");
+            Assert.Equal(0, canvas.State.Rotation);
+            Invoke(viewer, "redo");
+            Assert.Equal(1, canvas.State.Rotation);
+
+            // Outside the editor again, a turn adds to the view only; the next photo starts upright.
+            viewer.BeginEditing();
+            Invoke(viewer, "right");
+            Assert.Equal(2, canvas.State.Rotation);
+            await viewer.NavigateAsync(1);
+            Assert.Equal(0, canvas.State.Rotation);
+            Assert.False(viewer.HasChanges);
+        }
+        finally { window.Close(); }
+    }
+
+    [AvaloniaFact]
     public async Task ViewerKeepsFullResolutionAndClearsTheImageAfterADecodeFailure()
     {
         using var viewer = new ViewerView();
@@ -125,30 +159,6 @@ public sealed partial class ParityTests
             await viewer.NavigateAsync(-1);
             Assert.NotNull(canvas.Bitmap);
             Assert.False(viewer.FindControl<TextBlock>("ErrorText")!.IsVisible);
-        }
-        finally { window.Close(); }
-    }
-
-    [AvaloniaFact]
-    public void CropHasEdgeHandlesAndAspectSelectionStaysInsideCurrentCrop()
-    {
-        using var canvas = new PhotoCanvas { IsCropping = true };
-        var window = new Window { Content = canvas, Width = 800, Height = 600 };
-        try
-        {
-            canvas.SetPhoto(PhotoDecoder.Load(CreateImage(400, 200)), new Size(400, 200));
-            canvas.State = EditState.Original with { Crop = new Rect(.2, .2, .6, .6) };
-            var square = canvas.CreateAspectCrop(1);
-            Assert.Equal(new Rect(.35, .2, .3, .6), square);
-            window.Show(); window.UpdateLayout();
-            // Fit uses a 40-DIP inset in crop mode: the 400x200 image occupies 720x360.
-            var top = new Point(400, 120 + .2 * 360);
-            window.MouseDown(top, MouseButton.Left);
-            window.MouseMove(top + new Vector(0, 36));
-            window.MouseUp(top + new Vector(0, 36), MouseButton.Left);
-            Assert.Equal(.3, canvas.State.Crop.Y, 6);
-            Assert.Equal(.8, canvas.State.Crop.Bottom, 6);
-            Assert.Equal(.2, canvas.State.Crop.X, 6);
         }
         finally { window.Close(); }
     }

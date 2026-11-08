@@ -17,12 +17,14 @@ namespace Flowery.NET.Photos.Models
             FileName = System.IO.Path.GetFileName(path);
             FolderPath = System.IO.Path.GetDirectoryName(path) ?? string.Empty;
             Extension = System.IO.Path.GetExtension(path).TrimStart('.').ToUpperInvariant();
+            IsVideo = Services.ImageMetadataReader.IsVideo(path);
         }
 
         public string Path { get; }
         public string FileName { get; }
         public string FolderPath { get; }
         public string Extension { get; }
+        public bool IsVideo { get; }
 
         public long FileSize { get; set; }
         public DateTime DateModified { get; set; }

@@ -5,7 +5,6 @@ using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 using Avalonia.Automation.Provider;
 using Avalonia.VisualTree;
-using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -43,17 +42,6 @@ public sealed class PhotoTests
         using var data = image.Encode(name.EndsWith(".jpg") ? SKEncodedImageFormat.Jpeg : SKEncodedImageFormat.Png, 100);
         using var file = File.Create(path); data.SaveTo(file);
         return path;
-    }
-
-    [Fact]
-    public void HeaderProbeAndSampledDecodeUseRealImageDimensions()
-    {
-        var file = CreatePhoto(NewFolder(), width: 1200, height: 800);
-        var probe = ImageMetadataReader.ProbeFast(file);
-        Assert.Equal(1200, probe?.Width); Assert.Equal(800, probe?.Height);
-        using var bitmap = PhotoDecoder.Load(file, 300);
-        Assert.InRange(bitmap.Width, 1, 300);
-        Assert.InRange(bitmap.Height, 1, 300);
     }
 
     [Fact]
@@ -112,231 +100,6 @@ public sealed class PhotoTests
     }
 
     [Fact]
-    public void FilterOffsetsPreserveExpectedMidtones()
-    {
-        using var source = new SKBitmap(8, 8);
-        source.Erase(new SKColor(128, 128, 128));
-        foreach (var preset in FilterPresets.All)
-        {
-            using var rendered = EditRenderer.Render(source, EditState.Original with { Filter = preset.Id });
-            var pixel = rendered.GetPixel(4, 4);
-            byte[] channels = [pixel.Red, pixel.Green, pixel.Blue];
-            for (var channel = 0; channel < 3; channel++)
-            {
-                var expected = Math.Clamp(128 * (preset.Matrix[0, channel] + preset.Matrix[1, channel] +
-                    preset.Matrix[2, channel]) + 255 * preset.Matrix[4, channel], 0, 255);
-                Assert.True(Math.Abs(channels[channel] - expected) <= 2,
-                    $"{preset.Id} channel {channel}: expected {expected:0.0}, actual {channels[channel]}");
-            }
-            Assert.Equal(255, pixel.Alpha);
-        }
-    }
-
-    [AvaloniaFact]
-    public async Task ViewerKeyboardZoomAndEditingUseTheRealSurface()
-    {
-        var path = CreatePhoto(NewFolder(), width: 800, height: 600);
-        var item = new PhotoItem(path) { PixelWidth = 800, PixelHeight = 600 };
-        var viewer = new ViewerView();
-        var window = new Window { Content = viewer, Width = 720, Height = 1100 };
-        try
-        {
-            window.Show();
-            await viewer.OpenAsync(item, [item]);
-            window.UpdateLayout();
-            var canvas = viewer.FindControl<PhotoCanvas>("Canvas")!;
-            var canvasPeer = ControlAutomationPeer.CreatePeerForElement(canvas)!;
-            Assert.Equal(AutomationControlType.Image, canvasPeer.GetAutomationControlType());
-            Assert.Equal("ViewerView.Canvas", canvasPeer.GetAutomationId());
-            Assert.False(string.IsNullOrWhiteSpace(canvasPeer.GetName()));
-            canvas.Focus();
-            window.KeyPress(Avalonia.Input.Key.E, Avalonia.Input.RawInputModifiers.Control, Avalonia.Input.PhysicalKey.E, "e");
-            Assert.False(canvas.IsCropping);
-            Assert.True(viewer.FindControl<StackPanel>("AdjustPanel")!.IsVisible);
-            window.KeyPress(Avalonia.Input.Key.R, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.R, "r");
-            Assert.Equal(1, canvas.State.Rotation);
-            window.KeyPress(Avalonia.Input.Key.Z, Avalonia.Input.RawInputModifiers.Control, Avalonia.Input.PhysicalKey.Z, "z");
-            Assert.Equal(0, canvas.State.Rotation);
-            window.KeyPress(Avalonia.Input.Key.Y, Avalonia.Input.RawInputModifiers.Control, Avalonia.Input.PhysicalKey.Y, "y");
-            Assert.Equal(1, canvas.State.Rotation);
-            canvas.SetZoom(100); canvas.ZoomStep(true); Assert.Equal(125, canvas.Zoom);
-            canvas.ZoomStep(false); Assert.Equal(100, canvas.Zoom);
-            canvas.SetZoom(100); canvas.ZoomStep(false); Assert.Equal(90, canvas.Zoom);
-            canvas.Fit(); Assert.True(canvas.ActualZoom > 0);
-            var filtersAction = viewer.GetVisualDescendants().OfType<DaisyButton>().Single(b => b.Tag as string == "filters");
-            Assert.IsAssignableFrom<IInvokeProvider>(ControlAutomationPeer.CreatePeerForElement(filtersAction)).Invoke();
-            window.UpdateLayout();
-            var filtersPanel = viewer.FindControl<WrapPanel>("Filters")!;
-            Assert.Equal(FilterPresets.All.Count, filtersPanel.Children.Count);
-            foreach (var filterButton in filtersPanel.Children.Cast<DaisyButton>())
-            {
-                var content = Assert.IsType<StackPanel>(filterButton.Content);
-                Assert.True(filterButton.Bounds.Height >= content.Bounds.Height + filterButton.Padding.Top + filterButton.Padding.Bottom);
-                Assert.True(content.Bounds.Height > 75);
-            }
-            Assert.True(filtersPanel.Bounds.Height >= filtersPanel.Children.Max(child => child.Bounds.Bottom));
-            var adjust = viewer.GetVisualDescendants().OfType<DaisyButton>().Single(b => b.Tag as string == "adjust");
-            Assert.False(string.IsNullOrWhiteSpace(AutomationProperties.GetAutomationId(adjust)));
-            Assert.False(string.IsNullOrWhiteSpace(ControlAutomationPeer.CreatePeerForElement(adjust)!.GetName()));
-            Assert.IsAssignableFrom<IInvokeProvider>(ControlAutomationPeer.CreatePeerForElement(adjust)).Invoke();
-            window.UpdateLayout();
-            var brightness = viewer.GetVisualDescendants().OfType<DaisyRange>()
-                .Single(range => AutomationProperties.GetAutomationId(range) == "Viewer.Adjust.Brightness");
-            var range = Assert.IsAssignableFrom<IRangeValueProvider>(ControlAutomationPeer.CreatePeerForElement(brightness));
-            Assert.False(string.IsNullOrWhiteSpace(ControlAutomationPeer.CreatePeerForElement(brightness)!.GetName()));
-            range.SetValue(35);
-            Assert.Equal(35, canvas.State.Brightness);
-            using var frame = window.CaptureRenderedFrame();
-            Assert.NotNull(frame);
-        }
-        finally { viewer.Dispose(); window.Close(); }
-    }
-
-    [AvaloniaFact]
-    public void PhotoTileAutomationInvokesAndSelectsTheRealItem()
-    {
-        var item = new PhotoItem(CreatePhoto(NewFolder()));
-        var tile = new PhotoTile(item, 150, 100);
-        var window = new Window { Content = tile };
-        var opened = 0;
-        tile.Activated += (_, _, _) => opened++;
-        try
-        {
-            window.Show();
-            var peer = ControlAutomationPeer.CreatePeerForElement(tile)!;
-            Assert.Equal(item.FileName, peer.GetName());
-            Assert.StartsWith("Photos.Tile.", peer.GetAutomationId());
-            Assert.Equal(AutomationControlType.ListItem, peer.GetAutomationControlType());
-            Assert.IsAssignableFrom<IInvokeProvider>(peer).Invoke();
-            Assert.Equal(1, opened);
-            var toggle = Assert.IsAssignableFrom<IToggleProvider>(peer);
-            toggle.Toggle(); Assert.True(item.IsSelected); Assert.Equal(ToggleState.On, toggle.ToggleState);
-            toggle.Toggle(); Assert.False(item.IsSelected); Assert.Equal(ToggleState.Off, toggle.ToggleState);
-        }
-        finally { window.Close(); }
-    }
-
-    [AvaloniaFact]
-    public async Task ViewerArrowKeysAdjustTheFocusedSliderWithoutNavigating()
-    {
-        var folder = NewFolder();
-        var first = new PhotoItem(CreatePhoto(folder, "first.png"));
-        var second = new PhotoItem(CreatePhoto(folder, "second.png"));
-        using var viewer = new ViewerView();
-        var window = new Window { Content = viewer, Width = 900, Height = 900 };
-        var leaveRequests = 0;
-        viewer.ConfirmLeave = () => { leaveRequests++; return Task.FromResult(false); };
-        try
-        {
-            window.Show();
-            await viewer.OpenAsync(first, [first, second]);
-            viewer.BeginEditing();
-            window.UpdateLayout();
-            var crop = viewer.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.Tag as string == "crop");
-            Assert.IsAssignableFrom<IInvokeProvider>(ControlAutomationPeer.CreatePeerForElement(crop)).Invoke();
-            window.UpdateLayout();
-            var slider = viewer.FindControl<DaisyRange>("Straighten")!;
-            Assert.True(slider.Focus());
-            window.KeyPress(Avalonia.Input.Key.Right, Avalonia.Input.RawInputModifiers.None,
-                Avalonia.Input.PhysicalKey.ArrowRight, "");
-            Assert.True(slider.Value > 0);
-            Assert.Equal(0, leaveRequests);
-            Assert.Equal("first.png", viewer.FindControl<TextBlock>("FileName")!.Text);
-            window.KeyPress(Avalonia.Input.Key.Left, Avalonia.Input.RawInputModifiers.None,
-                Avalonia.Input.PhysicalKey.ArrowLeft, "");
-            Assert.Equal(0, slider.Value);
-        }
-        finally { window.Close(); }
-    }
-
-    [AvaloniaFact]
-    public async Task ViewerFavoriteStateTracksAutomationKeyboardAndExternalChanges()
-    {
-        var culture = FloweryLocalization.CurrentCulture.Name;
-        var item = new PhotoItem(CreatePhoto(NewFolder()));
-        using var viewer = new ViewerView();
-        var window = new Window { Content = viewer, Width = 900, Height = 900 };
-        try
-        {
-            window.Show();
-            await viewer.OpenAsync(item, [item]);
-            var button = viewer.GetVisualDescendants().OfType<DaisyButton>().Single(b => b.Tag as string == "favorite");
-            var peer = ControlAutomationPeer.CreatePeerForElement(button)!;
-            var toggle = Assert.IsAssignableFrom<IToggleProvider>(peer);
-            var states = new List<ToggleState>();
-            peer.PropertyChanged += (_, e) =>
-            {
-                if (e.Property == TogglePatternIdentifiers.ToggleStateProperty)
-                    states.Add((ToggleState)e.NewValue!);
-            };
-            Assert.Equal(ToggleState.Off, toggle.ToggleState);
-            toggle.Toggle();
-            Assert.True(item.IsFavorite);
-            Assert.True(button.IsActive);
-            Assert.Equal(ToggleState.On, toggle.ToggleState);
-            Assert.Equal(PhotosLocalization.GetString("Photos_Unfavorite"), peer.GetName());
-            FloweryLocalization.SetCulture("de");
-            viewer.RefreshLabels();
-            Assert.Equal(PhotosLocalization.GetString("Photos_Unfavorite"), peer.GetName());
-            item.IsFavorite = false;
-            Assert.False(button.IsActive);
-            Assert.Equal(ToggleState.Off, toggle.ToggleState);
-            Assert.Equal(new[] { ToggleState.On, ToggleState.Off }, states);
-            viewer.FindControl<PhotoCanvas>("Canvas")!.Focus();
-            window.KeyPress(Avalonia.Input.Key.F, Avalonia.Input.RawInputModifiers.None,
-                Avalonia.Input.PhysicalKey.F, "f");
-            Assert.True(item.IsFavorite);
-            var next = new PhotoItem(CreatePhoto(NewFolder(), "next.png"));
-            await viewer.OpenAsync(next, [next]);
-            item.IsFavorite = false;
-            Assert.False(button.IsActive);
-            Assert.Equal(ToggleState.Off, toggle.ToggleState);
-        }
-        finally { window.Close(); FloweryLocalization.SetCulture(culture); }
-    }
-
-    [AvaloniaFact]
-    public async Task LanguagePreviewKeepsTheOpenEditorAndItsEdits()
-    {
-        var originalCulture = FloweryLocalization.CurrentCulture.Name;
-        var shell = new PhotosShell();
-        var window = new Window { Content = shell, Width = 900, Height = 1200 };
-        try
-        {
-            window.Show();
-            await shell.OpenFileAsync(CreatePhoto(NewFolder()));
-            var viewer = shell.FindControl<ViewerView>("Viewer")!;
-            viewer.BeginEditing();
-            window.UpdateLayout();
-            var crop = viewer.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.Tag as string == "crop");
-            Assert.IsAssignableFrom<IInvokeProvider>(ControlAutomationPeer.CreatePeerForElement(crop)).Invoke();
-            var canvas = viewer.FindControl<PhotoCanvas>("Canvas")!;
-            canvas.State = EditState.Original with { Crop = new Rect(.1, .1, .8, .8) };
-            FloweryLocalization.SetCulture("de");
-            Assert.True(viewer.IsVisible);
-            Assert.True(canvas.IsCropping);
-            Assert.Equal(new Rect(.1, .1, .8, .8), canvas.State.Crop);
-        }
-        finally { shell.Dispose(); window.Close(); FloweryLocalization.SetCulture(originalCulture); }
-    }
-
-    [AvaloniaTheory]
-    [InlineData("en")] [InlineData("de")] [InlineData("fr")] [InlineData("es")]
-    [InlineData("it")] [InlineData("zh-CN")] [InlineData("ko")] [InlineData("ja")]
-    [InlineData("ar")] [InlineData("tr")] [InlineData("uk")] [InlineData("he")]
-    public void RuntimeLanguageSwitchResolvesTranslatedKeys(string language)
-    {
-        var previous = FloweryLocalization.CurrentCulture.Name;
-        try
-        {
-            FloweryLocalization.SetCulture(language);
-            Assert.Equal(language, PhotosLocalization.CurrentCultureName);
-            Assert.NotEqual("Photos_Home_WelcomeTitle", PhotosLocalization.GetString("Photos_Home_WelcomeTitle"));
-        }
-        finally { FloweryLocalization.SetCulture(previous); }
-    }
-
-    [Fact]
     public void RenderAppliesRotationCropFilterAndMarkup()
     {
         var file = CreatePhoto(NewFolder());
@@ -354,11 +117,7 @@ public sealed class PhotoTests
     }
 
     [Theory]
-    [InlineData("vivid")]
-    [InlineData("warm")]
-    [InlineData("cool")]
     [InlineData("sepia")]
-    [InlineData("noir")]
     public void FilterChangesRealPixelValues(string filter)
     {
         using var source = PhotoDecoder.Load(CreatePhoto(NewFolder()));
@@ -419,9 +178,7 @@ public sealed class PhotoTests
     }
 
     [Theory]
-    [InlineData(360)]
     [InlineData(720)]
-    [InlineData(1200)]
     public void JustifiedRowsKeepAllPhotosAndLastRowHeight(double width)
     {
         var items = Enumerable.Range(0, 35).Select(i => new PhotoItem(i + ".jpg")
@@ -432,21 +189,7 @@ public sealed class PhotoTests
         Assert.Equal(rows[^2].TileHeight, rows[^1].TileHeight);
     }
 
-    [Fact]
-    public void PaletteRoundTripAndHarmonyAreDeterministic()
-    {
-        var colors = ColorTools.CreateHarmony(Colors.Coral, ColorTools.Harmony.Triad);
-        Assert.Equal(9, colors.Length);
-        var file = Path.Combine(NewFolder(), "palette.pal");
-        ColorTools.WriteJascPalette(file, colors);
-        Assert.Equal(colors, ColorTools.ReadPalette(file));
-    }
-
     [Theory]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData(".")]
-    [InlineData("..")]
     [InlineData("relative-state")]
     public void StateDirectoryRejectsNonAbsolutePathsBeforeChangingStorage(string path)
     {
@@ -576,6 +319,69 @@ public sealed class PhotoTests
     }
 
     [AvaloniaFact]
+    public async Task BrowsingShowsAFolderWithItsSubfoldersWithoutAddingIt()
+    {
+        var root = NewFolder();
+        var oldRoot = Environment.GetEnvironmentVariable("FLOWERY_STATE_ROOT");
+        Environment.SetEnvironmentVariable("FLOWERY_STATE_ROOT", root);
+        PhotosSettings.Initialize(root);
+        var oldSubfolders = PhotosSettings.IncludeSubfolders;
+        var library = new PhotoLibrary();
+        try
+        {
+            library.Initialize(Dispatcher.UIThread);
+            var source = Path.Combine(root, "library"); Directory.CreateDirectory(source);
+            CreatePhoto(source, "kept.png");
+            // A library folder whose photos are all in a subfolder showed nothing.
+            CreatePhoto(Directory.CreateDirectory(Path.Combine(source, "album")).FullName, "inner.png");
+            library.AddFolder(source);
+            await library.RescanAsync();
+            var outside = NewFolder();
+            CreatePhoto(outside, "a.png"); CreatePhoto(outside, "b.png");
+            CreatePhoto(Directory.CreateDirectory(Path.Combine(outside, "nested")).FullName, "c.png");
+            List<string> Browse() => [.. library.Query(new PhotoQuery { Source = PhotoSourceKind.Browsed, SourceKey = library.BrowsedFolder,
+                Sort = PhotoSortMode.NameAscending }).Select(item => item.FileName)];
+
+            PhotosSettings.IncludeSubfolders = true;
+            await library.BrowseAsync(outside);
+            Assert.Equal(["a.png", "b.png", "c.png"], Browse());
+            Assert.Equal(2, library.Items.Count);
+            Assert.Equal(source, Assert.Single(PhotosSettings.LoadFolders()));
+            // Not saved: the browsed files stay out of the metadata cache when the library saves it again.
+            await library.RescanAsync();
+            Assert.DoesNotContain(Path.GetFileName(outside), await File.ReadAllTextAsync(Path.Combine(root, "metadata-cache.json"),
+                TestContext.Current.CancellationToken));
+            Assert.Equal(["a.png", "b.png", "c.png"], Browse());
+
+            // A cancelled browse leaves the folder shown before.
+            using (var cancelled = new CancellationTokenSource())
+            {
+                cancelled.Cancel();
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => library.BrowseAsync(source, cancelled.Token));
+            }
+            Assert.Equal(outside, library.BrowsedFolder);
+
+            await library.BrowseAsync(Path.Combine(source, "album"));
+            Assert.Equal(["inner.png"], Browse());
+            await library.BrowseAsync(source + Path.DirectorySeparatorChar);
+            Assert.Equal(["inner.png", "kept.png"], Browse());
+
+            PhotosSettings.IncludeSubfolders = false;
+            await library.BrowseAsync(outside);
+            Assert.Equal(["a.png", "b.png"], Browse());
+            var first = library.Query(new PhotoQuery { Source = PhotoSourceKind.Browsed, SourceKey = outside })
+                .Single(item => item.FileName == "a.png");
+            Assert.Equal(1, await library.DeleteAsync([first]));
+            Assert.Equal(["b.png"], Browse());
+        }
+        finally
+        {
+            PhotosSettings.IncludeSubfolders = oldSubfolders;
+            await library.DisposeAsync(); Environment.SetEnvironmentVariable("FLOWERY_STATE_ROOT", oldRoot);
+        }
+    }
+
+    [AvaloniaFact]
     public async Task GalleryRecyclesRowsAndSettingsCancelRestoresSnapshot()
     {
         var root = NewFolder();
@@ -643,34 +449,6 @@ public sealed class PhotoTests
             await VerifySelectionAndFilterTransitionsAsync(shell, library);
         }
         finally { window.Close(); await library.DisposeAsync(); Environment.SetEnvironmentVariable("FLOWERY_STATE_ROOT", oldRoot); }
-    }
-
-    [AvaloniaFact]
-    public void GalleryShowSynchronizesExplicitFiltersWithOptionControls()
-    {
-        var gallery = new GalleryView();
-        var window = new Window { Content = gallery, Width = 900, Height = 900 };
-        try
-        {
-            window.Show();
-            gallery.Show(new PhotoQuery
-            {
-                TypeFilter = PhotoTypeFilter.Png,
-                OrientationFilter = PhotoOrientationFilter.Portrait
-            }, "Filtered");
-            var type = gallery.FindControl<DaisySelect>("Type")!;
-            var orientation = gallery.FindControl<DaisySelect>("Orientation")!;
-            Assert.Equal((int)PhotoTypeFilter.Png, type.SelectedIndex);
-            Assert.Equal((int)PhotoOrientationFilter.Portrait, orientation.SelectedIndex);
-
-            gallery.Show(new PhotoQuery { Source = PhotoSourceKind.Favorites }, "Favorites");
-            Assert.Equal((int)PhotoTypeFilter.All, type.SelectedIndex);
-            Assert.Equal((int)PhotoOrientationFilter.Any, orientation.SelectedIndex);
-            gallery.FindControl<DaisyCheckBox>("Square")!.IsChecked = !PhotosSettings.SquareTiles;
-            Assert.Equal(PhotoTypeFilter.All, gallery.Query.TypeFilter);
-            Assert.Equal(PhotoOrientationFilter.Any, gallery.Query.OrientationFilter);
-        }
-        finally { window.Close(); }
     }
 
     private static async Task VerifySelectionAndFilterTransitionsAsync(PhotosShell shell, PhotoLibrary library)

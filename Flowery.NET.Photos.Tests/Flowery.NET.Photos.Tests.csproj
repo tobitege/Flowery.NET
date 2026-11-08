@@ -14,4 +14,7 @@
     <PackageReference Include="xunit.v3.mtp-off" Version="4.0.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Media\*" Exclude="Media\*.py" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
