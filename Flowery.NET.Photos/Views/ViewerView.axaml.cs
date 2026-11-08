@@ -60,6 +60,10 @@ public partial class ViewerView : UserControl, IDisposable
     private int _lastCustomIndex = -1;
     private bool _fullscreen;
     private WindowState _previousState;
+    // Quarter turns of the view alone: outside the editor, turning changes neither the file nor what asks to be saved.
+    // Opening the editor takes them over as an edit.
+    private int _viewTurns;
+    private bool IsEditing => TopSaveGroup.IsVisible;
     public bool HasChanges => _history.Current.HasChanges;
     public PhotoItem? Current => _item;
     internal IReadOnlyList<PhotoItem> Items => _items;
@@ -75,12 +79,24 @@ public partial class ViewerView : UserControl, IDisposable
     private static string L(string key) => PhotosLocalization.GetString("Photos_" + key);
 
     internal PhotoLibrary Library { get; set; }
+
+    // A square turning a quarter to the left under an arrow (Material Icons "rotate 90 degrees ccw", Apache 2.0).
+    private const string TurnLeftIcon = "M7.34 6.41L.86 12.9l6.49 6.48 6.49-6.48-6.5-6.49zM3.69 12.9l3.66-3.66L11 12.9l-3.66 3.66-3.65-3.66z"
+        + "m15.67-6.26C17.61 4.88 15.3 4 13 4V.76L8.76 5 13 9.24V6c1.79 0 3.58.68 4.95 2.05 2.73 2.73 2.73 7.17 0 9.9"
+        + "C16.58 19.32 14.79 20 13 20c-.97 0-1.94-.21-2.84-.61l-1.49 1.49C10.02 21.62 11.51 22 13 22c2.3 0 4.61-.88 6.36-2.64"
+        + " 3.52-3.51 3.52-9.21 0-12.72z";
+
     public ViewerView() : this(PhotoLibrary.Instance) { }
     public ViewerView(PhotoLibrary library)
     {
         Library = library;
         InitializeComponent();
         DataContext = PhotosLocalization.Instance;
+        RotateLeftButton.IconData = StreamGeometry.Parse(TurnLeftIcon);
+        // The same icon, mirrored, so both turns look alike.
+        var turnRight = StreamGeometry.Parse(TurnLeftIcon);
+        turnRight.Transform = new MatrixTransform(new Matrix(-1, 0, 0, 1, 24, 0));
+        RotateRightButton.IconData = turnRight;
         _history.Changed += (_, _) => RefreshState();
         Canvas.Edited += state =>
         {
@@ -92,8 +108,12 @@ public partial class ViewerView : UserControl, IDisposable
             if (secondary) SecondaryColorEditor.Color = color;
             else ColorEditor.Color = color;
         };
-        Canvas.ViewChanged += RefreshZoom;
-        Compare.IsCheckedChanged += (_, _) => { Canvas.Compare = Compare.IsChecked == true; Canvas.InvalidateVisual(); };
+        Canvas.ViewChanged += RefreshView;
+        // A click on a video plays or pauses it; as on a photo, dragging pans and the wheel zooms.
+        Canvas.Tapped += (_, _) => { if (_item?.IsVideo == true) Video.TogglePlay(); };
+        // A double click zooms; its first click came as a tap, which this takes back.
+        Canvas.DoubleTapped += (_, _) => { if (_item?.IsVideo == true) Video.TogglePlay(); };
+        Compare.IsCheckedChanged += (_, _) => { Canvas.Compare = Compare.IsChecked == true; Canvas.InvalidateVisual(); UpdateAnimation(); };
         ColorEditor.ColorChanged += (_, e) => Canvas.PrimaryColor = e.Color;
         SecondaryColorEditor.ColorChanged += (_, e) =>
         {
@@ -179,6 +199,7 @@ public partial class ViewerView : UserControl, IDisposable
         BuildPalette();
         BuildColorActions();
         RefreshFavorite();
+        Video.RefreshLabels();
     }
     public async Task OpenAsync(PhotoItem item, IReadOnlyList<PhotoItem> items)
     {
@@ -186,6 +207,7 @@ public partial class ViewerView : UserControl, IDisposable
         _filterLoad?.Cancel(); _previewVersion++;
         var load = new CancellationTokenSource();
         _load = load;
+        CloseAnimation(); Video.Close();
         IsEnabled = false;
         FileName.Text = item.FileName;
         ErrorText.IsVisible = false;
@@ -194,14 +216,27 @@ public partial class ViewerView : UserControl, IDisposable
         _item.PropertyChanged += OnPhotoPropertyChanged;
         try
         {
-            var bitmap = await Task.Run(() => PhotoDecoder.Load(item.Path), load.Token);
-            if (load.IsCancellationRequested || _disposed) { bitmap.Dispose(); return; }
+            // Where the app plays a video, its first frame comes within moments, and a still taken first only kept it
+            // waiting; elsewhere the still is what shows.
+            var bitmap = item.IsVideo && VideoPlayer.CanPlay ? null : await Task.Run(() => LoadStill(item), load.Token);
+            if (load.IsCancellationRequested || _disposed) { bitmap?.Dispose(); return; }
             RefreshFavorite();
-            Canvas.SetPhoto(bitmap, new Size(bitmap.Width, bitmap.Height));
+            // The canvas zooms a video by its own pixels, which its still may have fewer of; a video without a still
+            // gets an empty one, so it zooms, pans and turns all the same.
+            bitmap ??= EmptyStill();
+            var size = item is { IsVideo: true, PixelWidth: > 0, PixelHeight: > 0 } ? new Size(item.PixelWidth, item.PixelHeight)
+                : new Size(bitmap.Width, bitmap.Height);
+            Canvas.SetPhoto(bitmap, size);
+            _viewTurns = 0;
             _history.Reset();
             ClosePanel();
             _previewPath = null;
-            await UpdateFilterPreviews();
+            if (item.IsVideo) Video.Open(item.Path);
+            else
+            {
+                await UpdateFilterPreviews();
+                await LoadAnimationAsync(item.Path, load.Token);
+            }
             load.Token.ThrowIfCancellationRequested();
             var metadata = await ImageMetadataReader.ReadDetailsAsync(item.Path);
             if (load.IsCancellationRequested || _disposed) return;
@@ -217,7 +252,7 @@ public partial class ViewerView : UserControl, IDisposable
         catch (Exception ex)
         {
             if (load.IsCancellationRequested || _disposed) return;
-            Canvas.Dispose(); _history.Reset(); ClosePanel(); RefreshNavigation(); RefreshInfo();
+            CloseAnimation(); Canvas.Dispose(); _viewTurns = 0; _history.Reset(); ClosePanel(); RefreshNavigation(); RefreshInfo();
             ErrorText.Text = PhotosLocalization.Format("Photos_LoadFailed", item.FileName, ex.Message);
             ErrorText.IsVisible = true;
         }
@@ -227,12 +262,36 @@ public partial class ViewerView : UserControl, IDisposable
             {
                 _load = null; IsEnabled = !_saving && !_disposed;
                 foreach (var button in Toolbar.GetVisualDescendants().OfType<DaisyButton>())
-                    button.IsEnabled = Canvas.Bitmap != null || button.Tag as string is "back" or "info" or "delete" or "fullscreen";
-                if (IsEnabled && Canvas.Bitmap != null) Canvas.Focus();
+                    button.IsEnabled = IsAvailable(button.Tag as string);
+                if (IsEnabled && (Canvas.Bitmap != null || item.IsVideo)) Canvas.Focus();
             }
             load.Dispose();
         }
     }
+    // A video without a still, for example because no installed decoder reads it, still plays or opens in the default
+    // player, which reports its own errors.
+    // A new bitmap holds whatever was in its memory; this one is cleared.
+    private static SKBitmap EmptyStill()
+    {
+        var empty = new SKBitmap(16, 9);
+        empty.Erase(SKColors.Transparent);
+        return empty;
+    }
+
+    private static SKBitmap? LoadStill(PhotoItem item)
+    {
+        try { return PhotoDecoder.Load(item.Path); }
+        catch (Exception ex) when (item.IsVideo && ex is not OperationCanceledException) { return null; }
+    }
+
+    // What needs no picture, which is all a photo that did not load offers.
+    private static readonly HashSet<string> PictureFreeActions = ["back", "previous", "next", "info", "fullscreen", "delete", "settings", "closePanel"];
+    // Videos are watched, zoomed and turned for the view, kept and organized, but not edited or shown in a slideshow.
+    private static readonly HashSet<string> VideoActions = [.. PictureFreeActions, "view", "favorite", "copy", "openWith", "reveal",
+        "copyPath", "map", "playPause", "mute", "left", "right", "zoomIn", "zoomOut", "fit", "actual"];
+
+    private bool IsAvailable(string? action) => action is null || (_item?.IsVideo == true ? VideoActions.Contains(action)
+        : Canvas.Bitmap != null || PictureFreeActions.Contains(action));
     private async Task BuildFilterPreviewsAsync(string path, CancellationToken token)
     {
         var version = ++_previewVersion;
@@ -308,28 +367,32 @@ public partial class ViewerView : UserControl, IDisposable
     private void RefreshState()
     {
         _refreshing = true;
-        Canvas.State = _history.Current;
+        Canvas.State = _history.Current.Rotate(_viewTurns);
+        Video.Turns = _viewTurns;
         Straighten.Value = _history.Current.Straighten;
         FilterIntensity.Value = _history.Current.FilterIntensity;
         foreach (var adjustment in _adjustments) adjustment.Refresh();
         Undo.IsEnabled = _history.CanUndo; Redo.IsEnabled = _history.CanRedo;
         EditedBadge.IsVisible = HasChanges;
         _refreshing = false;
-        RefreshZoom();
+        RefreshView();
         RefreshImageStatus();
         RefreshFilterSelection();
         if (_activePanel == "filters" && _load == null) _ = UpdateFilterPreviews();
+        UpdateAnimation();
     }
-    private void RefreshZoom()
+    // The zoom display, and a playing video on the place of its still, which the canvas zooms, pans and turns.
+    private void RefreshView()
     {
         ZoomText.Text = $"{Canvas.ActualZoom:0}%";
         _refreshing = true; ZoomSlider.Value = Canvas.ActualZoom; _refreshing = false;
+        Video.FrameBounds = Canvas.ImageBounds;
     }
     private string _lastEditPanel = "adjust";
     private string? _activePanel;
     public void BeginEditing()
     {
-        if (Canvas.Bitmap == null) return;
+        if (!IsAvailable("edit")) return;
         if (SidePanel.IsVisible && TopSaveGroup.IsVisible) ClosePanel();
         else SelectPanel(_lastEditPanel);
     }
@@ -342,13 +405,21 @@ public partial class ViewerView : UserControl, IDisposable
         ZoomSlider.IsEnabled = true;
         if (cropping) Canvas.Fit();
         Canvas.InvalidateVisual();
+        UpdateAnimation();
     }
     private void SelectPanel(string panel)
     {
         _activePanel = panel;
         SidePanel.IsVisible = true;
         TopSaveGroup.IsVisible = panel is "crop" or "adjust" or "filters" or "markup";
-        if (TopSaveGroup.IsVisible) _lastEditPanel = panel;
+        if (IsEditing)
+        {
+            _lastEditPanel = panel;
+            // The editor starts from what the view shows, and the turn can be undone like any edit.
+            var turns = _viewTurns;
+            _viewTurns = 0;
+            if (turns != 0) _history.Apply(_history.Current.Rotate(turns));
+        }
         CropPanel.IsVisible = panel == "crop"; AdjustPanel.IsVisible = panel == "adjust";
         FilterPanel.IsVisible = panel == "filters"; MarkupPanel.IsVisible = panel == "markup";
         InfoPanel.IsVisible = panel == "info"; ViewPanel.IsVisible = panel == "view";
@@ -357,6 +428,7 @@ public partial class ViewerView : UserControl, IDisposable
         ZoomSlider.IsEnabled = !Canvas.IsCropping;
         if (Canvas.IsCropping) Canvas.Fit();
         Canvas.InvalidateVisual();
+        UpdateAnimation();
     }
     private void ApplyAspect()
     {
@@ -396,13 +468,20 @@ public partial class ViewerView : UserControl, IDisposable
     private void RefreshInfo()
     {
         if (_item == null) return;
-        var width = Canvas.Bitmap?.Width ?? _item.PixelWidth;
-        var height = Canvas.Bitmap?.Height ?? _item.PixelHeight;
+        // A video's still is smaller than the video.
+        var width = _item.IsVideo ? _item.PixelWidth : Canvas.Bitmap?.Width ?? _item.PixelWidth;
+        var height = _item.IsVideo ? _item.PixelHeight : Canvas.Bitmap?.Height ?? _item.PixelHeight;
         InfoPanel.Children.Clear();
         InfoPanel.Children.Add(new SelectableTextBlock { Text = _item.FileName, FontSize = 16, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
         AddInfo("Folder", _item.FolderPath, "reveal");
         AddInfo("FileSize", FileOperations.FormatFileSize(_item.FileSize));
         AddInfo("Dimensions", $"{width} × {height}  ·  {(double)width * height / 1_000_000:0.0} MP");
+        if (_item.Details?.DurationSeconds is { } seconds) AddInfo("Duration", FileOperations.FormatDuration(TimeSpan.FromSeconds(seconds)));
+        AddInfo("Video", string.Join("  ·  ", new[] { _item.Details?.Codec,
+            _item.Details?.FrameRate is { } rate ? string.Format(PhotosLocalization.CurrentCulture, "{0:0.##} fps", rate) : null }.OfType<string>()));
+        if (_animation is { } animation)
+            AddInfo("Animation", PhotosLocalization.Format("Photos_AnimationFrames", animation.FrameCount) + "  ·  "
+                + string.Format(PhotosLocalization.CurrentCulture, "{0:0.#} s", animation.TotalDuration.TotalSeconds));
         AddInfo("DateTaken", _item.DateTaken?.ToString("f", PhotosLocalization.CurrentCulture));
         AddInfo("Modified", _item.DateModified.ToString("f", PhotosLocalization.CurrentCulture));
         AddInfo("Camera", _item.CameraModel);
@@ -437,17 +516,26 @@ public partial class ViewerView : UserControl, IDisposable
     }
     private void RefreshImageStatus()
     {
-        if (_item == null || Canvas.Bitmap == null) { ImageMetadata.Text = string.Empty; return; }
-        var size = EditRenderer.GetOutputSize(new Size(Canvas.Bitmap.Width, Canvas.Bitmap.Height), _history.Current);
+        var video = _item?.IsVideo == true;
+        if (_item == null || Canvas.Bitmap == null && !video) { ImageMetadata.Text = string.Empty; return; }
+        var size = video || Canvas.Bitmap == null ? new Size(_item.PixelWidth, _item.PixelHeight)
+            : EditRenderer.GetOutputSize(new Size(Canvas.Bitmap.Width, Canvas.Bitmap.Height), _history.Current);
         var index = _items.ToList().FindIndex(item => item.Path == _item.Path);
-        ImageMetadata.Text = $"{index + 1} / {_items.Count}  ·  {size.Width:0} × {size.Height:0}  ·  {FileOperations.FormatFileSize(_item.FileSize)}";
+        var duration = video && _item.Details?.DurationSeconds is { } seconds ? "  ·  " + FileOperations.FormatDuration(TimeSpan.FromSeconds(seconds)) : string.Empty;
+        ImageMetadata.Text = $"{index + 1} / {_items.Count}  ·  {size.Width:0} × {size.Height:0}  ·  {FileOperations.FormatFileSize(_item.FileSize)}{duration}";
     }
     public async Task NavigateAsync(int offset)
     {
         if (_navigating || _item == null || _items.Count < 2) return;
         var index = _items.ToList().FindIndex(i => i.Path == _item.Path);
         var target = index + offset;
-        if (_slideshow.IsEnabled) target = (target % _items.Count + _items.Count) % _items.Count;
+        if (_slideshow.IsEnabled)
+        {
+            // The slideshow shows photos only.
+            static int Wrap(int value, int count) => (value % count + count) % count;
+            for (var skipped = 0; skipped < _items.Count && _items[Wrap(target, _items.Count)].IsVideo; skipped++) target += Math.Sign(offset);
+            target = Wrap(target, _items.Count);
+        }
         if (target < 0 || target >= _items.Count || target == index) return;
         _navigating = true;
         try
@@ -459,7 +547,7 @@ public partial class ViewerView : UserControl, IDisposable
     }
     public void Stop()
     {
-        StopSlideshow(); _toolbarTimer.Stop(); _hintTimer.Stop();
+        StopSlideshow(); _toolbarTimer.Stop(); _hintTimer.Stop(); CloseAnimation(); Video.Close();
         if (_fullscreen) ToggleFullScreen();
     }
     public async Task<bool> SaveAsync(bool replace)
@@ -614,7 +702,7 @@ public partial class ViewerView : UserControl, IDisposable
     }
     private async Task CopyEditedAsync()
     {
-        if (_item == null || Canvas.Bitmap == null) return;
+        if (_item == null) return;
         if (Owner.Clipboard == null) throw new InvalidOperationException(L("ActionFailed"));
         if (!HasChanges)
         {
@@ -647,17 +735,27 @@ public partial class ViewerView : UserControl, IDisposable
         Add("RotateLeft", "left"); Add("RotateRight", "right");
         if (AlbumMenu != null) menu.Items.Add(AlbumMenu(_item));
         Add("OpenWith", "openWith"); Add("ShowInExplorer", "reveal"); Add("CopyPath", "copyPath");
-        if (OperatingSystem.IsWindows()) Add("SetAsBackground", "wallpaper");
+        if (OperatingSystem.IsWindows() && !_item.IsVideo) Add("SetAsBackground", "wallpaper");
     }
+    // In the editor a turn is an edit; otherwise it turns only the view.
+    private void Turn(bool clockwise)
+    {
+        if (IsEditing) { _history.Apply(_history.Current.Rotate(clockwise)); return; }
+        _viewTurns = (_viewTurns + (clockwise ? 1 : 3)) % 4;
+        RefreshState();
+    }
+
     private async Task ExecuteAsync(string action)
     {
-        if (Canvas.Bitmap == null && action is not ("back" or "previous" or "next" or "info" or "fullscreen" or "delete" or "settings" or "closePanel")) return;
+        if (!IsAvailable(action)) return;
         switch (action)
         {
             case "back": BackRequested?.Invoke(); break;
             case "previous": await NavigateAsync(-1); break;
             case "next": await NavigateAsync(1); break;
             case "edit": BeginEditing(); break;
+            case "playPause": Video.TogglePlay(); break;
+            case "mute": Video.ToggleMute(); break;
             case "favorite": if (_item != null) Library.ToggleFavorite(_item); break;
             case "slideshow": if (IsSlideshow) StopSlideshow(); else StartSlideshow(); break;
             case "fullscreen": ToggleFullScreen(); break;
@@ -674,8 +772,7 @@ public partial class ViewerView : UserControl, IDisposable
                 break;
             case "closePanel": ClosePanel(); break;
             case "closeCompare": Compare.IsChecked = false; break;
-            case "left": _history.Apply(_history.Current.Rotate(false)); break;
-            case "right": _history.Apply(_history.Current.Rotate(true)); break;
+            case "left" or "right": Turn(action == "right"); break;
             case "flipH": _history.Apply(_history.Current.Mirror(true)); break;
             case "flipV": _history.Apply(_history.Current.Mirror(false)); break;
             case "resetCrop": _history.Apply(_history.Current.ResetGeometry()); break;
@@ -723,8 +820,12 @@ public partial class ViewerView : UserControl, IDisposable
             case "delete":
                 if (_item != null && DeletePhoto != null)
                 {
+                    // The player holds the video file open, which would keep it from the Recycle Bin.
+                    var video = _item.IsVideo;
+                    if (video) await Video.CloseAsync();
                     await DeletePhoto([_item]);
                     if (!_item.Exists) { _history.Reset(); BackRequested?.Invoke(); }
+                    else if (video) Video.Open(_item.Path);
                 }
                 break;
             case "map":
@@ -774,6 +875,7 @@ public partial class ViewerView : UserControl, IDisposable
         var action = e.Key switch
         {
             Key.Left or Key.PageUp => "previous", Key.Right or Key.PageDown => "next", Key.F11 => "fullscreen", Key.F5 => "slideshow",
+            Key.Space when _item?.IsVideo == true => "playPause", Key.M when !ctrl && _item?.IsVideo == true => "mute",
             Key.F when !ctrl => "favorite", Key.R => e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? "left" : "right",
             Key.X when Canvas.IsDrawing => "swap", Key.I when !ctrl => "info",
             Key.Add or Key.OemPlus => "zoomIn", Key.Subtract or Key.OemMinus => "zoomOut",

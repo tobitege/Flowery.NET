@@ -4,8 +4,12 @@ namespace Flowery.NET.Photos.Services;
 
 public static class PhotoDecoder
 {
-    public static SKBitmap Load(string path, int maxEdge = int.MaxValue)
+    /// <param name="path">The photo or video.</param>
+    /// <param name="maxEdge">The longest edge the picture is scaled down to.</param>
+    /// <param name="token">Stops taking the still of a video, for example when its thumbnail leaves the screen.</param>
+    public static SKBitmap Load(string path, int maxEdge = int.MaxValue, CancellationToken token = default)
     {
+        if (ImageMetadataReader.IsVideo(path)) return LoadVideoFrame(path, Math.Min(maxEdge, 1920), token);
         using var stream = File.OpenRead(path);
         using var codec = SKCodec.Create(stream);
         if (codec == null)
@@ -50,5 +54,53 @@ public static class PhotoDecoder
             Math.Max(1, (int)(oriented.Height * ratio))), new SKSamplingOptions(SKFilterMode.Linear));
         oriented.Dispose();
         return resized ?? throw new InvalidDataException("Image resampling failed.");
+    }
+
+    // The still of a video: a frame from the Windows player, otherwise from ffmpeg when it is installed.
+    private static SKBitmap LoadVideoFrame(string path, int maxEdge, CancellationToken token)
+    {
+#if WINDOWS
+        try
+        {
+            // The player reads the file by its URI. The shell's thumbnails waited while the folder dialog of Browse…
+            // kept the shell busy, on a network drive for twenty seconds.
+            if (WindowsVideoPlayback.CaptureStillAsync(path, maxEdge, StillPosition, token).GetAwaiter().GetResult() is { } still) return still;
+        }
+        // The player rejects some files and paths; ffmpeg may still read them.
+        catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or IOException or UnauthorizedAccessException
+            or ArgumentException) { }
+#endif
+        return LoadFrameWithFfmpeg(path, maxEdge) ?? throw new InvalidDataException("No installed decoder can read this video.");
+    }
+
+    /// <summary>Where a still is taken: a second into the video, or a third of a shorter one, past the black first frame many cameras record.</summary>
+    internal static TimeSpan StillPosition(TimeSpan duration) => TimeSpan.FromSeconds(Math.Min(1, duration.TotalSeconds / 3));
+
+    private static SKBitmap? LoadFrameWithFfmpeg(string path, int maxEdge)
+    {
+        var seconds = StillPosition(TimeSpan.FromSeconds(VideoMetadataReader.Probe(path)?.Details?.DurationSeconds ?? 0)).TotalSeconds;
+        var info = new System.Diagnostics.ProcessStartInfo("ffmpeg")
+        {
+            UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true
+        };
+        foreach (var argument in new[]
+        {
+            "-v", "error", "-ss", seconds.ToString("0.###", CultureInfo.InvariantCulture), "-i", path, "-frames:v", "1",
+            "-vf", $"scale=min({maxEdge}\\,iw):min({maxEdge}\\,ih):force_original_aspect_ratio=decrease",
+            "-f", "image2pipe", "-c:v", "png", "-"
+        }) info.ArgumentList.Add(argument);
+        try
+        {
+            using var process = System.Diagnostics.Process.Start(info);
+            if (process == null) return null;
+            var errors = process.StandardError.ReadToEndAsync();
+            using var frame = new MemoryStream();
+            var copy = process.StandardOutput.BaseStream.CopyToAsync(frame);
+            if (!process.WaitForExit(15_000)) { process.Kill(true); return null; }
+            copy.GetAwaiter().GetResult(); errors.GetAwaiter().GetResult();
+            frame.Position = 0;
+            return process.ExitCode == 0 && frame.Length > 0 ? SKBitmap.Decode(frame) : null;
+        }
+        catch (System.ComponentModel.Win32Exception) { return null; } // ffmpeg is not installed.
     }
 }

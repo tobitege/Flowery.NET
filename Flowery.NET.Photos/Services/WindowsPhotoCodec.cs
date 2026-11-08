@@ -39,6 +39,11 @@ internal static class WindowsPhotoCodec
     {
         using var file = File.OpenRead(path);
         using var stream = file.AsRandomAccessStream();
+        return await DecodeAsync(stream, maxEdge).ConfigureAwait(false);
+    }
+
+    private static async Task<SKBitmap> DecodeAsync(IRandomAccessStream stream, int maxEdge)
+    {
         var decoder = await BitmapDecoder.CreateAsync(stream).AsTask().ConfigureAwait(false);
         var scale = Math.Min(1, (double)maxEdge / Math.Max(decoder.PixelWidth, decoder.PixelHeight));
         var transform = new BitmapTransform

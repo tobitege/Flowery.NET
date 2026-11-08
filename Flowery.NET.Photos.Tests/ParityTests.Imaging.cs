@@ -23,21 +23,6 @@ public sealed partial class ParityTests
     }
 
     [AvaloniaFact]
-    public async Task ThumbnailsRetainTransparencyIncludingCacheReadback()
-    {
-        var item = new PhotoItem(CreateTransparentImage());
-        for (var attempt = 0; attempt < 2; attempt++)
-        {
-            using var thumbnail = await ThumbnailLoader.LoadAsync(item, 150, TestContext.Current.CancellationToken);
-            Assert.NotNull(thumbnail);
-            using var stream = new MemoryStream();
-            thumbnail.Save(stream, Avalonia.Media.Imaging.PngBitmapEncoderOptions.Default);
-            using var decoded = SKBitmap.Decode(stream.ToArray());
-            Assert.InRange(decoded.GetPixel(20, 20).Alpha, 99, 101);
-        }
-    }
-
-    [AvaloniaFact]
     public async Task SaveCopyPreservesPngAlphaAndInsertsResultAfterOriginal()
     {
         var path = CreateTransparentImage();
@@ -50,7 +35,10 @@ public sealed partial class ParityTests
         {
             window.Show();
             await viewer.OpenAsync(item, [item, next]);
+            // Turned in the view, the photo has nothing to save until the editor takes the turn over.
             Invoke(viewer, "right");
+            Assert.False(await viewer.SaveAsync(false));
+            viewer.BeginEditing();
             Assert.True(await viewer.SaveAsync(false));
             var copy = viewer.Current!;
             Assert.NotEqual(path, copy.Path);

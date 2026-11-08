@@ -96,10 +96,13 @@ public static class FileOperations
             info.ArgumentList.Add(path);
             using var process = Process.Start(info);
         }
-        else
-        {
-            using var process = Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
-        }
+        else Open(path);
+    }
+
+    /// <summary>Opens a file in the program the system uses for its type, such as a video in its media player.</summary>
+    public static void Open(string path)
+    {
+        using var process = Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
     }
 
     public static bool SetAsWallpaper(string path) => OperatingSystem.IsWindows()
@@ -137,4 +140,8 @@ public static class FileOperations
         while (size >= 1024 && index < units.Length - 1) { size /= 1024; index++; }
         return string.Format(Localization.PhotosLocalization.CurrentCulture, "{0:0.#} {1}", size, units[index]);
     }
+
+    /// <summary>A video's length as a player shows it: 0:07, 12:34 or 1:02:03.</summary>
+    public static string FormatDuration(TimeSpan duration) =>
+        duration.ToString(duration.TotalHours >= 1 ? @"h\:mm\:ss" : @"m\:ss", CultureInfo.InvariantCulture);
 }

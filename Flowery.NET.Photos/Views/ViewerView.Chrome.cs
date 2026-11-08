@@ -15,19 +15,32 @@ public partial class ViewerView
     public event Action<bool>? TitleViewChanged;
     private bool ToolbarOverlay => _fullscreen || PhotosSettings.AutoHideToolbar;
 
+    // In full screen every move of the pointer shows all controls, and they hide again after this long without one.
+    private static readonly TimeSpan FullScreenChromeDelay = TimeSpan.FromSeconds(3);
+
+    private bool IsPointerOverControls => Toolbar.IsPointerOver || StatusPanel.IsPointerOver || SidePanel.IsPointerOver
+        || PreviousButton.IsPointerOver || NextButton.IsPointerOver || Video.IsPointerOverControls;
+
     private void InitializeChrome()
     {
         _hintTimer.Tick += (_, _) => { SlideshowHint.IsVisible = false; _hintTimer.Stop(); };
         _toolbarTimer.Tick += (_, _) =>
         {
             _toolbarTimer.Stop();
-            if (!_nearChrome && MoreButton.Flyout?.IsOpen != true) SetChromeVisible(false);
+            var keep = _fullscreen ? IsPointerOverControls : _nearChrome;
+            if (!keep && MoreButton.Flyout?.IsOpen != true) SetChromeVisible(false);
         };
         PointerMoved += (_, e) =>
         {
             if (IsSlideshow || !ToolbarOverlay) return;
+            if (_fullscreen)
+            {
+                SetChromeVisible(true);
+                _toolbarTimer.Stop(); ScheduleChromeHide(FullScreenChromeDelay);
+                return;
+            }
             var y = e.GetPosition(this).Y;
-            _nearChrome = y <= Math.Max(96, Toolbar.Bounds.Height) || _fullscreen && y >= Bounds.Height - 96;
+            _nearChrome = y <= Math.Max(96, Toolbar.Bounds.Height);
             if (_nearChrome) { SetChromeVisible(true); _toolbarTimer.Stop(); }
             else ScheduleChromeHide(TimeSpan.FromMilliseconds(300));
         };
@@ -57,8 +70,12 @@ public partial class ViewerView
         var toolbar = visible || !ToolbarOverlay;
         Toolbar.Opacity = toolbar ? 1 : 0;
         Toolbar.IsHitTestVisible = toolbar;
-        StatusPanel.Opacity = visible || !_fullscreen ? 1 : 0;
-        StatusPanel.IsHitTestVisible = visible || !_fullscreen;
+        // The toolbar also hides outside full screen when auto-hide is on; the other controls hide only in full screen.
+        var controls = visible || !_fullscreen;
+        StatusPanel.Opacity = controls ? 1 : 0;
+        StatusPanel.IsHitTestVisible = controls;
+        PreviousButton.IsVisible = NextButton.IsVisible = controls;
+        Video.SetControlsVisible(controls);
         TitleViewChanged?.Invoke(IsVisible && !toolbar && !_fullscreen);
     }
 
@@ -85,14 +102,14 @@ public partial class ViewerView
         UpdatePanelMargin();
         _toolbarTimer.Stop();
         SetChromeVisible(true);
-        ScheduleChromeHide(TimeSpan.FromSeconds(1.5));
+        ScheduleChromeHide(_fullscreen ? FullScreenChromeDelay : TimeSpan.FromSeconds(1.5));
     }
 
     public void ShowViewOptions() { SelectPanel("view"); SetChromeVisible(true); }
 
     public void StartSlideshow()
     {
-        if (IsSlideshow || Canvas.Bitmap == null || _items.Count == 0) return;
+        if (IsSlideshow || Canvas.Bitmap == null || _item?.IsVideo != false || _items.Count == 0) return;
         _slideshowPreviousState = Owner.WindowState;
         Canvas.IsSlideshow = true;
         ClosePanel(); Compare.IsChecked = false;
@@ -112,6 +129,11 @@ public partial class ViewerView
         Owner.WindowState = _slideshowPreviousState;
         ImmersiveChanged?.Invoke(_fullscreen);
         ApplyChromeLayout(); Canvas.Fit(); RefreshNavigation();
+    }
+
+    public void ShowFullScreen()
+    {
+        if (!_fullscreen) ToggleFullScreen();
     }
 
     private void ToggleFullScreen()

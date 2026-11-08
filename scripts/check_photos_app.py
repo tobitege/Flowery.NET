@@ -3,9 +3,10 @@
 Called by the build-photos job of .github/workflows/ci.yml after the Release publish for the runner's own runtime.
 Drives the unchanged app from outside, as a user would, on the platform it runs on:
 
-1. Writes a 320 x 200 PNG with a red, a green and a blue band from left to right, starts the app with it, rotates
-   it clockwise (R) and saves a copy (Ctrl+S, which asks nothing). The copy must be 200 x 320 with red on top and
-   blue at the bottom. The shipped samples are square, so their size would not show the rotation.
+1. Writes a 320 x 200 PNG with a red, a green and a blue band from left to right, starts the app with it, turns
+   the view clockwise (R), opens the editor (Ctrl+E), which takes the turn over as an edit, and saves a copy
+   (Ctrl+S, which asks nothing). The copy must be 200 x 320 with red on top and blue at the bottom. The shipped
+   samples are square, so their size would not show the rotation.
 2. Resizes the window and closes it. Photos saves the window size when it closes and restores it at start.
 3. Starts the app again with the saved copy, checks the window size, rotates and saves the copy once more, which
    shows that the copy opened in the editor, and closes the app.
@@ -257,7 +258,10 @@ class Check:
         """Rotates the open photo clockwise and saves a copy; returns the copy."""
         before = set(self.photos.iterdir())
         original = ci_png.read(source.read_bytes())
+        # Outside the editor R turns only the view; opening the editor takes the turn over as an edit to save.
         self.driver.key(window, "r")
+        time.sleep(2)
+        self.driver.key(window, "e", control=True)
         time.sleep(2)
         self.driver.key(window, "s", control=True)
         deadline = time.monotonic() + 30
@@ -284,7 +288,7 @@ class Check:
             if process.poll() is not None:
                 raise RuntimeError(f"Photos exited with code {process.returncode} instead of saving a copy")
             if time.monotonic() > deadline:
-                raise RuntimeError(f"Photos saved no copy of {source.name} within 30 s. Either R and Ctrl+S came "
+                raise RuntimeError(f"Photos saved no copy of {source.name} within 30 s. Either R, Ctrl+E and Ctrl+S came "
                                    f"before the photo was open ({SETTLE_SECONDS} s after the window appeared), or "
                                    "the window did not get them")
             time.sleep(1)

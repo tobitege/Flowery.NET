@@ -28,13 +28,14 @@
               <c:DaisySelect AutomationProperties.AutomationId="GalleryView.Orientation" AutomationProperties.Name="{Binding [Photos_Orientation]}" x:Name="Orientation" Width="260" Margin="0,0,8,8" />
               <c:DaisyCheckBox AutomationProperties.AutomationId="GalleryView.Square" AutomationProperties.Name="{Binding [Photos_SquareTiles]}" x:Name="Square" Content="{Binding [Photos_SquareTiles]}" Margin="0,0,12,8" />
               <c:DaisyCheckBox AutomationProperties.AutomationId="GalleryView.Names" AutomationProperties.Name="{Binding [Photos_ShowFileNames]}" x:Name="Names" Content="{Binding [Photos_ShowFileNames]}" Margin="0,0,12,8" />
-              <c:DaisyRange AutomationProperties.AutomationId="GalleryView.TileSize" AutomationProperties.Name="{Binding [Photos_TileSize]}" x:Name="TileSize" Width="260" Minimum="90" Maximum="420" Margin="0,0,8,8" />
+              <c:DaisyRange AutomationProperties.AutomationId="GalleryView.TileSize" AutomationProperties.Name="{Binding [Photos_TileSize]}" x:Name="TileSize" Width="260" Minimum="50" Maximum="420" Margin="0,0,8,8" />
               </StackPanel>
             </Border>
           </Flyout>
         </c:DaisyButton.Flyout>
       </c:DaisyButton>
       <c:DaisyButton AutomationProperties.AutomationId="GalleryView.Slideshow" AutomationProperties.Name="{Binding [Photos_Slideshow]}" ToolTip.Tip="{Binding [Photos_Slideshow]}" IconSymbol="Play" Classes="toolbar-icon" Click="SlideshowClick" />
+      <c:DaisyButton x:Name="MuteVideos" AutomationProperties.AutomationId="GalleryView.MuteVideos" Classes="toolbar-icon" Click="MuteVideosClick" IsVisible="False" />
       <c:DaisyButton AutomationProperties.AutomationId="GalleryView.Import" AutomationProperties.Name="{Binding [Photos_Import]}" Content="{Binding [Photos_Import]}" IconSymbol="Add" Margin="8,0,8,6">
         <c:DaisyButton.Flyout>
           <MenuFlyout>

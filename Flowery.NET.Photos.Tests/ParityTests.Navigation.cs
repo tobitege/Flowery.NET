@@ -5,7 +5,6 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowery.Controls;
-using Flowery.NET.Photos.Models;
 using Flowery.NET.Photos.Services;
 using Flowery.NET.Photos.Views;
 using Xunit;

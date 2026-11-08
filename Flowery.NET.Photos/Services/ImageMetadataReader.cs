@@ -11,7 +11,9 @@ namespace Flowery.NET.Photos.Services
     /// </summary>
     public readonly record struct ImageProbe(int Width, int Height, DateTime? DateTaken, int Orientation, string? CameraModel, PhotoDetails? Details = null);
 
-    public sealed record PhotoDetails(string? Lens, string? Exposure, double? Latitude, double? Longitude);
+    /// <summary>Optional details: photo exposure and location, and the duration, codec and frame rate of a video.</summary>
+    public sealed record PhotoDetails(string? Lens, string? Exposure, double? Latitude, double? Longitude,
+        double? DurationSeconds = null, string? Codec = null, double? FrameRate = null);
 
     /// <summary>
     /// Reads image dimensions, EXIF orientation, capture date and camera model by parsing file headers directly.
@@ -19,15 +21,23 @@ namespace Flowery.NET.Photos.Services
     /// </summary>
     public static class ImageMetadataReader
     {
-        public static readonly HashSet<string> SupportedExtensions = new(StringComparer.OrdinalIgnoreCase)
+        public static readonly HashSet<string> VideoExtensions = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".mp4", ".m4v", ".mov", ".mkv", ".webm"
+        };
+
+        public static readonly HashSet<string> SupportedExtensions = new(new[]
         {
             ".jpg", ".jpeg", ".jpe", ".jfif", ".png", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".heic", ".heif", ".avif", ".jxr", ".wdp", ".ico"
-        };
+        }.Concat(VideoExtensions), StringComparer.OrdinalIgnoreCase);
 
         public static bool IsSupported(string path) => SupportedExtensions.Contains(System.IO.Path.GetExtension(path));
 
+        public static bool IsVideo(string path) => VideoExtensions.Contains(System.IO.Path.GetExtension(path));
+
         public static async Task<ImageProbe?> ProbeAsync(string path)
         {
+            if (IsVideo(path)) return VideoMetadataReader.Probe(path);
             try
             {
                 var fast = ProbeFast(path);
@@ -44,6 +54,8 @@ namespace Flowery.NET.Photos.Services
 
         public static async Task<ImageProbe?> ReadDetailsAsync(string path)
         {
+            // The shell's photo properties of a video are empty; its own header has more.
+            if (IsVideo(path)) return await ProbeAsync(path).ConfigureAwait(false);
 #if WINDOWS
             try { return await WindowsPhotoCodec.ReadMetadataAsync(path).ConfigureAwait(false); }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or System.Runtime.InteropServices.COMException)
@@ -97,8 +109,13 @@ namespace Flowery.NET.Photos.Services
             {
                 var w = BinaryPrimitives.ReadInt32BigEndian(head[16..]);
                 var h = BinaryPrimitives.ReadInt32BigEndian(head[20..]);
-                return new ImageProbe(w, h, null, 1, null);
+                // Skia draws PNG upright as stored and leaves the EXIF orientation aside, so the size stays as it is.
+                return WithExif(w, h, FindChunk(fs, 8, "eXIf", png: true), exifTurns: false);
             }
+
+            // HEIC and AVIF: the image size, rotation and EXIF block are items of the meta box.
+            if (head[4] == 'f' && head[5] == 't' && head[6] == 'y' && head[7] == 'p')
+                return ReadHeif(fs);
 
             // GIF
             if (head[0] == 'G' && head[1] == 'I' && head[2] == 'F')
@@ -135,7 +152,8 @@ namespace Flowery.NET.Photos.Services
                         {
                             var w = (buf[24] | (buf[25] << 8) | (buf[26] << 16)) + 1;
                             var h = (buf[27] | (buf[28] << 8) | (buf[29] << 16)) + 1;
-                            return new ImageProbe(w, h, null, 1, null);
+                            // Only the extended format can carry an EXIF chunk; Skia turns WebP by its orientation.
+                            return WithExif(w, h, FindChunk(fs, 12, "EXIF", png: false), exifTurns: true);
                         }
                 }
             }
@@ -210,6 +228,141 @@ namespace Flowery.NET.Photos.Services
                 (width, height) = (height, width);
 
             return new ImageProbe(width, height, taken, orientation, camera, details);
+        }
+
+        private const int MaxExifLength = 1024 * 1024;
+
+        // A probe from a size and an EXIF block, which may start with JPEG's "Exif" marker. The size turns by the EXIF
+        // orientation only where the decoder turns the picture too.
+        private static ImageProbe WithExif(int width, int height, byte[]? exif, bool exifTurns)
+        {
+            int orientation = 1;
+            DateTime? taken = null;
+            string? camera = null;
+            var tiff = exif.AsSpan();
+            if (tiff.StartsWith("Exif\0\0"u8)) tiff = tiff[6..];
+            var details = tiff.StartsWith("II*\0"u8) || tiff.StartsWith("MM\0*"u8)
+                ? ParseExif(tiff, ref orientation, ref taken, ref camera) : null;
+            if (!exifTurns) orientation = 1;
+            if (orientation is >= 5 and <= 8) (width, height) = (height, width);
+            return new ImageProbe(width, height, taken, orientation, camera, details);
+        }
+
+        // Finds a chunk by seeking over the others. PNG chunks carry a big-endian length before their type and a checksum
+        // after their data, WebP chunks a little-endian length after their type and a pad byte to an even length. PNG
+        // writes EXIF before its pixel data, so the search stops there; WebP writes it after the image data.
+        private static byte[]? FindChunk(Stream stream, long position, string type, bool png)
+        {
+            Span<byte> header = stackalloc byte[8];
+            stream.Position = position;
+            while (stream.Read(header) == 8)
+            {
+                var name = Encoding.ASCII.GetString(png ? header[4..] : header[..4]);
+                long length = png ? BinaryPrimitives.ReadUInt32BigEndian(header) : BinaryPrimitives.ReadUInt32LittleEndian(header[4..]);
+                if (name == type)
+                {
+                    if (length > MaxExifLength) return null;
+                    var data = new byte[length];
+                    stream.ReadExactly(data);
+                    return data;
+                }
+                if (png && name is "IDAT" or "IEND") return null;
+                stream.Position += length + (png ? 4 : length & 1);
+            }
+            return null;
+        }
+
+        private static ImageProbe? ReadHeif(Stream stream)
+        {
+            if (IsoBoxes.ReadTopLevel(stream, "meta", MaxExifLength) is not { } meta) return null;
+            var data = meta.AsSpan();
+            var boxes = IsoBoxes.Children(data, 4, meta.Length);
+            int width = 0, height = 0, turns = 0;
+            uint exifItem = 0;
+            IsoBox? locations = null;
+            foreach (var box in boxes)
+            {
+                if (box.Type == "iprp" && IsoBoxes.Find(data, box, "ipco") is { } properties)
+                    (width, height, turns) = ReadHeifSize(data, properties);
+                else if (box.Type == "iinf") exifItem = FindExifItem(data, box);
+                else if (box.Type == "iloc") locations = box;
+            }
+            if (width <= 0 || height <= 0) return null;
+            if (turns % 2 == 1) (width, height) = (height, width);
+            var item = exifItem > 0 && locations is { } iloc ? ReadItem(stream, data[iloc.Start..iloc.End], exifItem) : null;
+            // The item starts with the offset of the TIFF header behind it.
+            var exif = item is { Length: > 4 } && BinaryPrimitives.ReadUInt32BigEndian(item) is var offset && offset < item.Length - 4
+                ? item[(4 + (int)offset)..] : null;
+            return WithExif(width, height, exif, exifTurns: false);
+        }
+
+        // The largest image size property is the primary image; grid tiles and thumbnails are smaller.
+        private static (int Width, int Height, int Turns) ReadHeifSize(ReadOnlySpan<byte> data, IsoBox properties)
+        {
+            int width = 0, height = 0, turns = 0;
+            foreach (var property in IsoBoxes.Children(data, properties))
+            {
+                if (property.Type == "ispe" && property.Length >= 12)
+                {
+                    var w = (int)BinaryPrimitives.ReadUInt32BigEndian(data[(property.Start + 4)..]);
+                    var h = (int)BinaryPrimitives.ReadUInt32BigEndian(data[(property.Start + 8)..]);
+                    if ((long)w * h > (long)width * height) (width, height) = (w, h);
+                }
+                else if (property.Type == "irot" && property.Length >= 1) turns = data[property.Start] & 3;
+            }
+            return (width, height, turns);
+        }
+
+        // Item info entries of version 2 carry a 16-bit item ID, those of version 3 a 32-bit one, before the item type.
+        private static uint FindExifItem(ReadOnlySpan<byte> data, IsoBox info)
+        {
+            foreach (var entry in IsoBoxes.Children(data, info, data[info.Start] == 0 ? 6 : 8))
+            {
+                if (entry.Type != "infe" || entry.Length < 12 || data[entry.Start] < 2) continue;
+                var idLength = data[entry.Start] == 2 ? 2 : 4;
+                if (entry.Length < 10 + idLength) continue;
+                var id = IsoBoxes.ReadUnsigned(data.Slice(entry.Start + 4, idLength));
+                if (IsoBoxes.TypeName(data.Slice(entry.Start + 6 + idLength, 4)) == "Exif") return (uint)id;
+            }
+            return 0;
+        }
+
+        // The item location box gives each item a base offset and extents in the file; field sizes come from its header.
+        private static byte[]? ReadItem(Stream stream, ReadOnlySpan<byte> iloc, uint itemId)
+        {
+            var version = iloc[0];
+            int offsetSize = iloc[4] >> 4, lengthSize = iloc[4] & 15, baseSize = iloc[5] >> 4;
+            var indexSize = version > 0 ? iloc[5] & 15 : 0;
+            var position = 6;
+            ulong Next(ReadOnlySpan<byte> box, int size, ref int at)
+            {
+                var value = IsoBoxes.ReadUnsigned(box.Slice(at, size));
+                at += size;
+                return value;
+            }
+            var count = Next(iloc, version < 2 ? 2 : 4, ref position);
+            for (ulong i = 0; i < count; i++)
+            {
+                var id = Next(iloc, version < 2 ? 2 : 4, ref position);
+                var method = version > 0 ? Next(iloc, 2, ref position) & 15 : 0;
+                position += 2;
+                var baseOffset = Next(iloc, baseSize, ref position);
+                var extents = Next(iloc, 2, ref position);
+                for (ulong e = 0; e < extents; e++)
+                {
+                    position += indexSize;
+                    var offset = Next(iloc, offsetSize, ref position);
+                    var length = Next(iloc, lengthSize, ref position);
+                    // Only items stored in the file itself, in one piece.
+                    if (id != itemId) continue;
+                    if (method != 0 || extents != 1 || length > MaxExifLength) return null;
+                    stream.Position = (long)(baseOffset + offset);
+                    var item = new byte[length];
+                    stream.ReadExactly(item);
+                    return item;
+                }
+            }
+            return null;
         }
 
         private static PhotoDetails? ParseExif(ReadOnlySpan<byte> tiff, ref int orientation, ref DateTime? taken, ref string? camera)

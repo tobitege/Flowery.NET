@@ -167,7 +167,13 @@ namespace Flowery.NET.Photos.Services
 
         #region View options
 
+        /// <summary>The thumbnail size of every page: the row height of the gallery.</summary>
         public static double TileHeight { get; set; } = 200;
+        public const double MinTileHeight = 50;
+
+        /// <summary>The thumbnail size one step larger or smaller, from 50 pixels up to the window height.</summary>
+        public static double StepTileHeight(bool larger, double windowHeight) =>
+            Math.Clamp(TileHeight * (larger ? 1.12 : 1 / 1.12), MinTileHeight, Math.Max(MinTileHeight, windowHeight));
         public static PhotoSortMode SortMode { get; set; } = PhotoSortMode.DateTakenNewest;
         public static PhotoGroupMode GroupMode { get; set; } = PhotoGroupMode.Month;
         public static bool ShowFileNames { get; set; }
@@ -178,6 +184,10 @@ namespace Flowery.NET.Photos.Services
         public static int JpegQuality { get; set; } = 92;
         public static bool EditPanelOpen { get; set; } = true;
         public static bool SquareTiles { get; set; }
+        /// <summary>Videos start over at the end, in the viewer and in gallery thumbnails.</summary>
+        public static bool LoopVideos { get; set; }
+        /// <summary>Videos that play in gallery thumbnails are silent.</summary>
+        public static bool MuteGalleryVideos { get; set; }
 
         // Viewer "View" options
         public static bool ShowRulers { get; set; }
@@ -217,7 +227,8 @@ namespace Flowery.NET.Photos.Services
                 switch (key)
                 {
                     case nameof(TileHeight) when double.TryParse(value, NumberStyles.Float, inv, out var d):
-                        TileHeight = Math.Clamp(d, 90, 420);
+                        // The window height limits it again when it changes; here only the lower bound is known.
+                        TileHeight = Math.Clamp(d, MinTileHeight, 10_000);
                         break;
                     case nameof(SortMode) when Enum.TryParse(value, out PhotoSortMode sort):
                         SortMode = sort;
@@ -248,6 +259,12 @@ namespace Flowery.NET.Photos.Services
                         break;
                     case nameof(SquareTiles) when bool.TryParse(value, out var b):
                         SquareTiles = b;
+                        break;
+                    case nameof(LoopVideos) when bool.TryParse(value, out var loop):
+                        LoopVideos = loop;
+                        break;
+                    case nameof(MuteGalleryVideos) when bool.TryParse(value, out var mute):
+                        MuteGalleryVideos = mute;
                         break;
                     case nameof(ShowRulers) when bool.TryParse(value, out var b):
                         ShowRulers = b;
@@ -295,6 +312,8 @@ namespace Flowery.NET.Photos.Services
                 $"{nameof(JpegQuality)}={JpegQuality.ToString(inv)}",
                 $"{nameof(EditPanelOpen)}={EditPanelOpen}",
                 $"{nameof(SquareTiles)}={SquareTiles}",
+                $"{nameof(LoopVideos)}={LoopVideos}",
+                $"{nameof(MuteGalleryVideos)}={MuteGalleryVideos}",
                 $"{nameof(ShowRulers)}={ShowRulers}",
                 $"{nameof(ShowGrid)}={ShowGrid}",
                 $"{nameof(ShowStatusBar)}={ShowStatusBar}",
