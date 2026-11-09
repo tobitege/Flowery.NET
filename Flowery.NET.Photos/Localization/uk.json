@@ -345,6 +345,8 @@
   "Photos_Shortcut_SelectAll": "Вибрати все",
   "Photos_Shortcut_ZoomTiles": "Змінити розмір мініатюр",
   "Photos_Shortcut_Navigate": "Попереднє / наступне фото чи відео",
+  "Photos_Shortcut_Skip": "Відео: 10 секунд назад / вперед",
+  "Photos_Shortcut_Page": "Гортати сторінками; з Ctrl — до першого / останнього",
   "Photos_Shortcut_Edit": "Відкрити редактор",
   "Photos_Shortcut_Undo": "Скасувати зміну",
   "Photos_Shortcut_Redo": "Повторити зміну",

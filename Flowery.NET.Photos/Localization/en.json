@@ -345,6 +345,8 @@
   "Photos_Shortcut_SelectAll": "Select all",
   "Photos_Shortcut_ZoomTiles": "Change thumbnail size",
   "Photos_Shortcut_Navigate": "Previous / next photo or video",
+  "Photos_Shortcut_Skip": "Video: 10 seconds back / forward",
+  "Photos_Shortcut_Page": "Page up / down; with Ctrl, to the first / last",
   "Photos_Shortcut_Edit": "Open the editor",
   "Photos_Shortcut_Undo": "Undo edit",
   "Photos_Shortcut_Redo": "Redo edit",

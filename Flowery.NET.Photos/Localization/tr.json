@@ -345,6 +345,8 @@
   "Photos_Shortcut_SelectAll": "Tümünü seç",
   "Photos_Shortcut_ZoomTiles": "Küçük resim boyutunu değiştir",
   "Photos_Shortcut_Navigate": "Önceki / sonraki fotoğraf veya video",
+  "Photos_Shortcut_Skip": "Video: 10 saniye geri / ileri",
+  "Photos_Shortcut_Page": "Sayfa sayfa gezin; Ctrl ile başa / sona",
   "Photos_Shortcut_Edit": "Düzenleyiciyi aç",
   "Photos_Shortcut_Undo": "Düzenlemeyi geri al",
   "Photos_Shortcut_Redo": "Düzenlemeyi yinele",

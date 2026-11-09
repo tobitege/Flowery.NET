@@ -32,8 +32,8 @@ public partial class PhotosShell : UserControl, IDisposable
         _library = library;
         InitializeComponent();
         Collections.ItemTemplate = new FuncDataTemplate<CollectionRow>((row, _) => BuildCollectionRow(row));
-        AttachedToVisualTree += (_, _) => FlowerySizeManager.SizeChanged += OnCardSizeChanged;
-        DetachedFromVisualTree += (_, _) => FlowerySizeManager.SizeChanged -= OnCardSizeChanged;
+        AttachedToVisualTree += (_, _) => { FlowerySizeManager.SizeChanged += OnCardSizeChanged; AttachKeys(); };
+        DetachedFromVisualTree += (_, _) => { FlowerySizeManager.SizeChanged -= OnCardSizeChanged; DetachKeys(); };
         Gallery.Library = Viewer.Library = library;
         DataContext = PhotosLocalization.Instance;
         Gallery.OpenRequested += item => _ = OpenAsync(item, Gallery.Items);

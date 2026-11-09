@@ -16,6 +16,8 @@ public partial class GalleryView : UserControl
     private List<GalleryRow> _rows = [];
     private PhotoQuery _query = new();
     private string _title = "";
+    // The space between two thumbnails of a row, which the layout, the rows and the keyboard share.
+    private const double TileGap = 6;
     private PhotoItem? _anchor;
     private bool _updating;
     private double _layoutWidth;
@@ -58,8 +60,8 @@ public partial class GalleryView : UserControl
             _anchorPaths = null; _layoutVersion++;
             if (Scroller is { } scroller) ScrollToLayoutOffset(scroller, offset);
         };
-        AttachedToVisualTree += (_, _) => FlowerySizeManager.SizeChanged += OnGlobalSizeChanged;
-        DetachedFromVisualTree += (_, _) => FlowerySizeManager.SizeChanged -= OnGlobalSizeChanged;
+        AttachedToVisualTree += (_, _) => { FlowerySizeManager.SizeChanged += OnGlobalSizeChanged; AttachKeys(); };
+        DetachedFromVisualTree += (_, _) => { FlowerySizeManager.SizeChanged -= OnGlobalSizeChanged; DetachKeys(); };
         // A saved size above the default maximum stays until the window height is known.
         TileSize.Maximum = Math.Max(TileSize.Maximum, PhotosSettings.TileHeight);
         TileSize.Value = PhotosSettings.TileHeight;
@@ -184,7 +186,7 @@ public partial class GalleryView : UserControl
             DaisySize.Large => 1.25, DaisySize.ExtraLarge => 1.4, _ => 1
         };
         Timeline.IsVisible = DateSorted && _items.Count > 0;
-        _rows = GalleryLayout.Build(_items, Math.Max(100, Bounds.Width - (Timeline.IsVisible ? 90 : 25)), PhotosSettings.TileHeight * factor, 6,
+        _rows = GalleryLayout.Build(_items, Math.Max(100, Bounds.Width - (Timeline.IsVisible ? 90 : 25)), PhotosSettings.TileHeight * factor, TileGap,
             DateSorted ? PhotosSettings.GroupMode : PhotoGroupMode.None, PhotosSettings.SquareTiles);
         Rows.ItemsSource = _rows;
         Timeline.Update(_rows, offset, scroller?.Viewport.Height ?? 0);
@@ -223,25 +225,19 @@ public partial class GalleryView : UserControl
         if (path == null) return;
         var tile = BringRowIntoView(rowOf[path])?.GetVisualDescendants().OfType<PhotoTile>()
             .FirstOrDefault(candidate => PhotoLibrary.PathComparer.Equals(candidate.Item.Path, path));
-        if (tile != null) MoveTo(scroller, tile, top);
+        if (tile != null) PageScroll.MoveTo(scroller, tile, top);
     }
     // The timeline names an offset in the rows' own layout; the row there takes the same place in the view.
     private void ScrollToLayoutOffset(ScrollViewer scroller, double offset)
     {
         var index = GalleryLayout.FindRowAt(_rows, offset);
-        if (index >= 0 && BringRowIntoView(index) is { } row) MoveTo(scroller, row, _rows[index].Top - offset);
+        if (index >= 0 && BringRowIntoView(index) is { } row) PageScroll.MoveTo(scroller, row, _rows[index].Top - offset);
     }
     private Control? BringRowIntoView(int index)
     {
         Rows.ScrollIntoView(index);
         Rows.UpdateLayout();
         return Rows.ContainerFromIndex(index);
-    }
-    // Scrolls until the element's top lies at top in the scroller.
-    private static void MoveTo(ScrollViewer scroller, Control element, double top)
-    {
-        if (element.TranslatePoint(default, scroller) is { } point)
-            scroller.Offset = new Avalonia.Vector(0, scroller.Offset.Y + point.Y - top);
     }
     private ScrollViewer? Scroller => Rows.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
     private void OnGlobalSizeChanged(object? sender, DaisySize size) => RebuildRows();
@@ -266,7 +262,7 @@ public partial class GalleryView : UserControl
             return button;
         }
         var photos = (GalleryPhotoRow)row;
-        var panel = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 6, Height = row.Height };
+        var panel = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = TileGap, Height = row.Height };
         foreach (var (item, width) in photos.Tiles)
         {
             var tile = new PhotoTile(item, width, photos.TileHeight, PhotosSettings.ShowFileNames);

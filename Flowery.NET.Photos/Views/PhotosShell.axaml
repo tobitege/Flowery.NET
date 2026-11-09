@@ -24,7 +24,7 @@
       <TextBox AutomationProperties.AutomationId="PhotosShell.Search" AutomationProperties.Name="{Binding [Photos_SearchPlaceholder]}" x:Name="Search" MaxWidth="480" PlaceholderText="{Binding [Photos_SearchPlaceholder]}" />
     </Grid>
     <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
-      <Border x:Name="NavigationRail" Width="64" BorderBrush="{DynamicResource DaisyBase300Brush}" BorderThickness="0,0,1,0">
+      <Border x:Name="NavigationRail" XYFocus.NavigationModes="Keyboard" Width="64" BorderBrush="{DynamicResource DaisyBase300Brush}" BorderThickness="0,0,1,0">
         <Grid RowDefinitions="*,Auto">
           <StackPanel x:Name="NavigationButtons" Spacing="8" Margin="0,8">
             <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.Home" AutomationProperties.Name="{Binding [Photos_Nav_Home]}" ToolTip.Tip="{Binding [Photos_Nav_Home]}" Classes="rail" IconData="{StaticResource PhotosIconHome}" Tag="Home" Click="NavigateClick" />
@@ -38,7 +38,7 @@
       </Border>
       <Grid Grid.Column="1" Margin="16,0,16,8">
         <ScrollViewer x:Name="HomeScroll" Padding="8,12,8,24">
-          <StackPanel x:Name="Home" Spacing="24" />
+          <StackPanel x:Name="Home" XYFocus.NavigationModes="Keyboard" Spacing="24" />
         </ScrollViewer>
         <local:GalleryView x:Name="Gallery" IsVisible="False" />
         <Grid x:Name="CollectionsScroll" IsVisible="False" Margin="8,12,8,24" RowDefinitions="Auto,*">

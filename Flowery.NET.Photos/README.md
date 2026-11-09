@@ -127,6 +127,9 @@ The gallery supports these operations:
 - Sort by capture date, modified date, name, or size.
 - A visible-date indicator and a draggable timeline with proportional month and year positions.
 - Selection with checkboxes, Ctrl-click, Shift-click, or Select all.
+- Keyboard navigation: the arrow keys move between thumbnails, Page Up and Page Down move a screen, Home and End go to the start and end of the row, and Ctrl with Home, End, Page Up, or Page Down goes to the first or last thumbnail.
+  The album and folder pages work the same way with their cards.
+  On the home page the arrow keys move to the nearest card or button, and in the side bar the up and down arrow keys move between its buttons.
 - Batch favorites, album assignment, clipboard copy, and Windows Recycle Bin actions.
 - Context menus for individual photos or the visible selection.
 
@@ -149,7 +152,9 @@ Animated GIF and WebP files play with their frame times and repeat count.
 On Windows, the viewer plays videos with the Windows media player, which supplies the installed codecs and the sound.
 The playback bar offers play and pause, the position, the time, loop, and mute.
 On Linux and macOS, the viewer shows the video still and opens the video in the default player.
-Videos zoom, pan, and turn like photos while they play; a click on a video plays or pauses it, and a double click zooms in.
+Videos zoom, pan, and turn like photos while they play; a click on a video plays or pauses it.
+A double click or Enter takes a video to full screen and back; Enter also leaves full screen for a photo.
+On Windows, the left and right arrow keys jump ten seconds back or forward in a video; Page Up and Page Down go to the previous or next file.
 Videos cannot be edited or used as wallpaper.
 Outside the editor, turning changes only the view and asks for nothing to be saved.
 Opening the editor takes the turn over as an edit.

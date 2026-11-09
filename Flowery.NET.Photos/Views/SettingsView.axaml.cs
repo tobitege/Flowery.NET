@@ -68,14 +68,19 @@ public partial class SettingsView : Window
         (string Keys, string Name)[] shortcuts =
         [
             ("Ctrl+F", "Search"), ("Ctrl+,", "Settings"), ("Ctrl+A", "SelectAll"),
-            ("← / →", "Navigate"), ("+ / −", "Zoom"), ("0", "Fit"), ("F", "Favorite"),
+            ("← / → · PgUp / PgDn", "Navigate"), ("← / →", "Skip"), ("PgUp / PgDn", "Page"), ("+ / −", "Zoom"), ("0", "Fit"), ("F", "Favorite"),
             ("Ctrl+E", "Edit"), ("Ctrl+Z", "Undo"), ("Ctrl+Y", "Redo"), ("Ctrl+S", "Save"),
-            ("Delete", "Delete"), ("F5", "Slideshow"), ("F11", "FullScreen"), ("Esc", "Back")
+            ("Delete", "Delete"), ("F5", "Slideshow"), ("F11 / Enter", "FullScreen"), ("Esc", "Back")
         ];
+        // The key column takes the width of the widest keys in every row, so none runs into its label.
+        Grid.SetIsSharedSizeScope(Shortcuts, true);
         foreach (var (keys, name) in shortcuts)
         {
-            var row = new Grid { ColumnDefinitions = new ColumnDefinitions("130,*") };
-            row.Children.Add(new TextBlock { Text = keys, FontWeight = FontWeight.SemiBold });
+            var row = new Grid
+            {
+                ColumnDefinitions = { new ColumnDefinition(GridLength.Auto) { SharedSizeGroup = "Keys", MinWidth = 130 }, new ColumnDefinition(GridLength.Star) }
+            };
+            row.Children.Add(new TextBlock { Text = keys, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 0, 12, 0) });
             var label = new TextBlock { Text = PhotosLocalization.GetString("Photos_Shortcut_" + name), TextWrapping = TextWrapping.Wrap };
             Grid.SetColumn(label, 1); row.Children.Add(label); Shortcuts.Children.Add(row);
         }

@@ -118,7 +118,7 @@ public partial class ViewerView
         ApplyChromeLayout(); Canvas.Fit();
         SlideshowHint.IsVisible = true; _hintTimer.Start();
         _slideshow.Interval = TimeSpan.FromSeconds(PhotosSettings.SlideshowSeconds);
-        _slideshow.Start(); Canvas.Focus();
+        _slideshow.Start(); FocusCanvas();
     }
 
     public void StopSlideshow()

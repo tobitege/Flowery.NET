@@ -111,8 +111,14 @@ public partial class ViewerView : UserControl, IDisposable
         Canvas.ViewChanged += RefreshView;
         // A click on a video plays or pauses it; as on a photo, dragging pans and the wheel zooms.
         Canvas.Tapped += (_, _) => { if (_item?.IsVideo == true) Video.TogglePlay(); };
-        // A double click zooms; its first click came as a tap, which this takes back.
-        Canvas.DoubleTapped += (_, _) => { if (_item?.IsVideo == true) Video.TogglePlay(); };
+        // As in a media player, a double click on a video goes to full screen and back; its first click came as a tap,
+        // which this takes back, so the video plays or rests as before, at the same place.
+        Canvas.DoubleTapped += (_, _) =>
+        {
+            if (_item?.IsVideo != true || IsSlideshow) return;
+            Video.UndoTogglePlay();
+            ToggleFullScreen();
+        };
         Compare.IsCheckedChanged += (_, _) => { Canvas.Compare = Compare.IsChecked == true; Canvas.InvalidateVisual(); UpdateAnimation(); };
         ColorEditor.ColorChanged += (_, e) => Canvas.PrimaryColor = e.Color;
         SecondaryColorEditor.ColorChanged += (_, e) =>
@@ -214,6 +220,7 @@ public partial class ViewerView : UserControl, IDisposable
         if (_item != null) _item.PropertyChanged -= OnPhotoPropertyChanged;
         _item = item; _items = items;
         _item.PropertyChanged += OnPhotoPropertyChanged;
+        Canvas.ZoomsOnDoubleTap = !item.IsVideo;
         try
         {
             // Where the app plays a video, its first frame comes within moments, and a still taken first only kept it
@@ -263,7 +270,7 @@ public partial class ViewerView : UserControl, IDisposable
                 _load = null; IsEnabled = !_saving && !_disposed;
                 foreach (var button in Toolbar.GetVisualDescendants().OfType<DaisyButton>())
                     button.IsEnabled = IsAvailable(button.Tag as string);
-                if (IsEnabled && (Canvas.Bitmap != null || item.IsVideo)) Canvas.Focus();
+                if (IsEnabled && (Canvas.Bitmap != null || item.IsVideo)) FocusCanvas();
             }
             load.Dispose();
         }
@@ -288,7 +295,8 @@ public partial class ViewerView : UserControl, IDisposable
     private static readonly HashSet<string> PictureFreeActions = ["back", "previous", "next", "info", "fullscreen", "delete", "settings", "closePanel"];
     // Videos are watched, zoomed and turned for the view, kept and organized, but not edited or shown in a slideshow.
     private static readonly HashSet<string> VideoActions = [.. PictureFreeActions, "view", "favorite", "copy", "openWith", "reveal",
-        "copyPath", "map", "playPause", "mute", "left", "right", "zoomIn", "zoomOut", "fit", "actual"];
+        "copyPath", "map", "playPause", "mute", "skipBack", "skipForward", "left", "right", "zoomIn", "zoomOut", "fit", "actual"];
+    private static readonly TimeSpan SkipStep = TimeSpan.FromSeconds(10);
 
     private bool IsAvailable(string? action) => action is null || (_item?.IsVideo == true ? VideoActions.Contains(action)
         : Canvas.Bitmap != null || PictureFreeActions.Contains(action));
@@ -585,7 +593,15 @@ public partial class ViewerView : UserControl, IDisposable
             return true;
         }
         catch (Exception ex) { Notification?.Invoke(PhotosLocalization.Format("Photos_SaveFailed", ex.Message), true); return false; }
-        finally { _saving = false; IsEnabled = !_disposed; if (IsEnabled) Canvas.Focus(); }
+        finally { _saving = false; IsEnabled = !_disposed; if (IsEnabled) FocusCanvas(); }
+    }
+    // The keys reach the viewer through the focused canvas. Before the viewer's first layout the canvas cannot take the
+    // focus yet, which a video, opened at once without a still, met on the first open: no key reached the viewer, not
+    // even Esc or Enter in full screen. It takes the focus once laid out.
+    private void FocusCanvas()
+    {
+        if (!Canvas.Focus())
+            Dispatcher.UIThread.Post(() => { if (IsEffectivelyVisible && IsEnabled) Canvas.Focus(); }, DispatcherPriority.Loaded);
     }
     private void BuildPalette()
     {
@@ -755,6 +771,8 @@ public partial class ViewerView : UserControl, IDisposable
             case "next": await NavigateAsync(1); break;
             case "edit": BeginEditing(); break;
             case "playPause": Video.TogglePlay(); break;
+            case "skipBack": Video.Skip(-SkipStep); break;
+            case "skipForward": Video.Skip(SkipStep); break;
             case "mute": Video.ToggleMute(); break;
             case "favorite": if (_item != null) Library.ToggleFavorite(_item); break;
             case "slideshow": if (IsSlideshow) StopSlideshow(); else StartSlideshow(); break;
@@ -858,10 +876,13 @@ public partial class ViewerView : UserControl, IDisposable
         }
         var ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
         var shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+        var playable = _item?.IsVideo == true && Video.IsPlayable;
+        var onButton = false;
         if (e.Source is Visual source)
         {
             var ancestors = source.GetSelfAndVisualAncestors().ToArray();
             if (ancestors.Any(visual => visual is TextBox)) return;
+            onButton = ancestors.Any(visual => visual is Button);
             if (!ctrl && e.Key is Key.Left or Key.Right or Key.Up or Key.Down or Key.Home or Key.End or Key.PageUp or Key.PageDown &&
                 ancestors.Any(visual => visual is RangeBase or SelectingItemsControl)) return;
         }
@@ -874,6 +895,8 @@ public partial class ViewerView : UserControl, IDisposable
         }
         var action = e.Key switch
         {
+            // As in a media player, the arrow keys jump through a video that plays here; Page Up and Page Down still go on.
+            Key.Left when playable => "skipBack", Key.Right when playable => "skipForward",
             Key.Left or Key.PageUp => "previous", Key.Right or Key.PageDown => "next", Key.F11 => "fullscreen", Key.F5 => "slideshow",
             Key.Space when _item?.IsVideo == true => "playPause", Key.M when !ctrl && _item?.IsVideo == true => "mute",
             Key.F when !ctrl => "favorite", Key.R => e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? "left" : "right",
@@ -883,6 +906,9 @@ public partial class ViewerView : UserControl, IDisposable
             Key.Z when ctrl => shift ? "redo" : "undo", Key.Y when ctrl => "redo",
             Key.S when ctrl => shift ? "replace" : "save", Key.E when ctrl => "edit", Key.C when ctrl => "copy",
             Key.Escape => _fullscreen ? "fullscreen" : Compare.IsChecked == true ? "closeCompare" : SidePanel.IsVisible ? "closePanel" : "back",
+            // As in a media player, Enter takes a video to full screen and back, and any picture out of it; on a
+            // button it stays the button's.
+            Key.Enter when !onButton && (_fullscreen || _item?.IsVideo == true) => "fullscreen",
             Key.Delete => "delete",
             _ => null
         };
