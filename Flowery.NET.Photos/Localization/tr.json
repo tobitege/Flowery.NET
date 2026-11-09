@@ -65,6 +65,10 @@
   "Photos_TileSize": "Küçük resim boyutu",
   "Photos_SquareTiles": "Kare küçük resimler",
   "Photos_ShowFileNames": "Dosya adlarını göster",
+  "Photos_ShowTimeline": "Tarihe göre sıralamada zaman çizelgesi",
+  "Photos_ShowLetters": "Ada göre sıralamada harf çubuğu",
+  "Photos_LetterDigits": "Harf çubuğunda 0–9 rakamları",
+  "Photos_LetterUmlauts": "Harf çubuğunda Ä, Ö, Ü harfleri",
 
   "Photos_Import": "İçeri aktar",
   "Photos_AddFolder": "Klasör ekle",

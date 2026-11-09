@@ -65,6 +65,10 @@
   "Photos_TileSize": "Розмір мініатюр",
   "Photos_SquareTiles": "Квадратні мініатюри",
   "Photos_ShowFileNames": "Показувати імена файлів",
+  "Photos_ShowTimeline": "Шкала часу під час сортування за датою",
+  "Photos_ShowLetters": "Панель літер під час сортування за назвою",
+  "Photos_LetterDigits": "Цифри 0–9 на панелі літер",
+  "Photos_LetterUmlauts": "Умлаути Ä, Ö, Ü на панелі літер",
 
   "Photos_Import": "Імпорт",
   "Photos_AddFolder": "Додати папку",

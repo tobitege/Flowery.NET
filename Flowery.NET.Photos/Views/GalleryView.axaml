@@ -28,6 +28,10 @@
               <c:DaisySelect AutomationProperties.AutomationId="GalleryView.Orientation" AutomationProperties.Name="{Binding [Photos_Orientation]}" x:Name="Orientation" Width="260" Margin="0,0,8,8" />
               <c:DaisyCheckBox AutomationProperties.AutomationId="GalleryView.Square" AutomationProperties.Name="{Binding [Photos_SquareTiles]}" x:Name="Square" Content="{Binding [Photos_SquareTiles]}" Margin="0,0,12,8" />
               <c:DaisyCheckBox AutomationProperties.AutomationId="GalleryView.Names" AutomationProperties.Name="{Binding [Photos_ShowFileNames]}" x:Name="Names" Content="{Binding [Photos_ShowFileNames]}" Margin="0,0,12,8" />
+              <c:DaisyCheckBox AutomationProperties.AutomationId="GalleryView.ShowTimeline" AutomationProperties.Name="{Binding [Photos_ShowTimeline]}" x:Name="ShowTimeline" Content="{Binding [Photos_ShowTimeline]}" Margin="0,0,12,8" />
+              <c:DaisyCheckBox AutomationProperties.AutomationId="GalleryView.ShowLetters" AutomationProperties.Name="{Binding [Photos_ShowLetters]}" x:Name="ShowLetters" Content="{Binding [Photos_ShowLetters]}" Margin="0,0,12,8" />
+              <c:DaisyCheckBox AutomationProperties.AutomationId="GalleryView.LetterDigits" AutomationProperties.Name="{Binding [Photos_LetterDigits]}" x:Name="LetterDigits" Content="{Binding [Photos_LetterDigits]}" Margin="24,0,12,8" />
+              <c:DaisyCheckBox AutomationProperties.AutomationId="GalleryView.LetterUmlauts" AutomationProperties.Name="{Binding [Photos_LetterUmlauts]}" x:Name="LetterUmlauts" Content="{Binding [Photos_LetterUmlauts]}" Margin="24,0,12,8" />
               <c:DaisyRange AutomationProperties.AutomationId="GalleryView.TileSize" AutomationProperties.Name="{Binding [Photos_TileSize]}" x:Name="TileSize" Width="260" Minimum="50" Maximum="420" Margin="0,0,8,8" />
               </StackPanel>
             </Border>
@@ -53,6 +57,7 @@
         <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
       </ListBox>
       <local:GalleryTimeline x:Name="Timeline" Grid.Column="1" Width="65" AutomationProperties.AutomationId="Photos.Timeline" AutomationProperties.Name="{Binding [Photos_GroupBy]}" />
+      <local:GalleryLetters x:Name="Letters" Grid.Column="1" Width="36" Margin="4,0,0,0" IsVisible="False" AutomationProperties.AutomationId="GalleryView.Letters" AutomationProperties.Name="{Binding [Photos_ShowLetters]}" />
       <StackPanel x:Name="Empty" Grid.ColumnSpan="2" Spacing="12" MaxWidth="440" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="False">
         <TextBlock x:Name="EmptyTitle" Classes="heading" TextAlignment="Center" TextWrapping="Wrap" />
         <TextBlock x:Name="EmptyText" TextAlignment="Center" TextWrapping="Wrap" Opacity="0.7" />

@@ -67,6 +67,10 @@ public partial class GalleryView : UserControl
         TileSize.Value = PhotosSettings.TileHeight;
         Square.IsChecked = PhotosSettings.SquareTiles;
         Names.IsChecked = PhotosSettings.ShowFileNames;
+        ShowTimeline.IsChecked = PhotosSettings.ShowTimeline;
+        ShowLetters.IsChecked = PhotosSettings.ShowLetters;
+        LetterDigits.IsChecked = PhotosSettings.LetterDigits;
+        LetterUmlauts.IsChecked = PhotosSettings.LetterUmlauts;
         RefreshLabels();
         Sort.SelectionChanged += (_, _) => ApplyOptions();
         Group.SelectionChanged += (_, _) => ApplyOptions();
@@ -74,6 +78,11 @@ public partial class GalleryView : UserControl
         Orientation.SelectionChanged += (_, _) => ApplyOptions();
         Square.IsCheckedChanged += (_, _) => ApplyOptions();
         Names.IsCheckedChanged += (_, _) => ApplyOptions();
+        ShowTimeline.IsCheckedChanged += (_, _) => ApplyOptions();
+        ShowLetters.IsCheckedChanged += (_, _) => ApplyOptions();
+        LetterDigits.IsCheckedChanged += (_, _) => ApplyOptions();
+        LetterUmlauts.IsCheckedChanged += (_, _) => ApplyOptions();
+        Letters.LetterChosen += GoToLetter;
         TileSize.PropertyChanged += (_, e) => { if (e.Property == Slider.ValueProperty) ApplyOptions(); };
         // A video playing in a thumbnail stops when the gallery hides, for the viewer or another page.
         PropertyChanged += (_, e) => { if (e.Property == IsVisibleProperty && !IsVisible) PhotoTile.StopPlayback(); };
@@ -163,6 +172,10 @@ public partial class GalleryView : UserControl
         PhotosSettings.GroupMode = (PhotoGroupMode)Math.Max(0, Group.SelectedIndex);
         PhotosSettings.SquareTiles = Square.IsChecked == true;
         PhotosSettings.ShowFileNames = Names.IsChecked == true;
+        PhotosSettings.ShowTimeline = ShowTimeline.IsChecked == true;
+        PhotosSettings.ShowLetters = ShowLetters.IsChecked == true;
+        PhotosSettings.LetterDigits = LetterDigits.IsChecked == true;
+        PhotosSettings.LetterUmlauts = LetterUmlauts.IsChecked == true;
         PhotosSettings.TileHeight = TileSize.Value;
         _query = _query with { TypeFilter = (PhotoTypeFilter)Math.Max(0, Type.SelectedIndex), OrientationFilter = (PhotoOrientationFilter)Math.Max(0, Orientation.SelectedIndex) };
         PhotosSettings.SaveOptions();
@@ -185,8 +198,11 @@ public partial class GalleryView : UserControl
             DaisySize.ExtraSmall => .85, DaisySize.Small => 1, DaisySize.Medium => 1.12,
             DaisySize.Large => 1.25, DaisySize.ExtraLarge => 1.4, _ => 1
         };
-        Timeline.IsVisible = DateSorted && _items.Count > 0;
-        _rows = GalleryLayout.Build(_items, Math.Max(100, Bounds.Width - (Timeline.IsVisible ? 90 : 25)), PhotosSettings.TileHeight * factor, TileGap,
+        // Beside the rows, the timeline for a date order and the letters for a name order, each when chosen.
+        Timeline.IsVisible = DateSorted && _items.Count > 0 && PhotosSettings.ShowTimeline;
+        Letters.IsVisible = NameSorted && _items.Count > 0 && PhotosSettings.ShowLetters;
+        if (Letters.IsVisible) Letters.Update(_items.Select(item => item.FileName), PhotosSettings.LetterDigits, PhotosSettings.LetterUmlauts);
+        _rows = GalleryLayout.Build(_items, Math.Max(100, Bounds.Width - (Timeline.IsVisible ? 90 : Letters.IsVisible ? 65 : 25)), PhotosSettings.TileHeight * factor, TileGap,
             DateSorted ? PhotosSettings.GroupMode : PhotoGroupMode.None, PhotosSettings.SquareTiles);
         Rows.ItemsSource = _rows;
         Timeline.Update(_rows, offset, scroller?.Viewport.Height ?? 0);
@@ -198,7 +214,7 @@ public partial class GalleryView : UserControl
             _anchorPaths = null;
             Timeline.Update(_rows, current.Offset.Y, current.Viewport.Height);
         }, DispatcherPriority.Loaded);
-        DateChip.Text = _rows.Count == 0 ? "" : GalleryLayout.FormatLongDate(_rows[0].Date, PhotosLocalization.CurrentCulture);
+        DateChip.Text = _rows.Count == 0 ? "" : MonthOf(_rows[0]);
     }
     // Of the tiles in view, the topmost row and its first photo; the photos after it stand in if it goes.
     private void RememberTopPhoto(ScrollViewer scroller)
@@ -302,6 +318,9 @@ public partial class GalleryView : UserControl
     }
     public IReadOnlyList<PhotoItem> ContextItems(PhotoItem item) => item.IsSelected ? Selected : [item];
     private bool DateSorted => PhotosSettings.SortMode is PhotoSortMode.DateTakenNewest or PhotoSortMode.DateTakenOldest;
+    private static bool NameSorted => PhotosSettings.SortMode is PhotoSortMode.NameAscending or PhotoSortMode.NameDescending;
+    // The month and year of a row, which the header shows for the topmost one on the screen.
+    private static string MonthOf(GalleryRow row) => GalleryLayout.FormatGroupTitle(row.Date, PhotoGroupMode.Month, PhotosLocalization.CurrentCulture);
     /// <summary>Scrolls to the photo and focuses it; false when the gallery does not show it.</summary>
     public bool FocusPhoto(PhotoItem? item)
     {
@@ -319,9 +338,23 @@ public partial class GalleryView : UserControl
         if (e.Source is not ScrollViewer scroller) return;
         Timeline.Update(_rows, scroller.Offset.Y, scroller.Viewport.Height);
         var index = GalleryLayout.FindRowAt(_rows, scroller.Offset.Y + 4);
-        if (index >= 0) DateChip.Text = PhotosSettings.GroupMode == PhotoGroupMode.Year
-            ? GalleryLayout.FormatGroupTitle(_rows[index].Date, PhotoGroupMode.Month, PhotosLocalization.CurrentCulture)
-            : GalleryLayout.FormatLongDate(_rows[index].Date, PhotosLocalization.CurrentCulture);
+        if (index >= 0) DateChip.Text = MonthOf(_rows[index]);
+    }
+    // Puts the row of the first file with the letter at the top and focuses the file.
+    private void GoToLetter(string letter)
+    {
+        if (Scroller is not { } scroller) return;
+        for (var row = 0; row < _rows.Count; row++)
+        {
+            if (_rows[row] is not GalleryPhotoRow photos) continue;
+            for (var column = 0; column < photos.Tiles.Count; column++)
+            {
+                if (Letters.LetterFor(photos.Tiles[column].Item.FileName) != letter) continue;
+                _anchorPaths = null; _layoutVersion++;
+                PageScroll.Show<PhotoTile>(scroller, Rows, row, column, 0, 0);
+                return;
+            }
+        }
     }
     private void ResetFiltersClick(object? sender, RoutedEventArgs e)
     {

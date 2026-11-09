@@ -65,6 +65,10 @@
   "Photos_TileSize": "Thumbnail size",
   "Photos_SquareTiles": "Square thumbnails",
   "Photos_ShowFileNames": "Show file names",
+  "Photos_ShowTimeline": "Date timeline when sorted by date",
+  "Photos_ShowLetters": "Letter bar when sorted by name",
+  "Photos_LetterDigits": "Digits 0–9 in the letter bar",
+  "Photos_LetterUmlauts": "Umlauts Ä, Ö, Ü in the letter bar",
 
   "Photos_Import": "Import",
   "Photos_AddFolder": "Add folder",

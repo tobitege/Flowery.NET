@@ -62,6 +62,15 @@
       <Setter Property="Shape" Value="Square" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+    <!-- Full scrollbars with their arrows that stay, instead of a thin line that widens under the pointer: a gallery of
+         hundreds of photos scrolls by dragging the thumb, and a thin line is hard to hit. -->
+    <Style Selector="ScrollViewer">
+      <Setter Property="AllowAutoHide" Value="False" />
+    </Style>
+    <!-- Lists and text boxes hand their own setting to the scroll viewer in their template, which wins over the style. -->
+    <Style Selector=":is(ItemsControl), TextBox">
+      <Setter Property="ScrollViewer.AllowAutoHide" Value="False" />
+    </Style>
     <Style Selector="ListBoxItem">
       <Setter Property="Padding" Value="0" />
       <Setter Property="HorizontalContentAlignment" Value="Stretch" />

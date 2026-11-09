@@ -65,6 +65,10 @@
   "Photos_TileSize": "גודל תמונות ממוזערות",
   "Photos_SquareTiles": "תמונות ממוזערות ריבועיות",
   "Photos_ShowFileNames": "הצג שמות קבצים",
+  "Photos_ShowTimeline": "ציר זמן במיון לפי תאריך",
+  "Photos_ShowLetters": "סרגל אותיות במיון לפי שם",
+  "Photos_LetterDigits": "ספרות 0–9 בסרגל האותיות",
+  "Photos_LetterUmlauts": "אותיות Ä, Ö, Ü בסרגל האותיות",
 
   "Photos_Import": "ייבוא",
   "Photos_AddFolder": "הוסף תיקייה",

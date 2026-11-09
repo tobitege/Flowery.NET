@@ -65,6 +65,10 @@
   "Photos_TileSize": "Dimensioni miniature",
   "Photos_SquareTiles": "Miniature quadrate",
   "Photos_ShowFileNames": "Mostra nomi file",
+  "Photos_ShowTimeline": "Linea temporale con l'ordine per data",
+  "Photos_ShowLetters": "Barra delle lettere con l'ordine per nome",
+  "Photos_LetterDigits": "Cifre 0–9 nella barra delle lettere",
+  "Photos_LetterUmlauts": "Dieresi Ä, Ö, Ü nella barra delle lettere",
 
   "Photos_Import": "Importa",
   "Photos_AddFolder": "Aggiungi cartella",

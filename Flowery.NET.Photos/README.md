@@ -125,7 +125,8 @@ The gallery supports these operations:
 - Search by name, folder, camera, year, or month.
 - File type filters, including videos, and orientation filters.
 - Sort by capture date, modified date, name, or size.
-- A visible-date indicator and a draggable timeline with proportional month and year positions.
+- Full scrollbars, the month and year of the topmost photo in the header, and an optional draggable timeline with proportional month and year positions.
+- With name sorting, a bar of first letters (0–9, A–Z, Ä, Ö, Ü, #) that goes to the first file with a letter; it can be switched off, and so can its digits and umlauts.
 - Selection with checkboxes, Ctrl-click, Shift-click, or Select all.
 - Keyboard navigation: the arrow keys move between thumbnails, Page Up and Page Down move a screen, Home and End go to the start and end of the row, and Ctrl with Home, End, Page Up, or Page Down goes to the first or last thumbnail.
   The album and folder pages work the same way with their cards.
@@ -133,7 +134,7 @@ The gallery supports these operations:
 - Batch favorites, album assignment, clipboard copy, and Windows Recycle Bin actions.
 - Context menus for individual photos or the visible selection.
 
-Date groups and the timeline appear only with capture-date sorting.
+Date groups and the timeline appear only with capture-date sorting; the timeline is off by default and switches on in the view options.
 Search retains the current folder, album, or favorites source.
 Album and folder cards load their covers only in the visible part of the collection list.
 Thumbnails on the screen load first, from the top, and videos load their stills alongside the photos.
