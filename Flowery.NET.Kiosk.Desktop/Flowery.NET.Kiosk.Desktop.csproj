@@ -15,6 +15,6 @@
     <ProjectReference Include="..\Flowery.NET.Kiosk\Flowery.NET.Kiosk.csproj" />
     <!-- SafeEmbeddedFontCollection: font stand-ins that optimized code cannot crash. -->
     <ProjectReference Include="..\Flowery.NET.Skia\Flowery.NET.Skia.csproj" />
-    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.5" />
   </ItemGroup>
 </Project>

@@ -15,7 +15,7 @@
     <ProjectReference Include="..\Flowery.NET.Photos\Flowery.NET.Photos.csproj" />
     <!-- SafeEmbeddedFontCollection: font stand-ins that optimized code cannot crash. -->
     <ProjectReference Include="..\Flowery.NET.Skia\Flowery.NET.Skia.csproj" />
-    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.5" />
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <PackageReference Include="Chrome.DevTools.Avalonia" Version="0.1.0" PrivateAssets="all" />
