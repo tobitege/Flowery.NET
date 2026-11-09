@@ -34,10 +34,14 @@ public sealed class VideoPlayer : Grid, IDisposable
     private WriteableBitmap? _bitmap;
     private bool _updating;
     private string? _path;
+    // The player could not open the video, which then offers the default player instead.
+    private bool _failed;
     private bool _muted;
     private readonly bool _compact;
 #if WINDOWS
     private WindowsVideoPlayback? _playback;
+    // Playing or not and the place in the video before the last TogglePlay, which a double click takes back.
+    private (bool Playing, TimeSpan Position)? _beforeToggle;
     private bool _framePosted;
 #endif
 
@@ -103,6 +107,9 @@ public sealed class VideoPlayer : Grid, IDisposable
 
     /// <summary>True when this system plays videos in the app.</summary>
     public static bool CanPlay => OperatingSystem.IsWindows();
+
+    /// <summary>Whether this player plays its video: on Windows, unless the video failed to open.</summary>
+    internal bool IsPlayable => CanPlay && _path != null && !_failed;
 
     /// <summary>The height a compact bar takes at the bottom, with its gap.</summary>
     public const double CompactBarHeight = 40;
@@ -195,10 +202,12 @@ public sealed class VideoPlayer : Grid, IDisposable
     {
         Close();
         _path = path;
+        _failed = false;
         IsVisible = true;
         _open.IsVisible = !CanPlay && !_compact;
         _controls.IsVisible = CanPlay;
 #if WINDOWS
+        _beforeToggle = null;
         var playback = new WindowsVideoPlayback(MaxEdge) { IsLooping = PhotosSettings.LoopVideos, Volume = Volume, IsMuted = _muted };
         playback.FrameReady += OnFrame;
         playback.Opened += error => Dispatcher.UIThread.Post(() =>
@@ -229,6 +238,7 @@ public sealed class VideoPlayer : Grid, IDisposable
     // A video the system cannot play opens in the default player; a thumbnail keeps its still.
     private void ShowOpenInstead()
     {
+        _failed = true;
         _controls.IsVisible = false;
         _open.IsVisible = !_compact;
         Failed?.Invoke();
@@ -274,6 +284,7 @@ public sealed class VideoPlayer : Grid, IDisposable
     {
 #if WINDOWS
         if (_playback is not { } playback) return;
+        _beforeToggle = (playback.IsPlaying, playback.Position);
         if (playback.IsPlaying) playback.Pause();
         else
         {
@@ -286,7 +297,32 @@ public sealed class VideoPlayer : Grid, IDisposable
 #endif
     }
 
+    /// <summary>
+    /// Takes the last <see cref="TogglePlay"/> back, the playing or resting and the place in the video: the first click
+    /// of a double click came as a click, and at the end of a video it had started it over.
+    /// </summary>
+    internal void UndoTogglePlay()
+    {
+#if WINDOWS
+        if (_playback is not { } playback || _beforeToggle is not var (playing, position)) return;
+        _beforeToggle = null;
+        if (playing) playback.Play(); else playback.Pause();
+        playback.Position = position;
+        RefreshControls();
+#endif
+    }
+
     public void ToggleMute() => IsMuted = !IsMuted;
+
+    /// <summary>Jumps back or forward by the given time, no further than the start or the end.</summary>
+    internal void Skip(TimeSpan by)
+    {
+#if WINDOWS
+        if (_playback is not { } playback || playback.Duration <= TimeSpan.Zero) return;
+        playback.Position = TimeSpan.FromTicks(Math.Clamp((playback.Position + by).Ticks, 0, playback.Duration.Ticks));
+        RefreshControls();
+#endif
+    }
 
     private void Seek(double seconds)
     {

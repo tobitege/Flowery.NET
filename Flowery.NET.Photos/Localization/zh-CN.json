@@ -345,6 +345,8 @@
   "Photos_Shortcut_SelectAll": "全选",
   "Photos_Shortcut_ZoomTiles": "更改缩略图大小",
   "Photos_Shortcut_Navigate": "上一个 / 下一个照片或视频",
+  "Photos_Shortcut_Skip": "视频：后退 / 前进 10 秒",
+  "Photos_Shortcut_Page": "按页浏览；按住 Ctrl 跳到第一个 / 最后一个",
   "Photos_Shortcut_Edit": "打开编辑器",
   "Photos_Shortcut_Undo": "撤消编辑",
   "Photos_Shortcut_Redo": "重做编辑",

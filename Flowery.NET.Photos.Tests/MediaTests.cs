@@ -187,16 +187,57 @@ public sealed class MediaTests
                 Run("fit");
                 Assert.Equal(fitted, Shown());
 
-                // A double click zooms in, as on a photo, and leaves the video paused; its first click played it before.
-                var aside = center + new Point(10, 0);
-                for (var click = 0; click < 2; click++)
+                // As in a media player, a double click and Enter take the video to full screen and back, and it stays
+                // paused; only Esc left full screen before. A point aside keeps the earlier click from counting.
+                void DoubleClick(double offset)
                 {
-                    window.MouseDown(aside, Avalonia.Input.MouseButton.Left); window.MouseUp(aside, Avalonia.Input.MouseButton.Left);
+                    window.UpdateLayout();
+                    var at = canvas.TranslatePoint(canvas.ImageBounds.Center, window)!.Value + new Point(offset, 0);
+                    for (var click = 0; click < 2; click++)
+                    {
+                        window.MouseDown(at, Avalonia.Input.MouseButton.Left); window.MouseUp(at, Avalonia.Input.MouseButton.Left);
+                    }
                 }
-                Assert.Equal(100, canvas.Zoom);
+                void Enter() => window.KeyPress(Avalonia.Input.Key.Enter, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Enter, null);
+                DoubleClick(10);
+                Assert.Equal(WindowState.FullScreen, window.WindowState);
+                Assert.Equal(0, canvas.Zoom);
+                DoubleClick(-10);
+                Assert.NotEqual(WindowState.FullScreen, window.WindowState);
+                Enter();
+                Assert.Equal(WindowState.FullScreen, window.WindowState);
+                Enter();
+                Assert.NotEqual(WindowState.FullScreen, window.WindowState);
                 await Task.Delay(300, TestContext.Current.CancellationToken);
                 Assert.Equal(Localization.PhotosLocalization.GetString("Photos_Play"), AutomationProperties.GetName(play));
-                Run("fit");
+
+                // The arrow keys jump through the video, here of one second, instead of going to another file.
+                var position = player.GetVisualDescendants().OfType<DaisyRange>()
+                    .Single(range => AutomationProperties.GetAutomationId(range) == "ViewerView.Video.Position");
+                canvas.Focus();
+                window.KeyPress(Avalonia.Input.Key.Right, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.ArrowRight, null);
+                // The player reports its position from a worker; under load the jump shows a moment later.
+                await WaitUntilAsync(() => Math.Abs(position.Value - position.Maximum) < 0.01);
+                // A double click at the end goes to full screen and back and leaves the video there; its first click
+                // started the video over before.
+                DoubleClick(20);
+                Assert.Equal(WindowState.FullScreen, window.WindowState);
+                await Task.Delay(300, TestContext.Current.CancellationToken);
+                Assert.Equal(position.Maximum, position.Value, 2);
+                DoubleClick(-20);
+                Assert.NotEqual(WindowState.FullScreen, window.WindowState);
+                canvas.Focus();
+                window.KeyPress(Avalonia.Input.Key.Left, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.ArrowLeft, null);
+                await WaitUntilAsync(() => position.Value < 0.01);
+                Assert.Same(item, viewer.Current);
+
+                // Enter on a button of the bar stays the button's.
+                var mute = player.GetVisualDescendants().OfType<DaisyButton>()
+                    .Single(button => AutomationProperties.GetAutomationId(button) == "ViewerView.Video.mute");
+                mute.Focus();
+                Enter();
+                Assert.True(player.IsMuted);
+                Assert.NotEqual(WindowState.FullScreen, window.WindowState);
             }
             viewer.BeginEditing();
             Assert.False(viewer.FindControl<Border>("SidePanel")!.IsVisible);
@@ -236,6 +277,9 @@ public sealed class MediaTests
             Invoke(open);
         }
         await WaitUntilAsync(() => viewer is { IsVisible: true, IsBusy: false } && viewer.Current?.Path == video);
+        // The keys reach the viewer through its canvas, which could not take the focus before the viewer's first layout:
+        // a video opened first from the gallery took no key, not even Esc or Enter in full screen.
+        await WaitUntilAsync(() => window.FocusManager!.GetFocusedElement() is PhotoCanvas);
         Assert.NotEqual(WindowState.FullScreen, window.WindowState);
         Assert.Null(PlayingTile());
         // The search box has nothing to search while one file is open.
@@ -502,6 +546,199 @@ public sealed class MediaTests
             await WaitUntilAsync(() => !File.Exists(tile.Item.Path) && !gallery.Library.Items.Any(item => item.IsVideo));
         }
         finally { PhotosSettings.ConfirmDelete = confirm; }
+    }
+
+    [AvaloniaFact]
+    public async Task TheKeyboardGoesThroughTheWholeGalleryAndKeepsAThumbnailFocused()
+    {
+        // The timeline, whose keys stay its own, shows only with a date order.
+        PhotosSettings.SortMode = PhotoSortMode.DateTakenNewest;
+        var names = Enumerable.Range(0, 150).Select(index => ($"p{index:000}.png", "photo.png")).ToArray();
+        await using var gallery = await GalleryWindow.ShowAsync(names);
+        var (shell, window) = (gallery.Shell, gallery.Window);
+        var view = shell.FindControl<GalleryView>("Gallery")!;
+        var viewer = shell.FindControl<ViewerView>("Viewer")!;
+        var scroller = view.FindControl<ListBox>("Rows")!.GetVisualDescendants().OfType<ScrollViewer>().First();
+        PhotoTile Focused() => Assert.IsType<PhotoTile>(window.FocusManager!.GetFocusedElement());
+        int At() => view.Items.ToList().FindIndex(item => item.Path == Focused().Item.Path);
+        void Press(Avalonia.Input.Key key, bool ctrl = false)
+        {
+            window.KeyPress(key, ctrl ? Avalonia.Input.RawInputModifiers.Control : Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
+            window.UpdateLayout();
+            // The focused thumbnail is on the screen.
+            var top = Focused().TranslatePoint(default, scroller)!.Value.Y;
+            Assert.InRange(top, -1, scroller.Viewport.Height - Focused().Bounds.Height + 1);
+        }
+
+        // Without any focus an arrow key focuses the first thumbnail on the screen, not the one after it, and Page Down,
+        // which did nothing, pages.
+        Press(Avalonia.Input.Key.Right);
+        Assert.Equal((0, 0d), (At(), scroller.Offset.Y));
+        Press(Avalonia.Input.Key.PageDown);
+        Assert.True(scroller.Offset.Y > 0);
+        var start = At();
+        Press(Avalonia.Input.Key.Right);
+        Assert.Equal(start + 1, At());
+        // A move down handed the focus to a text box, which then took every key.
+        Press(Avalonia.Input.Key.Down);
+        var perRow = At() - start - 1;
+        Assert.True(perRow > 1, $"{perRow} thumbnails a row");
+        Press(Avalonia.Input.Key.Left);
+        Press(Avalonia.Input.Key.Home);
+        Assert.Equal(start + perRow, At());
+        Press(Avalonia.Input.Key.End);
+        Assert.Equal(start + 2 * perRow - 1, At());
+        // Page Down scrolled the focused thumbnail away, which left no focus.
+        var offset = scroller.Offset.Y;
+        Press(Avalonia.Input.Key.PageDown); Press(Avalonia.Input.Key.PageDown);
+        Assert.True(scroller.Offset.Y > offset);
+        Press(Avalonia.Input.Key.PageUp);
+        Press(Avalonia.Input.Key.End, ctrl: true);
+        Assert.Equal(names.Length - 1, At());
+        Press(Avalonia.Input.Key.PageUp, ctrl: true);
+        Assert.Equal((0, 0d), (At(), scroller.Offset.Y));
+        Press(Avalonia.Input.Key.PageDown, ctrl: true);
+        Assert.Equal(names.Length - 1, At());
+        Press(Avalonia.Input.Key.Home, ctrl: true);
+        Assert.Equal(0, At());
+
+        // Back from the viewer, the keys go on from the photo shown there.
+        Press(Avalonia.Input.Key.PageDown);
+        window.KeyPress(Avalonia.Input.Key.Enter, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Enter, null);
+        await WaitUntilAsync(() => viewer is { IsVisible: true, IsBusy: false });
+        // Enter takes a photo out of full screen as well.
+        window.KeyPress(Avalonia.Input.Key.F11, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.F11, null);
+        Assert.Equal(WindowState.FullScreen, window.WindowState);
+        window.KeyPress(Avalonia.Input.Key.Enter, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Enter, null);
+        Assert.NotEqual(WindowState.FullScreen, window.WindowState);
+        var shown = viewer.Current!.Path;
+        window.KeyPress(Avalonia.Input.Key.Right, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
+        await WaitUntilAsync(() => viewer.Current!.Path != shown && !viewer.IsBusy);
+        var last = viewer.Current!.Path;
+        window.KeyPress(Avalonia.Input.Key.Escape, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Escape, null);
+        await WaitUntilAsync(() => !viewer.IsVisible);
+        window.UpdateLayout();
+        Assert.Equal(last, Focused().Item.Path);
+        offset = scroller.Offset.Y;
+        Press(Avalonia.Input.Key.PageDown);
+        Assert.True(scroller.Offset.Y > offset);
+        Press(Avalonia.Input.Key.Down);
+
+        // From the side bar the page keys page through the gallery; its arrow keys stay its own.
+        var navigation = shell.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.Tag as string == "Gallery");
+        navigation.Focus();
+        offset = scroller.Offset.Y;
+        Press(Avalonia.Input.Key.PageUp);
+        Assert.True(scroller.Offset.Y < offset);
+
+        // The timeline keeps its own keys; the gallery took its Page Down and the focus with it.
+        var timeline = view.FindControl<GalleryTimeline>("Timeline")!;
+        timeline.Focus();
+        window.KeyPress(Avalonia.Input.Key.PageDown, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
+        Assert.Same(timeline, window.FocusManager!.GetFocusedElement());
+    }
+
+    [AvaloniaFact]
+    public async Task TheArrowKeysGoOnFromAVideoThatDoesNotPlay()
+    {
+        if (!VideoPlayer.CanPlay) return;
+        var video = new PhotoItem(Fresh("photo.png", "not-a-video.mp4"));
+        var photo = new PhotoItem(Media("photo.png"));
+        var viewer = new ViewerView();
+        var window = new Window { Content = viewer, Width = 900, Height = 700 };
+        try
+        {
+            window.Show();
+            await viewer.OpenAsync(video, [video, photo]);
+            var player = viewer.FindControl<VideoPlayer>("Video")!;
+            await WaitUntilAsync(() => !player.IsPlayable);
+            // The arrow keys jump through a video that plays; here they did nothing, with no video to jump through.
+            viewer.FindControl<PhotoCanvas>("Canvas")!.Focus();
+            window.KeyPress(Avalonia.Input.Key.Right, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.ArrowRight, null);
+            await WaitUntilAsync(() => viewer is { Current: var current, IsBusy: false } && current == photo);
+        }
+        finally { viewer.Dispose(); window.Close(); }
+    }
+
+    [AvaloniaFact]
+    public async Task TheKeyboardGoesThroughTheSideBarTheHomePageAndTheAlbums()
+    {
+        var names = Enumerable.Range(0, 40).Select(index => ($"p{index:000}.png", "photo.png")).ToArray();
+        await using var gallery = await GalleryWindow.ShowAsync(names);
+        var (shell, window) = (gallery.Shell, gallery.Window);
+        for (var index = 0; index < 60; index++) gallery.Library.CreateAlbum($"Album {index:00}", gallery.Library.Items.Take(1));
+        window.Height = 700;
+        object? Focused() => window.FocusManager!.GetFocusedElement();
+        string Id() => Focused() is Control control ? AutomationProperties.GetAutomationId(control) ?? "" : "";
+        string Name() => Focused() is Control control ? AutomationProperties.GetName(control) ?? "" : "";
+        void Press(Avalonia.Input.Key key, bool ctrl = false)
+        {
+            window.KeyPress(key, ctrl ? Avalonia.Input.RawInputModifiers.Control : Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
+            window.UpdateLayout();
+        }
+        void OnScreen(ScrollViewer scroller)
+        {
+            var control = Assert.IsAssignableFrom<Control>(Focused());
+            var top = control.TranslatePoint(default, scroller)!.Value.Y;
+            Assert.InRange(top, -1, scroller.Viewport.Height - control.Bounds.Height + 1);
+        }
+        DaisyButton Rail(string tag) => shell.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.Tag as string == tag);
+
+        // The arrow keys move along the side bar, which only Tab did before.
+        Invoke(Rail("Home")); Rail("Home").Focus(); window.UpdateLayout();
+        Press(Avalonia.Input.Key.Down);
+        Assert.Same(Rail("Gallery"), Focused());
+        Press(Avalonia.Input.Key.Up);
+        Assert.Same(Rail("Home"), Focused());
+
+        // On the home page Page Down did nothing from the side bar and left the focus above the screen from a card.
+        var home = shell.FindControl<ScrollViewer>("HomeScroll")!;
+        Press(Avalonia.Input.Key.PageDown);
+        Assert.True(home.Offset.Y > 0);
+        OnScreen(home);
+        Press(Avalonia.Input.Key.Home, ctrl: true);
+        Assert.Equal(0, home.Offset.Y);
+        OnScreen(home);
+        // The arrow keys went nowhere from a card.
+        var card = shell.FindControl<StackPanel>("Home")!.GetVisualDescendants().OfType<PhotoCard>().First();
+        card.Focus();
+        Press(Avalonia.Input.Key.Right);
+        Assert.IsType<PhotoCard>(Focused());
+        Assert.NotSame(card, Focused());
+        Press(Avalonia.Input.Key.Down); Press(Avalonia.Input.Key.Down);
+        OnScreen(home);
+        Press(Avalonia.Input.Key.End, ctrl: true);
+        Assert.Equal(home.Extent.Height - home.Viewport.Height, home.Offset.Y, 1);
+        OnScreen(home);
+
+        // On the album page a move down handed the focus to the search box, which then took every key.
+        Invoke(Rail("Albums")); window.UpdateLayout();
+        // Without any focus an arrow key focuses the first card on the screen, not the one after it.
+        // The home page card that had the focus hid with its page, which leaves no focus.
+        Assert.Null(window.FocusManager!.GetFocusedElement());
+        Press(Avalonia.Input.Key.Right);
+        Assert.StartsWith("Album 00", Name());
+        Rail("Albums").Focus();
+        var albums = shell.FindControl<ListBox>("Collections")!.GetVisualDescendants().OfType<ScrollViewer>().First();
+        Press(Avalonia.Input.Key.PageDown);
+        Assert.True(albums.Offset.Y > 0);
+        Assert.IsType<PhotoCard>(Focused());
+        OnScreen(albums);
+        Press(Avalonia.Input.Key.Home, ctrl: true);
+        Assert.Equal(("Album 00", 0d), (Name().Split(" · ")[0], albums.Offset.Y));
+        Press(Avalonia.Input.Key.Right);
+        Assert.StartsWith("Album 01", Name());
+        Press(Avalonia.Input.Key.Down);
+        var perRow = int.Parse(Name().Split(" · ")[0][6..]) - 1;
+        Assert.True(perRow > 1, $"{perRow} cards a row");
+        Assert.StartsWith("Photos.Collection.", Id());
+        Press(Avalonia.Input.Key.End);
+        Assert.Equal($"Album {2 * perRow - 1:00}", Name().Split(" · ")[0]);
+        Press(Avalonia.Input.Key.PageDown); Press(Avalonia.Input.Key.PageDown);
+        OnScreen(albums);
+        Press(Avalonia.Input.Key.End, ctrl: true);
+        Assert.StartsWith("Album 59", Name());
+        OnScreen(albums);
     }
 
     private static void Invoke(Control control) =>

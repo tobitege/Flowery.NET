@@ -345,6 +345,8 @@
   "Photos_Shortcut_SelectAll": "تحديد الكل",
   "Photos_Shortcut_ZoomTiles": "تغيير حجم الصور المصغرة",
   "Photos_Shortcut_Navigate": "الصورة أو الفيديو السابق / التالي",
+  "Photos_Shortcut_Skip": "فيديو: 10 ثوانٍ للخلف / للأمام",
+  "Photos_Shortcut_Page": "التنقل صفحة بصفحة؛ مع Ctrl إلى الأول / الأخير",
   "Photos_Shortcut_Edit": "فتح المحرر",
   "Photos_Shortcut_Undo": "التراجع عن التعديل",
   "Photos_Shortcut_Redo": "إعادة التعديل",

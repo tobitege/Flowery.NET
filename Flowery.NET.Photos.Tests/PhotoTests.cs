@@ -479,6 +479,8 @@ public sealed class PhotoTests
         Assert.Single(gallery.Items);
         gallery.FindControl<DaisySelect>("Sort")!.SelectedIndex = (int)PhotoSortMode.NameAscending;
         Assert.Single(gallery.Items);
+        // The sort order is the app's setting; the tests after this one start from the date order again.
+        gallery.FindControl<DaisySelect>("Sort")!.SelectedIndex = (int)PhotoSortMode.DateTakenNewest;
     }
 
     [Fact]

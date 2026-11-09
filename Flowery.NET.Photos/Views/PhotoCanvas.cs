@@ -55,6 +55,8 @@ public sealed partial class PhotoCanvas : Control, IDisposable
     public double AspectRatio { get; set; }
     public bool Compare { get; set; }
     public bool IsSlideshow { get; set; }
+    /// <summary>A double click zooms in or fits; a video uses it for full screen instead.</summary>
+    internal bool ZoomsOnDoubleTap { get; set; } = true;
     public double Divider { get; set; } = 0.5;
     public SKBitmap? Bitmap => _bitmap;
     public EditState State { get => _state; set { _state = value; ClampPan(); InvalidateVisual(); } }
@@ -93,7 +95,7 @@ public sealed partial class PhotoCanvas : Control, IDisposable
         PointerExited += (_, _) => { _lastPointer = null; InvalidateVisual(); };
         DoubleTapped += (_, e) =>
         {
-            if (IsCropping || IsDrawing || IsSlideshow) return;
+            if (IsCropping || IsDrawing || IsSlideshow || !ZoomsOnDoubleTap) return;
             if (_zoom == 0) SetZoom(100, e.GetPosition(this)); else Fit();
         };
     }

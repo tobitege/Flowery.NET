@@ -345,6 +345,8 @@
   "Photos_Shortcut_SelectAll": "すべて選択",
   "Photos_Shortcut_ZoomTiles": "サムネイルのサイズを変更",
   "Photos_Shortcut_Navigate": "前 / 次の写真や動画",
+  "Photos_Shortcut_Skip": "動画: 10 秒戻る / 進む",
+  "Photos_Shortcut_Page": "ページ送り。Ctrl で最初 / 最後へ",
   "Photos_Shortcut_Edit": "エディターを開く",
   "Photos_Shortcut_Undo": "編集を元に戻す",
   "Photos_Shortcut_Redo": "編集をやり直す",

@@ -345,6 +345,8 @@
   "Photos_Shortcut_SelectAll": "בחר הכול",
   "Photos_Shortcut_ZoomTiles": "שנה גודל תמונות ממוזערות",
   "Photos_Shortcut_Navigate": "תמונה או סרטון קודם / הבא",
+  "Photos_Shortcut_Skip": "סרטון: 10 שניות אחורה / קדימה",
+  "Photos_Shortcut_Page": "דפדוף לפי עמודים; עם Ctrl לראשון / לאחרון",
   "Photos_Shortcut_Edit": "פתח את העורך",
   "Photos_Shortcut_Undo": "בטל עריכה",
   "Photos_Shortcut_Redo": "בצע שוב עריכה",
