@@ -39,7 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.1.4" />
+    <PackageReference Include="Avalonia" Version="12.1.5" />
   </ItemGroup>
 
   <!-- The SVG pattern assets of DaisyPatternedCard (PatternMode="SvgAsset", the default), drawn with Svg.Skia. A build

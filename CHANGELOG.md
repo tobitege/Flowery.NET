@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.1.0] - 2026-11-08
+## [4.1.0] - 2026-11-09
 
 ### Added
 
@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Photos app: turning in the viewer, with the new Rotate left button next to Rotate right, R, Shift+R or the More menu, turns only the view of a photo, an animation or a video. It is not an edit: nothing asks to be saved, and the next photo shows upright. Opening the editor takes the turn over as an edit, which can be undone and saved; in the editor a turn is an edit as before.
 - Photos app: texts that cover videos too say so: the library counts on the home page and in the settings ("photos and videos"), the scan ("Looking for media…"), the search box, the drop hint, the welcome and empty pages, the import button and its message, the delete and remove-folder questions, and the shortcut list.
 - Photos app: the file name in the viewer's status bar uses the room the other entries leave instead of stopping at 260 pixels; when less than 200 pixels would remain, the other entries move below it and wrap onto as many lines as they need.
+- Updated all Avalonia packages to 12.1.5 across the library, Flowery.NET.Skia, FlowKanban, the Gallery platforms, Flowery Photos, the Kiosk app and the test projects, together with `ProTest.Avalonia.Headless.XUnit.v4` 12.1.5 (#155, #157). The library packages now require Avalonia 12.1.5.
 - The library, FlowKanban, the Gallery (desktop, Android, iOS) and Flowery Photos are version 4.1.0.
 
 ## [4.0.0] - 2026-11-06
