@@ -551,6 +551,8 @@ public sealed class MediaTests
     [AvaloniaFact]
     public async Task TheKeyboardGoesThroughTheWholeGalleryAndKeepsAThumbnailFocused()
     {
+        // The timeline, whose keys stay its own, shows only with a date order.
+        PhotosSettings.SortMode = PhotoSortMode.DateTakenNewest;
         var names = Enumerable.Range(0, 150).Select(index => ($"p{index:000}.png", "photo.png")).ToArray();
         await using var gallery = await GalleryWindow.ShowAsync(names);
         var (shell, window) = (gallery.Shell, gallery.Window);
