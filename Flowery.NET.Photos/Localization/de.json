@@ -65,6 +65,10 @@
   "Photos_TileSize": "Miniaturgröße",
   "Photos_SquareTiles": "Quadratische Miniaturen",
   "Photos_ShowFileNames": "Dateinamen anzeigen",
+  "Photos_ShowTimeline": "Zeitleiste bei Sortierung nach Datum",
+  "Photos_ShowLetters": "Buchstabenleiste bei Sortierung nach Name",
+  "Photos_LetterDigits": "Ziffern 0–9 in der Buchstabenleiste",
+  "Photos_LetterUmlauts": "Umlaute Ä, Ö, Ü in der Buchstabenleiste",
 
   "Photos_Import": "Importieren",
   "Photos_AddFolder": "Ordner hinzufügen",

@@ -65,6 +65,10 @@
   "Photos_TileSize": "缩略图大小",
   "Photos_SquareTiles": "方形缩略图",
   "Photos_ShowFileNames": "显示文件名",
+  "Photos_ShowTimeline": "按日期排序时显示时间轴",
+  "Photos_ShowLetters": "按名称排序时显示字母栏",
+  "Photos_LetterDigits": "字母栏中显示数字 0–9",
+  "Photos_LetterUmlauts": "字母栏中显示变元音 Ä、Ö、Ü",
 
   "Photos_Import": "导入",
   "Photos_AddFolder": "添加文件夹",

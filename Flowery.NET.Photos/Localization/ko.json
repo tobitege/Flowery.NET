@@ -65,6 +65,10 @@
   "Photos_TileSize": "미리 보기 크기",
   "Photos_SquareTiles": "정사각형 미리 보기",
   "Photos_ShowFileNames": "파일 이름 표시",
+  "Photos_ShowTimeline": "날짜순 정렬 시 타임라인 표시",
+  "Photos_ShowLetters": "이름순 정렬 시 문자 막대 표시",
+  "Photos_LetterDigits": "문자 막대에 숫자 0–9",
+  "Photos_LetterUmlauts": "문자 막대에 움라우트 Ä, Ö, Ü",
 
   "Photos_Import": "가져오기",
   "Photos_AddFolder": "폴더 추가",

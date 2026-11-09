@@ -188,6 +188,14 @@ namespace Flowery.NET.Photos.Services
         public static bool LoopVideos { get; set; }
         /// <summary>Videos that play in gallery thumbnails are silent.</summary>
         public static bool MuteGalleryVideos { get; set; }
+        /// <summary>The date timeline beside the gallery when it is sorted by date; the scrollbar and the date in the header do without it.</summary>
+        public static bool ShowTimeline { get; set; }
+        /// <summary>The bar of first letters beside the gallery when it is sorted by name.</summary>
+        public static bool ShowLetters { get; set; } = true;
+        /// <summary>The bar of first letters has an entry for digits; else names with a digit first go to #.</summary>
+        public static bool LetterDigits { get; set; } = true;
+        /// <summary>The bar of first letters has entries for Ä, Ö and Ü; else they go to A, O and U.</summary>
+        public static bool LetterUmlauts { get; set; } = true;
 
         // Viewer "View" options
         public static bool ShowRulers { get; set; }
@@ -266,6 +274,18 @@ namespace Flowery.NET.Photos.Services
                     case nameof(MuteGalleryVideos) when bool.TryParse(value, out var mute):
                         MuteGalleryVideos = mute;
                         break;
+                    case nameof(ShowTimeline) when bool.TryParse(value, out var b):
+                        ShowTimeline = b;
+                        break;
+                    case nameof(ShowLetters) when bool.TryParse(value, out var b):
+                        ShowLetters = b;
+                        break;
+                    case nameof(LetterDigits) when bool.TryParse(value, out var b):
+                        LetterDigits = b;
+                        break;
+                    case nameof(LetterUmlauts) when bool.TryParse(value, out var b):
+                        LetterUmlauts = b;
+                        break;
                     case nameof(ShowRulers) when bool.TryParse(value, out var b):
                         ShowRulers = b;
                         break;
@@ -314,6 +334,10 @@ namespace Flowery.NET.Photos.Services
                 $"{nameof(SquareTiles)}={SquareTiles}",
                 $"{nameof(LoopVideos)}={LoopVideos}",
                 $"{nameof(MuteGalleryVideos)}={MuteGalleryVideos}",
+                $"{nameof(ShowTimeline)}={ShowTimeline}",
+                $"{nameof(ShowLetters)}={ShowLetters}",
+                $"{nameof(LetterDigits)}={LetterDigits}",
+                $"{nameof(LetterUmlauts)}={LetterUmlauts}",
                 $"{nameof(ShowRulers)}={ShowRulers}",
                 $"{nameof(ShowGrid)}={ShowGrid}",
                 $"{nameof(ShowStatusBar)}={ShowStatusBar}",

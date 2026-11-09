@@ -65,6 +65,10 @@
   "Photos_TileSize": "サムネイルのサイズ",
   "Photos_SquareTiles": "正方形のサムネイル",
   "Photos_ShowFileNames": "ファイル名を表示",
+  "Photos_ShowTimeline": "日付順のときにタイムラインを表示",
+  "Photos_ShowLetters": "名前順のときに文字バーを表示",
+  "Photos_LetterDigits": "文字バーに数字 0–9",
+  "Photos_LetterUmlauts": "文字バーにウムラウト Ä, Ö, Ü",
 
   "Photos_Import": "インポート",
   "Photos_AddFolder": "フォルダーを追加",

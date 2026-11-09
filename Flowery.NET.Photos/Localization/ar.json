@@ -65,6 +65,10 @@
   "Photos_TileSize": "حجم الصور المصغرة",
   "Photos_SquareTiles": "صور مصغرة مربعة",
   "Photos_ShowFileNames": "إظهار أسماء الملفات",
+  "Photos_ShowTimeline": "الخط الزمني عند الترتيب حسب التاريخ",
+  "Photos_ShowLetters": "شريط الحروف عند الترتيب حسب الاسم",
+  "Photos_LetterDigits": "الأرقام 0–9 في شريط الحروف",
+  "Photos_LetterUmlauts": "حروف Ä وÖ وÜ في شريط الحروف",
 
   "Photos_Import": "استيراد",
   "Photos_AddFolder": "إضافة مجلد",

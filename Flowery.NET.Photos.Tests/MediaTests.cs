@@ -1,4 +1,6 @@
-﻿using Avalonia.Controls;
+﻿using System.Globalization;
+using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Automation.Peers;
@@ -551,91 +553,196 @@ public sealed class MediaTests
     [AvaloniaFact]
     public async Task TheKeyboardGoesThroughTheWholeGalleryAndKeepsAThumbnailFocused()
     {
-        // The timeline, whose keys stay its own, shows only with a date order.
+        // The timeline, whose keys stay its own, shows only with a date order and when chosen.
         PhotosSettings.SortMode = PhotoSortMode.DateTakenNewest;
-        var names = Enumerable.Range(0, 150).Select(index => ($"p{index:000}.png", "photo.png")).ToArray();
-        await using var gallery = await GalleryWindow.ShowAsync(names);
-        var (shell, window) = (gallery.Shell, gallery.Window);
-        var view = shell.FindControl<GalleryView>("Gallery")!;
-        var viewer = shell.FindControl<ViewerView>("Viewer")!;
-        var scroller = view.FindControl<ListBox>("Rows")!.GetVisualDescendants().OfType<ScrollViewer>().First();
-        PhotoTile Focused() => Assert.IsType<PhotoTile>(window.FocusManager!.GetFocusedElement());
-        int At() => view.Items.ToList().FindIndex(item => item.Path == Focused().Item.Path);
-        void Press(Avalonia.Input.Key key, bool ctrl = false)
+        PhotosSettings.ShowTimeline = true;
+        try
         {
-            window.KeyPress(key, ctrl ? Avalonia.Input.RawInputModifiers.Control : Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
+            var names = Enumerable.Range(0, 150).Select(index => ($"p{index:000}.png", "photo.png")).ToArray();
+            await using var gallery = await GalleryWindow.ShowAsync(names);
+            var (shell, window) = (gallery.Shell, gallery.Window);
+            var view = shell.FindControl<GalleryView>("Gallery")!;
+            var viewer = shell.FindControl<ViewerView>("Viewer")!;
+            var scroller = view.FindControl<ListBox>("Rows")!.GetVisualDescendants().OfType<ScrollViewer>().First();
+            PhotoTile Focused() => Assert.IsType<PhotoTile>(window.FocusManager!.GetFocusedElement());
+            int At() => view.Items.ToList().FindIndex(item => item.Path == Focused().Item.Path);
+            void Press(Avalonia.Input.Key key, bool ctrl = false)
+            {
+                window.KeyPress(key, ctrl ? Avalonia.Input.RawInputModifiers.Control : Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
+                window.UpdateLayout();
+                // The focused thumbnail is on the screen.
+                var top = Focused().TranslatePoint(default, scroller)!.Value.Y;
+                Assert.InRange(top, -1, scroller.Viewport.Height - Focused().Bounds.Height + 1);
+            }
+
+            // Without any focus an arrow key focuses the first thumbnail on the screen, not the one after it, and Page Down,
+            // which did nothing, pages.
+            Press(Avalonia.Input.Key.Right);
+            Assert.Equal((0, 0d), (At(), scroller.Offset.Y));
+            Press(Avalonia.Input.Key.PageDown);
+            Assert.True(scroller.Offset.Y > 0);
+            var start = At();
+            Press(Avalonia.Input.Key.Right);
+            Assert.Equal(start + 1, At());
+            // A move down handed the focus to a text box, which then took every key.
+            Press(Avalonia.Input.Key.Down);
+            var perRow = At() - start - 1;
+            Assert.True(perRow > 1, $"{perRow} thumbnails a row");
+            Press(Avalonia.Input.Key.Left);
+            Press(Avalonia.Input.Key.Home);
+            Assert.Equal(start + perRow, At());
+            Press(Avalonia.Input.Key.End);
+            Assert.Equal(start + 2 * perRow - 1, At());
+            // Page Down scrolled the focused thumbnail away, which left no focus.
+            var offset = scroller.Offset.Y;
+            Press(Avalonia.Input.Key.PageDown); Press(Avalonia.Input.Key.PageDown);
+            Assert.True(scroller.Offset.Y > offset);
+            Press(Avalonia.Input.Key.PageUp);
+            Press(Avalonia.Input.Key.End, ctrl: true);
+            Assert.Equal(names.Length - 1, At());
+            Press(Avalonia.Input.Key.PageUp, ctrl: true);
+            Assert.Equal((0, 0d), (At(), scroller.Offset.Y));
+            Press(Avalonia.Input.Key.PageDown, ctrl: true);
+            Assert.Equal(names.Length - 1, At());
+            Press(Avalonia.Input.Key.Home, ctrl: true);
+            Assert.Equal(0, At());
+
+            // Back from the viewer, the keys go on from the photo shown there.
+            Press(Avalonia.Input.Key.PageDown);
+            window.KeyPress(Avalonia.Input.Key.Enter, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Enter, null);
+            await WaitUntilAsync(() => viewer is { IsVisible: true, IsBusy: false });
+            // Enter takes a photo out of full screen as well.
+            window.KeyPress(Avalonia.Input.Key.F11, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.F11, null);
+            Assert.Equal(WindowState.FullScreen, window.WindowState);
+            window.KeyPress(Avalonia.Input.Key.Enter, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Enter, null);
+            Assert.NotEqual(WindowState.FullScreen, window.WindowState);
+            var shown = viewer.Current!.Path;
+            window.KeyPress(Avalonia.Input.Key.Right, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
+            await WaitUntilAsync(() => viewer.Current!.Path != shown && !viewer.IsBusy);
+            var last = viewer.Current!.Path;
+            window.KeyPress(Avalonia.Input.Key.Escape, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Escape, null);
+            await WaitUntilAsync(() => !viewer.IsVisible);
             window.UpdateLayout();
-            // The focused thumbnail is on the screen.
-            var top = Focused().TranslatePoint(default, scroller)!.Value.Y;
-            Assert.InRange(top, -1, scroller.Viewport.Height - Focused().Bounds.Height + 1);
+            Assert.Equal(last, Focused().Item.Path);
+            offset = scroller.Offset.Y;
+            Press(Avalonia.Input.Key.PageDown);
+            Assert.True(scroller.Offset.Y > offset);
+            Press(Avalonia.Input.Key.Down);
+
+            // From the side bar the page keys page through the gallery; its arrow keys stay its own.
+            var navigation = shell.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.Tag as string == "Gallery");
+            navigation.Focus();
+            offset = scroller.Offset.Y;
+            Press(Avalonia.Input.Key.PageUp);
+            Assert.True(scroller.Offset.Y < offset);
+
+            // The timeline keeps its own keys; the gallery took its Page Down and the focus with it.
+            var timeline = view.FindControl<GalleryTimeline>("Timeline")!;
+            timeline.Focus();
+            window.KeyPress(Avalonia.Input.Key.PageDown, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
+            Assert.Same(timeline, window.FocusManager!.GetFocusedElement());
         }
+        finally { PhotosSettings.ShowTimeline = false; }
+    }
 
-        // Without any focus an arrow key focuses the first thumbnail on the screen, not the one after it, and Page Down,
-        // which did nothing, pages.
-        Press(Avalonia.Input.Key.Right);
-        Assert.Equal((0, 0d), (At(), scroller.Offset.Y));
-        Press(Avalonia.Input.Key.PageDown);
-        Assert.True(scroller.Offset.Y > 0);
-        var start = At();
-        Press(Avalonia.Input.Key.Right);
-        Assert.Equal(start + 1, At());
-        // A move down handed the focus to a text box, which then took every key.
-        Press(Avalonia.Input.Key.Down);
-        var perRow = At() - start - 1;
-        Assert.True(perRow > 1, $"{perRow} thumbnails a row");
-        Press(Avalonia.Input.Key.Left);
-        Press(Avalonia.Input.Key.Home);
-        Assert.Equal(start + perRow, At());
-        Press(Avalonia.Input.Key.End);
-        Assert.Equal(start + 2 * perRow - 1, At());
-        // Page Down scrolled the focused thumbnail away, which left no focus.
-        var offset = scroller.Offset.Y;
-        Press(Avalonia.Input.Key.PageDown); Press(Avalonia.Input.Key.PageDown);
-        Assert.True(scroller.Offset.Y > offset);
-        Press(Avalonia.Input.Key.PageUp);
-        Press(Avalonia.Input.Key.End, ctrl: true);
-        Assert.Equal(names.Length - 1, At());
-        Press(Avalonia.Input.Key.PageUp, ctrl: true);
-        Assert.Equal((0, 0d), (At(), scroller.Offset.Y));
-        Press(Avalonia.Input.Key.PageDown, ctrl: true);
-        Assert.Equal(names.Length - 1, At());
-        Press(Avalonia.Input.Key.Home, ctrl: true);
-        Assert.Equal(0, At());
-
-        // Back from the viewer, the keys go on from the photo shown there.
-        Press(Avalonia.Input.Key.PageDown);
-        window.KeyPress(Avalonia.Input.Key.Enter, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Enter, null);
-        await WaitUntilAsync(() => viewer is { IsVisible: true, IsBusy: false });
-        // Enter takes a photo out of full screen as well.
-        window.KeyPress(Avalonia.Input.Key.F11, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.F11, null);
-        Assert.Equal(WindowState.FullScreen, window.WindowState);
-        window.KeyPress(Avalonia.Input.Key.Enter, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Enter, null);
-        Assert.NotEqual(WindowState.FullScreen, window.WindowState);
-        var shown = viewer.Current!.Path;
-        window.KeyPress(Avalonia.Input.Key.Right, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
-        await WaitUntilAsync(() => viewer.Current!.Path != shown && !viewer.IsBusy);
-        var last = viewer.Current!.Path;
-        window.KeyPress(Avalonia.Input.Key.Escape, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Escape, null);
-        await WaitUntilAsync(() => !viewer.IsVisible);
-        window.UpdateLayout();
-        Assert.Equal(last, Focused().Item.Path);
-        offset = scroller.Offset.Y;
-        Press(Avalonia.Input.Key.PageDown);
-        Assert.True(scroller.Offset.Y > offset);
-        Press(Avalonia.Input.Key.Down);
-
-        // From the side bar the page keys page through the gallery; its arrow keys stay its own.
-        var navigation = shell.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.Tag as string == "Gallery");
-        navigation.Focus();
-        offset = scroller.Offset.Y;
-        Press(Avalonia.Input.Key.PageUp);
-        Assert.True(scroller.Offset.Y < offset);
-
-        // The timeline keeps its own keys; the gallery took its Page Down and the focus with it.
+    [AvaloniaFact]
+    public async Task TheGalleryScrollsWithAFullScrollbarShowsTheMonthAndGoesToAFirstLetter()
+    {
+        PhotosSettings.SortMode = PhotoSortMode.DateTakenNewest;
+        // No name starts with i, so only the Turkish dotless ı of ışık stands for I.
+        var names = "abcdefghjk".SelectMany(letter => Enumerable.Range(0, 6).Select(index => ($"{letter}{index}.png", "photo.png")))
+            // A decomposed umlaut, as macOS keeps names, and an emoji of two code units, which took the gallery down.
+            .Append(("äpfel.png", "photo.png")).Append(("😀party.png", "photo.png")).Append(("7up.png", "photo.png")).Append(("ışık.png", "photo.png")).Append(("öl.png", "photo.png")).ToArray();
+        await using var gallery = await GalleryWindow.ShowAsync(names);
+        var window = gallery.Window;
+        var view = gallery.Shell.FindControl<GalleryView>("Gallery")!;
+        var scroller = view.FindControl<ListBox>("Rows")!.GetVisualDescendants().OfType<ScrollViewer>().First();
         var timeline = view.FindControl<GalleryTimeline>("Timeline")!;
-        timeline.Focus();
-        window.KeyPress(Avalonia.Input.Key.PageDown, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
-        Assert.Same(timeline, window.FocusManager!.GetFocusedElement());
+        var letters = view.FindControl<GalleryLetters>("Letters")!;
+        // The letters do not depend on the machine's culture; a Linux container's invariant culture put ı under #.
+        var culture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        try
+        {
+            // A full scrollbar, not a thin line, and the month of the topmost photo in the header; the timeline, which
+            // made scrolling through hundreds of photos jumpy, is an option.
+            Assert.False(scroller.AllowAutoHide);
+            Assert.False(timeline.IsVisible);
+            Assert.Equal(GalleryLayout.FormatGroupTitle(view.Items[0].SortDate, PhotoGroupMode.Month, Localization.PhotosLocalization.CurrentCulture),
+                view.FindControl<TextBlock>("DateChip")!.Text);
+            view.FindControl<DaisyCheckBox>("ShowTimeline")!.IsChecked = true;
+            Assert.True(timeline.IsVisible);
+            view.FindControl<DaisyCheckBox>("ShowTimeline")!.IsChecked = false;
+
+            // Sorted by name, the first letters take the timeline's place; those no file starts with are dimmed.
+            view.FindControl<DaisySelect>("Sort")!.SelectedIndex = (int)PhotoSortMode.NameAscending;
+            window.UpdateLayout();
+            Assert.True(letters.IsVisible);
+            Assert.False(timeline.IsVisible);
+            DaisyButton Letter(string id) => letters.GetVisualDescendants().OfType<DaisyButton>()
+                .Single(button => AutomationProperties.GetAutomationId(button) == "GalleryView.Letter." + id);
+            Assert.Equal((false, true, true, true, true, true), (Letter("Q").IsEnabled, Letter("C").IsEnabled,
+                Letter("Digits").IsEnabled, Letter("Ä").IsEnabled, Letter("Other").IsEnabled, Letter("I").IsEnabled));
+            // The bar is one tab stop, with the arrow keys from letter to letter; Tab went through all 31 before.
+            Letter("C").Focus();
+            window.KeyPress(Avalonia.Input.Key.Down, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.ArrowDown, null);
+            Assert.Same(Letter("D"), window.FocusManager!.GetFocusedElement());
+            // Dimmed letters are passed over, here L to Z; Home and End go to the first and last letter with files.
+            Letter("K").Focus();
+            window.KeyPress(Avalonia.Input.Key.Down, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.ArrowDown, null);
+            Assert.Same(Letter("Ä"), window.FocusManager!.GetFocusedElement());
+            window.KeyPress(Avalonia.Input.Key.End, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.End, null);
+            Assert.Same(Letter("Other"), window.FocusManager!.GetFocusedElement());
+            window.KeyPress(Avalonia.Input.Key.Home, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Home, null);
+            Assert.Same(Letter("Digits"), window.FocusManager!.GetFocusedElement());
+            Letter("D").Focus();
+            window.KeyPress(Avalonia.Input.Key.Tab, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Tab, null);
+            Assert.DoesNotContain(window.FocusManager!.GetFocusedElement(), letters.GetVisualDescendants().OfType<DaisyButton>());
+
+            // A letter puts the row of its first file at the top and focuses the file.
+            Invoke(Letter("C"));
+            window.UpdateLayout();
+            var focused = Assert.IsType<PhotoTile>(window.FocusManager!.GetFocusedElement());
+            Assert.Equal("c0.png", focused.Item.FileName);
+            Assert.True(scroller.Offset.Y > 0);
+            Assert.InRange(focused.TranslatePoint(default, scroller)!.Value.Y, -1, 12);
+
+            // Digits and umlauts are optional: without their entries 7up goes to # and öl to O, which had no file.
+            Assert.False(Letter("O").IsEnabled);
+            view.FindControl<DaisyCheckBox>("LetterDigits")!.IsChecked = false;
+            view.FindControl<DaisyCheckBox>("LetterUmlauts")!.IsChecked = false;
+            window.UpdateLayout();
+            Assert.Equal((false, false, true), (Letter("Digits").IsVisible, Letter("Ö").IsVisible, Letter("O").IsEnabled));
+            Assert.Equal(GalleryLetters.Other, letters.LetterFor("7up.png"));
+            Invoke(Letter("O"));
+            Assert.Equal("öl.png", Assert.IsType<PhotoTile>(window.FocusManager!.GetFocusedElement()).Item.FileName);
+
+            view.FindControl<DaisyCheckBox>("ShowLetters")!.IsChecked = false;
+            Assert.False(letters.IsVisible);
+
+            // In a short window the bar shrinks as a whole; squeezed into it, the last letters ran past its bottom.
+            var shortBar = new GalleryLetters();
+            var shortWindow = new Window { Content = new Border { Child = shortBar, Width = 40, Height = 200, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top }, Width = 300, Height = 400 };
+            shortWindow.Show();
+            try
+            {
+                shortWindow.UpdateLayout();
+                var grid = shortBar.GetVisualDescendants().OfType<UniformGrid>().Single();
+                var laidOut = grid.Bounds.Height;
+                grid.Measure(new Size(grid.Bounds.Width, double.PositiveInfinity));
+                Assert.True(laidOut >= grid.DesiredSize.Height - 0.5, $"{laidOut} for {grid.DesiredSize.Height}");
+            }
+            finally { shortWindow.Close(); }
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = culture;
+            PhotosSettings.ShowTimeline = false;
+            PhotosSettings.ShowLetters = true;
+            PhotosSettings.LetterDigits = true;
+            PhotosSettings.LetterUmlauts = true;
+            PhotosSettings.SortMode = PhotoSortMode.DateTakenNewest;
+        }
     }
 
     [AvaloniaFact]
