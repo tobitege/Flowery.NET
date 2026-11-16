@@ -50,7 +50,7 @@
     <DefineConstants Condition="'$(FlowerySvgPatterns)' == 'true'">$(DefineConstants);FLOWERY_SVG_PATTERNS</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition="'$(FlowerySvgPatterns)' == 'true'">
-    <PackageReference Include="Svg.Skia" Version="5.1.1" />
+    <PackageReference Include="Svg.Skia" Version="5.2.3" />
     <AvaloniaResource Include="Assets\Patterns\*.svg" />
   </ItemGroup>
 
