@@ -10,6 +10,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Flowery.NET.Kiosk\Flowery.NET.Kiosk.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
+    <!-- ProTest.Avalonia.Headless pins Avalonia to its own release; the direct reference lets the tests run on the
+         Avalonia version of the app until ProTest catches up. -->
+    <PackageReference Include="Avalonia" Version="12.1.6" />
     <PackageReference Include="ProTest.Avalonia.Headless.XUnit.v4" Version="12.1.5" />
     <PackageReference Include="xunit.v3.mtp-off" Version="4.0.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" />
