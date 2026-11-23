@@ -46,7 +46,7 @@ public sealed partial class ParityTests
     [Fact]
     public void RotationKeepsCropAndMarkupAttachedToTheSamePixels()
     {
-        using var source = PhotoDecoder.Load(CreateImage());
+        using var source = PhotoDecoder.Load(CreateImage(), token: TestContext.Current.CancellationToken);
         var original = EditState.Original with
         {
             Crop = new Rect(.125, .125, .5, .25),
@@ -142,22 +142,27 @@ public sealed partial class ParityTests
             var item = new PhotoItem(CreateImage(3200, 2400));
             await viewer.OpenAsync(item, [item]);
             var canvas = viewer.FindControl<PhotoCanvas>("Canvas")!;
+            var fileName = viewer.FindControl<TextBlock>("FileName")!;
+            Assert.Equal(item.FolderPath, ToolTip.GetTip(fileName));
             Assert.Equal(3200, canvas.Bitmap!.Width);
             canvas.SetZoom(100);
             Assert.Equal(100, canvas.ActualZoom);
             canvas.SetZoom(5);
             Assert.Equal(5, canvas.ActualZoom);
-            var broken = new PhotoItem(Path.Combine(Path.GetDirectoryName(item.Path)!, "broken.png"));
+            var otherFolder = Directory.CreateDirectory(Path.Combine(item.FolderPath, "other")).FullName;
+            var broken = new PhotoItem(Path.Combine(otherFolder, "broken.png"));
             await File.WriteAllTextAsync(broken.Path, "broken", TestContext.Current.CancellationToken);
             await viewer.OpenAsync(broken, [item, broken]);
             Assert.Null(canvas.Bitmap);
             Assert.True(viewer.FindControl<TextBlock>("ErrorText")!.IsVisible);
-            Assert.Equal("broken.png", viewer.FindControl<TextBlock>("FileName")!.Text);
+            Assert.Equal("broken.png", fileName.Text);
+            Assert.Equal(otherFolder, ToolTip.GetTip(fileName));
             Assert.False(viewer.HasChanges);
             Assert.False(viewer.GetVisualDescendants().OfType<DaisyButton>().Single(button => Avalonia.Automation.AutomationProperties.GetAutomationId(button) == "ViewerView.edit").IsEnabled);
             Assert.True(viewer.FindControl<DaisyButton>("PreviousButton")!.IsEnabled);
             await viewer.NavigateAsync(-1);
             Assert.NotNull(canvas.Bitmap);
+            Assert.Equal(item.FolderPath, ToolTip.GetTip(fileName));
             Assert.False(viewer.FindControl<TextBlock>("ErrorText")!.IsVisible);
         }
         finally { window.Close(); }

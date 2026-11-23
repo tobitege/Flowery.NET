@@ -17,6 +17,8 @@ public partial class PhotoTile : UserControl
     private Bitmap? _image;
     private PhotoItem? _item;
     private VideoPlayer? _player;
+    private bool _openingPlayback;
+    private int _playbackVersion;
     private readonly VideoBadge? _badge;
     private readonly Grid? _hoverRow;
     // The height of the name bar, when it shows.
@@ -69,6 +71,19 @@ public partial class PhotoTile : UserControl
         };
         KeyDown += (_, e) =>
         {
+            // P plays a video in its thumbnail, or pauses it, as a click does; Esc ends it.
+            if (item.IsVideo && e.Key == Key.P && e.KeyModifiers == KeyModifiers.None && VideoPlayer.CanPlay)
+            {
+                _ = TogglePlaybackAsync();
+                e.Handled = true;
+                return;
+            }
+            if (e.Key == Key.Escape && (_player != null || _openingPlayback))
+            {
+                StopOwnPlayback();
+                e.Handled = true;
+                return;
+            }
             if (e.Key is not (Key.Enter or Key.Space)) return;
             // Enter opens a video in full screen; Space selects as for photos.
             if (item.IsVideo && e.Key == Key.Enter) OpenRequested?.Invoke(item, true);
@@ -111,6 +126,7 @@ public partial class PhotoTile : UserControl
         };
         DetachedFromVisualTree += (_, _) =>
         {
+            _playbackVersion++;
             _item.PropertyChanged -= OnItemChanged;
             HandOverPlayback();
             _load?.Cancel(); _load = null; HideLoadingHint();
@@ -141,9 +157,22 @@ public partial class PhotoTile : UserControl
     }
 
     /// <summary>Plays the video in place, or pauses and resumes it, each thumbnail with its own player.</summary>
-    public void TogglePlayback()
+    public async Task TogglePlaybackAsync()
     {
         if (_player != null) { _player.TogglePlay(); return; }
+        if (_openingPlayback) return;
+        var source = Item.MediaPath;
+        if (Item.ResolvedPath != null)
+        {
+            var version = ++_playbackVersion;
+            _openingPlayback = true;
+            try
+            {
+                var target = await Task.Run(() => FolderIdentity.TryResolve(source));
+                if (version != _playbackVersion || !IsEffectivelyVisible || !PhotoLibrary.PathComparer.Equals(source, target)) return;
+            }
+            finally { _openingPlayback = false; }
+        }
         if (Frame.Child is not Panel layers) return;
         if (PlayingTiles.Count >= MaxPlaying) PlayingTiles[0].StopOwnPlayback();
         PlayingTiles.Add(this);
@@ -156,7 +185,7 @@ public partial class PhotoTile : UserControl
         layers.Children.Insert(layers.Children.IndexOf(Photo) + 1, _player);
         _player.Failed += OnPlayerFailed;
         _player.StopRequested += StopOwnPlayback;
-        _player.Open(Item.Path);
+        _player.Open(source);
         PlaceOverlays();
     }
 
@@ -184,7 +213,9 @@ public partial class PhotoTile : UserControl
 
     private void TakeOverPlayback()
     {
-        if (!HandedOver.Remove(Item.Path, out var previous) || previous._player is not { } player || Frame.Child is not Panel layers) return;
+        if (!HandedOver.TryGetValue(Item.Path, out var previous) || previous._player is not { } player ||
+            !PhotoLibrary.PathComparer.Equals(previous.Item.MediaPath, Item.MediaPath) || Frame.Child is not Panel layers) return;
+        HandedOver.Remove(Item.Path);
         previous._player = null;
         player.Failed -= previous.OnPlayerFailed;
         player.Failed += OnPlayerFailed;
@@ -224,6 +255,7 @@ public partial class PhotoTile : UserControl
 
     private Task Stop()
     {
+        _playbackVersion++;
         PlayingTiles.Remove(this);
         if (HandedOver.TryGetValue(Item.Path, out var waiting) && waiting == this) HandedOver.Remove(Item.Path);
         if (_player is not { } player) return Task.CompletedTask;

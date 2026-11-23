@@ -14,7 +14,9 @@ namespace Flowery.NET.Photos.Services
         DateModifiedNewest,
         NameAscending,
         NameDescending,
-        SizeLargest
+        SizeLargest,
+        DateModifiedOldest,
+        SizeSmallest
     }
 
     public enum PhotoGroupMode
@@ -175,6 +177,22 @@ namespace Flowery.NET.Photos.Services
         public static double StepTileHeight(bool larger, double windowHeight) =>
             Math.Clamp(TileHeight * (larger ? 1.12 : 1 / 1.12), MinTileHeight, Math.Max(MinTileHeight, windowHeight));
         public static PhotoSortMode SortMode { get; set; } = PhotoSortMode.DateTakenNewest;
+        public static bool WatchOpenFolder { get; set; }
+        public static PhotoSortMode WatchedFolderSortMode { get; set; } = PhotoSortMode.DateTakenNewest;
+        public static bool RevealNewestArrival { get; set; }
+        public const int HiddenFolderLabelLimit = 100;
+        private static string _hiddenFolderLabel = string.Empty;
+        public static string HiddenFolderLabel
+        {
+            get => _hiddenFolderLabel;
+            set
+            {
+                var label = value.ReplaceLineEndings(" ").Trim();
+                var length = Math.Min(label.Length, HiddenFolderLabelLimit);
+                if (length > 0 && char.IsHighSurrogate(label[length - 1])) length--;
+                _hiddenFolderLabel = label[..length].TrimEnd();
+            }
+        }
         public static PhotoGroupMode GroupMode { get; set; } = PhotoGroupMode.Month;
         public static bool ShowFileNames { get; set; }
         public static bool IncludeSubfolders { get; set; } = true;
@@ -224,6 +242,10 @@ namespace Flowery.NET.Photos.Services
 
         private static void LoadOptions()
         {
+            WatchOpenFolder = false;
+            WatchedFolderSortMode = PhotoSortMode.DateTakenNewest;
+            RevealNewestArrival = false;
+            HiddenFolderLabel = string.Empty;
             foreach (var line in StateStorageProvider.Instance.LoadLines(OptionsKey))
             {
                 var idx = line.IndexOf('=');
@@ -240,6 +262,18 @@ namespace Flowery.NET.Photos.Services
                         break;
                     case nameof(SortMode) when Enum.TryParse(value, out PhotoSortMode sort):
                         SortMode = sort;
+                        break;
+                    case nameof(WatchOpenFolder) when bool.TryParse(value, out var watch):
+                        WatchOpenFolder = watch;
+                        break;
+                    case nameof(WatchedFolderSortMode) when Enum.TryParse(value, out PhotoSortMode watchedSort) && Enum.IsDefined(watchedSort):
+                        WatchedFolderSortMode = watchedSort;
+                        break;
+                    case nameof(RevealNewestArrival) when bool.TryParse(value, out var reveal):
+                        RevealNewestArrival = reveal;
+                        break;
+                    case nameof(HiddenFolderLabel):
+                        HiddenFolderLabel = value;
                         break;
                     case nameof(GroupMode) when Enum.TryParse(value, out PhotoGroupMode group):
                         GroupMode = group;
@@ -319,10 +353,16 @@ namespace Flowery.NET.Photos.Services
         public static void SaveOptions()
         {
             var inv = CultureInfo.InvariantCulture;
-            StateStorageProvider.Instance.SaveLines(OptionsKey,
+            var storage = StateStorageProvider.Instance;
+            var temporary = $"{OptionsKey}.{Environment.ProcessId}.tmp";
+            storage.SaveLines(temporary,
             (string[])[
                 $"{nameof(TileHeight)}={TileHeight.ToString(inv)}",
                 $"{nameof(SortMode)}={SortMode}",
+                $"{nameof(WatchOpenFolder)}={WatchOpenFolder}",
+                $"{nameof(WatchedFolderSortMode)}={WatchedFolderSortMode}",
+                $"{nameof(RevealNewestArrival)}={RevealNewestArrival}",
+                $"{nameof(HiddenFolderLabel)}={HiddenFolderLabel}",
                 $"{nameof(GroupMode)}={GroupMode}",
                 $"{nameof(ShowFileNames)}={ShowFileNames}",
                 $"{nameof(IncludeSubfolders)}={IncludeSubfolders}",
@@ -346,6 +386,7 @@ namespace Flowery.NET.Photos.Services
                 $"{nameof(SecondaryColor)}={ToHex(SecondaryColor)}",
                 $"{nameof(CustomColors)}={string.Join(',', CustomColors.Select(ToHex))}"
             ]);
+            storage.Rename(temporary, OptionsKey);
         }
 
         #endregion

@@ -94,14 +94,12 @@ The app starts with the Pictures folder.
 Add other folders or import image files with the navigation buttons.
 Browse… opens the gallery with one folder without adding it to the library.
 The gallery shows the photos and videos of that folder, and of its subfolders when the library includes subfolders.
-A browsed folder outside the library is not saved or watched.
 Imports create copies inside the first source folder.
 Drag an image or video onto the window to open it.
 Drag a folder onto the window to add it as a source.
 Removing a source folder preserves its files.
 
 The scanner reads file headers and stores metadata in a JSON cache.
-File watchers refresh changed folders.
 JPEG, PNG, WebP, HEIC, and AVIF metadata includes EXIF dates, camera, lens, exposure, ISO, focal length, and GPS coordinates when available.
 JPEG metadata also includes the EXIF orientation.
 Windows also supplies image codecs and metadata for formats such as TIFF and JPEG XR.
@@ -112,6 +110,40 @@ Their headers supply the size, length, frame rate, codec, recording date, camera
 Phone videos recorded upright keep their orientation.
 On Windows, the Windows media player takes video stills from a second into the video.
 On other platforms, they come from ffmpeg when it is installed.
+
+### Refresh and folder updates
+
+Select **Refresh** to read the current view again.
+Refresh reads the open folder in a folder view and rescans the library on Home, Gallery, Favorites, Albums, and Folders.
+If Photos cannot read a folder, it keeps the last successful results for that folder and updates the readable folders.
+
+To receive automatic updates, open a folder from **Folders** or **Browse…**.
+In **Folder options**, select **Watch this folder**.
+Then set **Sort while watching** to the field and direction you want.
+Under **When new files arrive**, choose whether to keep the current row in view or show the newest arrival.
+
+Watching is off by default and applies to the open folder.
+Use **Refresh** to pick up external changes in library-wide views.
+If the watcher stops, **Folder options** shows the error. Select **Refresh** to restart it once the folder is available.
+Refresh also reconnects the watcher if a different folder has taken the place of the open folder at the same path.
+The default sort is capture date, newest first, with the file modification date as a fallback.
+The default position keeps the current row in view.
+When Photos shows the newest arrival, it uses the order in which the watcher reported new files and folders.
+For files that arrive in one folder, it shows the one with the latest modification date.
+
+### Hidden folders
+
+Open a folder from **Folders** or **Browse…**. In **Folder options**, select **Hide folder**.
+The same action is available in the folder card's context menu.
+
+Photos shows media from a hidden folder and its subfolders only when you open that folder or a subfolder directly.
+If you hide a subfolder separately, open that subfolder to see its media.
+Gallery, Recent, Favorites, albums, and their search results omit this media. Folder cards show an icon and a **Hidden** badge.
+Photos shares hidden folder markings between its running windows and applies them to links to the same folder or file.
+If Photos cannot read the markings, it holds back media previews until it can read them again.
+
+To rename the badge, open **Settings → Library** and enter up to 100 characters in **Hidden folder label**.
+Leave the field blank to use the default label.
 
 The gallery supports these operations:
 
@@ -131,6 +163,9 @@ The gallery supports these operations:
 - Keyboard navigation: the arrow keys move between thumbnails, Page Up and Page Down move a screen, Home and End go to the start and end of the row, and Ctrl with Home, End, Page Up, or Page Down goes to the first or last thumbnail.
   The album and folder pages work the same way with their cards.
   On the home page the arrow keys move to the nearest card or button, and in the side bar the up and down arrow keys move between its buttons.
+  Shift with the arrow keys selects from thumbnail to thumbnail, Space selects one, and Delete takes the thumbnail the keyboard has the focus on when nothing is selected.
+  P plays a video in its thumbnail and Esc ends it; Down or Enter in the search box goes to the first result.
+  The shortcuts work whether or not anything has the focus.
 - Batch favorites, album assignment, clipboard copy, and Windows Recycle Bin actions.
 - Context menus for individual photos or the visible selection.
 
@@ -155,6 +190,7 @@ The playback bar offers play and pause, the position, the time, loop, and mute.
 On Linux and macOS, the viewer shows the video still and opens the video in the default player.
 Videos zoom, pan, and turn like photos while they play; a click on a video plays or pauses it.
 A double click or Enter takes a video to full screen and back; Enter also leaves full screen for a photo.
+The viewer takes its keys wherever the focus is, and in full screen the hidden controls show when Tab reaches one.
 On Windows, the left and right arrow keys jump ten seconds back or forward in a video; Page Up and Page Down go to the previous or next file.
 Videos cannot be edited or used as wallpaper.
 Outside the editor, turning changes only the view and asks for nothing to be saved.

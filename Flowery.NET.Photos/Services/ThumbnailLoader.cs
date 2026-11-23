@@ -28,7 +28,9 @@ public static class ThumbnailLoader
     public static async Task<Bitmap?> LoadAsync(PhotoItem item, double height, CancellationToken token, Visual? view = null, Action? started = null)
     {
         var edge = height <= 200 ? 400 : height <= 350 ? 700 : 1000;
-        var key = $"{item.Path}|{item.Revision}|{item.DateModified.Ticks}|{item.FileSize}|{edge}";
+        var resolved = item.ResolvedPath;
+        var path = resolved ?? item.Path;
+        var key = $"{path}|{item.Revision}|{item.DateModified.Ticks}|{item.FileSize}|{edge}";
         var cached = FromMemory(key) ?? await Task.Run(() => ThumbnailDiskCache.Read(key), token);
         if (cached != null && Decode(cached) is { } fromCache)
         {
@@ -46,7 +48,9 @@ public static class ThumbnailLoader
         {
             data = await Task.Run(() =>
             {
-                using var bitmap = PhotoDecoder.Load(item.Path, edge, token);
+                if (resolved != null && !PhotoLibrary.PathComparer.Equals(resolved, FolderIdentity.TryResolve(resolved)))
+                    throw new IOException("The thumbnail target changed.");
+                using var bitmap = PhotoDecoder.Load(path, edge, token);
                 using var image = SKImage.FromBitmap(bitmap);
                 using var encoded = image.Encode(SKEncodedImageFormat.Webp, 85);
                 var bytes = encoded.ToArray();

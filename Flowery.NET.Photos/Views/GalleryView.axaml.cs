@@ -20,16 +20,19 @@ public partial class GalleryView : UserControl
     private const double TileGap = 6;
     private PhotoItem? _anchor;
     private bool _updating;
+    private bool _changingFolderMark;
+    private bool _watcherActive;
     private double _layoutWidth;
     private int _layoutVersion;
     // The topmost visible photo before the rows were rebuilt, followed by the photos after it, and its top in the
-    // scroller. A rescan creates new items, so they go by path.
+    // scroller. A rescan creates new items, so they go by path. A null top only brings a new arrival into view.
     private List<string>? _anchorPaths;
-    private double _anchorTop;
+    private double? _anchorTop;
     // The query of the rows shown; another source, search or filter starts at the top instead of keeping the place.
     private PhotoQuery? _shownQuery;
     public IReadOnlyList<PhotoItem> Items => _items;
     public PhotoQuery Query => _query;
+    internal string? FolderPath => _query.Source is PhotoSourceKind.Folder or PhotoSourceKind.Browsed ? _query.SourceKey : null;
     public IReadOnlyList<PhotoItem> Selected => _items.Where(item => item.IsSelected).ToList();
     public event Action<PhotoItem>? OpenRequested;
     public event Action<PhotoItem>? FullScreenRequested;
@@ -38,6 +41,10 @@ public partial class GalleryView : UserControl
     public event Action? ImportRequested;
     public event Action? ImportFolderRequested;
     public event Action? RescanRequested;
+    internal event Action? RefreshRequested;
+    internal event Action? FolderWatchChanged;
+    internal event Action<string>? WatchOptionsSaveFailed;
+    internal event Func<string, bool, Task>? HideFolderRequested;
     public event Action? SlideshowRequested;
     public event Action? BackRequested;
     public event Action? ResetSearchRequested;
@@ -73,6 +80,19 @@ public partial class GalleryView : UserControl
         LetterUmlauts.IsChecked = PhotosSettings.LetterUmlauts;
         RefreshLabels();
         Sort.SelectionChanged += (_, _) => ApplyOptions();
+        WatchOpenFolder.IsCheckedChanged += (_, _) => ApplyWatchOptions();
+        HideFolder.IsCheckedChanged += async (_, _) =>
+        {
+            var hidden = HideFolder.IsChecked == true;
+            if (_updating || _changingFolderMark || FolderPath is not { } folder ||
+                hidden == Library.IsFolderExplicitlyHidden(folder) || HideFolderRequested is not { } change) return;
+            _changingFolderMark = true;
+            HideFolder.IsEnabled = false;
+            try { await change(folder, hidden); }
+            finally { _changingFolderMark = false; UpdateFolderOptions(); }
+        };
+        WatchedFolderSort.SelectionChanged += (_, _) => ApplyWatchOptions();
+        WatchPosition.SelectionChanged += (_, _) => ApplyWatchOptions();
         Group.SelectionChanged += (_, _) => ApplyOptions();
         Type.SelectionChanged += (_, _) => ApplyOptions();
         Orientation.SelectionChanged += (_, _) => ApplyOptions();
@@ -96,11 +116,20 @@ public partial class GalleryView : UserControl
     {
         _updating = true;
         string L(string key) => PhotosLocalization.GetString(key);
-        Sort.ItemsSource = new[] { "DateNewest", "DateOldest", "Modified", "NameAsc", "NameDesc", "Size" }.Select(k => L("Photos_Sort_" + k));
+        var sortLabels = new[] { "DateNewest", "DateOldest", "Modified", "NameAsc", "NameDesc", "Size" }
+            .Select(k => L("Photos_Sort_" + k)).ToArray();
+        Sort.ItemsSource = sortLabels;
+        WatchedFolderSort.ItemsSource = sortLabels.Select((label, index) => index == (int)PhotoSortMode.DateModifiedNewest
+            ? L("Photos_Sort_ModifiedNewest") : label).Concat([L("Photos_Sort_ModifiedOldest"), L("Photos_Sort_SizeSmallest")]).ToArray();
+        WatchPosition.ItemsSource = new[] { L("Photos_WatchKeepPosition"), L("Photos_WatchRevealNewest") };
         Group.ItemsSource = new[] { "Day", "Month", "Year", "None" }.Select(k => L("Photos_Group_" + k));
         Type.ItemsSource = new[] { "AllTypes", "Jpeg", "Png", "OtherTypes", "Videos" }.Select(k => L("Photos_Filter_" + k));
         Orientation.ItemsSource = new[] { "AnyOrientation", "Landscape", "Portrait", "Square" }.Select(k => L("Photos_Filter_" + k));
         Sort.SelectedIndex = (int)PhotosSettings.SortMode;
+        WatchOpenFolder.IsChecked = PhotosSettings.WatchOpenFolder;
+        WatchedFolderSort.SelectedIndex = (int)PhotosSettings.WatchedFolderSortMode;
+        WatchPosition.SelectedIndex = PhotosSettings.RevealNewestArrival ? 1 : 0;
+        UpdateFolderOptions();
         Group.SelectedIndex = (int)PhotosSettings.GroupMode;
         Type.SelectedIndex = (int)_query.TypeFilter;
         Orientation.SelectedIndex = (int)_query.OrientationFilter;
@@ -135,13 +164,32 @@ public partial class GalleryView : UserControl
         Refresh();
     }
     public void Search(string? text) { _query = _query with { SearchText = text }; Refresh(); }
-    public void Refresh()
+    internal void SetRefreshEnabled(bool enabled) => RefreshButton.IsEnabled = enabled;
+
+    public void Refresh(IReadOnlyList<(string Path, bool IsDirectory)>? arrivals = null)
     {
-        var visible = Library.Query(_query with { Sort = PhotosSettings.SortMode });
+        UpdateFolderOptions();
+        var visible = Library.Query(_query with { Sort = EffectiveSort });
+        var newSet = _query != _shownQuery;
+        if (!newSet && arrivals is { Count: > 0 } && PhotosSettings.RevealNewestArrival)
+        {
+            var oldPaths = _items.Select(item => item.Path).ToHashSet(PhotoLibrary.PathComparer);
+            var newItems = visible.Where(item => !oldPaths.Contains(item.Path)).ToList();
+            var newPaths = newItems.Select(item => item.Path).ToHashSet(PhotoLibrary.PathComparer);
+            foreach (var (path, directory) in arrivals)
+            {
+                var newest = directory ? newItems.Where(item => PhotoLibrary.IsWithin(path, item.FolderPath))
+                    .OrderByDescending(item => item.DateModified).ThenBy(item => item.Path, PhotoLibrary.PathComparer).FirstOrDefault()?.Path
+                    : newPaths.Contains(path) ? path : null;
+                if (newest == null) continue;
+                (_anchorPaths, _anchorTop) = ([newest], null);
+                break;
+            }
+        }
         var visibleSet = visible.ToHashSet();
         foreach (var item in _items.Where(item => !visibleSet.Contains(item))) item.IsSelected = false;
         _items = visible;
-        if (_anchor != null && !visibleSet.Contains(_anchor)) _anchor = null;
+        if ((_anchor != null && !visibleSet.Contains(_anchor)) || (_reach != null && !visibleSet.Contains(_reach))) _anchor = _reach = null;
         SelectionChanged?.Invoke();
         PageTitle.Text = _title;
         CountLabel.Text = PhotosLocalization.Format(_items.Count == 1 ? "Photos_ItemCountOne" : "Photos_ItemCount", _items.Count);
@@ -161,10 +209,58 @@ public partial class GalleryView : UserControl
         EmptyTitle.Text = PhotosLocalization.GetString("Photos_Empty_" + emptyKind + "Title");
         EmptyText.Text = PhotosLocalization.GetString("Photos_Empty_" + (emptyKind == "Folder" ? "Library" : emptyKind) + "Text");
         ResetFilters.IsVisible = emptyKind == "NoResults";
-        var newSet = _query != _shownQuery;
         _shownQuery = _query;
         RebuildRows(newSet);
     }
+
+    private void ApplyWatchOptions()
+    {
+        if (_updating || WatchedFolderSort.SelectedIndex < 0 || WatchPosition.SelectedIndex < 0) return;
+        var enabled = WatchOpenFolder.IsChecked == true;
+        var toggled = enabled != PhotosSettings.WatchOpenFolder;
+        var sort = (PhotoSortMode)WatchedFolderSort.SelectedIndex;
+        var sortChanged = sort != PhotosSettings.WatchedFolderSortMode;
+        var previous = (PhotosSettings.WatchOpenFolder, PhotosSettings.WatchedFolderSortMode, PhotosSettings.RevealNewestArrival);
+        (PhotosSettings.WatchOpenFolder, PhotosSettings.WatchedFolderSortMode, PhotosSettings.RevealNewestArrival) =
+            (enabled, sort, WatchPosition.SelectedIndex == 1);
+        try { PhotosSettings.SaveOptions(); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            (PhotosSettings.WatchOpenFolder, PhotosSettings.WatchedFolderSortMode, PhotosSettings.RevealNewestArrival) = previous;
+            RefreshLabels();
+            WatchOptionsSaveFailed?.Invoke(ex.Message);
+            return;
+        }
+        if (toggled) FolderWatchChanged?.Invoke();
+        else if (_watcherActive && sortChanged) Refresh();
+    }
+
+    internal void SetFolderWatchState(bool active, string? error = null)
+    {
+        var changed = _watcherActive != active;
+        _watcherActive = active;
+        FolderWatchError.Text = error;
+        FolderWatchError.IsVisible = error != null;
+        ToolTip.SetTip(FolderOptions, error);
+        if (changed) Refresh();
+    }
+
+    private void UpdateFolderOptions()
+    {
+        var folder = FolderPath;
+        FolderOptions.IsVisible = folder != null;
+        FolderOptions.IsActive = UsesWatchedSort;
+        HideFolder.IsChecked = folder != null && Library.IsFolderExplicitlyHidden(folder);
+        HideFolder.IsEnabled = Library.HiddenFoldersError == null && !_changingFolderMark;
+        HiddenFolderBadge.IsVisible = folder != null && Library.IsInHiddenFolder(folder);
+        if (HiddenFolderBadge.IsVisible)
+        {
+            HiddenFolderBadgeText.Text = PhotosLocalization.HiddenFolderBadgeLabel;
+            ToolTip.SetTip(HiddenFolderBadge, HiddenFolderBadgeText.Text);
+        }
+        Sort.IsEnabled = !UsesWatchedSort;
+    }
+
     private void ApplyOptions()
     {
         if (_updating) return;
@@ -223,7 +319,7 @@ public partial class GalleryView : UserControl
         foreach (var tile in Rows.GetVisualDescendants().OfType<PhotoTile>())
         {
             if (!tile.IsEffectivelyVisible || tile.DataContext is not GalleryPhotoRow row || tile.TranslatePoint(default, scroller) is not { } point ||
-                point.Y + tile.Bounds.Height <= 0 || (top != null && point.Y >= _anchorTop)) continue;
+                point.Y + tile.Bounds.Height <= 0 || point.Y >= scroller.Viewport.Height || (top != null && point.Y >= _anchorTop)) continue;
             top = row; _anchorTop = point.Y;
         }
         _anchorPaths = top == null ? null
@@ -231,7 +327,7 @@ public partial class GalleryView : UserControl
     }
     // After an items reset the panel only estimates where rows lie, so the measured place of the photo corrects the
     // offset.
-    private void KeepPhotoInPlace(ScrollViewer scroller, List<string> paths, double top)
+    private void KeepPhotoInPlace(ScrollViewer scroller, List<string> paths, double? top)
     {
         var rowOf = new Dictionary<string, int>(PhotoLibrary.PathComparer);
         for (var index = 0; index < _rows.Count; index++)
@@ -241,7 +337,7 @@ public partial class GalleryView : UserControl
         if (path == null) return;
         var tile = BringRowIntoView(rowOf[path])?.GetVisualDescendants().OfType<PhotoTile>()
             .FirstOrDefault(candidate => PhotoLibrary.PathComparer.Equals(candidate.Item.Path, path));
-        if (tile != null) PageScroll.MoveTo(scroller, tile, top);
+        if (tile != null && top is { } at) PageScroll.MoveTo(scroller, tile, at);
     }
     // The timeline names an offset in the rows' own layout; the row there takes the same place in the view.
     private void ScrollToLayoutOffset(ScrollViewer scroller, double offset)
@@ -301,9 +397,9 @@ public partial class GalleryView : UserControl
         }
         else if (checkbox || modifiers.HasFlag(KeyModifiers.Control) || _items.Any(photo => photo.IsSelected)) item.IsSelected = !item.IsSelected;
         // A click plays a video in place where the system can play it.
-        else if (item.IsVideo && VideoPlayer.CanPlay) { tile.TogglePlayback(); return; }
+        else if (item.IsVideo && VideoPlayer.CanPlay) { _ = tile.TogglePlaybackAsync(); return; }
         else { OpenRequested?.Invoke(item); return; }
-        _anchor = item;
+        (_anchor, _reach) = (item, null);
         SelectionChanged?.Invoke();
     }
     public void SelectAll(bool select = true)
@@ -314,15 +410,19 @@ public partial class GalleryView : UserControl
     public void ClearSelection()
     {
         SelectAll(false);
-        _anchor = null;
+        _anchor = _reach = null;
     }
     public IReadOnlyList<PhotoItem> ContextItems(PhotoItem item) => item.IsSelected ? Selected : [item];
-    private bool DateSorted => PhotosSettings.SortMode is PhotoSortMode.DateTakenNewest or PhotoSortMode.DateTakenOldest;
-    private static bool NameSorted => PhotosSettings.SortMode is PhotoSortMode.NameAscending or PhotoSortMode.NameDescending;
+    private bool UsesWatchedSort => FolderPath != null && _watcherActive;
+    private PhotoSortMode EffectiveSort => UsesWatchedSort ? PhotosSettings.WatchedFolderSortMode : PhotosSettings.SortMode;
+    private bool DateSorted => EffectiveSort is PhotoSortMode.DateTakenNewest or PhotoSortMode.DateTakenOldest;
+    private bool NameSorted => EffectiveSort is PhotoSortMode.NameAscending or PhotoSortMode.NameDescending;
     // The month and year of a row, which the header shows for the topmost one on the screen.
     private static string MonthOf(GalleryRow row) => GalleryLayout.FormatGroupTitle(row.Date, PhotoGroupMode.Month, PhotosLocalization.CurrentCulture);
     /// <summary>Scrolls to the photo and focuses it; false when the gallery does not show it.</summary>
-    public bool FocusPhoto(PhotoItem? item)
+    /// <param name="item">The photo or video.</param>
+    /// <param name="method">How the focus came; from the keyboard the thumbnail shows that it has the focus.</param>
+    public bool FocusPhoto(PhotoItem? item, NavigationMethod method = NavigationMethod.Unspecified)
     {
         if (item == null) return false;
         var row = _rows.OfType<GalleryPhotoRow>().FirstOrDefault(row => row.Tiles.Any(tile => tile.Item.Path == item.Path));
@@ -330,7 +430,7 @@ public partial class GalleryView : UserControl
         _anchorPaths = null; _layoutVersion++;
         Rows.ScrollIntoView(row);
         Rows.UpdateLayout();
-        Rows.GetVisualDescendants().OfType<PhotoTile>().FirstOrDefault(tile => tile.Item.Path == item.Path)?.Focus();
+        Rows.GetVisualDescendants().OfType<PhotoTile>().FirstOrDefault(tile => tile.Item.Path == item.Path)?.Focus(method);
         return true;
     }
     private void OnScroll(object? sender, ScrollChangedEventArgs e)
@@ -363,6 +463,7 @@ public partial class GalleryView : UserControl
     }
     private void ImportClick(object? sender, RoutedEventArgs e) => ImportRequested?.Invoke();
     private void ImportFolderClick(object? sender, RoutedEventArgs e) => ImportFolderRequested?.Invoke();
+    private void RefreshClick(object? sender, RoutedEventArgs e) => RefreshRequested?.Invoke();
     private void RescanClick(object? sender, RoutedEventArgs e) => RescanRequested?.Invoke();
     private void SlideshowClick(object? sender, RoutedEventArgs e) => SlideshowRequested?.Invoke();
     private void BackClick(object? sender, RoutedEventArgs e) => BackRequested?.Invoke();

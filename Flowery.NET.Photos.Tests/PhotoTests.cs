@@ -54,7 +54,7 @@ public sealed class PhotoTests
         File.WriteAllBytes(file, original[..2].Concat(exif).Concat(original[2..]).ToArray());
         var probe = ImageMetadataReader.ProbeFast(file);
         Assert.Equal(80, probe?.Width); Assert.Equal(120, probe?.Height);
-        using var bitmap = PhotoDecoder.Load(file);
+        using var bitmap = PhotoDecoder.Load(file, token: TestContext.Current.CancellationToken);
         Assert.Equal(80, bitmap.Width); Assert.Equal(120, bitmap.Height);
     }
 
@@ -103,7 +103,7 @@ public sealed class PhotoTests
     public void RenderAppliesRotationCropFilterAndMarkup()
     {
         var file = CreatePhoto(NewFolder());
-        using var source = PhotoDecoder.Load(file);
+        using var source = PhotoDecoder.Load(file, token: TestContext.Current.CancellationToken);
         var state = EditState.Original with { Rotation = 1, Crop = new Rect(0, 0, .5, .5), Filter = "mono" };
         using var rendered = EditRenderer.Render(source, state);
         Assert.Equal(40, rendered.Width); Assert.Equal(60, rendered.Height);
@@ -120,7 +120,7 @@ public sealed class PhotoTests
     [InlineData("sepia")]
     public void FilterChangesRealPixelValues(string filter)
     {
-        using var source = PhotoDecoder.Load(CreatePhoto(NewFolder()));
+        using var source = PhotoDecoder.Load(CreatePhoto(NewFolder()), token: TestContext.Current.CancellationToken);
         source.Erase(new SKColor(110, 100, 150));
         using var rendered = EditRenderer.Render(source, EditState.Original with { Filter = filter });
         Assert.NotEqual(source.GetPixel(20, 20), rendered.GetPixel(20, 20));
@@ -134,11 +134,11 @@ public sealed class PhotoTests
         var target = Path.Combine(root, "edited.png");
         await EditRenderer.SaveAsync(source, target, EditState.Original with { Rotation = 1 }, 92);
         Assert.Equal(original, SHA256.HashData(await File.ReadAllBytesAsync(source, TestContext.Current.CancellationToken)));
-        using var result = PhotoDecoder.Load(target);
+        using var result = PhotoDecoder.Load(target, token: TestContext.Current.CancellationToken);
         Assert.Equal(80, result.Width); Assert.Equal(120, result.Height);
         Assert.Empty(Directory.GetFiles(root, "*.tmp"));
         await EditRenderer.SaveAsync(target, target, EditState.Original with { Rotation = 1 }, 92);
-        using var replaced = PhotoDecoder.Load(target);
+        using var replaced = PhotoDecoder.Load(target, token: TestContext.Current.CancellationToken);
         Assert.Equal(120, replaced.Width); Assert.Equal(80, replaced.Height);
     }
 
@@ -187,6 +187,10 @@ public sealed class PhotoTests
         Assert.Equal(items.Count, rows.Sum(r => r.Tiles.Count));
         foreach (var row in rows) Assert.InRange(row.Tiles.Sum(t => t.Width) + (row.Tiles.Count - 1) * 6, 1, width + 1);
         Assert.Equal(rows[^2].TileHeight, rows[^1].TileHeight);
+        // Screen readers name a row by its number of thumbnails; a row of one was "1 items".
+        GalleryPhotoRow Row(int tiles) => new() { Tiles = rows[0].Tiles.Take(tiles).ToList() };
+        Assert.Equal(PhotosLocalization.GetString("Photos_ItemCountOne"), Row(1).ToString());
+        Assert.Equal(PhotosLocalization.Format("Photos_ItemCount", 2), Row(2).ToString());
     }
 
     [Theory]
@@ -304,10 +308,9 @@ public sealed class PhotoTests
             var external = CreatePhoto(NewFolder(), "imported.png");
             Assert.Equal(1, await library.ImportFilesAsync([external]));
             await library.RescanAsync(); Assert.Equal(2, library.Items.Count);
-            var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            library.Changed += (_, _) => { if (library.Items.Count == 3) changed.TrySetResult(); };
-            CreatePhoto(folder, "watched.png");
-            await changed.Task.WaitAsync(TimeSpan.FromSeconds(8), TestContext.Current.CancellationToken);
+            CreatePhoto(folder, "added.png");
+            Assert.Equal(2, library.Items.Count);
+            await library.RescanAsync();
             Assert.Equal(3, library.Items.Count);
             Assert.True(File.Exists(external));
             Assert.Single(PhotosSettings.LoadFavorites());

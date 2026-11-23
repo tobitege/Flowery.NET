@@ -240,6 +240,12 @@ public sealed class MediaTests
                 Enter();
                 Assert.True(player.IsMuted);
                 Assert.NotEqual(WindowState.FullScreen, window.WindowState);
+                // So does Space, which played or paused the video instead.
+                window.KeyPress(Avalonia.Input.Key.Space, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Space, null);
+                window.KeyRelease(Avalonia.Input.Key.Space, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Space, null);
+                Assert.False(player.IsMuted);
+                await Task.Delay(300, TestContext.Current.CancellationToken);
+                Assert.Equal(Localization.PhotosLocalization.GetString("Photos_Play"), AutomationProperties.GetName(play));
             }
             viewer.BeginEditing();
             Assert.False(viewer.FindControl<Border>("SidePanel")!.IsVisible);
@@ -265,9 +271,20 @@ public sealed class MediaTests
         window.MouseMove(Tile().TranslatePoint(new Point(Tile().Bounds.Width / 2, Tile().Bounds.Height / 2), window)!.Value);
         Assert.True(NameShows());
 
+        if (VideoPlayer.CanPlay)
+        {
+            // From the keyboard P plays the video in its thumbnail, which only a click did, and Esc ends it.
+            Tile().Focus();
+            window.KeyPress(Avalonia.Input.Key.P, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.P, null);
+            await WaitUntilAsync(Playing);
+            Assert.True(Playing());
+            window.KeyPress(Avalonia.Input.Key.Escape, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Escape, null);
+            Assert.False(Playing());
+        }
         Invoke(Tile());
         if (VideoPlayer.CanPlay)
         {
+            await WaitUntilAsync(Playing);
             Assert.True(Playing());
             Assert.False(viewer.IsVisible);
             // A second click pauses in place.
@@ -311,7 +328,7 @@ public sealed class MediaTests
         // The player, not the shell, whose thumbnails waited twenty seconds after the folder dialog of Browse… on a
         // network drive.
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        using var still = PhotoDecoder.Load(Media(name), 400);
+        using var still = PhotoDecoder.Load(Media(name), 400, TestContext.Current.CancellationToken);
         var details = VideoMetadataReader.Probe(Media(name))!.Value;
         Assert.Equal(details.Width > details.Height, still.Width > still.Height);
         Assert.Equal(details.Width / (double)details.Height, still.Width / (double)still.Height, 1);
@@ -494,6 +511,7 @@ public sealed class MediaTests
             .Single(range => AutomationProperties.GetAutomationId(range) == "ViewerView.Video.Position").Value);
         var before = Tile()!;
         Invoke(before);
+        await WaitUntilAsync(() => before.GetVisualDescendants().OfType<VideoPlayer>().Any());
         var player = before.GetVisualDescendants().OfType<VideoPlayer>().Single();
 
         // The end of a scan builds the rows anew; the playing thumbnail left the tree, and its video stopped, which on
@@ -523,6 +541,19 @@ public sealed class MediaTests
     }
 
     [AvaloniaFact]
+    public async Task DirectlyOpenedPhotoCanBeFavoritedWithoutRescanningTheLibrary()
+    {
+        await using var gallery = await GalleryWindow.ShowAsync(("photo.png", "photo.png"));
+        var photo = Assert.Single(gallery.Library.Items);
+        await gallery.Shell.OpenFileAsync(photo.Path);
+        var viewer = gallery.Shell.FindControl<ViewerView>("Viewer")!;
+        Assert.Same(photo, viewer.Current);
+
+        gallery.Window.KeyPress(Avalonia.Input.Key.F, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.F, null);
+        Assert.Same(photo, Assert.Single(gallery.Library.Query(new PhotoQuery { Source = PhotoSourceKind.Favorites })));
+    }
+
+    [AvaloniaFact]
     public async Task DeletingAVideoThatPlaysInItsThumbnailStopsItAndDeletesTheFile()
     {
         if (!VideoPlayer.CanPlay || !OperatingSystem.IsWindows()) return;
@@ -530,6 +561,7 @@ public sealed class MediaTests
         var view = gallery.Shell.FindControl<GalleryView>("Gallery")!;
         var tile = view.GetVisualDescendants().OfType<PhotoTile>().Single(tile => tile.Item.IsVideo);
         Invoke(tile);
+        await WaitUntilAsync(() => tile.GetVisualDescendants().OfType<VideoPlayer>().Any());
         var player = tile.GetVisualDescendants().OfType<VideoPlayer>().Single();
         var position = player.GetVisualDescendants().OfType<DaisyRange>()
             .Single(range => AutomationProperties.GetAutomationId(range) == "ViewerView.Video.Position");
@@ -566,19 +598,32 @@ public sealed class MediaTests
             var scroller = view.FindControl<ListBox>("Rows")!.GetVisualDescendants().OfType<ScrollViewer>().First();
             PhotoTile Focused() => Assert.IsType<PhotoTile>(window.FocusManager!.GetFocusedElement());
             int At() => view.Items.ToList().FindIndex(item => item.Path == Focused().Item.Path);
-            void Press(Avalonia.Input.Key key, bool ctrl = false)
+            void Press(Avalonia.Input.Key key, bool ctrl = false, bool shift = false)
             {
-                window.KeyPress(key, ctrl ? Avalonia.Input.RawInputModifiers.Control : Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
+                var modifiers = (ctrl ? Avalonia.Input.RawInputModifiers.Control : Avalonia.Input.RawInputModifiers.None)
+                    | (shift ? Avalonia.Input.RawInputModifiers.Shift : Avalonia.Input.RawInputModifiers.None);
+                window.KeyPress(key, modifiers, Avalonia.Input.PhysicalKey.None, null);
                 window.UpdateLayout();
                 // The focused thumbnail is on the screen.
                 var top = Focused().TranslatePoint(default, scroller)!.Value.Y;
                 Assert.InRange(top, -1, scroller.Viewport.Height - Focused().Bounds.Height + 1);
             }
 
+            // Without any focus, as right after the gallery opens, the shortcuts did nothing: the page took them, and
+            // the keys of a window without focus never reach a page.
+            window.KeyPress(Avalonia.Input.Key.A, Avalonia.Input.RawInputModifiers.Control, Avalonia.Input.PhysicalKey.A, null);
+            Assert.Equal(names.Length, view.Selected.Count);
+            window.KeyPress(Avalonia.Input.Key.Escape, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Escape, null);
+            Assert.Empty(view.Selected);
             // Without any focus an arrow key focuses the first thumbnail on the screen, not the one after it, and Page Down,
             // which did nothing, pages.
             Press(Avalonia.Input.Key.Right);
             Assert.Equal((0, 0d), (At(), scroller.Offset.Y));
+            // Ctrl+F goes to the search box, and Down from there to the first thumbnail; only Tab did, through every button.
+            window.KeyPress(Avalonia.Input.Key.F, Avalonia.Input.RawInputModifiers.Control, Avalonia.Input.PhysicalKey.F, null);
+            Assert.Same(shell.FindControl<TextBox>("Search"), window.FocusManager!.GetFocusedElement());
+            Press(Avalonia.Input.Key.Down);
+            Assert.Equal(0, At());
             Press(Avalonia.Input.Key.PageDown);
             Assert.True(scroller.Offset.Y > 0);
             var start = At();
@@ -607,6 +652,15 @@ public sealed class MediaTests
             Press(Avalonia.Input.Key.Home, ctrl: true);
             Assert.Equal(0, At());
 
+            // Shift with the moves selects from thumbnail to thumbnail, as Shift with a click does, and a move back lets
+            // go again.
+            Press(Avalonia.Input.Key.Right, shift: true); Press(Avalonia.Input.Key.Right, shift: true);
+            Assert.Equal(3, view.Selected.Count);
+            Press(Avalonia.Input.Key.Left, shift: true);
+            Assert.Equal(2, view.Selected.Count);
+            window.KeyPress(Avalonia.Input.Key.Escape, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Escape, null);
+            Assert.Empty(view.Selected);
+
             // Back from the viewer, the keys go on from the photo shown there.
             Press(Avalonia.Input.Key.PageDown);
             window.KeyPress(Avalonia.Input.Key.Enter, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Enter, null);
@@ -620,17 +674,78 @@ public sealed class MediaTests
             window.KeyPress(Avalonia.Input.Key.Right, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
             await WaitUntilAsync(() => viewer.Current!.Path != shown && !viewer.IsBusy);
             var last = viewer.Current!.Path;
+            // The viewer takes its keys wherever the focus is, here on the side bar; Esc did nothing from there.
+            var navigation = shell.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.Tag as string == "Gallery");
+            navigation.Focus();
             window.KeyPress(Avalonia.Input.Key.Escape, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Escape, null);
             await WaitUntilAsync(() => !viewer.IsVisible);
             window.UpdateLayout();
             Assert.Equal(last, Focused().Item.Path);
+            // Shift selects from the thumbnail that has the focus. Back from the viewer it began where an earlier move
+            // had ended and selected files nobody meant, which Delete would then have taken.
+            Press(Avalonia.Input.Key.Right, shift: true);
+            Assert.Equal(2, view.Selected.Count);
+            // Back over where it began, the range turns around.
+            Press(Avalonia.Input.Key.Left, shift: true); Press(Avalonia.Input.Key.Left, shift: true);
+            Assert.Equal(2, view.Selected.Count);
+            Assert.Contains(view.Selected, item => item.Path == last);
+            window.KeyPress(Avalonia.Input.Key.Escape, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Escape, null);
+            Assert.Empty(view.Selected);
             offset = scroller.Offset.Y;
             Press(Avalonia.Input.Key.PageDown);
             Assert.True(scroller.Offset.Y > offset);
             Press(Avalonia.Input.Key.Down);
 
+            // Delete takes the thumbnail with the focus when nothing is selected; it did nothing.
+            if (OperatingSystem.IsWindows())
+            {
+                var confirm = PhotosSettings.ConfirmDelete;
+                PhotosSettings.ConfirmDelete = false;
+                try
+                {
+                    var place = At();
+                    var gone = Focused().Item.Path;
+                    var count = view.Items.Count;
+                    List<DaisyAlertVariant> notices = [];
+                    shell.FindControl<DaisyToast>("Notifications")!.Items.CollectionChanged += (_, e) =>
+                        notices.AddRange(e.NewItems?.OfType<DaisyAlert>().Select(alert => alert.Variant) ?? []);
+                    // A held key repeats while the file goes; it is one deletion, with no failure for the repeats.
+                    for (var press = 0; press < 3; press++) window.KeyPress(Avalonia.Input.Key.Delete, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Delete, null);
+                    await WaitUntilAsync(() => view.Items.All(item => item.Path != gone) && !File.Exists(gone));
+                    // The focus goes to the thumbnail that takes its place, so the keys go on from there; it went nowhere.
+                    await WaitUntilAsync(() => window.FocusManager!.GetFocusedElement() is PhotoTile);
+                    Assert.Equal((place, count - 1), (At(), view.Items.Count));
+                    await Task.Delay(300, TestContext.Current.CancellationToken);
+                    Assert.Equal([DaisyAlertVariant.Success], notices);
+                }
+                finally { PhotosSettings.ConfirmDelete = confirm; }
+                window.UpdateLayout();
+
+                // The question before one file goes names the file, and Esc keeps the file and the focus.
+                var asks = PhotosSettings.ConfirmDelete;
+                PhotosSettings.ConfirmDelete = true;
+                try
+                {
+                    var kept = Focused().Item;
+                    for (var press = 0; press < 3; press++) window.KeyPress(Avalonia.Input.Key.Delete, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Delete, null);
+                    var prompt = Assert.Single(window.OwnedWindows.OfType<PromptDialog>());
+                    Assert.Contains(kept.FileName, prompt.FindControl<TextBlock>("Message")!.Text);
+                    prompt.KeyPress(Avalonia.Input.Key.Escape, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Escape, null);
+                    await WaitUntilAsync(() => window.FocusManager!.GetFocusedElement() is PhotoTile);
+                    Assert.Equal(kept.Path, Focused().Item.Path);
+                    Assert.True(File.Exists(kept.Path));
+                    // A thumbnail that has the focus from a click does not show it, and Delete leaves its file alone.
+                    var clicked = Focused();
+                    navigation.Focus();
+                    clicked.Focus();
+                    Assert.Same(clicked, Focused());
+                    window.KeyPress(Avalonia.Input.Key.Delete, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.Delete, null);
+                    Assert.Empty(window.OwnedWindows.OfType<PromptDialog>());
+                }
+                finally { PhotosSettings.ConfirmDelete = asks; }
+            }
+
             // From the side bar the page keys page through the gallery; its arrow keys stay its own.
-            var navigation = shell.GetVisualDescendants().OfType<DaisyButton>().Single(button => button.Tag as string == "Gallery");
             navigation.Focus();
             offset = scroller.Offset.Y;
             Press(Avalonia.Input.Key.PageUp);
@@ -641,6 +756,12 @@ public sealed class MediaTests
             timeline.Focus();
             window.KeyPress(Avalonia.Input.Key.PageDown, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
             Assert.Same(timeline, window.FocusManager!.GetFocusedElement());
+
+            // A shell that does not show takes no keys.
+            shell.IsVisible = false;
+            window.KeyPress(Avalonia.Input.Key.A, Avalonia.Input.RawInputModifiers.Control, Avalonia.Input.PhysicalKey.A, null);
+            Assert.Empty(view.Selected);
+            shell.IsVisible = true;
         }
         finally { PhotosSettings.ShowTimeline = false; }
     }
@@ -746,6 +867,111 @@ public sealed class MediaTests
     }
 
     [AvaloniaFact]
+    public async Task TheViewerKeepsItsKeysWhenTheFocusedControlGoesAndShowsItsControlsForTheKeyboard()
+    {
+        var item = new PhotoItem(Media("photo.png"));
+        var viewer = new ViewerView();
+        var window = new Window { Content = viewer, Width = 900, Height = 700 };
+        try
+        {
+            window.Show();
+            await viewer.OpenAsync(item, [item, new PhotoItem(Media("exif.jpg"))]);
+            window.UpdateLayout();
+            var canvas = viewer.FindControl<PhotoCanvas>("Canvas")!;
+            var toolbar = viewer.FindControl<Grid>("Toolbar")!;
+            var side = viewer.FindControl<Border>("SidePanel")!;
+            void Press(Avalonia.Input.Key key)
+            {
+                window.KeyPress(key, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.None, null);
+                window.UpdateLayout();
+            }
+            object? Focused() => window.FocusManager!.GetFocusedElement();
+            await WaitUntilAsync(() => Focused() == canvas);
+
+            // Esc closed the side panel and with it the button that had the focus; no key reached the viewer after that.
+            Press(Avalonia.Input.Key.I);
+            Assert.True(side.IsVisible);
+            side.GetVisualDescendants().OfType<DaisyButton>().First(button => button is { IsEffectivelyVisible: true, IsEffectivelyEnabled: true }).Focus();
+            Assert.NotSame(canvas, Focused());
+            Press(Avalonia.Input.Key.Escape);
+            Assert.False(side.IsVisible);
+            Assert.Same(canvas, Focused());
+
+            // In full screen an arrow that was clicked hides with the other controls after three seconds. The focus went
+            // with it, and neither Esc nor Enter left full screen.
+            Press(Avalonia.Input.Key.F11);
+            Assert.Equal(WindowState.FullScreen, window.WindowState);
+            viewer.FindControl<DaisyButton>("NextButton")!.Focus();
+            await WaitUntilAsync(() => toolbar.Opacity == 0);
+            Assert.Same(canvas, Focused());
+            Press(Avalonia.Input.Key.Escape);
+            Assert.NotEqual(WindowState.FullScreen, window.WindowState);
+
+            // Tab went to controls nobody could see; they show when the keyboard reaches one.
+            Press(Avalonia.Input.Key.F11);
+            var at = canvas.TranslatePoint(new Point(canvas.Bounds.Width / 2, canvas.Bounds.Height / 2), window)!.Value;
+            window.MouseDown(at, Avalonia.Input.MouseButton.Left); window.MouseUp(at, Avalonia.Input.MouseButton.Left);
+            Assert.Equal(0, toolbar.Opacity);
+            Press(Avalonia.Input.Key.Tab);
+            Assert.NotSame(canvas, Focused());
+            Assert.Equal(1, toolbar.Opacity);
+
+            // A menu keeps its keys, which pass the viewer on their way: with the More menu open, Esc is the menu's and
+            // leaves neither full screen nor the viewer.
+            var more = viewer.FindControl<DaisyButton>("MoreButton")!;
+            var left = 0;
+            viewer.BackRequested += () => left++;
+            more.Flyout!.ShowAt(more);
+            Assert.True(more.Flyout.IsOpen);
+            Press(Avalonia.Input.Key.Escape);
+            Assert.Equal((WindowState.FullScreen, 0), (window.WindowState, left));
+            more.Flyout.Hide();
+            Press(Avalonia.Input.Key.F11);
+        }
+        finally { viewer.Dispose(); window.Close(); }
+    }
+
+    [AvaloniaFact]
+    public async Task AnAutoHiddenToolbarHidesWhenTheFocusLeavesItAndStaysForTheViewOptions()
+    {
+        var auto = PhotosSettings.AutoHideToolbar;
+        PhotosSettings.AutoHideToolbar = true;
+        var item = new PhotoItem(Media("photo.png"));
+        var viewer = new ViewerView();
+        // A control outside the viewer, as the side bar and the title bar are in the app.
+        var outside = new Button { Content = "Outside" };
+        DockPanel.SetDock(outside, Dock.Top);
+        var window = new Window { Content = new DockPanel { Children = { outside, viewer } }, Width = 900, Height = 700 };
+        try
+        {
+            window.Show();
+            await viewer.OpenAsync(item, [item]);
+            window.UpdateLayout();
+            var canvas = viewer.FindControl<PhotoCanvas>("Canvas")!;
+            var toolbar = viewer.FindControl<Grid>("Toolbar")!;
+            await WaitUntilAsync(() => window.FocusManager!.GetFocusedElement() == canvas && toolbar.Opacity == 0);
+
+            // The keyboard shows the toolbar when it reaches one of its buttons, and the toolbar hides again when the
+            // focus goes on to a control outside the viewer; it stayed until the pointer moved.
+            viewer.FindControl<DaisyButton>("MoreButton")!.Focus(Avalonia.Input.NavigationMethod.Tab);
+            Assert.Equal(1, toolbar.Opacity);
+            outside.Focus(Avalonia.Input.NavigationMethod.Tab);
+            await WaitUntilAsync(() => toolbar.Opacity == 0);
+
+            // The button in the title bar asks for the view options. It takes the focus on the way, which starts the
+            // hiding, and the toolbar it had just shown went again.
+            canvas.Focus();
+            outside.Focus();
+            viewer.ShowViewOptions();
+            Assert.Equal(1, toolbar.Opacity);
+            await Task.Delay(600, TestContext.Current.CancellationToken);
+            Assert.Equal(1, toolbar.Opacity);
+            Assert.True(viewer.FindControl<Border>("SidePanel")!.IsVisible);
+        }
+        finally { PhotosSettings.AutoHideToolbar = auto; viewer.Dispose(); window.Close(); }
+    }
+
+    [AvaloniaFact]
     public async Task TheArrowKeysGoOnFromAVideoThatDoesNotPlay()
     {
         if (!VideoPlayer.CanPlay) return;
@@ -758,7 +984,9 @@ public sealed class MediaTests
             window.Show();
             await viewer.OpenAsync(video, [video, photo]);
             var player = viewer.FindControl<VideoPlayer>("Video")!;
-            await WaitUntilAsync(() => !player.IsPlayable);
+            // The player gives up on the broken file only after the media backend tried to open it, which took
+            // more than five seconds on a slow CI runner.
+            await WaitUntilAsync(() => !player.IsPlayable, seconds: 20);
             // The arrow keys jump through a video that plays; here they did nothing, with no video to jump through.
             viewer.FindControl<PhotoCanvas>("Canvas")!.Focus();
             window.KeyPress(Avalonia.Input.Key.Right, Avalonia.Input.RawInputModifiers.None, Avalonia.Input.PhysicalKey.ArrowRight, null);
@@ -797,6 +1025,11 @@ public sealed class MediaTests
         Assert.Same(Rail("Gallery"), Focused());
         Press(Avalonia.Input.Key.Up);
         Assert.Same(Rail("Home"), Focused());
+        // The side bar is one tab stop: Tab leaves it instead of going through its six buttons.
+        Press(Avalonia.Input.Key.Tab);
+        var rail = shell.FindControl<Border>("NavigationRail")!;
+        Assert.False(Focused() is Visual left && rail.IsVisualAncestorOf(left));
+        Rail("Home").Focus();
 
         // On the home page Page Down did nothing from the side bar and left the focus above the screen from a card.
         var home = shell.FindControl<ScrollViewer>("HomeScroll")!;
@@ -846,6 +1079,20 @@ public sealed class MediaTests
         Press(Avalonia.Input.Key.End, ctrl: true);
         Assert.StartsWith("Album 59", Name());
         OnScreen(albums);
+
+        // Enter in the search box goes to the first card on the screen, and Tab enters the side bar at the open page.
+        var search = shell.FindControl<TextBox>("Search")!;
+        search.Focus();
+        Press(Avalonia.Input.Key.Enter);
+        Assert.IsType<PhotoCard>(Focused());
+        OnScreen(albums);
+        search.Focus();
+        Press(Avalonia.Input.Key.Tab);
+        Assert.Same(Rail("Albums"), Focused());
+        Invoke(Rail("Home")); window.UpdateLayout();
+        search.Focus();
+        Press(Avalonia.Input.Key.Down);
+        Assert.True(Focused() is Visual first && shell.FindControl<StackPanel>("Home")!.IsVisualAncestorOf(first));
     }
 
     private static void Invoke(Control control) =>
@@ -892,11 +1139,11 @@ public sealed class MediaTests
         }
     }
 
-    private static async Task WaitUntilAsync(Func<bool> condition)
+    private static async Task WaitUntilAsync(Func<bool> condition, int seconds = 5)
     {
         for (var waited = 0; !condition(); waited += 20)
         {
-            Assert.True(waited < 5000, "The condition did not come true within five seconds.");
+            Assert.True(waited < seconds * 1000, $"The condition did not come true within {seconds} seconds.");
             await Task.Delay(20, TestContext.Current.CancellationToken);
         }
     }
