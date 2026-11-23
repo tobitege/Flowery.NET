@@ -9,10 +9,33 @@
     <WrapPanel Margin="0,0,0,12">
       <c:DaisyButton x:Name="Back" AutomationProperties.AutomationId="GalleryView.Back" AutomationProperties.Name="{Binding [Photos_Back]}" ToolTip.Tip="{Binding [Photos_Back]}" IconSymbol="Back" Classes="toolbar-icon" Click="BackClick" IsVisible="False" />
       <TextBlock x:Name="PageTitle" Classes="heading" Margin="0,0,18,6" />
+      <c:DaisyBadge x:Name="HiddenFolderBadge" VerticalAlignment="Center" Margin="0,0,10,6" IsVisible="False">
+        <TextBlock x:Name="HiddenFolderBadgeText" MaxWidth="180" TextTrimming="CharacterEllipsis" />
+      </c:DaisyBadge>
       <Border x:Name="DateChipFrame" BorderBrush="{DynamicResource DaisyBase300Brush}" BorderThickness="1" CornerRadius="18" Padding="12,6" Margin="0,0,10,6">
         <TextBlock x:Name="DateChip" VerticalAlignment="Center" />
       </Border>
       <TextBlock x:Name="CountLabel" VerticalAlignment="Center" Margin="0,0,12,6" />
+      <c:DaisyButton x:Name="RefreshButton" AutomationProperties.AutomationId="GalleryView.Refresh" AutomationProperties.Name="{Binding [Photos_Refresh]}" ToolTip.Tip="{Binding [Photos_Refresh]}" IconSymbol="Refresh" Classes="toolbar-icon" Click="RefreshClick" />
+      <c:DaisyButton x:Name="FolderOptions" AutomationProperties.AutomationId="GalleryView.FolderUpdates" AutomationProperties.Name="{Binding [Photos_FolderOptions]}" Content="{Binding [Photos_FolderOptions]}" Margin="0,0,8,6" IsVisible="False">
+        <c:DaisyButton.Flyout>
+          <Flyout Placement="BottomEdgeAlignedLeft">
+            <Border Padding="12" Width="320" Background="{DynamicResource DaisyBase200Brush}" CornerRadius="8">
+              <StackPanel Spacing="8">
+                <c:DaisyCheckBox x:Name="HideFolder" AutomationProperties.AutomationId="GalleryView.HideFolder" AutomationProperties.Name="{Binding [Photos_HideFolder]}">
+                  <TextBlock Text="{Binding [Photos_HideFolder]}" TextWrapping="Wrap" />
+                </c:DaisyCheckBox>
+                <c:DaisyCheckBox x:Name="WatchOpenFolder" AutomationProperties.AutomationId="GalleryView.WatchOpenFolder" AutomationProperties.Name="{Binding [Photos_WatchOpenFolder]}" Content="{Binding [Photos_WatchOpenFolder]}" />
+                <TextBlock x:Name="FolderWatchError" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" IsVisible="False" />
+                <TextBlock Text="{Binding [Photos_WatchedSort]}" TextWrapping="Wrap" />
+                <c:DaisySelect x:Name="WatchedFolderSort" AutomationProperties.AutomationId="GalleryView.WatchedFolderSort" AutomationProperties.Name="{Binding [Photos_WatchedSort]}" HorizontalAlignment="Stretch" />
+                <TextBlock Text="{Binding [Photos_WatchPosition]}" TextWrapping="Wrap" />
+                <c:DaisySelect x:Name="WatchPosition" AutomationProperties.AutomationId="GalleryView.WatchPosition" AutomationProperties.Name="{Binding [Photos_WatchPosition]}" HorizontalAlignment="Stretch" />
+              </StackPanel>
+            </Border>
+          </Flyout>
+        </c:DaisyButton.Flyout>
+      </c:DaisyButton>
       <c:DaisyButton AutomationProperties.AutomationId="GalleryView.Photos_ViewOptions" AutomationProperties.Name="{Binding [Photos_ViewOptions]}" ToolTip.Tip="{Binding [Photos_ViewOptions]}" IconSymbol="Filter" Classes="toolbar-icon">
         <c:DaisyButton.Flyout>
           <Flyout Placement="BottomEdgeAlignedRight">

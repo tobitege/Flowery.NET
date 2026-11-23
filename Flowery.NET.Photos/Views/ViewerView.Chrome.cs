@@ -2,6 +2,7 @@
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Flowery.NET.Photos.Services;
 
 namespace Flowery.NET.Photos.Views;
@@ -17,6 +18,8 @@ public partial class ViewerView
 
     // In full screen every move of the pointer shows all controls, and they hide again after this long without one.
     private static readonly TimeSpan FullScreenChromeDelay = TimeSpan.FromSeconds(3);
+    // Outside full screen an auto-hidden toolbar goes this long after the pointer or the focus left it.
+    private static readonly TimeSpan ToolbarHideDelay = TimeSpan.FromMilliseconds(300);
 
     private bool IsPointerOverControls => Toolbar.IsPointerOver || StatusPanel.IsPointerOver || SidePanel.IsPointerOver
         || PreviousButton.IsPointerOver || NextButton.IsPointerOver || Video.IsPointerOverControls;
@@ -27,9 +30,19 @@ public partial class ViewerView
         _toolbarTimer.Tick += (_, _) =>
         {
             _toolbarTimer.Stop();
-            var keep = _fullscreen ? IsPointerOverControls : _nearChrome;
+            var keep = (_fullscreen ? IsPointerOverControls : _nearChrome) || IsKeyboardFocusInControls;
             if (!keep && MoreButton.Flyout?.IsOpen != true) SetChromeVisible(false);
         };
+        // A control that takes the focus from the keyboard shows the controls, and they stay while the focus is on one;
+        // Tab went to buttons nobody could see.
+        GotFocus += (_, _) =>
+        {
+            if (IsSlideshow || !ToolbarOverlay || !IsKeyboardFocusInControls) return;
+            _toolbarTimer.Stop();
+            SetChromeVisible(true);
+        };
+        // When the focus moves on, also out of the viewer, they hide again like after a move of the pointer.
+        LostFocus += (_, _) => ScheduleChromeHide(_fullscreen ? FullScreenChromeDelay : ToolbarHideDelay);
         PointerMoved += (_, e) =>
         {
             if (IsSlideshow || !ToolbarOverlay) return;
@@ -42,12 +55,12 @@ public partial class ViewerView
             var y = e.GetPosition(this).Y;
             _nearChrome = y <= Math.Max(96, Toolbar.Bounds.Height);
             if (_nearChrome) { SetChromeVisible(true); _toolbarTimer.Stop(); }
-            else ScheduleChromeHide(TimeSpan.FromMilliseconds(300));
+            else ScheduleChromeHide(ToolbarHideDelay);
         };
         PointerExited += (_, _) =>
         {
             _nearChrome = false;
-            ScheduleChromeHide(TimeSpan.FromMilliseconds(300));
+            ScheduleChromeHide(ToolbarHideDelay);
         };
         Canvas.AddHandler(PointerPressedEvent, (_, e) =>
         {
@@ -64,6 +77,11 @@ public partial class ViewerView
         _toolbarTimer.Interval = delay; _toolbarTimer.Start();
     }
 
+    // The focus is on a control around the picture, and the keyboard put it there.
+    private bool IsKeyboardFocusInControls => _topLevel?.FocusManager?.GetFocusedElement() is Control focused
+        && focused != Canvas && KeyInput.ShowsFocus(focused) && this.IsVisualAncestorOf(focused)
+        && !SidePanel.IsVisualAncestorOf(focused);
+
     private void SetChromeVisible(bool visible)
     {
         if (IsSlideshow) return;
@@ -72,10 +90,14 @@ public partial class ViewerView
         Toolbar.IsHitTestVisible = toolbar;
         // The toolbar also hides outside full screen when auto-hide is on; the other controls hide only in full screen.
         var controls = visible || !_fullscreen;
+        // A control that hides with the focus on it, such as an arrow that was clicked, hands the focus to the picture.
+        var focusHides = !toolbar && Toolbar.IsKeyboardFocusWithin || !controls && (StatusPanel.IsKeyboardFocusWithin
+            || PreviousButton.IsKeyboardFocusWithin || NextButton.IsKeyboardFocusWithin || Video.IsKeyboardFocusWithin);
         StatusPanel.Opacity = controls ? 1 : 0;
         StatusPanel.IsHitTestVisible = controls;
         PreviousButton.IsVisible = NextButton.IsVisible = controls;
         Video.SetControlsVisible(controls);
+        if (focusHides) FocusCanvas();
         TitleViewChanged?.Invoke(IsVisible && !toolbar && !_fullscreen);
     }
 
@@ -105,7 +127,8 @@ public partial class ViewerView
         ScheduleChromeHide(_fullscreen ? FullScreenChromeDelay : TimeSpan.FromSeconds(1.5));
     }
 
-    public void ShowViewOptions() { SelectPanel("view"); SetChromeVisible(true); }
+    // The button in the title bar takes the focus, which starts the hiding; the toolbar it asks for stays.
+    public void ShowViewOptions() { SelectPanel("view"); _toolbarTimer.Stop(); SetChromeVisible(true); }
 
     public void StartSlideshow()
     {

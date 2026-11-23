@@ -40,8 +40,9 @@ public partial class PhotosShell
         _homeWidth = HomeScroll.Bounds.Width;
         var width = Math.Max(300, _homeWidth - 48);
         var empty = _library.Items.Count == 0;
+        var recent = _library.VisibleLibraryItems.OrderByDescending(item => item.SortDate).ToList();
         Home.Children.Clear();
-        Home.Children.Add(CreateHero(empty, width));
+        Home.Children.Add(CreateHero(empty, width, recent));
         if (empty)
         {
             var features = new UniformGrid { Columns = width >= 760 ? 3 : 1 };
@@ -68,8 +69,8 @@ public partial class PhotosShell
         var statistics = new UniformGrid { Columns = width >= 760 ? 4 : 2 };
         foreach (var (key, page, count) in new[]
         {
-            ("Home_Photos", "Gallery", _library.Items.Count),
-            ("Nav_Favorites", "Favorites", _library.Items.Count(i => i.IsFavorite)),
+            ("Home_Photos", "Gallery", recent.Count),
+            ("Nav_Favorites", "Favorites", recent.Count(i => i.IsFavorite)),
             ("Nav_Albums", "Albums", _library.Albums.Count),
             ("Nav_Folders", "Folders", _library.Folders.Count)
         })
@@ -86,7 +87,6 @@ public partial class PhotosShell
         }
         Home.Children.Add(statistics);
 
-        var recent = _library.Items.OrderByDescending(i => i.SortDate).ToList();
         // Fixed squares rather than a stretched row, so every size step shows.
         var side = Math.Floor(HomeThumbnailSide * SizeFactor);
         var columns = Math.Max(1, (int)(width / (side + 22)));
@@ -115,7 +115,7 @@ public partial class PhotosShell
         }
     }
 
-    private DaisyCard CreateHero(bool empty, double width)
+    private DaisyCard CreateHero(bool empty, double width, IReadOnlyList<PhotoItem> recent)
     {
         var content = new StackPanel { Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
         content.Children.Add(new TextBlock
@@ -127,15 +127,18 @@ public partial class PhotosShell
         content.Children.Add(new TextBlock
         {
             Text = empty ? L("Home_WelcomeText") : PhotosLocalization.FormatLibraryStats(
-                _library.Items.Count, _library.Folders.Count, FileOperations.FormatFileSize(_library.Items.Sum(i => i.FileSize))),
+                recent.Count, _library.Folders.Count, FileOperations.FormatFileSize(recent.Sum(i => i.FileSize))),
             Opacity = .75, TextWrapping = TextWrapping.Wrap
         });
         Panel actions = width < 560 ? new StackPanel() : new WrapPanel();
         actions.Margin = new Thickness(0, 14, 0, 0);
         actions.Children.Add(ActionButton("Browse", BrowseAsync, Flowery.Enums.DaisyIconSymbol.Find));
-        if (!empty) actions.Children.Add(ActionButton("Home_StartSlideshow", () => StartSlideshowAsync(_library.Items.OrderByDescending(item => item.SortDate).ToList()), Flowery.Enums.DaisyIconSymbol.Play));
+        if (recent.Count > 0) actions.Children.Add(ActionButton("Home_StartSlideshow", () => StartSlideshowAsync(recent), Flowery.Enums.DaisyIconSymbol.Play));
         actions.Children.Add(ActionButton("AddFolder", AddFolderAsync, Flowery.Enums.DaisyIconSymbol.Folder));
         actions.Children.Add(ActionButton("ImportFiles", ImportAsync, Flowery.Enums.DaisyIconSymbol.Add));
+        _homeRefresh = ActionButton("Refresh", () => RefreshCurrentAsync(), Flowery.Enums.DaisyIconSymbol.Refresh);
+        _homeRefresh.IsEnabled = CanRefresh;
+        actions.Children.Add(_homeRefresh);
         if (empty && Directory.Exists(PhotoLibrary.SamplesFolder))
             actions.Children.Add(ActionButton("UseSamples", () => { AddFolder(PhotoLibrary.SamplesFolder); return Task.CompletedTask; }, Flowery.Enums.DaisyIconSymbol.Add));
         content.Children.Add(actions);
@@ -237,6 +240,7 @@ public partial class PhotosShell
     private PhotoCard CreateCollectionCard(PhotoSourceKind kind, string key, string title, string subtitle,
         int count, PhotoItem? cover, bool root = false)
     {
+        var hidden = kind == PhotoSourceKind.Folder && _library.IsInHiddenFolder(key);
         var image = new Grid { Height = HomeThumbnailSide, ClipToBounds = true };
         image.Children.Add(new PathIcon
         {
@@ -244,9 +248,25 @@ public partial class PhotosShell
                 this.FindResource("PhotosIconAlbum") as Geometry,
             Width = 44, Height = 44, Opacity = .35
         });
-        if (cover != null) image.Children.Add(new PhotoThumbnail(cover, HomeThumbnailSide));
-        image.Children.Add(new DaisyBadge { Content = count.ToString("N0", PhotosLocalization.CurrentCulture),
-            HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(8) });
+        if (!hidden && cover != null) image.Children.Add(new PhotoThumbnail(cover, HomeThumbnailSide));
+        var countBadge = new DaisyBadge { Content = count.ToString("N0", PhotosLocalization.CurrentCulture),
+            HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(8) };
+        if (hidden)
+        {
+            var label = PhotosLocalization.HiddenFolderBadgeLabel;
+            var badge = new DaisyBadge
+            {
+                Content = new TextBlock { Text = label, TextTrimming = TextTrimming.CharacterEllipsis },
+                HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(8, 0, 0, 8)
+            };
+            ToolTip.SetTip(badge, label);
+            var badges = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), VerticalAlignment = VerticalAlignment.Bottom };
+            Grid.SetColumn(countBadge, 1);
+            badges.Children.Add(badge);
+            badges.Children.Add(countBadge);
+            image.Children.Add(badges);
+        }
+        else image.Children.Add(countBadge);
         var content = new StackPanel { Spacing = 6, Children = { image,
             new TextBlock { Text = title, FontWeight = FontWeight.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis },
             new TextBlock { Text = subtitle, Opacity = .65, TextTrimming = TextTrimming.CharacterEllipsis } } };
@@ -256,7 +276,8 @@ public partial class PhotosShell
         ToolTip.SetTip(card, subtitle);
         var menu = new ContextMenu();
         AddMenuItem(menu, "Open", () => OpenCollectionAsync(kind, key, title));
-        AddMenuItem(menu, "Slideshow", () => StartSlideshowAsync(_library.Query(new PhotoQuery { Source = kind, SourceKey = key })));
+        if (!hidden)
+            AddMenuItem(menu, "Slideshow", () => StartSlideshowAsync(_library.Query(new PhotoQuery { Source = kind, SourceKey = key })));
         if (kind == PhotoSourceKind.Album)
         {
             AddMenuItem(menu, "RenameAlbum", async () =>
@@ -273,6 +294,8 @@ public partial class PhotosShell
         }
         else
         {
+            var explicitlyHidden = _library.IsFolderExplicitlyHidden(key);
+            AddMenuItem(menu, explicitlyHidden ? "UnhideFolder" : "HideFolder", () => SetFolderHiddenAsync(key, !explicitlyHidden));
             AddMenuItem(menu, "OpenInExplorer", () => { FileOperations.OpenFolder(key); return Task.CompletedTask; });
             if (root) AddMenuItem(menu, "RemoveFromLibrary", async () =>
             {

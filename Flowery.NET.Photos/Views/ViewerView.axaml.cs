@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Automation;
@@ -43,8 +44,10 @@ public partial class ViewerView : UserControl, IDisposable
     private readonly List<Adjustment> _adjustments = [];
     private readonly List<Bitmap> _previews = [];
     private readonly List<Color> _recent = [];
+    private readonly AvaloniaList<MenuItem> _moreItems = new();
     private readonly DispatcherTimer _slideshow = new();
     private readonly DispatcherTimer _toolbarTimer = new() { Interval = TimeSpan.FromSeconds(3) };
+    private TopLevel? _topLevel;
     private CancellationTokenSource? _load;
     private CancellationTokenSource? _filterLoad;
     private EditState? _previewBasis;
@@ -54,9 +57,11 @@ public partial class ViewerView : UserControl, IDisposable
     private PhotoItem? _item;
     private bool _refreshing;
     private bool _navigating;
+    private bool _mediaBlocked;
     private bool _saving;
     private bool _disposed;
     private int _previewVersion;
+    private int _openVersion;
     private int _lastCustomIndex = -1;
     private bool _fullscreen;
     private WindowState _previousState;
@@ -66,9 +71,12 @@ public partial class ViewerView : UserControl, IDisposable
     private bool IsEditing => TopSaveGroup.IsVisible;
     public bool HasChanges => _history.Current.HasChanges;
     public PhotoItem? Current => _item;
+    internal string? VisibilityFolder { get; set; }
+    internal string? OpenedMediaPath { get; private set; }
     internal IReadOnlyList<PhotoItem> Items => _items;
     public bool IsBusy => _saving || _load != null;
     public Func<Task<bool>>? ConfirmLeave { get; set; }
+    internal event Action? MediaOpened;
     public Func<IReadOnlyList<PhotoItem>, Task>? DeletePhoto { get; set; }
     public Func<PhotoItem, MenuItem>? AlbumMenu { get; set; }
     public event Action<string, bool>? Notification;
@@ -91,6 +99,8 @@ public partial class ViewerView : UserControl, IDisposable
     {
         Library = library;
         InitializeComponent();
+        // The flyout presenter takes the source before Opening. Keep that source while refreshing the entries.
+        if (MoreButton.Flyout is MenuFlyout moreMenu) moreMenu.ItemsSource = _moreItems;
         DataContext = PhotosLocalization.Instance;
         RotateLeftButton.IconData = StreamGeometry.Parse(TurnLeftIcon);
         // The same icon, mirrored, so both turns look alike.
@@ -144,7 +154,18 @@ public partial class ViewerView : UserControl, IDisposable
         _slideshow.Tick += async (_, _) => await NavigateAsync(1);
         InitializeChrome();
         Canvas.AddHandler(PointerWheelChangedEvent, OnWheel, RoutingStrategies.Tunnel);
-        AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+        // The keys are taken at the window, so they work wherever the focus is, and without any: the button that had
+        // it hides with the controls in full screen, or goes with the side panel, and then no key reached the viewer.
+        AttachedToVisualTree += (_, _) =>
+        {
+            _topLevel = TopLevel.GetTopLevel(this);
+            _topLevel?.AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+        };
+        DetachedFromVisualTree += (_, _) =>
+        {
+            _topLevel?.RemoveHandler(KeyDownEvent, OnKeyDown);
+            _topLevel = null;
+        };
         BuildAdjustments();
         RefreshLabels();
         _refreshing = true;
@@ -209,23 +230,46 @@ public partial class ViewerView : UserControl, IDisposable
     }
     public async Task OpenAsync(PhotoItem item, IReadOnlyList<PhotoItem> items)
     {
+        var version = ++_openVersion;
+        var source = await Library.ResolveVisiblePathAsync(item, VisibilityFolder);
+        if (_disposed || version != _openVersion) return;
+        if (source == null)
+        {
+            Notification?.Invoke(L(Library.HiddenFoldersError == null ? "HiddenOpenFolder" : "HiddenFoldersUnavailable"), true);
+            return;
+        }
+        await OpenResolvedAsync(item, items, source);
+    }
+
+    internal async Task OpenResolvedAsync(PhotoItem item, IReadOnlyList<PhotoItem> items, string source)
+    {
+        _openVersion++;
         _load?.Cancel();
         _filterLoad?.Cancel(); _previewVersion++;
         var load = new CancellationTokenSource();
         _load = load;
         CloseAnimation(); Video.Close();
+        if (_mediaBlocked) Canvas.Dispose();
         IsEnabled = false;
         FileName.Text = item.FileName;
+        ToolTip.SetTip(FileName, null);
         ErrorText.IsVisible = false;
         if (_item != null) _item.PropertyChanged -= OnPhotoPropertyChanged;
-        _item = item; _items = items;
+        _item = item; _items = items; OpenedMediaPath = source;
         _item.PropertyChanged += OnPhotoPropertyChanged;
         Canvas.ZoomsOnDoubleTap = !item.IsVideo;
         try
         {
+            ToolTip.SetTip(FileName, Path.GetDirectoryName(Path.GetFullPath(item.Path)));
             // Where the app plays a video, its first frame comes within moments, and a still taken first only kept it
             // waiting; elsewhere the still is what shows.
-            var bitmap = item.IsVideo && VideoPlayer.CanPlay ? null : await Task.Run(() => LoadStill(item), load.Token);
+            var verifyTarget = Library.RequiresResolvedMedia;
+            var bitmap = await Task.Run(() =>
+            {
+                if (verifyTarget && !PhotoLibrary.PathComparer.Equals(source, FolderIdentity.TryResolve(source)))
+                    throw new IOException("The media target changed.");
+                return item.IsVideo && VideoPlayer.CanPlay ? null : LoadStill(item, source);
+            }, load.Token);
             if (load.IsCancellationRequested || _disposed) { bitmap?.Dispose(); return; }
             RefreshFavorite();
             // The canvas zooms a video by its own pixels, which its still may have fewer of; a video without a still
@@ -238,14 +282,17 @@ public partial class ViewerView : UserControl, IDisposable
             _history.Reset();
             ClosePanel();
             _previewPath = null;
-            if (item.IsVideo) Video.Open(item.Path);
+            if (item.IsVideo)
+            {
+                if (!_mediaBlocked) Video.Open(source);
+            }
             else
             {
                 await UpdateFilterPreviews();
-                await LoadAnimationAsync(item.Path, load.Token);
+                await LoadAnimationAsync(source, load.Token);
             }
             load.Token.ThrowIfCancellationRequested();
-            var metadata = await ImageMetadataReader.ReadDetailsAsync(item.Path);
+            var metadata = await ImageMetadataReader.ReadDetailsAsync(source);
             if (load.IsCancellationRequested || _disposed) return;
             if (metadata is { } probe)
             {
@@ -267,9 +314,10 @@ public partial class ViewerView : UserControl, IDisposable
         {
             if (_load == load)
             {
-                _load = null; IsEnabled = !_saving && !_disposed;
+                _load = null; IsEnabled = !_saving && !_disposed && !_mediaBlocked;
                 foreach (var button in Toolbar.GetVisualDescendants().OfType<DaisyButton>())
                     button.IsEnabled = IsAvailable(button.Tag as string);
+                if (!load.IsCancellationRequested && !_disposed) MediaOpened?.Invoke();
                 if (IsEnabled && (Canvas.Bitmap != null || item.IsVideo)) FocusCanvas();
             }
             load.Dispose();
@@ -285,9 +333,9 @@ public partial class ViewerView : UserControl, IDisposable
         return empty;
     }
 
-    private static SKBitmap? LoadStill(PhotoItem item)
+    private static SKBitmap? LoadStill(PhotoItem item, string source)
     {
-        try { return PhotoDecoder.Load(item.Path); }
+        try { return PhotoDecoder.Load(source); }
         catch (Exception ex) when (item.IsVideo && ex is not OperationCanceledException) { return null; }
     }
 
@@ -349,12 +397,13 @@ public partial class ViewerView : UserControl, IDisposable
     {
         if (_item == null) return Task.CompletedTask;
         var basis = _history.Current with { Filter = FilterPresets.NoneId, FilterIntensity = 100, Strokes = [] };
-        if (_previewPath == _item.Path && _previewBasis == basis) return FilterPreviewUpdate;
-        _previewPath = _item.Path; _previewBasis = basis;
+        var source = OpenedMediaPath ?? _item.MediaPath;
+        if (_previewPath == source && _previewBasis == basis) return FilterPreviewUpdate;
+        _previewPath = source; _previewBasis = basis;
         _filterLoad?.Cancel();
         var load = new CancellationTokenSource();
         _filterLoad = load;
-        return FilterPreviewUpdate = LoadFilterPreviewsAsync(_item.Path, load);
+        return FilterPreviewUpdate = LoadFilterPreviewsAsync(source, load);
     }
     private async Task LoadFilterPreviewsAsync(string path, CancellationTokenSource load)
     {
@@ -406,7 +455,10 @@ public partial class ViewerView : UserControl, IDisposable
     }
     private void ClosePanel()
     {
+        // The focus goes back to the picture rather than nowhere when its control leaves with the panel.
+        var focusLeaves = SidePanel.IsKeyboardFocusWithin || TopSaveGroup.IsKeyboardFocusWithin;
         SidePanel.IsVisible = TopSaveGroup.IsVisible = false;
+        if (focusLeaves) FocusCanvas();
         var cropping = Canvas.IsCropping;
         Canvas.IsCropping = Canvas.IsDrawing = false;
         _activePanel = null;
@@ -534,7 +586,7 @@ public partial class ViewerView : UserControl, IDisposable
     }
     public async Task NavigateAsync(int offset)
     {
-        if (_navigating || _item == null || _items.Count < 2) return;
+        if (_navigating || _mediaBlocked || _item == null || _items.Count < 2) return;
         var index = _items.ToList().FindIndex(i => i.Path == _item.Path);
         var target = index + offset;
         if (_slideshow.IsEnabled)
@@ -545,11 +597,13 @@ public partial class ViewerView : UserControl, IDisposable
             target = Wrap(target, _items.Count);
         }
         if (target < 0 || target >= _items.Count || target == index) return;
+        var destination = _items[target];
         _navigating = true;
         try
         {
             if (HasChanges && ConfirmLeave != null && !await ConfirmLeave()) { StopSlideshow(); return; }
-            await OpenAsync(_items[target], _items);
+            if (!_mediaBlocked && _items.Contains(destination))
+                await OpenAsync(destination, _items);
         }
         finally { _navigating = false; }
     }
@@ -557,6 +611,33 @@ public partial class ViewerView : UserControl, IDisposable
     {
         StopSlideshow(); _toolbarTimer.Stop(); _hintTimer.Stop(); CloseAnimation(); Video.Close();
         if (_fullscreen) ToggleFullScreen();
+    }
+
+    internal void CloseMedia()
+    {
+        _openVersion++;
+        _load?.Cancel();
+        Stop();
+        ClosePanel();
+        Canvas.Dispose();
+        Canvas.InvalidateVisual();
+    }
+
+    internal void ApplyFolderVisibility(IReadOnlyList<PhotoItem> visible, bool blocked)
+    {
+        if (!blocked && visible.Count != _items.Count) _items = visible;
+        if (_mediaBlocked == blocked) { RefreshNavigation(); return; }
+        _mediaBlocked = blocked;
+        Opacity = blocked ? 0 : 1;
+        IsEnabled = !blocked && !IsBusy && !_disposed;
+        if (blocked)
+        {
+            MoreButton.Flyout?.Hide();
+            Stop();
+        }
+        else if (!IsBusy && _item?.IsVideo == true && OpenedMediaPath is { } source)
+            Video.Open(source);
+        RefreshNavigation();
     }
     public async Task<bool> SaveAsync(bool replace)
     {
@@ -578,9 +659,9 @@ public partial class ViewerView : UserControl, IDisposable
                 target = FileOperations.GetUniquePath(Path.Combine(_item.FolderPath,
                     $"{Path.GetFileNameWithoutExtension(target)} ({L("EditedSuffix")}){(writable ? extension : ".jpg")}"));
             }
-            await EditRenderer.SaveAsync(_item.Path, target, _history.Current, PhotosSettings.JpegQuality, replace);
-            var refreshed = Library.Refresh(target);
-            if (refreshed != null)
+            await EditRenderer.SaveAsync(OpenedMediaPath ?? _item.MediaPath, target, _history.Current, PhotosSettings.JpegQuality, replace);
+            var refreshed = await Library.RefreshMediaAsync(target);
+            if (refreshed != null && !_mediaBlocked)
             {
                 var items = _items.ToList();
                 var index = items.FindIndex(item => item.Path == _item.Path);
@@ -593,11 +674,11 @@ public partial class ViewerView : UserControl, IDisposable
             return true;
         }
         catch (Exception ex) { Notification?.Invoke(PhotosLocalization.Format("Photos_SaveFailed", ex.Message), true); return false; }
-        finally { _saving = false; IsEnabled = !_disposed; if (IsEnabled) FocusCanvas(); }
+        finally { _saving = false; IsEnabled = !_disposed && !_mediaBlocked; if (IsEnabled) FocusCanvas(); }
     }
-    // The keys reach the viewer through the focused canvas. Before the viewer's first layout the canvas cannot take the
-    // focus yet, which a video, opened at once without a still, met on the first open: no key reached the viewer, not
-    // even Esc or Enter in full screen. It takes the focus once laid out.
+    // The picture has the focus while it shows, so Tab starts from it. Before the viewer's first layout the canvas
+    // cannot take the focus yet, which a video, opened at once without a still, met on the first open; it takes the
+    // focus once laid out.
     private void FocusCanvas()
     {
         if (!Canvas.Focus())
@@ -726,7 +807,7 @@ public partial class ViewerView : UserControl, IDisposable
             Notification?.Invoke(PhotosLocalization.Format("Photos_CopiedCount", count), count != 1);
             return;
         }
-        using var source = await Task.Run(() => PhotoDecoder.Load(_item.Path));
+        using var source = await Task.Run(() => PhotoDecoder.Load(OpenedMediaPath ?? _item.MediaPath));
         using var rendered = EditRenderer.Render(source, _history.Current);
         using var image = SKImage.FromBitmap(rendered);
         using var data = image.Encode(SKEncodedImageFormat.Png, 100);
@@ -737,21 +818,20 @@ public partial class ViewerView : UserControl, IDisposable
     }
     private void MoreOpening(object? sender, EventArgs e)
     {
-        if (sender is not MenuFlyout menu) return;
-        menu.Items.Clear();
-        if (_item == null) return;
+        _moreItems.Clear();
+        if (_item is not { } photo) return;
         void Add(string key, string action)
         {
             var entry = new MenuItem { Header = L(key), Tag = action };
             AutomationProperties.SetAutomationId(entry, "Viewer.More." + action);
             AutomationProperties.SetName(entry, L(key));
             entry.Click += ActionClick;
-            menu.Items.Add(entry);
+            _moreItems.Add(entry);
         }
         Add("RotateLeft", "left"); Add("RotateRight", "right");
-        if (AlbumMenu != null) menu.Items.Add(AlbumMenu(_item));
+        if (AlbumMenu != null) _moreItems.Add(AlbumMenu(photo));
         Add("OpenWith", "openWith"); Add("ShowInExplorer", "reveal"); Add("CopyPath", "copyPath");
-        if (OperatingSystem.IsWindows() && !_item.IsVideo) Add("SetAsBackground", "wallpaper");
+        if (OperatingSystem.IsWindows() && !photo.IsVideo) Add("SetAsBackground", "wallpaper");
     }
     // In the editor a turn is an edit; otherwise it turns only the view.
     private void Turn(bool clockwise)
@@ -843,7 +923,7 @@ public partial class ViewerView : UserControl, IDisposable
                     if (video) await Video.CloseAsync();
                     await DeletePhoto([_item]);
                     if (!_item.Exists) { _history.Reset(); BackRequested?.Invoke(); }
-                    else if (video) Video.Open(_item.Path);
+                    else if (video && OpenedMediaPath is { } path) Video.Open(path);
                 }
                 break;
             case "map":
@@ -865,7 +945,7 @@ public partial class ViewerView : UserControl, IDisposable
     }
     private async void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Handled) return;
+        if (e.Handled || !IsEffectivelyVisible || !IsEffectivelyEnabled) return;
         if (IsSlideshow)
         {
             e.Handled = true;
@@ -877,15 +957,12 @@ public partial class ViewerView : UserControl, IDisposable
         var ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control);
         var shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         var playable = _item?.IsVideo == true && Video.IsPlayable;
-        var onButton = false;
-        if (e.Source is Visual source)
-        {
-            var ancestors = source.GetSelfAndVisualAncestors().ToArray();
-            if (ancestors.Any(visual => visual is TextBox)) return;
-            onButton = ancestors.Any(visual => visual is Button);
-            if (!ctrl && e.Key is Key.Left or Key.Right or Key.Up or Key.Down or Key.Home or Key.End or Key.PageUp or Key.PageDown &&
-                ancestors.Any(visual => visual is RangeBase or SelectingItemsControl)) return;
-        }
+        // A menu, a flyout or an open list keeps its keys, such as Esc and Enter, and so does a text box.
+        var ancestors = (e.Source as Visual)?.GetSelfAndVisualAncestors().ToArray() ?? [];
+        if (MoreButton.Flyout?.IsOpen == true || ancestors.Any(visual => visual is TextBox || KeyInput.IsPopup(visual))) return;
+        var onButton = ancestors.Any(visual => visual is Button);
+        if (!ctrl && e.Key is Key.Left or Key.Right or Key.Up or Key.Down or Key.Home or Key.End or Key.PageUp or Key.PageDown &&
+            ancestors.Any(visual => visual is RangeBase or SelectingItemsControl)) return;
         if (e.Key is Key.Home or Key.End && _item != null)
         {
             e.Handled = true;
@@ -898,7 +975,8 @@ public partial class ViewerView : UserControl, IDisposable
             // As in a media player, the arrow keys jump through a video that plays here; Page Up and Page Down still go on.
             Key.Left when playable => "skipBack", Key.Right when playable => "skipForward",
             Key.Left or Key.PageUp => "previous", Key.Right or Key.PageDown => "next", Key.F11 => "fullscreen", Key.F5 => "slideshow",
-            Key.Space when _item?.IsVideo == true => "playPause", Key.M when !ctrl && _item?.IsVideo == true => "mute",
+            // On a button, Space presses the button, as Enter does.
+            Key.Space when !onButton && _item?.IsVideo == true => "playPause", Key.M when !ctrl && _item?.IsVideo == true => "mute",
             Key.F when !ctrl => "favorite", Key.R => e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? "left" : "right",
             Key.X when Canvas.IsDrawing => "swap", Key.I when !ctrl => "info",
             Key.Add or Key.OemPlus => "zoomIn", Key.Subtract or Key.OemMinus => "zoomOut",

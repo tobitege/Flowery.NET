@@ -12,6 +12,27 @@ namespace Flowery.NET.Tests;
 
 public class RangeAutomationTests
 {
+    [AvaloniaTheory]
+    [InlineData(null)]
+    [InlineData("DaisyGlassRangeTheme")]
+    public void TheSliderIsOneTabStopInEveryTheme(string? theme)
+    {
+        var range = new DaisyRange { Width = 300 };
+        if (theme != null) range.Theme = DaisyGlassSurfaceTests.GlassTheme(theme);
+        var window = new Window { Content = range, Width = 400, Height = 150 };
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+            // Tab stopped at both halves of the track as well as at the slider itself.
+            var halves = range.GetVisualDescendants().OfType<RepeatButton>().ToList();
+            Assert.Equal(2, halves.Count);
+            Assert.All(halves, half => Assert.False(half.Focusable));
+            Assert.True(range.Focusable);
+        }
+        finally { window.Close(); }
+    }
+
     [AvaloniaFact]
     public void TrackActionsHaveLocalizedNamesAndStableIds()
     {

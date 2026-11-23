@@ -24,7 +24,7 @@
       <TextBox AutomationProperties.AutomationId="PhotosShell.Search" AutomationProperties.Name="{Binding [Photos_SearchPlaceholder]}" x:Name="Search" MaxWidth="480" PlaceholderText="{Binding [Photos_SearchPlaceholder]}" />
     </Grid>
     <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
-      <Border x:Name="NavigationRail" XYFocus.NavigationModes="Keyboard" Width="64" BorderBrush="{DynamicResource DaisyBase300Brush}" BorderThickness="0,0,1,0">
+      <Border x:Name="NavigationRail" XYFocus.NavigationModes="Keyboard" KeyboardNavigation.TabNavigation="Once" Width="64" BorderBrush="{DynamicResource DaisyBase300Brush}" BorderThickness="0,0,1,0">
         <Grid RowDefinitions="*,Auto">
           <StackPanel x:Name="NavigationButtons" Spacing="8" Margin="0,8">
             <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.Home" AutomationProperties.Name="{Binding [Photos_Nav_Home]}" ToolTip.Tip="{Binding [Photos_Nav_Home]}" Classes="rail" IconData="{StaticResource PhotosIconHome}" Tag="Home" Click="NavigateClick" />
@@ -42,13 +42,14 @@
         </ScrollViewer>
         <local:GalleryView x:Name="Gallery" IsVisible="False" />
         <Grid x:Name="CollectionsScroll" IsVisible="False" Margin="8,12,8,24" RowDefinitions="Auto,*">
-            <Grid ColumnDefinitions="*,Auto,Auto">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
               <StackPanel Orientation="Horizontal" Spacing="16">
                 <TextBlock x:Name="CollectionTitle" Classes="heading" />
                 <TextBlock x:Name="CollectionCount" Opacity="0.65" VerticalAlignment="Center" />
               </StackPanel>
               <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.NewAlbum" AutomationProperties.Name="{Binding [Photos_NewAlbum]}" x:Name="NewAlbum" Grid.Column="1" Content="{Binding [Photos_NewAlbum]}" IconSymbol="Add" Click="NewAlbumClick" />
               <c:DaisyButton AutomationProperties.AutomationId="PhotosShell.AddCollectionFolder" AutomationProperties.Name="{Binding [Photos_AddFolder]}" x:Name="AddCollectionFolder" Grid.Column="2" Content="{Binding [Photos_AddFolder]}" IconSymbol="Folder" Click="AddCollectionFolderClick" />
+              <c:DaisyButton x:Name="RefreshCollections" AutomationProperties.AutomationId="PhotosShell.RefreshCollections" AutomationProperties.Name="{Binding [Photos_Refresh]}" ToolTip.Tip="{Binding [Photos_Refresh]}" Grid.Column="3" IconSymbol="Refresh" Classes="toolbar-icon" Click="RefreshClick" Margin="8,0,0,0" />
             </Grid>
             <ListBox x:Name="Collections" Grid.Row="1" Margin="0,16,0,0" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" AutomationProperties.AutomationId="Photos.Collections" AutomationProperties.Name="{Binding [Photos_Nav_Albums]}">
               <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
@@ -59,6 +60,10 @@
             </StackPanel>
         </Grid>
         <local:ViewerView x:Name="Viewer" IsVisible="False" />
+        <StackPanel x:Name="HiddenViewerPanel" IsVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24" Spacing="12">
+          <TextBlock x:Name="HiddenViewerMessage" AutomationProperties.LiveSetting="Polite" TextWrapping="Wrap" />
+          <c:DaisyButton Content="{Binding [Photos_Back]}" HorizontalAlignment="Center" Click="BackFromHiddenViewerClick" />
+        </StackPanel>
       </Grid>
     </Grid>
     <Border x:Name="AppStatus" Grid.Row="2" Background="{DynamicResource DaisyBase200Brush}" Padding="12,8">

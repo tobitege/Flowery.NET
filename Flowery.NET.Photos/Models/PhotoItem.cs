@@ -25,6 +25,9 @@ namespace Flowery.NET.Photos.Models
         public string FolderPath { get; }
         public string Extension { get; }
         public bool IsVideo { get; }
+        internal Services.FolderLocation? Location { get; set; }
+        internal string? ResolvedPath { get; set; }
+        internal string MediaPath => ResolvedPath ?? Path;
 
         public long FileSize { get; set; }
         public DateTime DateModified { get; set; }

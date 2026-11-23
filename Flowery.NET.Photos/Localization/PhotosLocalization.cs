@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Flowery.NET.Photos.Services;
 
 namespace Flowery.NET.Photos.Localization
 {
@@ -38,6 +39,9 @@ namespace Flowery.NET.Photos.Localization
         }
 
         public static string CurrentCultureName => _currentCultureName;
+
+        internal static string HiddenFolderBadgeLabel => PhotosSettings.HiddenFolderLabel is { Length: > 0 } custom
+            ? custom : GetString("Photos_Hidden");
 
         /// <summary>
         /// Indexer for XAML binding: {Binding [KeyName]}

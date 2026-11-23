@@ -9,7 +9,8 @@ namespace Flowery.NET.Photos.Views;
 /// <summary>
 /// The keyboard in the gallery: the arrow keys go from thumbnail to thumbnail, Page Up and Page Down a screen up or
 /// down, Home and End to the start and end of the row, and with Ctrl, Home, End, Page Up and Page Down to the first and
-/// last thumbnail. A thumbnail keeps the focus throughout, so no other element takes the keys.
+/// last thumbnail. With Shift the moves select from thumbnail to thumbnail. A thumbnail keeps the focus throughout, so
+/// no other element takes the keys.
 /// </summary>
 /// <remarks>
 /// The keys are taken at the window, before the list of rows, its scroller and the window's own focus moves see them:
@@ -19,6 +20,8 @@ namespace Flowery.NET.Photos.Views;
 public partial class GalleryView
 {
     private TopLevel? _topLevel;
+    // Where the range that Shift with the moves selected last ends; it begins at the anchor.
+    private PhotoItem? _reach;
 
     private void AttachKeys()
     {
@@ -40,7 +43,10 @@ public partial class GalleryView
     // Moves the focus to another thumbnail; false when the gallery shows none.
     private bool Navigate(PageKey key)
     {
-        if (Scroller is not { } scroller || CurrentTile(scroller) is not var (row, column, focused)) return false;
+        if (Scroller is not { } scroller) return false;
+        var current = FocusedTile();
+        var focused = current != null;
+        if ((current ?? FirstTileOnScreen(scroller)) is not (var row, var column)) return false;
         var photos = (GalleryPhotoRow)_rows[row];
         var x = CenterOf(photos, column);
         // Without a focused thumbnail an arrow key, Home or End first focuses the one on the screen.
@@ -61,27 +67,64 @@ public partial class GalleryView
         // At the first or last thumbnail the key does nothing, but it stays here.
         var (toRow, toColumn) = target ?? (row, column);
         var top = key.IsPaging && key.Edge == 0 ? PageScroll.TopOf(scroller, Rows, row) : null;
-        PageScroll.Show<PhotoTile>(scroller, Rows, toRow, toColumn, top, key.Edge);
+        var reached = Show(scroller, toRow, toColumn, top, key.Edge);
+        // With Shift the moves select on their way; a move without it starts anew from where it ends.
+        if (key.Shift && focused) SelectTo(photos.Tiles[column].Item, reached);
+        else (_anchor, _reach) = (reached, null);
         return true;
     }
 
-    // The focused thumbnail, or else the first one on the screen.
-    private (int Row, int Column, bool Focused)? CurrentTile(ScrollViewer scroller)
+    /// <summary>Focuses the first thumbnail on the screen, for example from the search box; false when there is none.</summary>
+    internal bool FocusFirstOnScreen()
     {
-        if (_topLevel?.FocusManager?.GetFocusedElement() is PhotoTile { DataContext: GalleryPhotoRow focused } tile)
-        {
-            var row = _rows.IndexOf(focused);
-            var column = ColumnOf(focused, tile.Item);
-            if (row >= 0 && column >= 0) return (row, column, true);
-        }
+        if (Scroller is not { } scroller || FirstTileOnScreen(scroller) is not (var row, var column)) return false;
+        (_anchor, _reach) = (Show(scroller, row, column, null, 0), null);
+        return true;
+    }
+
+    // Scrolls a thumbnail into view and focuses it; gives its photo or video.
+    private PhotoItem Show(ScrollViewer scroller, int row, int column, double? top, int edge)
+    {
+        PageScroll.Show<PhotoTile>(scroller, Rows, row, column, top, edge);
+        return ((GalleryPhotoRow)_rows[row]).Tiles[column].Item;
+    }
+
+    // Selects from the anchor, the thumbnail the moves with Shift began at, to the one they reach, and lets go of the
+    // thumbnails that a move back leaves behind, as Shift with a click selects a range.
+    private void SelectTo(PhotoItem from, PhotoItem to)
+    {
+        // The range goes on only from where it ended. A focus that came another way, by Tab, a click or the way back
+        // from the viewer, starts a new range there; the old anchor selected files nobody meant.
+        if (from != (_reach ?? _anchor)) (_anchor, _reach) = (from, null);
+        var (anchor, last) = (_items.IndexOf(_anchor ?? from), _items.IndexOf(to));
+        if (anchor < 0 || last < 0) return;
+        var before = _reach != null ? _items.IndexOf(_reach) : -1;
+        if (before >= 0)
+            for (var index = Math.Min(anchor, before); index <= Math.Max(anchor, before); index++) _items[index].IsSelected = false;
+        for (var index = Math.Min(anchor, last); index <= Math.Max(anchor, last); index++) _items[index].IsSelected = true;
+        _reach = to;
+        SelectionChanged?.Invoke();
+    }
+
+    // The thumbnail that has the focus.
+    private (int Row, int Column)? FocusedTile()
+    {
+        if (_topLevel?.FocusManager?.GetFocusedElement() is not PhotoTile { DataContext: GalleryPhotoRow focused } tile) return null;
+        var (row, column) = (_rows.IndexOf(focused), ColumnOf(focused, tile.Item));
+        return row >= 0 && column >= 0 ? (row, column) : null;
+    }
+
+    // The first thumbnail on the screen, or the first of all while none is laid out.
+    private (int Row, int Column)? FirstTileOnScreen(ScrollViewer scroller)
+    {
         foreach (var candidate in Rows.GetVisualDescendants().OfType<PhotoTile>())
         {
             if (!candidate.IsEffectivelyVisible || candidate.DataContext is not GalleryPhotoRow shown
                 || candidate.TranslatePoint(default, scroller) is not { } point || point.Y < -1 || point.Y >= scroller.Viewport.Height) continue;
             var row = _rows.IndexOf(shown);
-            if (row >= 0) return (row, ColumnOf(shown, candidate.Item), false);
+            if (row >= 0) return (row, ColumnOf(shown, candidate.Item));
         }
-        return NextPhotoRow(-1, 1) is { } first ? (first, 0, false) : null;
+        return NextPhotoRow(-1, 1) is { } first ? (first, 0) : null;
     }
 
     private static int ColumnOf(GalleryPhotoRow row, PhotoItem item)

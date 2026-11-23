@@ -187,6 +187,10 @@ public sealed class PhotoTests
         Assert.Equal(items.Count, rows.Sum(r => r.Tiles.Count));
         foreach (var row in rows) Assert.InRange(row.Tiles.Sum(t => t.Width) + (row.Tiles.Count - 1) * 6, 1, width + 1);
         Assert.Equal(rows[^2].TileHeight, rows[^1].TileHeight);
+        // Screen readers name a row by its number of thumbnails; a row of one was "1 items".
+        GalleryPhotoRow Row(int tiles) => new() { Tiles = rows[0].Tiles.Take(tiles).ToList() };
+        Assert.Equal(PhotosLocalization.GetString("Photos_ItemCountOne"), Row(1).ToString());
+        Assert.Equal(PhotosLocalization.Format("Photos_ItemCount", 2), Row(2).ToString());
     }
 
     [Theory]
@@ -304,10 +308,9 @@ public sealed class PhotoTests
             var external = CreatePhoto(NewFolder(), "imported.png");
             Assert.Equal(1, await library.ImportFilesAsync([external]));
             await library.RescanAsync(); Assert.Equal(2, library.Items.Count);
-            var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            library.Changed += (_, _) => { if (library.Items.Count == 3) changed.TrySetResult(); };
-            CreatePhoto(folder, "watched.png");
-            await changed.Task.WaitAsync(TimeSpan.FromSeconds(8), TestContext.Current.CancellationToken);
+            CreatePhoto(folder, "added.png");
+            Assert.Equal(2, library.Items.Count);
+            await library.RescanAsync();
             Assert.Equal(3, library.Items.Count);
             Assert.True(File.Exists(external));
             Assert.Single(PhotosSettings.LoadFavorites());

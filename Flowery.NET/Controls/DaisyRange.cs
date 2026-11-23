@@ -68,7 +68,11 @@ namespace Flowery.Controls
             _thumb = e.NameScope.Find<Thumb>("PART_Thumb");
 
             foreach (var button in new[] { _increaseButton, _decreaseButton }.OfType<RepeatButton>())
+            {
                 button.PointerCaptureLost += OnAnyPointerCaptureLost;
+                // The slider is one tab stop, whatever its template; Tab stopped at both halves of the track as well.
+                button.Focusable = false;
+            }
             // Also raised when the thumb loses the pointer without a release.
             if (_thumb != null)
                 _thumb.DragCompleted += OnThumbDragCompleted;

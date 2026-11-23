@@ -24,19 +24,23 @@ public partial class PhotosShell
     {
         _topLevel = TopLevel.GetTopLevel(this);
         _topLevel?.AddHandler(KeyDownEvent, OnPageKeyDown, RoutingStrategies.Tunnel);
+        // The shortcuts are taken at the window after everything else, so they also work with no focus at all, as
+        // right after a page opens.
+        _topLevel?.AddHandler(KeyDownEvent, OnKeyDown);
     }
 
     private void DetachKeys()
     {
         _topLevel?.RemoveHandler(KeyDownEvent, OnPageKeyDown);
+        _topLevel?.RemoveHandler(KeyDownEvent, OnKeyDown);
         _topLevel = null;
     }
 
     private void OnPageKeyDown(object? sender, KeyEventArgs e)
     {
-        if (Viewer.IsVisible) return;
-        if (CollectionsScroll.IsVisible && PageKey.Of(e, sender, Collections) is { } card) e.Handled = MoveInCollections(card);
-        else if (HomeScroll.IsVisible && PageKey.Of(e, sender, HomeScroll) is { } home) e.Handled = MoveOnHome(home);
+        if (!IsEffectivelyVisible || Viewer.IsVisible) return;
+        if (CollectionsScroll.IsVisible && PageKey.Of(e, sender, Collections) is { Shift: false } card) e.Handled = MoveInCollections(card);
+        else if (HomeScroll.IsVisible && PageKey.Of(e, sender, HomeScroll) is { Shift: false } home) e.Handled = MoveOnHome(home);
     }
 
     private IInputElement? FocusedElement => _topLevel?.FocusManager?.GetFocusedElement();
@@ -48,7 +52,9 @@ public partial class PhotosShell
             || Collections.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault() is not { } scroller) return false;
         var columns = rows[0].Entries.Length;
         var count = rows.Sum(row => row.Entries.Length);
-        if (CurrentCard(scroller, columns) is not var (index, focused)) return false;
+        var current = FocusedCard(columns);
+        var focused = current != null;
+        if ((current ?? FirstCardOnScreen(scroller, columns)) is not { } index) return false;
         var (row, column) = (index / columns, index % columns);
         var rowHeight = Collections.ContainerFromIndex(row)?.Bounds.Height ?? scroller.Viewport.Height;
         var rowsPerPage = Math.Max(1, (int)(scroller.Viewport.Height / Math.Max(1, rowHeight)));
@@ -73,14 +79,27 @@ public partial class PhotosShell
         return true;
     }
 
-    // The focused card's index, or else that of the first card on the screen.
-    private (int Index, bool Focused)? CurrentCard(ScrollViewer scroller, int columns)
+    /// <summary>Focuses the first album or folder card on the screen, for example from the search box; false when there is none.</summary>
+    private bool FocusFirstCard()
     {
-        if (FocusedElement is PhotoCard focused && IndexOf(focused, columns) is { } index) return (index, true);
+        if (Collections.ItemsSource is not CollectionRow[] { Length: > 0 } rows
+            || Collections.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault() is not { } scroller) return false;
+        var columns = rows[0].Entries.Length;
+        if (FirstCardOnScreen(scroller, columns) is not { } index) return false;
+        PageScroll.Show<PhotoCard>(scroller, Collections, index / columns, index % columns, null, 0);
+        return true;
+    }
+
+    // The index of the card that has the focus.
+    private int? FocusedCard(int columns) => FocusedElement is PhotoCard focused ? IndexOf(focused, columns) : null;
+
+    // The index of the first card on the screen.
+    private int? FirstCardOnScreen(ScrollViewer scroller, int columns)
+    {
         foreach (var card in Collections.GetVisualDescendants().OfType<PhotoCard>())
         {
             if (card.TranslatePoint(default, scroller) is { } point && point.Y >= -1 && point.Y < scroller.Viewport.Height
-                && IndexOf(card, columns) is { } shown) return (shown, false);
+                && IndexOf(card, columns) is { } shown) return shown;
         }
         return null;
     }
@@ -93,18 +112,11 @@ public partial class PhotosShell
     // page keys scroll and take the focus along to the card or button at the same place on the screen.
     private bool MoveOnHome(PageKey key)
     {
-        var targets = Home.GetVisualDescendants().OfType<Control>()
-            .Where(control => control is PhotoCard or Button && control.Focusable && control.IsEffectivelyVisible && control.IsEffectivelyEnabled)
-            .ToList();
-        if (targets.Count == 0) return false;
         var focused = FocusedElement as Control;
-        if (!key.IsPaging)
-        {
-            // The window's own moves take it from a focused card or button; without one they would find nothing to start from.
-            if (focused != null) return false;
-            FocusAndReveal(FirstOnScreen(targets, HomeScroll) ?? targets[0]);
-            return true;
-        }
+        // The window's own moves take it from a focused card or button; without one they would find nothing to start from.
+        if (!key.IsPaging) return focused == null && FocusFirstOnHome();
+        var targets = HomeTargets();
+        if (targets.Count == 0) return false;
         var before = HomeScroll.Offset.Y;
         var from = focused != null && targets.Contains(focused) && focused.TranslatePoint(default, HomeScroll) is { } point ? point : default;
         if (key.Edge != 0) PageScroll.ScrollToEdge(HomeScroll, key.Edge);
@@ -113,6 +125,18 @@ public partial class PhotosShell
         // At the top or bottom already, the first or last card or button.
         var edge = key.Edge != 0 ? key.Edge : Math.Abs(HomeScroll.Offset.Y - before) < 1 ? (key.Key == Key.PageDown ? 1 : -1) : 0;
         FocusAndReveal(edge < 0 ? targets[0] : edge > 0 ? targets[^1] : NearestOnScreen(targets, HomeScroll, from) ?? targets[0]);
+        return true;
+    }
+
+    private List<Control> HomeTargets() => [.. Home.GetVisualDescendants().OfType<Control>().Where(control =>
+        control is PhotoCard or Button && control.Focusable && control.IsEffectivelyVisible && control.IsEffectivelyEnabled)];
+
+    // Focuses the first card or button of the home page that is on the screen; false when it has none.
+    private bool FocusFirstOnHome()
+    {
+        var targets = HomeTargets();
+        if (targets.Count == 0) return false;
+        FocusAndReveal(FirstOnScreen(targets, HomeScroll) ?? targets[0]);
         return true;
     }
 

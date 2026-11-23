@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.IO;
+using System.IO.Enumeration;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -63,32 +64,40 @@ namespace Flowery.NET.Photos.Services
 
         private readonly List<string> _folders = [];
         private readonly List<PhotoAlbum> _albums = [];
+        private readonly Dictionary<string, FolderLocation> _libraryLocations = new(PathComparer);
+        private Dictionary<string, FolderLocation> _browseLocations = new(PathComparer);
+        private HiddenFolderStore? _hiddenFolderStore;
+        private HashSet<string>? _hiddenFolders = new(PathComparer);
         private HashSet<string> _favorites = new(PathComparer);
         private List<PhotoItem> _items = [];
         private Dictionary<string, PhotoItem> _byPath = new(PathComparer);
         // The photos of a browsed folder that the library does not read; a folder it reads shows its library photos.
         private List<PhotoItem> _browsed = [];
+        private ConcurrentDictionary<string, MetadataCacheEntry> _browseCache = new(PathComparer);
         private bool _browseRecurse;
         private bool _browseInLibrary;
         private int _browseVersion;
-        private readonly List<FileSystemWatcher> _watchers = [];
         private Dispatcher? _dispatcher;
-        private DispatcherTimer? _rescanTimer;
         private readonly List<Task> _scans = [];
         private readonly object _cacheWriteLock = new();
         private bool _disposed;
         private CancellationTokenSource? _scanCts;
+        private Task<Exception?>? _activeScan;
         private ConcurrentDictionary<string, MetadataCacheEntry> _cache = new(PathComparer);
 
         public IReadOnlyList<string> Folders => _folders;
         public IReadOnlyList<PhotoItem> Items => _items;
+        internal IEnumerable<PhotoItem> VisibleLibraryItems => GetVisibleItems(_items);
         public IReadOnlyList<PhotoAlbum> Albums => _albums;
         public bool IsScanning { get; private set; }
+        internal Exception? HiddenFoldersError { get; private set; }
+        internal bool RequiresResolvedMedia => _hiddenFolders?.Count != 0;
 
         public static string SamplesFolder => System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "Samples");
 
         /// <summary>Raised on the UI thread whenever items, folders, favorites or albums change.</summary>
         public event EventHandler? Changed;
+        internal event EventHandler? HiddenFoldersChanged;
 
         /// <summary>Raised on the UI thread with (processed, total) while scanning.</summary>
         public event EventHandler<(int Done, int Total)>? ScanProgress;
@@ -118,54 +127,88 @@ namespace Flowery.NET.Photos.Services
             foreach (var (name, paths) in PhotosSettings.LoadAlbums())
                 _albums.Add(new PhotoAlbum(name, paths));
 
+            _hiddenFolderStore = new HiddenFolderStore(PhotosSettings.StateDirectory);
+            SyncHiddenFolders();
             LoadCache();
-            UpdateWatchers();
         }
 
         #region Scanning
 
-        public Task RescanAsync()
+        public Task RescanAsync() => StartScan(null, false, default);
+
+        private Task<Exception?> StartScan(string? folder, bool recurse, CancellationToken token)
         {
-            if (_disposed) return Task.CompletedTask;
+            if (_disposed || token.IsCancellationRequested) return Task.FromResult<Exception?>(null);
             _scans.RemoveAll(task => task.IsCompleted);
-            var scan = RescanCoreAsync();
+            var scan = _activeScan = RescanCoreAsync(folder, recurse, token);
             _scans.Add(scan);
             return scan;
         }
 
-        private async Task RescanCoreAsync()
+        private async Task RefreshLibraryAsync(string? folder, bool recurse, CancellationToken token)
+        {
+            if (folder != null)
+            {
+                // Let the active scan finish and then read only the requested folder.
+                while (_activeScan is { IsCompleted: false } active)
+                    await active.WaitAsync(token);
+                if (!ScansFolder(folder)) return;
+                recurse &= PhotosSettings.IncludeSubfolders;
+            }
+            if (await StartScan(folder, recurse, token) is { } error)
+                throw error;
+        }
+
+        private async Task<Exception?> RescanCoreAsync(string? folder, bool recurse, CancellationToken cancellationToken)
         {
             if (_dispatcher == null)
-                return;
+                return null;
 
             _scanCts?.Cancel();
-            var cts = new CancellationTokenSource();
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             _scanCts = cts;
             var token = cts.Token;
 
             SetScanning(true);
             try
             {
-                var folders = _folders.ToList();
-                var recurse = PhotosSettings.IncludeSubfolders;
+                var folders = folder == null ? _folders.ToList() : [folder];
+                var includeSubfolders = folder == null ? PhotosSettings.IncludeSubfolders : recurse;
                 var favorites = new HashSet<string>(_favorites, PathComparer);
-                var result = await Task.Run(() => ScanCore(folders, recurse, favorites, token), token).ConfigureAwait(true);
-                if (token.IsCancellationRequested)
-                    return;
+                var (items, locations, failures) = await Task.Run(
+                    () => ScanCore(folders, includeSubfolders, favorites, _cache, token), token).ConfigureAwait(true);
+                token.ThrowIfCancellationRequested();
+                var error = failures.Count == 0 ? null : failures[0].Error;
 
-                foreach (var item in result)
+                foreach (var item in items)
                 {
                     item.IsFavorite = _favorites.Contains(item.Path);
                     item.IsSelected = _byPath.GetValueOrDefault(item.Path)?.IsSelected == true;
                 }
-                _items = result;
-                _byPath = result.ToDictionary(i => i.Path, PathComparer);
+                var byPath = items.ToDictionary(item => item.Path, PathComparer);
+                foreach (var previous in _items)
+                {
+                    if (folder != null && !MatchesFolder(folder, previous.FolderPath, recurse) ||
+                        IsFailedFolder(previous.FolderPath, failures, includeSubfolders))
+                        byPath.TryAdd(previous.Path, previous);
+                }
+                _items = [.. byPath.Values];
+                _byPath = byPath;
+                foreach (var previous in _libraryLocations.Keys.ToArray())
+                {
+                    if ((folder == null || MatchesFolder(folder, previous, recurse)) &&
+                        !IsFailedFolder(previous, failures, includeSubfolders))
+                        _libraryLocations.Remove(previous);
+                }
+                foreach (var (path, location) in locations) _libraryLocations[path] = location;
                 Changed?.Invoke(this, EventArgs.Empty);
                 await Task.Run(SaveCache, token);
+                return error;
             }
             catch (OperationCanceledException)
             {
-                // Superseded by a newer scan.
+                // Superseded by a newer scan or canceled when its folder view closed.
+                return null;
             }
             finally
             {
@@ -184,46 +227,68 @@ namespace Flowery.NET.Photos.Services
             ScanningChanged?.Invoke(this, value);
         }
 
-        // A browsed folder is read without being remembered: its files stay out of the metadata cache on disk.
-        private List<PhotoItem> ScanCore(List<string> folders, bool recurse, HashSet<string> favorites, CancellationToken token,
-            bool remember = true)
+        private static bool IsFailedFolder(string folder, List<(string Folder, Exception Error)> failures, bool recurse) =>
+            failures.Any(failure => MatchesFolder(failure.Folder, folder, recurse));
+
+        private (List<PhotoItem> Items, Dictionary<string, FolderLocation> Locations, List<(string Folder, Exception Error)> Failures) ScanCore(
+            List<string> folders, bool recurse, HashSet<string> favorites, ConcurrentDictionary<string, MetadataCacheEntry> cache,
+            CancellationToken token)
         {
             var options = new EnumerationOptions
             {
-                RecurseSubdirectories = recurse,
-                IgnoreInaccessible = true,
+                IgnoreInaccessible = false,
                 AttributesToSkip = FileAttributes.Hidden | FileAttributes.System
             };
 
-            var files = new HashSet<string>(PathComparer);
-            foreach (var folder in folders)
+            var files = new Dictionary<string, (FolderLocation? Location, bool Link)>(PathComparer);
+            var locations = new Dictionary<string, FolderLocation>(PathComparer);
+            var failures = new List<(string Folder, Exception Error)>();
+            var pending = new Stack<string>(folders);
+            var visited = new HashSet<string>(PathComparer);
+            while (pending.TryPop(out var folder))
             {
-                if (!Directory.Exists(folder))
-                    continue;
+                token.ThrowIfCancellationRequested();
+                if (!visited.Add(folder)) continue;
+                var location = FolderIdentity.ReadFolder(folder);
+                if (location != null) locations.Add(folder, location);
+                // A directory link back to one of this path's ancestors would repeat the tree.
+                if (location?.ResolvedParents.Contains(location.Path, PathComparer) == true) continue;
+
                 try
                 {
-                    foreach (var file in Directory.EnumerateFiles(folder, "*", options))
+                    var entries = new FileSystemEnumerable<(string Path, bool IsDirectory, bool Link)>(folder,
+                        static (ref FileSystemEntry entry) => (entry.ToFullPath(), entry.IsDirectory,
+                            entry.Attributes.HasFlag(FileAttributes.ReparsePoint)), options);
+                    var inFolder = new List<(string Path, bool Link)>();
+                    var children = new List<string>();
+                    foreach (var entry in entries)
                     {
                         token.ThrowIfCancellationRequested();
-                        if (ImageMetadataReader.IsSupported(file))
-                            files.Add(file);
+                        if (entry.IsDirectory)
+                        {
+                            if (recurse) children.Add(entry.Path);
+                        }
+                        else if (ImageMetadataReader.IsSupported(entry.Path)) inFolder.Add((entry.Path, entry.Link));
                     }
+                    foreach (var child in children) pending.Push(child);
+                    foreach (var (path, link) in inFolder) files.TryAdd(path, (location, link));
                 }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                 {
-                    // Skip unreadable folders.
+                    failures.Add((folder, ex));
                 }
             }
 
-            var list = files.ToList();
-            var total = list.Count;
+            var list = files.ToArray();
+            var total = list.Length;
             var done = 0;
             var results = new PhotoItem?[total];
             var lastReport = Environment.TickCount64;
 
             Parallel.For(0, total, new ParallelOptions { MaxDegreeOfParallelism = Math.Max(2, Environment.ProcessorCount / 2), CancellationToken = token }, i =>
             {
-                results[i] = CreateItem(list[i], favorites, remember);
+                var (path, (location, link)) = list[i];
+                results[i] = CreateItem(path, favorites, cache, location, link);
                 var current = Interlocked.Increment(ref done);
                 var now = Environment.TickCount64;
                 if (now - Interlocked.Read(ref lastReport) > 150)
@@ -234,25 +299,29 @@ namespace Flowery.NET.Photos.Services
             });
 
             _dispatcher?.Post(() => ScanProgress?.Invoke(this, (total, total)));
-            return [.. results.Where(r => r != null).Cast<PhotoItem>()];
+            return ([.. results.OfType<PhotoItem>()], locations, failures);
         }
 
-        private PhotoItem? CreateItem(string path, HashSet<string> favorites, bool remember = true)
+        private static PhotoItem? CreateItem(string path, HashSet<string> favorites, ConcurrentDictionary<string, MetadataCacheEntry> cache,
+            FolderLocation? location, bool link)
         {
             try
             {
-                var info = new FileInfo(path);
+                var resolved = link ? FolderIdentity.TryResolve(path) : location == null ? null : Path.Combine(location.Path, Path.GetFileName(path));
+                var source = resolved ?? path;
+                var info = new FileInfo(source);
                 if (!info.Exists)
                     return null;
 
                 var item = new PhotoItem(path)
                 {
+                    Location = location, ResolvedPath = resolved,
                     FileSize = info.Length,
                     DateModified = info.LastWriteTime,
                     IsFavorite = favorites.Contains(path)
                 };
 
-                if (_cache.TryGetValue(path, out var cached) && cached.Size == info.Length && cached.Ticks == info.LastWriteTimeUtc.Ticks
+                if (cache.TryGetValue(source, out var cached) && cached.Size == info.Length && cached.Ticks == info.LastWriteTimeUtc.Ticks
                     && cached.Version == MetadataCacheEntry.CurrentVersion)
                 {
                     item.PixelWidth = cached.Width;
@@ -263,7 +332,7 @@ namespace Flowery.NET.Photos.Services
                     return item;
                 }
 
-                var probe = ImageMetadataReader.ProbeAsync(path).GetAwaiter().GetResult();
+                var probe = ImageMetadataReader.ProbeAsync(source).GetAwaiter().GetResult();
                 if (probe is { } p)
                 {
                     item.PixelWidth = p.Width;
@@ -273,8 +342,9 @@ namespace Flowery.NET.Photos.Services
                     item.Details = p.Details;
                 }
 
-                if (!remember) return item;
-                _cache[path] = new MetadataCacheEntry
+                // A failed probe can be a file that is still being written.
+                if (probe == null) return item;
+                cache[source] = new MetadataCacheEntry
                 {
                     Version = MetadataCacheEntry.CurrentVersion,
                     Size = info.Length,
@@ -296,24 +366,39 @@ namespace Flowery.NET.Photos.Services
         /// <summary>
         /// Creates an item for a file outside the library (e.g. opened from the command line or dropped).
         /// </summary>
-        public PhotoItem? GetOrCreateItem(string path)
+        internal Task<List<PhotoItem>> GetOpenItemsAsync(IReadOnlyList<string> paths)
         {
-            if (_byPath.TryGetValue(path, out var existing))
-                return existing;
-            return CreateItem(path, _favorites);
+            var favorites = new HashSet<string>(_favorites, PathComparer);
+            var requests = paths.Select(path => (Path: path, Cache: CacheFor(path), Item: _byPath.GetValueOrDefault(path))).ToArray();
+            return Task.Run(() => requests.Select(request =>
+            {
+                if (request.Item is { ResolvedPath: { } source } item &&
+                    PathComparer.Equals(source, FolderIdentity.TryResolve(request.Path))) return item;
+                return CreateItem(request.Path, favorites, request.Cache,
+                    FolderIdentity.ReadFolder(Path.GetDirectoryName(request.Path) ?? ""), link: true);
+            }).OfType<PhotoItem>().ToList());
         }
+
+        private ConcurrentDictionary<string, MetadataCacheEntry> CacheFor(string path) =>
+            IsBrowsed(path) && !_browseInLibrary ? _browseCache : _cache;
 
         public PhotoItem? FindByPath(string path) => _byPath.GetValueOrDefault(path);
 
         /// <summary>
         /// Re-reads metadata for a file after it changed (e.g. edited and saved) and returns the refreshed item.
         /// </summary>
-        public PhotoItem? Refresh(string path)
+        public async Task<PhotoItem?> RefreshMediaAsync(string path)
         {
-            _cache.TryRemove(path, out _);
-            var fresh = CreateItem(path, _favorites);
+            var cache = CacheFor(path);
+            var favorites = new HashSet<string>(_favorites, PathComparer);
+            var fresh = await Task.Run(() =>
+            {
+                if (FolderIdentity.TryResolve(path) is { } source) cache.TryRemove(source, out _);
+                return CreateItem(path, favorites, cache, FolderIdentity.ReadFolder(Path.GetDirectoryName(path) ?? ""), link: true);
+            });
             if (fresh == null)
                 return null;
+            fresh.IsFavorite = _favorites.Contains(path);
 
             if ((_byPath.GetValueOrDefault(path) ?? _browsed.Find(item => PathComparer.Equals(item.Path, path))) is { } existing)
             {
@@ -324,6 +409,8 @@ namespace Flowery.NET.Photos.Services
                 existing.DateTaken = fresh.DateTaken;
                 existing.CameraModel = fresh.CameraModel;
                 existing.Details = fresh.Details;
+                existing.Location = fresh.Location;
+                existing.ResolvedPath = fresh.ResolvedPath;
                 existing.Revision++;
                 Changed?.Invoke(this, EventArgs.Empty);
                 return existing;
@@ -373,7 +460,6 @@ namespace Flowery.NET.Photos.Services
                 return false;
             _folders.Add(folder);
             PhotosSettings.SaveFolders(_folders);
-            UpdateWatchers();
             _ = RescanAsync();
             return true;
         }
@@ -384,24 +470,94 @@ namespace Flowery.NET.Photos.Services
         /// <summary>
         /// Prepares a folder for viewing without adding it to the library: its photos and videos, with those of its
         /// subfolders when the library includes subfolders. A folder the library reads shows its library photos; any other
-        /// is read here but neither saved nor watched. The next folder browsed replaces it.
+        /// is read here without being saved. The next folder browsed replaces it.
         /// </summary>
-        public async Task BrowseAsync(string folder, CancellationToken token = default)
+        public Task<Exception?> BrowseAsync(string folder, CancellationToken token = default) =>
+            ReadBrowsedFolderAsync(folder, preserveSelection: false, token);
+
+        internal async Task RefreshAsync(PhotoQuery? query, CancellationToken token)
         {
+            if (query is { Source: PhotoSourceKind.Browsed, SourceKey: { } browsed })
+            {
+                if (PathComparer.Equals(BrowsedFolder, browsed) &&
+                    await ReadBrowsedFolderAsync(browsed, preserveSelection: true, token) is { } error)
+                    throw error;
+            }
+            else if (query is { Source: PhotoSourceKind.Folder, SourceKey: { } folder })
+            {
+                if (ScansFolder(folder)) await RefreshLibraryAsync(folder, false, token);
+            }
+            else
+                await RefreshLibraryAsync(null, false, token);
+        }
+
+        private async Task<Exception?> ReadBrowsedFolderAsync(string folder, bool preserveSelection, CancellationToken token)
+        {
+            if (_disposed) return null;
             folder = Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder));
             var version = ++_browseVersion;
             var recurse = PhotosSettings.IncludeSubfolders;
             var inLibrary = ScansFolder(folder);
-            var favorites = new HashSet<string>(_favorites, PathComparer);
-            var items = inLibrary ? [] : await Task.Run(() => ScanCore([folder], recurse, favorites, token, remember: false), token).ConfigureAwait(true);
+            var sameBrowse = PathComparer.Equals(BrowsedFolder, folder) && recurse == _browseRecurse && inLibrary == _browseInLibrary;
+            var cache = sameBrowse ? _browseCache : new ConcurrentDictionary<string, MetadataCacheEntry>(PathComparer);
+            List<PhotoItem> items = [];
+            var locations = new Dictionary<string, FolderLocation>(PathComparer);
+            Exception? error = null;
+            if (!inLibrary)
+            {
+                var favorites = new HashSet<string>(_favorites, PathComparer);
+                var result = await Task.Run(() => ScanCore([folder], recurse, favorites, cache, token), token).ConfigureAwait(true);
+                token.ThrowIfCancellationRequested();
+                if (_disposed || version != _browseVersion) return null;
+                if (result.Failures.Count > 0)
+                {
+                    error = result.Failures[0].Error;
+                    if (!preserveSelection && result.Failures.Any(failure => PathComparer.Equals(folder, failure.Folder)))
+                        return error;
+                    if (sameBrowse)
+                    {
+                        result.Items.AddRange(_browsed.Where(item => IsFailedFolder(item.FolderPath, result.Failures, recurse)));
+                        foreach (var (path, location) in _browseLocations)
+                            if (IsFailedFolder(path, result.Failures, recurse)) result.Locations.TryAdd(path, location);
+                    }
+                }
+                items = result.Items;
+                locations = result.Locations;
+            }
+            else
+            {
+                if (preserveSelection) await RefreshLibraryAsync(folder, recurse, token);
+                if (await Task.Run(() => FolderIdentity.ReadFolder(folder), token) is { } location)
+                    locations.Add(folder, location);
+            }
+
             token.ThrowIfCancellationRequested();
             // A folder browsed later wins over this one if it is read faster.
-            if (version != _browseVersion) return;
+            if (_disposed || version != _browseVersion) return null;
+            if (preserveSelection)
+            {
+                var selected = BrowsedItems(folder).Where(item => item.IsSelected).Select(item => item.Path).ToHashSet(PathComparer);
+                foreach (var item in items)
+                {
+                    item.IsFavorite = _favorites.Contains(item.Path);
+                    item.IsSelected = selected.Contains(item.Path);
+                }
+            }
+            var paths = items.Select(item => item.MediaPath).ToHashSet(PathComparer);
+            foreach (var path in cache.Keys)
+                if (!paths.Contains(path)) cache.TryRemove(path, out _);
+            _browseCache = cache;
             (_browsed, _browseRecurse, _browseInLibrary, BrowsedFolder) = (items, recurse, inLibrary, folder);
+            _browseLocations = locations;
+            if (preserveSelection && (!inLibrary || !sameBrowse)) Changed?.Invoke(this, EventArgs.Empty);
+            return error;
         }
 
         private bool IsBrowsed(string path) => BrowsedFolder != null && Path.GetDirectoryName(path) is { } directory
-            && (_browseRecurse ? IsWithin(BrowsedFolder, directory) : PathComparer.Equals(directory, BrowsedFolder));
+            && MatchesFolder(BrowsedFolder, directory, _browseRecurse);
+
+        private static bool MatchesFolder(string folder, string directory, bool recurse) =>
+            recurse ? IsWithin(folder, directory) : PathComparer.Equals(folder, directory);
 
         private IEnumerable<PhotoItem> BrowsedItems(string? folder) => !PathComparer.Equals(folder, BrowsedFolder) ? []
             : _browseInLibrary ? _items.Where(item => IsBrowsed(item.Path)) : _browsed;
@@ -411,7 +567,6 @@ namespace Flowery.NET.Photos.Services
             if (_folders.RemoveAll(f => string.Equals(f, folder, PathComparison)) == 0)
                 return;
             PhotosSettings.SaveFolders(_folders);
-            UpdateWatchers();
             _ = RescanAsync();
         }
 
@@ -430,8 +585,89 @@ namespace Flowery.NET.Photos.Services
             PhotosSettings.SaveFolders(_folders);
             PhotosSettings.IncludeSubfolders = includeSubfolders;
             PhotosSettings.SaveOptions();
-            UpdateWatchers();
             _ = RescanAsync();
+        }
+
+        internal void SyncHiddenFolders()
+        {
+            if (_hiddenFolderStore == null) return;
+            HashSet<string> folders;
+            try { folders = _hiddenFolderStore.Read(); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+            {
+                ApplyHiddenFolders(null, ex);
+                return;
+            }
+            ApplyHiddenFolders(folders, null);
+        }
+
+        private void ApplyHiddenFolders(HashSet<string>? folders, Exception? error)
+        {
+            var changed = folders == null ? _hiddenFolders != null : _hiddenFolders?.SetEquals(folders) != true;
+            _hiddenFolders = folders;
+            HiddenFoldersError = error;
+            if (!changed) return;
+
+            HiddenFoldersChanged?.Invoke(this, EventArgs.Empty);
+            Changed?.Invoke(this, EventArgs.Empty);
+        }
+
+        internal bool IsFolderExplicitlyHidden(string folder) => _hiddenFolders is { Count: > 0 } &&
+            _hiddenFolders.Contains(GetFolderLocation(folder)?.Path ?? Path.TrimEndingDirectorySeparator(folder));
+
+        internal async Task SetFolderHiddenAsync(string folder, bool hidden)
+        {
+            if (_hiddenFolderStore == null) return;
+            var identity = await Task.Run(() => FolderIdentity.Resolve(folder));
+            HashSet<string> folders;
+            try { folders = _hiddenFolderStore.SetHidden(identity, hidden); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+            {
+                SyncHiddenFolders();
+                throw;
+            }
+            ApplyHiddenFolders(folders, null);
+        }
+
+        internal bool IsInHiddenFolder(string folder) => _hiddenFolders is { Count: > 0 } &&
+            GetFolderLocation(folder)?.HiddenRoot(_hiddenFolders) != null;
+
+        private FolderLocation? GetFolderLocation(string folder) =>
+            _browseLocations.GetValueOrDefault(folder) ?? _libraryLocations.GetValueOrDefault(folder);
+
+        internal IEnumerable<PhotoItem> GetVisibleItems(IEnumerable<PhotoItem> items, string? openFolder = null)
+        {
+            if (_hiddenFolders is not { } hiddenFolders) return [];
+            if (hiddenFolders.Count == 0) return items;
+            // A separately hidden subfolder has to be opened directly.
+            var openRoot = openFolder == null ? null : GetFolderLocation(openFolder)?.HiddenRoot(hiddenFolders);
+            return items.Where(item => AllowsMedia(item.ResolvedPath, item.Location, openRoot, hiddenFolders));
+        }
+
+        internal bool IsVisibleMedia(PhotoItem item, string? path, string? openFolder) =>
+            _hiddenFolders is { } marked && (marked.Count == 0 ||
+                AllowsMedia(path, item.Location, openFolder == null ? null : GetFolderLocation(openFolder)?.HiddenRoot(marked), marked));
+
+        internal async Task<string?> ResolveVisiblePathAsync(PhotoItem item, string? openFolder, CancellationToken token = default)
+        {
+            if (_hiddenFolderStore == null) return item.MediaPath;
+            var (path, location, opened) = await Task.Run(() => (
+                FolderIdentity.TryResolve(item.Path), FolderIdentity.ReadFolder(item.FolderPath),
+                openFolder == null ? null : FolderIdentity.ReadFolder(openFolder)), token);
+            token.ThrowIfCancellationRequested();
+            SyncHiddenFolders();
+            if (_hiddenFolders is not { } marked) return null;
+            if (marked.Count == 0) return path ?? item.Path;
+            return AllowsMedia(path, location, opened?.HiddenRoot(marked), marked) ? path : null;
+        }
+
+        private static bool AllowsMedia(string? path, FolderLocation? location, string? openRoot, HashSet<string> marked)
+        {
+            if (path == null || location == null) return false;
+            var physical = FolderLocation.FindMarkedAncestor(Path.GetDirectoryName(path), marked);
+            var logical = location.HiddenRoot(marked);
+            return (physical == null || PathComparer.Equals(physical, openRoot)) &&
+                (logical == null || PathComparer.Equals(logical, openRoot));
         }
 
         public List<PhotoFolderInfo> GetFolderSummaries()
@@ -441,7 +677,7 @@ namespace Flowery.NET.Photos.Services
                 .GroupBy(i => i.FolderPath, PathComparer)
                 .Select(g =>
                 {
-                    var cover = g.OrderByDescending(i => i.SortDate).First();
+                    var cover = GetVisibleItems(g).MaxBy(i => i.SortDate);
                     var isRoot = roots.Contains(Path.TrimEndingDirectorySeparator(g.Key), PathComparer);
                     var name = Path.GetFileName(Path.TrimEndingDirectorySeparator(g.Key));
                     return new PhotoFolderInfo(g.Key, string.IsNullOrEmpty(name) ? g.Key : name, g.Count(), cover, isRoot);
@@ -450,66 +686,12 @@ namespace Flowery.NET.Photos.Services
                 .ThenBy(f => f.Path, PathComparer)];
         }
 
-        private void UpdateWatchers()
-        {
-            foreach (var watcher in _watchers)
-            {
-                watcher.EnableRaisingEvents = false;
-                watcher.Dispose();
-            }
-            _watchers.Clear();
-
-            foreach (var folder in _folders)
-            {
-                if (!Directory.Exists(folder))
-                    continue;
-                try
-                {
-                    var watcher = new FileSystemWatcher(folder)
-                    {
-                        IncludeSubdirectories = PhotosSettings.IncludeSubfolders,
-                        NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.DirectoryName
-                    };
-                    watcher.Created += OnWatcherChanged;
-                    watcher.Deleted += OnWatcherChanged;
-                    watcher.Renamed += OnWatcherChanged;
-                    watcher.Changed += OnWatcherChanged;
-                    watcher.EnableRaisingEvents = true;
-                    _watchers.Add(watcher);
-                }
-                catch
-                {
-                    // Watching is best-effort.
-                }
-            }
-        }
-
-        private void OnWatcherChanged(object sender, FileSystemEventArgs e)
-        {
-            if (!ImageMetadataReader.IsSupported(e.FullPath) && Path.HasExtension(e.FullPath)
-                && !Directory.Exists(e.FullPath) && e.ChangeType != WatcherChangeTypes.Renamed)
-                return;
-
-            _dispatcher?.Post(() =>
-            {
-                if (_disposed) return;
-                if (_rescanTimer == null && _dispatcher != null)
-                {
-                    _rescanTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.5) };
-                    _rescanTimer.Tick += (_, _) => { _rescanTimer.Stop(); _ = RescanAsync(); };
-                }
-                _rescanTimer?.Stop();
-                _rescanTimer?.Start();
-            });
-        }
-
         public void ApplyIncludeSubfolders(bool include)
         {
             if (PhotosSettings.IncludeSubfolders == include)
                 return;
             PhotosSettings.IncludeSubfolders = include;
             PhotosSettings.SaveOptions();
-            UpdateWatchers();
             _ = RescanAsync();
         }
 
@@ -519,14 +701,19 @@ namespace Flowery.NET.Photos.Services
 
         public void SetFavorite(IEnumerable<PhotoItem> items, bool favorite)
         {
+            var browsedPaths = _browsed.Count == 0 ? null : new HashSet<string>(PathComparer);
             foreach (var item in items)
             {
                 item.IsFavorite = favorite;
+                if (_byPath.TryGetValue(item.Path, out var indexed)) indexed.IsFavorite = favorite;
+                browsedPaths?.Add(item.Path);
                 if (favorite)
                     _favorites.Add(item.Path);
                 else
                     _favorites.Remove(item.Path);
             }
+            if (browsedPaths != null)
+                foreach (var item in _browsed.Where(item => browsedPaths.Contains(item.Path))) item.IsFavorite = favorite;
             PhotosSettings.SaveFavorites(_favorites);
             Changed?.Invoke(this, EventArgs.Empty);
         }
@@ -596,7 +783,7 @@ namespace Flowery.NET.Photos.Services
         }
 
         public IEnumerable<PhotoItem> GetAlbumItems(PhotoAlbum album) =>
-            album.Paths.Select(p => _byPath.GetValueOrDefault(p)).Where(i => i != null).Cast<PhotoItem>();
+            GetVisibleItems(album.Paths.Select(p => _byPath.GetValueOrDefault(p)).OfType<PhotoItem>());
 
         private void SaveAlbums()
         {
@@ -636,6 +823,7 @@ namespace Flowery.NET.Photos.Services
                 _byPath.Remove(path);
                 _favorites.Remove(path);
                 _cache.TryRemove(path, out _);
+                _browseCache.TryRemove(path, out _);
             }
             foreach (var album in _albums)
                 album.Paths.RemoveAll(set.Contains);
@@ -700,11 +888,11 @@ namespace Flowery.NET.Photos.Services
         {
             IEnumerable<PhotoItem> source = query.Source switch
             {
-                PhotoSourceKind.Favorites => _items.Where(i => i.IsFavorite),
+                PhotoSourceKind.Favorites => VisibleLibraryItems.Where(i => i.IsFavorite),
                 PhotoSourceKind.Album => FindAlbum(query.SourceKey) is { } album ? GetAlbumItems(album) : [],
-                PhotoSourceKind.Folder => _items.Where(i => string.Equals(i.FolderPath, query.SourceKey, PathComparison)),
-                PhotoSourceKind.Browsed => BrowsedItems(query.SourceKey),
-                _ => _items
+                PhotoSourceKind.Folder => GetVisibleItems(_items.Where(i => string.Equals(i.FolderPath, query.SourceKey, PathComparison)), query.SourceKey),
+                PhotoSourceKind.Browsed => GetVisibleItems(BrowsedItems(query.SourceKey), query.SourceKey),
+                _ => VisibleLibraryItems
             };
 
             if (!string.IsNullOrWhiteSpace(query.SearchText))
@@ -735,9 +923,11 @@ namespace Flowery.NET.Photos.Services
             {
                 PhotoSortMode.DateTakenOldest => [.. source.OrderBy(i => i.SortDate)],
                 PhotoSortMode.DateModifiedNewest => [.. source.OrderByDescending(i => i.DateModified)],
+                PhotoSortMode.DateModifiedOldest => [.. source.OrderBy(i => i.DateModified)],
                 PhotoSortMode.NameAscending => [.. source.OrderBy(i => i.FileName, StringComparer.CurrentCultureIgnoreCase)],
                 PhotoSortMode.NameDescending => [.. source.OrderByDescending(i => i.FileName, StringComparer.CurrentCultureIgnoreCase)],
                 PhotoSortMode.SizeLargest => [.. source.OrderByDescending(i => i.FileSize)],
+                PhotoSortMode.SizeSmallest => [.. source.OrderBy(i => i.FileSize)],
                 _ => [.. source.OrderByDescending(i => i.SortDate)]
             };
         }
@@ -803,6 +993,7 @@ namespace Flowery.NET.Photos.Services
         public void ClearCache()
         {
             _cache.Clear();
+            _browseCache.Clear();
             try
             {
                 SaveCache();
@@ -818,10 +1009,7 @@ namespace Flowery.NET.Photos.Services
         public async ValueTask DisposeAsync()
         {
             _disposed = true;
-            _rescanTimer?.Stop();
             _scanCts?.Cancel();
-            foreach (var watcher in _watchers) watcher.Dispose();
-            _watchers.Clear();
             await Task.WhenAll(_scans);
             _scans.Clear();
         }
@@ -843,6 +1031,7 @@ namespace Flowery.NET.Photos.Services
 
     [JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Default)]
     [JsonSerializable(typeof(Dictionary<string, MetadataCacheEntry>))]
+    [JsonSerializable(typeof(string[]))]
     internal partial class PhotosJsonContext : JsonSerializerContext
     {
     }

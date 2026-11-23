@@ -37,6 +37,8 @@ public partial class SettingsView : Window
         });
         Language.SelectedItem = FloweryLocalization.CurrentCulture.Name;
         Recursive.IsChecked = PhotosSettings.IncludeSubfolders;
+        HiddenFolderLabel.MaxLength = PhotosSettings.HiddenFolderLabelLimit;
+        HiddenFolderLabel.Text = PhotosSettings.HiddenFolderLabel;
         ConfirmDelete.IsChecked = PhotosSettings.ConfirmDelete;
         Wheel.IsChecked = PhotosSettings.WheelNavigates;
         Interval.Value = PhotosSettings.SlideshowSeconds;
@@ -67,7 +69,8 @@ public partial class SettingsView : Window
         Shortcuts.Children.Clear();
         (string Keys, string Name)[] shortcuts =
         [
-            ("Ctrl+F", "Search"), ("Ctrl+,", "Settings"), ("Ctrl+A", "SelectAll"),
+            ("Ctrl+F", "Search"), ("Ctrl+,", "Settings"), ("Ctrl+A", "SelectAll"), ("Shift+← ↑ → ↓", "SelectRange"),
+            ("P", "PlayInPlace"),
             ("← / → · PgUp / PgDn", "Navigate"), ("← / →", "Skip"), ("PgUp / PgDn", "Page"), ("+ / −", "Zoom"), ("0", "Fit"), ("F", "Favorite"),
             ("Ctrl+E", "Edit"), ("Ctrl+Z", "Undo"), ("Ctrl+Y", "Redo"), ("Ctrl+S", "Save"),
             ("Delete", "Delete"), ("F5", "Slideshow"), ("F11 / Enter", "FullScreen"), ("Esc", "Back")
@@ -156,11 +159,24 @@ public partial class SettingsView : Window
     }
     private async void RescanClick(object? sender, RoutedEventArgs e)
     {
-        try { await _library.RescanAsync(); RefreshFolders(); ShowNotice(PhotosLocalization.GetString("Photos_RescanDone")); }
+        try { await _library.RefreshAsync(null, default); RefreshFolders(); ShowNotice(PhotosLocalization.GetString("Photos_RescanDone")); }
         catch (Exception ex) { ShowNotice(ex.Message, true); }
     }
     private async void GitHubClick(object? sender, RoutedEventArgs e) => await Launcher.LaunchUriAsync(new Uri("https://github.com/tobitege/Flowery.NET"));
     private void DataFolderClick(object? sender, RoutedEventArgs e) => OpenFolder(PhotosSettings.StateDirectory);
     private void CancelClick(object? sender, RoutedEventArgs e) => Close();
-    private void OkClick(object? sender, RoutedEventArgs e) { _accepted = true; PhotosSettings.SaveOptions(); Close(); }
+    private void OkClick(object? sender, RoutedEventArgs e)
+    {
+        var previousLabel = PhotosSettings.HiddenFolderLabel;
+        PhotosSettings.HiddenFolderLabel = HiddenFolderLabel.Text ?? string.Empty;
+        try { PhotosSettings.SaveOptions(); }
+        catch (Exception ex)
+        {
+            PhotosSettings.HiddenFolderLabel = previousLabel;
+            ShowNotice(ex.Message, true);
+            return;
+        }
+        _accepted = true;
+        Close();
+    }
 }

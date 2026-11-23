@@ -26,7 +26,9 @@ namespace Flowery.NET.Photos.Views
     {
         public required List<(PhotoItem Item, double Width)> Tiles { get; init; }
         public double TileHeight { get; init; }
-        public override string ToString() => PhotosLocalization.Format("Photos_ItemCount", Tiles.Count);
+        // The name screen readers give the row.
+        public override string ToString() =>
+            PhotosLocalization.Format(Tiles.Count == 1 ? "Photos_ItemCountOne" : "Photos_ItemCount", Tiles.Count);
     }
 
     /// <summary>

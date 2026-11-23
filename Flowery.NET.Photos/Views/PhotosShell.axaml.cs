@@ -17,13 +17,17 @@ public partial class PhotosShell : UserControl, IDisposable
     private string _page = "Home";
     private bool _returnToGallery;
     private bool _browsing;
+    private bool _deleting;
+    private int _openVersion;
     private CancellationTokenSource? _browse;
     private readonly DispatcherTimer _toastTimer = new() { Interval = TimeSpan.FromSeconds(4) };
+    private readonly DispatcherTimer _hiddenFoldersTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private readonly PhotoLibrary _library;
     public event Action<bool>? TitleViewChanged;
     public void ShowViewOptions() => Viewer.ShowViewOptions();
     private Window Owner => (Window)TopLevel.GetTopLevel(this)!;
     private IReadOnlyList<PhotoItem> Selected => Gallery.IsVisible ? Gallery.Selected : [];
+    private string? OpenFolder => Gallery.IsVisible || Viewer.IsVisible && _returnToGallery ? Gallery.FolderPath : null;
     private static string L(string key) => PhotosLocalization.GetString("Photos_" + key);
 
     public PhotosShell() : this(PhotoLibrary.Instance) { }
@@ -32,8 +36,22 @@ public partial class PhotosShell : UserControl, IDisposable
         _library = library;
         InitializeComponent();
         Collections.ItemTemplate = new FuncDataTemplate<CollectionRow>((row, _) => BuildCollectionRow(row));
-        AttachedToVisualTree += (_, _) => { FlowerySizeManager.SizeChanged += OnCardSizeChanged; AttachKeys(); };
-        DetachedFromVisualTree += (_, _) => { FlowerySizeManager.SizeChanged -= OnCardSizeChanged; DetachKeys(); };
+        AttachedToVisualTree += (_, _) =>
+        {
+            FlowerySizeManager.SizeChanged += OnCardSizeChanged;
+            AttachKeys();
+            _library.SyncHiddenFolders();
+            _hiddenFoldersTimer.Start();
+            UpdateFolderWatcher();
+        };
+        DetachedFromVisualTree += (_, _) =>
+        {
+            StopFolderWatcher();
+            _hiddenFoldersTimer.Stop();
+            _refresh?.Cancel();
+            FlowerySizeManager.SizeChanged -= OnCardSizeChanged;
+            DetachKeys();
+        };
         Gallery.Library = Viewer.Library = library;
         DataContext = PhotosLocalization.Instance;
         Gallery.OpenRequested += item => _ = OpenAsync(item, Gallery.Items);
@@ -44,6 +62,12 @@ public partial class PhotosShell : UserControl, IDisposable
         Gallery.ImportRequested += () => _ = ImportAsync();
         Gallery.ImportFolderRequested += () => _ = AddFolderAsync();
         Gallery.RescanRequested += () => _ = RescanAsync();
+        Gallery.RefreshRequested += () => _ = RefreshCurrentAsync();
+        Gallery.FolderWatchChanged += () => UpdateFolderWatcher();
+        Gallery.WatchOptionsSaveFailed += message => ShowToast(message, true);
+        Gallery.HideFolderRequested += SetFolderHiddenAsync;
+        _folderRefreshTimer.Tick += RefreshWatchedFolder;
+        _hiddenFoldersTimer.Tick += (_, _) => _library.SyncHiddenFolders();
         Gallery.SlideshowRequested += () => _ = StartSlideshowAsync(Gallery.Items);
         Gallery.BackRequested += () => _ = NavigateAsync(Gallery.Query.Source switch
         {
@@ -55,6 +79,7 @@ public partial class PhotosShell : UserControl, IDisposable
         Viewer.DeletePhoto = DeleteAsync;
         Viewer.AlbumMenu = item => CreateAlbumMenu([item]);
         Viewer.Notification += ShowToast;
+        Viewer.MediaOpened += UpdateViewerVisibility;
         Viewer.TitleViewChanged += visible => TitleViewChanged?.Invoke(visible);
         _toastTimer.Tick += (_, _) => { Notifications.Items.Clear(); _toastTimer.Stop(); };
         Viewer.ImmersiveChanged += immersive =>
@@ -63,7 +88,12 @@ public partial class PhotosShell : UserControl, IDisposable
             Margin = immersive ? new Thickness(0) : new Thickness(0, 42, 0, 0);
         };
         // The search box searches the pages; with one photo or video open it has nothing to search, so it steps aside.
-        Viewer.PropertyChanged += (_, e) => { if (e.Property == IsVisibleProperty) Search.IsVisible = !Viewer.IsVisible; };
+        Viewer.PropertyChanged += (_, e) =>
+        {
+            if (e.Property != IsVisibleProperty) return;
+            Search.IsVisible = !Viewer.IsVisible;
+            UpdateRefreshButtons();
+        };
         Search.TextChanged += (_, _) =>
         {
             if (Viewer.IsVisible) return;
@@ -74,6 +104,7 @@ public partial class PhotosShell : UserControl, IDisposable
         HomeScroll.SizeChanged += (_, e) => { if (Math.Abs(_homeWidth - e.NewSize.Width) > 1) BuildHome(); };
         CollectionsScroll.SizeChanged += (_, e) => { if (Math.Abs(e.PreviousSize.Width - e.NewSize.Width) > 1) BuildCollections(); };
         _library.Changed += OnLibraryChanged;
+        _library.HiddenFoldersChanged += OnHiddenFoldersChanged;
         _library.ScanningChanged += OnScanning;
         _library.ScanProgress += OnScanProgress;
         PhotosLocalization.CultureChanged += OnCultureChanged;
@@ -87,13 +118,20 @@ public partial class PhotosShell : UserControl, IDisposable
             e.Handled = true;
         }, RoutingStrategies.Tunnel);
         DragDrop.SetAllowDrop(this, true);
-        KeyDown += OnKeyDown;
+        // Down or Enter in the search box goes on to what it found; only Tab, through every button on the way, did.
+        Search.AddHandler(KeyDownEvent, (_, e) =>
+        {
+            if (e.Key is not (Key.Down or Key.Enter) || e.KeyModifiers != KeyModifiers.None || Viewer.IsVisible) return;
+            e.Handled = Gallery.IsVisible ? Gallery.FocusFirstOnScreen()
+                : CollectionsScroll.IsVisible ? FocusFirstCard() : FocusFirstOnHome();
+        }, RoutingStrategies.Tunnel);
         ShowPage();
+        UpdateSelection();
     }
     private void OnScanning(object? sender, bool value) { if (value) Status.Text = L("Empty_ScanningTitle"); else UpdateSelection(); }
     private void OnScanProgress(object? sender, (int Done, int Total) progress)
     {
-        if (_library.IsScanning || _browsing) Status.Text = $"{L("Empty_ScanningTitle")} {progress.Done} / {progress.Total}";
+        if (_library.IsScanning || _browsing || _refresh != null) Status.Text = $"{L("Empty_ScanningTitle")} {progress.Done} / {progress.Total}";
     }
     private void ShowToast(string message, bool error = false)
     {
@@ -106,7 +144,29 @@ public partial class PhotosShell : UserControl, IDisposable
     }
     private void OnLibraryChanged(object? sender, EventArgs e)
     {
-        Gallery.Refresh(); BuildHome(); BuildCollections(); UpdateSelection();
+        Gallery.Refresh(Gallery.IsVisible && _refreshFromWatcher && _folderWatcher != null ? _refreshArrivals : null);
+        BuildHome(); BuildCollections(); UpdateSelection();
+    }
+    private void OnHiddenFoldersChanged(object? sender, EventArgs e) => UpdateViewerVisibility();
+
+    private void UpdateViewerVisibility()
+    {
+        if (!Viewer.IsVisible || Viewer.Current is not { } current) return;
+        var folder = OpenFolder;
+        var visible = _library.GetVisibleItems(Viewer.Items, folder).ToList();
+        var blocked = !visible.Any(item => PhotoLibrary.PathComparer.Equals(item.Path, current.Path)) ||
+            !_library.IsVisibleMedia(current, Viewer.OpenedMediaPath, folder);
+        Viewer.ApplyFolderVisibility(visible, blocked);
+        HiddenViewerPanel.IsVisible = blocked;
+        if (blocked)
+            HiddenViewerMessage.Text = L(_library.HiddenFoldersError == null ? "HiddenOpenFolder" : "HiddenFoldersUnavailable");
+    }
+
+    private async void BackFromHiddenViewerClick(object? sender, RoutedEventArgs e) => await ReturnFromViewerAsync();
+    private async Task SetFolderHiddenAsync(string folder, bool hidden)
+    {
+        try { await _library.SetFolderHiddenAsync(folder, hidden); }
+        catch (Exception ex) { Gallery.Refresh(); ShowToast(ex.Message, true); }
     }
     private void OnCultureChanged(object? sender, string e)
     {
@@ -118,43 +178,53 @@ public partial class PhotosShell : UserControl, IDisposable
     private async Task NavigateAsync(string page)
     {
         if (!await CanLeaveViewerAsync()) return;
+        _openVersion++;
         _browse?.Cancel();
-        Viewer.Stop(); Gallery.ClearSelection(); _page = page; ShowPage();
+        _refresh?.Cancel();
+        Viewer.CloseMedia(); Gallery.ClearSelection(); _page = page; ShowPage();
     }
     private async Task ReturnFromViewerAsync()
     {
         if (!await CanLeaveViewerAsync()) return;
+        _openVersion++;
         var last = Viewer.Current;
         var order = Viewer.Items;
-        Viewer.Stop(); Viewer.IsVisible = false; TitleViewChanged?.Invoke(false);
+        Viewer.CloseMedia(); Viewer.IsVisible = false; TitleViewChanged?.Invoke(false);
+        HiddenViewerPanel.IsVisible = false;
         Gallery.IsVisible = _returnToGallery;
         HomeScroll.IsVisible = !_returnToGallery && _page == "Home";
         CollectionsScroll.IsVisible = !_returnToGallery && _page is "Albums" or "Folders";
         if (_returnToGallery)
         {
             Gallery.Refresh();
-            // A photo deleted in the viewer is gone; the next one takes its place, at the end the previous one.
-            var at = last == null ? -1 : order.Select(item => item.Path).ToList().IndexOf(last.Path);
-            if (at < 0) Gallery.FocusPhoto(last);
-            else
-            {
-                foreach (var item in order.Skip(at).Concat(order.Take(at).Reverse()))
-                {
-                    if (Gallery.FocusPhoto(item)) break;
-                }
-            }
+            FocusNearest(order, last);
         }
         else { BuildHome(); BuildCollections(); }
+        UpdateFolderWatcher();
         UpdateSelection();
+    }
+    // Focuses a photo in the gallery, or the nearest one that is still there: a deleted photo is gone, the next one
+    // takes its place, and at the end the previous one.
+    private void FocusNearest(IReadOnlyList<PhotoItem> order, PhotoItem? photo, NavigationMethod method = NavigationMethod.Unspecified)
+    {
+        var at = photo == null ? -1 : order.Select(item => item.Path).ToList().IndexOf(photo.Path);
+        if (at < 0) { Gallery.FocusPhoto(photo, method); return; }
+        foreach (var item in order.Skip(at).Concat(order.Take(at).Reverse()))
+        {
+            if (Gallery.FocusPhoto(item, method)) break;
+        }
     }
     private void ShowPage()
     {
+        _openVersion++;
         Viewer.IsVisible = false;
+        HiddenViewerPanel.IsVisible = false;
         TitleViewChanged?.Invoke(false);
         HomeScroll.IsVisible = _page == "Home";
         Gallery.IsVisible = _page is "Gallery" or "Favorites";
         CollectionsScroll.IsVisible = _page is "Albums" or "Folders";
         if (Gallery.IsVisible) Gallery.Show(new PhotoQuery { Source = _page == "Favorites" ? PhotoSourceKind.Favorites : PhotoSourceKind.All, SearchText = Search.Text }, L("Nav_" + _page));
+        UpdateFolderWatcher();
         BuildHome(); BuildCollections(); UpdateNavigationSelection();
     }
     private void UpdateNavigationSelection()
@@ -165,6 +235,8 @@ public partial class PhotosShell : UserControl, IDisposable
             button.IsActive = selected;
             button.Variant = selected ? DaisyButtonVariant.Primary : DaisyButtonVariant.Ghost;
             button.ButtonStyle = selected ? DaisyButtonStyle.Soft : DaisyButtonStyle.Default;
+            // The side bar is one tab stop, entered at the open page.
+            if (selected) KeyboardNavigation.SetTabOnceActiveElement(NavigationRail, button);
         }
     }
     private DaisyButton ActionButton(string key, Func<Task> action, Flowery.Enums.DaisyIconSymbol? icon = null)
@@ -177,31 +249,45 @@ public partial class PhotosShell : UserControl, IDisposable
     }
     private Task OpenCollectionAsync(PhotoSourceKind kind, string key, string title)
     {
+        _openVersion++;
         _browse?.Cancel();
+        _refresh?.Cancel();
         _page = kind switch { PhotoSourceKind.Album => "Albums", PhotoSourceKind.Browsed => "Gallery", _ => "Folders" };
         UpdateNavigationSelection();
         HomeScroll.IsVisible = false; CollectionsScroll.IsVisible = false; Gallery.IsVisible = true;
         Gallery.Show(new PhotoQuery { Source = kind, SourceKey = key }, title);
+        UpdateFolderWatcher();
         return Task.CompletedTask;
     }
     public Task OpenFileAsync(string path) => OpenFilesAsync([path]);
     public async Task OpenFilesAsync(IEnumerable<string> paths)
     {
-        var items = paths.Where(ImageMetadataReader.IsSupported).Select(_library.GetOrCreateItem).OfType<PhotoItem>().ToList();
-        if (items.Count == 0) return;
+        var supported = paths.Where(ImageMetadataReader.IsSupported).ToArray();
+        if (supported.Length == 0) return;
+        var version = ++_openVersion;
+        _browse?.Cancel();
+        _library.SyncHiddenFolders();
+        var requested = await _library.GetOpenItemsAsync(supported);
+        if (requested.Count == 0 || version != _openVersion) return;
+        var items = _library.GetVisibleItems(requested, OpenFolder).ToList();
+        if (items.Count == 0)
+        {
+            ShowToast(L(_library.HiddenFoldersError == null ? "HiddenOpenFolder" : "HiddenFoldersUnavailable"), true);
+            return;
+        }
         var first = items[0];
         if (items.Count == 1 && !_library.IsInLibrary(first.Path))
         {
             try
             {
-                items = Directory.EnumerateFiles(first.FolderPath).Where(ImageMetadataReader.IsSupported)
-                    .OrderBy(Path.GetFileName, StringComparer.CurrentCultureIgnoreCase)
-                    .Select(_library.GetOrCreateItem).OfType<PhotoItem>().ToList();
+                var siblings = await Task.Run(() => Directory.EnumerateFiles(first.FolderPath).Where(ImageMetadataReader.IsSupported)
+                    .OrderBy(Path.GetFileName, StringComparer.CurrentCultureIgnoreCase).ToArray());
+                items = await _library.GetOpenItemsAsync(siblings);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             { items = [first]; }
         }
-        await OpenAsync(first, items);
+        if (version == _openVersion) await OpenAsync(first, items);
     }
     private async Task OpenFullScreenAsync(PhotoItem item)
     {
@@ -210,12 +296,26 @@ public partial class PhotosShell : UserControl, IDisposable
     }
     private async Task OpenAsync(PhotoItem item, IReadOnlyList<PhotoItem> items)
     {
-        if (!await CanLeaveViewerAsync()) return;
+        var version = ++_openVersion;
+        if (!await CanLeaveViewerAsync() || version != _openVersion) return;
         _browse?.Cancel();
+        var folder = OpenFolder;
+        var source = await _library.ResolveVisiblePathAsync(item, folder);
+        if (version != _openVersion) return;
+        if (source == null)
+        {
+            ShowToast(L(_library.HiddenFoldersError == null ? "HiddenOpenFolder" : "HiddenFoldersUnavailable"), true);
+            return;
+        }
+        var visible = _library.GetVisibleItems(items, folder).ToList();
+        if (!visible.Any(candidate => PhotoLibrary.PathComparer.Equals(candidate.Path, item.Path))) visible.Insert(0, item);
+        _refresh?.Cancel();
         if (!Viewer.IsVisible) _returnToGallery = Gallery.IsVisible;
         HomeScroll.IsVisible = CollectionsScroll.IsVisible = Gallery.IsVisible = false;
         Viewer.IsVisible = true;
-        await Viewer.OpenAsync(item, items);
+        UpdateFolderWatcher();
+        Viewer.VisibilityFolder = folder;
+        await Viewer.OpenResolvedAsync(item, visible, source);
     }
     public async Task<bool> CanLeaveViewerAsync()
     {
@@ -244,8 +344,8 @@ public partial class PhotosShell : UserControl, IDisposable
             item.Click += async (_, _) => { try { await action(); } catch (Exception ex) { ShowToast(ex.Message, true); } };
             menu.Items.Add(item);
         }
-        Add("Open", () => OpenAsync(photo, Gallery.IsVisible ? Gallery.Items : _library.Items));
-        if (!photo.IsVideo) Add("Edit", async () => { await OpenAsync(photo, Gallery.IsVisible ? Gallery.Items : _library.Items); Viewer.BeginEditing(); });
+        Add("Open", () => OpenAsync(photo, Gallery.Items));
+        if (!photo.IsVideo) Add("Edit", async () => { await OpenAsync(photo, Gallery.Items); Viewer.BeginEditing(); });
         var favorite = !targets.All(item => item.IsFavorite);
         Add(favorite ? "Favorite" : "Unfavorite", () => { _library.SetFavorite(targets, favorite); return Task.CompletedTask; });
         menu.Items.Add(CreateAlbumMenu(targets));
@@ -311,8 +411,9 @@ public partial class PhotosShell : UserControl, IDisposable
     private async Task DeleteAsync(IReadOnlyList<PhotoItem> items)
     {
         if (!OperatingSystem.IsWindows() || items.Count == 0) return;
+        // One file is asked about by its name: Delete also takes the thumbnail with the focus, which shows no mark.
         if (PhotosSettings.ConfirmDelete && await new PromptDialog(L("DeleteTitle"),
-            items.Count == 1 ? L("DeleteConfirmOne") : PhotosLocalization.Format("Photos_DeleteConfirmMany", items.Count),
+            items.Count == 1 ? L("DeleteConfirmOne") + "\n" + items[0].FileName : PhotosLocalization.Format("Photos_DeleteConfirmMany", items.Count),
             accept: L("Delete"), destructive: true).ShowDialog<int>(Owner) != 1) return;
         // A video that plays in its thumbnail holds its file open, and the file would stay.
         await PhotoTile.StopPlaybackAsync(items.Select(item => item.Path));
@@ -327,9 +428,11 @@ public partial class PhotosShell : UserControl, IDisposable
         BatchFavorite.IsVisible = BatchAlbum.IsVisible = BatchCopy.IsVisible = ClearSelection.IsVisible = count > 0;
         BatchDelete.IsVisible = count > 0 && OperatingSystem.IsWindows();
         BatchRemoveAlbum.IsVisible = count > 0 && Gallery.Query.Source == PhotoSourceKind.Album;
-        if (!_library.IsScanning)
+        if (_library.HiddenFoldersError != null)
+            Status.Text = L("HiddenFoldersUnavailable");
+        else if (!_library.IsScanning)
             Status.Text = count > 0 ? PhotosLocalization.Format(count == 1 ? "Photos_SelectedOne" : "Photos_SelectedMany", count)
-                : ItemCount(Gallery.IsVisible ? Gallery.Items.Count : _library.Items.Count);
+                : ItemCount(Gallery.IsVisible ? Gallery.Items.Count : _library.VisibleLibraryItems.Count());
     }
     private async Task AddFolderAsync()
     {
@@ -356,17 +459,28 @@ public partial class PhotosShell : UserControl, IDisposable
         var title = Path.GetFileName(folder) is { Length: > 0 } name ? name : folder;
         // A folder chosen later, another page or a photo opened meanwhile cancels this one, so it cannot push the
         // gallery over what the user went on to.
+        var version = ++_openVersion;
         _browse?.Cancel();
+        _refresh?.Cancel();
         var browse = _browse = new CancellationTokenSource();
-        _browsing = true; Status.Text = L("Empty_ScanningTitle");
-        try { await _library.BrowseAsync(folder, browse.Token); }
+        _browsing = true; UpdateRefreshButtons(); Status.Text = L("Empty_ScanningTitle");
+        try
+        {
+            if (await _library.BrowseAsync(folder, browse.Token) is { } error && version == _openVersion)
+                ShowToast(error.Message, true);
+        }
         catch (OperationCanceledException) { return; }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ShowToast(ex.Message, true);
+            return;
+        }
         finally
         {
-            if (_browse == browse) { _browse = null; _browsing = false; UpdateSelection(); }
+            if (_browse == browse) { _browse = null; _browsing = false; UpdateRefreshButtons(); UpdateSelection(); }
             browse.Dispose();
         }
-        if (Viewer.IsVisible || !PhotoLibrary.PathComparer.Equals(_library.BrowsedFolder, folder)) return;
+        if (version != _openVersion || Viewer.IsVisible || !PhotoLibrary.PathComparer.Equals(_library.BrowsedFolder, folder)) return;
         await OpenCollectionAsync(PhotoSourceKind.Browsed, folder, title);
         UpdateSelection();
     }
@@ -377,7 +491,7 @@ public partial class PhotosShell : UserControl, IDisposable
     }
     private async Task RescanAsync()
     {
-        try { await _library.RescanAsync(); ShowToast(L("RescanDone")); }
+        try { await _library.RefreshAsync(null, default); ShowToast(L("RescanDone")); }
         catch (Exception ex) { ShowToast(ex.Message, true); }
     }
     private async Task ImportAsync()
@@ -399,7 +513,18 @@ public partial class PhotosShell : UserControl, IDisposable
         catch (Exception ex) { ShowToast(ex.Message, true); }
         finally { foreach (var file in files) file.Dispose(); }
     }
-    private async Task ShowSettingsAsync() => await new SettingsView(_library).ShowDialog(Owner);
+    private async Task ShowSettingsAsync()
+    {
+        var previousLabel = PhotosSettings.HiddenFolderLabel;
+        await new SettingsView(_library).ShowDialog(Owner);
+        if (previousLabel != PhotosSettings.HiddenFolderLabel)
+        {
+            Gallery.Refresh();
+            BuildHome();
+            BuildCollections();
+        }
+        UpdateFolderWatcher();
+    }
     private async void NavigateClick(object? sender, RoutedEventArgs e) { if (sender is Control { Tag: string page }) await NavigateAsync(page); }
     private async void SettingsClick(object? sender, RoutedEventArgs e) => await ShowSettingsAsync();
     private async void AddCollectionFolderClick(object? sender, RoutedEventArgs e) => await AddFolderAsync();
@@ -460,7 +585,8 @@ public partial class PhotosShell : UserControl, IDisposable
     }
     private async void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Handled) return;
+        // A menu, a flyout or an open list keeps its keys.
+        if (e.Handled || !IsEffectivelyVisible || KeyInput.IsInPopup(e)) return;
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Key == Key.F) { Search.Focus(); e.Handled = true; }
         else if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Key == Key.OemComma) { await ShowSettingsAsync(); e.Handled = true; }
         else if (e.Source is TextBox) return;
@@ -470,21 +596,52 @@ public partial class PhotosShell : UserControl, IDisposable
         else if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.Key is Key.Add or Key.OemPlus or Key.Subtract or Key.OemMinus && !Viewer.IsVisible)
         { ResizeThumbnails(e.Key is Key.Add or Key.OemPlus); e.Handled = true; }
         else if (e.Key == Key.Escape && Gallery.IsVisible) { Gallery.ClearSelection(); e.Handled = true; }
-        else if (e.Key == Key.Delete && Gallery.IsVisible) { await DeleteAsync(Selected); e.Handled = true; }
+        else if (e.Key == Key.Delete && Gallery.IsVisible)
+        {
+            e.Handled = true;
+            await DeleteWithKeyAsync();
+        }
         else if (e.Key == Key.F5 && !Viewer.IsVisible)
         {
-            var items = Gallery.IsVisible ? Gallery.Items : _library.Items;
+            var items = Gallery.IsVisible ? Gallery.Items : _library.VisibleLibraryItems.ToList();
             if (items.FirstOrDefault() is { } first) { await OpenAsync(first, items); Viewer.StartSlideshow(); }
             e.Handled = true;
         }
     }
+    // Delete takes the selection or, without one, the thumbnail the keyboard has the focus on. The focus then goes to
+    // the thumbnail that takes its place, so the keys go on from there.
+    private async Task DeleteWithKeyAsync()
+    {
+        // A held key repeats; one deletion at a time.
+        if (_deleting) return;
+        var tile = FocusedElement as PhotoTile;
+        IReadOnlyList<PhotoItem> targets = Selected is { Count: > 0 } selected ? selected
+            : tile != null && KeyInput.ShowsFocus(tile) ? [tile.Item] : [];
+        if (targets.Count == 0) return;
+        var order = Gallery.Items;
+        _deleting = true;
+        try
+        {
+            await DeleteAsync(targets);
+            if (tile != null && FocusedElement is not PhotoTile) FocusNearest(order, tile.Item, NavigationMethod.Directional);
+        }
+        catch (Exception ex) { ShowToast(ex.Message, true); }
+        finally { _deleting = false; }
+    }
     public void Dispose()
     {
+        _openVersion++;
+        StopFolderWatcher();
+        _hiddenFoldersTimer.Stop();
+        _refresh?.Cancel();
+        _browse?.Cancel();
         FlowerySizeManager.SizeChanged -= OnCardSizeChanged;
         _library.Changed -= OnLibraryChanged; _library.ScanningChanged -= OnScanning;
+        _library.HiddenFoldersChanged -= OnHiddenFoldersChanged;
         _library.ScanProgress -= OnScanProgress;
         _toastTimer.Stop(); Notifications.Items.Clear();
         Viewer.Notification -= ShowToast;
+        Viewer.MediaOpened -= UpdateViewerVisibility;
         PhotosLocalization.CultureChanged -= OnCultureChanged; Viewer.Dispose();
     }
 }

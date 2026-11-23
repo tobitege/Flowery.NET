@@ -39,6 +39,11 @@
             </WrapPanel>
             <StackPanel x:Name="Folders" Spacing="8" />
             <c:DaisyCheckBox AutomationProperties.AutomationId="SettingsView.Recursive" AutomationProperties.Name="{Binding [Photos_Settings_IncludeSubfolders]}" x:Name="Recursive" Content="{Binding [Photos_Settings_IncludeSubfolders]}" />
+            <StackPanel Spacing="6">
+              <TextBlock Text="{Binding [Photos_Settings_HiddenFolderLabel]}" TextWrapping="Wrap" />
+              <TextBox x:Name="HiddenFolderLabel" AutomationProperties.AutomationId="SettingsView.HiddenFolderLabel"
+                       AutomationProperties.Name="{Binding [Photos_Settings_HiddenFolderLabel]}" PlaceholderText="{Binding [Photos_Hidden]}" />
+            </StackPanel>
           </StackPanel>
         </c:DaisyCard>
         <c:DaisyCard Classes="photo-card">
