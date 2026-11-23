@@ -328,7 +328,7 @@ public sealed class MediaTests
         // The player, not the shell, whose thumbnails waited twenty seconds after the folder dialog of Browse… on a
         // network drive.
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        using var still = PhotoDecoder.Load(Media(name), 400);
+        using var still = PhotoDecoder.Load(Media(name), 400, TestContext.Current.CancellationToken);
         var details = VideoMetadataReader.Probe(Media(name))!.Value;
         Assert.Equal(details.Width > details.Height, still.Width > still.Height);
         Assert.Equal(details.Width / (double)details.Height, still.Width / (double)still.Height, 1);

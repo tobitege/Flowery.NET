@@ -46,7 +46,7 @@ public sealed partial class ParityTests
     [Fact]
     public void RotationKeepsCropAndMarkupAttachedToTheSamePixels()
     {
-        using var source = PhotoDecoder.Load(CreateImage());
+        using var source = PhotoDecoder.Load(CreateImage(), token: TestContext.Current.CancellationToken);
         var original = EditState.Original with
         {
             Crop = new Rect(.125, .125, .5, .25),

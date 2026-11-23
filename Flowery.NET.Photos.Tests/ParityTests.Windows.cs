@@ -16,7 +16,7 @@ public sealed partial class ParityTests
         var target = Path.ChangeExtension(source, extension);
         Assert.True(EditRenderer.CanEncode(extension));
         await EditRenderer.SaveAsync(source, target, EditState.Original.Rotate(true), 90, overwrite: false);
-        using var decoded = PhotoDecoder.Load(target);
+        using var decoded = PhotoDecoder.Load(target, token: TestContext.Current.CancellationToken);
         Assert.Equal(160, decoded.Width);
         Assert.Equal(240, decoded.Height);
         var probe = await ImageMetadataReader.ProbeAsync(target);

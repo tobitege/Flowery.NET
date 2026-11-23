@@ -651,9 +651,15 @@ namespace Flowery.NET.Photos.Services
         internal async Task<string?> ResolveVisiblePathAsync(PhotoItem item, string? openFolder, CancellationToken token = default)
         {
             if (_hiddenFolderStore == null) return item.MediaPath;
-            var (path, location, opened) = await Task.Run(() => (
-                FolderIdentity.TryResolve(item.Path), FolderIdentity.ReadFolder(item.FolderPath),
-                openFolder == null ? null : FolderIdentity.ReadFolder(openFolder)), token);
+            var (path, location, opened) = await Task.Run(() =>
+            {
+                var mediaPath = FolderIdentity.TryResolve(item.Path);
+                var itemFolder = FolderIdentity.ReadFolder(item.FolderPath);
+                FolderLocation? openedFolder = null;
+                if (openFolder != null)
+                    openedFolder = openFolder == item.FolderPath ? itemFolder : FolderIdentity.ReadFolder(openFolder);
+                return (mediaPath, itemFolder, openedFolder);
+            }, token);
             token.ThrowIfCancellationRequested();
             SyncHiddenFolders();
             if (_hiddenFolders is not { } marked) return null;
