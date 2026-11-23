@@ -268,6 +268,36 @@ public sealed class HiddenFolderTests
     }
 
     [AvaloniaFact]
+    public async Task ReopenedLibraryRecognizesAHiddenFolderThroughALinkBeforeScanning()
+    {
+        var previousState = PhotosSettings.StateDirectory;
+        var state = NewState();
+        var target = Path.Combine(state, "target");
+        var marked = Directory.CreateDirectory(Path.Combine(target, "marked")).FullName;
+        var alias = Path.Combine(state, "alias");
+        Directory.CreateSymbolicLink(alias, target);
+        var linkedFolder = Path.Combine(alias, "marked");
+        PhotosSettings.Initialize(state);
+        var writer = new PhotoLibrary();
+        var reopened = new PhotoLibrary();
+        try
+        {
+            writer.Initialize(Dispatcher.UIThread);
+            await writer.SetFolderHiddenAsync(marked, true);
+
+            reopened.Initialize(Dispatcher.UIThread);
+            Assert.True(reopened.IsFolderExplicitlyHidden(linkedFolder));
+            Assert.True(reopened.IsFolderExplicitlyHidden(marked));
+        }
+        finally
+        {
+            await writer.DisposeAsync();
+            await reopened.DisposeAsync();
+            PhotosSettings.Initialize(previousState);
+        }
+    }
+
+    [AvaloniaFact]
     public async Task TwoOpenLibrariesMergeFolderChangesAndHideAnAlreadyOpenPreview()
     {
         var previousState = PhotosSettings.StateDirectory;

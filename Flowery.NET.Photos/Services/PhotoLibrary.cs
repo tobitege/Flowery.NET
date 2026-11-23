@@ -613,7 +613,8 @@ namespace Flowery.NET.Photos.Services
         }
 
         internal bool IsFolderExplicitlyHidden(string folder) => _hiddenFolders is { Count: > 0 } &&
-            _hiddenFolders.Contains(GetFolderLocation(folder)?.Path ?? Path.TrimEndingDirectorySeparator(folder));
+            _hiddenFolders.Contains(GetFolderLocation(folder)?.Path ?? FolderIdentity.TryResolve(folder) ??
+                Path.TrimEndingDirectorySeparator(folder));
 
         internal async Task SetFolderHiddenAsync(string folder, bool hidden)
         {

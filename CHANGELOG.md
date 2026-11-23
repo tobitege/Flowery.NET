@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - The **More options** menu in the Photos viewer displays its entries on the first click and when you reopen it.
+- Photos recognizes a saved hidden-folder mark through a symbolic link before it scans the folder.
 
 ## [4.0.0] - 2026-11-06
 
